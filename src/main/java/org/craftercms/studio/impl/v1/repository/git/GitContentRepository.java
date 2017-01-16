@@ -33,10 +33,9 @@ import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
 import javax.servlet.ServletContext;
 
-import com.google.gdata.util.common.base.StringUtil;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.constant.RepoOperation;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
@@ -51,11 +50,15 @@ import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.diff.DiffEntry;
+import org.eclipse.jgit.errors.AmbiguousObjectException;
+import org.eclipse.jgit.errors.IncorrectObjectTypeException;
 import org.eclipse.jgit.internal.storage.file.LockFile;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.merge.MergeStrategy;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.revwalk.RevSort;
 import org.eclipse.jgit.revwalk.RevTree;
+import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.transport.FetchResult;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.treewalk.TreeWalk;
@@ -81,7 +84,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     @Override
     public boolean contentExists(String site, String path) {
         boolean toReturn = false;
-        Repository repo = helper.getRepository(site, StringUtil.isEmpty(site)? GitRepositories.GLOBAL:GitRepositories
+        Repository repo = helper.getRepository(site, StringUtils.isEmpty(site)? GitRepositories.GLOBAL:GitRepositories
             .SANDBOX);
 
         try {
@@ -106,7 +109,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     @Override
     public InputStream getContent(String site, String path) throws ContentNotFoundException {
         InputStream toReturn = null;
-        Repository repo = helper.getRepository(site, StringUtil.isEmpty(site)? GitRepositories
+        Repository repo = helper.getRepository(site, StringUtils.isEmpty(site)? GitRepositories
             .GLOBAL:GitRepositories.SANDBOX);
 
         try {
@@ -135,7 +138,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         // Write content to git and commit it
         String commitId = null;
 
-        Repository repo = helper.getRepository(site, StringUtil.isEmpty(site)? GitRepositories.GLOBAL:GitRepositories
+        Repository repo = helper.getRepository(site, StringUtils.isEmpty(site)? GitRepositories.GLOBAL:GitRepositories
             .SANDBOX);
 
         if (repo != null) {
@@ -156,7 +159,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         String commitId = null;
         boolean result;
         Path emptyFilePath = Paths.get(path, name, EMPTY_FILE);
-        Repository repo = helper.getRepository(site, StringUtil.isEmpty(site)? GitRepositories.GLOBAL:GitRepositories
+        Repository repo = helper.getRepository(site, StringUtils.isEmpty(site)? GitRepositories.GLOBAL:GitRepositories
             .SANDBOX);
 
         try {
@@ -204,7 +207,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     @Override
     public String deleteContent(String site, String path) {
         String commitId = null;
-        Repository repo = helper.getRepository(site, StringUtil.isEmpty(site)? GitRepositories
+        Repository repo = helper.getRepository(site, StringUtils.isEmpty(site)? GitRepositories
             .GLOBAL:GitRepositories.SANDBOX);
 
         try (Git git = new Git(repo)) {
@@ -232,7 +235,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     @Override
     public String moveContent(String site, String fromPath, String toPath, String newName) {
         String commitId = null;
-        Repository repo = helper.getRepository(site, StringUtil.isEmpty(site)? GitRepositories
+        Repository repo = helper.getRepository(site, StringUtils.isEmpty(site)? GitRepositories
             .GLOBAL:GitRepositories.SANDBOX);
         String gitFromPath = helper.getGitPath(fromPath);
         String gitToPath = helper.getGitPath(toPath + newName);
@@ -273,7 +276,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     @Override
     public String copyContent(String site, String fromPath, String toPath) {
         String commitId = null;
-        Repository repo = helper.getRepository(site, StringUtil.isEmpty(site)? GitRepositories
+        Repository repo = helper.getRepository(site, StringUtils.isEmpty(site)? GitRepositories
             .GLOBAL:GitRepositories.SANDBOX);
         String gitFromPath = helper.getGitPath(fromPath);
         String gitToPath = helper.getGitPath(toPath);
@@ -312,7 +315,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     public RepositoryItem[] getContentChildren(String site, String path) {
         // TODO: SJ: Rethink this API call for 2.7.x
         final List<RepositoryItem> retItems = new ArrayList<RepositoryItem>();
-        Repository repo = helper.getRepository(site, StringUtil.isEmpty(site)? GitRepositories
+        Repository repo = helper.getRepository(site, StringUtils.isEmpty(site)? GitRepositories
             .GLOBAL:GitRepositories.SANDBOX);
 
         try {
@@ -364,7 +367,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     @Override
     public VersionTO[] getContentVersionHistory(String site, String path) {
         List<VersionTO> versionHistory = new ArrayList<VersionTO>();
-        Repository repo = helper.getRepository(site, StringUtil.isEmpty(site)? GitRepositories
+        Repository repo = helper.getRepository(site, StringUtils.isEmpty(site)? GitRepositories
             .GLOBAL:GitRepositories.SANDBOX);
 
         try {
@@ -408,7 +411,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         String toReturn = StringUtils.EMPTY;
 
         if (majorVersion) {
-            Repository repo = helper.getRepository(site, StringUtil.isEmpty(site)? GitRepositories
+            Repository repo = helper.getRepository(site, StringUtils.isEmpty(site)? GitRepositories
                 .GLOBAL:GitRepositories.PUBLISHED);
                 // Tag the repository with a date-time based version label
                 String gitPath = helper.getGitPath(path);
@@ -458,7 +461,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     public InputStream getContentVersion(String site, String path, String version) throws ContentNotFoundException {
         InputStream toReturn = null;
 
-        Repository repo = helper.getRepository(site, StringUtil.isEmpty(site)? GitRepositories
+        Repository repo = helper.getRepository(site, StringUtils.isEmpty(site)? GitRepositories
             .GLOBAL: SANDBOX);
 
         try {
@@ -489,7 +492,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
     @Override
     public void lockItem(String site, String path) {
-        Repository repo = helper.getRepository(site, StringUtil.isEmpty(site)? GitRepositories.GLOBAL:
+        Repository repo = helper.getRepository(site, StringUtils.isEmpty(site)? GitRepositories.GLOBAL:
                 SANDBOX);
 
         try (TreeWalk tw = new TreeWalk(repo)) {
@@ -517,7 +520,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
     @Override
     public void unLockItem(String site, String path) {
-        Repository repo = helper.getRepository(site, StringUtil.isEmpty(site)? GitRepositories.GLOBAL:
+        Repository repo = helper.getRepository(site, StringUtils.isEmpty(site)? GitRepositories.GLOBAL:
                 SANDBOX);
 
         try (TreeWalk tw = new TreeWalk(repo)) {
@@ -567,7 +570,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 EnumSet<FileVisitOption> opts = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
                 Files.walkFileTree(source, opts, Integer.MAX_VALUE, tc);
 
-                Repository globalConfigRepo = helper.getRepository(StringUtil.EMPTY_STRING, GitRepositories.GLOBAL);
+                Repository globalConfigRepo = helper.getRepository(StringUtils.EMPTY, GitRepositories.GLOBAL);
                 try (Git git = new Git(globalConfigRepo)) {
 
                     Status status = git.status().call();
@@ -745,7 +748,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
     @Override
     public String getRepoLastCommitId(final String site) {
-        String toReturn = StringUtil.EMPTY_STRING;
+        String toReturn = StringUtils.EMPTY;
 
         Repository repo = helper.getRepository(site, SANDBOX);
         try {
@@ -758,16 +761,28 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         return toReturn;
     }
 
+    @Override
+    public String getRepoFirstCommitId(final String site) {
+        String toReturn = StringUtils.EMPTY;
+        Repository repo = helper.getRepository(site, SANDBOX);
+        try (RevWalk rw = new RevWalk(repo)) {
+            ObjectId head = repo.resolve(Constants.HEAD);
+            RevCommit root = rw.parseCommit(head);
+            rw.sort(RevSort.REVERSE);
+            rw.markStart(root);
+            ObjectId first = rw.next();
+            toReturn = first.getName();
+            logger.error("FIRST COMMIT ID !!!: " + toReturn);
+        } catch (IOException e) {
+            logger.error("Error getting first commit ID for site " + site, e);
+        }
+        return toReturn;
+    }
+
     List<RepoOperationTO> processDiffEntry(List<DiffEntry> diffEntries, Date commitTime) {
         List<RepoOperationTO> toReturn = new ArrayList<RepoOperationTO>();
 
         for (DiffEntry diffEntry : diffEntries) {
-            // TODO: SJ: remove these logs
-            logger.error("-------------------------");
-            logger.error("Diff new path: " + diffEntry.getNewPath());
-            logger.error("Diff old path: " + diffEntry.getOldPath());
-            logger.error("Diff change type: " + diffEntry.getChangeType());
-            logger.error("-------------------------");
 
             // Update the paths to have a preceding separator
             String pathNew = File.separator +  diffEntry.getNewPath();
