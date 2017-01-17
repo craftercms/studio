@@ -80,6 +80,33 @@
         AND path=#{path}
     </update>
 
+    <update id="updateObjectMetadata" parameterType="org.craftercms.studio.api.v1.dal.ObjectMetadata">
+        UPDATE cstudio_objectmetadata
+        SET
+            path=path,
+            name=#{name},
+            modified=#{modified},
+            modifier=#{modifier},
+            owner=#{owner},
+            creator=#{creator},
+            firstname=#{firstName},
+            lastname=#{lastName},
+            lockowner=#{lockOwner},
+            email=#{email},
+            renamed=#{renamed},
+            oldurl=#{oldUrl},
+            deleteurl=#{deleteUrl},
+            imagewidth=#{imageWidth},
+            imageheight=#{imageHeight},
+            approvedby=#{approvedBy},
+            submittedby=#{submittedBy},
+            submittedfordeletion=#{submittedForDeletion},
+            sendemail=#{sendEmail},
+            submissioncomment=#{submissionComment},
+            launchdate=#{launchDate}
+        WHERE id = #{id}
+    </update>
+
     <update id="setLockOwner" parameterType="java.util.Map">
         UPDATE cstudio_objectmetadata SET
         lockowner=#{lockOwner}
