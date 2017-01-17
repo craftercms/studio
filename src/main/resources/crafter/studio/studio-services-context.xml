@@ -889,6 +889,8 @@
         <property name="securityService" ref="cstudioSecurityService"/>
         <property name="taskExecutor" ref="studioTaskExecutor" />
         <property name="studioConfiguration" ref="studioConfiguration" />
+        <property name="siteService" ref="cstudioSiteServiceSimple" />
+        <property name="contentRepository" ref="contentRepository" />
     </bean>
 
     <bean id="studioTaskExecutor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor">

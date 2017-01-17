@@ -48,5 +48,7 @@ public interface ObjectMetadataManager {
 
     void clearRenamed(String site, String path);
 
+    void updateObjectMetadata(ObjectMetadata objectMetadata);
+
     void updateCommitId(String site, String path, String commitId);
 }
