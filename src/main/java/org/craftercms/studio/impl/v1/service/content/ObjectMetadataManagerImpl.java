@@ -53,6 +53,11 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
     }
 
     @Override
+    public void updateObjectMetadata(ObjectMetadata objectMetadata) {
+        objectMetadataMapper.updateObjectMetadata(objectMetadata);
+    }
+
+    @Override
     public ObjectMetadata getProperties(String site, String path) {
         path = path.replace("//", "/");
         Map<String, String> params = new HashMap<>();

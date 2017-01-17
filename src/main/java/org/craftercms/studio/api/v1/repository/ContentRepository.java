@@ -238,11 +238,20 @@ public interface ContentRepository {
     List<RepoOperationTO> getOperations(String site, String commitIdFrom, String commitIdTo);
 
     /**
+     * Get last commit id from repository for given site.
      *
-     * @param site
-     * @return
+     * @param site site id
+     * @return last commit id (current HEAD)
      */
     String getRepoLastCommitId(String site);
+
+    /**
+     * Get first id from repository for given site
+     *
+     * @param site site id
+     * @return first commit id
+     */
+    String getRepoFirstCommitId(String site);
 
     /*
     List<PublishTO> getPublishEvents(String site, String commitIdFrom, String commitIdTo);

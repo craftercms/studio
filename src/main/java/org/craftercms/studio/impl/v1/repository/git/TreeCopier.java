@@ -60,7 +60,6 @@ public class TreeCopier  implements FileVisitor<Path> {
         } catch (FileAlreadyExistsException x) {
             // ignore
         } catch (IOException e) {
-            e.printStackTrace();
             logger.error("Dir: " + dir.toString() + " NewDir: " + newdir.toString());
             logger.error("!!!!!!!!!!!!!!!!############# Exception is: ", e);
             logger.error("Unable to create: %s: %s%n", newdir, e);
