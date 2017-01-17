@@ -258,7 +258,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
             // The operation is done on disk, now it's time to commit
             git.add().addFilepattern(gitToPath).call();
-            // git.rm().addFilepattern(gitFromPath).call();     // TODO: SJ: Delete this line after testing
             RevCommit commit = git.commit().setOnly(gitFromPath).setOnly(gitToPath).setAuthor(helper.getCurrentUserIdent()).setCommitter(helper.getCurrentUserIdent()).setMessage("Moving " + fromPath + " to " + toPath + newName).call();
             commitId = commit.getName();
 
