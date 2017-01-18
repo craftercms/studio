@@ -19,7 +19,9 @@
 
 package org.craftercms.studio.api.v1.ebus;
 
-public abstract  class EventContext {
+import java.io.Serializable;
+
+public abstract class EventContext implements Serializable {
 
     public String getSite() {
         return site;
@@ -29,5 +31,5 @@ public abstract  class EventContext {
         this.site = site;
     }
 
-    String site;
+    protected String site;
 }

@@ -22,11 +22,11 @@ import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.craftercms.studio.api.v1.deployment.PreviewDeployer;
-import org.craftercms.studio.api.v1.ebus.PreviewSyncEventContext;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.PREVIEW_DEFAULT_CREATE_TARGET_URL;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.PREVIEW_DEFAULT_PREVIEW_DEPLOYER_URL;
 
 import java.io.IOException;
@@ -57,6 +57,40 @@ public class PreviewDeployerImpl implements PreviewDeployer {
         // TODO: SJ: Pseudo code: check if site configuration has a Preview Deployer URL, if so, return it, if not
         // TODO: SJ: return default from studioConfiguration.getProperty(PREVIEW_DEFAULT_PREVIEW_DEPLOYER_URL);
         return studioConfiguration.getProperty(PREVIEW_DEFAULT_PREVIEW_DEPLOYER_URL);
+    }
+
+    @Override
+    public boolean createTarget(String site) {
+        boolean toReturn = true;
+        String requestUrl = getDeployerCreatePreviewTargetUrl(site);
+
+        PostMethod postMethod = new PostMethod(requestUrl);
+        postMethod.getParams().setBooleanParameter(HttpMethodParams.USE_EXPECT_CONTINUE, true);
+
+        // TODO: DB: add all required params to post method
+
+        HttpClient client = new HttpClient();
+        try {
+            int status = client.executeMethod(postMethod);
+            if (status != 200) {
+                toReturn = false;
+            }
+        } catch (IOException e) {
+            logger.error("Error while sending preview sync request for site " + site, e);
+            toReturn = false;
+        } finally {
+            postMethod.releaseConnection();
+        }
+        return toReturn;
+    }
+
+    private String getDeployerCreatePreviewTargetUrl(String site) {
+        // TODO: DB: implement deployer agent configuration for preview
+        // TODO: SJ: Pseudo code: check if site configuration has a Preview Deployer URL, if so, return it, if not
+        // TODO: SJ: return default from studioConfiguration.getProperty(PREVIEW_DEFAULT_CREATE_TARGET_URL);
+        String toReturn = studioConfiguration.getProperty(PREVIEW_DEFAULT_CREATE_TARGET_URL);
+        toReturn = toReturn.replace("{siteId}", site);
+        return toReturn;
     }
 
     public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }

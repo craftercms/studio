@@ -20,12 +20,10 @@
 package org.craftercms.studio.impl.v1.service.event;
 
 import org.craftercms.studio.api.v1.deployment.PreviewDeployer;
-import org.craftercms.studio.api.v1.ebus.EventContext;
-import org.craftercms.studio.api.v1.ebus.PreviewSyncEventContext;
+import org.craftercms.studio.api.v1.ebus.PreviewEventContext;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.event.EventService;
-import org.craftercms.studio.impl.v1.deployment.PreviewDeployerImpl;
 import org.jgroups.JChannel;
 import org.jgroups.blocks.MethodCall;
 import org.jgroups.blocks.RequestOptions;
@@ -53,9 +51,9 @@ public class EventServiceImpl implements EventService {
     @Override
     public void firePreviewSyncEvent(String site) {
         try {
-            PreviewSyncEventContext context = new PreviewSyncEventContext();
+            PreviewEventContext context = new PreviewEventContext();
             context.setSite(site);
-            MethodCall call = new MethodCall(getClass().getMethod(PREVIEW_SYNC_LISTENER_METHOD, PreviewSyncEventContext.class));
+            MethodCall call = new MethodCall(getClass().getMethod(PREVIEW_SYNC_LISTENER_METHOD, PreviewEventContext.class));
             call.setArgs(context);
             rpcDispatcher.callRemoteMethods(null, call, RequestOptions.ASYNC());
         } catch (NoSuchMethodException e) {
@@ -66,8 +64,33 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public void onPreviewSyncEvent(PreviewSyncEventContext context) {
+    public void onPreviewSyncEvent(PreviewEventContext context) {
         previewDeployer.onEvent(context.getSite());
+    }
+
+    @Override
+    public boolean firePreviewCreateTargetEvent(String site) {
+        boolean toReturn = true;
+        try {
+            PreviewEventContext context = new PreviewEventContext();
+            context.setSite(site);
+            MethodCall call = new MethodCall(getClass().getMethod(PREVIEW_CREATE_TARGET_LISTENER_METHOD, PreviewEventContext.class));
+            call.setArgs(context);
+            rpcDispatcher.callRemoteMethods(null, call, RequestOptions.ASYNC());
+        } catch (NoSuchMethodException e) {
+            logger.error("Could not find listener method for event, site: " + site, e);
+            toReturn = false;
+        } catch (Exception e) {
+            logger.error("Error invoking preview sync event for site" + site, e);
+            toReturn = false;
+        }
+        return toReturn;
+    }
+
+    @Override
+    public void onCreateTargetEvent(PreviewEventContext context) {
+        String site = context.getSite();
+        previewDeployer.createTarget(site);
     }
 
     public PreviewDeployer getPreviewDeployer() { return previewDeployer; }

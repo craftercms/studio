@@ -18,15 +18,20 @@
  */
 package org.craftercms.studio.api.v1.service.event;
 
-import org.craftercms.studio.api.v1.ebus.PreviewSyncEventContext;
+import org.craftercms.studio.api.v1.ebus.PreviewEventContext;
 
 public interface EventService {
     String CLUSTER_NAME = "StudioCluster";
 
     /** Preview Sync Event listener method */
     String PREVIEW_SYNC_LISTENER_METHOD = "onPreviewSyncEvent";
+    String PREVIEW_CREATE_TARGET_LISTENER_METHOD = "onCreateTargetEvent";
 
     void firePreviewSyncEvent(String site);
 
-    void onPreviewSyncEvent(PreviewSyncEventContext context);
+    void onPreviewSyncEvent(PreviewEventContext context);
+
+    boolean firePreviewCreateTargetEvent(String site);
+
+    void onCreateTargetEvent(PreviewEventContext context);
 }
