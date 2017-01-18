@@ -204,7 +204,7 @@ public class PublishingManagerImpl implements PublishingManager {
                     PublishToTarget item = iter.next();
                     LOGGER.debug("Parsing \"{0}\" , site \"{1}\"; for publishing on target \"{2}\"", item.getPath(), item.getSite(), target.getName());
 
-                    DeploymentEventItem eventItem = new DeploymentEventItem(item.getSite(), item.getPath(), null, item.getUsername(), new Date(), null);
+                    DeploymentEventItem eventItem = new DeploymentEventItem(item.getSite(), item.getPath(), item.getOldPath(), item.getUsername(), new Date(), null);
 
                     if (StringUtils.equals(item.getAction(), PublishToTarget.Action.DELETE)) {
                         eventItem.setState(DeploymentEventItem.STATE_DELETED);
