@@ -21,5 +21,7 @@ package org.craftercms.studio.api.v1.deployment;
 
 public interface PreviewDeployer {
 
-    public void onEvent(String site);
+    void onEvent(String site);
+
+    boolean createTarget(String site);
 }

@@ -85,4 +85,6 @@ public interface DeploymentService {
     void bulkDelete(String site, String path);
 
     List<DeploymentJobTO> getDeploymentJobs();
+
+    boolean createPreviewTarget(String site);
 }

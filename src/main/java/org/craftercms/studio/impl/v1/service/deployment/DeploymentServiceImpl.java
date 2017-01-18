@@ -850,6 +850,11 @@ public class DeploymentServiceImpl implements DeploymentService {
         dmPublishService.bulkDelete(site, path);
     }
 
+    @Override
+    public boolean createPreviewTarget(String site) {
+        return eventService.firePreviewCreateTargetEvent(site);
+    }
+
     public void setServicesConfig(ServicesConfig servicesConfig) {
         this.servicesConfig = servicesConfig;
     }

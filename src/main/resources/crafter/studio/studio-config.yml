@@ -274,6 +274,8 @@ studio.contentTypes.filter.documents.includePattern: ^/document.*
 ############################################################
 # Default preview deployer URL (can be overridden per site)
 studio.preview.defaultPreviewDeployerUrl: http://localhost:9191/api/1/deployment/deploy/all.json
+# Default preview create target URL (can be overridden per site)
+studio.preview.createTargetUrl: http://localhost:9191/api/1/target/preview{siteId}?create=true&templateName=preview
 
 # studio.preview.siteDeploymentConfigFolder
 

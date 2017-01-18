@@ -330,7 +330,7 @@ public class SiteServiceImpl implements SiteService {
 			siteFeedMapper.createSite(siteFeed);
 
 			// TODO: SJ: Must call PreviewDeployer and ask it to call to create target(s) for PreviewDeployer(s)
-
+            deploymentService.createPreviewTarget(siteId);
             deploymentService.syncAllContentToPreview(siteId);
         }
 	 	catch(Exception e) {
