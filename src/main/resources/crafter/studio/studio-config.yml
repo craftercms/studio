@@ -14,7 +14,7 @@ studio.config.overrideConfig: crafter/studio/extension/studio-config.yml
 ##              Content Repository              ##
 ##################################################
 # Absolute or relative path to repository base (all actual repositories will be under this)
-studio.repo.basePath: repos
+studio.repo.basePath: ./data/repos
 # Global repository path (automatically goes under repo-base-path)
 studio.repo.globalRepoPath: global
 # Sites repositories base path (automatically goes under repo-base-path)
