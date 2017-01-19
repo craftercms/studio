@@ -235,6 +235,12 @@ public class DemoSecurityProvider implements SecurityProvider {
         // do nothing
     }
 
+    @Override
+    public boolean createUser(String username, String password, String firstName, String lastName, String email) {
+        // TODO: DB: Implement this ?
+        return false;
+    }
+
     class User {
 
         public String getUsername() { return username; }

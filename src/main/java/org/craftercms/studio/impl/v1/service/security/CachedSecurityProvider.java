@@ -147,4 +147,10 @@ public class CachedSecurityProvider implements SecurityProvider {
     public void addConfigWritePermission(String path, String group) {
         provider.addConfigWritePermission(path, group);
     }
+
+    @Override
+    public boolean createUser(String username, String password, String firstName, String lastName, String email) {
+        // TODO: DB: Implement this ?
+        return false;
+    }
 }

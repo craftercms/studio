@@ -60,4 +60,16 @@ public interface SecurityService {
     void reloadGlobalConfiguration();
 
     boolean logout();
+
+    /**
+     * Create new user with given parameters
+     *
+     * @param username username
+     * @param password password
+     * @param firstName User's first name
+     * @param lastName User's last name
+     * @param email User's email address
+     * @return true if success, otherwise false
+     */
+    boolean createUser(String username, String password, String firstName, String lastName, String email);
 }

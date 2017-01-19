@@ -76,4 +76,9 @@ class SecurityServices {
         def securityServicesImpl = ServiceFactory.getSecurityServices(context)
         return securityServicesImpl.logout();
     }
+
+    static createUser(context, username, password, firstname, lastname, email) {
+        def securityServicesImpl = ServiceFactory.getSecurityServices(context)
+        return securityServicesImpl.createUser(username, password, firstname, lastname, email)
+    }
 }

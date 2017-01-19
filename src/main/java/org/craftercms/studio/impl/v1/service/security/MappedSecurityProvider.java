@@ -139,4 +139,10 @@ public class MappedSecurityProvider implements SecurityProvider {
         SecurityProvider provider = lookupProvider(getProviderType());
         provider.addContentWritePermission(path, group);
     }
+
+    @Override
+    public boolean createUser(String username, String password, String firstName, String lastName, String email) {
+        SecurityProvider provider = lookupProvider(getProviderType());
+        return provider.createUser(username, password, firstName, lastName, email);
+    }
 }

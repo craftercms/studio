@@ -505,6 +505,11 @@ public class SecurityServiceImpl implements SecurityService {
         return toRet;
     }
 
+    @Override
+    public boolean createUser(String username, String password, String firstName, String lastName, String email) {
+        return securityProvider.createUser(username, password, firstName, lastName, email);
+    }
+
     public String getConfigPath() {
         return studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH);
     }

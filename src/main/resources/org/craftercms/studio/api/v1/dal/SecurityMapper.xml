@@ -34,4 +34,8 @@
         WHERE cstudio_user.username = #{username}
     </select>
 
+    <insert id="createUser" parameterType="java.util.Map">
+        INSERT INTO cstudio_user (username, password, firstname, lastname, email)
+        VALUES (#{username}, #{password}, #{firstname}, #{lastname}, #{email})
+    </insert>
 </mapper>
