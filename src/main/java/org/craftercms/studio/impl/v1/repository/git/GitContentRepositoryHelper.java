@@ -21,27 +21,23 @@
 package org.craftercms.studio.impl.v1.repository.git;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.channels.Channels;
+import java.nio.channels.FileChannel;
+import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.CopyOption;
-import java.nio.file.FileAlreadyExistsException;
-import java.nio.file.FileSystemLoopException;
 import java.nio.file.FileVisitOption;
-import java.nio.file.FileVisitResult;
-import java.nio.file.FileVisitor;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 
 import com.google.gdata.util.common.base.StringUtil;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
@@ -56,20 +52,23 @@ import org.eclipse.jgit.dircache.DirCache;
 import org.eclipse.jgit.errors.AmbiguousObjectException;
 import org.eclipse.jgit.errors.IncorrectObjectTypeException;
 import org.eclipse.jgit.errors.MissingObjectException;
-import org.eclipse.jgit.lib.*;
+import org.eclipse.jgit.lib.Constants;
+import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.lib.PersonIdent;
+import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
-import org.eclipse.jgit.treewalk.AbstractTreeIterator;
-import org.eclipse.jgit.treewalk.CanonicalTreeParser;
-import org.eclipse.jgit.treewalk.TreeWalk;
-import org.eclipse.jgit.util.FS;
 
-import static java.nio.file.FileVisitResult.CONTINUE;
-import static java.nio.file.FileVisitResult.SKIP_SUBTREE;
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
-import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.*;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_PARAMETER_BIG_FILE_THRESHOLD;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_PARAMETER_BIG_FILE_THRESHOLD_DEFAULT;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_PARAMETER_COMPRESSION;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_PARAMETER_COMPRESSION_DEFAULT;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_SECTION_CORE;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_COMMIT_ALL_ITEMS;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_ROOT;
 
 /**
  * Created by Sumer Jabri
@@ -458,7 +457,6 @@ public class GitContentRepositoryHelper {
         IOException, MissingObjectException {
         ObjectId lastCommitId = repository.resolve(Constants.HEAD);
 
-
         // a RevWalk allows to walk over commits based on some filtering
         try (RevWalk revWalk = new RevWalk(repository)) {
             RevCommit commit = revWalk.parseCommit(lastCommitId);
@@ -499,11 +497,21 @@ public class GitContentRepositoryHelper {
 
             // Create the file if it doesn't exist already
             if (!file.createNewFile()) {
-                logger.error("error writing file: site: " + site + " path: " + path);
+                logger.error("error creating file: site: " + site + " path: " + path);
                 result = false;
             } else {
                 // Write the bits
-                FileUtils.writeByteArrayToFile(file, IOUtils.toByteArray(content));
+                FileChannel outChannel = new FileOutputStream(file.getPath()).getChannel();
+                logger.debug("created the file output channel");
+                ReadableByteChannel inChannel = Channels.newChannel(content);
+                logger.debug("created the file input channel");
+                long amount = 1024*1024; // 1MB at a time
+                long count;
+                long offset = 0;
+                while ((count = outChannel.transferFrom(inChannel, offset, amount)) > 0) {
+                    logger.debug("writing the bits: offset = " + offset + " count: " + count);
+                    offset += count;
+                }
 
                 // Add the file to git
                 try (Git git = new Git(repo)) {
