@@ -69,4 +69,16 @@ public interface SecurityProvider {
      * @return
      */
     boolean deleteUser(String username);
+
+    /**
+     * Update user details
+     *
+     * @param username
+     * @param password
+     * @param firstName
+     * @param lastName
+     * @param email
+     * @return
+     */
+    boolean updateUser(String username, String password, String firstName, String lastName, String email);
 }
