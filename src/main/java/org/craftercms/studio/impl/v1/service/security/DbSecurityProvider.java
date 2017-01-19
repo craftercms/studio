@@ -216,6 +216,14 @@ public class DbSecurityProvider implements SecurityProvider {
         return true;
     }
 
+    @Override
+    public boolean deleteUser(String username) {
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("username", username);
+        securityMapper.deleteUser(params);
+        return true;
+    }
+
     protected StudioConfiguration studioConfiguration;
 
     public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }

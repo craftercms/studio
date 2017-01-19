@@ -510,6 +510,11 @@ public class SecurityServiceImpl implements SecurityService {
         return securityProvider.createUser(username, password, firstName, lastName, email);
     }
 
+    @Override
+    public boolean deleteUser(String username) {
+        return securityProvider.deleteUser(username);
+    }
+
     public String getConfigPath() {
         return studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH);
     }

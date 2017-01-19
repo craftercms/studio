@@ -81,4 +81,9 @@ class SecurityServices {
         def securityServicesImpl = ServiceFactory.getSecurityServices(context)
         return securityServicesImpl.createUser(username, password, firstname, lastname, email)
     }
+
+    static deleteUser(context, username) {
+        def securityServicesImpl = ServiceFactory.getSecurityServices(context)
+        return securityServicesImpl.deleteUser(username)
+    }
 }

@@ -72,4 +72,12 @@ public interface SecurityService {
      * @return true if success, otherwise false
      */
     boolean createUser(String username, String password, String firstName, String lastName, String email);
+
+    /**
+     * Delete user with given username
+     *
+     * @param username
+     * @return
+     */
+    boolean deleteUser(String username);
 }

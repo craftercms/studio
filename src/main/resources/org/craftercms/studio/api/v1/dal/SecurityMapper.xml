@@ -38,4 +38,8 @@
         INSERT INTO cstudio_user (username, password, firstname, lastname, email)
         VALUES (#{username}, #{password}, #{firstname}, #{lastname}, #{email})
     </insert>
+
+    <delete id="deleteUser" parameterType="java.util.Map">
+        DELETE FROM cstudio_user WHERE username = #{username}
+    </delete>
 </mapper>

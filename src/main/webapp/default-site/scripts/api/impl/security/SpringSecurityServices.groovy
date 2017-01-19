@@ -70,4 +70,9 @@ class SpringSecurityServices {
         def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
         return springBackedService.createUser(username, password, firstName, lastName, email)
     }
+
+    def deleteUser(username) {
+        def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
+        return springBackedService.deleteUser(username)
+    }
 }

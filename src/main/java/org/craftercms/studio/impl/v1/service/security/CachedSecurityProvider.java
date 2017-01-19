@@ -153,4 +153,10 @@ public class CachedSecurityProvider implements SecurityProvider {
         // TODO: DB: Implement this ?
         return false;
     }
+
+    @Override
+    public boolean deleteUser(String username) {
+        // TODO: DB: Implement this ?
+        return false;
+    }
 }
