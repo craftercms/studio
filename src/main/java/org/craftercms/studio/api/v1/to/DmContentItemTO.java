@@ -441,7 +441,7 @@ public class DmContentItemTO implements Serializable {
 	
 	public String getEventDate() {
 		if (_eventDate != null) {
-			SimpleDateFormat format = new SimpleDateFormat(CStudioConstants.DATE_PATTERN_WORKFLOW);
+			SimpleDateFormat format = new SimpleDateFormat(CStudioConstants.DATE_PATTERN_WORKFLOW_WITH_TZ);
 			String dateStr = ContentFormatUtils.formatDate(format, _eventDate, _timezone);
 			return dateStr;
 		} else {
@@ -451,7 +451,7 @@ public class DmContentItemTO implements Serializable {
 	
 	public String getLastEditDateAsString() {
 		if (_lastEditDate != null) {
-			SimpleDateFormat format = new SimpleDateFormat(CStudioConstants.DATE_PATTERN_WORKFLOW);
+			SimpleDateFormat format = new SimpleDateFormat(CStudioConstants.DATE_PATTERN_WORKFLOW_WITH_TZ);
 			String dateStr = ContentFormatUtils.formatDate(format, _lastEditDate, _timezone);
 			return dateStr;
 		} else {
@@ -461,7 +461,7 @@ public class DmContentItemTO implements Serializable {
 	
 	public String getScheduledDate() {
 		if (_scheduledDate != null) {
-			SimpleDateFormat format = new SimpleDateFormat(CStudioConstants.DATE_PATTERN_WORKFLOW);
+			SimpleDateFormat format = new SimpleDateFormat(CStudioConstants.DATE_PATTERN_WORKFLOW_WITH_TZ);
 			String dateStr = ContentFormatUtils.formatDate(format, _scheduledDate, _timezone);
 			return dateStr;
 		} else {

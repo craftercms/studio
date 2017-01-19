@@ -91,6 +91,10 @@
         select * from cstudio_rebuildrepositorymetadata where site = #{site} and processed = 0 limit #{batchSize}
     </select>
 
+    <select id="getNextBatchFromQueue" resultType="HashMap" databaseId="postgres">
+        select * from cstudio_rebuildrepositorymetadata where site = #{site} and processed = 0 limit #{batchSize}
+    </select>
+
     <select id="getNextBatchFromQueue" resultType="HashMap" databaseId="derby">
         select id as "id", site as "site", path as "path", processed as "processed" from cstudio_rebuildrepositorymetadata where site = #{site} and processed = 0 fetch next #{batchSize} rows only
     </select>
