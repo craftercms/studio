@@ -29,6 +29,7 @@ import org.craftercms.core.service.CacheService;
 import org.craftercms.core.util.cache.CacheTemplate;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.DmXmlConstants;
+import org.craftercms.studio.api.v1.constant.CStudioConstants;
 import org.craftercms.studio.api.v1.dal.ObjectMetadata;
 import org.craftercms.studio.api.v1.dal.ObjectState;
 import org.craftercms.studio.api.v1.ebus.EBusConstants;
@@ -45,6 +46,7 @@ import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.activity.ActivityService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.*;
+import org.craftercms.studio.api.v1.service.content.ContentItemIdGenerator;
 import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.api.v1.service.objectstate.TransitionEvent;
@@ -57,6 +59,8 @@ import org.craftercms.studio.impl.v1.service.StudioCacheContext;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentItemOrderComparator;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
+import org.craftercms.studio.impl.v1.util.PathMacrosTransaltor;
+
 import org.dom4j.Node;
 import org.dom4j.io.SAXReader;
 import org.dom4j.Document;
@@ -461,42 +465,377 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public boolean copyContent(String site, String fromPath, String toPath) {
-        return _contentRepository.copyContent(expandRelativeSitePath(site, fromPath),
-                expandRelativeSitePath(site, toPath));
+    public String copyContent(String site, String fromPath, String toPath) {
+        return copyContent(site, fromPath, toPath, new HashSet<String>());
+    }
+
+    /** 
+     * internal method copy that handles
+     * Get dependencies is already recursive 
+     */
+    protected String copyContent(String site, String fromPath, String toPath, Set<String> processedPaths) {
+        String retNewFileName = null;
+        boolean opSuccess = false;
+
+        String lifecycleOp = DmContentLifeCycleService.ContentLifeCycleOperation.COPY.toString();
+        String user = securityService.getCurrentUser();
+        String sessionTicket = securityProvider.getCurrentToken();
+
+        String copyPath = constructNewPathforCutCopy(fromPath, toPath);
+        String copyPathOnly = copyPath.substring(0, copyPath.lastIndexOf("/"));
+        String copyFileName = copyPath.substring(copyPath.lastIndexOf("/")+1);
+
+        // handle adding -# to the name
+        
+        if(!processedPaths.contains(copyPath)) { 
+
+            try {
+                ContentTypeConfigTO fromContentTypeConfig = servicesConfig.getContentTypeConfig(site, fromPath); 
+                String fromContentType = (fromContentTypeConfig!=null) ? fromContentTypeConfig.getName() : null;
+                InputStream fromContent = getContent(site, fromPath);
+                Document fromDocument = ContentUtils.convertStreamToXml(fromContent);
+                Map<String, String> fromPageIds = getContentIds(fromDocument); 
+
+                logger.info("copying file for site {0} from {1} to {2}, new name is {3}", site, fromPath, toPath, copyPath);
+
+                // come up with a new object ID and group ID for the object
+                Map<String,String> copyObjectIds = contentItemIdGenerator.getIds(); 
+
+                Map<String, String> copyDependencies = dependencyService.getCopyDependencies(site, fromPath, fromPath);
+                copyDependencies = getCopyDependencies(fromDocument, copyDependencies);
+                logger.info("--> GETTING DEPS: {0}, {1}", fromPath, copyDependencies);
+
+
+
+                // Duplicate the children 
+                for(String dependecyKey : copyDependencies.keySet()) {
+                    String dependecyPath = copyDependencies.get(dependecyKey);
+                    String copyDepPath = dependecyPath;
+                    
+                    copyDepPath = copyDepPath.replaceAll(
+                        fromPageIds.get(DmConstants.KEY_PAGE_ID), 
+                        copyObjectIds.get(DmConstants.KEY_PAGE_ID));
+                    
+                    copyDepPath = copyDepPath.replaceAll(
+                        fromPageIds.get(DmConstants.KEY_PAGE_GROUP_ID), 
+                        copyObjectIds.get(DmConstants.KEY_PAGE_GROUP_ID));
+
+                    //PathMacrosTransaltor.resolvePath(dependecyPath, copyObjectIds);
+                           //copyDepPath = copyDepPath + "/" +  dependecyPath.substring(dependecyPath.lastIndexOf("/")+1);
+
+                    logger.info("--> HANDLE DEP: {0}, {1}", dependecyPath, copyDepPath);
+                    copyContent(site, dependecyPath, copyDepPath, processedPaths);
+                }
+
+                // update the file name / folder values
+                Document copyDocument = updateContentForCopy(site, fromDocument, copyObjectIds);
+     
+                InputStream copyContent = ContentUtils.convertDocumentToStream(copyDocument, CStudioConstants.CONTENT_ENCODING);
+
+                // This code is very similar to what is in WRTIE CONTENT. Consolidate this code?
+                Map<String, String> params = new HashMap<String, String>();
+                params.put(DmConstants.KEY_SITE, site);
+                params.put(DmConstants.KEY_PATH, copyPathOnly);
+                params.put(DmConstants.KEY_FILE_NAME, copyFileName);
+                params.put(DmConstants.KEY_USER, user);
+                params.put(DmConstants.KEY_CONTENT_TYPE, fromContentType);
+                params.put(DmConstants.KEY_CREATE_FOLDERS, "true");
+                params.put(DmConstants.KEY_EDIT, "true");
+                params.put(DmConstants.KEY_ACTIVITY_TYPE, "false");
+                params.put(DmConstants.KEY_SKIP_CLEAN_PREVIEW, "true");
+                params.put(DmConstants.KEY_COPIED_CONTENT, "true");
+                params.put(DmConstants.CONTENT_LIFECYCLE_OPERATION, lifecycleOp);
+
+                String id = site + ":" + copyPathOnly + ":" + copyFileName + ":" + fromContentType;
+                
+            
+                try {
+                    generalLockService.lock(id);
+
+                    // processContent will close the input stream
+                    if (!StringUtils.isEmpty(fromContentType)) {
+                        processContent(id, fromContent, true, params, DmConstants.CONTENT_CHAIN_FORM);
+                    } else {
+                        if (copyFileName.endsWith(DmConstants.XML_PATTERN)) {
+                            // item is a content xml item
+                           processContent(id, copyContent, true, params, DmConstants.CONTENT_CHAIN_FORM);
+                        } 
+                        else {
+                            processContent(id, fromContent, false, params, DmConstants.CONTENT_CHAIN_ASSET);
+                        }
+                    }
+
+                    // I THINK this will always return null
+                    ObjectState objectState = objectStateService.getObjectState(site, copyPath);
+
+                    if (objectState == null) {
+                        ContentItemTO copyItem = getContentItem(site, copyPath, 0);
+                        objectStateService.insertNewEntry(site, copyItem);
+                        objectState = objectStateService.getObjectState(site, copyPath);
+
+                        // Do I need to do this?
+                        objectStateService.setSystemProcessing(site, copyPath, false);
+                    }
+
+                    // copy was successful, return the new name
+                    retNewFileName = copyPath;
+
+                    // Fire update events and preview sync
+                    RepositoryEventContext repositoryEventContext = new RepositoryEventContext(sessionTicket);
+                    RepositoryEventMessage message = new RepositoryEventMessage();
+
+                    message.setSite(site);
+                    message.setPath(copyPath);
+                    message.setRepositoryEventContext(repositoryEventContext);
+
+                    previewSync.syncPath(site, copyPath, repositoryEventContext);
+
+                    // not sure why item would be in cache
+                    removeItemFromCache(site, copyPath);
+                }
+                finally {
+                    generalLockService.unlock(id);
+                }
+            }
+            catch(ContentNotFoundException eContentNotFound) {
+                logger.error("Content not found while copying content for site {0} from {1} to {2}, new name is {3}", eContentNotFound, site, fromPath, toPath, copyPath);
+            }
+            catch(DocumentException eParseException) {
+                logger.error("General Error while copying content for site {0} from {1} to {2}, new name is {3}", eParseException, site, fromPath, toPath, copyPath);
+            }
+            catch(ServiceException eServiceException) {
+                logger.error("General Error while copying content for site {0} from {1} to {2}, new name is {3}", eServiceException, site, fromPath, toPath, copyPath);
+            }
+        }
+        else {
+            // no need to process
+            retNewFileName = copyPath;
+        }
+
+        return retNewFileName;
     }
 
     @Override
-    public boolean moveContent(String site, String fromPath, String toPath) {
-        boolean toRet = _contentRepository.moveContent(expandRelativeSitePath(site, fromPath),
-                expandRelativeSitePath(site, toPath));
+    public String moveContent(String site, String fromPath, String toPath) {
+        String retNewFileName = null;
+        boolean opSuccess = false;
 
-        RepositoryEventMessage message = new RepositoryEventMessage();
-        message.setSite(site);
-        message.setPath(toPath);
-        message.setOldPath(fromPath);
+        String user = securityService.getCurrentUser();
         String sessionTicket = securityProvider.getCurrentToken();
-        RepositoryEventContext repositoryEventContext = new RepositoryEventContext(sessionTicket);
-        message.setRepositoryEventContext(repositoryEventContext);
-        repositoryReactor.notify(EBusConstants.REPOSITORY_MOVE_EVENT, Event.wrap(message));
-        return toRet;
+
+        String sourcePath = (fromPath.indexOf("index.xml") != 0) ? fromPath.substring(0, fromPath.lastIndexOf("/")) : fromPath;
+        String movePath = constructNewPathforCutCopy(fromPath, toPath);
+        String movePathOnly = movePath.substring(0, movePath.lastIndexOf("/"));
+
+        //try {
+            logger.info("move file for site {0} from {1} to {2}, sourcePath {3) to new path {4}", site, fromPath, toPath,sourcePath, movePath);
+
+            // NOTE: IN WRITE SCENARIOS the repository OP IS PART of this PIPELINE, for some reason, historically with MOVE it is not
+            opSuccess = _contentRepository.moveContent(
+            expandRelativeSitePath(site, sourcePath),
+            expandRelativeSitePath(site, movePathOnly));
+
+            Map<String, String> params = new HashMap<>();
+            params.put(DmConstants.KEY_SOURCE_PATH, fromPath);
+            params.put(DmConstants.KEY_TARGET_PATH, movePath);
+            params.put(DmConstants.KEY_SOURCE_FULL_PATH, expandRelativeSitePath(site, fromPath));
+            params.put(DmConstants.KEY_TARGET_FULL_PATH, expandRelativeSitePath(site, movePath));
+
+            // preRenameCleanWorkFlow(site, sourcePath);
+
+            ContentItemTO renamedItem = getContentItem(site, movePath, 0);
+            String contentType = renamedItem.getContentType();
+            dmContentLifeCycleService.process(site, user, movePath, contentType,  DmContentLifeCycleService.ContentLifeCycleOperation.RENAME, params);
+
+            //update nav order
+            //updateContentWithNewNavOrder
+
+            String storedStagingUri = objectMetadataManager.getOldPath(site, fromPath);
+            objectStateService.updateObjectPath(site, fromPath, movePathOnly);
+            
+            //if(!objectMetadataManager.isRenamed(site, fromPath)) {
+
+            ObjectMetadata metadata = objectMetadataManager.getProperties(site, fromPath);
+            if(metadata == null) {
+                objectMetadataManager.insertNewObjectMetadata(site, fromPath);
+                metadata = objectMetadataManager.getProperties(site, fromPath);
+            }
+
+            Map<String, Object> objMetadataProps = new HashMap<String, Object>();
+            objMetadataProps.put(ObjectMetadata.PROP_RENAMED, 1);
+            objMetadataProps.put(ObjectMetadata.PROP_OLD_URL, fromPath);
+            objectMetadataManager.setObjectMetadata(site, fromPath, objMetadataProps);
+            // }
+            
+            objectMetadataManager.updateObjectPath(site, fromPath, movePath);
+            objMetadataProps = new HashMap<String, Object>();
+            objMetadataProps.put(ObjectMetadata.PROP_DELETE_URL, true);
+            objectMetadataManager.setObjectMetadata(site, movePath, objMetadataProps);
+
+            activityService.renameContentId(site, fromPath, movePath);
+
+            RepositoryEventContext repositoryEventContext = new RepositoryEventContext(sessionTicket);
+            RepositoryEventMessage message = new RepositoryEventMessage();
+
+            
+            message.setSite(site);
+            message.setPath(movePath);
+            message.setOldPath(fromPath);
+            message.setRepositoryEventContext(repositoryEventContext);
+
+            repositoryReactor.notify(EBusConstants.REPOSITORY_MOVE_EVENT, Event.wrap(message));
+            
+            // note this was not here before 
+            // assume notify takes care of this but was bot previously applied to copy
+            previewSync.syncPath(site, movePath, repositoryEventContext);
+        
+        //Nothing above throws any exceptions :(
+        //}
+        //catch(ContentNotFoundException eContentNotFound) {
+         //   logger.error("Content not found while moving content for site {0} from {1} to {2}, new name is {3}", eContentNotFound, site, fromPath, toPath, movePath);
+        //}
+
+        return movePath;
     }
 
     @Override
-    public boolean moveContent(String site, String fromPath, String toPath, String newName) {
-        boolean toRet = _contentRepository.moveContent(expandRelativeSitePath(site, fromPath),
-                expandRelativeSitePath(site, toPath), newName);
-
-        RepositoryEventMessage message = new RepositoryEventMessage();
-        message.setSite(site);
-        message.setPath(toPath + "/" + newName);
-        message.setOldPath(fromPath);
-        String sessionTicket = securityProvider.getCurrentToken();
-        RepositoryEventContext repositoryEventContext = new RepositoryEventContext(sessionTicket);
-        message.setRepositoryEventContext(repositoryEventContext);
-        repositoryReactor.notify(EBusConstants.REPOSITORY_MOVE_EVENT, Event.wrap(message));
-        return toRet;
+    public String moveContent(String site, String fromPath, String toPath, String newName) {
+        // Not sure why we need this method. Just a helper for a special case?
+        return moveContent(site, fromPath, toPath+"/"+ newName);
     }
+
+
+    protected String constructNewPathforCutCopy(String fromPath, String toPath) {
+
+        // The following rules apply to content under the site folder
+        // Example 1
+        // fromPath: "/site/website/search/index.xml"
+        // toPath:   "/site/website/products/index.xml"
+        // newPath:  "/site/website/products/search/index.xml" 
+
+        String fromPathOnly = fromPath.substring(0, fromPath.lastIndexOf("/"));
+        String fromFileNameOnly = fromPath.substring(fromPath.lastIndexOf("/")+1);
+        boolean fromFileIsIndex = ("index.xml".equals(fromFileNameOnly));
+        logger.info("cut/copy name rules FROM: {0}, {1}", fromPathOnly, fromFileNameOnly);
+
+        if(fromFileIsIndex==true) {
+            fromFileNameOnly = fromPathOnly.substring(fromPathOnly.lastIndexOf("/")+1);
+            fromPathOnly = fromPathOnly.substring(0, fromPathOnly.lastIndexOf("/"));
+            logger.info("cut/copy name rules INDEX FROM: {0}, {1}", fromPathOnly, fromFileNameOnly);
+        }
+
+        String newPathOnly = toPath.substring(0, toPath.lastIndexOf("/"));
+        String newFileNameOnly = toPath.substring(toPath.lastIndexOf("/")+1);
+        boolean newFileIsIndex = ("index.xml".equals(newFileNameOnly));
+        logger.info("cut/copy name rules TO: {0}, {1}", newPathOnly, newFileNameOnly);
+
+        if(newFileIsIndex==true) {
+            newFileNameOnly = newPathOnly.substring(newPathOnly.lastIndexOf("/")+1);
+            newPathOnly = newPathOnly.substring(0, newPathOnly.lastIndexOf("/"));
+            logger.info("cut/copy name rules INDEX TO: {0}, {1}", newPathOnly, newFileNameOnly);
+        }
+
+ 
+        String opDestPath = (fromFileIsIndex) 
+            ? newPathOnly + "/" + newFileNameOnly + "/" + fromFileNameOnly +  "/index.xml" 
+            : newPathOnly + "/" + fromFileNameOnly;
+
+        return opDestPath;
+    }
+
+    protected Map<String, String> getCopyDependencies(Document document, Map<String, String> copyDependencies) {
+        //update pageId and groupId with the new one
+        Element root = document.getRootElement();
+
+        List<Node> keys = root.selectNodes("//key");
+        if (keys != null) {
+            for(Node keyNode : keys) {
+                String keyValue = ((Element)keyNode).getText();
+                if(keyValue.contains("/page")) {
+                    copyDependencies.put(keyValue, keyValue);
+                }
+            }
+        }
+
+        List<Node> includes = root.selectNodes("//include");
+        if (includes != null) {
+            for(Node includeNode : includes) {
+                String includeValue = ((Element)includeNode).getText();
+                if(includeValue.contains("/page")) {
+                    copyDependencies.put(includeValue, includeValue);
+                }
+            }
+        }
+
+        return copyDependencies;
+    }
+
+    protected Map<String, String> getContentIds(Document document) {
+        Map<String, String> ids = new HashMap<String, String>();
+
+        Element root = document.getRootElement();
+        Node pageIdNode = root.selectSingleNode("//" + DmXmlConstants.ELM_PAGE_ID);
+        if (pageIdNode != null) {
+            ids.put(DmConstants.KEY_PAGE_ID, ((Element)pageIdNode).getText());
+        }
+
+        Node groupIdNode = root.selectSingleNode("//" + DmXmlConstants.ELM_GROUP_ID);
+        if (groupIdNode != null) {
+            ids.put(DmConstants.KEY_PAGE_GROUP_ID, ((Element)groupIdNode).getText());
+        }
+
+        return ids;
+    }
+
+    protected Document updateContentForCopy(String site, Document document, Map<String, String> params) 
+    throws ServiceException {
+        
+        //update pageId and groupId with the new one
+        Element root = document.getRootElement();
+        String originalPageId = null;
+        String originalGroupId = null;
+
+        Node pageIdNode = root.selectSingleNode("//" + DmXmlConstants.ELM_PAGE_ID);
+        if (pageIdNode != null) {
+            originalPageId = ((Element)pageIdNode).getText();
+            ((Element)pageIdNode).setText(params.get(DmConstants.KEY_PAGE_ID));
+        }
+
+        Node groupIdNode = root.selectSingleNode("//" + DmXmlConstants.ELM_GROUP_ID);
+        if (groupIdNode != null) {
+            originalGroupId = ((Element)groupIdNode).getText();
+            ((Element)groupIdNode).setText(params.get(DmConstants.KEY_PAGE_GROUP_ID));
+        }
+
+        List<Node> keys = root.selectNodes("//key");
+        if (keys != null) {
+            for(Node keyNode : keys) {
+                String keyValue = ((Element)keyNode).getText();
+                keyValue = keyValue.replaceAll(originalPageId, params.get(DmConstants.KEY_PAGE_ID));
+                keyValue = keyValue.replaceAll(originalGroupId, params.get(DmConstants.KEY_PAGE_GROUP_ID));
+
+                if(keyValue.contains("/page")) {
+                    ((Element)keyNode).setText(keyValue);
+                }
+            }
+        }
+
+        List<Node> includes = root.selectNodes("//include");
+        if (includes != null) {
+            for(Node includeNode : includes) {
+                String includeValue = ((Element)includeNode).getText();
+                includeValue = includeValue.replaceAll(originalPageId, params.get(DmConstants.KEY_PAGE_ID));
+                includeValue = includeValue.replaceAll(originalGroupId, params.get(DmConstants.KEY_PAGE_GROUP_ID));
+
+                if(includeValue.contains("/page")) {
+                    ((Element)includeNode).setText(includeValue);
+                }
+            }
+        }
+
+        return document;
+    }
+
 
     protected ContentItemTO createNewContentItemTO(String site, String contentPath) {
         ContentItemTO item = new ContentItemTO();
@@ -1468,6 +1807,8 @@ public class ContentServiceImpl implements ContentService {
     protected DmContentLifeCycleService dmContentLifeCycleService;
     protected PreviewSync previewSync;
     protected CacheTemplate cacheTemplate;
+    protected ContentItemIdGenerator contentItemIdGenerator;
+
 
     public ContentRepository getContentRepository() { return _contentRepository; }
     public void setContentRepository(ContentRepository contentRepository) { this._contentRepository = contentRepository; }
@@ -1516,4 +1857,8 @@ public class ContentServiceImpl implements ContentService {
 
     public CacheTemplate getCacheTemplate() { return cacheTemplate; }
     public void setCacheTemplate(CacheTemplate cacheTemplate) { this.cacheTemplate = cacheTemplate; }
+
+    public ContentItemIdGenerator getContentItemIdGenerator() { return contentItemIdGenerator; }
+    public void setContentItemIdGenerator(ContentItemIdGenerator contentItemIdGenerator) { this.contentItemIdGenerator = contentItemIdGenerator; }
+
 }

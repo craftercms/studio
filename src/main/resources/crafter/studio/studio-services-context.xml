@@ -70,6 +70,7 @@
         <property name="dmContentLifeCycleService" ref="cstudioContentLifeCycleService"/>
         <property name="previewSync" ref="previewSync"/>
         <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
+        <property name="contentItemIdGenerator" ref="cstudioContentIdGenerator"/>
     </bean>
 
     <!-- all of these beans below need to move off contentRepository and on to content service.  Repository is a very NARROW interface -->
@@ -332,21 +333,10 @@
         <property name="scriptExecutor" ref="studioGroovyScriptExecutor"/>
     </bean>
 
-    <bean id="cstudioClipboardService" class="org.craftercms.studio.impl.v1.service.clipboard.ClipboardServiceImpl"
-            parent="cstudioRegistrableService">
+    <bean id="cstudioClipboardService" 
+          class="org.craftercms.studio.impl.v1.service.clipboard.ClipboardServiceImpl"
+          parent="cstudioRegistrableService">
         <property name="contentService" ref="cstudioContentService"/>
-        <property name="dmRenameService" ref="cstudioRenameService"/>
-        <property name="objectStateService" ref="cstudioObjectStateService"/>
-        <property name="securityService" ref="cstudioSecurityService"/>
-        <property name="servicesConfig" ref="cstudioServicesConfig"/>
-        <property name="writeProcessor" ref="cstudioFormDmContentProcessor"/>
-        <property name="contentTypeService" ref="cstudioContentTypeService"/>
-        <property name="contentItemIdGenerator" ref="cstudioContentIdGenerator"/>
-        <property name="dmDependencyService" ref="cstudioDmDependencyService"/>
-        <property name="generalLockService" ref="cstudioGeneralLockService"/>
-        <property name="previewSync" ref="previewSync"/>
-        <property name="securityProvider" ref="securityProvider"/>
-        <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
     </bean>
 
     <bean id="cstudioRenameService" class="org.craftercms.studio.impl.v1.service.content.DmRenameServiceImpl"

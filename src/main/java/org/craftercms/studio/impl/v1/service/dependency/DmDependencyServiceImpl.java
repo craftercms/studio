@@ -176,28 +176,6 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
             DmDependencyTO item = new DmDependencyTO();
             item.setUri(path);
             if (recursive) {
-                if (ContentUtils.matchesPatterns(path, servicesConfig.getPagePatterns(site))
-                        || ContentUtils.matchesPatterns(path, servicesConfig.getComponentPatterns(site))) {
-                    /*try {
-                        Document document = this.getDocument(site, null, path);
-                        if (document == null) {
-                            return items;
-                        }
-
-                        // Check for skipDependencies flag
-                        Element root = document.getRootElement();
-                        boolean skipDependencies = false;
-                        String isSkipDependenciesValue = root.valueOf("//" + DmXmlConstants.ELM_SKIP_DEPENDENCIES);
-                        if (isSkipDependenciesValue != null && !"".equals(isSkipDependenciesValue)) {
-                            skipDependencies = ContentFormatUtils.getBooleanValue(isSkipDependenciesValue);
-                        }
-                        if (skipDependencies) {
-                            return items;
-                        }
-                    } catch (ContentNotFoundException e) {
-                        logger.error("Error while getting dependent file names for " + path + " in " + site, e);
-                    }*/
-                }
 
                 String cleanPath = getCleanPath(path);
                 Map<String, Object> params = new HashMap<>();
@@ -333,10 +311,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
                     List<String> templates = getDependentFileNames(site, buffer, populateUpdatedDependecinesOnly, servicesConfig.getRenderingTemplatePatterns(site));
                     List<DmDependencyTO> templateItems = getDependencyItems(site, templates, processedDependencies, populateUpdatedDependecinesOnly, recursive, false);
                     item.setRenderingTemplates(templateItems);
-                    /*
-                    List<String> levelDescriptors = getDependentLevelDescriptors(site, path, populateUpdatedDependecinesOnly, _servicesConfig.getLevelDescriptorName(site));
-                    List<DmDependencyTO> levelDescriptorItems = getDependencyItems(site, sub,sandbox, levelDescriptors, populateUpdatedDependecinesOnly, recursive);
-                    item.setLevelDescriptors(levelDescriptorItems);*/
+
 
                     /**
                      * get Page dependency as well
@@ -389,10 +364,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
                         List<String> templates = getDependentFileNames(site, buffer, populateUpdatedDependecinesOnly, servicesConfig.getRenderingTemplatePatterns(site));
                         List<DmDependencyTO> templateItems = getDependencyItems(site, templates, processedDependencies, populateUpdatedDependecinesOnly, recursive, false);
                         item.setRenderingTemplates(templateItems);
-                        /*
-                        List<String> levelDescriptors = getDependentLevelDescriptors(site, path, populateUpdatedDependecinesOnly, _servicesConfig.getLevelDescriptorName(site));
-                        List<DmDependencyTO> levelDescriptorItems = getDependencyItems(site, sub,sandbox, levelDescriptors, populateUpdatedDependecinesOnly, recursive);
-                        item.setLevelDescriptors(levelDescriptorItems);*/
+
 
                         /**
                          * get Page dependency as well
@@ -663,47 +635,12 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
                     // if no parent found, there is no mandatory parent (e.g. download content)
                 }
             }
-        }/*
-        boolean found = false;
-        int position = -1;
-        // add a new item as a child if the new item is a sub folder
-        // or a file under one of the top level items
-        for (int index = 0; index < items.size(); index++) {
-            ContentItemTO topLevelItem = items.get(index);
-            String categoryUri = topLevelItem.getUri();
-            categoryUri = categoryUri.replaceFirst(DmConstants.INDEX_FILE, "");
-            String topLevelItemFullPath = contentService.expandRelativeSitePath(site, topLevelItem.getUri());
-            if (item.getUri().startsWith(categoryUri)) {
-                populatePageDependencies(site, item, true);
-                boolean topLevelItemRenamed = false; // TODO: check renamed persistenceManagerService.hasAspect(topLvlItemNodeRef, CStudioContentModel.ASPECT_RENAMED);
-                topLevelItem.addChild(item, comparator, true,topLevelItemRenamed);
-                position = index;
-                found = true;
-            } else {
-                // if the top level item belongs to the current item being added
-                // replace top level item with the current item and add the top level item to the current item
-                String currentCategoryUri = item.getUri().replaceFirst(DmConstants.INDEX_FILE, "");
-                if (topLevelItem.getUri().startsWith(currentCategoryUri)) {
-                    items.remove(index);
-                    populatePageDependencies(site, item, true);
-                    item.addChild(topLevelItem, comparator, true);
-                    if (!found) {
-                        populatePageDependencies(site, item, true);
-                        items.add(index, item);
-                        found = true;
-                        position = index;
-                    }
-                }
-            }
-        }*/
-        // if not, add the new item to the top level item list
-        //if (!found) {
-            //EMO-11523 dont include page dependencies for delete flow
+        }
             if(!deleteDependencies) {
                 populatePageDependencies(site, item, true);
             }
             items.add(item);
-        //}
+ 
         includedItems.add(item.getUri());
     }
 
@@ -725,8 +662,6 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
                 flattenDependencies(topLevelItem, child.getPages(), comparator,null,referencePages);
                 // remove children and floating children since those are already added to the top level item
                 child.setChildren(null);
-                // add the current level item
-//                    topLevelItem.addChild(child, comparator, false);
             }
         }
     }
@@ -777,18 +712,6 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
             item.setPages(pageItems);
         }
     }
-/*
-    @Override
-    public List<DependencyEntity> getDirectDependencies(String site, String path) {
-        try {
-            return _dependencyDaoService.getDependencies(site, path);
-        } catch (SQLException e) {
-            if (logger.isErrorEnabled()) {
-                logger.error("Failed to get direct dependency", e);
-            }
-            return null;
-        }
-    }*/
 
     @Override
     public void extractDependencies(String site, String path, Document document, Map<String, Set<String>> globalDeps) throws ServiceException {
@@ -1064,39 +987,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
     }
 
     protected List<String> getDependentLevelDescriptors(String site, String path, boolean b, String levelDescriptorName) {
-        List<String> levelDescriptors = new ArrayList<>();/*
-        TODO: implement search for level descriptors
-        if (StringUtils.isNotBlank(path)) {
-        	PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-            ServicesConfig servicesConfig = getService(ServicesConfig.class);
-            NodeRef nodeRef = persistenceManagerService.getNodeRef(servicesConfig.getRepositoryRootPath(site));
-          
-            NodeRef ldRef = persistenceManagerService.searchSimple(nodeRef, levelDescriptorName);
-            if (ldRef != null) {
-                String ldPath = persistenceManagerService.getNodePath(ldRef);
-                if (!levelDescriptors.contains(ldPath))
-                    levelDescriptors.add(ldPath);
-            }
-            String[] pathSegments = path.split("/");
-            for (String segment : pathSegments) {
-                if (StringUtils.isNotBlank(segment)) {
-                    nodeRef = persistenceManagerService.searchSimple(nodeRef, segment);
-                    if (nodeRef != null) {
-                        ldRef = persistenceManagerService.searchSimple(nodeRef, levelDescriptorName);
-                        if (ldRef != null) {
-                            String ldPath = persistenceManagerService.getNodePath(ldRef);
-                            if (!levelDescriptors.contains(ldPath)) {
-                                DmPathTO dmPathTO = new DmPathTO(ldPath);
-                                if (!StringUtils.equalsIgnoreCase(dmPathTO.getRelativePath(), path))
-                                     levelDescriptors.add(dmPathTO.getRelativePath());
-                            }
-                        }
-                    } else {
-                        break;
-                    }
-                }
-            }
-        }*/
+        List<String> levelDescriptors = new ArrayList<>();
         return levelDescriptors;
     }
 
@@ -1182,168 +1073,9 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
 
     protected void updateDependency(String site,String state,List<DmDependencyTO> dependencies) {
         // TODO: Is this actually doing anything ?
-/*
-        if(dependencies != null) {
-            for(DmDependencyTO dependencyTo:dependencies) {
-                if (dmContentService.isNew(site, dependencyTo.getUri())) {
-                    String uri = dependencyTo.getUri();
-                    String fullPath = dmContentService.getContentFullPath(site, uri);
-                    NodeRef node = persistenceManagerService.getNodeRef(fullPath);
-                    /* Disable DRAFT repo Dejan 29.03.2012 */
-                    /*
-                    if (node == null) {z
-                        node = getNodeFromDraft(fullPath);
-                    }
-                    */
-                    /**************************************//*
-                    if(node != null) {
-                        if(!isNodeInWorkflow(node,workflowTasks)) {
-                            GoLiveQueue queue = (GoLiveQueue) _cacheManager.get(Scope.DM_SUBMITTED_ITEMS, CStudioConstants.DM_GO_LIVE_CACHE_KEY,site);
-                            if (null != queue) {
-                                queue.remove(uri);
-                            }
-                            if (uri.endsWith("/" + DmConstants.INDEX_FILE)) {
-                                String parentUri = DmUtils.getParentUrl(uri);
-                                if (null != queue) {
-                                    queue.remove(parentUri);
-                                }
-                            }
-                        }
-                    }
-                    if(dependencyTo.getUri().endsWith(DmConstants.XML_PATTERN)) {
-                        _updateDependencies(site,dependencyTo.getUri(),workflowTasks,state);
-                    }
-                }
-            }
-        }*/
     }
- /*
-    protected NodeRef getNodeFromDraft(String fullPath) {
-        String draftPath = fullPath;
-        NodeRef nodeRef = null;
-        Matcher m = DmConstants.DM_REPO_TYPE_PATH_PATTERN.matcher(fullPath);
-        if (m.matches()) {
-        	PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-            StringBuilder sb = new StringBuilder();
-            sb.append(m.group(1));
-            sb.append(m.group(2));
-            sb.append(DmConstants.DM_DRAFT_REPO_FOLDER);
-            sb.append(m.group(4));
-            draftPath = sb.toString();
-            NodeRef draftNode = persistenceManagerService.getNodeRef(draftPath);
-            String name = (String)persistenceManagerService.getProperty(draftNode, ContentModel.PROP_NAME);
-            QName assocQName = QName.createQName(ContentModel.TYPE_CONTENT.getNamespaceURI(), QName.createValidLocalName(name));
-            NodeRef parent = getWorkAreaParent(fullPath);
-            nodeRef = persistenceManagerService.copy(draftNode, parent, ContentModel.ASSOC_CONTAINS, assocQName);
-            persistenceManagerService.setProperty(nodeRef, ContentModel.PROP_NAME, name);
-            //_nodeService.removeAspect(nodeRef, CStudioContentModel.ASPECT_PREVIEWABLE_DRAFT);
-            //_nodeService.addAspect(nodeRef, CStudioContentModel.ASPECT_PREVIEWABLE, null);
-        }
-        return nodeRef;
-    }*/
-   /*
-    protected NodeRef getWorkAreaParent(String fullPath) {
-        String parentPath = DmUtils.getParentUrl(fullPath);
-        PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-        NodeRef parentNode = persistenceManagerService.getNodeRef(parentPath);
-        if (parentNode == null) {
-            NodeRef lvlUp = getWorkAreaParent(parentPath);
-            String parentName = parentPath.substring(parentPath.lastIndexOf("/") + 1);
-            parentNode = persistenceManagerService.createNewFolder(lvlUp, parentName);
-        }
-        return parentNode;
-    }
-*//*
-    protected boolean isNodeInWorkflow(NodeRef nodeDescriptor, List<WorkflowTask> workflowTasks) {
-        try {
-            List<WorkflowTask> tasks = DmWorkflowUtils.getAssociatedTasksForNode(nodeDescriptor, workflowTasks);
-            return !tasks.isEmpty();
-        } catch (Exception e) {
-            return false;
-        }
-    }
-  *//*
-	@Override
-	public Set<DmDependencyTO> getDeleteDependencies(String site,
-			String sourceContentPath, String dependencyPath,boolean isLiveRepo) throws ServiceException {
-		Set<DmDependencyTO> dependencies = new HashSet<DmDependencyTO>();
-		if(sourceContentPath.endsWith(DmConstants.XML_PATTERN) && dependencyPath.endsWith(DmConstants.XML_PATTERN)){
-			 List<DeleteDependencyConfigTO> deleteAssociations = getDeletePatternConfig(site, sourceContentPath,isLiveRepo);
-			 DmDependencyTO dmDependencyTo = getDependencies(site, null, dependencyPath, false, true);
-            if (dmDependencyTo != null) {
-                //TODO are pages also required?
-                List<DmDependencyTO> dependencyTOItems = dmDependencyTo.getDirectDependencies();//documents,assets,components
-                DmContentService dmContentService = getService(DmContentService.class);
-                PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-                for (DmDependencyTO dependency : dependencyTOItems) {
-                    String assocFilePath = dependency.getUri();
-                    for (DeleteDependencyConfigTO deleteAssoc : deleteAssociations) {
-                        if (assocFilePath.matches(deleteAssoc.getPattern())) {
-                            String fullPath = dmContentService.getContentFullPath(site, assocFilePath);
-                            NodeRef assocNode = persistenceManagerService.getNodeRef(fullPath);
-                            if (assocNode != null) {
-                                dependencies.add(dependency);
-                                dependency.setDeleteEmptyParentFolder(deleteAssoc.isRemoveEmptyFolder());
-                            }
-                        }
-                    }
-                }
-            }
-		}
-		return dependencies;
-	}*/
-	/*
-	@Override
-	public Set<DmDependencyTO> getDeleteDependencies(String site,
-			String sourceContentPath, String dependencyPath) throws ServiceException {
-		return getDeleteDependencies(site, sourceContentPath, dependencyPath, false);
-	}*/
-	/*
-	protected List<DeleteDependencyConfigTO> getDeletePatternConfig(String site, String relativePath,boolean isInLiveRepo) throws ServiceException{
-		List<DeleteDependencyConfigTO> deleteAssociations  = new FastList<DeleteDependencyConfigTO>();
-        ServicesConfig servicesConfig = getService(ServicesConfig.class);
-        PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-        String fullPath = servicesConfig.getRepositoryRootPath(site) + relativePath;
-        DmPathTO path=new DmPathTO(fullPath);
-        if(isInLiveRepo){
-        	path.setAreaName(DmConstants.DM_LIVE_REPO_FOLDER);
-        }
-        DmContentItemTO dependencyItem = persistenceManagerService.getContentItem(path.toString());
-		String contentType = dependencyItem.getContentType();
-		deleteAssociations  = servicesConfig.getDeleteDependencyPatterns(site, contentType);
-		return deleteAssociations;
-	}*/
-	/*
-	protected List<DeleteDependencyConfigTO> getDeletePatternConfig(String site, String relativePath) throws ServiceException{
-		return getDeletePatternConfig(site,relativePath,false);
-	}
-	*/
+
 	
-	/*
-	@Override
-	public List<String> extractDependenciesFromDocument(String site,
-			Document document) throws ServiceException {
-        Map<String, Set<String>> globalDeps = new FastMap<String, Set<String>>();
-		Map<String, List<String>> dependencies = extractDirectDependency(site, null, document, globalDeps);
-		List<String> allDependencies = new FastList<String>();
-		for (String type : dependencies.keySet()) {
-			List<String> files = dependencies.get(type);
-			allDependencies.addAll(files);
-		}
-		return allDependencies;
-	}*/
-	/*
-	@Override
-	public List<String> getRemovedDependenices(DiffRequest diffRequest,
-			boolean matchDeletePattern) throws ServiceException {
-        DmDependencyDiffService dmDependencyDiffService = getService(DmDependencyDiffService.class);
-		DiffResponse diffResponse = dmDependencyDiffService.diff(diffRequest);
-		List<String> removedDep = diffResponse.getRemovedDependenices();
-		if(matchDeletePattern){
-			removedDep = filterDependenicesMatchingDeletePattern(diffRequest.getSite(), diffRequest.getSourcePath(),diffResponse.getRemovedDependenices());
-		}
-		return removedDep;
-	}*/
 
     /**
      *
@@ -1413,33 +1145,6 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
         }
         return copyDependency;
     }
-
-
-
-    /**
-	 * 
-	 * @param site
-	 * @param sourcePath
-	 * @param dependencies
-	 * @return
-	 * @throws ServiceException
-	 *//*
-	protected List<String> filterDependenicesMatchingDeletePattern(String site, String sourcePath, List<String> dependencies) throws ServiceException{
-		List<String> matchingDep = new FastList<String>();
-		if(sourcePath.endsWith(DmConstants.XML_PATTERN) && sourcePath.endsWith(DmConstants.XML_PATTERN)){
-			List<DeleteDependencyConfigTO> deleteAssociations = getDeletePatternConfig(site,sourcePath);
-			if (deleteAssociations != null && deleteAssociations.size() > 0) {
-				for(String dependency:dependencies){
-					for (DeleteDependencyConfigTO deleteAssoc : deleteAssociations) {
-						if (dependency.matches(deleteAssoc.getPattern())) {
-							matchingDep.add(dependency);
-						}
-					}
-				}
-			}
-		}
-		return matchingDep;
-	}*/
 
     @Override
     public List<String> getDependencyPaths(String site, String path) {
