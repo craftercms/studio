@@ -45,11 +45,11 @@
 
     <update id="updateUser" parameterType="java.util.Map">
         UPDATE cstudio_user
-        SET
-            password = #{password},
-            firstname = #{firstname},
-            lastname = #{lastname},
-            email = #{email}
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="firstname != null">firstname = #{firstname},</if>
+            <if test="lastname != null">lastname = #{lastname},</if>
+            <if test="email != null">email = #{email}</if>
+        </trim>
         WHERE username = #{username}
     </update>
 

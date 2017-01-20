@@ -225,11 +225,9 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public boolean updateUser(String username, String password, String firstName, String lastName, String email) {
-        String hashedPassword = CipherUtils.hashPassword(password);
+    public boolean updateUser(String username, String firstName, String lastName, String email) {
         Map<String, String> params = new HashMap<String, String>();
         params.put("username", username);
-        params.put("password", hashedPassword);
         params.put("firstname", firstName);
         params.put("lastname", lastName);
         params.put("email", email);

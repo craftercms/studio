@@ -76,9 +76,9 @@ class SpringSecurityServices {
         return springBackedService.deleteUser(username)
     }
 
-    def updateUser(username, password, firstName, lastName, email) {
+    def updateUser(username,  firstName, lastName, email) {
         def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
-        return springBackedService.updateUser(username, password, firstName, lastName, email)
+        return springBackedService.updateUser(username, firstName, lastName, email)
     }
 
     def getUserDetails(username) {

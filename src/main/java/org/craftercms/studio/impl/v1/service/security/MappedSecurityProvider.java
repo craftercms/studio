@@ -153,9 +153,9 @@ public class MappedSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public boolean updateUser(String username, String password, String firstName, String lastName, String email) {
+    public boolean updateUser(String username, String firstName, String lastName, String email) {
         SecurityProvider provider = lookupProvider(getProviderType());
-        return provider.updateUser(username, password, firstName, lastName, email);
+        return provider.updateUser(username, firstName, lastName, email);
     }
 
     @Override

@@ -27,10 +27,9 @@ def slurper = new JsonSlurper()
 def parsedReq = slurper.parseText(requestBody)
 
 def username = parsedReq.username;
-def password = parsedReq.password;
 def firstname = parsedReq.first_name;
 def lastname = parsedReq.last_name;
 def email = parsedReq.email;
 
 def context = SecurityServices.createContext(applicationContext, request)
-result.result = SecurityServices.updateUser(context, username, password, firstname, lastname, email);
+result.result = SecurityServices.updateUser(context, username, firstname, lastname, email);
