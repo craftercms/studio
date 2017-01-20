@@ -184,4 +184,22 @@ public class TestSecurityProvider implements SecurityProvider {
     public void addConfigWritePermission(String path, String group) {
         // do nothing
     }
+
+    @Override
+    public boolean createUser(String username, String password, String firstName, String lastName, String email) {
+        // TODO: DB: Implement this ?
+        return false;
+    }
+
+    @Override
+    public boolean deleteUser(String username) {
+        // TODO: DB: Implement this ?
+        return false;
+    }
+
+    @Override
+    public boolean updateUser(String username, String password, String firstName, String lastName, String email) {
+        // TODO: DB: Implement this ?
+        return false;
+    }
 }

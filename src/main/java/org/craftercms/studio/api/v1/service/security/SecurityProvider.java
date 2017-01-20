@@ -49,4 +49,36 @@ public interface SecurityProvider {
     void addContentWritePermission(String path, String group);
 
     void addConfigWritePermission(String path, String group);
+
+    /**
+     * Create new user with given parameters
+     *
+     * @param username username
+     * @param password password
+     * @param firstName User's first name
+     * @param lastName User's last name
+     * @param email User's email address
+     * @return true if success, otherwise false
+     */
+    boolean createUser(String username, String password, String firstName, String lastName, String email);
+
+    /**
+     * Delete user with given username
+     *
+     * @param username
+     * @return
+     */
+    boolean deleteUser(String username);
+
+    /**
+     * Update user details
+     *
+     * @param username
+     * @param password
+     * @param firstName
+     * @param lastName
+     * @param email
+     * @return
+     */
+    boolean updateUser(String username, String password, String firstName, String lastName, String email);
 }

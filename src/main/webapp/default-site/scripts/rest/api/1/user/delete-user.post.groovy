@@ -1,6 +1,6 @@
 /*
  * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2016 Crafter Software Corporation.
+ * Copyright (C) 2007-2017 Crafter Software Corporation.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,20 +17,16 @@
  *
  */
 
-package org.craftercms.studio.api.v1.dal;
+import groovy.json.JsonSlurper
+import scripts.api.SecurityServices
 
-import java.util.List;
-import java.util.Map;
+def result = [:]
+def requestBody = request.reader.text
 
-public interface SecurityMapper {
+def slurper = new JsonSlurper()
+def parsedReq = slurper.parseText(requestBody)
 
-    User getUser(String username);
+def username = parsedReq.username;
 
-    List<Group> getUserGroups(String username);
-
-    void createUser(Map params);
-
-    void deleteUser(Map params);
-
-    void updateUser(Map params);
-}
+def context = SecurityServices.createContext(applicationContext, request)
+result.result = SecurityServices.deleteUser(context, username);

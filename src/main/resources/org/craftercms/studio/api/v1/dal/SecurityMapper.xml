@@ -34,4 +34,22 @@
         WHERE cstudio_user.username = #{username}
     </select>
 
+    <insert id="createUser" parameterType="java.util.Map">
+        INSERT INTO cstudio_user (username, password, firstname, lastname, email)
+        VALUES (#{username}, #{password}, #{firstname}, #{lastname}, #{email})
+    </insert>
+
+    <delete id="deleteUser" parameterType="java.util.Map">
+        DELETE FROM cstudio_user WHERE username = #{username}
+    </delete>
+
+    <update id="updateUser" parameterType="java.util.Map">
+        UPDATE cstudio_user
+        SET
+            password = #{password},
+            firstname = #{firstname},
+            lastname = #{lastname},
+            email = #{email}
+        WHERE username = #{username}
+    </update>
 </mapper>
