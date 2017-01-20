@@ -28,8 +28,8 @@ def parsedReq = slurper.parseText(requestBody)
 
 def username = parsedReq.username;
 def password = parsedReq.password;
-def firstname = parsedReq.firstname;
-def lastname = parsedReq.lastname;
+def firstname = parsedReq.first_name;
+def lastname = parsedReq.last_name;
 def email = parsedReq.email;
 
 def context = SecurityServices.createContext(applicationContext, request)
