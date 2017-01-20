@@ -294,7 +294,7 @@ public class ContentServiceImpl implements ContentService {
         }
         try {
             writeContent(site, path, fileName, contentType, input, createFolders, edit, unlock);
-            copyContent(site, path, targetPath);
+            moveContent(site, path, targetPath);
             //rename(site, path, targetPath, createFolder);
 
         } catch (Throwable t) {
@@ -1793,7 +1793,7 @@ public class ContentServiceImpl implements ContentService {
             generalLockService.unlock(site + ":" + path);
         }
 
-        return result;
+        return result; 
     }
 
     private ContentRepository _contentRepository;
