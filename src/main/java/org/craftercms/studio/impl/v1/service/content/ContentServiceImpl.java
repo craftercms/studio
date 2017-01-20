@@ -294,7 +294,9 @@ public class ContentServiceImpl implements ContentService {
         }
         try {
             writeContent(site, path, fileName, contentType, input, createFolders, edit, unlock);
-            rename(site, path, targetPath, createFolder);
+            copyContent(site, path, targetPath);
+            //rename(site, path, targetPath, createFolder);
+
         } catch (Throwable t) {
             logger.error("Error while executing write and rename: ", t);
         } finally {
@@ -1531,7 +1533,8 @@ public class ContentServiceImpl implements ContentService {
 
 
     protected void rename(final String site, final String path, final String targetPath,final boolean createFolder) throws ServiceException {
-        dmRenameService.rename(site, path,targetPath,createFolder);
+        //dmRenameService.rename(site, path,targetPath,createFolder);
+        moveContent(site, path, targetPath);
     }
 
     @Override
@@ -1777,18 +1780,20 @@ public class ContentServiceImpl implements ContentService {
     @Override
     public boolean renameBulk(String site, String path, String targetPath, boolean createFolder) {
         generalLockService.lock(site + ":" + path);
+        boolean result = false;
         try {
-            dmRenameService.rename(site, path, targetPath, createFolder);
-            return true;
-        } catch (ContentNotFoundException e) {
-            logger.error("Error executing bulk rename for {0}, {1} -> {2}", e, site, path, targetPath);
-            return false;
-        } catch (ServiceException e) {
-            logger.error("Error executing bulk rename for {0}, {1} -> {2}", e, site, path, targetPath);
-            return false;
-        } finally {
+            moveContent(site, path, targetPath);
+            //dmRenameService.rename(site, path, targetPath, createFolder);
+            result = true;
+//        } catch (ServiceException e) {
+//            logger.error("Error executing bulk rename for {0}, {1} -> {2}", e, site, path, targetPath);
+//            return false;
+        } 
+        finally {
             generalLockService.unlock(site + ":" + path);
         }
+
+        return result;
     }
 
     private ContentRepository _contentRepository;
