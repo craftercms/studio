@@ -35,8 +35,8 @@
     </select>
 
     <insert id="createUser" parameterType="java.util.Map">
-        INSERT INTO cstudio_user (username, password, firstname, lastname, email)
-        VALUES (#{username}, #{password}, #{firstname}, #{lastname}, #{email})
+        INSERT INTO cstudio_user (username, password, firstname, lastname, email, enabled)
+        VALUES (#{username}, #{password}, #{firstname}, #{lastname}, #{email}, 1)
     </insert>
 
     <delete id="deleteUser" parameterType="java.util.Map">

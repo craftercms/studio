@@ -80,4 +80,9 @@ class SpringSecurityServices {
         def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
         return springBackedService.updateUser(username, password, firstName, lastName, email)
     }
+
+    def getUserDetails(username) {
+        def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
+        return springBackedService.getUserProfile(username)
+    }
 }
