@@ -96,4 +96,9 @@ class SecurityServices {
         def securityServicesImpl = ServiceFactory.getSecurityServices(context)
         return securityServicesImpl.getUserDetails(username)
     }
+
+    static enableUser(context, username, enabled) {
+        def securityServicesImpl = ServiceFactory.getSecurityServices(context)
+        return securityServicesImpl.enableUser(username, enabled)
+    }
 }

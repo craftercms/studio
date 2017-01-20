@@ -202,4 +202,10 @@ public class TestSecurityProvider implements SecurityProvider {
         // TODO: DB: Implement this ?
         return false;
     }
+
+    @Override
+    public boolean enableUser(String username, boolean enabled) {
+        // TODO: DB: Implement this ?
+        return false;
+    }
 }

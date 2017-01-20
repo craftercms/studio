@@ -520,6 +520,11 @@ public class SecurityServiceImpl implements SecurityService {
         return securityProvider.updateUser(username, password, firstName, lastName, email);
     }
 
+    @Override
+    public boolean enableUser(String username, boolean enabled) {
+        return securityProvider.enableUser(username, enabled);
+    }
+
     public String getConfigPath() {
         return studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH);
     }

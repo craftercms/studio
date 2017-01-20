@@ -237,6 +237,15 @@ public class DbSecurityProvider implements SecurityProvider {
         return true;
     }
 
+    @Override
+    public boolean enableUser(String username, boolean enabled) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("username", username);
+        params.put("enabled", enabled ? 1 : 0);
+        securityMapper.enableUser(params);
+        return true;
+    }
+
     protected StudioConfiguration studioConfiguration;
 
     public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }

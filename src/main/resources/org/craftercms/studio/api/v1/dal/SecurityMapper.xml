@@ -52,4 +52,10 @@
             email = #{email}
         WHERE username = #{username}
     </update>
+
+    <update id="enableUser" parameterType="java.util.Map">
+        UPDATE cstudio_user
+        SET enabled = #{enabled}
+        WHERE username = #{username}
+    </update>
 </mapper>

@@ -35,6 +35,7 @@ public class User implements UserDetails {
     private String firstname;
     private String lastname;
     private String email;
+    private int active;
 
     private List<Long> groupIds;
     private List<Group> groups;
@@ -58,7 +59,15 @@ public class User implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return active != 0;
+    }
+
+    public int getActive() {
+        return active;
+    }
+
+    public void setActive(int active) {
+        this.active = active;
     }
 
     public void setUsername(String username) { this.username = username; }

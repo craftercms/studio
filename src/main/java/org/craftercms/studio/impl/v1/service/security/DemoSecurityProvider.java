@@ -253,6 +253,12 @@ public class DemoSecurityProvider implements SecurityProvider {
         return false;
     }
 
+    @Override
+    public boolean enableUser(String username, boolean enabled) {
+        // TODO: DB: Implement this ?
+        return false;
+    }
+
     class User {
 
         public String getUsername() { return username; }
