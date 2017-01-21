@@ -33,4 +33,6 @@ public interface SecurityMapper {
     void deleteUser(Map params);
 
     void updateUser(Map params);
+
+    void enableUser(Map params);
 }

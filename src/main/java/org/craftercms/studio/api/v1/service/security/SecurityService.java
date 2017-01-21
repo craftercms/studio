@@ -85,11 +85,19 @@ public interface SecurityService {
      * Update user details
      *
      * @param username
-     * @param password
      * @param firstName
      * @param lastName
      * @param email
      * @return
      */
-    boolean updateUser(String username, String password, String firstName, String lastName, String email);
+    boolean updateUser(String username, String firstName, String lastName, String email);
+
+    /**
+     * Enable/disable user with given username
+     *
+     * @param username username
+     * @param enabled true: enable user; false: disable user
+     * @return
+     */
+    boolean enableUser(String username, boolean enabled);
 }

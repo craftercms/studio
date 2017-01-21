@@ -87,8 +87,18 @@ class SecurityServices {
         return securityServicesImpl.deleteUser(username)
     }
 
-    static updateUser(context, username, password, firstname, lastname, email) {
+    static updateUser(context, username, firstname, lastname, email) {
         def securityServicesImpl = ServiceFactory.getSecurityServices(context)
-        return securityServicesImpl.updateUser(username, password, firstname, lastname, email)
+        return securityServicesImpl.updateUser(username, firstname, lastname, email)
+    }
+
+    static getUserDetails(context, username) {
+        def securityServicesImpl = ServiceFactory.getSecurityServices(context)
+        return securityServicesImpl.getUserDetails(username)
+    }
+
+    static enableUser(context, username, enabled) {
+        def securityServicesImpl = ServiceFactory.getSecurityServices(context)
+        return securityServicesImpl.enableUser(username, enabled)
     }
 }

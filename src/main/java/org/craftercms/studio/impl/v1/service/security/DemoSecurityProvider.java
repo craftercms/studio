@@ -248,7 +248,13 @@ public class DemoSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public boolean updateUser(String username, String password, String firstName, String lastName, String email) {
+    public boolean updateUser(String username, String firstName, String lastName, String email) {
+        // TODO: DB: Implement this ?
+        return false;
+    }
+
+    @Override
+    public boolean enableUser(String username, boolean enabled) {
         // TODO: DB: Implement this ?
         return false;
     }

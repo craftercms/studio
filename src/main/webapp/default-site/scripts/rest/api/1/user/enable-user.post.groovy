@@ -26,10 +26,8 @@ def requestBody = request.reader.text
 def slurper = new JsonSlurper()
 def parsedReq = slurper.parseText(requestBody)
 
-def username = parsedReq.username;
-def firstname = parsedReq.first_name;
-def lastname = parsedReq.last_name;
-def email = parsedReq.email;
+def username = parsedReq.username
+def enabled = parsedReq.enabled
 
 def context = SecurityServices.createContext(applicationContext, request)
-result.result = SecurityServices.updateUser(context, username, firstname, lastname, email);
+result.result = SecurityServices.enableUser(context, username, enabled);

@@ -179,14 +179,15 @@ CREATE TABLE IF NOT EXISTS `cstudio_user`
   `firstname` VARCHAR(255) NOT NULL,
   `lastname` VARCHAR(255) NOT NULL,
   `email` VARCHAR(255) NOT NULL,
+  `enabled` INT NOT NULL,
   PRIMARY KEY (`username`)
 )
   ENGINE =InnoDB
   DEFAULT CHARSET =utf8
   ROW_FORMAT=DYNAMIC ;
 
-INSERT INTO CSTUDIO_USER (USERNAME, PASSWORD, FIRSTNAME, LASTNAME, EMAIL)
-VALUES ('admin', 'vTwNOJ8GJdyrP7rrvQnpwsd2hCV1xRrJdTX2sb51i+w=|R68ms0Od3AngQMdEeKY6lA==', 'admin', 'admin', 'evaladmin@example.com') ;
+INSERT INTO CSTUDIO_USER (username, password, firstname, lastname, email, enabled)
+VALUES ('admin', 'vTwNOJ8GJdyrP7rrvQnpwsd2hCV1xRrJdTX2sb51i+w=|R68ms0Od3AngQMdEeKY6lA==', 'admin', 'admin', 'evaladmin@example.com', 1) ;
 
 CREATE TABLE CSTUDIO_GROUP
 (

@@ -516,8 +516,13 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
-    public boolean updateUser(String username, String password, String firstName, String lastName, String email) {
-        return securityProvider.updateUser(username, password, firstName, lastName, email);
+    public boolean updateUser(String username, String firstName, String lastName, String email) {
+        return securityProvider.updateUser(username, firstName, lastName, email);
+    }
+
+    @Override
+    public boolean enableUser(String username, boolean enabled) {
+        return securityProvider.enableUser(username, enabled);
     }
 
     public String getConfigPath() {

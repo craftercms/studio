@@ -35,8 +35,8 @@
     </select>
 
     <insert id="createUser" parameterType="java.util.Map">
-        INSERT INTO cstudio_user (username, password, firstname, lastname, email)
-        VALUES (#{username}, #{password}, #{firstname}, #{lastname}, #{email})
+        INSERT INTO cstudio_user (username, password, firstname, lastname, email, enabled)
+        VALUES (#{username}, #{password}, #{firstname}, #{lastname}, #{email}, 1)
     </insert>
 
     <delete id="deleteUser" parameterType="java.util.Map">
@@ -45,11 +45,17 @@
 
     <update id="updateUser" parameterType="java.util.Map">
         UPDATE cstudio_user
-        SET
-            password = #{password},
-            firstname = #{firstname},
-            lastname = #{lastname},
-            email = #{email}
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="firstname != null">firstname = #{firstname},</if>
+            <if test="lastname != null">lastname = #{lastname},</if>
+            <if test="email != null">email = #{email}</if>
+        </trim>
+        WHERE username = #{username}
+    </update>
+
+    <update id="enableUser" parameterType="java.util.Map">
+        UPDATE cstudio_user
+        SET enabled = #{enabled}
         WHERE username = #{username}
     </update>
 </mapper>
