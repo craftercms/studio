@@ -727,6 +727,12 @@ public class ContentServiceImpl implements ContentService {
         return movePath;
     }
 
+    @Override
+    public String moveContent(String site, String fromPath, String toPath, String newName) {
+        // Not sure why we need this method. Just a helper for a special case?
+        return moveContent(site, fromPath, toPath+"/"+ newName);
+    }
+
     protected void updateChildrenForMove(String site, String fromPath, String movePath, ContentItemTO moveDepsRoot) {
         logger.info("updateChildObjectStateForMove HANDLING {0}, {1}", fromPath, movePath);
 
@@ -798,12 +804,6 @@ public class ContentServiceImpl implements ContentService {
                 logger.error("Error trying update object state item on move for path {0}", errUpdatePathFailure, childFromPath);
             }         
         }
-    }
-
-    @Override
-    public String moveContent(String site, String fromPath, String toPath, String newName) {
-        // Not sure why we need this method. Just a helper for a special case?
-        return moveContent(site, fromPath, toPath+"/"+ newName);
     }
 
 
