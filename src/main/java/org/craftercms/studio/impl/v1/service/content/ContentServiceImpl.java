@@ -676,7 +676,7 @@ public class ContentServiceImpl implements ContentService {
             //updateContentWithNewNavOrder
 
             // remove old paths from cache
-            removeItemFromCache(site, movePath);
+            removeItemFromCache(site, fromPath);
 
             // change the path of this object in the object state database
             objectStateService.updateObjectPath(site, fromPath, movePath);
