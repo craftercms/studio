@@ -744,6 +744,8 @@ public class ContentServiceImpl implements ContentService {
 
                 // do the update in the database
                 objectStateService.updateObjectPath(site, childFromPath, childToPath);
+                ContentItemTO movedChildTO = getContentItem(site, childToPath, 0);           
+                objectStateService.transition(site, movedChildTO, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.SAVE);
 
                 // update metadata
                  ObjectMetadata metadata = objectMetadataManager.getProperties(site, childFromPath);
@@ -768,6 +770,25 @@ public class ContentServiceImpl implements ContentService {
                 
                 // remove old child item from cache
                 removeItemFromCache(site, childFromPath);
+
+
+                // fire events and sync preview
+                String user = securityService.getCurrentUser();
+                String sessionTicket = securityProvider.getCurrentToken();
+
+                RepositoryEventContext repositoryEventContext = new RepositoryEventContext(sessionTicket);
+                RepositoryEventMessage message = new RepositoryEventMessage();
+
+                message.setSite(site);
+                message.setPath(childToPath);
+                message.setOldPath(childFromPath);
+                message.setRepositoryEventContext(repositoryEventContext);
+
+                repositoryReactor.notify(EBusConstants.REPOSITORY_MOVE_EVENT, Event.wrap(message));
+                
+                // note this was not here before 
+                // assume notify takes care of this but was bot previously applied to copy
+                previewSync.syncPath(site, childToPath, repositoryEventContext);
 
                 // handle this child's children
                 updateChildrenForMove(site, childFromPath, childToPath, childTO);
