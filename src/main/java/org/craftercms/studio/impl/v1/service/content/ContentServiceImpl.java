@@ -483,7 +483,7 @@ public class ContentServiceImpl implements ContentService {
         String copyPath = null;
 
         try {
-            Map<String, String> copyPathMap = constructNewPathforCutCopy(site, fromPath, toPath);
+            Map<String, String> copyPathMap = constructNewPathforCutCopy(site, fromPath, toPath, true);
             copyPath = copyPathMap.get("FILENAME");
             String copyPathModifier = copyPathMap.get("MODIFIER");
             String copyPathOnly = copyPath.substring(0, copyPath.lastIndexOf("/"));
@@ -642,7 +642,7 @@ public class ContentServiceImpl implements ContentService {
 
         try {
             String sourcePath = (fromPath.indexOf("index.xml") != 0) ? fromPath.substring(0, fromPath.lastIndexOf("/")) : fromPath;
-            Map<String, String> movePathMap = constructNewPathforCutCopy(site, fromPath, toPath);
+            Map<String, String> movePathMap = constructNewPathforCutCopy(site, fromPath, toPath, true);
             movePath = movePathMap.get("FILENAME");
             String movePathOnly = movePath.substring(0, movePath.lastIndexOf("/"));
 
@@ -675,14 +675,16 @@ public class ContentServiceImpl implements ContentService {
             //update nav order
             //updateContentWithNewNavOrder
 
+            // remove old paths from cache
+            removeItemFromCache(site, movePath);
+
             // change the path of this object in the object state database
             objectStateService.updateObjectPath(site, fromPath, movePath);
             
             // update the sstate of children (recursive)
-            updateChildObjectStateForMove(site, fromPath, movePath, moveDepsRoot);
+            updateChildrenForMove(site, fromPath, movePath, moveDepsRoot);
 
-            //if(!objectMetadataManager.isRenamed(site, fromPath)) {
-
+            // update metadata
             ObjectMetadata metadata = objectMetadataManager.getProperties(site, fromPath);
             if(metadata == null) {
                 objectMetadataManager.insertNewObjectMetadata(site, fromPath);
@@ -693,19 +695,19 @@ public class ContentServiceImpl implements ContentService {
             objMetadataProps.put(ObjectMetadata.PROP_RENAMED, 1);
             objMetadataProps.put(ObjectMetadata.PROP_OLD_URL, fromPath);
             objectMetadataManager.setObjectMetadata(site, fromPath, objMetadataProps);
-            // }
-            
+
             objectMetadataManager.updateObjectPath(site, fromPath, movePath);
             objMetadataProps = new HashMap<String, Object>();
             objMetadataProps.put(ObjectMetadata.PROP_DELETE_URL, true);
             objectMetadataManager.setObjectMetadata(site, movePath, objMetadataProps);
 
+            // write activity stream
             activityService.renameContentId(site, fromPath, movePath);
 
+            // fire events and sync preview
             RepositoryEventContext repositoryEventContext = new RepositoryEventContext(sessionTicket);
             RepositoryEventMessage message = new RepositoryEventMessage();
 
-            
             message.setSite(site);
             message.setPath(movePath);
             message.setOldPath(fromPath);
@@ -725,26 +727,50 @@ public class ContentServiceImpl implements ContentService {
         return movePath;
     }
 
-    protected void updateChildObjectStateForMove(String site, String fromPath, String movePath, ContentItemTO moveDepsRoot) {
+    protected void updateChildrenForMove(String site, String fromPath, String movePath, ContentItemTO moveDepsRoot) {
         logger.info("updateChildObjectStateForMove HANDLING {0}, {1}", fromPath, movePath);
 
         List<ContentItemTO> childrenTOs = moveDepsRoot.getChildren();
 
         for(ContentItemTO childTO : childrenTOs) {
             String childFromPath = childTO.getUri();
-            logger.info("updateChildObjectStateForMove HANDLING CHILD {0} FROM: ", childFromPath);
+            logger.info("updateChildObjectStateForMove HANDLING CHILD FROM: {0}  ", childFromPath);
             try {
                 // construct the new path for the child
-                Map<String, String> childToPathMap = constructNewPathforCutCopy(site, childFromPath, movePath);
+                Map<String, String> childToPathMap = constructNewPathforCutCopy(site, childFromPath, movePath, false);
                 String childToPath = childToPathMap.get("FILENAME");
 
-                logger.info("updateChildObjectStateForMove HANDLING CHILD {0} TO: ", childToPath);
+                logger.info("updateChildObjectStateForMove HANDLING CHILD TO: {0}  ", childToPath);
 
-                // do the update in the database'
+                // do the update in the database
                 objectStateService.updateObjectPath(site, childFromPath, childToPath);
+
+                // update metadata
+                 ObjectMetadata metadata = objectMetadataManager.getProperties(site, childFromPath);
+                if(metadata == null) {
+                    objectMetadataManager.insertNewObjectMetadata(site, childFromPath);
+                    metadata = objectMetadataManager.getProperties(site, childFromPath);
+                }
+
+                Map<String, Object> objMetadataProps = new HashMap<String, Object>();
+                objMetadataProps.put(ObjectMetadata.PROP_RENAMED, 1);
+                objMetadataProps.put(ObjectMetadata.PROP_OLD_URL, childFromPath);
+                objectMetadataManager.setObjectMetadata(site, childFromPath, objMetadataProps);
+
+                objectMetadataManager.updateObjectPath(site, childFromPath, childToPath);
                 
+                objMetadataProps = new HashMap<String, Object>();
+                objMetadataProps.put(ObjectMetadata.PROP_DELETE_URL, true);
+                objectMetadataManager.setObjectMetadata(site, childFromPath, objMetadataProps);
+
+                // write activity stream
+                activityService.renameContentId(site, childFromPath, childToPath);
+                
+                // remove old child item from cache
+                removeItemFromCache(site, childFromPath);
+
                 // handle this child's children
-                updateChildObjectStateForMove(site, childFromPath, childToPath, childTO);
+                updateChildrenForMove(site, childFromPath, childToPath, childTO);
 
             }
             catch(ServiceException errUpdatePathFailure) {
@@ -760,7 +786,7 @@ public class ContentServiceImpl implements ContentService {
     }
 
 
-    protected Map<String, String> constructNewPathforCutCopy(String site, String fromPath, String toPath) 
+    protected Map<String, String> constructNewPathforCutCopy(String site, String fromPath, String toPath, boolean adjustOnCollide) 
     throws ServiceException {
          Map<String, String> result = new HashMap<String, String>(); 
         
@@ -821,20 +847,24 @@ public class ContentServiceImpl implements ContentService {
                 // this is a rename
                 logger.info("A-A1 RENAME");
                 proposedDestPath = newPathOnly + "/" + newFileNameOnly +  "/index.xml"; 
+                logger.info("Initial Proposed Path: {0} ", proposedDestPath);
             }
             else {
                 // this is a location move
                 logger.info("A-A2 MOVE LOCATION");
                 proposedDestPath = newPathOnly + "/" + newFileNameOnly + "/" + fromFileNameOnly +  "/index.xml"; 
+                logger.info("Initial Proposed Path: {0} ", proposedDestPath);
             }
         }
         else if(!fromFileIsIndex && newFileIsIndex) {
             logger.info("A-B");
-            proposedDestPath = newPathOnly + "/" + newFileNameOnly + "/" + fromFileNameOnly;   
+            proposedDestPath = newPathOnly + "/" + newFileNameOnly + "/" + fromFileNameOnly; 
+            logger.info("Initial Proposed Path: {0} ", proposedDestPath);  
         }
         else{
             logger.info("A-C");
             proposedDestPath = newPathOnly + "/" + fromFileNameOnly;
+            logger.info("Initial Proposed Path: {0} ", proposedDestPath);
         }
 
         result.put("FILENAME", proposedDestPath);
@@ -843,7 +873,10 @@ public class ContentServiceImpl implements ContentService {
         boolean contentExists = false;
 
         try {
-           contentExists = contentExists(site, proposedDestPath);
+           if(adjustOnCollide == true) {
+               // if adjustOnCollide is true we need to check, otherwise we dont
+               contentExists = contentExists(site, proposedDestPath);
+           }
         }
         catch(Exception contentExistsErr) {
             // what can cause this error?  
@@ -851,7 +884,8 @@ public class ContentServiceImpl implements ContentService {
             // swallow it for now, the error will come when we try a write
         }
 
-        if(contentExists) {
+        if(adjustOnCollide && contentExists) {
+            logger.info("File already found at path {0}, creating new name", proposedDestPath);
             try {
                 Map<String,String> ids = contentItemIdGenerator.getIds(); 
                 String id = ids.get(DmConstants.KEY_PAGE_GROUP_ID);
