@@ -19,7 +19,6 @@ package org.craftercms.studio.impl.v1.service.content;
 
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.core.service.CacheService;
-import org.craftercms.core.util.cache.CacheTemplate;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.ObjectMetadata;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
@@ -28,17 +27,12 @@ import org.craftercms.studio.api.v1.listener.DmWorkflowListener;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.AbstractRegistrableService;
-import org.craftercms.studio.api.v1.service.GeneralLockService;
-import org.craftercms.studio.api.v1.service.activity.ActivityService;
 import org.craftercms.studio.api.v1.service.content.ContentService;
-import org.craftercms.studio.api.v1.service.content.DmContentLifeCycleService;
 import org.craftercms.studio.api.v1.service.content.DmRenameService;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
 import org.craftercms.studio.api.v1.service.dependency.DependencyRules;
-import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
 import org.craftercms.studio.api.v1.service.deployment.DmPublishService;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
-import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.workflow.WorkflowService;
 import org.craftercms.studio.api.v1.service.workflow.context.GoLiveContext;
 import org.craftercms.studio.api.v1.service.workflow.context.MultiChannelPublishingContext;
@@ -65,14 +59,6 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
         getServicesManager().registerService(DmRenameService.class, this);
     }
 
-
-    protected String getIndexFilePath(String path){
-        if(!path.endsWith(DmConstants.XML_PATTERN)){
-            path = path + "/" + DmConstants.INDEX_FILE;
-        }
-        return path;
-    }
-
     /**
      * Is provided node renamed?
      *
@@ -85,16 +71,6 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
             // if not xml or a folder, skip checking if renamed
             return false;
         }
-    }
-
-    /**
-     * Is provided node renamed?
-     * we always look into index.xml for node properties
-     *
-     */
-    @Override
-    public boolean isItemRenamed(String site, String uri){
-        return objectMetadataManager.isRenamed(site, uri);
     }
 
     /**
@@ -124,6 +100,15 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
     }
 
     /**
+     * Is provided node renamed?
+     * we always look into index.xml for node properties
+     *
+     */
+    protected boolean isItemRenamed(String site, String uri){
+        return objectMetadataManager.isRenamed(site, uri);
+    }
+
+        /**
      *
      * Prepares and starts workflow
      *
@@ -224,6 +209,7 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
         return childUri;
     }
 
+
     protected List<String> getChildrenUri(String site, String path, List<String> paths){
         ContentItemTO itemTree = contentService.getContentItemTree(site, path, 1);
         if (itemTree.getNumOfChildren() > 0) {
@@ -233,19 +219,6 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
         }
         paths.add(itemTree.getUri());
         return paths;
-    }
-
-    /**
-     * Cut/paste a tree. Cut any child in this hirarchy and paste it somewhere outside.
-     * There is a limitation that we cannot push a deleted child to staging wiothout pushing the deleted parent.
-     * In such scenario we need to push the deleted parent as well. This api returns false in such case
-     * @param site
-     * @param uri
-     * @return false if we push the renamed child without pushing the renamed parent.
-     */
-    protected boolean isRenameDeleteTag(String site,String uri) {
-        ObjectMetadata metadata = objectMetadataManager.getProperties(site, uri);
-        return StringUtils.isEmpty(metadata.getDeleteUrl());
     }
 
     /**
@@ -286,327 +259,13 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
         return depedencyPaths;
     }
 
-    /**
-     * Move the node and all its descendant to the target path. Status of the descendant node will be maintained
-     *
-     * Adds two node property
-     * 	PROP_RENAMED_OLDURL - for the node and all its descendant with the staging url
-     * 	PROP_RENAMED_DELETEFLAG - to indicate if the url has to be submitted for delete during golive
-     *
-     *  @param sourcePath - source uri
-     *  @param targetPath - destination uri
-     *  @param createFolder - not used
-     *
-     * @throws ContentNotFoundException
-     */
-    @Override
-    public void rename(String site, String sourcePath, String targetPath,	boolean createFolder) throws ServiceException, ContentNotFoundException {
-        long start = System.currentTimeMillis();
-        // get index path
-        if (!sourcePath.endsWith(DmConstants.XML_PATTERN)) {
-            sourcePath = (sourcePath.endsWith("/")) ? sourcePath + DmConstants.INDEX_FILE : sourcePath + "/" + DmConstants.INDEX_FILE;
-        }
-        // get index path
-        if (!targetPath.endsWith(DmConstants.XML_PATTERN)) {
-            targetPath = (targetPath.endsWith("/")) ? targetPath + DmConstants.INDEX_FILE : targetPath + "/" + DmConstants.INDEX_FILE;
-        }
-        logger.debug("Rename - starting to move contents from source:"+sourcePath+" to destination: "+targetPath);
-
-        String user = securityService.getCurrentUser();
-
-        //source paths
-        String srcOrgFullPath = contentService.expandRelativeSitePath(site, sourcePath);
-        String dstOrgFullPath = contentService.expandRelativeSitePath(site, targetPath);
-        String srcFullPath = srcOrgFullPath;
-        if(srcFullPath.endsWith(DmConstants.INDEX_FILE)){
-            srcFullPath = ContentUtils.getParentUrl(srcFullPath);
-        }
-        String srcNodeName = ContentUtils.getPageName(srcFullPath);
-        String srcNodeParentUrl= ContentUtils.getParentUrl(srcFullPath);
-        //destination paths
-        String dstFullPath = dstOrgFullPath;
-        if(dstFullPath.endsWith("/" + DmConstants.INDEX_FILE)){
-            dstFullPath = ContentUtils.getParentUrl(dstFullPath);
-        }
-        if (dstFullPath == null) {
-            throw new ServiceException("Error while moving content. " + targetPath + " is not valid.");
-        }
-        String dstNodeName = ContentUtils.getPageName(dstFullPath);
-        String dstNodeParentUrl = ContentUtils.getParentUrl(dstFullPath);
-
-        preRenameCleanWorkFlow(site, sourcePath);
-
-        String dstNodeParentPath = contentService.getRelativeSitePath(site, dstNodeParentUrl);
-        String dstPath = contentService.getRelativeSitePath(site, dstFullPath);
-
-        if (srcNodeParentUrl.equalsIgnoreCase(dstNodeParentUrl)) {
-            ContentItemTO srcItem = contentService.getContentItem(srcFullPath);
-            if (srcItem != null && srcItem.isFolder() && dstFullPath.endsWith(DmConstants.XML_PATTERN)) {
-                contentService.moveContent(site, contentService.getRelativeSitePath(site, srcFullPath), targetPath);
-            } else if (srcItem != null && !srcItem.isFolder()
-                            && !dstFullPath.endsWith(DmConstants.XML_PATTERN)) {
-                contentService.createFolder(site, dstNodeParentPath, dstNodeName);
-                contentService.moveContent(site, contentService.getRelativeSitePath(site, srcFullPath), dstPath);
-            } else {
-                contentService.moveContent(site, contentService.getRelativeSitePath(site, srcFullPath), ContentUtils.getParentUrl(dstPath), ContentUtils.getPageName(dstPath));
-            }
-        } else {
-            if (dstPath.endsWith("/" + DmConstants.INDEX_FILE)) {
-                dstPath = dstPath.replace("/" + DmConstants.INDEX_FILE, "");
-                dstNodeParentPath = ContentUtils.getParentUrl(dstPath);
-                dstNodeName = ContentUtils.getPageName(dstPath);
-                if (!contentService.contentExists(site, dstPath)) {
-                    contentService.createFolder(site, dstNodeParentPath, dstNodeName);
-                }
-                contentService.moveContent(site, contentService.getRelativeSitePath(site, srcFullPath), dstPath, DmConstants.INDEX_FILE);
-            } else {
-                dstNodeParentPath = ContentUtils.getParentUrl(dstPath);
-                dstNodeName = ContentUtils.getPageName(dstPath);
-                if (!contentService.contentExists(site, dstNodeParentPath)) {
-                    contentService.createFolder(site, ContentUtils.getParentUrl(dstNodeParentPath), ContentUtils.getPageName(dstNodeParentPath));
-                }
-                contentService.moveContent(site, contentService.getRelativeSitePath(site, srcFullPath), dstNodeParentPath, dstNodeName);
-            }
-        }
-        removeItemFromCache(site, sourcePath);
-        removeItemFromCache(site, targetPath);
-        if (sourcePath.endsWith("/" + DmConstants.INDEX_FILE)) {
-            removeItemFromCache(site, sourcePath.replaceAll("/" + DmConstants.INDEX_FILE, ""));
-        }
-
-        ContentItemTO item = contentService.getContentItem(site, contentService.getRelativeSitePath(site, dstFullPath));
-        if (item == null) {
-            throw new ContentNotFoundException("Error while moving content " + dstFullPath + " does not exist.");
-        }
-
-        String renamedUri = targetPath;
-        String storedStagingUri = objectMetadataManager.getOldPath(site, sourcePath);
-        objectStateService.updateObjectPath(site, sourcePath, renamedUri);
-        if (!objectMetadataManager.isRenamed(site, sourcePath)) {
-            ObjectMetadata metadata = objectMetadataManager.getProperties(site, sourcePath);
-            if (metadata == null) {
-                objectMetadataManager.insertNewObjectMetadata(site, sourcePath);
-                metadata = objectMetadataManager.getProperties(site, sourcePath);
-            }
-            Map<String, Object> properties = new HashMap<String, Object>();
-            properties.put(ObjectMetadata.PROP_RENAMED, 1);
-            properties.put(ObjectMetadata.PROP_OLD_URL, sourcePath);
-            objectMetadataManager.setObjectMetadata(site, sourcePath, properties);
-        }
-        objectMetadataManager.updateObjectPath(site, sourcePath, renamedUri);
-        updateActivity(site, sourcePath, renamedUri);
-
-        if(StringUtils.isNotEmpty(storedStagingUri)){
-            addRenameUriDeleteProperty(site, renamedUri);
-        }
-
-        //update cache and add node property to all children with oldurl if required
-        postRenameUpdateStatus(user, site, targetPath, sourcePath, true);
-
-        // run through the lifecycle service
-        Map<String, String> params = new HashMap<>();
-        params.put(DmConstants.KEY_SOURCE_PATH, sourcePath);
-        params.put(DmConstants.KEY_TARGET_PATH, targetPath);
-        params.put(DmConstants.KEY_SOURCE_FULL_PATH, srcOrgFullPath);
-        params.put(DmConstants.KEY_TARGET_FULL_PATH, dstOrgFullPath);
-
-        ContentItemTO renamedItem = contentService.getContentItem(site, targetPath, 0);
-        String contentType = renamedItem.getContentType();
-        dmContentLifeCycleService.process(site, user, targetPath, contentType,
-                DmContentLifeCycleService.ContentLifeCycleOperation.RENAME, params);
-
-        objectStateService.setSystemProcessing(site, renamedUri, false);
-        long end = System.currentTimeMillis();
-        logger.debug("Total time to rename = " + (end - start));
-    }
-
-    protected void removeItemFromCache(String site, String path) {
-        CacheService cacheService = cacheTemplate.getCacheService();
-        StudioCacheContext cacheContext = new StudioCacheContext(site, false);
-        Object cacheKey = cacheTemplate.getKey(site, path);
-        generalLockService.lock(cacheContext.getId());
-        try {
-            if (!cacheService.hasScope(cacheContext)) {
-                cacheService.addScope(cacheContext);
-            }
-        } finally {
-            generalLockService.unlock(cacheContext.getId());
-        }
-        cacheService.remove(cacheContext, cacheKey);
-    }
-
-
-    /**
-     * Remove any old uri from the workflow and puts it them to in progress
-     *
-     * @param site
-     * @param path
-     */
-    protected void preRenameCleanWorkFlow(String site, String path ) throws ServiceException {
-        if(path.endsWith(DmConstants.INDEX_FILE)){
-            path = ContentUtils.getParentUrl(path);
-        }
-        ContentItemTO item = contentService.getContentItem(site, path);
-        List<String> childUris = new ArrayList<>();
-        if (item != null) {
-            getChildrenUri(site, item.getUri(), childUris);
-        }
-        try{
-            List<String> transitionNodes = new ArrayList<String>();
-            for(String childUri: childUris){
-                workflowService.removeFromWorkflow(site, childUri, true);
-                ContentItemTO childItem = contentService.getContentItem(site, getIndexFilePath(childUri));
-                if (childItem != null) {
-                    transitionNodes.add(childUri);
-                }
-            }
-            if (!transitionNodes.isEmpty()) {
-                objectStateService.transitionBulk(site, transitionNodes, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.SAVE, org.craftercms.studio.api.v1.service.objectstate.State.NEW_UNPUBLISHED_UNLOCKED);
-            }
-        }catch(Exception e){
-            logger.error("Error during clean workflow",e);
-            throw new ServiceException("Error during clean workflow",e);
-        }
-    }
-
-    protected void addRenameUriDeleteProperty(String site, String relativePath) {
-        Map<String, Object> properties = new HashMap<String, Object>();
-        properties.put(ObjectMetadata.PROP_DELETE_URL, true);
-        objectMetadataManager.setObjectMetadata(site, relativePath, properties);
-    }
-
-    /**
-     *
-     * Updates acitivity dashboard, invalidates cache and adds node properties
-     *
-     * @param site
-     * @param path
-     * @throws ContentNotFoundException
-     */
-    protected void postRenameUpdateStatus(String user, String site, String path, String oldPath,boolean addNodeProperty) throws ContentNotFoundException{
-
-        //we'll need to work with index.xml
-        path = getIndexFilePath(path);
-        oldPath = getIndexFilePath(oldPath);
-
-        String srcFullPath = contentService.expandRelativeSitePath(site, path);
-        ContentItemTO itemTO = contentService.getContentItem(site, path);
-        boolean contentExists = contentService.contentExists(site, path);
-        List<String> transitionItems = new ArrayList<String>();
-        if (!contentExists) {
-            srcFullPath = srcFullPath.replace("/" + DmConstants.INDEX_FILE, "");
-            oldPath = oldPath.replace("/" + DmConstants.INDEX_FILE, "");
-            itemTO = contentService.getContentItem(srcFullPath);
-        }
-        //change last modified property to the current user
-        if (srcFullPath.endsWith(DmConstants.INDEX_FILE)) {
-            // if the file is index.xml, update child contnets
-
-            String parentNodePath = ContentUtils.getParentUrl(srcFullPath);
-            String parentRelativePath = contentService.getRelativeSitePath(site, parentNodePath);
-            ContentItemTO parentItem = contentService.getContentItem(site, parentRelativePath);
-            updateChildItems(site, parentItem, oldPath, path, addNodeProperty, user, false);
-        } else {
-            // for the file content, update the file itself
-            ContentItemTO parentItem = contentService.getContentItem(srcFullPath);
-            updateChildItems(site, parentItem, oldPath, path, addNodeProperty, user, true);
-        }
-        List<String> childUris = new ArrayList<>();
-        if (itemTO != null) {
-            transitionItems.add(itemTO.getUri());
-            getChildrenUri(site, itemTO.getUri(), childUris);
-        }
-        for (String childUri : childUris) {
-            ContentItemTO childItem = contentService.getContentItem(site, childUri);
-            if (childItem != null) {
-                transitionItems.add(childItem.getUri());
-            }
-        }
-        if (!transitionItems.isEmpty()) {
-            objectStateService.transitionBulk(site, transitionItems, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.SAVE, org.craftercms.studio.api.v1.service.objectstate.State.NEW_UNPUBLISHED_UNLOCKED);
-        }
-    }
-
-
-    /**
-     * update child node with olduri property and invalidate cache for the old uri
-     *
-     * @param node
-     * @param parentOldPath
-     * @param parentNewPath
-     */
-    protected void updateChildItems(String site, ContentItemTO node, String parentOldPath, String parentNewPath, boolean addNodeProperty, String user, boolean fileContent) {
-        ContentItemTO itemTree = contentService.getContentItemTree(site, node.getUri(), 1);
-        if (itemTree.getNumOfChildren() > 0) {
-            for (ContentItemTO child : itemTree.getChildren()) {
-                updateChildItems(site, child, parentOldPath, parentNewPath, addNodeProperty, user, fileContent);
-            }
-        } else {
-            Map<String,String> extraInfo = new HashMap<String,String>();
-            String relativePath = contentService.getRelativeSitePath(site, node.getUri());
-            addItemPropertyToChildren(site, relativePath, parentNewPath, parentOldPath, addNodeProperty, user,
-                    fileContent);
-            extraInfo.put(DmConstants.KEY_CONTENT_TYPE, contentService.getContentTypeClass(site, getIndexFilePath(relativePath)));
-            activityService.postActivity(site, user, getIndexFilePath(relativePath), ActivityService.ActivityType.UPDATED, extraInfo);
-        }
-    }
-
-    protected void addItemPropertyToChildren(String site, String relativePath, String renamedPath, String oldPath, boolean addNodeProperty, String user, boolean fileContent){
-
-        String oldUri = (fileContent) ? oldPath : relativePath.replace(ContentUtils.getParentUrl(renamedPath), ContentUtils.getParentUrl(oldPath));
-        objectStateService.updateObjectPath(site, oldUri, relativePath);
-        objectMetadataManager.updateObjectPath(site, oldUri, relativePath);
-        ObjectMetadata metadata = objectMetadataManager.getProperties(site, relativePath);
-        if (metadata == null) {
-            metadata = new ObjectMetadata();
-        }
-        Map<String, Object> properties = new HashMap<String, Object>();
-        if (addNodeProperty && StringUtils.isEmpty(metadata.getOldUrl()) && fileContent) {
-            properties.put(ObjectMetadata.PROP_RENAMED, 1);
-            if (StringUtils.isEmpty(metadata.getOldUrl())) {
-                properties.put(ObjectMetadata.PROP_OLD_URL, oldUri);
-            }
-        } else {
-            String indexRelativePath = getIndexFilePath(relativePath);
-            metadata = objectMetadataManager.getProperties(site, indexRelativePath);
-            if (metadata == null) {
-                objectMetadataManager.insertNewObjectMetadata(site, indexRelativePath);
-                metadata = objectMetadataManager.getProperties(site, indexRelativePath);
-            }
-            properties.put(ObjectMetadata.PROP_RENAMED, 1);
-            if (StringUtils.isEmpty(metadata.getOldUrl())) {
-                properties.put(ObjectMetadata.PROP_OLD_URL, oldUri);
-            }
-        }
-        properties.put(ObjectMetadata.PROP_MODIFIER, user);
-        objectMetadataManager.setObjectMetadata(site, relativePath, properties);
-
-
-        //dependencies also has to be moved post rename
-        try{
-            if (relativePath.endsWith(DmConstants.XML_PATTERN)) {
-                Document document = contentService.getContentAsDocument(contentService.expandRelativeSitePath(site, relativePath));
-                Map<String, Set<String>> globalDeps = new HashMap<String, Set<String>>();
-                dmDependencyService.extractDependencies(site, relativePath, document, globalDeps);
-            }
-        }catch(Exception e){
-            logger.error("Error during extracting dependency of " + relativePath, e);
-        }
-        updateActivity(site, oldUri, relativePath);
-        removeItemFromCache(site, oldUri);
-        if (oldUri.endsWith("/" + DmConstants.INDEX_FILE)) {
-            removeItemFromCache(site, oldUri.replaceAll("/" + DmConstants.INDEX_FILE, ""));
-        }
-    }
-
-    protected void updateActivity(String site, String oldUrl, String newUrl){
-        logger.debug("Updating activity url post rename:"+newUrl);
-        activityService.renameContentId(site, oldUrl, newUrl);
-    }
-
-
-    public SecurityService getSecurityService() { return securityService; }
-    public void setSecurityService(SecurityService securityService) { this.securityService = securityService; }
+    protected ContentService contentService;
+    protected ObjectStateService objectStateService;
+    protected WorkflowService workflowService;
+    protected DmWorkflowListener dmWorkflowListener;
+    protected DmPublishService dmPublishService;
+    protected WorkflowProcessor workflowProcessor;
+    protected ObjectMetadataManager objectMetadataManager;
 
     public ContentService getContentService() { return contentService; }
     public void setContentService(ContentService contentService) { this.contentService = contentService; }
@@ -617,17 +276,12 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
     public WorkflowService getWorkflowService() { return workflowService; }
     public void setWorkflowService(WorkflowService workflowService) { this.workflowService = workflowService; }
 
-    public ActivityService getActivityService() { return activityService; }
-    public void setActivityService(ActivityService activityService) { this.activityService = activityService; }
-
-    public DmContentLifeCycleService getDmContentLifeCycleService() { return dmContentLifeCycleService; }
-    public void setDmContentLifeCycleService(DmContentLifeCycleService dmContentLifeCycleService) { this.dmContentLifeCycleService = dmContentLifeCycleService; }
-
     public DmWorkflowListener getDmWorkflowListener() { return dmWorkflowListener; }
     public void setDmWorkflowListener(DmWorkflowListener dmWorkflowListener) { this.dmWorkflowListener = dmWorkflowListener; }
 
     public DmPublishService getDmPublishService() { return dmPublishService; }
     public void setDmPublishService(DmPublishService dmPublishService) { this.dmPublishService = dmPublishService; }
+
 
     public WorkflowProcessor getWorkflowProcessor() { return workflowProcessor; }
     public void setWorkflowProcessor(WorkflowProcessor workflowProcessor) { this.workflowProcessor = workflowProcessor; }
@@ -635,26 +289,5 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
     public ObjectMetadataManager getObjectMetadataManager() { return objectMetadataManager; }
     public void setObjectMetadataManager(ObjectMetadataManager objectMetadataManager) { this.objectMetadataManager = objectMetadataManager; }
 
-    public DmDependencyService getDmDependencyService() { return dmDependencyService; }
-    public void setDmDependencyService(DmDependencyService dmDependencyService) { this.dmDependencyService = dmDependencyService; }
 
-    public CacheTemplate getCacheTemplate() { return cacheTemplate; }
-    public void setCacheTemplate(CacheTemplate cacheTemplate) { this.cacheTemplate = cacheTemplate; }
-
-    public GeneralLockService getGeneralLockService() { return generalLockService; }
-    public void setGeneralLockService(GeneralLockService generalLockService) { this.generalLockService = generalLockService; }
-
-    protected SecurityService securityService;
-    protected ContentService contentService;
-    protected ObjectStateService objectStateService;
-    protected WorkflowService workflowService;
-    protected ActivityService activityService;
-    protected DmContentLifeCycleService dmContentLifeCycleService;
-    protected DmWorkflowListener dmWorkflowListener;
-    protected DmPublishService dmPublishService;
-    protected WorkflowProcessor workflowProcessor;
-    protected ObjectMetadataManager objectMetadataManager;
-    protected DmDependencyService dmDependencyService;
-    protected CacheTemplate cacheTemplate;
-    protected GeneralLockService generalLockService;
 }
