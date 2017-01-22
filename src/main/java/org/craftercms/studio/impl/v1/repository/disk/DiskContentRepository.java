@@ -169,38 +169,50 @@ public class DiskContentRepository extends AbstractContentRepository implements 
         try {
             File source = constructRepoPath(fromPath).toFile();
             File destDir = constructRepoPath(toPath).toFile();
-
+logger.info("REPO: source {0} to DEST {1}", source, destDir);
             if (!destDir.exists()) {
+logger.info("REPO: 1");
                 destDir.mkdirs();
             }
 
             File dest = destDir;
             if (StringUtils.isNotEmpty(newName)) {
+logger.info("REPO: 2");
                 dest = new File(destDir, newName);
                 if (!dest.exists()) {
                     dest.mkdirs();
                 }
             }
+
             if (source.isDirectory()) {
+logger.info("REPO: 2");
                 File[] dirList = source.listFiles();
+logger.info("REPO: 3");                
                 for (File file : dirList) {
+ logger.info("REPO: 4");                   
                     if (file.isDirectory()) {
+logger.info("REPO: 5");                        
                         FileUtils.moveDirectoryToDirectory(file, dest, true);
                     } else {
+logger.info("REPO: 6");                        
                         FileUtils.moveFileToDirectory(file, dest, true);
                     }
                 }
                 source.delete();
             } else {
+logger.info("REPO: 7");
                 if (dest.isDirectory()) {
+logger.info("REPO: 8");                    
                     FileUtils.moveFileToDirectory(source, dest, true);
                 } else {
+logger.info("REPO: 9");
                     source.renameTo(dest);
                 }
             }
         }
         catch(Exception err) {
             // log this error
+            logger.error("repository failed to execute move {0} to {1} name {3}", err, fromPath, toPath, newName);
             success = false;
         }
 

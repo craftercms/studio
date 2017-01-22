@@ -641,24 +641,42 @@ public class ContentServiceImpl implements ContentService {
             String sourcePath = (fromPath.indexOf("index.xml") != 0) ? fromPath.substring(0, fromPath.lastIndexOf("/")) : fromPath;
             Map<String, String> movePathMap = constructNewPathforCutCopy(site, fromPath, toPath, true);
             movePath = movePathMap.get("FILENAME");
-            String movePathOnly = movePath.substring(0, movePath.lastIndexOf("/"));
 
+            String targetPath = movePath.substring(0, movePath.lastIndexOf("/"));
+            String targetFileName = movePath.substring(movePath.lastIndexOf("/")+1);
+            boolean targetIsIndex = ("index.xml".equals(targetFileName));
         
+            // disk repo code does to seem to want the parent folder as the target
+            // leaving this code here becuase there is a difference between what the alfresco repo wants and disk
+            //if(targetIsIndex == true) {
+            //    targetFileName = targetPath.substring(targetPath.lastIndexOf("/")+1);
+            //    targetPath = targetPath.substring(0, targetPath.lastIndexOf("/"));
+            //}
+
             // get all the structural children of this item and update the database too
             // Looking at the dependency class, there doesn't seem to be any call that gives a simple structureal 
             // answer.  What we need here is a list of all direct children (PRE MOVE)
             ContentItemTO moveDepsRoot = getContentItemTree(site, fromPath, 100);
 
-
-            logger.info("move file for site {0} from {1} to {2}, sourcePath {3) to new path {4}", site, fromPath, toPath,sourcePath, movePath);
+            logger.info("move file for site {0} from {1} to {2}, sourcePath {3} to target path {4}", site, fromPath, toPath, sourcePath, targetPath);
 
             // NOTE: IN WRITE SCENARIOS the repository OP IS PART of this PIPELINE, for some reason, historically with MOVE it is not
             opSuccess = _contentRepository.moveContent(
-            expandRelativeSitePath(site, sourcePath),
-            expandRelativeSitePath(site, movePathOnly));
+                expandRelativeSitePath(site, sourcePath),
+                expandRelativeSitePath(site, targetPath));
 
-            // update database, preview, cache etc
-            updateDatabaseCachePreviewForMove(site, fromPath, movePath);
+            if(opSuccess) {
+                // update database, preview, cache etc
+                updateDatabaseCachePreviewForMove(site, fromPath, movePath);
+
+                ContentItemTO movedTO = getContentItem(site, movePath, 0);
+
+                updateChildrenForMove(site, fromPath, movePath, movedTO);
+            }
+            else {
+                logger.error("repository move failed site {0} from {1} to {2}", site, sourcePath, targetPath);
+                movePath = fromPath;
+            }
         }
         catch(ServiceException eMoveErr) {
             logger.error("Content not found while moving content for site {0} from {1} to {2}, new name is {3}", eMoveErr, site, fromPath, toPath, movePath);
@@ -852,6 +870,7 @@ public class ContentServiceImpl implements ContentService {
         }
 
         result.put("FILENAME", proposedDestPath);
+        result.put("FILENAME-ONLY", fromFileNameOnly);
         result.put("MODIFIER", "");
 
         boolean contentExists = false;

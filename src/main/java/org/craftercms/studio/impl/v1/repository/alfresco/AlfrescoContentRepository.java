@@ -158,18 +158,30 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
 
     @Override
     public boolean moveContent(String fromPath, String toPath, String newName) {
-        //return this.copyContentInternal(fromPath, toPath, newName, true);
-
         long startTime = System.currentTimeMillis();
         boolean result = false;
+
+        // service layer assumes it is giving the name where the item should land
+        // alfresco implementaiton wants to look up the parent folder as the target
+        String targetPath = toPath.substring(0, toPath.lastIndexOf("/"));
+
+        logger.info("ALFRESCO MOVE, CLEAN ME UP BEFORE PR: Use Copy/Delete model {0} -> {1}", fromPath, targetPath);
+        // DO NOT COMMENT OUT OLD CODE :-/
+        //return this.copyContentInternal(fromPath, toPath, newName, true);
+
+        // This code should be lifed out of this layer or removed all-together
+        // Content service should be the only thing that calls this method so the repo
+        // should not have to worry about bad input.
+
         String cleanFromPath = fromPath.replaceAll("//", "/"); // sometimes sent bad paths
         if (cleanFromPath.endsWith("/")) {
             cleanFromPath = cleanFromPath.substring(0, cleanFromPath.length() - 1);
         }
-        String cleanToPath = toPath.replaceAll("//", "/"); // sometimes sent bad paths
+        String cleanToPath = targetPath.replaceAll("//", "/"); // sometimes sent bad paths
         if (cleanToPath.endsWith("/")) {
             cleanToPath = cleanToPath.substring(0, cleanToPath.length() - 1);
         }
+
 
         try {
             Session session = getCMISSession();
