@@ -730,12 +730,17 @@ public class ContentServiceImpl implements ContentService {
          Map<String, String> result = new HashMap<String, String>(); 
         
         // The following rules apply to content under the site folder
-        // Example 1 INDEX FILES
+        // Example MOVE LOCATION, INDEX FILES
         // fromPath: "/site/website/search/index.xml"
         // toPath:   "/site/website/products/index.xml"
         // newPath:  "/site/website/products/search/index.xml" 
         //
-        // Example 2 NON INDEX FILES
+        // Example RENAME, INDEX FILES
+        // fromPath: "/site/website/en/services/index.xml"
+        // toPath:   "site/website/en/services-updated/index.xml" 
+        // newPath:  "site/website/en/services-updated/index.xml 
+        // 
+        // Example NON INDEX FILES
         // fromPath: "/site/website/search.xml"
         // toPath:   "/site/website/products/search.xml"
         // newPath:  "/site/website/products/search.xml" 
@@ -764,10 +769,29 @@ public class ContentServiceImpl implements ContentService {
 
  
         String proposedDestPath = null;
+        boolean targetPathExistsPriorToOp = false;
+
+        try {
+           targetPathExistsPriorToOp = contentExists(site, toPath);
+        }
+        catch(Exception contentExistsErr) {
+            // what can cause this error?  
+            // can't talk to the repository?
+            // swallow it for now, the error will come when we try a write
+        }
 
         if(fromFileIsIndex && newFileIsIndex) {
             logger.info("A-A");
-            proposedDestPath = newPathOnly + "/" + newFileNameOnly + "/" + fromFileNameOnly +  "/index.xml"; 
+            if(newPathOnly.equals(fromPathOnly) && !targetPathExistsPriorToOp) {
+                // this is a rename
+                logger.info("A-A1 RENAME");
+                proposedDestPath = newPathOnly + "/" + newFileNameOnly +  "/index.xml"; 
+            }
+            else {
+                // this is a location move
+                logger.info("A-A2 MOVE LOCATION");
+                proposedDestPath = newPathOnly + "/" + newFileNameOnly + "/" + fromFileNameOnly +  "/index.xml"; 
+            }
         }
         else if(!fromFileIsIndex && newFileIsIndex) {
             logger.info("A-B");
