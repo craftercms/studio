@@ -295,8 +295,6 @@ public class ContentServiceImpl implements ContentService {
         try {
             writeContent(site, path, fileName, contentType, input, createFolders, edit, unlock);
             moveContent(site, path, targetPath);
-            //rename(site, path, targetPath, createFolder);
-
         } catch (Throwable t) {
             logger.error("Error while executing write and rename: ", t);
         } finally {
@@ -1642,7 +1640,6 @@ public class ContentServiceImpl implements ContentService {
 
 
     protected void rename(final String site, final String path, final String targetPath,final boolean createFolder) throws ServiceException {
-        //dmRenameService.rename(site, path,targetPath,createFolder);
         moveContent(site, path, targetPath);
     }
 
@@ -1892,11 +1889,7 @@ public class ContentServiceImpl implements ContentService {
         boolean result = false;
         try {
             moveContent(site, path, targetPath);
-            //dmRenameService.rename(site, path, targetPath, createFolder);
             result = true;
-//        } catch (ServiceException e) {
-//            logger.error("Error executing bulk rename for {0}, {1} -> {2}", e, site, path, targetPath);
-//            return false;
         } 
         finally {
             generalLockService.unlock(site + ":" + path);
@@ -1911,7 +1904,6 @@ public class ContentServiceImpl implements ContentService {
     protected ObjectStateService objectStateService;
     protected DmDependencyService dependencyService;
     protected ProcessContentExecutor contentProcessor;
-    protected DmRenameService dmRenameService;
     protected ObjectMetadataManager objectMetadataManager;
     protected SecurityService securityService;
     protected Reactor repositoryReactor;
@@ -1941,9 +1933,6 @@ public class ContentServiceImpl implements ContentService {
 
     public ProcessContentExecutor getContentProcessor() { return contentProcessor; }
     public void setContentProcessor(ProcessContentExecutor contentProcessor) { this.contentProcessor = contentProcessor; }
-
-    public DmRenameService getDmRenameService() { return dmRenameService; }
-    public void setDmRenameService(DmRenameService dmRenameService) { this.dmRenameService = dmRenameService; }
 
     public ObjectMetadataManager getObjectMetadataManager() { return objectMetadataManager; }
     public void setObjectMetadataManager(ObjectMetadataManager objectMetadataManager) { this.objectMetadataManager = objectMetadataManager; }

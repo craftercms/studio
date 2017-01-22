@@ -60,7 +60,6 @@
         <property name="contentProcessor" ref="cstudioProcessContentExecutor" />
         <property name="dependencyService" ref="cstudioDmDependencyService"/>
         <property name="objectStateService" ref="cstudioObjectStateService" />
-        <property name="dmRenameService" ref="cstudioRenameService"/>
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager" />
         <property name="securityService" ref="cstudioSecurityService" />
         <property name="repositoryReactor" ref="repositoryReactor"/>
