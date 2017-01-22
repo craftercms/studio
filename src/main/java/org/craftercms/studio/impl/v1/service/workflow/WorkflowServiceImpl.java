@@ -17,8 +17,10 @@
  ******************************************************************************/
 package org.craftercms.studio.impl.v1.service.workflow;
 
+import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.Date;
 
 import net.sf.json.JSONArray;
 import net.sf.json.JSONException;
@@ -639,48 +641,26 @@ public class WorkflowServiceImpl implements WorkflowService {
 	}
 
 	protected void _cancelWorkflow(String site, String path) {
-		//if (contentService.contentExists(site, path)) {
-			List<String> allItemsToCancel = getWorkflowAffectedPathsInternal(site, path);
-			List<String> paths = new ArrayList<String>();
-			for (String affectedItem : allItemsToCancel) {
-				try {
-					deploymentService.cancelWorkflow(site, affectedItem);
-					paths.add(affectedItem);
-				} catch (DeploymentException e) {
-					logger.error("Error occurred while trying to cancel workflow for path [" + affectedItem + "], site " + site, e);
-				}
-			}
-			objectStateService.transitionBulk(site, paths, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.REJECT, State.NEW_UNPUBLISHED_UNLOCKED);
-
-			if (objectStateService.isNew(site, path) && path.endsWith(DmConstants.INDEX_FILE)) {
-				// TODO: process children for new parent
-				/*
-				NodeRef parentNodeRef = persistenceManagerService.getPrimaryParent(node).getParentRef();
-				FileInfo parentInfo = persistenceManagerService.getFileInfo(parentNodeRef);
-				List<FileInfo> files = persistenceManagerService.listFiles(parentNodeRef);
-				for (FileInfo file : files) {
-					if (!file.getNodeRef().equals(node)) {
-						ObjectStateService.State state = persistenceManagerService.getObjectState(file.getNodeRef());
-						if (ObjectStateService.State.isScheduled(state) || ObjectStateService.State.isSubmitted(state)) {
-							_cancelWorkflow(site, file.getNodeRef());
-							persistenceManagerService.transition(file.getNodeRef(), ObjectStateService.TransitionEvent.SAVE);
-						}
-					}
-				}
-				List<FileInfo> folders = persistenceManagerService.listFolders(parentNodeRef);
-				for (FileInfo folder : folders) {
-					NodeRef indexNode = persistenceManagerService.getNodeRef(folder.getNodeRef(), DmConstants.INDEX_FILE);
-					if (indexNode != null) {
-						ObjectStateService.State state = persistenceManagerService.getObjectState(indexNode);
-						if (ObjectStateService.State.isScheduled(state) || ObjectStateService.State.isSubmitted(state)) {
-							_cancelWorkflow(site, indexNode);
-							persistenceManagerService.transition(indexNode, ObjectStateService.TransitionEvent.SAVE);
-						}
-					}
-				}*/
-			}
-		//}
-
+        List<String> allItemsToCancel = getWorkflowAffectedPathsInternal(site, path);
+        List<String> paths = new ArrayList<String>();
+        for (String affectedItem : allItemsToCancel) {
+            try {
+                deploymentService.cancelWorkflow(site, affectedItem);
+                ObjectMetadata objectMetadata = objectMetadataManager.getProperties(site, affectedItem);
+                if (objectMetadata != null) {
+                    objectMetadata.setSubmittedBy(StringUtils.EMPTY);
+                    objectMetadata.setSendEmail(0);
+                    objectMetadata.setSubmittedForDeletion(0);
+                    objectMetadata.setSubmissionComment(StringUtils.EMPTY);
+                    objectMetadata.setLaunchDate(null);
+                    objectMetadataManager.updateObjectMetadata(objectMetadata);
+                }
+                paths.add(affectedItem);
+            } catch (DeploymentException e) {
+                logger.error("Error occurred while trying to cancel workflow for path [" + affectedItem + "], site " + site, e);
+            }
+        }
+        objectStateService.transitionBulk(site, paths, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.REJECT, State.NEW_UNPUBLISHED_UNLOCKED);
 	}
 
     protected List<String> getWorkflowAffectedPathsInternal(String site, String path) {
@@ -851,7 +831,7 @@ public class WorkflowServiceImpl implements WorkflowService {
             }
 
             String responseMessageKey = null;
-            SimpleDateFormat format = new SimpleDateFormat(CStudioConstants.DATE_PATTERN_WORKFLOW);
+            SimpleDateFormat format = new SimpleDateFormat(CStudioConstants.DATE_PATTERN_WORKFLOW_WITH_TZ);
             List<DmDependencyTO> submittedItems = new ArrayList<>();
             for (int index = 0; index < length; index++) {
                 String stringItem = items.optString(index);
@@ -1026,7 +1006,7 @@ public class WorkflowServiceImpl implements WorkflowService {
 
             List<String> submittedPaths = new ArrayList<String>();
             String responseMessageKey = null;
-            SimpleDateFormat format = new SimpleDateFormat(CStudioConstants.DATE_PATTERN_WORKFLOW);
+            SimpleDateFormat format = new SimpleDateFormat(CStudioConstants.DATE_PATTERN_WORKFLOW_WITH_TZ);
             List<DmDependencyTO> submittedItems = new ArrayList<>();
             for (int index = 0; index < length; index++) {
                 String stringItem = items.optString(index);
@@ -1205,7 +1185,7 @@ public class WorkflowServiceImpl implements WorkflowService {
 
             List<String> submittedPaths = new ArrayList<String>();
             String responseMessageKey = null;
-            SimpleDateFormat format = new SimpleDateFormat(CStudioConstants.DATE_PATTERN_WORKFLOW);
+            SimpleDateFormat format = new SimpleDateFormat(CStudioConstants.DATE_PATTERN_WORKFLOW_WITH_TZ);
             List<DmDependencyTO> submittedItems = new ArrayList<>();
             for (int index = 0; index < length; index++) {
                 String stringItem = items.optString(index);
@@ -2536,7 +2516,7 @@ public class WorkflowServiceImpl implements WorkflowService {
             }
             int length = items.size();
             if (length > 0) {
-                SimpleDateFormat format = new SimpleDateFormat(CStudioConstants.DATE_PATTERN_WORKFLOW);
+                SimpleDateFormat format = new SimpleDateFormat(CStudioConstants.DATE_PATTERN_WORKFLOW_WITH_TZ);
                 List<DmDependencyTO> submittedItems = new ArrayList<DmDependencyTO>();
                 for (int index = 0; index < length; index++) {
                     String stringItem = items.optString(index);

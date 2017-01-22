@@ -211,7 +211,7 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
 
 
     protected List<String> getChildrenUri(String site, String path, List<String> paths){
-        ContentItemTO itemTree = contentService.getContentItemTree(site, path, 1);
+        ContentItemTO itemTree = contentService.getContentItemTree(site, path, 2);
         if (itemTree.getNumOfChildren() > 0) {
             for (ContentItemTO child : itemTree.getChildren()) {
                 getChildrenUri(site, child.getUri(), paths);
@@ -266,6 +266,7 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
     protected DmPublishService dmPublishService;
     protected WorkflowProcessor workflowProcessor;
     protected ObjectMetadataManager objectMetadataManager;
+
 
     public ContentService getContentService() { return contentService; }
     public void setContentService(ContentService contentService) { this.contentService = contentService; }
