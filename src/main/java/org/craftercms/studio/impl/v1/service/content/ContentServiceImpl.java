@@ -647,6 +647,12 @@ public class ContentServiceImpl implements ContentService {
             String movePathOnly = movePath.substring(0, movePath.lastIndexOf("/"));
 
         
+            // get all the structural children of this item and update the database too
+            // Looking at the dependency class, there doesn't seem to be any call that gives a simple structureal 
+            // answer.  What we need here is a list of all direct children (PRE MOVE)
+            ContentItemTO moveDepsRoot = getContentItemTree(site, fromPath, 100);
+
+
             logger.info("move file for site {0} from {1} to {2}, sourcePath {3) to new path {4}", site, fromPath, toPath,sourcePath, movePath);
 
             // NOTE: IN WRITE SCENARIOS the repository OP IS PART of this PIPELINE, for some reason, historically with MOVE it is not
@@ -669,9 +675,12 @@ public class ContentServiceImpl implements ContentService {
             //update nav order
             //updateContentWithNewNavOrder
 
-            String storedStagingUri = objectMetadataManager.getOldPath(site, fromPath);
-            objectStateService.updateObjectPath(site, fromPath, movePathOnly);
+            // change the path of this object in the object state database
+            objectStateService.updateObjectPath(site, fromPath, movePath);
             
+            // update the sstate of children (recursive)
+            updateChildObjectStateForMove(site, fromPath, movePath, moveDepsRoot);
+
             //if(!objectMetadataManager.isRenamed(site, fromPath)) {
 
             ObjectMetadata metadata = objectMetadataManager.getProperties(site, fromPath);
@@ -714,6 +723,34 @@ public class ContentServiceImpl implements ContentService {
         }
 
         return movePath;
+    }
+
+    protected void updateChildObjectStateForMove(String site, String fromPath, String movePath, ContentItemTO moveDepsRoot) {
+        logger.info("updateChildObjectStateForMove HANDLING {0}, {1}", fromPath, movePath);
+
+        List<ContentItemTO> childrenTOs = moveDepsRoot.getChildren();
+
+        for(ContentItemTO childTO : childrenTOs) {
+            String childFromPath = childTO.getUri();
+            logger.info("updateChildObjectStateForMove HANDLING CHILD {0} FROM: ", childFromPath);
+            try {
+                // construct the new path for the child
+                Map<String, String> childToPathMap = constructNewPathforCutCopy(site, childFromPath, movePath);
+                String childToPath = childToPathMap.get("FILENAME");
+
+                logger.info("updateChildObjectStateForMove HANDLING CHILD {0} TO: ", childToPath);
+
+                // do the update in the database'
+                objectStateService.updateObjectPath(site, childFromPath, childToPath);
+                
+                // handle this child's children
+                updateChildObjectStateForMove(site, childFromPath, childToPath, childTO);
+
+            }
+            catch(ServiceException errUpdatePathFailure) {
+                logger.error("Error trying update object state item on move for path {0}", errUpdatePathFailure, childFromPath);
+            }         
+        }
     }
 
     @Override
