@@ -635,9 +635,6 @@ public class ContentServiceImpl implements ContentService {
     public String moveContent(String site, String fromPath, String toPath) {
         String retNewFileName = null;
         boolean opSuccess = false;
-
-        String user = securityService.getCurrentUser();
-        String sessionTicket = securityProvider.getCurrentToken();
         String movePath = null;
 
         try {
@@ -660,65 +657,8 @@ public class ContentServiceImpl implements ContentService {
             expandRelativeSitePath(site, sourcePath),
             expandRelativeSitePath(site, movePathOnly));
 
-            Map<String, String> params = new HashMap<>();
-            params.put(DmConstants.KEY_SOURCE_PATH, fromPath);
-            params.put(DmConstants.KEY_TARGET_PATH, movePath);
-            params.put(DmConstants.KEY_SOURCE_FULL_PATH, expandRelativeSitePath(site, fromPath));
-            params.put(DmConstants.KEY_TARGET_FULL_PATH, expandRelativeSitePath(site, movePath));
-
-            // preRenameCleanWorkFlow(site, sourcePath);
-
-            ContentItemTO renamedItem = getContentItem(site, movePath, 0);
-            String contentType = renamedItem.getContentType();
-            dmContentLifeCycleService.process(site, user, movePath, contentType,  DmContentLifeCycleService.ContentLifeCycleOperation.RENAME, params);
-
-            //update nav order
-            //updateContentWithNewNavOrder
-
-            // remove old paths from cache
-            removeItemFromCache(site, fromPath);
-
-            // change the path of this object in the object state database
-            objectStateService.updateObjectPath(site, fromPath, movePath);
-            
-            // update the sstate of children (recursive)
-            updateChildrenForMove(site, fromPath, movePath, moveDepsRoot);
-
-            // update metadata
-            ObjectMetadata metadata = objectMetadataManager.getProperties(site, fromPath);
-            if(metadata == null) {
-                objectMetadataManager.insertNewObjectMetadata(site, fromPath);
-                metadata = objectMetadataManager.getProperties(site, fromPath);
-            }
-
-            Map<String, Object> objMetadataProps = new HashMap<String, Object>();
-            objMetadataProps.put(ObjectMetadata.PROP_RENAMED, 1);
-            objMetadataProps.put(ObjectMetadata.PROP_OLD_URL, fromPath);
-            objectMetadataManager.setObjectMetadata(site, fromPath, objMetadataProps);
-
-            objectMetadataManager.updateObjectPath(site, fromPath, movePath);
-            objMetadataProps = new HashMap<String, Object>();
-            objMetadataProps.put(ObjectMetadata.PROP_DELETE_URL, true);
-            objectMetadataManager.setObjectMetadata(site, movePath, objMetadataProps);
-
-            // write activity stream
-            activityService.renameContentId(site, fromPath, movePath);
-
-            // fire events and sync preview
-            RepositoryEventContext repositoryEventContext = new RepositoryEventContext(sessionTicket);
-            RepositoryEventMessage message = new RepositoryEventMessage();
-
-            message.setSite(site);
-            message.setPath(movePath);
-            message.setOldPath(fromPath);
-            message.setRepositoryEventContext(repositoryEventContext);
-
-            repositoryReactor.notify(EBusConstants.REPOSITORY_MOVE_EVENT, Event.wrap(message));
-            
-            // note this was not here before 
-            // assume notify takes care of this but was bot previously applied to copy
-            previewSync.syncPath(site, movePath, repositoryEventContext);
-        
+            // update database, preview, cache etc
+            updateDatabaseCachePreviewForMove(site, fromPath, movePath);
         }
         catch(ServiceException eMoveErr) {
             logger.error("Content not found while moving content for site {0} from {1} to {2}, new name is {3}", eMoveErr, site, fromPath, toPath, movePath);
@@ -731,6 +671,72 @@ public class ContentServiceImpl implements ContentService {
     public String moveContent(String site, String fromPath, String toPath, String newName) {
         // Not sure why we need this method. Just a helper for a special case?
         return moveContent(site, fromPath, toPath+"/"+ newName);
+    }
+
+    protected void updateDatabaseCachePreviewForMove(String site, String fromPath, String movePath) {
+        logger.info("updateDatabaseCachePreviewForMove FROM {0} TO {1}  ", fromPath, movePath);
+
+        String user = securityService.getCurrentUser();
+        String sessionTicket = securityProvider.getCurrentToken();
+
+        Map<String, String> params = new HashMap<>();
+        params.put(DmConstants.KEY_SOURCE_PATH, fromPath);
+        params.put(DmConstants.KEY_TARGET_PATH, movePath);
+        params.put(DmConstants.KEY_SOURCE_FULL_PATH, expandRelativeSitePath(site, fromPath));
+        params.put(DmConstants.KEY_TARGET_FULL_PATH, expandRelativeSitePath(site, movePath));
+
+        // preRenameCleanWorkFlow(site, sourcePath);
+
+        ContentItemTO renamedItem = getContentItem(site, movePath, 0);
+        String contentType = renamedItem.getContentType();
+
+        dmContentLifeCycleService.process(site, user, movePath, contentType,  DmContentLifeCycleService.ContentLifeCycleOperation.RENAME, params);
+
+        //update nav order
+        //updateContentWithNewNavOrder
+
+        // remove old paths from cache
+        removeItemFromCache(site, fromPath);
+
+        // change the path of this object in the object state database
+        objectStateService.updateObjectPath(site, fromPath, movePath);
+        ContentItemTO movedTO = getContentItem(site, movePath, 0);  
+        objectStateService.transition(site, movedTO, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.SAVE);
+
+        // update metadata
+        ObjectMetadata metadata = objectMetadataManager.getProperties(site, fromPath);
+        if(metadata == null) {
+            objectMetadataManager.insertNewObjectMetadata(site, fromPath);
+            metadata = objectMetadataManager.getProperties(site, fromPath);
+        }
+
+        Map<String, Object> objMetadataProps = new HashMap<String, Object>();
+        objMetadataProps.put(ObjectMetadata.PROP_RENAMED, 1);
+        objMetadataProps.put(ObjectMetadata.PROP_OLD_URL, fromPath);
+        objectMetadataManager.setObjectMetadata(site, fromPath, objMetadataProps);
+
+        objectMetadataManager.updateObjectPath(site, fromPath, movePath);
+        objMetadataProps = new HashMap<String, Object>();
+        objMetadataProps.put(ObjectMetadata.PROP_DELETE_URL, true);
+        objectMetadataManager.setObjectMetadata(site, movePath, objMetadataProps);
+
+        // write activity stream
+        activityService.renameContentId(site, fromPath, movePath);
+
+        // fire events and sync preview
+        RepositoryEventContext repositoryEventContext = new RepositoryEventContext(sessionTicket);
+        RepositoryEventMessage message = new RepositoryEventMessage();
+
+        message.setSite(site);
+        message.setPath(movePath);
+        message.setOldPath(fromPath);
+        message.setRepositoryEventContext(repositoryEventContext);
+
+        repositoryReactor.notify(EBusConstants.REPOSITORY_MOVE_EVENT, Event.wrap(message));
+        
+        // note this was not here before 
+        // assume notify takes care of this but was bot previously applied to copy
+        previewSync.syncPath(site, movePath, repositoryEventContext);
     }
 
     protected void updateChildrenForMove(String site, String fromPath, String movePath, ContentItemTO moveDepsRoot) {
@@ -746,56 +752,9 @@ public class ContentServiceImpl implements ContentService {
                 Map<String, String> childToPathMap = constructNewPathforCutCopy(site, childFromPath, movePath, false);
                 String childToPath = childToPathMap.get("FILENAME");
 
-                logger.info("updateChildObjectStateForMove HANDLING CHILD TO: {0}  ", childToPath);
-
-                // do the update in the database
-                objectStateService.updateObjectPath(site, childFromPath, childToPath);
-                ContentItemTO movedChildTO = getContentItem(site, childToPath, 0);           
-                objectStateService.transition(site, movedChildTO, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.SAVE);
-
-                // update metadata
-                 ObjectMetadata metadata = objectMetadataManager.getProperties(site, childFromPath);
-                if(metadata == null) {
-                    objectMetadataManager.insertNewObjectMetadata(site, childFromPath);
-                    metadata = objectMetadataManager.getProperties(site, childFromPath);
-                }
-
-                Map<String, Object> objMetadataProps = new HashMap<String, Object>();
-                objMetadataProps.put(ObjectMetadata.PROP_RENAMED, 1);
-                objMetadataProps.put(ObjectMetadata.PROP_OLD_URL, childFromPath);
-                objectMetadataManager.setObjectMetadata(site, childFromPath, objMetadataProps);
-
-                objectMetadataManager.updateObjectPath(site, childFromPath, childToPath);
+                // update database, preview, cache etc
+                updateDatabaseCachePreviewForMove(site, childFromPath, childToPath);
                 
-                objMetadataProps = new HashMap<String, Object>();
-                objMetadataProps.put(ObjectMetadata.PROP_DELETE_URL, true);
-                objectMetadataManager.setObjectMetadata(site, childFromPath, objMetadataProps);
-
-                // write activity stream
-                activityService.renameContentId(site, childFromPath, childToPath);
-                
-                // remove old child item from cache
-                removeItemFromCache(site, childFromPath);
-
-
-                // fire events and sync preview
-                String user = securityService.getCurrentUser();
-                String sessionTicket = securityProvider.getCurrentToken();
-
-                RepositoryEventContext repositoryEventContext = new RepositoryEventContext(sessionTicket);
-                RepositoryEventMessage message = new RepositoryEventMessage();
-
-                message.setSite(site);
-                message.setPath(childToPath);
-                message.setOldPath(childFromPath);
-                message.setRepositoryEventContext(repositoryEventContext);
-
-                repositoryReactor.notify(EBusConstants.REPOSITORY_MOVE_EVENT, Event.wrap(message));
-                
-                // note this was not here before 
-                // assume notify takes care of this but was bot previously applied to copy
-                previewSync.syncPath(site, childToPath, repositoryEventContext);
-
                 // handle this child's children
                 updateChildrenForMove(site, childFromPath, childToPath, childTO);
 
@@ -804,8 +763,7 @@ public class ContentServiceImpl implements ContentService {
                 logger.error("Error trying update object state item on move for path {0}", errUpdatePathFailure, childFromPath);
             }         
         }
-    }
-
+    }    
 
     protected Map<String, String> constructNewPathforCutCopy(String site, String fromPath, String toPath, boolean adjustOnCollide) 
     throws ServiceException {
