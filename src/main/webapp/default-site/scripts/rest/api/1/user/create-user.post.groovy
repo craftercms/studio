@@ -38,7 +38,10 @@ try {
     result.status = "OK"
     def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/user/get-user?user=" + username
     response.addHeader("Location", locationHeader)
+    response.setStatus(201)
     return result
 } catch (Exception e) {
     response.setStatus(500)
+    result.status = "Internal server error"
+    return result
 }

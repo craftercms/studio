@@ -32,4 +32,18 @@ def lastname = parsedReq.last_name;
 def email = parsedReq.email;
 
 def context = SecurityServices.createContext(applicationContext, request)
-result.result = SecurityServices.updateUser(context, username, firstname, lastname, email);
+try {
+    def success = SecurityServices.updateUser(context, username, firstname, lastname, email)
+    if (success) {
+        result.status = "OK"
+        response.setStatus(200)
+    } else {
+        result.status = "User not found"
+        response.setStatus(404)
+    }
+    return result
+} catch (Exception e) {
+    result.status = "Internal server error"
+    response.setStatus(500)
+    return result
+}
