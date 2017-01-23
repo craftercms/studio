@@ -24,4 +24,17 @@ def result = [:]
 def username = params.user;
 
 def context = SecurityServices.createContext(applicationContext, request)
-result.result = SecurityServices.getUserDetails(context, username);
+try {
+    def userMap = SecurityServices.getUserDetails(context, username);
+    if (userMap != null && !userMap.isEmpty()) {
+        return userMap;
+    } else {
+        response.setStatus(404)
+        result.status = "User not found"
+        return result;
+    }
+} catch (Exception e) {
+    response.setStatus(500)
+    result.status = "Internal server error"
+    return result;
+}
