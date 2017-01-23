@@ -695,7 +695,7 @@ public class ContentServiceImpl implements ContentService {
         return moveContent(site, fromPath, toPath+"/"+ newName);
     }
 
-    protected void updateDatabaseCachePreviewForMove(String site, String fromPath, String movePath, boolean isRoot) {
+    protected void updateDatabaseCachePreviewForMove(String site, String fromPath, String movePath, boolean isMoveRoot) {
         logger.info("updateDatabaseCachePreviewForMove FROM {0} TO {1}  ", fromPath, movePath);
 
         String user = securityService.getCurrentUser();
@@ -745,7 +745,7 @@ public class ContentServiceImpl implements ContentService {
         // write activity stream
         activityService.renameContentId(site, fromPath, movePath);
 
-        if(isRoot) {
+        if(isMoveRoot) {
             // fire events and sync preview if this is the top level object
             // child objects are moved in deployment as a sideffect of moving the parent
             RepositoryEventContext repositoryEventContext = new RepositoryEventContext(sessionTicket);
