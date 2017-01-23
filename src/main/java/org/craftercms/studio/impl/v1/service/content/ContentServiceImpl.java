@@ -738,15 +738,18 @@ public class ContentServiceImpl implements ContentService {
         // write activity stream
         activityService.renameContentId(site, fromPath, movePath);
 
+        // we added this check because deployer is asking content service for old content
+        // which of course will NOT be there, becasue it has been moved in the repo
         if(isMoveRoot) {
             // fire events and sync preview if this is the top level object
             // child objects are moved in deployment as a sideffect of moving the parent
             RepositoryEventContext repositoryEventContext = new RepositoryEventContext(sessionTicket);
             RepositoryEventMessage message = new RepositoryEventMessage();
 
+            // sync ops work on folder paths 
             message.setSite(site);
-            message.setPath(movePath);
-            message.setOldPath(fromPath);
+            message.setPath(movePath.replace("/index.xml", ""));
+            message.setOldPath(fromPath.replace("/index.xml", ""));
             message.setRepositoryEventContext(repositoryEventContext);
 
             repositoryReactor.notify(EBusConstants.REPOSITORY_MOVE_EVENT, Event.wrap(message));
