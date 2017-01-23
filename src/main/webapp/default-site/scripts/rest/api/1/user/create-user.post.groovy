@@ -33,4 +33,12 @@ def lastname = parsedReq.last_name;
 def email = parsedReq.email;
 
 def context = SecurityServices.createContext(applicationContext, request)
-result.result = SecurityServices.createUser(context, username, password, firstname, lastname, email);
+try {
+    SecurityServices.createUser(context, username, password, firstname, lastname, email);
+    result.status = "OK"
+    def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/user/get-user?user=" + username
+    response.addHeader("Location", locationHeader)
+    return result
+} catch (Exception e) {
+    response.setStatus(500)
+}
