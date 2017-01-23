@@ -29,4 +29,18 @@ def parsedReq = slurper.parseText(requestBody)
 def username = parsedReq.username;
 
 def context = SecurityServices.createContext(applicationContext, request)
-result.result = SecurityServices.deleteUser(context, username);
+try {
+    def success = SecurityServices.deleteUser(context, username);
+    if (success) {
+        result.status = "OK"
+        response.setStatus(204)
+    } else {
+        result.status = "User not found"
+        response.setStatus(404)
+    }
+    return result
+} catch (Exception e) {
+    result.status = "Internal server error"
+    response.setStatus(500)
+    return result
+}
