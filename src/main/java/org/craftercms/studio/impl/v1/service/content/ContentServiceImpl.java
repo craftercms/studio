@@ -641,26 +641,21 @@ public class ContentServiceImpl implements ContentService {
         String movePath = null;
 
         try {
-            String sourcePath = (fromPath.indexOf("index.xml") != 0) ? fromPath.substring(0, fromPath.lastIndexOf("/")) : fromPath;
+            String sourcePath = (fromPath.indexOf("index.xml") != -1) ? fromPath.substring(0, fromPath.lastIndexOf("/")) : fromPath;
             Map<String, String> movePathMap = constructNewPathforCutCopy(site, fromPath, toPath, true);
             movePath = movePathMap.get("FILE_PATH");
 
             String targetPath = movePath.substring(0, movePath.lastIndexOf("/"));
-            String targetFileName = movePath.substring(movePath.lastIndexOf("/")+1);
-            boolean targetIsIndex = ("index.xml".equals(targetFileName));
         
             // disk repo code does to seem to want the parent folder as the target
             // leaving this code here becuase there is a difference between what the alfresco repo wants and disk
             // CLEAN UP: if alfresco impl move change makes sense, kill this block of commented out code.
+            //String targetFileName = movePath.substring(movePath.lastIndexOf("/")+1);
+            //boolean targetIsIndex = ("index.xml".equals(targetFileName));
             //if(targetIsIndex == true) {
             //    targetFileName = targetPath.substring(targetPath.lastIndexOf("/")+1);
             //    targetPath = targetPath.substring(0, targetPath.lastIndexOf("/"));
             //}
-
-            // get all the structural children of this item and update the database too
-            // Looking at the dependency class, there doesn't seem to be any call that gives a simple structureal 
-            // answer.  What we need here is a list of all direct children (PRE MOVE)
-            ContentItemTO moveDepsRoot = getContentItemTree(site, fromPath, 100);
 
             logger.info("move file for site {0} from {1} to {2}, sourcePath {3} to target path {4}", site, fromPath, toPath, sourcePath, targetPath);
 
@@ -673,9 +668,7 @@ public class ContentServiceImpl implements ContentService {
                 // update database, preview, cache etc
                 updateDatabaseCachePreviewForMove(site, fromPath, movePath, true);
 
-                ContentItemTO movedTO = getContentItem(site, movePath, 0);
-
-                updateChildrenForMove(site, fromPath, movePath, movedTO);
+                updateChildrenForMove(site, fromPath, movePath);
             }
             else {
                 logger.error("repository move failed site {0} from {1} to {2}", site, sourcePath, targetPath);
@@ -764,29 +757,43 @@ public class ContentServiceImpl implements ContentService {
         }
     }
 
-    protected void updateChildrenForMove(String site, String fromPath, String movePath, ContentItemTO moveDepsRoot) {
+    protected void updateChildrenForMove(String site, String fromPath, String movePath) {
         logger.info("updateChildObjectStateForMove HANDLING {0}, {1}", fromPath, movePath);
 
-        List<ContentItemTO> childrenTOs = moveDepsRoot.getChildren();
+
+        // get the list of children
+        ContentItemTO movedTO = getContentItem(site, movePath, 1);
+        List<ContentItemTO> childrenTOs = movedTO.getChildren();
 
         for(ContentItemTO childTO : childrenTOs) {
-            String childFromPath = childTO.getUri();
-            logger.info("updateChildObjectStateForMove HANDLING CHILD FROM: {0}  ", childFromPath);
-            try {
+            // calculate the childs from path by looking at it's parent's from path and the child new path
+            // (parent move operation has already happened)
+            String childToPath = childTO.getUri();
+            
+            String oldParentFolderPath = fromPath.replace("/index.xml", "");
+            oldParentFolderPath = oldParentFolderPath.substring(0, oldParentFolderPath.lastIndexOf("/"));
+            
+            String parentFolderPath = movePath.replace("/index.xml", "");
+            parentFolderPath = parentFolderPath.substring(0, parentFolderPath.lastIndexOf("/"));
+
+            String childFromPath = childToPath.replace(oldParentFolderPath, parentFolderPath);
+
+            logger.info("updateChildObjectStateForMove HANDLING CHILD FROM: {0} TO: {1}  ", childFromPath, childToPath);
+            //try {
                 // construct the new path for the child
-                Map<String, String> childToPathMap = constructNewPathforCutCopy(site, childFromPath, movePath, false);
-                String childToPath = childToPathMap.get("FILE_PATH");
+                //Map<String, String> childToPathMap = constructNewPathforCutCopy(site, childFromPath, movePath, false);
+                //String childToPath = childToPathMap.get("FILE_PATH");
 
                 // update database, preview, cache etc
                 updateDatabaseCachePreviewForMove(site, childFromPath, childToPath, false);
                 
                 // handle this child's children
-                updateChildrenForMove(site, childFromPath, childToPath, childTO);
+                updateChildrenForMove(site, childFromPath, childToPath);
 
-            }
-            catch(ServiceException errUpdatePathFailure) {
-                logger.error("Error trying update object state item on move for path {0}", errUpdatePathFailure, childFromPath);
-            }         
+            //}
+            //catch(ServiceException errUpdatePathFailure) {
+            //    logger.error("Error trying update object state item on move for path {0}", errUpdatePathFailure, childFromPath);
+            //}         
         }
     }    
 

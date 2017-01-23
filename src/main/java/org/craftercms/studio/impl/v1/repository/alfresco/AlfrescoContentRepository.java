@@ -166,7 +166,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
 
         // service layer assumes it is giving the name where the item should land
         // alfresco implementaiton wants to look up the parent folder as the target
-        String targetPath = toPath.substring(0, toPath.lastIndexOf("/"));
+        String targetPath = fromPath.endsWith(".xml") ? toPath : toPath.substring(0, toPath.lastIndexOf("/"));
         newName = (newName != null) ? newName : toPath.substring(toPath.lastIndexOf("/")+1);
 
         logger.info("ALFRESCO MOVE, CLEAN ME UP BEFORE PR: Use Copy/Delete model {0} -> {1}", fromPath, targetPath);
