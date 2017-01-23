@@ -216,15 +216,18 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
                         logger.debug("Moving folder {0} to {1}", sourceFolder.getPath(), targetFolder.getPath());
 
                         if (newName != null) {
-                            resultObject.rename(newName);
-                            FileableCmisObject resultObject = sourceFolder.move(sourceParentFolder, targetFolder);
+                            sourceCmisObject.rename(newName);
+                            sourceFolder.move(sourceParentFolder, targetFolder);
                         } 
                         else {
                             Iterable<CmisObject> children = sourceFolder.getChildren();
+
                             for (CmisObject child : children) {
                                 FileableCmisObject fileableChild = (FileableCmisObject)child;
+                                
                                 fileableChild.move(sourceFolder, targetFolder);
                             }
+
                             sourceFolder.delete();
                         }
                     }
