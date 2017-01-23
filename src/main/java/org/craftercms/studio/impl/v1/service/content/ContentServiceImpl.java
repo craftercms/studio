@@ -671,7 +671,7 @@ public class ContentServiceImpl implements ContentService {
 
             if(opSuccess) {
                 // update database, preview, cache etc
-                updateDatabaseCachePreviewForMove(site, fromPath, movePath);
+                updateDatabaseCachePreviewForMove(site, fromPath, movePath, true);
 
                 ContentItemTO movedTO = getContentItem(site, movePath, 0);
 
@@ -695,7 +695,7 @@ public class ContentServiceImpl implements ContentService {
         return moveContent(site, fromPath, toPath+"/"+ newName);
     }
 
-    protected void updateDatabaseCachePreviewForMove(String site, String fromPath, String movePath) {
+    protected void updateDatabaseCachePreviewForMove(String site, String fromPath, String movePath, boolean isRoot) {
         logger.info("updateDatabaseCachePreviewForMove FROM {0} TO {1}  ", fromPath, movePath);
 
         String user = securityService.getCurrentUser();
@@ -745,20 +745,23 @@ public class ContentServiceImpl implements ContentService {
         // write activity stream
         activityService.renameContentId(site, fromPath, movePath);
 
-        // fire events and sync preview
-        RepositoryEventContext repositoryEventContext = new RepositoryEventContext(sessionTicket);
-        RepositoryEventMessage message = new RepositoryEventMessage();
+        if(isRoot) {
+            // fire events and sync preview if this is the top level object
+            // child objects are moved in deployment as a sideffect of moving the parent
+            RepositoryEventContext repositoryEventContext = new RepositoryEventContext(sessionTicket);
+            RepositoryEventMessage message = new RepositoryEventMessage();
 
-        message.setSite(site);
-        message.setPath(movePath);
-        message.setOldPath(fromPath);
-        message.setRepositoryEventContext(repositoryEventContext);
+            message.setSite(site);
+            message.setPath(movePath);
+            message.setOldPath(fromPath);
+            message.setRepositoryEventContext(repositoryEventContext);
 
-        repositoryReactor.notify(EBusConstants.REPOSITORY_MOVE_EVENT, Event.wrap(message));
-        
-        // note this was not here before 
-        // assume notify takes care of this but was bot previously applied to copy
-        previewSync.syncPath(site, movePath, repositoryEventContext);
+            repositoryReactor.notify(EBusConstants.REPOSITORY_MOVE_EVENT, Event.wrap(message));
+            
+            // note this was not here before 
+            // assume notify takes care of this but was bot previously applied to copy
+            previewSync.syncPath(site, movePath, repositoryEventContext);
+        }
     }
 
     protected void updateChildrenForMove(String site, String fromPath, String movePath, ContentItemTO moveDepsRoot) {
@@ -775,7 +778,7 @@ public class ContentServiceImpl implements ContentService {
                 String childToPath = childToPathMap.get("FILE_PATH");
 
                 // update database, preview, cache etc
-                updateDatabaseCachePreviewForMove(site, childFromPath, childToPath);
+                updateDatabaseCachePreviewForMove(site, childFromPath, childToPath, false);
                 
                 // handle this child's children
                 updateChildrenForMove(site, childFromPath, childToPath, childTO);
