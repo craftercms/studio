@@ -484,8 +484,11 @@ public class ContentServiceImpl implements ContentService {
 
         try {
             Map<String, String> copyPathMap = constructNewPathforCutCopy(site, fromPath, toPath, true);
-            copyPath = copyPathMap.get("FILENAME");
+            copyPath = copyPathMap.get("FILE_PATH");
             String copyPathModifier = copyPathMap.get("MODIFIER");
+            String copyPathFileName = copyPathMap.get("FILE_NAME");
+            String copyPathFolder = copyPathMap.get("FILE_FOLDER");
+
             String copyPathOnly = copyPath.substring(0, copyPath.lastIndexOf("/"));
             String copyFileName = copyPath.substring(copyPath.lastIndexOf("/")+1);
 
@@ -535,7 +538,7 @@ public class ContentServiceImpl implements ContentService {
                     }
 
                     // update the file name / folder values
-                    Document copyDocument = updateContentForCopy(site, fromDocument, copyObjectIds, copyPathModifier);
+                    Document copyDocument = updateContentForCopy(site, fromDocument, copyPathFileName, copyPathFolder, copyObjectIds, copyPathModifier);
          
                     InputStream copyContent = ContentUtils.convertDocumentToStream(copyDocument, CStudioConstants.CONTENT_ENCODING);
 
@@ -640,7 +643,7 @@ public class ContentServiceImpl implements ContentService {
         try {
             String sourcePath = (fromPath.indexOf("index.xml") != 0) ? fromPath.substring(0, fromPath.lastIndexOf("/")) : fromPath;
             Map<String, String> movePathMap = constructNewPathforCutCopy(site, fromPath, toPath, true);
-            movePath = movePathMap.get("FILENAME");
+            movePath = movePathMap.get("FILE_PATH");
 
             String targetPath = movePath.substring(0, movePath.lastIndexOf("/"));
             String targetFileName = movePath.substring(movePath.lastIndexOf("/")+1);
@@ -648,6 +651,7 @@ public class ContentServiceImpl implements ContentService {
         
             // disk repo code does to seem to want the parent folder as the target
             // leaving this code here becuase there is a difference between what the alfresco repo wants and disk
+            // CLEAN UP: if alfresco impl move change makes sense, kill this block of commented out code.
             //if(targetIsIndex == true) {
             //    targetFileName = targetPath.substring(targetPath.lastIndexOf("/")+1);
             //    targetPath = targetPath.substring(0, targetPath.lastIndexOf("/"));
@@ -768,7 +772,7 @@ public class ContentServiceImpl implements ContentService {
             try {
                 // construct the new path for the child
                 Map<String, String> childToPathMap = constructNewPathforCutCopy(site, childFromPath, movePath, false);
-                String childToPath = childToPathMap.get("FILENAME");
+                String childToPath = childToPathMap.get("FILE_PATH");
 
                 // update database, preview, cache etc
                 updateDatabaseCachePreviewForMove(site, childFromPath, childToPath);
@@ -827,6 +831,8 @@ public class ContentServiceImpl implements ContentService {
 
  
         String proposedDestPath = null;
+        String proposedDestPath_filename = null;
+        String proposedDestPath_folder = null;
         boolean targetPathExistsPriorToOp = false;
 
         try {
@@ -844,33 +850,49 @@ public class ContentServiceImpl implements ContentService {
                 // this is a rename
                 logger.info("A-A1 RENAME");
                 proposedDestPath = newPathOnly + "/" + newFileNameOnly +  "/index.xml"; 
+                proposedDestPath_filename = "index.xml";
+                proposedDestPath_folder = newFileNameOnly;
+
                 logger.info("Initial Proposed Path: {0} ", proposedDestPath);
             }
             else {
                 // this is a location move
                 logger.info("A-A2 MOVE LOCATION");
                 proposedDestPath = newPathOnly + "/" + newFileNameOnly + "/" + fromFileNameOnly +  "/index.xml"; 
+                proposedDestPath_filename = "index.xml";
+                proposedDestPath_folder = fromFileNameOnly;
+
                 logger.info("Initial Proposed Path: {0} ", proposedDestPath);
             }
         }
         else if(fromFileIsIndex && !newFileIsIndex) {
             logger.info("A-O");
             proposedDestPath = newPathOnly + "/" + newFileNameOnly + "/" + fromFileNameOnly +  "/index.xml"; 
+            proposedDestPath_filename = "index.xml";
+            proposedDestPath_folder = fromFileNameOnly;
+
             logger.info("Initial Proposed Path: {0} ", proposedDestPath);  
         }
         else if(!fromFileIsIndex && newFileIsIndex) {
             logger.info("A-B");
             proposedDestPath = newPathOnly + "/" + newFileNameOnly + "/" + fromFileNameOnly; 
+            proposedDestPath_filename = fromFileNameOnly;
+            proposedDestPath_folder = newFileNameOnly;
+
             logger.info("Initial Proposed Path: {0} ", proposedDestPath);  
         }                
         else{
             logger.info("A-C");
             proposedDestPath = newPathOnly + "/" + fromFileNameOnly;
+            proposedDestPath_filename = fromFileNameOnly;
+            proposedDestPath_folder = newPathOnly.substring(0, newPathOnly.lastIndexOf("/"));
+
             logger.info("Initial Proposed Path: {0} ", proposedDestPath);
         }
 
-        result.put("FILENAME", proposedDestPath);
-        result.put("FILENAME-ONLY", fromFileNameOnly);
+        result.put("FILE_PATH", proposedDestPath);
+        result.put("FILE_NAME", proposedDestPath_filename);
+        result.put("FILE_FOLDER", proposedDestPath_folder);
         result.put("MODIFIER", "");
 
         boolean contentExists = false;
@@ -899,14 +921,26 @@ public class ContentServiceImpl implements ContentService {
                     proposedDestPath = 
                         proposedDestPath.substring(0, proposedDestPath.lastIndexOf(".")) + "-" + id +
                         proposedDestPath.substring(proposedDestPath.lastIndexOf("."));
+
+                    // a regex would be better
+                    proposedDestPath_filename = proposedDestPath.substring(proposedDestPath.lastIndexOf("/")+1);
+                    proposedDestPath_folder = proposedDestPath.substring(0, proposedDestPath.lastIndexOf("/"));
+                    proposedDestPath_folder = proposedDestPath_folder.substring(proposedDestPath_folder.lastIndexOf("/")+1);
                 }
                 else {
                     proposedDestPath = 
                         proposedDestPath.substring(0, proposedDestPath.indexOf("/index.xml")) + "-" + id +
-                        proposedDestPath.substring(proposedDestPath.lastIndexOf("/index.xml"));                
+                        proposedDestPath.substring(proposedDestPath.lastIndexOf("/index.xml"));  
+
+                    proposedDestPath_filename = "index.xml";
+                    proposedDestPath_folder = proposedDestPath.replace("/index.xml","");
+                    proposedDestPath_folder = proposedDestPath_folder.substring(proposedDestPath_folder.lastIndexOf("/")+1);
                 }
 
-                result.put("FILENAME", proposedDestPath);
+
+                result.put("FILE_PATH", proposedDestPath);
+                result.put("FILE_NAME", proposedDestPath_filename);
+                result.put("FILE_FOLDER", proposedDestPath_folder);
                 result.put("MODIFIER", id);                
             }
             catch(Exception altPathGenErr) {
@@ -962,13 +996,24 @@ public class ContentServiceImpl implements ContentService {
         return ids;
     }
 
-    protected Document updateContentForCopy(String site, Document document, Map<String, String> params, String modifier) 
+    protected Document updateContentForCopy(String site, Document document, String filename, String folder, Map<String, String> params, String modifier) 
     throws ServiceException {
         
         //update pageId and groupId with the new one
         Element root = document.getRootElement();
         String originalPageId = null;
         String originalGroupId = null;
+
+        Node filenameNode = root.selectSingleNode("//" + DmXmlConstants.ELM_FILE_NAME);
+        if (filenameNode != null) {
+            ((Element)filenameNode).setText(filename);
+        }
+
+        Node folderNode = root.selectSingleNode("//" + DmXmlConstants.ELM_FOLDER_NAME);
+        if (folderNode != null) {
+            ((Element)folderNode).setText(folder);
+        }
+
 
         Node pageIdNode = root.selectSingleNode("//" + DmXmlConstants.ELM_PAGE_ID);
         if (pageIdNode != null) {
