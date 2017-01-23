@@ -762,7 +762,7 @@ public class ContentServiceImpl implements ContentService {
 
 
         // get the list of children
-        ContentItemTO movedTO = getContentItem(site, movePath, 1);
+        ContentItemTO movedTO = getContentItem(site, movePath, 2);
         List<ContentItemTO> childrenTOs = movedTO.getChildren();
 
         for(ContentItemTO childTO : childrenTOs) {
@@ -771,12 +771,9 @@ public class ContentServiceImpl implements ContentService {
             String childToPath = childTO.getUri();
             
             String oldParentFolderPath = fromPath.replace("/index.xml", "");
-            oldParentFolderPath = oldParentFolderPath.substring(0, oldParentFolderPath.lastIndexOf("/"));
-            
             String parentFolderPath = movePath.replace("/index.xml", "");
-            parentFolderPath = parentFolderPath.substring(0, parentFolderPath.lastIndexOf("/"));
 
-            String childFromPath = childToPath.replace(oldParentFolderPath, parentFolderPath);
+            String childFromPath = childToPath.replace(parentFolderPath, oldParentFolderPath);
 
             logger.info("updateChildObjectStateForMove HANDLING CHILD FROM: {0} TO: {1}  ", childFromPath, childToPath);
             //try {
