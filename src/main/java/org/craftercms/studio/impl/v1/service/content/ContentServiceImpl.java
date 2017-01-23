@@ -718,22 +718,27 @@ public class ContentServiceImpl implements ContentService {
         ContentItemTO movedTO = getContentItem(site, movePath, 0);  
         objectStateService.transition(site, movedTO, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.SAVE);
 
+
         // update metadata
-        ObjectMetadata metadata = objectMetadataManager.getProperties(site, fromPath);
-        if(metadata == null) {
-            objectMetadataManager.insertNewObjectMetadata(site, fromPath);
-            metadata = objectMetadataManager.getProperties(site, fromPath);
+        if (!objectMetadataManager.isRenamed(site, fromPath)) {
+            ObjectMetadata metadata = objectMetadataManager.getProperties(site, fromPath);
+            if(metadata == null) {
+                objectMetadataManager.insertNewObjectMetadata(site, fromPath);
+                metadata = objectMetadataManager.getProperties(site, fromPath);
+            }
+
+            Map<String, Object> objMetadataProps = new HashMap<String, Object>();
+            objMetadataProps.put(ObjectMetadata.PROP_RENAMED, 1);
+            objMetadataProps.put(ObjectMetadata.PROP_OLD_URL, fromPath);
+            objectMetadataManager.setObjectMetadata(site, fromPath, objMetadataProps);
         }
 
-        Map<String, Object> objMetadataProps = new HashMap<String, Object>();
-        objMetadataProps.put(ObjectMetadata.PROP_RENAMED, 1);
-        objMetadataProps.put(ObjectMetadata.PROP_OLD_URL, fromPath);
-        objectMetadataManager.setObjectMetadata(site, fromPath, objMetadataProps);
-
         objectMetadataManager.updateObjectPath(site, fromPath, movePath);
-        objMetadataProps = new HashMap<String, Object>();
-        objMetadataProps.put(ObjectMetadata.PROP_DELETE_URL, true);
-        objectMetadataManager.setObjectMetadata(site, movePath, objMetadataProps);
+
+        // WHAT IS THIS PROPERTY USED FOR?
+        //objMetadataProps = new HashMap<String, Object>();
+        //objMetadataProps.put(ObjectMetadata.PROP_DELETE_URL, true);
+        //objectMetadataManager.setObjectMetadata(site, movePath, objMetadataProps);
 
         // write activity stream
         activityService.renameContentId(site, fromPath, movePath);
