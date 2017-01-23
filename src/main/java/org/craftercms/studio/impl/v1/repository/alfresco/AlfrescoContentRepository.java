@@ -156,6 +156,9 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
         return moveContent(fromPath, toPath, null);
     }
 
+    /**
+     * why is this method public?
+     */
     @Override
     public boolean moveContent(String fromPath, String toPath, String newName) {
         long startTime = System.currentTimeMillis();
@@ -164,6 +167,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
         // service layer assumes it is giving the name where the item should land
         // alfresco implementaiton wants to look up the parent folder as the target
         String targetPath = toPath.substring(0, toPath.lastIndexOf("/"));
+        newName = (newName != null) ? newName : toPath.substring(toPath.lastIndexOf("/")+1);
 
         logger.info("ALFRESCO MOVE, CLEAN ME UP BEFORE PR: Use Copy/Delete model {0} -> {1}", fromPath, targetPath);
         // DO NOT COMMENT OUT OLD CODE :-/
@@ -189,10 +193,14 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
             CmisObject targetCmisObject = session.getObjectByPath(cleanToPath);
 
             if (sourceCmisObject != null && targetCmisObject != null) {
+                
                 ObjectType sourceType = sourceCmisObject.getType();
                 ObjectType targetType = targetCmisObject.getType();
+
                 if (BaseTypeId.CMIS_FOLDER.value().equals(targetType.getId())) {
+                    
                     Folder targetFolder = (Folder)targetCmisObject;
+                    
                     if ("cmis:document".equals(sourceType.getId())) {
                         org.apache.chemistry.opencmis.client.api.Document sourceDocument =
                                 (org.apache.chemistry.opencmis.client.api.Document)sourceCmisObject;
@@ -200,14 +208,18 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
                         List<Folder> sourceParents = sourceDocument.getParents();
                         Folder sourceParent = (CollectionUtils.isEmpty(sourceParents) ? null : sourceParents.get(0));
                         sourceDocument.move(sourceParent, targetFolder);
-                    } else if ("cmis:folder".equals(sourceType.getId())) {
+                    
+                    } 
+                    else if ("cmis:folder".equals(sourceType.getId())) {
                         Folder sourceFolder = (Folder)sourceCmisObject;
                         Folder sourceParentFolder = sourceFolder.getFolderParent();
                         logger.debug("Moving folder {0} to {1}", sourceFolder.getPath(), targetFolder.getPath());
+
                         if (newName != null) {
                             FileableCmisObject resultObject = sourceFolder.move(sourceParentFolder, targetFolder);
                             resultObject.rename(newName);
-                        } else {
+                        } 
+                        else {
                             Iterable<CmisObject> children = sourceFolder.getChildren();
                             for (CmisObject child : children) {
                                 FileableCmisObject fileableChild = (FileableCmisObject)child;
