@@ -20,7 +20,8 @@
 import scripts.api.SecurityServices
 
 def result = [:]
+
 def username = params.username
 
 def context = SecurityServices.createContext(applicationContext, request)
-result.result = SecurityServices.enableUser(context, username, true);
+result.result = SecurityServices.enableUser(context, username, false);
