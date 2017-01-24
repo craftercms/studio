@@ -285,8 +285,14 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
     public String createVersion(String path, String comment, boolean majorVersion) {
         long startTime = System.currentTimeMillis();
         String versionLabel = null;
-        //if (majorVersion) {
+        if (majorVersion 
+        || (comment!=null && comment.startsWith("Reverted to content from version"))) {
             // only major version will be created on demand. minor version is created on updates
+            // OR The comment starts with Reverted.  Why?  Because autoversioning may be turned on
+            // in the repo for any object SO any WRITE action causes a version.
+            // Options here are to do what's above which makes an undesirable assumption about the
+            // layer above OR to turn on-and-off o versioning on every WRITE which is more complex 
+            // for the repository. :-/
 
             Map<String, String> params = new HashMap<String, String>();
             String cleanPath = path.replaceAll("//", "/"); // sometimes sent bad paths
@@ -320,7 +326,8 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
                 logger.error("Error while creating new " + (majorVersion ? "major" : "minor") + " version for path " +
                              path, err);
             }
-        //}
+        }
+        
         long duration = System.currentTimeMillis() - startTime;
         logger.debug("createVersion(path = {0}, majorVersion = {1}) ({2} ms)", path, majorVersion, duration);
         return versionLabel;
