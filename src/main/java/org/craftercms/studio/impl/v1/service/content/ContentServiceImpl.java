@@ -640,20 +640,31 @@ public class ContentServiceImpl implements ContentService {
 
         try {
             String sourcePath = (fromPath.indexOf("index.xml") != -1) ? fromPath.substring(0, fromPath.lastIndexOf("/")) : fromPath;
+            String sourcePathOnly = fromPath.substring(0, fromPath.lastIndexOf("/"));
+
             Map<String, String> movePathMap = constructNewPathforCutCopy(site, fromPath, toPath, true);
             movePath = movePathMap.get("FILE_PATH");
+            String moveFileName = movePathMap.get("FILE_NAME");
+            String movePathOnly = movePath.substring(0, movePath.lastIndexOf("/"));
+            boolean targetIsIndex = "index.xml".equals(moveFileName);
 
-            String targetPath = movePath.substring(0, movePath.lastIndexOf("/"));
+            logger.info("move file MOVE PATH ONLY {0} vs MOVE PATH {1} SOURCE PATH ONLY", movePath, movePathOnly, sourcePathOnly);
+            String targetPath = (movePathOnly.equals(sourcePathOnly)) ? movePath : movePathOnly;
         
-            // disk repo code does to seem to want the parent folder as the target
-            // leaving this code here becuase there is a difference between what the alfresco repo wants and disk
-            // CLEAN UP: if alfresco impl move change makes sense, kill this block of commented out code.
-            //String targetFileName = movePath.substring(movePath.lastIndexOf("/")+1);
-            //boolean targetIsIndex = ("index.xml".equals(targetFileName));
-            //if(targetIsIndex == true) {
-            //    targetFileName = targetPath.substring(targetPath.lastIndexOf("/")+1);
-            //    targetPath = targetPath.substring(0, targetPath.lastIndexOf("/"));
-            //}
+            logger.info("TARGET PATH {0}", targetPath);
+
+            if(targetIsIndex == true) {
+                // Since this in an index, the target path is actually one level up, we're moving folder/index.xml + children
+                String sourceParentPath = sourcePathOnly.substring(0, sourcePathOnly.lastIndexOf("/"));
+                String targetParentPath = targetPath.substring(0, targetPath.lastIndexOf("/"));
+                
+                logger.info("-> SP {0} TP {1}", sourceParentPath, targetParentPath);
+                if(!sourceParentPath.equals(targetParentPath)) {
+                    // move, not a rename
+                    targetPath = targetPath.substring(0, targetPath.lastIndexOf("/"));
+                    logger.info("TARGET PATH {0}", targetPath);
+                }
+            }
 
             logger.info("move file for site {0} from {1} to {2}, sourcePath {3} to target path {4}", site, fromPath, toPath, sourcePath, targetPath);
 
@@ -805,21 +816,6 @@ public class ContentServiceImpl implements ContentService {
          Map<String, String> result = new HashMap<String, String>(); 
         
         // The following rules apply to content under the site folder
-        // Example MOVE LOCATION, INDEX FILES
-        // fromPath: "/site/website/search/index.xml"
-        // toPath:   "/site/website/products/index.xml"
-        // newPath:  "/site/website/products/search/index.xml" 
-        //
-        // Example RENAME, INDEX FILES
-        // fromPath: "/site/website/en/services/index.xml"
-        // toPath:   "site/website/en/services-updated/index.xml" 
-        // newPath:  "site/website/en/services-updated/index.xml 
-        // 
-        // Example NON INDEX FILES
-        // fromPath: "/site/website/search.xml"
-        // toPath:   "/site/website/products/search.xml"
-        // newPath:  "/site/website/products/search.xml" 
-
         String fromPathOnly = fromPath.substring(0, fromPath.lastIndexOf("/"));
         String fromFileNameOnly = fromPath.substring(fromPath.lastIndexOf("/")+1);
         boolean fromFileIsIndex = ("index.xml".equals(fromFileNameOnly));
@@ -831,8 +827,8 @@ public class ContentServiceImpl implements ContentService {
             logger.info("cut/copy name rules INDEX FROM: {0}, {1}", fromPathOnly, fromFileNameOnly);
         }
 
-        String newPathOnly = toPath.substring(0, toPath.lastIndexOf("/"));
-        String newFileNameOnly = toPath.substring(toPath.lastIndexOf("/")+1);
+        String newPathOnly = (toPath.contains(".xml")) ? toPath.substring(0, toPath.lastIndexOf("/")) : toPath;
+        String newFileNameOnly = (toPath.contains(".xml")) ? toPath.substring(toPath.lastIndexOf("/")+1) : fromFileNameOnly;
         boolean newFileIsIndex = ("index.xml".equals(newFileNameOnly));
         logger.info("cut/copy name rules TO: {0}, {1}", newPathOnly, newFileNameOnly);
 
@@ -859,6 +855,15 @@ public class ContentServiceImpl implements ContentService {
 
         if(fromFileIsIndex && newFileIsIndex) {
             logger.info("A-A");
+            // Example MOVE LOCATION, INDEX FILES
+            // fromPath: "/site/website/search/index.xml"
+            // toPath:   "/site/website/products/index.xml"
+            // newPath:  "/site/website/products/search/index.xml"             
+            //
+            // Example RENAME, INDEX FILES
+            // fromPath: "/site/website/en/services/index.xml"
+            // toPath:   "site/website/en/services-updated/index.xml" 
+            // newPath:  "site/website/en/services-updated/index.xml 
             if(newPathOnly.equals(fromPathOnly) && !targetPathExistsPriorToOp) {
                 // this is a rename
                 logger.info("A-A1 RENAME");
@@ -880,7 +885,12 @@ public class ContentServiceImpl implements ContentService {
         }
         else if(fromFileIsIndex && !newFileIsIndex) {
             logger.info("A-O");
-            proposedDestPath = newPathOnly + "/" + newFileNameOnly + "/" + fromFileNameOnly +  "/index.xml"; 
+            // Example MOVE LOCATION, INDEX TO FOLDER
+            // fromPath: "/site/website/search/index.xml"
+            // toPath:   "/site/website/a-folder"
+            // newPath:  "/site/website/a-folder/search/index.xml" 
+            proposedDestPath = newPathOnly + "/" + fromFileNameOnly +  "/index.xml"; 
+//            proposedDestPath = newPathOnly + "/" + newFileNameOnly + "/" + fromFileNameOnly +  "/index.xml"; 
             proposedDestPath_filename = "index.xml";
             proposedDestPath_folder = fromFileNameOnly;
 
@@ -896,6 +906,15 @@ public class ContentServiceImpl implements ContentService {
         }                
         else{
             logger.info("A-C");
+            // Example NON INDEX FILES MOVE TO FOLDER
+            // fromPath: "/site/website/search.xml"
+            // toPath:   "/site/website/a-folder"
+            // newPath:  "/site/website/products/a-folder/search.xml" 
+            //
+            // Example  INDEX FILES MOVE to FOLDER
+            // fromPath: "/site/website/search.xml"
+            // toPath:   "/site/website/products/search.xml"
+            // newPath:  "/site/website/products/search.xml" 
             if(fromFileNameOnly.equals(newFileNameOnly)) {
                 // Move location
                 logger.info("A-C1");

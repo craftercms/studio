@@ -82,8 +82,8 @@ import org.springframework.http.MediaType;
 /**
  * Alfresco repository implementation.  This is the only point of contact with Alfresco's API in
  * the entire system under the org.craftercms.cstudio.impl package structure
+ * @author dejanbrkic
  * @author russdanner
- *
  */
 public class AlfrescoContentRepository extends AbstractContentRepository implements SecurityProvider {
 
@@ -153,116 +153,95 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
 
     @Override
     public boolean moveContent(String fromPath, String toPath) {
-        return moveContent(fromPath, toPath, null);
-    }
-
-    /**
-     * why is this method public?
-     */
-    @Override
-    public boolean moveContent(String fromPath, String toPath, String newName) {
         long startTime = System.currentTimeMillis();
+        boolean isRename = false;
         boolean result = false;
 
-        // service layer assumes it is giving the name where the item should land
-        // alfresco implementaiton wants to look up the parent folder as the target
         logger.info("ALFRESCO MOVE FROM {0} -> TO {1}", fromPath, toPath);
-
-        String targetPath = fromPath.endsWith(".xml") ? toPath : toPath.substring(0, toPath.lastIndexOf("/"));
-        newName = (newName != null) ? newName : toPath.substring(toPath.lastIndexOf("/")+1);
-
-        logger.info("ALFRESCO MOVE, CLEAN ME UP BEFORE PR: Use Copy/Delete model {0} -> {1}", fromPath, targetPath);
-        // DO NOT COMMENT OUT OLD CODE :-/
-        //return this.copyContentInternal(fromPath, toPath, newName, true);
-
-        // This code should be lifed out of this layer or removed all-together
-        // Content service should be the only thing that calls this method so the repo
-        // should not have to worry about bad input.
-
-        String cleanFromPath = fromPath.replaceAll("//", "/"); // sometimes sent bad paths
-        if (cleanFromPath.endsWith("/")) {
-            cleanFromPath = cleanFromPath.substring(0, cleanFromPath.length() - 1);
+        String parentFromPath = fromPath.substring(0, fromPath.lastIndexOf("/"));
+        String parentToPath = toPath.substring(0, toPath.lastIndexOf("/"));
+ 
+        // If where we are moving is a file, we need the parent.  
+        // Alfresco move operations use parent path as the target.
+        String targetPath = toPath;
+        if(targetPath.endsWith(".xml")) {
+            // This is a file move
+            targetPath = parentToPath;
         }
-        String cleanToPath = targetPath.replaceAll("//", "/"); // sometimes sent bad paths
-        if (cleanToPath.endsWith("/")) {
-            cleanToPath = cleanToPath.substring(0, cleanToPath.length() - 1);
-        }
-
 
         try {
             Session session = getCMISSession();
-            CmisObject sourceCmisObject = session.getObjectByPath(cleanFromPath);
-            CmisObject targetCmisObject = session.getObjectByPath(cleanToPath);
+            CmisObject sourceCmisObject = session.getObjectByPath(fromPath);
+            CmisObject targetCmisObject =  null;
 
-            if (sourceCmisObject != null && targetCmisObject != null) {
-                
-                ObjectType sourceType = sourceCmisObject.getType();
-                ObjectType targetType = targetCmisObject.getType();
-
-                if (BaseTypeId.CMIS_FOLDER.value().equals(targetType.getId())) {
-                    logger.debug("AR A");
-                    Folder targetFolder = (Folder)targetCmisObject;
-                    
-                    if ("cmis:document".equals(sourceType.getId())) {
-                        logger.debug("AR A1");
-                        org.apache.chemistry.opencmis.client.api.Document sourceDocument =
-                                (org.apache.chemistry.opencmis.client.api.Document)sourceCmisObject;
-                        
-                        List<Folder> sourceParents = sourceDocument.getParents();
-                        Folder sourceParent = (CollectionUtils.isEmpty(sourceParents) ? null : sourceParents.get(0));
-                        
-                        if( sourceParent.getPath().equals(targetFolder.getPath()) ) {
-                            // this is a rename only
-                            logger.debug("Renaming document {0} to {1}/{2}", sourceDocument.getPaths().get(0), targetFolder.getPath(), newName);
-                            sourceDocument.rename(newName);
-                        }
-                        else {
-                            // this is a location move
-                            logger.debug("Moving document {0} to {1}", sourceDocument.getPaths().get(0), targetFolder.getPath());
-                            sourceDocument.move(sourceParent, targetFolder);
-                        }                    
-                    } 
-                    else if ("cmis:folder".equals(sourceType.getId())) {
-                        logger.debug("AR 2");
-                        Folder sourceFolder = (Folder)sourceCmisObject;
-                        Folder sourceParentFolder = sourceFolder.getFolderParent();
-                        logger.debug("Moving folder {0} to {1}", sourceFolder.getPath(), targetFolder.getPath());
-
-                        if (newName != null) {
-                            sourceCmisObject.rename(newName);
-                            sourceFolder.move(sourceParentFolder, targetFolder);
-                        } 
-                        else {
-                            Iterable<CmisObject> children = sourceFolder.getChildren();
-
-                            for (CmisObject child : children) {
-                                FileableCmisObject fileableChild = (FileableCmisObject)child;
-                                
-                                fileableChild.move(sourceFolder, targetFolder);
-                            }
-
-                            sourceFolder.delete();
-                        }
-                    }
-                    
-                    session.clear();
-                    return true;
-                } else {
-                    logger.debug("AR B");
-                    logger.error("Move failed since target path " + toPath + " is not folder.");
-                }
-            } else {
-                if (sourceCmisObject == null) {
-                    logger.error("Move failed since source path " + fromPath + " does not exist.");
-                }
-                if (targetCmisObject == null) {
-                    logger.error("Move failed since target path " + toPath + " does not exist.");
-                }
+            try { 
+                targetCmisObject = session.getObjectByPath(targetPath);
             }
-        } catch (CmisBaseException err) {
+            catch(CmisObjectNotFoundException notAnError) {
+               // the item isn't here yet, we're doing a move, not a rename get the parent
+                targetCmisObject = session.getObjectByPath(parentToPath); 
+            }
+                
+            ObjectType sourceType = sourceCmisObject.getType();
+            ObjectType targetType = targetCmisObject.getType();
+
+            if (BaseTypeId.CMIS_FOLDER.value().equals(targetType.getId())) {
+                Folder targetFolder = (Folder)targetCmisObject;
+                
+                if ("cmis:document".equals(sourceType.getId())) {
+                    org.apache.chemistry.opencmis.client.api.Document sourceDocument =
+                            (org.apache.chemistry.opencmis.client.api.Document)sourceCmisObject;
+                    
+                    List<Folder> sourceParents = sourceDocument.getParents();
+                    Folder sourceParent = (CollectionUtils.isEmpty(sourceParents) ? null : sourceParents.get(0));
+                    
+                    if(sourceParent.getPath().equals(targetFolder.getPath()) ) {
+                        // this is a rename only
+                        String renamedFileName =  toPath.substring(toPath.lastIndexOf("/")+1);
+                        logger.info("Renaming document {0} to {1}/{2}", sourceDocument.getPaths().get(0), targetFolder.getPath(), renamedFileName);
+                        sourceDocument.rename(renamedFileName);
+                    }
+                    else {
+                        // this is a location move
+                        logger.info("Moving document {0} to {1}", sourceDocument.getPaths().get(0), targetFolder.getPath());
+                        sourceDocument.move(sourceParent, targetFolder);
+                    }                    
+                } 
+                else if ("cmis:folder".equals(sourceType.getId())) {
+                    logger.info("AR 2");
+                    Folder sourceFolder = (Folder)sourceCmisObject;
+                    Folder sourceParentFolder = sourceFolder.getFolderParent();
+                   
+                    if(sourceParentFolder.getPath().equals(targetFolder.getPath()) ) {
+                        
+                        String renamedFolderName = toPath.substring(toPath.lastIndexOf("/")+1);
+                        logger.info("Renaming folder {0} to {1}/{2}", sourceFolder.getPath(), targetFolder.getPath(), renamedFolderName);
+                        sourceCmisObject.rename(renamedFolderName);
+                        //sourceFolder.move(sourceParentFolder, targetFolder);
+                    }
+                    else {
+                        logger.info("Moving folder {0} to {1}", sourceFolder.getPath(), targetFolder.getPath());
+                        sourceFolder.move(sourceParentFolder, targetFolder);
+                    } 
+                }
+                
+                session.clear();
+                return true;
+            } else {
+                logger.info("AR B");
+                logger.error("Move failed since target path " + toPath + " is not folder.");
+            }
+        } 
+        catch (CmisBaseException err) {
             logger.error("Error while moving content from " + fromPath + " to " + toPath, err);
         }
+
         return result;
+    }
+
+    @Override
+    public boolean moveContent(String fromPath, String toPath, String newName) {
+       return moveContent(fromPath, toPath+"/"+newName);
     }
 
     /**
