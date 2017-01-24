@@ -166,6 +166,8 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
 
         // service layer assumes it is giving the name where the item should land
         // alfresco implementaiton wants to look up the parent folder as the target
+        logger.info("ALFRESCO MOVE FROM {0} -> TO {1}", fromPath, toPath);
+
         String targetPath = fromPath.endsWith(".xml") ? toPath : toPath.substring(0, toPath.lastIndexOf("/"));
         newName = (newName != null) ? newName : toPath.substring(toPath.lastIndexOf("/")+1);
 
@@ -198,19 +200,30 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
                 ObjectType targetType = targetCmisObject.getType();
 
                 if (BaseTypeId.CMIS_FOLDER.value().equals(targetType.getId())) {
-                    
+                    logger.debug("AR A");
                     Folder targetFolder = (Folder)targetCmisObject;
                     
                     if ("cmis:document".equals(sourceType.getId())) {
+                        logger.debug("AR A1");
                         org.apache.chemistry.opencmis.client.api.Document sourceDocument =
                                 (org.apache.chemistry.opencmis.client.api.Document)sourceCmisObject;
-                        logger.debug("Moving document {0} to {1}", sourceDocument.getPaths().get(0), targetFolder.getPath());
+                        
                         List<Folder> sourceParents = sourceDocument.getParents();
                         Folder sourceParent = (CollectionUtils.isEmpty(sourceParents) ? null : sourceParents.get(0));
-                        sourceDocument.move(sourceParent, targetFolder);
-                    
+                        
+                        if( sourceParent.getPath().equals(targetFolder.getPath()) ) {
+                            // this is a rename only
+                            logger.debug("Renaming document {0} to {1}/{2}", sourceDocument.getPaths().get(0), targetFolder.getPath(), newName);
+                            sourceDocument.rename(newName);
+                        }
+                        else {
+                            // this is a location move
+                            logger.debug("Moving document {0} to {1}", sourceDocument.getPaths().get(0), targetFolder.getPath());
+                            sourceDocument.move(sourceParent, targetFolder);
+                        }                    
                     } 
                     else if ("cmis:folder".equals(sourceType.getId())) {
+                        logger.debug("AR 2");
                         Folder sourceFolder = (Folder)sourceCmisObject;
                         Folder sourceParentFolder = sourceFolder.getFolderParent();
                         logger.debug("Moving folder {0} to {1}", sourceFolder.getPath(), targetFolder.getPath());
@@ -231,9 +244,11 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
                             sourceFolder.delete();
                         }
                     }
+                    
                     session.clear();
                     return true;
                 } else {
+                    logger.debug("AR B");
                     logger.error("Move failed since target path " + toPath + " is not folder.");
                 }
             } else {

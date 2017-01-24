@@ -896,9 +896,20 @@ public class ContentServiceImpl implements ContentService {
         }                
         else{
             logger.info("A-C");
-            proposedDestPath = newPathOnly + "/" + fromFileNameOnly;
-            proposedDestPath_filename = fromFileNameOnly;
-            proposedDestPath_folder = newPathOnly.substring(0, newPathOnly.lastIndexOf("/"));
+            if(fromFileNameOnly.equals(newFileNameOnly)) {
+                // Move location
+                logger.info("A-C1");
+                proposedDestPath = newPathOnly + "/" + fromFileNameOnly;
+                proposedDestPath_filename = fromFileNameOnly;
+                proposedDestPath_folder = newPathOnly.substring(0, newPathOnly.lastIndexOf("/"));
+            }
+            else {
+                // rename 
+                logger.info("A-C2");
+                proposedDestPath = newPathOnly + "/" + newFileNameOnly;
+                proposedDestPath_filename = newFileNameOnly;
+                proposedDestPath_folder = newPathOnly.substring(0, newPathOnly.lastIndexOf("/"));
+            }
 
             logger.info("Initial Proposed Path: {0} ", proposedDestPath);
         }
