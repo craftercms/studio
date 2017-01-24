@@ -110,4 +110,12 @@ public interface SecurityService {
      * @return
      */
     boolean createGroup(String groupName, String description, long siteId);
+
+    /**
+     * Get status for given user
+     *
+     * @param username username
+     * @return
+     */
+    Map<String, Object> getUserStatus(String username);
 }

@@ -91,6 +91,14 @@ public interface SecurityProvider {
     boolean enableUser(String username, boolean enabled);
 
     /**
+     * Get status for given user
+     *
+     * @param username
+     * @return
+     */
+    Map<String, Object> getUserStatus(String username);
+
+    /**
      * Create group with given parameters
      *
      * @param groupName

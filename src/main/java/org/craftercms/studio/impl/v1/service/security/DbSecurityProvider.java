@@ -245,6 +245,18 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
+    public Map<String, Object> getUserStatus(String user) {
+        User u = securityMapper.getUser(user);
+        Map<String, Object> userStatus = new HashMap<String, Object>();
+        if (u != null) {
+            userStatus.put("username", u.getUsername());
+            userStatus.put("enabled", u.isEnabled());
+
+        }
+        return userStatus;
+    }
+
+    @Override
     public boolean createGroup(String groupName, String description, long siteId) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("name", groupName);

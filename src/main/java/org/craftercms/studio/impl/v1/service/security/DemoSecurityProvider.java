@@ -260,6 +260,12 @@ public class DemoSecurityProvider implements SecurityProvider {
     }
 
     @Override
+    public Map<String, Object> getUserStatus(String username) {
+        // TODO: DB: Implement this ?
+        return null;
+    }
+
+    @Override
     public boolean createGroup(String groupName, String description, long siteId) {
         // TODO: DB: Implement this ?
         return false;

@@ -526,6 +526,11 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
+    public Map<String, Object> getUserStatus(String username) {
+        return securityProvider.getUserStatus(username);
+    }
+
+    @Override
     public boolean createGroup(String groupName, String description, long siteId) {
         return securityProvider.createGroup(groupName, description, siteId);
     }
