@@ -285,7 +285,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
     public String createVersion(String path, String comment, boolean majorVersion) {
         long startTime = System.currentTimeMillis();
         String versionLabel = null;
-        if (majorVersion) {
+        //if (majorVersion) {
             // only major version will be created on demand. minor version is created on updates
 
             Map<String, String> params = new HashMap<String, String>();
@@ -320,7 +320,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
                 logger.error("Error while creating new " + (majorVersion ? "major" : "minor") + " version for path " +
                              path, err);
             }
-        }
+        //}
         long duration = System.currentTimeMillis() - startTime;
         logger.debug("createVersion(path = {0}, majorVersion = {1}) ({2} ms)", path, majorVersion, duration);
         return versionLabel;

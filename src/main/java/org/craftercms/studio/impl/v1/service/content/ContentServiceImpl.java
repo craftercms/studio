@@ -510,10 +510,8 @@ public class ContentServiceImpl implements ContentService {
                     Map<String,String> copyObjectIds = contentItemIdGenerator.getIds(); 
 
                     Map<String, String> copyDependencies = dependencyService.getCopyDependencies(site, fromPath, fromPath);
-                    copyDependencies = getCopyDependencies(fromDocument, copyDependencies);
+                    copyDependencies = getItemSpecificDependencies(fromDocument, copyDependencies);
                     logger.info("--> GETTING DEPS: {0}, {1}", fromPath, copyDependencies);
-
-
 
                     // Duplicate the children 
                     for(String dependecyKey : copyDependencies.keySet()) {
@@ -967,7 +965,7 @@ public class ContentServiceImpl implements ContentService {
         return result;
     }
 
-    protected Map<String, String> getCopyDependencies(Document document, Map<String, String> copyDependencies) {
+    protected Map<String, String> getItemSpecificDependencies(Document document, Map<String, String> copyDependencies) {
         //update pageId and groupId with the new one
         Element root = document.getRootElement();
 
@@ -1578,20 +1576,120 @@ public class ContentServiceImpl implements ContentService {
     public boolean revertContentItem(String site, String path, String version, boolean major, String comment) {
         boolean success = false;
 
-        success = _contentRepository.revertContent(expandRelativeSitePath(site, path), version, major, comment);
+        if(path.startsWith("/site")) {
+            success = revertXmlContentItem(site, path, version, major, comment);
+        }
+        else {
+            success = _contentRepository.revertContent(expandRelativeSitePath(site, path), version, major, comment);
 
-        removeItemFromCache(site, path);
+            removeItemFromCache(site, path);
 
-        RepositoryEventMessage message = new RepositoryEventMessage();
-        message.setSite(site);
-        message.setPath(path);
-        String sessionTicket = securityProvider.getCurrentToken();
-        RepositoryEventContext repositoryEventContext = new RepositoryEventContext(sessionTicket);
-        message.setRepositoryEventContext(repositoryEventContext);
-        repositoryReactor.notify(EBusConstants.REPOSITORY_UPDATE_EVENT, Event.wrap(message));
+            RepositoryEventMessage message = new RepositoryEventMessage();
+            message.setSite(site);
+            message.setPath(path);
+            String sessionTicket = securityProvider.getCurrentToken();
+            RepositoryEventContext repositoryEventContext = new RepositoryEventContext(sessionTicket);
+            message.setRepositoryEventContext(repositoryEventContext);
+            repositoryReactor.notify(EBusConstants.REPOSITORY_UPDATE_EVENT, Event.wrap(message));
+        }
+        return success;
+    }
 
-        if(success) {
-            // publish item udated event or push to preview
+    protected boolean revertXmlContentItem(String site, String path, String version, boolean major, String comment) {
+        boolean success = false;
+
+        try {
+            String lifecycleOp = DmContentLifeCycleService.ContentLifeCycleOperation.REVERT.toString();
+            String user = securityService.getCurrentUser();
+            String sessionTicket = securityProvider.getCurrentToken();
+
+            String contentType = null;
+            String fileName = path.substring(path.lastIndexOf("/")+1);
+            String pathOnly = path.substring(0, path.lastIndexOf("/"));
+            String folderOnly = pathOnly.substring(pathOnly.lastIndexOf("/")+1);
+            boolean isIndex = ("index.xml".equals(fileName));
+
+            InputStream olderContentStream = getContentVersion(site, path, version);
+
+            // get older values and modify document (folder name may have changed due to a move)
+            Document olderContentDocument = ContentUtils.convertStreamToXml(olderContentStream);
+            Element root = olderContentDocument.getRootElement();
+
+            Node contentTypeNode = root.selectSingleNode("//" + DmXmlConstants.ELM_CONTENT_TYPE);
+            if (contentTypeNode != null) {
+                contentType = ((Element)contentTypeNode).getText();
+            }
+
+            Node folderNode = root.selectSingleNode("//" + DmXmlConstants.ELM_FOLDER_NAME);
+            if (folderNode != null) {
+                ((Element)folderNode).setText(folderOnly);
+            }
+
+            InputStream newVersionContent = ContentUtils.convertDocumentToStream(olderContentDocument, CStudioConstants.CONTENT_ENCODING);
+
+            // This code is very similar to what is in WRTIE CONTENT. Consolidate this code?
+            Map<String, String> params = new HashMap<String, String>();
+            params.put(DmConstants.KEY_SITE, site);
+            params.put(DmConstants.KEY_PATH, pathOnly);
+            params.put(DmConstants.KEY_FILE_NAME, fileName);
+            params.put(DmConstants.KEY_USER, user);
+            params.put(DmConstants.KEY_CONTENT_TYPE, contentType);
+            params.put(DmConstants.KEY_CREATE_FOLDERS, "true");
+            params.put(DmConstants.KEY_EDIT, "true");
+            params.put(DmConstants.KEY_ACTIVITY_TYPE, "false");
+            params.put(DmConstants.KEY_SKIP_CLEAN_PREVIEW, "true");
+            params.put(DmConstants.KEY_COPIED_CONTENT, "false");
+            params.put(DmConstants.CONTENT_LIFECYCLE_OPERATION, lifecycleOp);
+
+            String id = site + ":" + pathOnly + ":" + fileName + ":" + contentType;
+
+            try {
+                generalLockService.lock(id);
+
+                processContent(id, newVersionContent, true, params, DmConstants.CONTENT_CHAIN_FORM);
+
+                String versionComment = "Reverted to content from version "+ version;
+                
+                String fullPath =expandRelativeSitePath(site, path);
+                _contentRepository.createVersion(fullPath, versionComment, major);
+
+                ObjectState objectState = objectStateService.getObjectState(site, path);
+
+                if (objectState == null) {
+                    ContentItemTO versionItem = getContentItem(site, path, 0);
+                    objectStateService.insertNewEntry(site, versionItem);
+                    objectState = objectStateService.getObjectState(site, path);
+                }
+
+                objectStateService.setSystemProcessing(site, path, false);
+
+                // Fire update events and preview sync
+                RepositoryEventContext repositoryEventContext = new RepositoryEventContext(sessionTicket);
+                RepositoryEventMessage message = new RepositoryEventMessage();
+
+                message.setSite(site);
+                message.setPath(path);
+                message.setRepositoryEventContext(repositoryEventContext);
+
+                previewSync.syncPath(site, path, repositoryEventContext);
+
+                // not sure why item would be in cache (its a new name)
+                removeItemFromCache(site, path);
+
+                success = true;
+            }
+            finally {
+                generalLockService.unlock(id);
+            }
+        }
+        catch(DocumentException parseErr) {
+           logger.error("Unable to revert content, parse error on document for item at path {0} with version id {1}.", parseErr, path, version); 
+        }
+        catch(ContentNotFoundException verNotFoundErr) {
+           logger.error("Unable to revert content, item at path {0} with version id {1} not found.", path, version);
+        }
+        catch(ServiceException err) {
+           logger.error("Exception to revert content, write failed for item at path {0} with version id {1}", err, path, version);            
         }
 
         return success;
