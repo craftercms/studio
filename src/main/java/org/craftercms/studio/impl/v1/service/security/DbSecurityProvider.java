@@ -68,9 +68,9 @@ public class DbSecurityProvider implements SecurityProvider {
         User u = securityMapper.getUser(user);
         Map<String, String> userProfile = new HashMap<String, String>();
         if (u != null) {
-            userProfile.put("userName", u.getUsername());
-            userProfile.put("firstName", u.getFirstname());
-            userProfile.put("lastName", u.getLastname());
+            userProfile.put("username", u.getUsername());
+            userProfile.put("first_name", u.getFirstname());
+            userProfile.put("last_name", u.getLastname());
             userProfile.put("email", u.getEmail());
         }
         return userProfile;
