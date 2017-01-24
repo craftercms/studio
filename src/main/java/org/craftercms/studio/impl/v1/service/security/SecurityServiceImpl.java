@@ -525,6 +525,11 @@ public class SecurityServiceImpl implements SecurityService {
         return securityProvider.enableUser(username, enabled);
     }
 
+    @Override
+    public boolean createGroup(String groupName, String description, long siteId) {
+        return securityProvider.createGroup(groupName, description, siteId);
+    }
+
     public String getConfigPath() {
         return studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH);
     }

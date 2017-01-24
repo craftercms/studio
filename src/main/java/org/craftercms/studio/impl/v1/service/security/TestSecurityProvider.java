@@ -208,4 +208,10 @@ public class TestSecurityProvider implements SecurityProvider {
         // TODO: DB: Implement this ?
         return false;
     }
+
+    @Override
+    public boolean createGroup(String groupName, String description, long siteId) {
+        // TODO: DB: Implement this ?
+        return false;
+    }
 }

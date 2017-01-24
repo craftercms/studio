@@ -101,4 +101,9 @@ class SecurityServices {
         def securityServicesImpl = ServiceFactory.getSecurityServices(context)
         return securityServicesImpl.enableUser(username, enabled)
     }
+
+    static createGroup(context, groupName, description, siteId) {
+        def securityServicesImpl = ServiceFactory.getSecurityServices(context)
+        return securityServicesImpl.createGroup(groupName, description, siteId)
+    }
 }

@@ -244,6 +244,16 @@ public class DbSecurityProvider implements SecurityProvider {
         return true;
     }
 
+    @Override
+    public boolean createGroup(String groupName, String description, long siteId) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("name", groupName);
+        params.put("description", description);
+        params.put("siteId", siteId);
+        securityMapper.createGroup(params);
+        return true;
+    }
+
     protected StudioConfiguration studioConfiguration;
 
     public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }

@@ -58,4 +58,9 @@
         SET enabled = #{enabled}
         WHERE username = #{username}
     </update>
+
+    <insert id="createGroup" parameterType="java.util.Map">
+        INSERT INTO cstudio_group (name, description, site_id)
+        VALUES (#{name}, #{description}, #{siteId})
+    </insert>
 </mapper>

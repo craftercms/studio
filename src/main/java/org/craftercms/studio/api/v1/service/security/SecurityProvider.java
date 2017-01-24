@@ -89,4 +89,14 @@ public interface SecurityProvider {
      * @return
      */
     boolean enableUser(String username, boolean enabled);
+
+    /**
+     * Create group with given parameters
+     *
+     * @param groupName
+     * @param description
+     * @param siteId
+     * @return
+     */
+    boolean createGroup(String groupName, String description, long siteId);
 }
