@@ -234,25 +234,28 @@ public class PublishingManagerImpl implements PublishingManager {
                         }
 
                         filesToDeploy.add(item.getPath());
-                        if (StringUtils.equals(item.getAction(), PublishToTarget.Action.MOVE)) {
-                            if (item.getOldPath() != null && !item.getOldPath().equalsIgnoreCase(item.getPath())) {
-                                LOGGER.debug("Add old path to be deleted for MOVE action (\"{0}\")", item.getOldPath());
-                                deletedFiles.add(item.getOldPath());
-                                if (item.getOldPath().endsWith("/" + indexFile)) {
-                                    String fullPath = contentService.expandRelativeSitePath(item.getSite(), item.getOldPath().replace("/" + DmConstants.INDEX_FILE, ""));
-                                    String folderPath = item.getOldPath().replace("/" + indexFile, "");
-                                    if (contentRepository.contentExists(fullPath)) {
-                                        RepositoryItem[] children = contentRepository.getContentChildren(fullPath);
-                                        if (children.length < 2) {
-                                            deletedFiles.add(folderPath);
-                                        }
-                                    } else {
+                    }
+                    // populate old URL into the deleted files if this is MOVE or DELETE
+                    if (StringUtils.equals(item.getAction(), PublishToTarget.Action.MOVE) ||
+                            StringUtils.equals(item.getAction(), PublishToTarget.Action.DELETE)) {
+                        if (item.getOldPath() != null && !item.getOldPath().equalsIgnoreCase(item.getPath())) {
+                            LOGGER.debug("Add old path to be deleted for {0} action (\"{1}\")", item.getAction(), item.getOldPath());
+                            deletedFiles.add(item.getOldPath());
+                            if (item.getOldPath().endsWith("/" + indexFile)) {
+                                String fullPath = contentService.expandRelativeSitePath(item.getSite(), item.getOldPath().replace("/" + DmConstants.INDEX_FILE, ""));
+                                String folderPath = item.getOldPath().replace("/" + indexFile, "");
+                                if (contentRepository.contentExists(fullPath)) {
+                                    RepositoryItem[] children = contentRepository.getContentChildren(fullPath);
+                                    if (children.length < 2) {
                                         deletedFiles.add(folderPath);
                                     }
+                                } else {
+                                    deletedFiles.add(folderPath);
                                 }
                             }
                         }
                     }
+
                     cntFiles++;
                     eventItems.add(eventItem);
                 }
@@ -379,19 +382,19 @@ public class PublishingManagerImpl implements PublishingManager {
         || PRODUCTION_ENVIRONMENT.equalsIgnoreCase(environment)) {
             isLive = true;
         }
-        
-        LOGGER.info("DEPLOYER: Processing Item, {0}, {1}, {2}, isLive: {3}, {4} ", site, path, environment, isLive, action);        
+
+        LOGGER.debug("Processing Item, {0}, {1}, {2}, isLive: {3}, {4} ", site, path, environment, isLive, action);        
 
         if (StringUtils.equals(action, CopyToEnvironment.Action.DELETE)) {
             Deployer deployer = deployerFactory.createEnvironmentStoreDeployer(environment);
-            
+
             if (oldPath != null && oldPath.length() > 0) {
-                LOGGER.info("COPY TO ENV: Send DELETE for old item at path: {0}", oldPath);
+                LOGGER.debug("Send DELETE for old item at path: {0}", oldPath);
 
                 contentService.deleteContent(site, oldPath, user);
                 boolean hasRenamedChildren = false;
                 deployer.deleteFile(site, path);
-                
+
                 if (oldPath.endsWith("/" + DmConstants.INDEX_FILE)) {
                     String fullPath = contentService.expandRelativeSitePath(site, oldPath.replace("/" + DmConstants.INDEX_FILE, ""));
                     if (contentService.contentExists(fullPath)) {
@@ -409,16 +412,16 @@ public class PublishingManagerImpl implements PublishingManager {
                     }
                 }
 
-                LOGGER.info("DEPLOYER: Clear renamed values for item at path: {0}", oldPath);
-                LOGGER.info("DEPLOYER: Warning, clearing these before LIVE deploy will orphan {0}", oldPath);
+                LOGGER.debug("Clear renamed values for item at path: {0}", oldPath);
+                LOGGER.warn("Clearing these before LIVE deploy may/will orphan {0}", oldPath);
                 objectMetadataManager.clearRenamed(site, path);
             }
-            
-            
+
+
             boolean haschildren = false;
             deployer.deleteFile(site, path);
-            
-            
+
+
             if (item.getPath().endsWith("/" + DmConstants.INDEX_FILE)) {
                 String fullPath = contentService.expandRelativeSitePath(site, path.replace("/" + DmConstants.INDEX_FILE, ""));
                 if (contentService.contentExists(fullPath)) {
@@ -434,14 +437,14 @@ public class PublishingManagerImpl implements PublishingManager {
 
             if (contentService.contentExists(site, path)) {
                 contentService.deleteContent(site, path, user);
-                
+
                 if (!haschildren) {
                     deleteFolder(site, path.replace("/" + DmConstants.INDEX_FILE, ""), user, deployer);
                 }
             }
         }
         else {
-            LOGGER.info("COPY TO ENV: Send {0} at path: {1}", action, path);
+            LOGGER.debug("Send {0} at path: {1}", action, path);
 
             LOGGER.debug("Setting system processing for {0}:{1}", site, path);
             objectStateService.setSystemProcessing(site, path, true);
@@ -449,7 +452,7 @@ public class PublishingManagerImpl implements PublishingManager {
             
             if (isLive) {
                 if (!importModeEnabled) {
-                    String pubVersionComment = "" + user + ": " + submissionComment;
+                    String pubVersionComment = "Submitted by:" + user + ", " + submissionComment;
                     contentRepository.createVersion(contentService.expandRelativeSitePath(site, path), pubVersionComment, true);
                 }
                 else {
@@ -462,7 +465,7 @@ public class PublishingManagerImpl implements PublishingManager {
             if (StringUtils.equals(action, CopyToEnvironment.Action.MOVE)) {
                 
                 if (oldPath != null && oldPath.length() > 0) {
-                    LOGGER.info("COPY TO ENV: Send MOVE for old item at path: {0}", oldPath);
+                    LOGGER.debug("Send MOVE for old item at path: {0}", oldPath);
                     Deployer deployer = deployerFactory.createEnvironmentStoreDeployer(environment);
                     deployer.deleteFile(site, oldPath);
                     
@@ -494,11 +497,11 @@ public class PublishingManagerImpl implements PublishingManager {
                     
                     
                     if (isLive) {
-                        LOGGER.info("COPY TO ENV: Clear Renamed {0}", path);
+                        LOGGER.debug("Clear Renamed {0} on Live ENV", path);
                         objectMetadataManager.clearRenamed(site, path);
                     }
                     else {
-                        LOGGER.info("COPY TO ENV: DONT Clear Renamed, ENV is not live {0}", path);
+                        LOGGER.debug("DONT Clear Renamed, ENV is not live {0}", path);
                     }
                 }
             }
@@ -558,6 +561,7 @@ public class PublishingManagerImpl implements PublishingManager {
             objectStateService.setSystemProcessing(site, path, false);
         }
     }
+
 
     private void deleteFolder(String site, String path, String user, Deployer deployer) {
         String fullPath = contentService.expandRelativeSitePath(site, path);
