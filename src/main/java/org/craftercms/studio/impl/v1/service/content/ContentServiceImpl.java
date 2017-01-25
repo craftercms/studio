@@ -646,23 +646,6 @@ public class ContentServiceImpl implements ContentService {
 
             logger.info("move file MOVE PATH ONLY {0} vs MOVE PATH {1} SOURCE PATH ONLY", movePath, movePathOnly, sourcePathOnly);
             String targetPath = (movePathOnly.equals(sourcePathOnly)) ? movePath : movePathOnly;
-        
-            logger.info("TARGET PATH {0}", targetPath);
-
-            if(targetIsIndex == true) {
-                // Since this in an index, the target path is actually one level up, we're moving folder/index.xml + children
-                String sourceParentPath = sourcePathOnly.substring(0, sourcePathOnly.lastIndexOf("/"));
-                String targetParentPath = targetPath.substring(0, targetPath.lastIndexOf("/"));
-                
-                logger.info("-> SP {0} TP {1}", sourceParentPath, targetParentPath);
-                
-                if(!sourceParentPath.equals(targetParentPath) 
-                && !moveAltFileName) {
-                    // move, not a rename
-                    targetPath = targetPath.substring(0, targetPath.lastIndexOf("/"));
-                    logger.info("TARGET PATH {0}", targetPath);
-                }
-            }
 
             logger.info("move file for site {0} from {1} to {2}, sourcePath {3} to target path {4}", site, fromPath, toPath, sourcePath, targetPath);
 
