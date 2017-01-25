@@ -724,7 +724,7 @@ public class ContentServiceImpl implements ContentService {
                 metadata = objectMetadataManager.getProperties(site, fromPath);
             }
 
-            if (!objectStateService.isNew(site, fromPath)) {
+            if (!movedTO.isNew()) {
                 // if the item is not new, we need to track the old URL for deployment
                 logger.debug("item is not new, and has not previously been moved. Track the old URL {0}", fromPath);
                 Map<String, Object> objMetadataProps = new HashMap<String, Object>();
