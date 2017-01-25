@@ -82,8 +82,8 @@ import org.springframework.http.MediaType;
 /**
  * Alfresco repository implementation.  This is the only point of contact with Alfresco's API in
  * the entire system under the org.craftercms.cstudio.impl package structure
+ * @author dejanbrkic
  * @author russdanner
- *
  */
 public class AlfrescoContentRepository extends AbstractContentRepository implements SecurityProvider {
 
@@ -153,74 +153,122 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
 
     @Override
     public boolean moveContent(String fromPath, String toPath) {
-        return moveContent(fromPath, toPath, null);
-    }
-
-    @Override
-    public boolean moveContent(String fromPath, String toPath, String newName) {
-        //return this.copyContentInternal(fromPath, toPath, newName, true);
-
         long startTime = System.currentTimeMillis();
         boolean result = false;
-        String cleanFromPath = fromPath.replaceAll("//", "/"); // sometimes sent bad paths
-        if (cleanFromPath.endsWith("/")) {
-            cleanFromPath = cleanFromPath.substring(0, cleanFromPath.length() - 1);
-        }
-        String cleanToPath = toPath.replaceAll("//", "/"); // sometimes sent bad paths
-        if (cleanToPath.endsWith("/")) {
-            cleanToPath = cleanToPath.substring(0, cleanToPath.length() - 1);
+        boolean isMoveLocation = false;
+        boolean destFolderExists = false;
+
+        logger.debug("Move from {0} -> to {1}", fromPath, toPath);
+        String parentFromPath = fromPath.substring(0, fromPath.lastIndexOf("/"));
+        String parentToPath = toPath.substring(0, toPath.lastIndexOf("/"));
+        
+        // If where we are moving is a file, we need the parent.  
+        // Alfresco move operations use parent path as the target.
+        String targetPath = toPath;
+        if(targetPath.endsWith(".xml")) {
+            // This is a file move
+            targetPath = parentToPath;
         }
 
         try {
             Session session = getCMISSession();
-            CmisObject sourceCmisObject = session.getObjectByPath(cleanFromPath);
-            CmisObject targetCmisObject = session.getObjectByPath(cleanToPath);
+            CmisObject sourceCmisObject = session.getObjectByPath(fromPath);
+            CmisObject targetCmisObject =  null;
 
-            if (sourceCmisObject != null && targetCmisObject != null) {
-                ObjectType sourceType = sourceCmisObject.getType();
-                ObjectType targetType = targetCmisObject.getType();
-                if (BaseTypeId.CMIS_FOLDER.value().equals(targetType.getId())) {
-                    Folder targetFolder = (Folder)targetCmisObject;
-                    if ("cmis:document".equals(sourceType.getId())) {
-                        org.apache.chemistry.opencmis.client.api.Document sourceDocument =
-                                (org.apache.chemistry.opencmis.client.api.Document)sourceCmisObject;
-                        logger.debug("Moving document {0} to {1}", sourceDocument.getPaths().get(0), targetFolder.getPath());
-                        List<Folder> sourceParents = sourceDocument.getParents();
-                        Folder sourceParent = (CollectionUtils.isEmpty(sourceParents) ? null : sourceParents.get(0));
-                        sourceDocument.move(sourceParent, targetFolder);
-                    } else if ("cmis:folder".equals(sourceType.getId())) {
-                        Folder sourceFolder = (Folder)sourceCmisObject;
-                        Folder sourceParentFolder = sourceFolder.getFolderParent();
-                        logger.debug("Moving folder {0} to {1}", sourceFolder.getPath(), targetFolder.getPath());
-                        if (newName != null) {
-                            FileableCmisObject resultObject = sourceFolder.move(sourceParentFolder, targetFolder);
-                            resultObject.rename(newName);
-                        } else {
-                            Iterable<CmisObject> children = sourceFolder.getChildren();
-                            for (CmisObject child : children) {
-                                FileableCmisObject fileableChild = (FileableCmisObject)child;
-                                fileableChild.move(sourceFolder, targetFolder);
-                            }
-                            sourceFolder.delete();
-                        }
-                    }
-                    session.clear();
-                    return true;
-                } else {
-                    logger.error("Move failed since target path " + toPath + " is not folder.");
-                }
-            } else {
-                if (sourceCmisObject == null) {
-                    logger.error("Move failed since source path " + fromPath + " does not exist.");
-                }
-                if (targetCmisObject == null) {
-                    logger.error("Move failed since target path " + toPath + " does not exist.");
-                }
+            try { 
+                targetCmisObject = session.getObjectByPath(targetPath); 
+                destFolderExists = true;
             }
-        } catch (CmisBaseException err) {
-            logger.error("Error while moving content from " + fromPath + " to " + toPath, err);
+            catch(CmisObjectNotFoundException notAnError) {
+               // the item isn't here yet, we're doing a move, not a rename get the parent
+                targetCmisObject = session.getObjectByPath(parentToPath); 
+                isMoveLocation = true;
+            }
+                
+            ObjectType sourceType = sourceCmisObject.getType();
+            ObjectType targetType = targetCmisObject.getType();
+
+            if (BaseTypeId.CMIS_FOLDER.value().equals(targetType.getId())) {
+                Folder targetFolder = (Folder)targetCmisObject;
+                
+                if ("cmis:document".equals(sourceType.getId())) {
+                    org.apache.chemistry.opencmis.client.api.Document sourceDocument =
+                            (org.apache.chemistry.opencmis.client.api.Document)sourceCmisObject;
+                    
+                    List<Folder> sourceParents = sourceDocument.getParents();
+                    Folder sourceParent = (CollectionUtils.isEmpty(sourceParents) ? null : sourceParents.get(0));
+                    
+                    if(sourceParent.getPath().equals(targetFolder.getPath()) ) {
+                        // this is a rename only
+                        String renamedFileName =  toPath.substring(toPath.lastIndexOf("/")+1);
+                        logger.debug("Renaming document {0} to {1}/{2}", sourceDocument.getPaths().get(0), targetFolder.getPath(), renamedFileName);
+                        sourceDocument.rename(renamedFileName);
+                    }
+                    else {
+                        // this is a location move
+                        String targetFileName = toPath.substring(toPath.lastIndexOf("/")+1);
+
+                        if(!targetFileName.contains(".xml") 
+                        || sourceDocument.getName().equals(targetFileName)) {
+                            // this is a regular old move
+                            logger.debug("Moving document {0} to {1}", sourceDocument.getPaths().get(0), targetFolder.getPath());
+                            sourceDocument.move(sourceParent, targetFolder);
+                        }
+                        else {
+                            // this is a rename and move
+                            logger.debug("Rename and moving document {0} to {1}", sourceDocument.getPaths().get(0), targetFolder.getPath());
+                            sourceDocument.rename(targetFileName);
+                            sourceDocument.move(sourceParent, targetFolder);
+                        }
+                    }                    
+                } 
+                else if ("cmis:folder".equals(sourceType.getId())) {
+                    Folder sourceFolder = (Folder)sourceCmisObject;
+                    Folder sourceParentFolder = sourceFolder.getFolderParent();
+                    String targetFolderName = toPath.substring(toPath.lastIndexOf("/")+1);
+
+                    if(parentFromPath.equals(parentToPath) && destFolderExists) {
+                        // move is just a rename
+                        logger.debug("Rename {0} to {1}/{2}", sourceFolder.getPath(), targetFolder.getPath(), targetFolderName);
+                        sourceFolder.rename(targetFolderName);
+                    }
+                    else {
+
+                        if(destFolderExists == true) {
+                            // This is just a move
+                            // example: move /a to /b/a
+                            logger.debug("Moving folder {0} to {1}", sourceFolder.getPath(), targetFolder.getPath());
+                            sourceFolder.move(sourceParentFolder, targetFolder);
+                        }
+                        else {
+                            // this is a rename and move (the consumer wants to move the folder to a new name)
+                            // example move /a to /s
+                            logger.debug("Rename and moving folder {0} to {1}/{2}", sourceFolder.getPath(), targetFolder.getPath(), targetFolderName);
+                            sourceFolder.rename(targetFolderName);
+                            sourceFolder.move(sourceParentFolder, targetFolder);
+                        }   
+
+
+                    }
+                }
+                
+                session.clear();
+                result = true;
+            } 
+            else {
+                logger.error("Move from {0} to {1} failed since target path is not folder.", fromPath, toPath);
+            }
+        } 
+        catch (CmisBaseException err) {
+            logger.error("Error while moving content  from {0} to {1}", err, fromPath, toPath);
         }
+
         return result;
+    }
+
+    @Override
+    public boolean moveContent(String fromPath, String toPath, String newName) {
+       return moveContent(fromPath, toPath+"/"+newName);
     }
 
     /**
@@ -258,8 +306,14 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
     public String createVersion(String path, String comment, boolean majorVersion) {
         long startTime = System.currentTimeMillis();
         String versionLabel = null;
-        if (majorVersion) {
+        if (majorVersion 
+        || (comment!=null && comment.startsWith("Reverted to content from version"))) {
             // only major version will be created on demand. minor version is created on updates
+            // OR The comment starts with Reverted.  Why?  Because autoversioning may be turned on
+            // in the repo for any object SO any WRITE action causes a version.
+            // Options here are to do what's above which makes an undesirable assumption about the
+            // layer above OR to turn on-and-off o versioning on every WRITE which is more complex 
+            // for the repository. :-/
 
             Map<String, String> params = new HashMap<String, String>();
             String cleanPath = path.replaceAll("//", "/"); // sometimes sent bad paths
@@ -294,6 +348,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
                              path, err);
             }
         }
+        
         long duration = System.currentTimeMillis() - startTime;
         logger.debug("createVersion(path = {0}, majorVersion = {1}) ({2} ms)", path, majorVersion, duration);
         return versionLabel;
@@ -382,7 +437,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
                 String nodeRef = getNodeRefForPathCMIS(path + "/" + name);
                 return nodeRef;
             } catch (ContentNotFoundException e) {
-                logger.info("Error while creating folder {1} in path {0}", e, path, name);
+                logger.error("Error while creating folder {1} in path {0}", e, path, name);
             }
         }
         return "";
@@ -907,7 +962,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
                     }
                 }
             } else {
-                logger.info("Content not found for path: [" + fullPath + "]");
+                logger.warn("Content not found for path: [" + fullPath + "]");
             }
         } catch(CmisBaseException err) {
             logger.error("err getting content: ", err);
@@ -983,7 +1038,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
             try {
                 parentCmisOBject = session.getObjectByPath(parentPath);
             } catch (CmisObjectNotFoundException ex) {
-                logger.info("Parent folder [{0}] not found, creating it.", cleanPath);
+                logger.debug("Parent folder [{0}] not found, creating it.", cleanPath);
                 createMissingFoldersCMIS(parentPath);
                 session.clear();
                 parentCmisOBject = session.getObjectByPath(parentPath);
@@ -1000,7 +1055,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
                         Property property = newFolder.getProperty("alfcmis:nodeRef");
                         newFolderRef = property.getValueAsString();
                     } catch (CmisContentAlreadyExistsException exc) {
-                        logger.info("Folder " + cleanPath + " already exists");
+                        logger.debug("Folder " + cleanPath + " already exists");
                     }
                 }
             } else {
@@ -1026,7 +1081,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
             try {
                 parentCmisOBject = session.getObjectByPath(cleanPath);
             } catch (CmisObjectNotFoundException ex) {
-                logger.info("Parent folder [{0}] not found, creating it.", cleanPath);
+                logger.debug("Parent folder [{0}] not found, creating it.", cleanPath);
                 int idx = cleanPath.lastIndexOf("/");
                 if (idx >= 0) {
                     String ancestorPath = cleanPath.substring(0, idx);

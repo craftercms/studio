@@ -113,7 +113,8 @@ public class PreviewDeployer implements Deployer {
 
     @Override
     public void deployFiles(String site, List<String> paths) {
-
+        // TODO add this because the method is empty
+        // throw new RuntimeException("Unsupported Operation");
     }
 
     @Override
@@ -135,14 +136,15 @@ public class PreviewDeployer implements Deployer {
                 formParts.add(new StringPart(DEPLOYER_TARGET_PARAM, defaultTarget));
             }
 
-            StringBuilder sbDeletedFiles = new StringBuilder(path);
-            if (path.endsWith("/index.xml")) {
-                RepositoryItem[] children = contentRepository.getContentChildren(contentService.expandRelativeSitePath(site, path.replace("/index.xml", "")));
-                if (!(children != null && children.length > 1)) {
-                    sbDeletedFiles.append(FILES_SEPARATOR).append(path.replace("/index.xml", ""));
 
-                }
+            StringBuilder sbDeletedFiles = new StringBuilder();
+            if (path.endsWith("/index.xml")) {
+                sbDeletedFiles.append(path.replace("/index.xml", ""));
+            } 
+            else {
+                sbDeletedFiles.append(path);
             }
+
             formParts.add(new StringPart(DEPLOYER_DELETED_FILES_PARAM, sbDeletedFiles.toString()));
             formParts.add(new StringPart(DEPLOYER_SITE_PARAM, site));
 
