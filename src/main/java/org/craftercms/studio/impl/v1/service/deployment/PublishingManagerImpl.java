@@ -353,11 +353,10 @@ public class PublishingManagerImpl implements PublishingManager {
 
     @Override
     public void processItem(CopyToEnvironment item) throws DeploymentException {
-
         if(item == null) {
             throw new DeploymentException("Cannot processItem. Item is null");
         }
-        
+
         String site = item.getSite();
         String path = item.getPath();
         String oldPath = item.getOldPath();
@@ -370,19 +369,25 @@ public class PublishingManagerImpl implements PublishingManager {
         String liveEnvironment = siteService.getLiveEnvironmentName(site);
         boolean isLive = false;
 
+ 
         if (StringUtils.isNotEmpty(liveEnvironment)) {
             if (liveEnvironment.equals(environment)) {
                 isLive = true;
             }
         }
-        else if (LIVE_ENVIRONMENT.equalsIgnoreCase(item.getEnvironment()) || PRODUCTION_ENVIRONMENT.equalsIgnoreCase(environment)) {
+        else if (LIVE_ENVIRONMENT.equalsIgnoreCase(item.getEnvironment()) 
+        || PRODUCTION_ENVIRONMENT.equalsIgnoreCase(environment)) {
             isLive = true;
         }
         
+        LOGGER.info("DEPLOYER: Processing Item, {0}, {1}, {2}, isLive: {3}, {4} ", site, path, environment, isLive, action);        
+
         if (StringUtils.equals(action, CopyToEnvironment.Action.DELETE)) {
             Deployer deployer = deployerFactory.createEnvironmentStoreDeployer(environment);
             
             if (oldPath != null && oldPath.length() > 0) {
+                LOGGER.info("COPY TO ENV: Send DELETE for old item at path: {0}", oldPath);
+
                 contentService.deleteContent(site, oldPath, user);
                 boolean hasRenamedChildren = false;
                 deployer.deleteFile(site, path);
@@ -404,6 +409,8 @@ public class PublishingManagerImpl implements PublishingManager {
                     }
                 }
 
+                LOGGER.info("DEPLOYER: Clear renamed values for item at path: {0}", oldPath);
+                LOGGER.info("DEPLOYER: Warning, clearing these before LIVE deploy will orphan {0}", oldPath);
                 objectMetadataManager.clearRenamed(site, path);
             }
             
@@ -434,6 +441,8 @@ public class PublishingManagerImpl implements PublishingManager {
             }
         }
         else {
+            LOGGER.info("COPY TO ENV: Send {0} at path: {1}", action, path);
+
             LOGGER.debug("Setting system processing for {0}:{1}", site, path);
             objectStateService.setSystemProcessing(site, path, true);
             
@@ -452,7 +461,7 @@ public class PublishingManagerImpl implements PublishingManager {
             if (StringUtils.equals(action, CopyToEnvironment.Action.MOVE)) {
                 
                 if (oldPath != null && oldPath.length() > 0) {
-                    
+                    LOGGER.info("COPY TO ENV: Send MOVE for old item at path: {0}", oldPath);
                     Deployer deployer = deployerFactory.createEnvironmentStoreDeployer(environment);
                     deployer.deleteFile(site, oldPath);
                     
@@ -484,7 +493,11 @@ public class PublishingManagerImpl implements PublishingManager {
                     
                     
                     if (isLive) {
+                        LOGGER.info("COPY TO ENV: Clear Renamed {0}", path);
                         objectMetadataManager.clearRenamed(site, path);
+                    }
+                    else {
+                        LOGGER.info("COPY TO ENV: DONT Clear Renamed, ENV is not live {0}", path);
                     }
                 }
             }
