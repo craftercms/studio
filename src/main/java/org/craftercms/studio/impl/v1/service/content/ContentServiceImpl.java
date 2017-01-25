@@ -716,16 +716,22 @@ public class ContentServiceImpl implements ContentService {
 
         // update metadata
         if (!objectMetadataManager.isRenamed(site, fromPath)) {
+            // if an item was previously moved, we do not track intermediate moves because it will
+            // ultimately orphan deployed content.  Old Path is always the OLDEST DEPLOYED PATH
             ObjectMetadata metadata = objectMetadataManager.getProperties(site, fromPath);
             if(metadata == null) {
                 objectMetadataManager.insertNewObjectMetadata(site, fromPath);
                 metadata = objectMetadataManager.getProperties(site, fromPath);
             }
 
-            Map<String, Object> objMetadataProps = new HashMap<String, Object>();
-            objMetadataProps.put(ObjectMetadata.PROP_RENAMED, 1);
-            objMetadataProps.put(ObjectMetadata.PROP_OLD_URL, fromPath);
-            objectMetadataManager.setObjectMetadata(site, fromPath, objMetadataProps);
+            if (!objectStateService.isNew(site, fromPath)) {
+                // if the item is not new, we need to track the old URL for deployment
+                logger.debug("item is not new, and has not previously been moved. Track the old URL {0}", fromPath);
+                Map<String, Object> objMetadataProps = new HashMap<String, Object>();
+                objMetadataProps.put(ObjectMetadata.PROP_RENAMED, 1);
+                objMetadataProps.put(ObjectMetadata.PROP_OLD_URL, fromPath);
+                objectMetadataManager.setObjectMetadata(site, fromPath, objMetadataProps);
+            }
         }
 
         objectMetadataManager.updateObjectPath(site, fromPath, movePath);
