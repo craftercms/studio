@@ -206,16 +206,26 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
                     }
                     else {
                         // this is a location move
-                        logger.info("Moving document {0} to {1}", sourceDocument.getPaths().get(0), targetFolder.getPath());
-                        sourceDocument.move(sourceParent, targetFolder);
+                        String targetFileName = toPath.substring(toPath.lastIndexOf("/")+1);
+
+                        if(!targetFileName.contains(".xml") 
+                        || sourceDocument.getName().equals(targetFileName)) {
+                            // this is a regular old move
+                            logger.info("Moving document {0} to {1}", sourceDocument.getPaths().get(0), targetFolder.getPath());
+                            sourceDocument.move(sourceParent, targetFolder);
+                        }
+                        else {
+                            // this is a rename and move
+                            logger.info("Rename and moving document {0} to {1}", sourceDocument.getPaths().get(0), targetFolder.getPath());
+                            sourceDocument.rename(targetFileName);
+                            sourceDocument.move(sourceParent, targetFolder);
+                        }
                     }                    
                 } 
                 else if ("cmis:folder".equals(sourceType.getId())) {
                     logger.info("AR 2");
                     Folder sourceFolder = (Folder)sourceCmisObject;
                     Folder sourceParentFolder = sourceFolder.getFolderParent();
-                   
-                    String sourceFolderName = parentFromPath.substring(parentFromPath.lastIndexOf("/")+1);
                     String targetFolderName = toPath.substring(toPath.lastIndexOf("/")+1);
 
                     if(parentFromPath.equals(parentToPath) && destFolderExists) {

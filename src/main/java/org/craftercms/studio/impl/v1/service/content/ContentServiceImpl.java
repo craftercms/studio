@@ -644,9 +644,14 @@ public class ContentServiceImpl implements ContentService {
             boolean moveAltFileName = "true".equals(movePathMap.get("ALT_NAME"));
             boolean targetIsIndex = "index.xml".equals(moveFileName);
 
-            logger.info("move file MOVE PATH ONLY {0} vs MOVE PATH {1} SOURCE PATH ONLY", movePath, movePathOnly, sourcePathOnly);
-            String targetPath = (movePathOnly.equals(sourcePathOnly)) ? movePath : movePathOnly;
-
+            String targetPath = movePathOnly;
+            if(movePathOnly.equals(sourcePathOnly)
+            || (moveAltFileName == true && !targetIsIndex)) {
+                // we never send index.xml to the repo, we move folders (and the folder has the rename)
+                // SO otherwise, this is a rename and we need to forward the full path
+                targetPath = movePath;  
+            }
+            
             logger.info("move file for site {0} from {1} to {2}, sourcePath {3} to target path {4}", site, fromPath, toPath, sourcePath, targetPath);
 
             // NOTE: IN WRITE SCENARIOS the repository OP IS PART of this PIPELINE, for some reason, historically with MOVE it is not
