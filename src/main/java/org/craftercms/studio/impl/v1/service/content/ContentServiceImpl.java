@@ -518,7 +518,7 @@ public class ContentServiceImpl implements ContentService {
                         String dependecyPath = copyDependencies.get(dependecyKey);
                         String copyDepPath = dependecyPath;
                         
-                        // Does not seem to work
+                        // Does not seem to work (leaving it here because it's suspposed to do the work below)
                         //PathMacrosTransaltor.resolvePath(dependecyPath, copyObjectIds);
                         //copyDepPath = copyDepPath + "/" +  dependecyPath.substring(dependecyPath.lastIndexOf("/")+1);
 
@@ -561,19 +561,14 @@ public class ContentServiceImpl implements ContentService {
                         generalLockService.lock(id);
 
                         // processContent will close the input stream
-                        
                         if (!StringUtils.isEmpty(contentType)) {
-                            logger.info("A");
                             processContent(id, copyContent, true, params, DmConstants.CONTENT_CHAIN_FORM);
                         } else {
-                            logger.info("B");
                             if (copyFileName.endsWith(DmConstants.XML_PATTERN)) {
                                 // when do you get here?
-                                logger.info("C");
                                processContent(id, copyContent, true, params, DmConstants.CONTENT_CHAIN_FORM);
                             } 
                             else {
-                                logger.info("D");
                                 processContent(id, fromContent, false, params, DmConstants.CONTENT_CHAIN_ASSET);
                             }
                         }
@@ -646,6 +641,7 @@ public class ContentServiceImpl implements ContentService {
             movePath = movePathMap.get("FILE_PATH");
             String moveFileName = movePathMap.get("FILE_NAME");
             String movePathOnly = movePath.substring(0, movePath.lastIndexOf("/"));
+            boolean moveAltFileName = "true".equals(movePathMap.get("ALT_NAME"));
             boolean targetIsIndex = "index.xml".equals(moveFileName);
 
             logger.info("move file MOVE PATH ONLY {0} vs MOVE PATH {1} SOURCE PATH ONLY", movePath, movePathOnly, sourcePathOnly);
@@ -659,7 +655,9 @@ public class ContentServiceImpl implements ContentService {
                 String targetParentPath = targetPath.substring(0, targetPath.lastIndexOf("/"));
                 
                 logger.info("-> SP {0} TP {1}", sourceParentPath, targetParentPath);
-                if(!sourceParentPath.equals(targetParentPath)) {
+                
+                if(!sourceParentPath.equals(targetParentPath) 
+                && !moveAltFileName) {
                     // move, not a rename
                     targetPath = targetPath.substring(0, targetPath.lastIndexOf("/"));
                     logger.info("TARGET PATH {0}", targetPath);
@@ -793,21 +791,12 @@ public class ContentServiceImpl implements ContentService {
             String childFromPath = childToPath.replace(parentFolderPath, oldParentFolderPath);
 
             logger.info("updateChildObjectStateForMove HANDLING CHILD FROM: {0} TO: {1}  ", childFromPath, childToPath);
-            //try {
-                // construct the new path for the child
-                //Map<String, String> childToPathMap = constructNewPathforCutCopy(site, childFromPath, movePath, false);
-                //String childToPath = childToPathMap.get("FILE_PATH");
 
-                // update database, preview, cache etc
-                updateDatabaseCachePreviewForMove(site, childFromPath, childToPath, false);
+            // update database, preview, cache etc
+            updateDatabaseCachePreviewForMove(site, childFromPath, childToPath, false);
                 
-                // handle this child's children
-                updateChildrenForMove(site, childFromPath, childToPath);
-
-            //}
-            //catch(ServiceException errUpdatePathFailure) {
-            //    logger.error("Error trying update object state item on move for path {0}", errUpdatePathFailure, childFromPath);
-            //}         
+            // handle this child's children
+            updateChildrenForMove(site, childFromPath, childToPath);
         }
     }    
 
@@ -838,7 +827,6 @@ public class ContentServiceImpl implements ContentService {
             logger.info("cut/copy name rules INDEX TO: {0}, {1}", newPathOnly, newFileNameOnly);
         }
 
- 
         String proposedDestPath = null;
         String proposedDestPath_filename = null;
         String proposedDestPath_folder = null;
@@ -854,7 +842,6 @@ public class ContentServiceImpl implements ContentService {
         }
 
         if(fromFileIsIndex && newFileIsIndex) {
-            logger.info("A-A");
             // Example MOVE LOCATION, INDEX FILES
             // fromPath: "/site/website/search/index.xml"
             // toPath:   "/site/website/products/index.xml"
@@ -866,46 +853,36 @@ public class ContentServiceImpl implements ContentService {
             // newPath:  "site/website/en/services-updated/index.xml 
             if(newPathOnly.equals(fromPathOnly) && !targetPathExistsPriorToOp) {
                 // this is a rename
-                logger.info("A-A1 RENAME");
                 proposedDestPath = newPathOnly + "/" + newFileNameOnly +  "/index.xml"; 
                 proposedDestPath_filename = "index.xml";
                 proposedDestPath_folder = newFileNameOnly;
-
                 logger.info("Initial Proposed Path: {0} ", proposedDestPath);
             }
             else {
                 // this is a location move
-                logger.info("A-A2 MOVE LOCATION");
                 proposedDestPath = newPathOnly + "/" + newFileNameOnly + "/" + fromFileNameOnly +  "/index.xml"; 
                 proposedDestPath_filename = "index.xml";
                 proposedDestPath_folder = fromFileNameOnly;
-
                 logger.info("Initial Proposed Path: {0} ", proposedDestPath);
             }
         }
         else if(fromFileIsIndex && !newFileIsIndex) {
-            logger.info("A-O");
             // Example MOVE LOCATION, INDEX TO FOLDER
             // fromPath: "/site/website/search/index.xml"
             // toPath:   "/site/website/a-folder"
             // newPath:  "/site/website/a-folder/search/index.xml" 
             proposedDestPath = newPathOnly + "/" + fromFileNameOnly +  "/index.xml"; 
-//            proposedDestPath = newPathOnly + "/" + newFileNameOnly + "/" + fromFileNameOnly +  "/index.xml"; 
             proposedDestPath_filename = "index.xml";
             proposedDestPath_folder = fromFileNameOnly;
-
             logger.info("Initial Proposed Path: {0} ", proposedDestPath);  
         }
         else if(!fromFileIsIndex && newFileIsIndex) {
-            logger.info("A-B");
             proposedDestPath = newPathOnly + "/" + newFileNameOnly + "/" + fromFileNameOnly; 
             proposedDestPath_filename = fromFileNameOnly;
             proposedDestPath_folder = newFileNameOnly;
-
             logger.info("Initial Proposed Path: {0} ", proposedDestPath);  
         }                
         else{
-            logger.info("A-C");
             // Example NON INDEX FILES MOVE TO FOLDER
             // fromPath: "/site/website/search.xml"
             // toPath:   "/site/website/a-folder"
@@ -917,14 +894,12 @@ public class ContentServiceImpl implements ContentService {
             // newPath:  "/site/website/products/search.xml" 
             if(fromFileNameOnly.equals(newFileNameOnly)) {
                 // Move location
-                logger.info("A-C1");
                 proposedDestPath = newPathOnly + "/" + fromFileNameOnly;
                 proposedDestPath_filename = fromFileNameOnly;
                 proposedDestPath_folder = newPathOnly.substring(0, newPathOnly.lastIndexOf("/"));
             }
             else {
                 // rename 
-                logger.info("A-C2");
                 proposedDestPath = newPathOnly + "/" + newFileNameOnly;
                 proposedDestPath_filename = newFileNameOnly;
                 proposedDestPath_folder = newPathOnly.substring(0, newPathOnly.lastIndexOf("/"));
@@ -937,6 +912,7 @@ public class ContentServiceImpl implements ContentService {
         result.put("FILE_NAME", proposedDestPath_filename);
         result.put("FILE_FOLDER", proposedDestPath_folder);
         result.put("MODIFIER", "");
+        result.put("ALT_NAME", "false");
 
         boolean contentExists = false;
 
@@ -980,11 +956,11 @@ public class ContentServiceImpl implements ContentService {
                     proposedDestPath_folder = proposedDestPath_folder.substring(proposedDestPath_folder.lastIndexOf("/")+1);
                 }
 
-
                 result.put("FILE_PATH", proposedDestPath);
                 result.put("FILE_NAME", proposedDestPath_filename);
                 result.put("FILE_FOLDER", proposedDestPath_folder);
-                result.put("MODIFIER", id);                
+                result.put("MODIFIER", id);  
+                result.put("ALT_NAME", "true");              
             }
             catch(Exception altPathGenErr) {
                 throw new ServiceException("Unable to generate an alternative path for name collision: " + proposedDestPath, altPathGenErr);

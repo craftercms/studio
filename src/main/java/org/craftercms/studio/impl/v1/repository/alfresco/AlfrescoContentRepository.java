@@ -154,13 +154,14 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
     @Override
     public boolean moveContent(String fromPath, String toPath) {
         long startTime = System.currentTimeMillis();
-        boolean isRename = false;
         boolean result = false;
+        boolean isMoveLocation = false;
+        boolean destFolderExists = false;
 
         logger.info("ALFRESCO MOVE FROM {0} -> TO {1}", fromPath, toPath);
         String parentFromPath = fromPath.substring(0, fromPath.lastIndexOf("/"));
         String parentToPath = toPath.substring(0, toPath.lastIndexOf("/"));
- 
+        
         // If where we are moving is a file, we need the parent.  
         // Alfresco move operations use parent path as the target.
         String targetPath = toPath;
@@ -175,11 +176,13 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
             CmisObject targetCmisObject =  null;
 
             try { 
-                targetCmisObject = session.getObjectByPath(targetPath);
+                targetCmisObject = session.getObjectByPath(targetPath); 
+                destFolderExists = true;
             }
             catch(CmisObjectNotFoundException notAnError) {
                // the item isn't here yet, we're doing a move, not a rename get the parent
                 targetCmisObject = session.getObjectByPath(parentToPath); 
+                isMoveLocation = true;
             }
                 
             ObjectType sourceType = sourceCmisObject.getType();
@@ -212,23 +215,38 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
                     Folder sourceFolder = (Folder)sourceCmisObject;
                     Folder sourceParentFolder = sourceFolder.getFolderParent();
                    
-                    if(sourceParentFolder.getPath().equals(targetFolder.getPath()) ) {
-                        
-                        String renamedFolderName = toPath.substring(toPath.lastIndexOf("/")+1);
-                        logger.info("Renaming folder {0} to {1}/{2}", sourceFolder.getPath(), targetFolder.getPath(), renamedFolderName);
-                        sourceCmisObject.rename(renamedFolderName);
-                        //sourceFolder.move(sourceParentFolder, targetFolder);
+                    String sourceFolderName = parentFromPath.substring(parentFromPath.lastIndexOf("/")+1);
+                    String targetFolderName = toPath.substring(toPath.lastIndexOf("/")+1);
+
+                    if(parentFromPath.equals(parentToPath) && destFolderExists) {
+                        // move is just a rename
+                        logger.info("Rename {0} to {1}/{2}", sourceFolder.getPath(), targetFolder.getPath(), targetFolderName);
+                        sourceFolder.rename(targetFolderName);
                     }
                     else {
-                        logger.info("Moving folder {0} to {1}", sourceFolder.getPath(), targetFolder.getPath());
-                        sourceFolder.move(sourceParentFolder, targetFolder);
-                    } 
+
+                        if(destFolderExists == true) {
+                            // This is just a move
+                            // example: move /a to /b/a
+                            logger.info("Moving folder {0} to {1}", sourceFolder.getPath(), targetFolder.getPath());
+                            sourceFolder.move(sourceParentFolder, targetFolder);
+                        }
+                        else {
+                            // this is a rename and move (the consumer wants to move the folder to a new name)
+                            // example move /a to /s
+                            logger.info("Rename and moving folder {0} to {1}/{2}", sourceFolder.getPath(), targetFolder.getPath(), targetFolderName);
+                            sourceFolder.rename(targetFolderName);
+                            sourceFolder.move(sourceParentFolder, targetFolder);
+                        }   
+
+
+                    }
                 }
                 
                 session.clear();
-                return true;
-            } else {
-                logger.info("AR B");
+                result = true;
+            } 
+            else {
                 logger.error("Move failed since target path " + toPath + " is not folder.");
             }
         } 
