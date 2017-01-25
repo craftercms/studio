@@ -3,12 +3,6 @@
        xmlns:jdbc="http://www.springframework.org/schema/jdbc" xmlns="http://www.springframework.org/schema/beans"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc.xsd">
 
-
-    <jdbc:initialize-database data-source="dataSource" ignore-failures="ALL">
-        <jdbc:script location="classpath:crafter/studio/database/createDDL-${studio.db.platform}.sql" separator=" ;"/>
-        <!--jdbc:script location="classpath:crafter/studio/database/updateDDL-${studio.db.platform}.sql" /-->
-    </jdbc:initialize-database>
-
     <bean id="vendorProperties" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
         <property name="properties">
             <props>
