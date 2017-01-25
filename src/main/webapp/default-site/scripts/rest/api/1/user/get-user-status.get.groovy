@@ -20,7 +20,23 @@
 import scripts.api.SecurityServices
 
 def result = [:]
-def username = params.username
+
+def username = params.user;
 
 def context = SecurityServices.createContext(applicationContext, request)
-result.result = SecurityServices.enableUser(context, username, true);
+try {
+    def userMap = SecurityServices.getUserStatus(context, username);
+    if (userMap != null && !userMap.isEmpty()) {
+        def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/user/get-user?user=" + username
+        response.addHeader("Location", locationHeader)
+        return userMap;
+    } else {
+        response.setStatus(404)
+        result.status = "User not found"
+        return result;
+    }
+} catch (Exception e) {
+    response.setStatus(500)
+    result.status = "Internal server error"
+    return result;
+}

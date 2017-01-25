@@ -163,4 +163,16 @@ public class MappedSecurityProvider implements SecurityProvider {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.enableUser(username, enabled);
     }
+
+    @Override
+    public Map<String, Object> getUserStatus(String username) {
+        SecurityProvider provider = lookupProvider(getProviderType());
+        return provider.getUserStatus(username);
+    }
+
+    @Override
+    public boolean createGroup(String groupName, String description, long siteId) {
+        SecurityProvider provider = lookupProvider(getProviderType());
+        return provider.createGroup(groupName, description, siteId);
+    }
 }

@@ -100,4 +100,22 @@ public interface SecurityService {
      * @return
      */
     boolean enableUser(String username, boolean enabled);
+
+    /**
+     * Create group with given parameters
+     *
+     * @param groupName
+     * @param description
+     * @param siteId
+     * @return
+     */
+    boolean createGroup(String groupName, String description, long siteId);
+
+    /**
+     * Get status for given user
+     *
+     * @param username username
+     * @return
+     */
+    Map<String, Object> getUserStatus(String username);
 }

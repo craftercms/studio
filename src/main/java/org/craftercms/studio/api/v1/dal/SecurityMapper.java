@@ -35,4 +35,6 @@ public interface SecurityMapper {
     void updateUser(Map params);
 
     void enableUser(Map params);
+
+    void createGroup(Map params);
 }

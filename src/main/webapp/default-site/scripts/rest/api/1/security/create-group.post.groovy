@@ -17,10 +17,27 @@
  *
  */
 
+import groovy.json.JsonSlurper
 import scripts.api.SecurityServices
 
 def result = [:]
-def username = params.username
+def requestBody = request.reader.text
+
+def slurper = new JsonSlurper()
+def parsedReq = slurper.parseText(requestBody)
+
+def groupName = parsedReq.name
+def description = parsedReq.description
+def siteId = parsedReq.site_id
 
 def context = SecurityServices.createContext(applicationContext, request)
-result.result = SecurityServices.enableUser(context, username, true);
+try {
+    SecurityServices.createGroup(context, groupName, description, siteId);
+    result.status = "OK"
+    response.setStatus(201)
+    return result
+} catch (Exception e) {
+    response.setStatus(500)
+    result.status = "Internal server error"
+    return result
+}

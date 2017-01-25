@@ -23,7 +23,16 @@
 
 <mapper namespace="org.craftercms.studio.api.v1.dal.SecurityMapper">
 
-    <select id="getUser" resultType="User">
+    <resultMap id="UserMap" type="org.craftercms.studio.api.v1.dal.User">
+        <id property="username" column="username"/>
+        <result property="password" column="password"/>
+        <result property="firstname" column="firstname"/>
+        <result property="lastname" column="lastname" />
+        <result property="email" column="email" />
+        <result property="active" column="enabled" />
+    </resultMap>
+
+    <select id="getUser" resultMap="UserMap">
         SELECT * FROM cstudio_user WHERE username = #{username}
     </select>
 
@@ -58,4 +67,9 @@
         SET enabled = #{enabled}
         WHERE username = #{username}
     </update>
+
+    <insert id="createGroup" parameterType="java.util.Map">
+        INSERT INTO cstudio_group (name, description, site_id)
+        VALUES (#{name}, #{description}, #{siteId})
+    </insert>
 </mapper>
