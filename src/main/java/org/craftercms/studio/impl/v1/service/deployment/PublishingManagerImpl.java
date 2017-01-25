@@ -449,7 +449,8 @@ public class PublishingManagerImpl implements PublishingManager {
             
             if (isLive) {
                 if (!importModeEnabled) {
-                    contentRepository.createVersion(contentService.expandRelativeSitePath(site, path), submissionComment, true);
+                    String pubVersionComment = "" + user + ": " + submissionComment;
+                    contentRepository.createVersion(contentService.expandRelativeSitePath(site, path), pubVersionComment, true);
                 }
                 else {
                     LOGGER.debug("Import mode is ON. Create new version is skipped for [{0}] site \"{1}\"", path, site);
