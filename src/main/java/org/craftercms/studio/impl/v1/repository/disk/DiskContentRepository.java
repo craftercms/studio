@@ -164,7 +164,7 @@ public class DiskContentRepository extends AbstractContentRepository implements 
         boolean isMoveLocation = false;
         boolean destFolderExists = false;
 
-        logger.info("DISK MOVE FROM {0} -> TO {1}", fromPath, toPath);
+        logger.debug("Move from {0} -> to {1}", fromPath, toPath);
         String parentFromPath = fromPath.substring(0, fromPath.lastIndexOf("/"));
         String fromFileName = fromPath.substring(fromPath.lastIndexOf("/")+1);
         boolean fromIsFile = fromFileName.contains(".");
@@ -180,22 +180,22 @@ public class DiskContentRepository extends AbstractContentRepository implements 
             if(parentFromPath.equals(parentToPath)
             && fromIsFile == toIsFile) {
                 // this is a rename only
-                logger.info("Renaming document {0} to {1}/{2}", fromPath, toPath);
+                logger.debug("Renaming document {0} to {1}/{2}", fromPath, toPath);
                 source.renameTo(destDir);
             }
             else {
                 if(!fromFileName.equals(toFileName)
                 && fromIsFile == toIsFile) {
                     // this kind of move operation on a disk is a rename
-                    logger.info("Moving RENAME A document {0} to {1}", fromPath, toPath);
+                    logger.debug("Moving RENAME A document {0} to {1}", fromPath, toPath);
                     source.renameTo(destDir);
                 }
                 else if(fromFileName.equals(toFileName) && source.isDirectory()) {
-                    logger.info("Moving RENAME B document {0} to {1}", fromPath, toPath);
+                    logger.debug("Moving RENAME B document {0} to {1}", fromPath, toPath);
                     source.renameTo(destDir);
                 }
                 else {
-                    logger.info("Moving MOVE document {0} to {1}", fromPath, toPath);
+                    logger.debug("Moving MOVE document {0} to {1}", fromPath, toPath);
                     FileUtils.moveFileToDirectory(source, destDir, true);
                 }
             }

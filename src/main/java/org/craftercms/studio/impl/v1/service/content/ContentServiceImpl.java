@@ -498,20 +498,20 @@ public class ContentServiceImpl implements ContentService {
                     ContentItemTO fromItem = getContentItem(site, fromPath, 0);
                     String contentType = fromItem.getContentType();
 
-                    logger.info("COPY FROM ITEM --> " + fromPath + " | " + fromItem + " | " + contentType);
+                    logger.debug("COPY FROM ITEM --> " + fromPath + " | " + fromItem + " | " + contentType);
 
                     InputStream fromContent = getContent(site, fromPath);
                     Document fromDocument = ContentUtils.convertStreamToXml(fromContent);
                     Map<String, String> fromPageIds = getContentIds(fromDocument); 
 
-                    logger.info("copying file for site {0} from {1} to {2}, new name is {3}", site, fromPath, toPath, copyPath);
+                    logger.debug("copying file for site {0} from {1} to {2}, new name is {3}", site, fromPath, toPath, copyPath);
 
                     // come up with a new object ID and group ID for the object
                     Map<String,String> copyObjectIds = contentItemIdGenerator.getIds(); 
 
                     Map<String, String> copyDependencies = dependencyService.getCopyDependencies(site, fromPath, fromPath);
                     copyDependencies = getItemSpecificDependencies(fromDocument, copyDependencies);
-                    logger.info("--> GETTING DEPS: {0}, {1}", fromPath, copyDependencies);
+                    logger.debug("--> GETTING DEPS: {0}, {1}", fromPath, copyDependencies);
 
                     // Duplicate the children 
                     for(String dependecyKey : copyDependencies.keySet()) {
@@ -530,7 +530,7 @@ public class ContentServiceImpl implements ContentService {
                          copyDepPath = copyDepPath.replaceAll(
                              fromPageIds.get(DmConstants.KEY_PAGE_GROUP_ID), 
                              copyObjectIds.get(DmConstants.KEY_PAGE_GROUP_ID));
-                        logger.info("TRANSLATED DEP PATH {0} to {1}", dependecyPath, copyDepPath);
+                        logger.debug("TRANSLATED DEP PATH {0} to {1}", dependecyPath, copyDepPath);
 
                         copyContent(site, dependecyPath, copyDepPath, processedPaths);
                     }
@@ -652,7 +652,7 @@ public class ContentServiceImpl implements ContentService {
                 targetPath = movePath;  
             }
             
-            logger.info("move file for site {0} from {1} to {2}, sourcePath {3} to target path {4}", site, fromPath, toPath, sourcePath, targetPath);
+            logger.debug("move file for site {0} from {1} to {2}, sourcePath {3} to target path {4}", site, fromPath, toPath, sourcePath, targetPath);
 
             // NOTE: IN WRITE SCENARIOS the repository OP IS PART of this PIPELINE, for some reason, historically with MOVE it is not
             opSuccess = _contentRepository.moveContent(
@@ -684,7 +684,7 @@ public class ContentServiceImpl implements ContentService {
     }
 
     protected void updateDatabaseCachePreviewForMove(String site, String fromPath, String movePath, boolean isMoveRoot) {
-        logger.info("updateDatabaseCachePreviewForMove FROM {0} TO {1}  ", fromPath, movePath);
+        logger.debug("updateDatabaseCachePreviewForMove FROM {0} TO {1}  ", fromPath, movePath);
 
         String user = securityService.getCurrentUser();
         String sessionTicket = securityProvider.getCurrentToken();
@@ -761,7 +761,7 @@ public class ContentServiceImpl implements ContentService {
     }
 
     protected void updateChildrenForMove(String site, String fromPath, String movePath) {
-        logger.info("updateChildObjectStateForMove HANDLING {0}, {1}", fromPath, movePath);
+        logger.debug("updateChildObjectStateForMove HANDLING {0}, {1}", fromPath, movePath);
 
 
         // get the list of children
@@ -778,7 +778,7 @@ public class ContentServiceImpl implements ContentService {
 
             String childFromPath = childToPath.replace(parentFolderPath, oldParentFolderPath);
 
-            logger.info("updateChildObjectStateForMove HANDLING CHILD FROM: {0} TO: {1}  ", childFromPath, childToPath);
+            logger.debug("updateChildObjectStateForMove HANDLING CHILD FROM: {0} TO: {1}  ", childFromPath, childToPath);
 
             // update database, preview, cache etc
             updateDatabaseCachePreviewForMove(site, childFromPath, childToPath, false);
@@ -796,23 +796,23 @@ public class ContentServiceImpl implements ContentService {
         String fromPathOnly = fromPath.substring(0, fromPath.lastIndexOf("/"));
         String fromFileNameOnly = fromPath.substring(fromPath.lastIndexOf("/")+1);
         boolean fromFileIsIndex = ("index.xml".equals(fromFileNameOnly));
-        logger.info("cut/copy name rules FROM: {0}, {1}", fromPathOnly, fromFileNameOnly);
+        logger.debug("cut/copy name rules FROM: {0}, {1}", fromPathOnly, fromFileNameOnly);
 
         if(fromFileIsIndex==true) {
             fromFileNameOnly = fromPathOnly.substring(fromPathOnly.lastIndexOf("/")+1);
             fromPathOnly = fromPathOnly.substring(0, fromPathOnly.lastIndexOf("/"));
-            logger.info("cut/copy name rules INDEX FROM: {0}, {1}", fromPathOnly, fromFileNameOnly);
+            logger.debug("cut/copy name rules INDEX FROM: {0}, {1}", fromPathOnly, fromFileNameOnly);
         }
 
         String newPathOnly = (toPath.contains(".xml")) ? toPath.substring(0, toPath.lastIndexOf("/")) : toPath;
         String newFileNameOnly = (toPath.contains(".xml")) ? toPath.substring(toPath.lastIndexOf("/")+1) : fromFileNameOnly;
         boolean newFileIsIndex = ("index.xml".equals(newFileNameOnly));
-        logger.info("cut/copy name rules TO: {0}, {1}", newPathOnly, newFileNameOnly);
+        logger.debug("cut/copy name rules TO: {0}, {1}", newPathOnly, newFileNameOnly);
 
         if(newFileIsIndex==true) {
             newFileNameOnly = newPathOnly.substring(newPathOnly.lastIndexOf("/")+1);
             newPathOnly = newPathOnly.substring(0, newPathOnly.lastIndexOf("/"));
-            logger.info("cut/copy name rules INDEX TO: {0}, {1}", newPathOnly, newFileNameOnly);
+            logger.debug("cut/copy name rules INDEX TO: {0}, {1}", newPathOnly, newFileNameOnly);
         }
 
         String proposedDestPath = null;
@@ -844,14 +844,12 @@ public class ContentServiceImpl implements ContentService {
                 proposedDestPath = newPathOnly + "/" + newFileNameOnly +  "/index.xml"; 
                 proposedDestPath_filename = "index.xml";
                 proposedDestPath_folder = newFileNameOnly;
-                logger.info("Initial Proposed Path: {0} ", proposedDestPath);
             }
             else {
                 // this is a location move
                 proposedDestPath = newPathOnly + "/" + newFileNameOnly + "/" + fromFileNameOnly +  "/index.xml"; 
                 proposedDestPath_filename = "index.xml";
                 proposedDestPath_folder = fromFileNameOnly;
-                logger.info("Initial Proposed Path: {0} ", proposedDestPath);
             }
         }
         else if(fromFileIsIndex && !newFileIsIndex) {
@@ -862,13 +860,11 @@ public class ContentServiceImpl implements ContentService {
             proposedDestPath = newPathOnly + "/" + fromFileNameOnly +  "/index.xml"; 
             proposedDestPath_filename = "index.xml";
             proposedDestPath_folder = fromFileNameOnly;
-            logger.info("Initial Proposed Path: {0} ", proposedDestPath);  
         }
         else if(!fromFileIsIndex && newFileIsIndex) {
             proposedDestPath = newPathOnly + "/" + newFileNameOnly + "/" + fromFileNameOnly; 
             proposedDestPath_filename = fromFileNameOnly;
             proposedDestPath_folder = newFileNameOnly;
-            logger.info("Initial Proposed Path: {0} ", proposedDestPath);  
         }                
         else{
             // Example NON INDEX FILES MOVE TO FOLDER
@@ -893,8 +889,9 @@ public class ContentServiceImpl implements ContentService {
                 proposedDestPath_folder = newPathOnly.substring(0, newPathOnly.lastIndexOf("/"));
             }
 
-            logger.info("Initial Proposed Path: {0} ", proposedDestPath);
         }
+        
+        logger.debug("Initial Proposed Path: {0} ", proposedDestPath);
 
         result.put("FILE_PATH", proposedDestPath);
         result.put("FILE_NAME", proposedDestPath_filename);
@@ -917,7 +914,7 @@ public class ContentServiceImpl implements ContentService {
         }
 
         if(adjustOnCollide && contentExists) {
-            logger.info("File already found at path {0}, creating new name", proposedDestPath);
+            logger.debug("File already found at path {0}, creating new name", proposedDestPath);
             try {
                 Map<String,String> ids = contentItemIdGenerator.getIds(); 
                 String id = ids.get(DmConstants.KEY_PAGE_GROUP_ID);
@@ -955,7 +952,7 @@ public class ContentServiceImpl implements ContentService {
             }
         }
 
-        logger.info("FINAL PROPOSED PATH from {0} to {1} FINAL {2}", fromPath, toPath, proposedDestPath);
+        logger.debug("FINAL PROPOSED PATH from {0} to {1} FINAL {2}", fromPath, toPath, proposedDestPath);
         return result;
     }
 
@@ -2083,7 +2080,7 @@ public class ContentServiceImpl implements ContentService {
         } else if (beforeOrder == null) {
             return (0 + afterOrder) / 2;
         } else if (afterOrder == null) {
-            logger.info("afterOrder == null");
+            logger.debug("afterOrder == null");
             return dmPageNavigationOrderService.getNewNavOrder(site, ContentUtils.getParentUrl(relativePath.replace("/" + DmConstants.INDEX_FILE, "")));
         } else {
             //return (beforeOrder + afterOrder) / 2;

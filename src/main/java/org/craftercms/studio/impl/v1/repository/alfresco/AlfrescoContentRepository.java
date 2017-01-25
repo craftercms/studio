@@ -158,7 +158,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
         boolean isMoveLocation = false;
         boolean destFolderExists = false;
 
-        logger.info("ALFRESCO MOVE FROM {0} -> TO {1}", fromPath, toPath);
+        logger.debug("Move from {0} -> to {1}", fromPath, toPath);
         String parentFromPath = fromPath.substring(0, fromPath.lastIndexOf("/"));
         String parentToPath = toPath.substring(0, toPath.lastIndexOf("/"));
         
@@ -201,7 +201,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
                     if(sourceParent.getPath().equals(targetFolder.getPath()) ) {
                         // this is a rename only
                         String renamedFileName =  toPath.substring(toPath.lastIndexOf("/")+1);
-                        logger.info("Renaming document {0} to {1}/{2}", sourceDocument.getPaths().get(0), targetFolder.getPath(), renamedFileName);
+                        logger.debug("Renaming document {0} to {1}/{2}", sourceDocument.getPaths().get(0), targetFolder.getPath(), renamedFileName);
                         sourceDocument.rename(renamedFileName);
                     }
                     else {
@@ -211,26 +211,25 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
                         if(!targetFileName.contains(".xml") 
                         || sourceDocument.getName().equals(targetFileName)) {
                             // this is a regular old move
-                            logger.info("Moving document {0} to {1}", sourceDocument.getPaths().get(0), targetFolder.getPath());
+                            logger.debug("Moving document {0} to {1}", sourceDocument.getPaths().get(0), targetFolder.getPath());
                             sourceDocument.move(sourceParent, targetFolder);
                         }
                         else {
                             // this is a rename and move
-                            logger.info("Rename and moving document {0} to {1}", sourceDocument.getPaths().get(0), targetFolder.getPath());
+                            logger.debug("Rename and moving document {0} to {1}", sourceDocument.getPaths().get(0), targetFolder.getPath());
                             sourceDocument.rename(targetFileName);
                             sourceDocument.move(sourceParent, targetFolder);
                         }
                     }                    
                 } 
                 else if ("cmis:folder".equals(sourceType.getId())) {
-                    logger.info("AR 2");
                     Folder sourceFolder = (Folder)sourceCmisObject;
                     Folder sourceParentFolder = sourceFolder.getFolderParent();
                     String targetFolderName = toPath.substring(toPath.lastIndexOf("/")+1);
 
                     if(parentFromPath.equals(parentToPath) && destFolderExists) {
                         // move is just a rename
-                        logger.info("Rename {0} to {1}/{2}", sourceFolder.getPath(), targetFolder.getPath(), targetFolderName);
+                        logger.debug("Rename {0} to {1}/{2}", sourceFolder.getPath(), targetFolder.getPath(), targetFolderName);
                         sourceFolder.rename(targetFolderName);
                     }
                     else {
@@ -238,13 +237,13 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
                         if(destFolderExists == true) {
                             // This is just a move
                             // example: move /a to /b/a
-                            logger.info("Moving folder {0} to {1}", sourceFolder.getPath(), targetFolder.getPath());
+                            logger.debug("Moving folder {0} to {1}", sourceFolder.getPath(), targetFolder.getPath());
                             sourceFolder.move(sourceParentFolder, targetFolder);
                         }
                         else {
                             // this is a rename and move (the consumer wants to move the folder to a new name)
                             // example move /a to /s
-                            logger.info("Rename and moving folder {0} to {1}/{2}", sourceFolder.getPath(), targetFolder.getPath(), targetFolderName);
+                            logger.debug("Rename and moving folder {0} to {1}/{2}", sourceFolder.getPath(), targetFolder.getPath(), targetFolderName);
                             sourceFolder.rename(targetFolderName);
                             sourceFolder.move(sourceParentFolder, targetFolder);
                         }   
@@ -257,11 +256,11 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
                 result = true;
             } 
             else {
-                logger.error("Move failed since target path " + toPath + " is not folder.");
+                logger.error("Move from {0} to {1} failed since target path is not folder.", fromPath, toPath);
             }
         } 
         catch (CmisBaseException err) {
-            logger.error("Error while moving content from " + fromPath + " to " + toPath, err);
+            logger.error("Error while moving content  from {0} to {1}", err, fromPath, toPath);
         }
 
         return result;
@@ -438,7 +437,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
                 String nodeRef = getNodeRefForPathCMIS(path + "/" + name);
                 return nodeRef;
             } catch (ContentNotFoundException e) {
-                logger.info("Error while creating folder {1} in path {0}", e, path, name);
+                logger.error("Error while creating folder {1} in path {0}", e, path, name);
             }
         }
         return "";
@@ -963,7 +962,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
                     }
                 }
             } else {
-                logger.info("Content not found for path: [" + fullPath + "]");
+                logger.warn("Content not found for path: [" + fullPath + "]");
             }
         } catch(CmisBaseException err) {
             logger.error("err getting content: ", err);
@@ -1039,7 +1038,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
             try {
                 parentCmisOBject = session.getObjectByPath(parentPath);
             } catch (CmisObjectNotFoundException ex) {
-                logger.info("Parent folder [{0}] not found, creating it.", cleanPath);
+                logger.debug("Parent folder [{0}] not found, creating it.", cleanPath);
                 createMissingFoldersCMIS(parentPath);
                 session.clear();
                 parentCmisOBject = session.getObjectByPath(parentPath);
@@ -1056,7 +1055,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
                         Property property = newFolder.getProperty("alfcmis:nodeRef");
                         newFolderRef = property.getValueAsString();
                     } catch (CmisContentAlreadyExistsException exc) {
-                        logger.info("Folder " + cleanPath + " already exists");
+                        logger.debug("Folder " + cleanPath + " already exists");
                     }
                 }
             } else {
@@ -1082,7 +1081,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
             try {
                 parentCmisOBject = session.getObjectByPath(cleanPath);
             } catch (CmisObjectNotFoundException ex) {
-                logger.info("Parent folder [{0}] not found, creating it.", cleanPath);
+                logger.debug("Parent folder [{0}] not found, creating it.", cleanPath);
                 int idx = cleanPath.lastIndexOf("/");
                 if (idx >= 0) {
                     String ancestorPath = cleanPath.substring(0, idx);
