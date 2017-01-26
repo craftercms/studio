@@ -115,4 +115,12 @@ public interface SecurityProvider {
      * @return List of all users
      */
     List<Map<String, Object>> getAllUsers();
+
+    /**
+     * Get all users for given site
+     *
+     * @param site
+     * @return
+     */
+    List<Map<String, Object>> getUsersPerSite(String site);
 }

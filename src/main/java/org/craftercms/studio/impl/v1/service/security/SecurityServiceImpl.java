@@ -536,6 +536,11 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
+    public List<Map<String, Object>> getUsersPerSite(String site) {
+        return securityProvider.getUsersPerSite(site);
+    }
+
+    @Override
     public boolean createGroup(String groupName, String description, long siteId) {
         return securityProvider.createGroup(groupName, description, siteId);
     }

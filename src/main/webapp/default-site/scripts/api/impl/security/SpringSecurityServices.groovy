@@ -101,6 +101,11 @@ class SpringSecurityServices {
         return springBackedService.getAllUsers()
     }
 
+    def getUsersPerSite(site) {
+        def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
+        return springBackedService.getUsersPerSite(site)
+    }
+
     def createGroup(groupName, description, siteId) {
         def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
         return springBackedService.createGroup(groupName, description, siteId)

@@ -136,6 +136,44 @@ public class DbSecurityProvider implements SecurityProvider {
         return toRet;
     }
 
+    @Override
+    public List<Map<String, Object>> getUsersPerSite(String site) {
+        List<UserProfileResult> resultSet = securityMapper.getUsersPerSite(site);
+        List<Map<String, Object>> toRet = new ArrayList<Map<String, Object>>();
+        Map<String, Object> userProfile = new HashMap<String, Object>();
+        if (resultSet != null && !resultSet.isEmpty()) {
+            String lastUser = null;
+            List<Object> sites = new ArrayList<Object>();
+            List<Map<String, Object>> groups = null;
+            for (UserProfileResult row : resultSet) {
+                String username = row.getUsername();
+                if (!username.equals(lastUser)) {
+                    if (userProfile != null && !userProfile.isEmpty()) {
+                        if (groups != null) {
+                            userProfile.put("groups", groups);
+                        }
+                        toRet.add(userProfile);
+                    }
+                    userProfile = new HashMap<String, Object>();
+                    userProfile.put("username", username);
+                    userProfile.put("first_name", row.getFirstName());
+                    userProfile.put("last_name", row.getLastName());
+                    userProfile.put("email", row.getEmail());
+                    groups = new ArrayList<Map<String, Object>>();
+                }
+                Map<String, Object> group = new HashMap<String, Object>();
+                group.put("group_name", row.getGroupName());
+                groups.add(group);
+                lastUser = username;
+            }
+            if (groups != null) {
+                userProfile.put("groups", groups);
+            }
+            toRet.add(userProfile);
+        }
+        return toRet;
+    }
+
     public Map<String, String> getUserProfileOld(String user) {
         User u = securityMapper.getUser(user);
         Map<String, String> userProfile = new HashMap<String, String>();
