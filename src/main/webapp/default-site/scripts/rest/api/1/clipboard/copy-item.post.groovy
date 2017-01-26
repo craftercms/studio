@@ -1,12 +1,24 @@
-import scripts.api.ClipboardServices;
+import scripts.api.ClipboardServices
+import groovy.json.JsonSlurper
 
 def result = [:]
 def site = params.site
-def session = request.session
-def requestBody = request.reader.text
 
+def requestBody = request.reader.text
 def context = ClipboardServices.createContext(applicationContext, request)
-ClipboardServices.copy(context, site, session, requestBody)
+def slurper = new JsonSlurper()
+def tree = slurper.parseText(requestBody)
+def paths = []
+
+// parse the inbound request and compose an array of paths to put on the clipboard
+def rootItem = ClipboardServices.newClipboardItem(tree.item[0].uri, false)
+
+tree.item[0].children.each { childItem ->
+	def clipboardItem = ClipboardServices.newClipboardItem(childItem.uri, false) 
+	rootItem.children.add(clipboardItem)
+}
+
+ClipboardServices.copy(site, rootItem, context)
 
 result.success = true
 

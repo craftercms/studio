@@ -20,26 +20,75 @@ package org.craftercms.studio.api.v1.service.clipboard;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.to.DmPasteItemTO;
 
-import java.util.List;
+import javax.servlet.http.HttpSession;
+
 import java.util.Map;
+import java.util.Set;
+import java.util.HashSet;
 
-
+/**
+ * Clipboard service that tracks items clipped (COPY/CUT) by the caller and executes the 
+ * proper content services (COPY TO DEST, MOVE TO DEST) on paste operation. 
+ */
 public interface ClipboardService {
+
+    /**
+     * cut a set of items and store on clipboard
+     *
+     * @param site - the project ID
+     * @param path - path of item to be cut
+     */
+    public boolean cut(String site, String path, HttpSession session) throws ServiceException;
+
+    /**
+     * copy a set of items and store on clipboard
+     *
+     * @param site - the project ID
+     * @param path - path of item to be copied
+     */
+    public boolean copy(String site, String path, HttpSession session) throws ServiceException;
+
+    /**
+     * copy a set of items and store on clipboard
+     *
+     * @param site - the project ID
+     * @param path - path of item to be copied
+     */
+    public boolean copy(String site, ClipboardItem clipItem, HttpSession session) throws ServiceException;
 
     /**
      * paste a list of items provided to the specified destination
      *
      * @param site
-     * @param pasteItems
      * @param destination
-     * 			the root folder of all items' destination
-     * @param cut
-     * @return a list of copied items
-     * @throws ServiceException
+     *          the root folder of all items' destination
+     * @return a list of pasted items (new paths)
+     * @throws org.craftercms.cstudio.alfresco.service.exception.ServiceException
      */
-    public List<String> paste(String site, List<Map<String, String>> pasteItems, String destination, boolean cut) throws ServiceException;
-/*
-    public String duplicateToDraft(String site, String sub, String path) throws ServiceException;
-*/
-	public String duplicate(String site, String path, String source) throws ServiceException;
+    public Set<String> paste(String site, String destination, HttpSession session) throws ServiceException;
+
+    /**
+     * get the items on clipboard
+     *
+     * @param site - the project ID
+     * @return items clipped
+     */
+    public ClipboardItem getItems(String site, HttpSession session) throws ServiceException;
+
+    /**
+     * A ClipboardItem is a record for clip board opearation (CUT/COPY)
+     * A clipboard contains a list of ops until a paste is called
+     */
+    public class ClipboardItem {
+        public ClipboardItem(String path, boolean cut) {
+            this.isCut = cut;
+            this.path = path;   
+            this.children = new HashSet<ClipboardItem>();        
+        };
+
+        public boolean isCut = false;
+        public boolean isDeep = true; // copy ops are not always deep, why is this hard coded? Suspect not used
+        public String path = null;
+        public Set<ClipboardItem> children;
+    }
 }

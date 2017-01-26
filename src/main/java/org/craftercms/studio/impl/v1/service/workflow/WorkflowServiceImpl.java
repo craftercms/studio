@@ -36,7 +36,6 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
-import org.craftercms.studio.api.v1.service.content.DmRenameService;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
 import org.craftercms.studio.api.v1.service.dependency.DependencyRule;
 import org.craftercms.studio.api.v1.service.dependency.DependencyRules;
@@ -401,7 +400,6 @@ public class WorkflowServiceImpl implements WorkflowService {
 	 * get the top category items that to be displayed in UI
 	 *
 	 * @param site
-
 	 */
 	protected List<ContentItemTO> getCategoryItems(final String site) {
 		String siteRootPrefix = servicesConfig.getRootPrefix(site);
@@ -854,7 +852,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                         if (item.isSubmittedForDeletion()) {
                             submitToDeleteItems.add(item);
                         } else {
-                            if (!dmRenameService.isItemRenamed(site, item)) {
+                            if (!isItemRenamed(site, item)) {
                                 goLiveItems.add(item);
                             } else {
                                 renameItems.add(item);
@@ -915,7 +913,8 @@ public class WorkflowServiceImpl implements WorkflowService {
                             renameItems.set(i, renamedItem);
                         }
 
-                        dmRenameService.goLive(site, renameItems, approver, mcpContext);
+                        //RD: dmRenameService
+                        renameServiceGoLive(site, renameItems, approver, mcpContext);
                     }
 
                     break;
@@ -951,6 +950,15 @@ public class WorkflowServiceImpl implements WorkflowService {
             result.setMessage(e.getMessage());
         }
         return result;
+    }
+
+    protected boolean isItemRenamed(String site, DmDependencyTO item) {
+        if (item.getUri().endsWith(DmConstants.XML_PATTERN) || !item.getUri().contains(".")) {
+            return objectMetadataManager.isRenamed(site, item.getUri());
+        } else {
+            // if not xml or a folder, skip checking if renamed
+            return false;
+        }
     }
 
     /**
@@ -1025,7 +1033,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                         if (item.isSubmittedForDeletion()) {
                             submitToDeleteItems.add(item);
                         } else {
-                            if (!dmRenameService.isItemRenamed(site, item)) {
+                            if (!isItemRenamed(site, item)) {
                                 goLiveItems.add(item);
                             } else {
                                 renameItems.add(item);
@@ -1087,7 +1095,8 @@ public class WorkflowServiceImpl implements WorkflowService {
                             renameItems.set(i, renamedItem);
                         }
 
-                        dmRenameService.goLive(site, renameItems, approver, mcpContext);
+                        //RD: dmRenameService.
+                        renameServiceGoLive(site, renameItems, approver, mcpContext);
                     }
 
                     break;
@@ -1199,7 +1208,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                         if (item.isSubmittedForDeletion()) {
                             submitToDeleteItems.add(item);
                         } else {
-                            if (!dmRenameService.isItemRenamed(site, item)) {
+                            if (!isItemRenamed(site, item)) {
                                 goLiveItems.add(item);
                             } else {
                                 renameItems.add(item);
@@ -1261,7 +1270,8 @@ public class WorkflowServiceImpl implements WorkflowService {
                             renameItems.set(i, renamedItem);
                         }
 
-                        dmRenameService.goLive(site, renameItems, approver, mcpContext);
+                        //RD dmRenameService.
+                        renameServiceGoLive(site, renameItems, approver, mcpContext);
                     }
 
                     break;
@@ -2573,6 +2583,192 @@ public class WorkflowServiceImpl implements WorkflowService {
         }
     }
 
+    /* ================= */
+    // Methods from rename service
+    protected void renameServiceGoLive(String site, List<DmDependencyTO> submittedItems, String approver, MultiChannelPublishingContext mcpContext) throws ServiceException {
+                long start = System.currentTimeMillis();
+
+        try {
+            Date now = new Date();
+            Map<Date, List<DmDependencyTO>> groupedPackages = groupByDate(submittedItems, now);
+
+            for (Date scheduledDate : groupedPackages.keySet()) {
+                submitWorkflow(site, groupedPackages.get(scheduledDate),now, scheduledDate, approver, mcpContext);
+            }
+
+        } catch (ContentNotFoundException e) {
+            throw new ServiceException("Error during go live",e);
+        } catch (ServiceException e) {
+            throw new ServiceException("Error during go live",e);
+        }
+        long end = System.currentTimeMillis();
+        logger.debug("Total go live time on rename item = " + (end - start));
+    }
+
+    /**
+     *
+     * Prepares and starts workflow
+     *
+     * Reverts any child nodes which are not in the same version as staging since only URL changes has to be pushed to staging.
+     * A copy of the new version is placed in a temp location and recovered once we push things to workflow
+     *
+     */
+    protected void submitWorkflow(final String site, final List<DmDependencyTO> submittedItems, Date now, Date scheduledDate,
+                                  final String approver, MultiChannelPublishingContext mcpContext) throws ServiceException{
+
+        final String assignee = "" ;//DmUtils.getAssignee(site, sub);
+        final List<String> paths = new ArrayList<>();
+        final List<String> dependenices = new ArrayList<>();
+        Date launchDate = scheduledDate.equals(now) ? null : scheduledDate;
+        final boolean isScheduled = launchDate == null ? false : true;
+        String pathPrefix = "/wem-projects/" + site + "/" + site + "/work-area";
+
+        //label will keep track of all nodes that has been reverted to staging version and used during postStagingSubmission
+        final StringBuilder label = new StringBuilder();
+        label.append(isScheduled ? DmConstants.SCHEDULE_RENAME_WORKFLOW_PREFIX : DmConstants.RENAME_WORKFLOW_PREFIX);
+        label.append(":");
+        final Set<String> rescheduledUris = new HashSet<String>();
+        for (DmDependencyTO submittedItem : submittedItems) {
+            String workflowLabel = getWorkflowPaths(site, submittedItem, pathPrefix, paths, dependenices, isScheduled, rescheduledUris);
+            label.append(workflowLabel);
+            label.append(",");
+        }
+
+        Set<String>uris = new HashSet<String>();
+        Map<String, String> submittedBy = new HashMap<>();
+        for (String path : paths) {
+            String uri = path.substring(pathPrefix.length());
+            uris.add(uri);
+            dmPublishService.cancelScheduledItem(site, uri);
+        }
+        GoLiveContext context = new GoLiveContext(approver, site);
+        SubmitLifeCycleOperation operation = null;
+        if (launchDate == null){
+            operation = new PreGoLiveOperation(this, uris, context, rescheduledUris);
+        }else{
+            //uri will not be have dependencies
+            for (String dependency: dependenices) {
+                String uri = dependency.substring(pathPrefix.length());
+                uris.add(uri);
+            }
+            operation = new PreScheduleOperation(this, uris,launchDate, context, rescheduledUris);
+        }
+        workflowProcessor.addToWorkflow(site, paths, launchDate, label.toString(), operation, approver, mcpContext);
+        logger.debug("Go live rename: paths posted " + paths + "for workflow scheduled at : " + launchDate);
+    }
+
+    /**
+     *
+     * Compute the paths to be moved and paths to be deleted from Staging
+     *
+     * @throws ContentNotFoundException
+     * @throws ServiceException
+     */
+    protected String getWorkflowPaths(final String site, DmDependencyTO submittedItem,
+                                      final String pathPrefix, final List<String> paths, List<String> dependenices, boolean isScheduled, Set<String> rescheduledUris) throws ContentNotFoundException, ServiceException {
+
+        logger.debug("GoLive on renamed node " + submittedItem.getUri());
+
+        List <String> childUris = new ArrayList<>();
+        String submittedUri = submittedItem.getUri();
+        List<String> submittedChildUris = getSubmittedChildUri(submittedItem);
+        // handles the file content submission
+        if (submittedUri.endsWith(DmConstants.XML_PATTERN) && !submittedUri.endsWith(DmConstants.INDEX_FILE)) {
+            childUris.add(submittedUri);
+        } else {
+            getChildrenUri(site, ContentUtils.getParentUrl(submittedItem.getUri()),childUris);
+        }
+        StringBuilder label = new StringBuilder();
+        label.append(ContentUtils.getParentUrl(submittedUri));
+        for (String uri :childUris){
+            //find all child items that are already live and revert the sandbox to staging version
+            String oldStagingUri = objectMetadataManager.getOldPath(site, uri);
+
+            if(submittedChildUris.contains(uri) || submittedItem.getUri().equals(uri)){
+                //if child is one of the submitted item then add itself and references
+                paths.add(pathPrefix + uri);
+                List<String> refPaths = getReferencePaths(site, uri, submittedItem, pathPrefix, rescheduledUris);
+                dependenices.addAll(refPaths);
+                if (!isScheduled && refPaths != null && refPaths.size() > 0) { //Update dependencies during prestaging submission for dependenices
+                    paths.addAll(refPaths);
+                }
+            }
+        }
+        return label.toString();
+    }
+
+    protected List<String> getSubmittedChildUri(DmDependencyTO submittedItem) {
+        List<String> childUri = new ArrayList<>();
+        if(submittedItem.getChildren()!=null){
+            for(DmDependencyTO child:submittedItem.getChildren()){
+                childUri.add(child.getUri());
+            }
+        }
+        return childUri;
+    }
+
+    protected List<String> getChildrenUri(String site, String path, List<String> paths){
+        ContentItemTO itemTree = contentService.getContentItemTree(site, path, 2);
+        if (itemTree.getNumOfChildren() > 0) {
+            for (ContentItemTO child : itemTree.getChildren()) {
+                getChildrenUri(site, child.getUri(), paths);
+            }
+        }
+        paths.add(itemTree.getUri());
+        return paths;
+    }
+
+    /**
+     * Get depedency for a given uri
+     *
+     */
+    protected List<String> getReferencePaths(final String site, String uri, DmDependencyTO submittedItem,String pathPrefix, Set<String> rescheduledUris) throws ServiceException{
+        //TODO figure out a better way to do this
+        DmDependencyTO to = null;
+        List<String> depedencyPaths = new ArrayList<>();
+        if(uri.equals(submittedItem.getUri())){
+            to = submittedItem;
+        }else{
+            if(submittedItem.getChildren()==null)
+                return null;
+            for(DmDependencyTO depedencyTo:submittedItem.getChildren()){
+                if(uri.equals(depedencyTo.getUri())){
+                    to = depedencyTo;
+                    break;
+                }
+            }
+        }
+        if(isRescheduleRequest(to, site)){
+            rescheduledUris.add(to.getUri());
+        }
+
+        DependencyRules rule = new DependencyRules(site);
+        rule.setContentService(contentService);
+        rule.setObjectStateService(objectStateService);
+        Set<DmDependencyTO> dependencyTOSet;
+        dependencyTOSet = rule.applySubmitRule(to);
+        for (DmDependencyTO dependencyTO : dependencyTOSet) {
+            depedencyPaths.add(pathPrefix+dependencyTO.getUri());
+        }
+
+        return depedencyPaths;
+    }
+
+     // End Rename Service Methods
+     /* ================ */
+
+
+
+
+
+
+
+
+
+
+
+
+
     public void setWorkflowJobDAL(WorkflowJobDAL dal) { _workflowJobDAL = dal; }
 
 
@@ -2604,9 +2800,6 @@ public class WorkflowServiceImpl implements WorkflowService {
 
     public SiteService getSiteService() { return siteService; }
     public void setSiteService(SiteService siteService) { this.siteService = siteService; }
-
-    public DmRenameService getDmRenameService() { return dmRenameService; }
-    public void setDmRenameService(DmRenameService dmRenameService) { this.dmRenameService = dmRenameService; }
 
     public WorkflowProcessor getWorkflowProcessor() { return workflowProcessor; }
     public void setWorkflowProcessor(WorkflowProcessor workflowProcessor) { this.workflowProcessor = workflowProcessor; }
@@ -2652,7 +2845,6 @@ public class WorkflowServiceImpl implements WorkflowService {
     protected GeneralLockService generalLockService;
     protected SecurityService securityService;
     protected SiteService siteService;
-    protected DmRenameService dmRenameService;
     protected WorkflowProcessor workflowProcessor;
     protected ObjectMetadataManager objectMetadataManager;
     protected DependencyRule deploymentDependencyRule;
