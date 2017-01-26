@@ -35,6 +35,8 @@ def context = SecurityServices.createContext(applicationContext, request)
 try {
     def success = SecurityServices.updateUser(context, username, firstname, lastname, email)
     if (success) {
+        def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/user/get?username=" + username
+        response.addHeader("Location", locationHeader)
         result.status = "OK"
         response.setStatus(200)
     } else {

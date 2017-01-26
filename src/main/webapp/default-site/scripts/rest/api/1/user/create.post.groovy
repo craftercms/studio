@@ -36,7 +36,7 @@ def context = SecurityServices.createContext(applicationContext, request)
 try {
     SecurityServices.createUser(context, username, password, firstname, lastname, email);
     result.status = "OK"
-    def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/user/get-user?user=" + username
+    def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/user/get?user=" + username
     response.addHeader("Location", locationHeader)
     response.setStatus(201)
     return result

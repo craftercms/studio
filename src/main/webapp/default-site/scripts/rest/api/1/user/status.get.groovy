@@ -27,7 +27,7 @@ def context = SecurityServices.createContext(applicationContext, request)
 try {
     def userMap = SecurityServices.getUserStatus(context, username);
     if (userMap != null && !userMap.isEmpty()) {
-        def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/user/get-user?user=" + username
+        def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/user/get?username=" + username
         response.addHeader("Location", locationHeader)
         return userMap;
     } else {

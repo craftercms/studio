@@ -35,6 +35,8 @@ try {
     SecurityServices.createGroup(context, groupName, description, siteId);
     result.status = "OK"
     response.setStatus(201)
+    def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/group/get?group_name=" + groupName
+    response.addHeader("Location", locationHeader)
     return result
 } catch (Exception e) {
     response.setStatus(500)
