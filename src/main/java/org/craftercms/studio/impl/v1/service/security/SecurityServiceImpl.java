@@ -88,7 +88,7 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
-    public Map<String,String> getUserProfile(String user) {
+    public Map<String,Object> getUserProfile(String user) {
         return securityProvider.getUserProfile(user);
     }
 

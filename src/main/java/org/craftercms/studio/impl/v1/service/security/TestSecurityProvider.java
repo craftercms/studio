@@ -42,20 +42,20 @@ public class TestSecurityProvider implements SecurityProvider {
         put("approver", approverGroups);
     }};
 
-    private final static Map<String, Map<String, String>> USER_PROFILES = new HashMap<String, Map<String, String>>() {{
-        Map<String, String> adminProfile = new HashMap<String, String>();
+    private final static Map<String, Map<String, Object>> USER_PROFILES = new HashMap<String, Map<String, Object>>() {{
+        Map<String, Object> adminProfile = new HashMap<String, Object>();
         adminProfile.put("username", "admin");
         adminProfile.put("email", "evaladmin@example.com");
         adminProfile.put("firstName", "Joe");
         adminProfile.put("lastName", "Admin");
         
-        Map<String, String> authorProfile = new HashMap<String, String>();
+        Map<String, Object> authorProfile = new HashMap<String, Object>();
         authorProfile.put("username", "author");
         authorProfile.put("email", "evalauthor@example.com");
         authorProfile.put("firstName", "Joe");
         authorProfile.put("lastName", "Author");
 
-        Map<String, String> approverProfile = new HashMap<String, String>();
+        Map<String, Object> approverProfile = new HashMap<String, Object>();
         authorProfile.put("username", "approver");
         authorProfile.put("email", "evalapprover@example.com");
         authorProfile.put("firstName", "Joe");
@@ -64,7 +64,7 @@ public class TestSecurityProvider implements SecurityProvider {
         put("admin", adminProfile);
         put("author", authorProfile);
         put("approver", approverProfile);
-        put(null, new HashMap<String, String>());
+        put(null, new HashMap<String, Object>());
     }};
 
     private final static List<String> USER_FAKETICKETS = new ArrayList<String>() {{
@@ -96,7 +96,7 @@ public class TestSecurityProvider implements SecurityProvider {
         return username;
     }
 
-    public Map<String, String> getUserProfile(String user) {
+    public Map<String, Object> getUserProfile(String user) {
        
         return USER_PROFILES.get(user);
     }

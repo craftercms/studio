@@ -142,9 +142,9 @@ public class DemoSecurityProvider implements SecurityProvider {
         return username;
     }
 
-    public Map<String, String> getUserProfile(String user) {
+    public Map<String, Object> getUserProfile(String user) {
         checkIfUpdated();
-        Map<String, String> toRet = new HashMap<String, String>();;
+        Map<String, Object> toRet = new HashMap<String, Object>();;
         User u = userMap.get(user);
         if (u != null) {
             toRet.put("username", u.getUsername());

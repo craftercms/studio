@@ -67,7 +67,7 @@ public class CachedSecurityProvider implements SecurityProvider {
         return provider.getCurrentUser(); 
     };
 
-    public Map<String, String> getUserProfile(String user) {
+    public Map<String, Object> getUserProfile(String user) {
         return provider.getUserProfile(user); 
     }
 

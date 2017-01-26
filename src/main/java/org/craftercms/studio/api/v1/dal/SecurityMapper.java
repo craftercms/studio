@@ -37,4 +37,6 @@ public interface SecurityMapper {
     void enableUser(Map params);
 
     void createGroup(Map params);
+
+    List<UserProfileResult> getUserDetails(String username);
 }

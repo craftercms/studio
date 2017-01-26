@@ -83,7 +83,7 @@ public class MappedSecurityProvider implements SecurityProvider {
         return provider.getCurrentUser(); 
     };
 
-    public Map<String, String> getUserProfile(String user) {
+    public Map<String, Object> getUserProfile(String user) {
     	SecurityProvider provider = lookupProvider(getProviderType());
         return provider.getUserProfile(user); 
     }

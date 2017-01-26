@@ -43,7 +43,7 @@ public interface SecurityService {
 
     Set<String> getUserRoles(String site, String user);
 
-    Map<String, String> getUserProfile(String user);
+    Map<String, Object> getUserProfile(String user);
     
     Set<String> getUserPermissions(String site, String path, String user, List<String> groups);
 

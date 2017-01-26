@@ -32,8 +32,26 @@
         <result property="active" column="enabled" />
     </resultMap>
 
+    <resultMap id="UserProfileResultMap" type="org.craftercms.studio.api.v1.dal.UserProfileResult">
+        <id property="username" column="username"/>
+        <result property="firstName" column="firstname"/>
+        <result property="lastName" column="lastname" />
+        <result property="email" column="email" />
+        <result property="groupName" column="groupname" />
+        <result property="siteId" column="siteid"/>
+        <result property="siteName" column="siteName" />
+    </resultMap>
+
     <select id="getUser" resultMap="UserMap">
         SELECT * FROM cstudio_user WHERE username = #{username}
+    </select>
+
+    <select id="getUserDetails" resultMap="UserProfileResultMap">
+        SELECT cu.username as username, cu.firstname as firstname, cu.lastname as lastname, cu.email as email, cg.name as groupname, cs.site_id as siteid, cs.name as sitename from
+          cstudio_user cu INNER JOIN cstudio_usergroup cug on cu.username = cug.username
+          INNER JOIN cstudio_group cg on cug.groupId = cg.id
+          INNER JOIN cstudio_site cs on cg.site_id=cs.id
+        WHERE cu.username = #{username}
     </select>
 
     <select id="getUserGroups" resultType="Group">

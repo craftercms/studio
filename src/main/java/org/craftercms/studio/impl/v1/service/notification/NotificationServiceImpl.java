@@ -433,10 +433,10 @@ public class NotificationServiceImpl implements NotificationService {
                             liveBaseUrl = siteService.getLiveServerUrl(site);
                         }
 
-                        Map<String, String> fromProfile = securityService.getUserProfile(from);
-                        final String userFirstName = fromProfile.get("firstName");
-                        final String userLastName = fromProfile.get("lastName");
-                        final String replyTo = fromProfile.get("email");
+                        Map<String, Object> fromProfile = securityService.getUserProfile(from);
+                        final String userFirstName = fromProfile.get("first_name").toString();
+                        final String userLastName = fromProfile.get("last_name").toString();
+                        final String replyTo = fromProfile.get("email").toString();
                         String fromPersonalName = "";
                         if (userFirstName != null) {
                             fromPersonalName = userFirstName + " ";
@@ -869,9 +869,9 @@ public class NotificationServiceImpl implements NotificationService {
         String userEmailAddress="";
 
         if(StringUtils.isEmpty(userEmailAddress)) {
-            Map<String, String> profile = securityService.getUserProfile(toUser);
+            Map<String, Object> profile = securityService.getUserProfile(toUser);
             if (profile != null) {
-                userEmailAddress = profile.get("email");
+                userEmailAddress = profile.get("email").toString();
             }
         }
 
@@ -880,10 +880,10 @@ public class NotificationServiceImpl implements NotificationService {
             return;
         }
 
-        Map<String, String> fromProfile = securityService.getUserProfile(fromUser);
-        final String userFirstName = fromProfile.get("firstName");
-        final String userLastName = fromProfile.get("lastName");
-        final String replyTo = fromProfile.get("email");
+        Map<String, Object> fromProfile = securityService.getUserProfile(fromUser);
+        final String userFirstName = fromProfile.get("first_name").toString();
+        final String userLastName = fromProfile.get("last_name").toString();
+        final String replyTo = fromProfile.get("email").toString();
         String fromPersonalName = "";
         if (userFirstName != null) {
             fromPersonalName = userFirstName + " ";

@@ -30,7 +30,7 @@ public interface SecurityProvider {
 
     String getCurrentUser();
 
-    Map<String, String> getUserProfile(String user);
+    Map<String, Object> getUserProfile(String user);
 
     String authenticate(String username, String password);
 
