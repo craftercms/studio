@@ -96,6 +96,11 @@ class SpringSecurityServices {
         return springBackedService.getUserStatus(username)
     }
 
+    def getAllUsers() {
+        def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
+        return springBackedService.getAllUsers()
+    }
+
     def createGroup(groupName, description, siteId) {
         def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
         return springBackedService.createGroup(groupName, description, siteId)

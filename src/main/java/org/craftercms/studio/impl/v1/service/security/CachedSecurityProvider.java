@@ -183,4 +183,10 @@ public class CachedSecurityProvider implements SecurityProvider {
         // TODO: DB: Implement this ?
         return false;
     }
+
+    @Override
+    public List<Map<String, Object>> getAllUsers() {
+        // TODO: DB: Implement this ?
+        return null;
+    }
 }

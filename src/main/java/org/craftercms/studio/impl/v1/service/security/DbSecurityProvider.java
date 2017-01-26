@@ -64,15 +64,43 @@ public class DbSecurityProvider implements SecurityProvider {
     public Map<String, Object> getUserProfile(String user) {
         List<UserProfileResult> resultSet = securityMapper.getUserDetails(user);
         Map<String, Object> userProfile = new HashMap<String, Object>();
-        if (resultSet != null && !resultSet.isEmpty()) {
+        List<Map<String, Object>> parsedRS = parseUserResultSet(resultSet);
+        if (parsedRS != null && !parsedRS.isEmpty()) {
+            userProfile = parsedRS.get(0);
+        }
+        return userProfile;
+    }
+
+    @Override
+    public List<Map<String, Object>> getAllUsers() {
+        List<UserProfileResult> resultSet = securityMapper.getAllUsers();
+        return parseUserResultSet(resultSet);
+    }
+
+    private List<Map<String, Object>> parseUserResultSet(List<UserProfileResult> usersResultSet) {
+        List<Map<String, Object>> toRet = new ArrayList<Map<String, Object>>();
+        Map<String, Object> userProfile = new HashMap<String, Object>();
+        if (usersResultSet != null && !usersResultSet.isEmpty()) {
             String lastSite = null;
-            boolean firstRow = true;
+            String lastUser = null;
             List<Object> sites = new ArrayList<Object>();
             Map<String, Object> site = null;
             List<Map<String, Object>> groups = null;
-            for (UserProfileResult row : resultSet) {
-                if (firstRow) {
-                    userProfile.put("username", row.getUsername());
+            for (UserProfileResult row : usersResultSet) {
+                String username = row.getUsername();
+                if (!username.equals(lastUser)) {
+                    if (userProfile != null && !userProfile.isEmpty()) {
+                        if (site != null) {
+                            if (groups != null) {
+                                site.put("groups", groups);
+                            }
+                            sites.add(site);
+                        }
+                        userProfile.put("sites", sites);
+                        toRet.add(userProfile);
+                    }
+                    userProfile = new HashMap<String, Object>();
+                    userProfile.put("username", username);
                     userProfile.put("first_name", row.getFirstName());
                     userProfile.put("last_name", row.getLastName());
                     userProfile.put("email", row.getEmail());
@@ -93,12 +121,20 @@ public class DbSecurityProvider implements SecurityProvider {
                 Map<String, Object> group = new HashMap<String, Object>();
                 group.put("group_name", row.getGroupName());
                 groups.add(group);
+                lastSite = siteId;
+                lastUser = username;
+            }
+            if (site != null) {
+                if (groups != null) {
+                    site.put("groups", groups);
+                }
+                sites.add(site);
             }
             userProfile.put("sites", sites);
+            toRet.add(userProfile);
         }
-        return userProfile;
+        return toRet;
     }
-
 
     public Map<String, String> getUserProfileOld(String user) {
         User u = securityMapper.getUser(user);

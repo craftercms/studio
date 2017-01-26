@@ -54,6 +54,13 @@
         WHERE cu.username = #{username}
     </select>
 
+    <select id="getAllUsers" resultMap="UserProfileResultMap">
+        SELECT cu.username as username, cu.firstname as firstname, cu.lastname as lastname, cu.email as email, cg.name as groupname, cs.site_id as siteid, cs.name as sitename from
+        cstudio_user cu INNER JOIN cstudio_usergroup cug on cu.username = cug.username
+        INNER JOIN cstudio_group cg on cug.groupId = cg.id
+        INNER JOIN cstudio_site cs on cg.site_id=cs.id
+    </select>
+
     <select id="getUserGroups" resultType="Group">
         SELECT cstudio_group.* FROM
         ((cstudio_user INNER JOIN cstudio_usergroup ON cstudio_user.username = cstudio_usergroup.username)

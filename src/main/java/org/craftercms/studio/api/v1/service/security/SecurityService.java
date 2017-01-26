@@ -118,4 +118,11 @@ public interface SecurityService {
      * @return
      */
     Map<String, Object> getUserStatus(String username);
+
+    /**
+     * Get all users
+     *
+     * @return list of all users
+     */
+    List<Map<String, Object>> getAllUsers();
 }

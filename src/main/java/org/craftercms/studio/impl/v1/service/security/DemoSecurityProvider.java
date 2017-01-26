@@ -271,6 +271,12 @@ public class DemoSecurityProvider implements SecurityProvider {
         return false;
     }
 
+    @Override
+    public List<Map<String, Object>> getAllUsers() {
+        // TODO: DB: Implement this ?
+        return null;
+    }
+
     class User {
 
         public String getUsername() { return username; }
