@@ -42,6 +42,13 @@
         <result property="siteName" column="siteName" />
     </resultMap>
 
+    <resultMap id="GroupResultMap" type="org.craftercms.studio.api.v1.dal.GroupResult">
+        <result property="siteId" column="site_id"/>
+        <result property="siteName" column="site_name"/>
+        <result property="groupName" column="group_name"/>
+        <result property="groupDescription" column="group_description"/>
+    </resultMap>
+
     <select id="getUser" resultMap="UserMap">
         SELECT * FROM cstudio_user WHERE username = #{username}
     </select>
@@ -110,5 +117,10 @@
         SELECT cg.NAME as group_name, cg.DESCRIPTION as group_description, cs.SITE_ID as site_id
         FROM CSTUDIO_GROUP cg INNER JOIN CSTUDIO_SITE cs on cg.site_id = cs.id
         WHERE cs.SITE_ID = 'studio_root' AND cg.name = 'crafter-admin'
+    </select>
+
+    <select id="getAllGroups" resultMap="GroupResultMap">
+        SELECT cs.SITE_ID as site_id, cs.NAME as site_name, cg.NAME as group_name, cg.DESCRIPTION as group_description
+        FROM CSTUDIO_GROUP cg INNER JOIN CSTUDIO_SITE cs on cg.site_id = cs.id
     </select>
 </mapper>

@@ -132,4 +132,12 @@ public interface SecurityProvider {
      * @return
      */
     Map<String, Object> getGroup(String site, String group);
+
+    /**
+     * Get all groups
+     * @param start start index
+     * @param end end index
+     * @return
+     */
+    List<Map<String, Object>> getAllGroups(int start, int end);
 }

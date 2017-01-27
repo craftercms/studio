@@ -384,6 +384,50 @@ public class DbSecurityProvider implements SecurityProvider {
         return securityMapper.getGroup(params);
     }
 
+    @Override
+    public List<Map<String, Object>> getAllGroups(int start, int end) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("start", start);
+        params.put("end", end);
+        List<GroupResult> resultSet = securityMapper.getAllGroups(params);
+        return parseGroupResultSet(resultSet);
+    }
+
+    private  List<Map<String, Object>> parseGroupResultSet(List<GroupResult> resultSet) {
+        List<Map<String, Object>> toRet = new ArrayList<Map<String, Object>>();
+        if (resultSet != null && !resultSet.isEmpty()) {
+            String lastSite = null;
+            Map<String, Object> site = null;
+            List<Map<String, Object>> groups = null;
+            for (GroupResult row : resultSet) {
+                String siteId = row.getSiteId();
+                if (!siteId.equals(lastSite)) {
+                    if (site != null) {
+                        if (groups != null) {
+                            site.put("groups", groups);
+                        }
+                        toRet.add(site);
+                    }
+                    site = new HashMap<String, Object>();
+                    site.put("site_id", siteId);
+                    groups = new ArrayList<Map<String, Object>>();
+                }
+                Map<String, Object> group = new HashMap<String, Object>();
+                group.put("group_name", row.getGroupName());
+                group.put("group_description", row.getGroupDescription());
+                groups.add(group);
+                lastSite = siteId;
+            }
+            if (site != null) {
+                if (groups != null) {
+                    site.put("groups", groups);
+                }
+                toRet.add(site);
+            }
+        }
+        return toRet;
+    }
+
     protected StudioConfiguration studioConfiguration;
 
     public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }

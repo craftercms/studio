@@ -123,4 +123,9 @@ class SecurityServices {
         def securityServicesImpl = ServiceFactory.getSecurityServices(context)
         return securityServicesImpl.getGroup(siteId, groupName)
     }
+
+    static getAllGroups(context, start, end) {
+        def securityServicesImpl = ServiceFactory.getSecurityServices(context)
+        return securityServicesImpl.getAllGroups(start, end)
+    }
 }
