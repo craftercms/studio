@@ -120,4 +120,9 @@ class SpringSecurityServices {
         def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
         return springBackedService.getAllGroups(start, end)
     }
+
+    def getGroupsPerSite(siteId) {
+        def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
+        return springBackedService.getGroupsPerSite(siteId)
+    }
 }

@@ -140,4 +140,12 @@ public interface SecurityProvider {
      * @return
      */
     List<Map<String, Object>> getAllGroups(int start, int end);
+
+    /**
+     * Get all groups for given site
+     *
+     * @param site site id
+     * @return
+     */
+    List<Map<String, Object>> getGroupsPerSite(String site);
 }

@@ -428,6 +428,52 @@ public class DbSecurityProvider implements SecurityProvider {
         return toRet;
     }
 
+    @Override
+    public List<Map<String, Object>> getGroupsPerSite(String site) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("site", site);
+        List<GroupPerSiteResult> resultSet = securityMapper.getGroupsPerSite(params);
+        return parseGroupsPerSiteResultSet(resultSet);
+    }
+
+    private  List<Map<String, Object>> parseGroupsPerSiteResultSet(List<GroupPerSiteResult> resultSet) {
+        List<Map<String, Object>> toRet = new ArrayList<Map<String, Object>>();
+        if (resultSet != null && !resultSet.isEmpty()) {
+            String lastGroup = null;
+            Map<String, Object> group = null;
+            List<Map<String, Object>> users = null;
+            for (GroupPerSiteResult row : resultSet) {
+                String groupName = row.getGroupName();
+                if (!groupName.equals(lastGroup)) {
+                    if (group != null) {
+                        if (users != null) {
+                            group.put("users", users);
+                        }
+                        toRet.add(group);
+                    }
+                    group = new HashMap<String, Object>();
+                    group.put("group_name", groupName);
+                    group.put("group_description", row.getGroupDescription());
+                    users = new ArrayList<Map<String, Object>>();
+                }
+                Map<String, Object> user = new HashMap<String, Object>();
+                user.put("username", row.getUsername());
+                user.put("first_name", row.getFirstName());
+                user.put("last_name", row.getLastName());
+                user.put("email", row.getEmail());
+                users.add(user);
+                lastGroup = groupName;
+            }
+            if (group != null) {
+                if (users != null) {
+                    group.put("users", users);
+                }
+                toRet.add(group);
+            }
+        }
+        return toRet;
+    }
+
     protected StudioConfiguration studioConfiguration;
 
     public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }

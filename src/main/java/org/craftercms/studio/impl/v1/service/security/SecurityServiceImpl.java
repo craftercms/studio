@@ -555,6 +555,11 @@ public class SecurityServiceImpl implements SecurityService {
         return securityProvider.getAllGroups(start, end);
     }
 
+    @Override
+    public List<Map<String, Object>> getGroupsPerSite(String site) {
+        return securityProvider.getGroupsPerSite(site);
+    }
+
     public String getConfigPath() {
         return studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH);
     }

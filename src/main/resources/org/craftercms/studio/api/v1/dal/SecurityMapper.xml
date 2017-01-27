@@ -49,6 +49,15 @@
         <result property="groupDescription" column="group_description"/>
     </resultMap>
 
+    <resultMap id="GroupPerSiteResultMap" type="org.craftercms.studio.api.v1.dal.GroupPerSiteResult">
+        <result property="groupName" column="group_name"/>
+        <result property="groupDescription" column="group_description"/>
+        <result property="username" column="username"/>
+        <result property="firstName" column="first_name"/>
+        <result property="lastName" column="last_name"/>
+        <result property="email" column="email"/>
+    </resultMap>
+
     <select id="getUser" resultMap="UserMap">
         SELECT * FROM cstudio_user WHERE username = #{username}
     </select>
@@ -122,5 +131,19 @@
     <select id="getAllGroups" resultMap="GroupResultMap">
         SELECT cs.SITE_ID as site_id, cs.NAME as site_name, cg.NAME as group_name, cg.DESCRIPTION as group_description
         FROM CSTUDIO_GROUP cg INNER JOIN CSTUDIO_SITE cs on cg.site_id = cs.id
+    </select>
+    
+    <select id="getGroupsPerSite" resultMap="GroupPerSiteResultMap" parameterType="java.util.Map">
+        SELECT
+          cg.name AS group_name,
+          cg.description AS group_description,
+          cu.username AS username,
+          cu.firstname AS first_name,
+          cu.lastname AS last_name,
+          cu.email AS email
+        FROM CSTUDIO_GROUP cg INNER JOIN CSTUDIO_SITE cs ON cg.site_id = cs.id
+          INNER JOIN CSTUDIO_USERGROUP cug ON cg.id = cug.groupid
+          INNER JOIN CSTUDIO_USER cu ON cug.username = cu.username
+        WHERE cs.site_id = #{site}
     </select>
 </mapper>
