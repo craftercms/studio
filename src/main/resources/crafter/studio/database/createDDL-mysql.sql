@@ -130,6 +130,7 @@ CREATE TABLE IF NOT EXISTS `cstudio_site` (
   `description` TEXT NULL,
   `status` VARCHAR(255) NULL,
   `last_commit_id` VARCHAR(50) NULL,
+  `system` INT NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `id_UNIQUE` (`id` ASC),
   UNIQUE INDEX `site_id_UNIQUE` (`site_id` ASC),
@@ -215,8 +216,10 @@ CREATE TABLE CSTUDIO_USERGROUP
   DEFAULT CHARSET =utf8
   ROW_FORMAT=DYNAMIC ;
 
-INSERT INTO CSTUDIO_GROUP (NAME, DESCRIPTION) VALUES ('crafter-admin', 'crafter admin') ;
-INSERT INTO CSTUDIO_GROUP (NAME, DESCRIPTION) VALUES ('crafter-create-sites', 'crafter-create-sites') ;
+INSERT INTO CSTUDIO_SITE (SITE_ID, NAME, DESCRIPTION, SYSTEM) VALUES ('studio_root', 'Studio Root', 'Studio Root for global permissions', 1) ;
+
+INSERT INTO CSTUDIO_GROUP (NAME, DESCRIPTION, SITE_ID) VALUES ('crafter-admin', 'crafter admin', 1) ;
+INSERT INTO CSTUDIO_GROUP (NAME, DESCRIPTION, SITE_ID) VALUES ('crafter-create-sites', 'crafter-create-sites', 1) ;
 
 INSERT INTO CSTUDIO_USERGROUP (USERNAME, GROUPID) VALUES ('admin', 1) ;
-INSERT INTO CSTUDIO_USERGROUP (USERNAME, GROUPID) VALUES ('admin', 2)
+INSERT INTO CSTUDIO_USERGROUP (USERNAME, GROUPID) VALUES ('admin', 2) ;

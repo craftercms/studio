@@ -572,10 +572,10 @@ public class GitContentRepositoryHelper {
      * @return author user as a PersonIdent
      */
     public PersonIdent getAuthorIdent(String author) {
-        Map<String, String> currentUserProfile = securityProvider.getUserProfile(author);
+        Map<String, Object> currentUserProfile = securityProvider.getUserProfile(author);
         PersonIdent currentUserIdent = new PersonIdent
-                (currentUserProfile.get("firstName") + " " + currentUserProfile.get("lastName"),
-                        currentUserProfile.get("email"));
+                (currentUserProfile.get("first_name").toString() + " " + currentUserProfile.get("last_name").toString(),
+                        currentUserProfile.get("email").toString());
 
         return currentUserIdent;
     }

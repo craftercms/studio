@@ -19,6 +19,7 @@
 
 package org.craftercms.studio.impl.v1.dal;
 
+import org.apache.ibatis.jdbc.RuntimeSqlException;
 import org.apache.ibatis.jdbc.ScriptRunner;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
@@ -49,9 +50,14 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
             ScriptRunner sr = new ScriptRunner(conn);
 
             sr.setDelimiter(delimiter);
+            sr.setStopOnError(true);
             InputStream is = getClass().getClassLoader().getResourceAsStream(scriptPath);
             Reader reader = new InputStreamReader(is);
-            sr.runScript(reader);
+            try {
+                sr.runScript(reader);
+            } catch (RuntimeSqlException e) {
+                logger.error("Error while running init DB script", e);
+            }
             try {
                 conn.close();
             } catch (SQLException e) {

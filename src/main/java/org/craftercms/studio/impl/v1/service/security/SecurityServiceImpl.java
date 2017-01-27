@@ -88,7 +88,7 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
-    public Map<String,String> getUserProfile(String user) {
+    public Map<String,Object> getUserProfile(String user) {
         return securityProvider.getUserProfile(user);
     }
 
@@ -528,6 +528,16 @@ public class SecurityServiceImpl implements SecurityService {
     @Override
     public Map<String, Object> getUserStatus(String username) {
         return securityProvider.getUserStatus(username);
+    }
+
+    @Override
+    public List<Map<String, Object>> getAllUsers() {
+        return securityProvider.getAllUsers();
+    }
+
+    @Override
+    public List<Map<String, Object>> getUsersPerSite(String site) {
+        return securityProvider.getUsersPerSite(site);
     }
 
     @Override
