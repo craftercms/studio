@@ -283,6 +283,12 @@ public class DemoSecurityProvider implements SecurityProvider {
         return null;
     }
 
+    @Override
+    public Map<String, Object> getGroup(String site, String group) {
+        // TODO: DB: Implement this ?
+        return null;
+    }
+
     class User {
 
         public String getUsername() { return username; }

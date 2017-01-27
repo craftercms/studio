@@ -195,4 +195,10 @@ public class CachedSecurityProvider implements SecurityProvider {
         // TODO: DB: Implement this ?
         return null;
     }
+
+    @Override
+    public Map<String, Object> getGroup(String site, String group) {
+        // TODO: DB: Implement this ?
+        return null;
+    }
 }

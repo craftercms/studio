@@ -133,4 +133,13 @@ public interface SecurityService {
      * @return
      */
     List<Map<String, Object>> getUsersPerSite(String site);
+
+    /**
+     * Get group for given site with given name
+     *
+     * @param site site id
+     * @param group group name
+     * @return
+     */
+    Map<String, Object> getGroup(String site, String group);
 }

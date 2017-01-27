@@ -105,4 +105,10 @@
         INSERT INTO cstudio_group (name, description, site_id)
         VALUES (#{name}, #{description}, #{siteId})
     </insert>
+
+    <select id="getGroup" parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT cg.NAME as group_name, cg.DESCRIPTION as group_description, cs.SITE_ID as site_id
+        FROM CSTUDIO_GROUP cg INNER JOIN CSTUDIO_SITE cs on cg.site_id = cs.id
+        WHERE cs.SITE_ID = 'studio_root' AND cg.name = 'crafter-admin'
+    </select>
 </mapper>
