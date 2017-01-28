@@ -709,7 +709,6 @@ public class ContentServiceImpl implements ContentService {
         ContentItemTO movedTO = getContentItem(site, movePath, 0);  
         objectStateService.transition(site, movedTO, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.SAVE);
 
-
         // update metadata
         if (!objectMetadataManager.isRenamed(site, fromPath)) {
             // if an item was previously moved, we do not track intermediate moves because it will
@@ -739,6 +738,18 @@ public class ContentServiceImpl implements ContentService {
 
         // write activity stream
         activityService.renameContentId(site, fromPath, movePath);
+
+        Map<String, String> activityInfo = new HashMap<String, String>();
+        if(movePath.endsWith(DmConstants.XML_PATTERN)) {
+            activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentType);
+        }
+
+        activityService.postActivity(
+            site, 
+            user, 
+            movePath, 
+            ActivityService.ActivityType.UPDATED, 
+            activityInfo);
 
         // we added this check because deployer is asking content service for old content
         // which of course will NOT be there, becasue it has been moved in the repo
