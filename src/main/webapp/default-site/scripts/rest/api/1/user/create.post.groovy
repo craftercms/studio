@@ -17,24 +17,31 @@
  *
  */
 
+import groovy.json.JsonSlurper
 import scripts.api.SecurityServices
 
 def result = [:]
+def requestBody = request.reader.text
 
-def username = params.user;
+def slurper = new JsonSlurper()
+def parsedReq = slurper.parseText(requestBody)
+
+def username = parsedReq.username;
+def password = parsedReq.password;
+def firstname = parsedReq.first_name;
+def lastname = parsedReq.last_name;
+def email = parsedReq.email;
 
 def context = SecurityServices.createContext(applicationContext, request)
 try {
-    def userMap = SecurityServices.getUserDetails(context, username);
-    if (userMap != null && !userMap.isEmpty()) {
-        return userMap;
-    } else {
-        response.setStatus(404)
-        result.status = "User not found"
-        return result;
-    }
+    SecurityServices.createUser(context, username, password, firstname, lastname, email);
+    result.status = "OK"
+    def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/user/get?user=" + username
+    response.addHeader("Location", locationHeader)
+    response.setStatus(201)
+    return result
 } catch (Exception e) {
     response.setStatus(500)
     result.status = "Internal server error"
-    return result;
+    return result
 }

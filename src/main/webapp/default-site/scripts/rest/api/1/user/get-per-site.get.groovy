@@ -20,7 +20,22 @@
 import scripts.api.SecurityServices
 
 def result = [:]
-def username = params.username
+
+def site = params.site_id;
 
 def context = SecurityServices.createContext(applicationContext, request)
-result.result = SecurityServices.enableUser(context, username, true);
+try {
+    def users = SecurityServices.getUsersPerSite(context, site);
+    if (users != null && !users.isEmpty()) {
+        result.users = users
+        return result;
+    } else {
+        response.setStatus(404)
+        result.status = "Site not found"
+        return result;
+    }
+} catch (Exception e) {
+    response.setStatus(500)
+    result.status = "Internal server error"
+    return result;
+}

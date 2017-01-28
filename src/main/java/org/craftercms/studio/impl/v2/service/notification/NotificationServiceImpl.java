@@ -109,13 +109,13 @@ public class NotificationServiceImpl implements NotificationService {
                                       final String approver, final Date scheduleDate, final Locale locale) {
         try {
             if (isEnabled()) {
-                final Map<String, String> submitterUser = securityService.getUserProfile(submitter);
+                final Map<String, Object> submitterUser = securityService.getUserProfile(submitter);
                 Map<String, Object> templateModel = new HashMap<>();
                 templateModel.put("files", convertPathsToContent(site, itemsSubmitted));
                 templateModel.put("submitterUser", submitter);
                 templateModel.put("approver", securityService.getUserProfile(approver));
                 templateModel.put("scheduleDate", scheduleDate);
-                notify(site, Arrays.asList(submitterUser.get("email")), NOTIFY_CONTENT_APPROVAL, locale, templateModel);
+                notify(site, Arrays.asList(submitterUser.get("email").toString()), NOTIFY_CONTENT_APPROVAL, locale, templateModel);
             }
         }
         catch(Throwable ex) {
@@ -179,7 +179,7 @@ public class NotificationServiceImpl implements NotificationService {
         try {
             if (isEnabled()) {
                 final NotificationConfigTO notificationConfig = getNotificationConfig(site, locale);
-                final Map<String, String> submitterUser = securityService.getUserProfile(submitter);
+                final Map<String, Object> submitterUser = securityService.getUserProfile(submitter);
                 Map<String, Object> templateModel = new HashMap<>();
                 templateModel.put("files", convertPathsToContent(site, itemsSubmitted));
                 templateModel.put("submitter", submitterUser);
@@ -246,13 +246,13 @@ public class NotificationServiceImpl implements NotificationService {
                                                locale) {
         try {
             if (isEnabled()) {
-                final Map<String, String> submitterUser = securityService.getUserProfile(submittedBy);
+                final Map<String, Object> submitterUser = securityService.getUserProfile(submittedBy);
                 Map<String, Object> templateModel = new HashMap<>();
                 templateModel.put("files", convertPathsToContent(site, rejectedItems));
                 templateModel.put("submitter", submitterUser);
                 templateModel.put("rejectionReason", rejectionReason);
                 templateModel.put("userThatRejects", securityService.getUserProfile(userThatRejects));
-                notify(site, Arrays.asList(submitterUser.get("email")), NOTIFY_CONTENT_REJECTED, locale, templateModel);
+                notify(site, Arrays.asList(submitterUser.get("email").toString()), NOTIFY_CONTENT_REJECTED, locale, templateModel);
             }
         } catch (Throwable ex) {
             logger.error("Unable to notify content rejection", ex);

@@ -18,6 +18,7 @@
 
 package org.craftercms.studio.api.v1.service.security;
 
+import java.util.List;
 import java.util.Set;
 import java.util.Map;
 
@@ -30,7 +31,7 @@ public interface SecurityProvider {
 
     String getCurrentUser();
 
-    Map<String, String> getUserProfile(String user);
+    Map<String, Object> getUserProfile(String user);
 
     String authenticate(String username, String password);
 
@@ -107,4 +108,19 @@ public interface SecurityProvider {
      * @return
      */
     boolean createGroup(String groupName, String description, long siteId);
+
+    /**
+     * Get all users
+     *
+     * @return List of all users
+     */
+    List<Map<String, Object>> getAllUsers();
+
+    /**
+     * Get all users for given site
+     *
+     * @param site
+     * @return
+     */
+    List<Map<String, Object>> getUsersPerSite(String site);
 }

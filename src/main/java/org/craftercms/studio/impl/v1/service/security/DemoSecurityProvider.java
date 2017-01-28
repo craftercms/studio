@@ -142,9 +142,9 @@ public class DemoSecurityProvider implements SecurityProvider {
         return username;
     }
 
-    public Map<String, String> getUserProfile(String user) {
+    public Map<String, Object> getUserProfile(String user) {
         checkIfUpdated();
-        Map<String, String> toRet = new HashMap<String, String>();;
+        Map<String, Object> toRet = new HashMap<String, Object>();;
         User u = userMap.get(user);
         if (u != null) {
             toRet.put("username", u.getUsername());
@@ -269,6 +269,18 @@ public class DemoSecurityProvider implements SecurityProvider {
     public boolean createGroup(String groupName, String description, long siteId) {
         // TODO: DB: Implement this ?
         return false;
+    }
+
+    @Override
+    public List<Map<String, Object>> getAllUsers() {
+        // TODO: DB: Implement this ?
+        return null;
+    }
+
+    @Override
+    public List<Map<String, Object>> getUsersPerSite(String site) {
+        // TODO: DB: Implement this ?
+        return null;
     }
 
     class User {

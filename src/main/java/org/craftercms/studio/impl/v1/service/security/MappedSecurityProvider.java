@@ -83,7 +83,7 @@ public class MappedSecurityProvider implements SecurityProvider {
         return provider.getCurrentUser(); 
     };
 
-    public Map<String, String> getUserProfile(String user) {
+    public Map<String, Object> getUserProfile(String user) {
     	SecurityProvider provider = lookupProvider(getProviderType());
         return provider.getUserProfile(user); 
     }
@@ -174,5 +174,17 @@ public class MappedSecurityProvider implements SecurityProvider {
     public boolean createGroup(String groupName, String description, long siteId) {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.createGroup(groupName, description, siteId);
+    }
+
+    @Override
+    public List<Map<String, Object>> getAllUsers() {
+        SecurityProvider provider = lookupProvider(getProviderType());
+        return provider.getAllUsers();
+    }
+
+    @Override
+    public List<Map<String, Object>> getUsersPerSite(String site) {
+        SecurityProvider provider = lookupProvider(getProviderType());
+        return provider.getUsersPerSite(site);
     }
 }
