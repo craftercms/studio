@@ -49,7 +49,6 @@ import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.*;
-import org.craftercms.studio.api.v1.util.DebugUtils;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentItemOrderComparator;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
@@ -514,20 +513,18 @@ public class ContentServiceImpl implements ContentService {
                     ContentItemTO fromItem = getContentItem(site, fromPath, 0);
                     String contentType = fromItem.getContentType();
 
-                    logger.debug("COPY FROM ITEM --> " + fromPath + " | " + fromItem + " | " + contentType);
-
                     InputStream fromContent = getContent(site, fromPath);
                     Document fromDocument = ContentUtils.convertStreamToXml(fromContent);
                     Map<String, String> fromPageIds = getContentIds(fromDocument); 
 
-                    logger.debug("copying file for site {0} from {1} to {2}, new name is {3}", site, fromPath, toPath, copyPath);
+                    logger.debug("Copying file for site {0} from {1} to {2}, new name is {3}", site, fromPath, toPath, copyPath);
 
                     // come up with a new object ID and group ID for the object
                     Map<String,String> copyObjectIds = contentItemIdGenerator.getIds(); 
 
                     Map<String, String> copyDependencies = dependencyService.getCopyDependencies(site, fromPath, fromPath);
                     copyDependencies = getItemSpecificDependencies(fromDocument, copyDependencies);
-                    logger.debug("--> GETTING DEPS: {0}, {1}", fromPath, copyDependencies);
+                    logger.debug("Copy dependencies: {0}, {1}", fromPath, copyDependencies);
 
                     // Duplicate the children 
                     for(String dependecyKey : copyDependencies.keySet()) {
@@ -546,8 +543,7 @@ public class ContentServiceImpl implements ContentService {
                          copyDepPath = copyDepPath.replaceAll(
                              fromPageIds.get(DmConstants.KEY_PAGE_GROUP_ID), 
                              copyObjectIds.get(DmConstants.KEY_PAGE_GROUP_ID));
-                        logger.debug("TRANSLATED DEP PATH {0} to {1}", dependecyPath, copyDepPath);
-
+                        
                         copySiteContent(site, dependecyPath, copyDepPath, processedPaths);
                     }
 
@@ -736,6 +732,18 @@ public class ContentServiceImpl implements ContentService {
 
         // write activity stream
         activityService.renameContentId(site, fromPath, movePath);
+
+        Map<String, String> activityInfo = new HashMap<String, String>();
+        if(movePath.endsWith(DmConstants.XML_PATTERN)) {
+            activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentType);
+        }
+
+        activityService.postActivity(
+            site, 
+            user, 
+            movePath, 
+            ActivityService.ActivityType.UPDATED, 
+            activityInfo);
 
         // we added this check because deployer is asking content service for old content
         // which of course will NOT be there, becasue it has been moved in the repo
@@ -1394,7 +1402,6 @@ public class ContentServiceImpl implements ContentService {
         ContentItemTO item = null;
         logger.debug("Getting content item for site '{}' path '{}' depth '{}'", site, path, depth);
 
-        DebugUtils.addDebugStack(logger);
         long startTime = System.currentTimeMillis();
 
         try {
@@ -1577,7 +1584,6 @@ public class ContentServiceImpl implements ContentService {
     @Override
     public ContentItemTO getContentItemTree(String site, String path, int depth) {
         logger.debug("Getting content item  tree for '{}':'{}' depth '{}'", site, path, depth);
-        DebugUtils.addDebugStack(logger);
 
         long startTime = System.currentTimeMillis();
         boolean isPages = (path.contains("/site/website"));
