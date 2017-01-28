@@ -141,7 +141,7 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
             contentTypeConfig.setType(getContentTypeTypeByName(name));
             return contentTypeConfig;
         } else {
-            logger.error("No content type configuration document found at " + configFileFullPath);
+            logger.debug("No content type configuration document found at " + configFileFullPath);
             return null;
         }
     }
