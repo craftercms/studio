@@ -53,7 +53,6 @@ import org.craftercms.studio.api.v1.service.objectstate.TransitionEvent;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.to.*;
-import org.craftercms.studio.api.v1.util.DebugUtils;
 import org.craftercms.studio.impl.v1.deployment.PreviewSync;
 import org.craftercms.studio.impl.v1.service.StudioCacheContext;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
@@ -497,9 +496,6 @@ public class ContentServiceImpl implements ContentService {
                 try {
                     ContentItemTO fromItem = getContentItem(site, fromPath, 0);
                     String contentType = fromItem.getContentType();
-
-                    logger.debug("COPY FROM ITEM --> " + fromPath + " | " + fromItem + " | " + contentType);
-
                     InputStream fromContent = getContent(site, fromPath);
                     Document fromDocument = ContentUtils.convertStreamToXml(fromContent);
                     Map<String, String> fromPageIds = getContentIds(fromDocument); 
@@ -511,7 +507,7 @@ public class ContentServiceImpl implements ContentService {
 
                     Map<String, String> copyDependencies = dependencyService.getCopyDependencies(site, fromPath, fromPath);
                     copyDependencies = getItemSpecificDependencies(fromDocument, copyDependencies);
-                    logger.debug("--> GETTING DEPS: {0}, {1}", fromPath, copyDependencies);
+                    logger.debug("Calculated copy dependencies: {0}, {1}", fromPath, copyDependencies);
 
                     // Duplicate the children 
                     for(String dependecyKey : copyDependencies.keySet()) {
@@ -652,7 +648,7 @@ public class ContentServiceImpl implements ContentService {
                 targetPath = movePath;  
             }
             
-            logger.debug("move file for site {0} from {1} to {2}, sourcePath {3} to target path {4}", site, fromPath, toPath, sourcePath, targetPath);
+            logger.debug("Move file for site {0} from {1} to {2}, sourcePath {3} to target path {4}", site, fromPath, toPath, sourcePath, targetPath);
 
             // NOTE: IN WRITE SCENARIOS the repository OP IS PART of this PIPELINE, for some reason, historically with MOVE it is not
             opSuccess = _contentRepository.moveContent(
@@ -666,7 +662,7 @@ public class ContentServiceImpl implements ContentService {
                 updateChildrenForMove(site, fromPath, movePath);
             }
             else {
-                logger.error("repository move failed site {0} from {1} to {2}", site, sourcePath, targetPath);
+                logger.error("Repository move failed site {0} from {1} to {2}", site, sourcePath, targetPath);
                 movePath = fromPath;
             }
         }
@@ -1327,7 +1323,6 @@ public class ContentServiceImpl implements ContentService {
         String contentPath = path;
         logger.debug("Getting content item for {0}", contentPath);
 
-        DebugUtils.addDebugStack(logger);
         long startTime = System.currentTimeMillis();
 
         try {
@@ -1538,7 +1533,7 @@ public class ContentServiceImpl implements ContentService {
     @Override
     public ContentItemTO getContentItemTree(String site, String path, int depth) {
         logger.debug("Getting content item  tree for {0}:{1} depth {2}", site, path, depth);
-        DebugUtils.addDebugStack(logger);
+
         long startTime = System.currentTimeMillis();
         boolean isPages = (path.contains("/site/website"));
         ContentItemTO root = null;
