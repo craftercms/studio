@@ -740,8 +740,10 @@ public class ContentServiceImpl implements ContentService {
         activityService.renameContentId(site, fromPath, movePath);
 
         Map<String, String> activityInfo = new HashMap<String, String>();
+        String contentClass = getContentTypeClass(site, movePath);
+        
         if(movePath.endsWith(DmConstants.XML_PATTERN)) {
-            activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentType);
+            activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
         }
 
         activityService.postActivity(
