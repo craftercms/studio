@@ -76,4 +76,46 @@ class SecurityServices {
         def securityServicesImpl = ServiceFactory.getSecurityServices(context)
         return securityServicesImpl.logout();
     }
+
+    static createUser(context, username, password, firstname, lastname, email) {
+        def securityServicesImpl = ServiceFactory.getSecurityServices(context)
+        return securityServicesImpl.createUser(username, password, firstname, lastname, email)
+    }
+
+    static deleteUser(context, username) {
+        def securityServicesImpl = ServiceFactory.getSecurityServices(context)
+        return securityServicesImpl.deleteUser(username)
+    }
+
+    static updateUser(context, username, firstname, lastname, email) {
+        def securityServicesImpl = ServiceFactory.getSecurityServices(context)
+        return securityServicesImpl.updateUser(username, firstname, lastname, email)
+    }
+
+    static getUserDetails(context, username) {
+        def securityServicesImpl = ServiceFactory.getSecurityServices(context)
+        return securityServicesImpl.getUserDetails(username)
+    }
+
+    static enableUser(context, username, enabled) {
+        def securityServicesImpl = ServiceFactory.getSecurityServices(context)
+        return securityServicesImpl.enableUser(username, enabled)
+    }
+
+    static getUserStatus(context, username) {
+        def securityServicesImpl = ServiceFactory.getSecurityServices(context)
+        return securityServicesImpl.getUserStatus(username)
+    }
+
+
+
+    static getUsersPerSite(context, site) {
+        def securityServicesImpl = ServiceFactory.getSecurityServices(context)
+        return securityServicesImpl.getUsersPerSite(site)
+    }
+
+    static createGroup(context, groupName, description, siteId) {
+        def securityServicesImpl = ServiceFactory.getSecurityServices(context)
+        return securityServicesImpl.createGroup(groupName, description, siteId)
+    }
 }

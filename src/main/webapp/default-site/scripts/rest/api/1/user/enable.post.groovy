@@ -1,6 +1,6 @@
 /*
  * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2016 Crafter Software Corporation.
+ * Copyright (C) 2007-2017 Crafter Software Corporation.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,30 +17,19 @@
  *
  */
 
-package org.craftercms.studio.api.v1.dal;
+import scripts.api.SecurityServices
 
-import java.util.List;
-import java.util.Map;
+def result = [:]
+def username = params.username
 
-public interface SecurityMapper {
-
-    User getUser(String username);
-
-    List<Group> getUserGroups(String username);
-
-    void createUser(Map params);
-
-    void deleteUser(Map params);
-
-    void updateUser(Map params);
-
-    void enableUser(Map params);
-
-    void createGroup(Map params);
-
-    List<UserProfileResult> getUserDetails(String username);
-
-    List<UserProfileResult> getAllUsers();
-
-    List<UserProfileResult> getUsersPerSite(String site);
+def context = SecurityServices.createContext(applicationContext, request)
+try {
+    result.result = SecurityServices.enableUser(context, username, true);
+    def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/user/get?username=" + username
+    response.addHeader("Location", locationHeader)
+    return result
+} catch (Exception e) {
+    response.setStatus(500)
+    result.status = "Internal server error"
+    return result;
 }

@@ -43,7 +43,7 @@ public interface SecurityService {
 
     Set<String> getUserRoles(String site, String user);
 
-    Map<String, String> getUserProfile(String user);
+    Map<String, Object> getUserProfile(String user);
     
     Set<String> getUserPermissions(String site, String path, String user, List<String> groups);
 
@@ -60,4 +60,77 @@ public interface SecurityService {
     void reloadGlobalConfiguration();
 
     boolean logout();
+
+    /**
+     * Create new user with given parameters
+     *
+     * @param username username
+     * @param password password
+     * @param firstName User's first name
+     * @param lastName User's last name
+     * @param email User's email address
+     * @return true if success, otherwise false
+     */
+    boolean createUser(String username, String password, String firstName, String lastName, String email);
+
+    /**
+     * Delete user with given username
+     *
+     * @param username
+     * @return
+     */
+    boolean deleteUser(String username);
+
+    /**
+     * Update user details
+     *
+     * @param username
+     * @param firstName
+     * @param lastName
+     * @param email
+     * @return
+     */
+    boolean updateUser(String username, String firstName, String lastName, String email);
+
+    /**
+     * Enable/disable user with given username
+     *
+     * @param username username
+     * @param enabled true: enable user; false: disable user
+     * @return
+     */
+    boolean enableUser(String username, boolean enabled);
+
+    /**
+     * Create group with given parameters
+     *
+     * @param groupName
+     * @param description
+     * @param siteId
+     * @return
+     */
+    boolean createGroup(String groupName, String description, long siteId);
+
+    /**
+     * Get status for given user
+     *
+     * @param username username
+     * @return
+     */
+    Map<String, Object> getUserStatus(String username);
+
+    /**
+     * Get all users
+     *
+     * @return list of all users
+     */
+    List<Map<String, Object>> getAllUsers();
+
+    /**
+     * Get all users for given site
+     *
+     * @param site
+     * @return
+     */
+    List<Map<String, Object>> getUsersPerSite(String site);
 }

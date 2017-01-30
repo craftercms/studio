@@ -23,10 +23,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CipherUtils;
 import org.craftercms.commons.crypto.CryptoUtils;
 import org.craftercms.commons.http.RequestContext;
-import org.craftercms.studio.api.v1.dal.Group;
-import org.craftercms.studio.api.v1.dal.SecurityMapper;
-import org.craftercms.studio.api.v1.dal.User;
-import org.craftercms.studio.api.v1.dal.UserSession;
+import org.craftercms.studio.api.v1.dal.*;
 import org.craftercms.studio.api.v1.ebus.RepositoryEventContext;
 import org.craftercms.studio.api.v1.job.CronJobContext;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
@@ -64,13 +61,126 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public Map<String, String> getUserProfile(String user) {
+    public Map<String, Object> getUserProfile(String user) {
+        List<UserProfileResult> resultSet = securityMapper.getUserDetails(user);
+        Map<String, Object> userProfile = new HashMap<String, Object>();
+        List<Map<String, Object>> parsedRS = parseUserResultSet(resultSet);
+        if (parsedRS != null && !parsedRS.isEmpty()) {
+            userProfile = parsedRS.get(0);
+        }
+        return userProfile;
+    }
+
+    @Override
+    public List<Map<String, Object>> getAllUsers() {
+        List<UserProfileResult> resultSet = securityMapper.getAllUsers();
+        return parseUserResultSet(resultSet);
+    }
+
+    private List<Map<String, Object>> parseUserResultSet(List<UserProfileResult> usersResultSet) {
+        List<Map<String, Object>> toRet = new ArrayList<Map<String, Object>>();
+        Map<String, Object> userProfile = new HashMap<String, Object>();
+        if (usersResultSet != null && !usersResultSet.isEmpty()) {
+            String lastSite = null;
+            String lastUser = null;
+            List<Object> sites = new ArrayList<Object>();
+            Map<String, Object> site = null;
+            List<Map<String, Object>> groups = null;
+            for (UserProfileResult row : usersResultSet) {
+                String username = row.getUsername();
+                if (!username.equals(lastUser)) {
+                    if (userProfile != null && !userProfile.isEmpty()) {
+                        if (site != null) {
+                            if (groups != null) {
+                                site.put("groups", groups);
+                            }
+                            sites.add(site);
+                        }
+                        userProfile.put("sites", sites);
+                        toRet.add(userProfile);
+                    }
+                    userProfile = new HashMap<String, Object>();
+                    userProfile.put("username", username);
+                    userProfile.put("first_name", row.getFirstName());
+                    userProfile.put("last_name", row.getLastName());
+                    userProfile.put("email", row.getEmail());
+                }
+                String siteId = row.getSiteId();
+                if (!siteId.equals(lastSite)) {
+                    if (site != null) {
+                        if (groups != null) {
+                            site.put("groups", groups);
+                        }
+                        sites.add(site);
+                    }
+                    site = new HashMap<String, Object>();
+                    site.put("site_id", siteId);
+                    site.put("site_name", row.getSiteName());
+                    groups = new ArrayList<Map<String, Object>>();
+                }
+                Map<String, Object> group = new HashMap<String, Object>();
+                group.put("group_name", row.getGroupName());
+                groups.add(group);
+                lastSite = siteId;
+                lastUser = username;
+            }
+            if (site != null) {
+                if (groups != null) {
+                    site.put("groups", groups);
+                }
+                sites.add(site);
+            }
+            userProfile.put("sites", sites);
+            toRet.add(userProfile);
+        }
+        return toRet;
+    }
+
+    @Override
+    public List<Map<String, Object>> getUsersPerSite(String site) {
+        List<UserProfileResult> resultSet = securityMapper.getUsersPerSite(site);
+        List<Map<String, Object>> toRet = new ArrayList<Map<String, Object>>();
+        Map<String, Object> userProfile = new HashMap<String, Object>();
+        if (resultSet != null && !resultSet.isEmpty()) {
+            String lastUser = null;
+            List<Object> sites = new ArrayList<Object>();
+            List<Map<String, Object>> groups = null;
+            for (UserProfileResult row : resultSet) {
+                String username = row.getUsername();
+                if (!username.equals(lastUser)) {
+                    if (userProfile != null && !userProfile.isEmpty()) {
+                        if (groups != null) {
+                            userProfile.put("groups", groups);
+                        }
+                        toRet.add(userProfile);
+                    }
+                    userProfile = new HashMap<String, Object>();
+                    userProfile.put("username", username);
+                    userProfile.put("first_name", row.getFirstName());
+                    userProfile.put("last_name", row.getLastName());
+                    userProfile.put("email", row.getEmail());
+                    groups = new ArrayList<Map<String, Object>>();
+                }
+                Map<String, Object> group = new HashMap<String, Object>();
+                group.put("group_name", row.getGroupName());
+                groups.add(group);
+                lastUser = username;
+            }
+            if (groups != null) {
+                userProfile.put("groups", groups);
+            }
+            toRet.add(userProfile);
+        }
+        return toRet;
+    }
+
+    public Map<String, String> getUserProfileOld(String user) {
         User u = securityMapper.getUser(user);
         Map<String, String> userProfile = new HashMap<String, String>();
         if (u != null) {
-            userProfile.put("userName", u.getUsername());
-            userProfile.put("firstName", u.getFirstname());
-            userProfile.put("lastName", u.getLastname());
+            userProfile.put("username", u.getUsername());
+            userProfile.put("first_name", u.getFirstname());
+            userProfile.put("last_name", u.getLastname());
             userProfile.put("email", u.getEmail());
         }
         return userProfile;
@@ -201,6 +311,69 @@ public class DbSecurityProvider implements SecurityProvider {
 
     public String getPasswordHash(String password) {
         return CipherUtils.hashPassword(password);
+    }
+
+    @Override
+    public boolean createUser(String username, String password, String firstName, String lastName, String email) {
+        String hashedPassword = CipherUtils.hashPassword(password);
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("username", username);
+        params.put("password", hashedPassword);
+        params.put("firstname", firstName);
+        params.put("lastname", lastName);
+        params.put("email", email);
+        securityMapper.createUser(params);
+        return true;
+    }
+
+    @Override
+    public boolean deleteUser(String username) {
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("username", username);
+        securityMapper.deleteUser(params);
+        return true;
+    }
+
+    @Override
+    public boolean updateUser(String username, String firstName, String lastName, String email) {
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("username", username);
+        params.put("firstname", firstName);
+        params.put("lastname", lastName);
+        params.put("email", email);
+        securityMapper.updateUser(params);
+        return true;
+    }
+
+    @Override
+    public boolean enableUser(String username, boolean enabled) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("username", username);
+        params.put("enabled", enabled ? 1 : 0);
+        securityMapper.enableUser(params);
+        return true;
+    }
+
+    @Override
+    public Map<String, Object> getUserStatus(String user) {
+        User u = securityMapper.getUser(user);
+        Map<String, Object> userStatus = new HashMap<String, Object>();
+        if (u != null) {
+            userStatus.put("username", u.getUsername());
+            userStatus.put("enabled", u.isEnabled());
+
+        }
+        return userStatus;
+    }
+
+    @Override
+    public boolean createGroup(String groupName, String description, long siteId) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("name", groupName);
+        params.put("description", description);
+        params.put("siteId", siteId);
+        securityMapper.createGroup(params);
+        return true;
     }
 
     protected StudioConfiguration studioConfiguration;

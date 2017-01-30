@@ -130,6 +130,7 @@ CREATE TABLE IF NOT EXISTS `cstudio_site` (
   `description` TEXT NULL,
   `status` VARCHAR(255) NULL,
   `last_commit_id` VARCHAR(50) NULL,
+  `system` INT NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `id_UNIQUE` (`id` ASC),
   UNIQUE INDEX `site_id_UNIQUE` (`site_id` ASC),
@@ -179,21 +180,24 @@ CREATE TABLE IF NOT EXISTS `cstudio_user`
   `firstname` VARCHAR(255) NOT NULL,
   `lastname` VARCHAR(255) NOT NULL,
   `email` VARCHAR(255) NOT NULL,
+  `enabled` INT NOT NULL,
   PRIMARY KEY (`username`)
 )
   ENGINE =InnoDB
   DEFAULT CHARSET =utf8
   ROW_FORMAT=DYNAMIC ;
 
-INSERT INTO CSTUDIO_USER (USERNAME, PASSWORD, FIRSTNAME, LASTNAME, EMAIL)
-VALUES ('admin', 'vTwNOJ8GJdyrP7rrvQnpwsd2hCV1xRrJdTX2sb51i+w=|R68ms0Od3AngQMdEeKY6lA==', 'admin', 'admin', 'evaladmin@example.com') ;
+INSERT INTO CSTUDIO_USER (username, password, firstname, lastname, email, enabled)
+VALUES ('admin', 'vTwNOJ8GJdyrP7rrvQnpwsd2hCV1xRrJdTX2sb51i+w=|R68ms0Od3AngQMdEeKY6lA==', 'admin', 'admin', 'evaladmin@example.com', 1) ;
 
 CREATE TABLE CSTUDIO_GROUP
 (
   `id` BIGINT(20) NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(255) NOT NULL,
   `description` VARCHAR(3000),
-  PRIMARY KEY (`id`)
+  `site_id` BIGINT(20),
+  PRIMARY KEY (`id`),
+  FOREIGN KEY GROUP_SITE_FK(site_id) REFERENCES CSTUDIO_SITE(id)
 )
   ENGINE =InnoDB
   DEFAULT CHARSET =utf8
@@ -212,8 +216,10 @@ CREATE TABLE CSTUDIO_USERGROUP
   DEFAULT CHARSET =utf8
   ROW_FORMAT=DYNAMIC ;
 
-INSERT INTO CSTUDIO_GROUP (NAME, DESCRIPTION) VALUES ('crafter-admin', 'crafter admin') ;
-INSERT INTO CSTUDIO_GROUP (NAME, DESCRIPTION) VALUES ('crafter-create-sites', 'crafter-create-sites') ;
+INSERT INTO CSTUDIO_SITE (SITE_ID, NAME, DESCRIPTION, SYSTEM) VALUES ('studio_root', 'Studio Root', 'Studio Root for global permissions', 1) ;
+
+INSERT INTO CSTUDIO_GROUP (NAME, DESCRIPTION, SITE_ID) VALUES ('crafter-admin', 'crafter admin', 1) ;
+INSERT INTO CSTUDIO_GROUP (NAME, DESCRIPTION, SITE_ID) VALUES ('crafter-create-sites', 'crafter-create-sites', 1) ;
 
 INSERT INTO CSTUDIO_USERGROUP (USERNAME, GROUPID) VALUES ('admin', 1) ;
-INSERT INTO CSTUDIO_USERGROUP (USERNAME, GROUPID) VALUES ('admin', 2)
+INSERT INTO CSTUDIO_USERGROUP (USERNAME, GROUPID) VALUES ('admin', 2) ;

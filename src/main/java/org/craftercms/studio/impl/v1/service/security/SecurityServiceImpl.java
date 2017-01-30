@@ -88,7 +88,7 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
-    public Map<String,String> getUserProfile(String user) {
+    public Map<String,Object> getUserProfile(String user) {
         return securityProvider.getUserProfile(user);
     }
 
@@ -503,6 +503,46 @@ public class SecurityServiceImpl implements SecurityService {
             httpSession.removeAttribute(STUDIO_SESSION_TOKEN_ATRIBUTE);
         }
         return toRet;
+    }
+
+    @Override
+    public boolean createUser(String username, String password, String firstName, String lastName, String email) {
+        return securityProvider.createUser(username, password, firstName, lastName, email);
+    }
+
+    @Override
+    public boolean deleteUser(String username) {
+        return securityProvider.deleteUser(username);
+    }
+
+    @Override
+    public boolean updateUser(String username, String firstName, String lastName, String email) {
+        return securityProvider.updateUser(username, firstName, lastName, email);
+    }
+
+    @Override
+    public boolean enableUser(String username, boolean enabled) {
+        return securityProvider.enableUser(username, enabled);
+    }
+
+    @Override
+    public Map<String, Object> getUserStatus(String username) {
+        return securityProvider.getUserStatus(username);
+    }
+
+    @Override
+    public List<Map<String, Object>> getAllUsers() {
+        return securityProvider.getAllUsers();
+    }
+
+    @Override
+    public List<Map<String, Object>> getUsersPerSite(String site) {
+        return securityProvider.getUsersPerSite(site);
+    }
+
+    @Override
+    public boolean createGroup(String groupName, String description, long siteId) {
+        return securityProvider.createGroup(groupName, description, siteId);
     }
 
     public String getConfigPath() {

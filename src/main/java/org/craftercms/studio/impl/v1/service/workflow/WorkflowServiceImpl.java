@@ -826,7 +826,7 @@ public class WorkflowServiceImpl implements WorkflowService {
             }
 
             String responseMessageKey = null;
-            SimpleDateFormat format = new SimpleDateFormat(StudioConstants.DATE_PATTERN_WORKFLOW);
+            SimpleDateFormat format = new SimpleDateFormat(StudioConstants.DATE_PATTERN_WORKFLOW_WITH_TZ);
             List<DmDependencyTO> submittedItems = new ArrayList<>();
             for (int index = 0; index < length; index++) {
                 String stringItem = items.optString(index);
@@ -995,7 +995,7 @@ public class WorkflowServiceImpl implements WorkflowService {
 
             List<String> submittedPaths = new ArrayList<String>();
             String responseMessageKey = null;
-            SimpleDateFormat format = new SimpleDateFormat(StudioConstants.DATE_PATTERN_WORKFLOW);
+            SimpleDateFormat format = new SimpleDateFormat(StudioConstants.DATE_PATTERN_WORKFLOW_WITH_TZ);
             List<DmDependencyTO> submittedItems = new ArrayList<>();
             for (int index = 0; index < length; index++) {
                 String stringItem = items.optString(index);
@@ -1169,7 +1169,7 @@ public class WorkflowServiceImpl implements WorkflowService {
 
             List<String> submittedPaths = new ArrayList<String>();
             String responseMessageKey = null;
-            SimpleDateFormat format = new SimpleDateFormat(StudioConstants.DATE_PATTERN_WORKFLOW);
+            SimpleDateFormat format = new SimpleDateFormat(StudioConstants.DATE_PATTERN_WORKFLOW_WITH_TZ);
             List<DmDependencyTO> submittedItems = new ArrayList<>();
             for (int index = 0; index < length; index++) {
                 String stringItem = items.optString(index);
@@ -2455,7 +2455,7 @@ public class WorkflowServiceImpl implements WorkflowService {
             }
             int length = items.size();
             if (length > 0) {
-                SimpleDateFormat format = new SimpleDateFormat(StudioConstants.DATE_PATTERN_WORKFLOW);
+                SimpleDateFormat format = new SimpleDateFormat(StudioConstants.DATE_PATTERN_WORKFLOW_WITH_TZ);
                 List<DmDependencyTO> submittedItems = new ArrayList<DmDependencyTO>();
                 for (int index = 0; index < length; index++) {
                     String stringItem = items.optString(index);

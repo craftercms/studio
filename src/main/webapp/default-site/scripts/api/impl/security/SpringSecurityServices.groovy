@@ -65,4 +65,49 @@ class SpringSecurityServices {
         def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
         return springBackedService.logout()
     }
+
+    def createUser(username, password, firstName, lastName, email) {
+        def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
+        return springBackedService.createUser(username, password, firstName, lastName, email)
+    }
+
+    def deleteUser(username) {
+        def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
+        return springBackedService.deleteUser(username)
+    }
+
+    def updateUser(username,  firstName, lastName, email) {
+        def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
+        return springBackedService.updateUser(username, firstName, lastName, email)
+    }
+
+    def getUserDetails(username) {
+        def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
+        return springBackedService.getUserProfile(username)
+    }
+
+    def enableUser(username, enabled) {
+        def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
+        return springBackedService.enableUser(username, enabled)
+    }
+
+    def getUserStatus(username) {
+        def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
+        return springBackedService.getUserStatus(username)
+    }
+
+    def getAllUsers() {
+        def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
+        return springBackedService.getAllUsers()
+    }
+
+    def getUsersPerSite(site) {
+        def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
+        return springBackedService.getUsersPerSite(site)
+    }
+
+    def createGroup(groupName, description, siteId) {
+        def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
+        return springBackedService.createGroup(groupName, description, siteId)
+    }
 }

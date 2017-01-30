@@ -67,7 +67,7 @@ public class CachedSecurityProvider implements SecurityProvider {
         return provider.getCurrentUser(); 
     };
 
-    public Map<String, String> getUserProfile(String user) {
+    public Map<String, Object> getUserProfile(String user) {
         return provider.getUserProfile(user); 
     }
 
@@ -146,5 +146,53 @@ public class CachedSecurityProvider implements SecurityProvider {
     @Override
     public void addConfigWritePermission(String path, String group) {
         provider.addConfigWritePermission(path, group);
+    }
+
+    @Override
+    public boolean createUser(String username, String password, String firstName, String lastName, String email) {
+        // TODO: DB: Implement this ?
+        return false;
+    }
+
+    @Override
+    public boolean deleteUser(String username) {
+        // TODO: DB: Implement this ?
+        return false;
+    }
+
+    @Override
+    public boolean updateUser(String username, String firstName, String lastName, String email) {
+        // TODO: DB: Implement this ?
+        return false;
+    }
+
+    @Override
+    public boolean enableUser(String username, boolean enabled) {
+        // TODO: DB: Implement this ?
+        return false;
+    }
+
+    @Override
+    public Map<String, Object> getUserStatus(String username) {
+        // TODO: DB: Implement this ?
+        return null;
+    }
+
+    @Override
+    public boolean createGroup(String groupName, String description, long siteId) {
+        // TODO: DB: Implement this ?
+        return false;
+    }
+
+    @Override
+    public List<Map<String, Object>> getAllUsers() {
+        // TODO: DB: Implement this ?
+        return null;
+    }
+
+    @Override
+    public List<Map<String, Object>> getUsersPerSite(String site) {
+        // TODO: DB: Implement this ?
+        return null;
     }
 }

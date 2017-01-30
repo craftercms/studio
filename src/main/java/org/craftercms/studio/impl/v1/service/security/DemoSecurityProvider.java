@@ -142,9 +142,9 @@ public class DemoSecurityProvider implements SecurityProvider {
         return username;
     }
 
-    public Map<String, String> getUserProfile(String user) {
+    public Map<String, Object> getUserProfile(String user) {
         checkIfUpdated();
-        Map<String, String> toRet = new HashMap<String, String>();;
+        Map<String, Object> toRet = new HashMap<String, Object>();;
         User u = userMap.get(user);
         if (u != null) {
             toRet.put("username", u.getUsername());
@@ -233,6 +233,54 @@ public class DemoSecurityProvider implements SecurityProvider {
     @Override
     public void addConfigWritePermission(String path, String group) {
         // do nothing
+    }
+
+    @Override
+    public boolean createUser(String username, String password, String firstName, String lastName, String email) {
+        // TODO: DB: Implement this ?
+        return false;
+    }
+
+    @Override
+    public boolean deleteUser(String username) {
+        // TODO: DB: Implement this ?
+        return false;
+    }
+
+    @Override
+    public boolean updateUser(String username, String firstName, String lastName, String email) {
+        // TODO: DB: Implement this ?
+        return false;
+    }
+
+    @Override
+    public boolean enableUser(String username, boolean enabled) {
+        // TODO: DB: Implement this ?
+        return false;
+    }
+
+    @Override
+    public Map<String, Object> getUserStatus(String username) {
+        // TODO: DB: Implement this ?
+        return null;
+    }
+
+    @Override
+    public boolean createGroup(String groupName, String description, long siteId) {
+        // TODO: DB: Implement this ?
+        return false;
+    }
+
+    @Override
+    public List<Map<String, Object>> getAllUsers() {
+        // TODO: DB: Implement this ?
+        return null;
+    }
+
+    @Override
+    public List<Map<String, Object>> getUsersPerSite(String site) {
+        // TODO: DB: Implement this ?
+        return null;
     }
 
     class User {

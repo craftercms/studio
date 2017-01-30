@@ -83,7 +83,7 @@ public class MappedSecurityProvider implements SecurityProvider {
         return provider.getCurrentUser(); 
     };
 
-    public Map<String, String> getUserProfile(String user) {
+    public Map<String, Object> getUserProfile(String user) {
     	SecurityProvider provider = lookupProvider(getProviderType());
         return provider.getUserProfile(user); 
     }
@@ -138,5 +138,53 @@ public class MappedSecurityProvider implements SecurityProvider {
     public void addConfigWritePermission(String path, String group) {
         SecurityProvider provider = lookupProvider(getProviderType());
         provider.addContentWritePermission(path, group);
+    }
+
+    @Override
+    public boolean createUser(String username, String password, String firstName, String lastName, String email) {
+        SecurityProvider provider = lookupProvider(getProviderType());
+        return provider.createUser(username, password, firstName, lastName, email);
+    }
+
+    @Override
+    public boolean deleteUser(String username) {
+        SecurityProvider provider = lookupProvider(getProviderType());
+        return provider.deleteUser(username);
+    }
+
+    @Override
+    public boolean updateUser(String username, String firstName, String lastName, String email) {
+        SecurityProvider provider = lookupProvider(getProviderType());
+        return provider.updateUser(username, firstName, lastName, email);
+    }
+
+    @Override
+    public boolean enableUser(String username, boolean enabled) {
+        SecurityProvider provider = lookupProvider(getProviderType());
+        return provider.enableUser(username, enabled);
+    }
+
+    @Override
+    public Map<String, Object> getUserStatus(String username) {
+        SecurityProvider provider = lookupProvider(getProviderType());
+        return provider.getUserStatus(username);
+    }
+
+    @Override
+    public boolean createGroup(String groupName, String description, long siteId) {
+        SecurityProvider provider = lookupProvider(getProviderType());
+        return provider.createGroup(groupName, description, siteId);
+    }
+
+    @Override
+    public List<Map<String, Object>> getAllUsers() {
+        SecurityProvider provider = lookupProvider(getProviderType());
+        return provider.getAllUsers();
+    }
+
+    @Override
+    public List<Map<String, Object>> getUsersPerSite(String site) {
+        SecurityProvider provider = lookupProvider(getProviderType());
+        return provider.getUsersPerSite(site);
     }
 }

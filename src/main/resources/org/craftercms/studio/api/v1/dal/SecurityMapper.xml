@@ -23,8 +23,50 @@
 
 <mapper namespace="org.craftercms.studio.api.v1.dal.SecurityMapper">
 
-    <select id="getUser" resultType="User">
+    <resultMap id="UserMap" type="org.craftercms.studio.api.v1.dal.User">
+        <id property="username" column="username"/>
+        <result property="password" column="password"/>
+        <result property="firstname" column="firstname"/>
+        <result property="lastname" column="lastname" />
+        <result property="email" column="email" />
+        <result property="active" column="enabled" />
+    </resultMap>
+
+    <resultMap id="UserProfileResultMap" type="org.craftercms.studio.api.v1.dal.UserProfileResult">
+        <id property="username" column="username"/>
+        <result property="firstName" column="firstname"/>
+        <result property="lastName" column="lastname" />
+        <result property="email" column="email" />
+        <result property="groupName" column="groupname" />
+        <result property="siteId" column="siteid"/>
+        <result property="siteName" column="siteName" />
+    </resultMap>
+
+    <select id="getUser" resultMap="UserMap">
         SELECT * FROM cstudio_user WHERE username = #{username}
+    </select>
+
+    <select id="getUserDetails" resultMap="UserProfileResultMap">
+        SELECT cu.username as username, cu.firstname as firstname, cu.lastname as lastname, cu.email as email, cg.name as groupname, cs.site_id as siteid, cs.name as sitename from
+          cstudio_user cu INNER JOIN cstudio_usergroup cug on cu.username = cug.username
+          INNER JOIN cstudio_group cg on cug.groupId = cg.id
+          INNER JOIN cstudio_site cs on cg.site_id=cs.id
+        WHERE cu.username = #{username}
+    </select>
+
+    <select id="getAllUsers" resultMap="UserProfileResultMap">
+        SELECT cu.username as username, cu.firstname as firstname, cu.lastname as lastname, cu.email as email, cg.name as groupname, cs.site_id as siteid, cs.name as sitename from
+        cstudio_user cu INNER JOIN cstudio_usergroup cug on cu.username = cug.username
+        INNER JOIN cstudio_group cg on cug.groupId = cg.id
+        INNER JOIN cstudio_site cs on cg.site_id=cs.id
+    </select>
+
+    <select id="getUsersPerSite" resultMap="UserProfileResultMap">
+        SELECT cu.username as username, cu.firstname as firstname, cu.lastname as lastname, cu.email as email, cg.name as groupname, cs.site_id as siteid, cs.name as sitename from
+        cstudio_user cu INNER JOIN cstudio_usergroup cug on cu.username = cug.username
+        INNER JOIN cstudio_group cg on cug.groupId = cg.id
+        INNER JOIN cstudio_site cs on cg.site_id=cs.id
+        WHERE cs.site_id = #{site}
     </select>
 
     <select id="getUserGroups" resultType="Group">
@@ -34,4 +76,33 @@
         WHERE cstudio_user.username = #{username}
     </select>
 
+    <insert id="createUser" parameterType="java.util.Map">
+        INSERT INTO cstudio_user (username, password, firstname, lastname, email, enabled)
+        VALUES (#{username}, #{password}, #{firstname}, #{lastname}, #{email}, 1)
+    </insert>
+
+    <delete id="deleteUser" parameterType="java.util.Map">
+        DELETE FROM cstudio_user WHERE username = #{username}
+    </delete>
+
+    <update id="updateUser" parameterType="java.util.Map">
+        UPDATE cstudio_user
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="firstname != null">firstname = #{firstname},</if>
+            <if test="lastname != null">lastname = #{lastname},</if>
+            <if test="email != null">email = #{email}</if>
+        </trim>
+        WHERE username = #{username}
+    </update>
+
+    <update id="enableUser" parameterType="java.util.Map">
+        UPDATE cstudio_user
+        SET enabled = #{enabled}
+        WHERE username = #{username}
+    </update>
+
+    <insert id="createGroup" parameterType="java.util.Map">
+        INSERT INTO cstudio_group (name, description, site_id)
+        VALUES (#{name}, #{description}, #{siteId})
+    </insert>
 </mapper>
