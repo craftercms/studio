@@ -44,6 +44,10 @@
         SELECT * FROM cstudio_site WHERE system = 0
     </select>
 
+    <select id="getSite" resultMap="SiteFeedMap" parameterType="java.util.Map">
+        SELECT * FROM cstudio_site WHERE site_id = #{siteId}
+    </select>
+
     <insert id="createSite" parameterType="org.craftercms.studio.api.v1.dal.SiteFeed">
         insert into cstudio_site (site_id, name, description, status)
         values (#{siteId}, #{name}, #{description}, #{status})

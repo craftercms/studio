@@ -79,7 +79,7 @@ public class GitContentRepositoryHelper {
     Map<String, Repository> sandboxes = new HashMap<>();
     Map<String, Repository> published = new HashMap<>();
 
-    Repository globalRepo = null; // TODO: SJ: TODAY: Must get this initialized in an init or bootstrap
+    Repository globalRepo = null;
 
     StudioConfiguration studioConfiguration;
     SecurityProvider securityProvider;
@@ -277,7 +277,7 @@ public class GitContentRepositoryHelper {
                 logger.error("Bootstrapping repository failed", e);
             }
         } else {
-            logger.error("Detected existing global repository, will not create new one.");
+            logger.info("Detected existing global repository, will not create new one.");
             toReturn = false;
         }
 

@@ -21,18 +21,22 @@ import scripts.api.SecurityServices
 
 def result = [:]
 
-def username = params.username
+def groupName = params.group_name
+def siteId = params.site_id
+def start = params.start.toInteger()
+def end = params.end.toInteger()
 
 def context = SecurityServices.createContext(applicationContext, request)
 try {
-    def userMap = SecurityServices.getUserDetails(context, username);
-    if (userMap != null && !userMap.isEmpty()) {
-        def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/user/get?username=" + username
+    def usersPerGroup = SecurityServices.getUsersPerGroup(context, siteId, groupName, start, end);
+    if (usersPerGroup != null && !usersPerGroup.isEmpty()) {
+        def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/group/users?site_id=" + siteId + "&group_name=" + groupName + "&start="+ start + "&end=" + end
         response.addHeader("Location", locationHeader)
-        return userMap;
+        result.users = usersPerGroup
+        return result
     } else {
         response.setStatus(404)
-        result.status = "User not found"
+        result.status = "Group not found"
         return result;
     }
 } catch (Exception e) {

@@ -376,6 +376,137 @@ public class DbSecurityProvider implements SecurityProvider {
         return true;
     }
 
+    @Override
+    public Map<String, Object> getGroup(String site, String group) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("groupName", group);
+        params.put("site", site);
+        return securityMapper.getGroup(params);
+    }
+
+    @Override
+    public List<Map<String, Object>> getAllGroups(int start, int end) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("start", start);
+        params.put("end", end);
+        List<GroupResult> resultSet = securityMapper.getAllGroups(params);
+        return parseGroupResultSet(resultSet);
+    }
+
+    private  List<Map<String, Object>> parseGroupResultSet(List<GroupResult> resultSet) {
+        List<Map<String, Object>> toRet = new ArrayList<Map<String, Object>>();
+        if (resultSet != null && !resultSet.isEmpty()) {
+            String lastSite = null;
+            Map<String, Object> site = null;
+            List<Map<String, Object>> groups = null;
+            for (GroupResult row : resultSet) {
+                String siteId = row.getSiteId();
+                if (!siteId.equals(lastSite)) {
+                    if (site != null) {
+                        if (groups != null) {
+                            site.put("groups", groups);
+                        }
+                        toRet.add(site);
+                    }
+                    site = new HashMap<String, Object>();
+                    site.put("site_id", siteId);
+                    groups = new ArrayList<Map<String, Object>>();
+                }
+                Map<String, Object> group = new HashMap<String, Object>();
+                group.put("group_name", row.getGroupName());
+                group.put("group_description", row.getGroupDescription());
+                groups.add(group);
+                lastSite = siteId;
+            }
+            if (site != null) {
+                if (groups != null) {
+                    site.put("groups", groups);
+                }
+                toRet.add(site);
+            }
+        }
+        return toRet;
+    }
+
+    @Override
+    public List<Map<String, Object>> getGroupsPerSite(String site) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("site", site);
+        List<GroupPerSiteResult> resultSet = securityMapper.getGroupsPerSite(params);
+        return parseGroupsPerSiteResultSet(resultSet);
+    }
+
+    private  List<Map<String, Object>> parseGroupsPerSiteResultSet(List<GroupPerSiteResult> resultSet) {
+        List<Map<String, Object>> toRet = new ArrayList<Map<String, Object>>();
+        if (resultSet != null && !resultSet.isEmpty()) {
+            String lastGroup = null;
+            Map<String, Object> group = null;
+            List<Map<String, Object>> users = null;
+            for (GroupPerSiteResult row : resultSet) {
+                String groupName = row.getGroupName();
+                if (!groupName.equals(lastGroup)) {
+                    if (group != null) {
+                        if (users != null) {
+                            group.put("users", users);
+                        }
+                        toRet.add(group);
+                    }
+                    group = new HashMap<String, Object>();
+                    group.put("group_name", groupName);
+                    group.put("group_description", row.getGroupDescription());
+                    users = new ArrayList<Map<String, Object>>();
+                }
+                Map<String, Object> user = new HashMap<String, Object>();
+                user.put("username", row.getUsername());
+                user.put("first_name", row.getFirstName());
+                user.put("last_name", row.getLastName());
+                user.put("email", row.getEmail());
+                users.add(user);
+                lastGroup = groupName;
+            }
+            if (group != null) {
+                if (users != null) {
+                    group.put("users", users);
+                }
+                toRet.add(group);
+            }
+        }
+        return toRet;
+    }
+
+    @Override
+    public List<Map<String, Object>> getUsersPerGroup(String site, String group, int start, int end) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("siteId", site);
+        params.put("groupName", group);
+        List<User> resultSet = securityMapper.getUsersPerGroup(params);
+        List<Map<String, Object>> toRet = new ArrayList<Map<String, Object>>();
+        if (resultSet != null && !resultSet.isEmpty()) {
+            for (User u : resultSet) {
+                Map<String, Object> userProfile = new HashMap<String, Object>();
+                userProfile.put("username", u.getUsername());
+                userProfile.put("first_name", u.getFirstname());
+                userProfile.put("last_name", u.getLastname());
+                userProfile.put("email", u.getEmail());
+                toRet.add(userProfile);
+            }
+        }
+        return toRet;
+    }
+
+    @Override
+    public boolean updateGroup(String siteId, String groupName, String description) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("siteId", siteId);
+        SiteFeed site = siteFeedMapper.getSite(params);
+        params = new HashMap<String, Object>();
+        params.put("groupName", groupName);
+        params.put("siteId", site.getId());
+        params.put("description", description);
+        securityMapper.updateGroup(params);
+        return true;
+    }
+
     protected StudioConfiguration studioConfiguration;
 
     public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
@@ -383,6 +514,8 @@ public class DbSecurityProvider implements SecurityProvider {
 
     @Autowired
     protected SecurityMapper securityMapper;
+    @Autowired
+    protected SiteFeedMapper siteFeedMapper;
 
     public int getSessionTimeout() {
         int toReturn = Integer.parseInt(studioConfiguration.getProperty(SECURITY_DB_SESSION_TIMEOUT));

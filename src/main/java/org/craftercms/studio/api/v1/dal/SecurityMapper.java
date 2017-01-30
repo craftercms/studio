@@ -43,4 +43,14 @@ public interface SecurityMapper {
     List<UserProfileResult> getAllUsers();
 
     List<UserProfileResult> getUsersPerSite(String site);
+
+    Map<String, Object> getGroup(Map params);
+
+    List<GroupResult> getAllGroups(Map params);
+
+    List<GroupPerSiteResult> getGroupsPerSite(Map params);
+
+    List<User> getUsersPerGroup(Map params);
+
+    void updateGroup(Map params);
 }

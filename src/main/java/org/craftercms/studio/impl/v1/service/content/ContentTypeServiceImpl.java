@@ -122,6 +122,7 @@ public class ContentTypeServiceImpl implements ContentTypeService {
             reloadConfiguration(site);
             pathsConfig = contentTypesConfig.getPathMapping(site);
         }
+
         if (pathsConfig != null && pathsConfig.getConfigs() != null) {
             List<ContentTypeConfigTO> contentTypes = new ArrayList<ContentTypeConfigTO>();
             for (ContentTypePathTO pathConfig : pathsConfig.getConfigs()) {
@@ -157,6 +158,7 @@ public class ContentTypeServiceImpl implements ContentTypeService {
         String user = securityService.getCurrentUser();
         Set<String> userRoles = securityService.getUserRoles(site, user);
         SiteContentTypePathsTO pathsConfig = contentTypesConfig.getPathMapping(site);
+
         if (pathsConfig != null && pathsConfig.getConfigs() != null) {
             List<ContentTypeConfigTO> contentTypes = new ArrayList<ContentTypeConfigTO>();
             Set<String> contentKeys = new HashSet<String>();

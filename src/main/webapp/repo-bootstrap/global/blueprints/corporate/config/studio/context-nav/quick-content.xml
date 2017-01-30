@@ -1,8 +1,0 @@
-<config>
-    <quickContent>
-        <name>Lead Form</name>
-        <description>leadform</description>
-        <contentPath>/site/components</contentPath>
-        <contentType>/component/leadform</contentType>
-    </quickContent>
-</config>

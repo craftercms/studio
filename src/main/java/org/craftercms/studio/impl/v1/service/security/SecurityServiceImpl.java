@@ -545,6 +545,31 @@ public class SecurityServiceImpl implements SecurityService {
         return securityProvider.createGroup(groupName, description, siteId);
     }
 
+    @Override
+    public Map<String, Object> getGroup(String site, String group) {
+        return securityProvider.getGroup(site, group);
+    }
+
+    @Override
+    public List<Map<String, Object>> getAllGroups(int start, int end) {
+        return securityProvider.getAllGroups(start, end);
+    }
+
+    @Override
+    public List<Map<String, Object>> getGroupsPerSite(String site) {
+        return securityProvider.getGroupsPerSite(site);
+    }
+
+    @Override
+    public List<Map<String, Object>> getUsersPerGroup(String site, String group, int start, int end) {
+        return securityProvider.getUsersPerGroup(site, group, start, end);
+    }
+
+    @Override
+    public boolean updateGroup(String siteId, String groupName, String description) {
+        return securityProvider.updateGroup(siteId, groupName, description);
+    }
+
     public String getConfigPath() {
         return studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH);
     }

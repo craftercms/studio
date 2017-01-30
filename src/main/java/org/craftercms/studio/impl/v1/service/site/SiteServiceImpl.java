@@ -332,6 +332,8 @@ public class SiteServiceImpl implements SiteService {
 			// TODO: SJ: Must call PreviewDeployer and ask it to call to create target(s) for PreviewDeployer(s)
             deploymentService.createPreviewTarget(siteId);
             deploymentService.syncAllContentToPreview(siteId);
+
+            reloadSiteConfiguration(siteId);
         }
 	 	catch(Exception e) {
  		    // TODO: SJ: We need better exception handling here

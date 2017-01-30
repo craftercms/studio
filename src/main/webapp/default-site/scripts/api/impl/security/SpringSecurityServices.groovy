@@ -110,4 +110,29 @@ class SpringSecurityServices {
         def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
         return springBackedService.createGroup(groupName, description, siteId)
     }
+
+    def getGroup(siteId, groupName) {
+        def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
+        return springBackedService.getGroup(siteId, groupName)
+    }
+
+    def getAllGroups(start, end) {
+        def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
+        return springBackedService.getAllGroups(start, end)
+    }
+
+    def getGroupsPerSite(siteId) {
+        def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
+        return springBackedService.getGroupsPerSite(siteId)
+    }
+
+    def getUsersPerGroup(siteId, groupName, start, end) {
+        def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
+        return springBackedService.getUsersPerGroup(siteId, groupName, start, end)
+    }
+
+    def updateGroup(siteId, groupName, description) {
+        def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
+        return springBackedService.updateGroup(siteId, groupName, description)
+    }
 }

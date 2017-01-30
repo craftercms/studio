@@ -25,6 +25,8 @@ public interface SiteFeedMapper {
 
     List<SiteFeed> getSites();
 
+    SiteFeed getSite(Map params);
+
 	boolean createSite(SiteFeed siteFeed);
 
     boolean deleteSite(String siteId);
