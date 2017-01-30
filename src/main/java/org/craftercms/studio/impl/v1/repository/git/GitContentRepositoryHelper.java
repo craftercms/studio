@@ -497,33 +497,34 @@ public class GitContentRepositoryHelper {
 
             // Create the file if it doesn't exist already
             if (!file.createNewFile()) {
+                // TODO: DB: Verify this logic with Sumer.
                 logger.error("error creating file: site: " + site + " path: " + path);
                 result = false;
-            } else {
-                // Write the bits
-                FileChannel outChannel = new FileOutputStream(file.getPath()).getChannel();
-                logger.debug("created the file output channel");
-                ReadableByteChannel inChannel = Channels.newChannel(content);
-                logger.debug("created the file input channel");
-                long amount = 1024*1024; // 1MB at a time
-                long count;
-                long offset = 0;
-                while ((count = outChannel.transferFrom(inChannel, offset, amount)) > 0) {
-                    logger.debug("writing the bits: offset = " + offset + " count: " + count);
-                    offset += count;
-                }
-
-                // Add the file to git
-                try (Git git = new Git(repo)) {
-                    git.add().addFilepattern(getGitPath(path)).call();
-
-                    git.close();
-                    result = true;
-                } catch (GitAPIException e) {
-                    logger.error("error adding file to git: site: " + site + " path: " + path, e);
-                    result = false;
-                }
             }
+            // Write the bits
+            FileChannel outChannel = new FileOutputStream(file.getPath()).getChannel();
+            logger.debug("created the file output channel");
+            ReadableByteChannel inChannel = Channels.newChannel(content);
+            logger.debug("created the file input channel");
+            long amount = 1024*1024; // 1MB at a time
+            long count;
+            long offset = 0;
+            while ((count = outChannel.transferFrom(inChannel, offset, amount)) > 0) {
+                logger.debug("writing the bits: offset = " + offset + " count: " + count);
+                offset += count;
+            }
+
+            // Add the file to git
+            try (Git git = new Git(repo)) {
+                git.add().addFilepattern(getGitPath(path)).call();
+
+                git.close();
+                result = true;
+            } catch (GitAPIException e) {
+                logger.error("error adding file to git: site: " + site + " path: " + path, e);
+                result = false;
+            }
+
         } catch (IOException e) {
             logger.error("error writing file: site: " + site + " path: " + path, e);
             result = false;
