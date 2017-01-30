@@ -159,4 +159,15 @@ public interface SecurityService {
      * @return
      */
     List<Map<String, Object>> getGroupsPerSite(String site);
+
+    /**
+     * Get all users for given site and group
+     *
+     * @param site site id
+     * @param group group name
+     * @param start start index
+     * @param end end index
+     * @return list of users
+     */
+    List<Map<String, Object>> getUsersPerGroup(String site, String group, int start, int end);
 }

@@ -474,6 +474,26 @@ public class DbSecurityProvider implements SecurityProvider {
         return toRet;
     }
 
+    @Override
+    public List<Map<String, Object>> getUsersPerGroup(String site, String group, int start, int end) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("siteId", site);
+        params.put("groupName", group);
+        List<User> resultSet = securityMapper.getUsersPerGroup(params);
+        List<Map<String, Object>> toRet = new ArrayList<Map<String, Object>>();
+        if (resultSet != null && !resultSet.isEmpty()) {
+            for (User u : resultSet) {
+                Map<String, Object> userProfile = new HashMap<String, Object>();
+                userProfile.put("username", u.getUsername());
+                userProfile.put("first_name", u.getFirstname());
+                userProfile.put("last_name", u.getLastname());
+                userProfile.put("email", u.getEmail());
+                toRet.add(userProfile);
+            }
+        }
+        return toRet;
+    }
+
     protected StudioConfiguration studioConfiguration;
 
     public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }

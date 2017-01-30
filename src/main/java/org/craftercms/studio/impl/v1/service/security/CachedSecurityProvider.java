@@ -213,4 +213,10 @@ public class CachedSecurityProvider implements SecurityProvider {
         // TODO: DB: Implement this ?
         return null;
     }
+
+    @Override
+    public List<Map<String, Object>> getUsersPerGroup(String site, String group, int start, int end) {
+        // TODO: DB: Implement this ?
+        return null;
+    }
 }

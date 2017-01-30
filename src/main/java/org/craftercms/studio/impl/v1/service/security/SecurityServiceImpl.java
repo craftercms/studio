@@ -560,6 +560,11 @@ public class SecurityServiceImpl implements SecurityService {
         return securityProvider.getGroupsPerSite(site);
     }
 
+    @Override
+    public List<Map<String, Object>> getUsersPerGroup(String site, String group, int start, int end) {
+        return securityProvider.getUsersPerGroup(site, group, start, end);
+    }
+
     public String getConfigPath() {
         return studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH);
     }

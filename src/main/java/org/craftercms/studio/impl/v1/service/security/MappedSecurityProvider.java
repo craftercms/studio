@@ -205,4 +205,10 @@ public class MappedSecurityProvider implements SecurityProvider {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.getGroupsPerSite(site);
     }
+
+    @Override
+    public List<Map<String, Object>> getUsersPerGroup(String site, String group, int start, int end) {
+        SecurityProvider provider = lookupProvider(getProviderType());
+        return provider.getUsersPerGroup(site, group, start, end);
+    }
 }

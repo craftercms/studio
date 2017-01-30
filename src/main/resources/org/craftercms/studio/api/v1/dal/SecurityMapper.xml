@@ -146,4 +146,13 @@
           INNER JOIN CSTUDIO_USER cu ON cug.username = cu.username
         WHERE cs.site_id = #{site}
     </select>
+
+    <select id="getUsersPerGroup" resultMap="UserMap" parameterType="java.util.Map">
+        SELECT cu.*
+        FROM CSTUDIO_GROUP cg INNER JOIN CSTUDIO_SITE cs ON cg.SITE_ID = cs.ID
+          INNER JOIN CSTUDIO_USERGROUP cug ON cg.ID = cug.GROUPID
+          INNER JOIN CSTUDIO_USER cu ON cug.USERNAME = cu.USERNAME
+        WHERE cs.SITE_ID = #{siteId}
+        AND cg.NAME = #{groupName}
+    </select>
 </mapper>
