@@ -79,7 +79,7 @@ public class GitContentRepositoryHelper {
     Map<String, Repository> sandboxes = new HashMap<>();
     Map<String, Repository> published = new HashMap<>();
 
-    Repository globalRepo = null; // TODO: SJ: TODAY: Must get this initialized in an init or bootstrap
+    Repository globalRepo = null;
 
     StudioConfiguration studioConfiguration;
     SecurityProvider securityProvider;
