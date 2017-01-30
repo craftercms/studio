@@ -133,4 +133,51 @@ public interface SecurityService {
      * @return
      */
     List<Map<String, Object>> getUsersPerSite(String site);
+
+    /**
+     * Get group for given site with given name
+     *
+     * @param site site id
+     * @param group group name
+     * @return
+     */
+    Map<String, Object> getGroup(String site, String group);
+
+    /**
+     * Get all groups
+     *
+     * @param start start index
+     * @param end end index
+     * @return
+     */
+    List<Map<String, Object>> getAllGroups(int start, int end);
+
+    /**
+     * Get all groups for given site
+     *
+     * @param site site id
+     * @return
+     */
+    List<Map<String, Object>> getGroupsPerSite(String site);
+
+    /**
+     * Get all users for given site and group
+     *
+     * @param site site id
+     * @param group group name
+     * @param start start index
+     * @param end end index
+     * @return list of users
+     */
+    List<Map<String, Object>> getUsersPerGroup(String site, String group, int start, int end);
+
+    /**
+     * Update group with given parameters
+     *
+     * @param groupName
+     * @param description
+     * @param siteId
+     * @return
+     */
+    boolean updateGroup(String siteId, String groupName, String description);
 }

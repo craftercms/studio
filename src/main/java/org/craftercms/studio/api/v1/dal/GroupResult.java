@@ -17,26 +17,24 @@
  *
  */
 
-import scripts.api.SecurityServices
+package org.craftercms.studio.api.v1.dal;
 
-def result = [:]
+public class GroupResult {
 
-def username = params.username
+    private String siteId;
+    private String siteName;
+    private String groupName;
+    private String groupDescription;
 
-def context = SecurityServices.createContext(applicationContext, request)
-try {
-    def userMap = SecurityServices.getUserDetails(context, username);
-    if (userMap != null && !userMap.isEmpty()) {
-        def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/user/get?username=" + username
-        response.addHeader("Location", locationHeader)
-        return userMap;
-    } else {
-        response.setStatus(404)
-        result.status = "User not found"
-        return result;
-    }
-} catch (Exception e) {
-    response.setStatus(500)
-    result.status = "Internal server error"
-    return result;
+    public String getSiteId() { return siteId; }
+    public void setSiteId(String siteId) { this.siteId = siteId; }
+
+    public String getSiteName() { return siteName; }
+    public void setSiteName(String siteName) { this.siteName = siteName; }
+
+    public String getGroupName() { return groupName; }
+    public void setGroupName(String groupName) { this.groupName = groupName; }
+
+    public String getGroupDescription() { return groupDescription; }
+    public void setGroupDescription(String groupDescription) { this.groupDescription = groupDescription; }
 }

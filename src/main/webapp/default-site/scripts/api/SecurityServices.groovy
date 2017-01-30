@@ -118,4 +118,29 @@ class SecurityServices {
         def securityServicesImpl = ServiceFactory.getSecurityServices(context)
         return securityServicesImpl.createGroup(groupName, description, siteId)
     }
+
+    static getGroup(context, siteId, groupName) {
+        def securityServicesImpl = ServiceFactory.getSecurityServices(context)
+        return securityServicesImpl.getGroup(siteId, groupName)
+    }
+
+    static getAllGroups(context, start, end) {
+        def securityServicesImpl = ServiceFactory.getSecurityServices(context)
+        return securityServicesImpl.getAllGroups(start, end)
+    }
+
+    static getGroupsPerSite(context, siteId) {
+        def securityServicesImpl = ServiceFactory.getSecurityServices(context)
+        return securityServicesImpl.getGroupsPerSite(siteId)
+    }
+
+    static getUsersPerGroup(context, siteId, groupName, start, end) {
+        def securityServicesImpl = ServiceFactory.getSecurityServices(context)
+        return securityServicesImpl.getUsersPerGroup(siteId, groupName, start, end)
+    }
+
+    static updateGroup(context, siteId, groupName, description) {
+        def securityServicesImpl = ServiceFactory.getSecurityServices(context)
+        return securityServicesImpl.updateGroup(siteId, groupName, description)
+    }
 }

@@ -195,4 +195,34 @@ public class CachedSecurityProvider implements SecurityProvider {
         // TODO: DB: Implement this ?
         return null;
     }
+
+    @Override
+    public Map<String, Object> getGroup(String site, String group) {
+        // TODO: DB: Implement this ?
+        return null;
+    }
+
+    @Override
+    public List<Map<String, Object>> getAllGroups(int start, int end) {
+        // TODO: DB: Implement this ?
+        return null;
+    }
+
+    @Override
+    public List<Map<String, Object>> getGroupsPerSite(String site) {
+        // TODO: DB: Implement this ?
+        return null;
+    }
+
+    @Override
+    public List<Map<String, Object>> getUsersPerGroup(String site, String group, int start, int end) {
+        // TODO: DB: Implement this ?
+        return null;
+    }
+
+    @Override
+    public boolean updateGroup(String siteId, String groupName, String description) {
+        // TODO: DB: Implement this ?
+        return false;
+    }
 }
