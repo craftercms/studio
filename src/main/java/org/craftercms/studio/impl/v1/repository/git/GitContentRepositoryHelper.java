@@ -277,7 +277,7 @@ public class GitContentRepositoryHelper {
                 logger.error("Bootstrapping repository failed", e);
             }
         } else {
-            logger.error("Detected existing global repository, will not create new one.");
+            logger.info("Detected existing global repository, will not create new one.");
             toReturn = false;
         }
 
