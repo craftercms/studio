@@ -1,27 +1,28 @@
 package scripts.api
 
 import scripts.libs.Cookies
-import scripts.api.impl.content.SpringContentServices;
-import scripts.api.impl.content.SpringContentTypeServices;
-import scripts.api.impl.content.SpringPageNavigationOrderServices;
-import scripts.api.impl.clipboard.SpringClipboardServices;
-import scripts.api.impl.deployment.SpringDeploymentServices;
-import scripts.api.impl.activity.SpringActivityServices;
-import scripts.api.impl.workflow.SpringWorkflowServices;
-import scripts.api.impl.security.SpringSecurityServices;
-import scripts.api.impl.site.SpringSiteServices;
-import scripts.api.impl.dependency.SpringDependencyServices;
-import scripts.api.impl.objectstate.SpringObjectStateServices;
+import scripts.api.impl.content.SpringContentServices
+import scripts.api.impl.content.SpringContentTypeServices
+import scripts.api.impl.content.SpringPageNavigationOrderServices
+import scripts.api.impl.clipboard.SpringClipboardServices
+import scripts.api.impl.deployment.SpringDeploymentServices
+import scripts.api.impl.activity.SpringActivityServices
+import scripts.api.impl.workflow.SpringWorkflowServices
+import scripts.api.impl.security.SpringSecurityServices
+import scripts.api.impl.site.SpringSiteServices
+import scripts.api.impl.dependency.SpringDependencyServices
+import scripts.api.impl.objectstate.SpringObjectStateServices
 
-/**
- * workflow services
- */
 class ServiceFactory {
 	
+	/**
+	 * Create a service context
+	 */
 	static createContext(applicationContext, request) {
 		def context = [:]
 		context.token = ""
 		context.applicationContext = applicationContext
+		context.request = request
 
 		if(request != null) {
 			context.token = Cookies.getCookieValue("ccticket", request) 
@@ -108,15 +109,24 @@ class ServiceFactory {
 		return new SpringSiteServices(context)
 	}
 
+	/**
+	 * return the implementation for dependency services
+	 */
     static getDependencyServices(context) {
-        return new SpringDependencyServices(context);
+        return new SpringDependencyServices(context)
     }
 
+	/**
+	 * return the implementation for object state services
+	 */
     static getObjectStateServices(context) {
-        return new SpringObjectStateServices(context);
+        return new SpringObjectStateServices(context)
     }
 
+	/**
+	 * return the implementation for page navigatiun services
+	 */
 	static getPageNavigationOrderServices(context) {
-		return new SpringPageNavigationOrderServices(context);
+		return new SpringPageNavigationOrderServices(context)
 	}
 }

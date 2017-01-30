@@ -231,20 +231,29 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     @Override
-    public String moveContent(String site, String fromPath, String toPath) {
-        return moveContent(site, fromPath, toPath, null);
+    public String moveContent(String site, String fromPath, String toPath, String newName) {
+        return moveContent(site, fromPath, toPath +"/" + newName);
     }
 
     @Override
-    public String moveContent(String site, String fromPath, String toPath, String newName) {
+    public String moveContent(String site, String fromPath, String toPath) {
         String commitId = null;
+        boolean isMoveLocation = false;
 
         synchronized(helper.getRepository(site, StringUtils.isEmpty(site)? GitRepositories.GLOBAL: SANDBOX)) {
             Repository repo = helper.getRepository(site, StringUtils.isEmpty(site)? GitRepositories.GLOBAL:
                  GitRepositories.SANDBOX);
 
             String gitFromPath = helper.getGitPath(fromPath);
-            String gitToPath = helper.getGitPath(toPath + newName);
+            String gitToPath = helper.getGitPath(toPath);
+
+            String parentFromPath = fromPath.substring(0, fromPath.lastIndexOf("/"));
+            String fromFileName = fromPath.substring(fromPath.lastIndexOf("/")+1);
+            boolean fromIsFile = fromFileName.contains(".");
+
+            String parentToPath = toPath.substring(0, toPath.lastIndexOf("/"));
+            String toFileName = toPath.substring(toPath.lastIndexOf("/")+1);
+            boolean toIsFile = toFileName.contains(".");
 
             try (Git git = new Git(repo)) {
                 // Check if destination is a file, then this is a rename operation
@@ -253,26 +262,38 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 File sourceFile = sourcePath.toFile();
                 Path targetPath = Paths.get(repo.getDirectory().getParent(), toPath);
                 File targetFile = targetPath.toFile();
-                if (targetFile.isFile()) {
-                    if (sourceFile.isFile()) {
-                        sourceFile.renameTo(targetFile);
-                    } else {
-                        // This is not a valid operation
-                        logger.error("Invalid move operation: Trying to rename a directory to a file for site: " + site + " fromPath: " + fromPath + " toPath: " + toPath + " newName: " + newName);
-                    }
-                } else if (sourceFile.isDirectory()) {
-                    // Check if we're moving a single file or whole subtree
-                    FileUtils.moveToDirectory(sourceFile, targetFile, true);
-                }
 
+                if(parentFromPath.equals(parentToPath)
+                        && fromIsFile == toIsFile) {
+                    // this is a rename only
+                    logger.debug("Renaming document {0} to {1}/{2}", fromPath, toPath);
+                    sourceFile.renameTo(targetFile);
+                }
+                else {
+                    if(!fromFileName.equals(toFileName)
+                            && fromIsFile == toIsFile) {
+                        // this kind of move operation on a disk is a rename
+                        logger.debug("Moving RENAME A document {0} to {1}", fromPath, toPath);
+                        sourceFile.renameTo(targetFile);
+                    }
+                    else if(fromFileName.equals(toFileName) && sourceFile.isDirectory()) {
+                        logger.debug("Moving RENAME B document {0} to {1}", fromPath, toPath);
+                        sourceFile.renameTo(targetFile);
+                    }
+                    else {
+                        logger.debug("Moving MOVE document {0} to {1}", fromPath, toPath);
+                        FileUtils.moveFileToDirectory(sourceFile, targetFile, true);
+                    }
+                }
+                
                 // The operation is done on disk, now it's time to commit
                 git.add().addFilepattern(gitToPath).call();
-                RevCommit commit = git.commit().setOnly(gitFromPath).setOnly(gitToPath).setAuthor(helper.getCurrentUserIdent()).setCommitter(helper.getCurrentUserIdent()).setMessage("Moving " + fromPath + " to " + toPath + newName).call();
+                RevCommit commit = git.commit().setOnly(gitFromPath).setOnly(gitToPath).setAuthor(helper.getCurrentUserIdent()).setCommitter(helper.getCurrentUserIdent()).setMessage("Moving " + fromPath + " to " + toPath).call();
                 commitId = commit.getName();
 
                 git.close();
             } catch (IOException | GitAPIException e) {
-                logger.error("Error while moving content for site: " + site + " fromPath: " + fromPath + " toPath: " + toPath + " newName: " + newName);
+                logger.error("Error while moving content for site: " + site + " fromPath: " + fromPath + " toPath: " + toPath);
             }
         }
 

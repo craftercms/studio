@@ -641,12 +641,12 @@ public class ContentServiceImpl implements ContentService {
 
             String targetPath = movePathOnly;
             if(movePathOnly.equals(sourcePathOnly)
-            || (moveAltFileName == true && !targetIsIndex)) {
+                    || (moveAltFileName == true && !targetIsIndex)) {
                 // we never send index.xml to the repo, we move folders (and the folder has the rename)
                 // SO otherwise, this is a rename and we need to forward the full path
-                targetPath = movePath;  
+                targetPath = movePath;
             }
-            
+
             logger.debug("Move file for site {0} from {1} to {2}, sourcePath {3} to target path {4}", site, fromPath, toPath, sourcePath, targetPath);
 
             // NOTE: IN WRITE SCENARIOS the repository OP IS PART of this PIPELINE, for some reason, historically with MOVE it is not
@@ -734,8 +734,10 @@ public class ContentServiceImpl implements ContentService {
         activityService.renameContentId(site, fromPath, movePath);
 
         Map<String, String> activityInfo = new HashMap<String, String>();
+        String contentClass = getContentTypeClass(site, movePath);
+
         if(movePath.endsWith(DmConstants.XML_PATTERN)) {
-            activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentType);
+            activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
         }
 
         activityService.postActivity(
