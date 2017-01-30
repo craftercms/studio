@@ -158,4 +158,14 @@ public interface SecurityProvider {
      * @return
      */
     List<Map<String, Object>> getUsersPerGroup(String site, String group, int start, int end);
+
+    /**
+     * Update group with given parameters
+     *
+     * @param groupName
+     * @param description
+     * @param siteId
+     * @return
+     */
+    boolean updateGroup(String siteId, String groupName, String description);
 }

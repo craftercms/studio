@@ -307,6 +307,12 @@ public class DemoSecurityProvider implements SecurityProvider {
         return null;
     }
 
+    @Override
+    public boolean updateGroup(String siteId, String groupName, String description) {
+        // TODO: DB: Implement this ?
+        return false;
+    }
+
     class User {
 
         public String getUsername() { return username; }

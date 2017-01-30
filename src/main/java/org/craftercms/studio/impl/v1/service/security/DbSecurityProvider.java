@@ -494,6 +494,19 @@ public class DbSecurityProvider implements SecurityProvider {
         return toRet;
     }
 
+    @Override
+    public boolean updateGroup(String siteId, String groupName, String description) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("siteId", siteId);
+        SiteFeed site = siteFeedMapper.getSite(params);
+        params = new HashMap<String, Object>();
+        params.put("groupName", groupName);
+        params.put("siteId", site.getId());
+        params.put("description", description);
+        securityMapper.updateGroup(params);
+        return true;
+    }
+
     protected StudioConfiguration studioConfiguration;
 
     public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
@@ -501,6 +514,8 @@ public class DbSecurityProvider implements SecurityProvider {
 
     @Autowired
     protected SecurityMapper securityMapper;
+    @Autowired
+    protected SiteFeedMapper siteFeedMapper;
 
     public int getSessionTimeout() {
         int toReturn = Integer.parseInt(studioConfiguration.getProperty(SECURITY_DB_SESSION_TIMEOUT));

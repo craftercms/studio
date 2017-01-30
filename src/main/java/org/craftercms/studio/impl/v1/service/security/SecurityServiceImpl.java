@@ -565,6 +565,11 @@ public class SecurityServiceImpl implements SecurityService {
         return securityProvider.getUsersPerGroup(site, group, start, end);
     }
 
+    @Override
+    public boolean updateGroup(String siteId, String groupName, String description) {
+        return securityProvider.updateGroup(siteId, groupName, description);
+    }
+
     public String getConfigPath() {
         return studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH);
     }

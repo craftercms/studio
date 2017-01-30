@@ -51,4 +51,6 @@ public interface SecurityMapper {
     List<GroupPerSiteResult> getGroupsPerSite(Map params);
 
     List<User> getUsersPerGroup(Map params);
+
+    void updateGroup(Map params);
 }

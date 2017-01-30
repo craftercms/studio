@@ -256,4 +256,10 @@ public class TestSecurityProvider implements SecurityProvider {
         // TODO: DB: Implement this ?
         return null;
     }
+
+    @Override
+    public boolean updateGroup(String siteId, String groupName, String description) {
+        // TODO: DB: Implement this ?
+        return false;
+    }
 }

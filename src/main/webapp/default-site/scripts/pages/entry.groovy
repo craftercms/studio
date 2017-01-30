@@ -8,6 +8,6 @@ def profile = SecurityServices.getUserProfile(context, currentUser)
 
 model.username = currentUser
 model.userEmail = profile.email 
-model.userFirstName = profile.firstName
-model.userLastName =  profile.lastName
+model.userFirstName = profile.first_name
+model.userLastName =  profile.last_name
 model.cookieDomain = request.getServerName();

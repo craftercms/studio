@@ -123,14 +123,14 @@
     </insert>
 
     <select id="getGroup" parameterType="java.util.Map" resultType="java.util.Map">
-        SELECT cg.NAME as group_name, cg.DESCRIPTION as group_description, cs.SITE_ID as site_id
-        FROM CSTUDIO_GROUP cg INNER JOIN CSTUDIO_SITE cs on cg.site_id = cs.id
-        WHERE cs.SITE_ID = 'studio_root' AND cg.name = 'crafter-admin'
+        SELECT cg.NAME AS group_name, cg.description AS group_description, cs.site_id AS site_id
+        FROM cstudio_group cg INNER JOIN cstudio_site cs on cg.site_id = cs.id
+        WHERE cs.site_id = #{groupName} AND cg.name = #{siteId}
     </select>
 
     <select id="getAllGroups" resultMap="GroupResultMap">
-        SELECT cs.SITE_ID as site_id, cs.NAME as site_name, cg.NAME as group_name, cg.DESCRIPTION as group_description
-        FROM CSTUDIO_GROUP cg INNER JOIN CSTUDIO_SITE cs on cg.site_id = cs.id
+        SELECT cs.site_id AS site_id, cs.name AS site_name, cg.name AS group_name, cg.description AS group_description
+        FROM cstudio_group cg INNER JOIN cstudio_site cs on cg.site_id = cs.id
     </select>
     
     <select id="getGroupsPerSite" resultMap="GroupPerSiteResultMap" parameterType="java.util.Map">
@@ -141,18 +141,25 @@
           cu.firstname AS first_name,
           cu.lastname AS last_name,
           cu.email AS email
-        FROM CSTUDIO_GROUP cg INNER JOIN CSTUDIO_SITE cs ON cg.site_id = cs.id
-          INNER JOIN CSTUDIO_USERGROUP cug ON cg.id = cug.groupid
-          INNER JOIN CSTUDIO_USER cu ON cug.username = cu.username
+        FROM cstudio_group cg INNER JOIN cstudio_site cs ON cg.site_id = cs.id
+          INNER JOIN cstudio_usergroup cug ON cg.id = cug.groupid
+          INNER JOIN cstudio_user cu ON cug.username = cu.username
         WHERE cs.site_id = #{site}
     </select>
 
     <select id="getUsersPerGroup" resultMap="UserMap" parameterType="java.util.Map">
         SELECT cu.*
-        FROM CSTUDIO_GROUP cg INNER JOIN CSTUDIO_SITE cs ON cg.SITE_ID = cs.ID
-          INNER JOIN CSTUDIO_USERGROUP cug ON cg.ID = cug.GROUPID
-          INNER JOIN CSTUDIO_USER cu ON cug.USERNAME = cu.USERNAME
-        WHERE cs.SITE_ID = #{siteId}
-        AND cg.NAME = #{groupName}
+        FROM cstudio_group cg INNER JOIN cstudio_site cs ON cg.site_id = cs.id
+          INNER JOIN cstudio_usergroup cug ON cg.id = cug.groupid
+          INNER JOIN cstudio_user cu ON cug.username = cu.username
+        WHERE cs.site_id = #{siteId}
+        AND cg.name = #{groupName}
     </select>
+
+    <update id="updateGroup" parameterType="java.util.Map">
+        UPDATE cstudio_group
+        SET description = #{description}
+        WHERE site_id = #{siteId}
+        AND name = #{groupName}
+    </update>
 </mapper>
