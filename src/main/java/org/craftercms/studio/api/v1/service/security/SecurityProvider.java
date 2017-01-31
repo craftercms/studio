@@ -43,7 +43,13 @@ public interface SecurityProvider {
 
     String getCurrentToken();
 
-    void addUserToGroup(String groupName, String user);
+    /**
+     * Add user to the group
+     * @param siteId site id
+     * @param groupName group name
+     * @param user username
+     */
+    boolean addUserToGroup(String siteId, String groupName, String user);
 
     boolean logout();
 

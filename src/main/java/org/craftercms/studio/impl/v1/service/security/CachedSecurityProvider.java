@@ -95,8 +95,8 @@ public class CachedSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public void addUserToGroup(String groupName, String user) {
-        provider.addUserToGroup(groupName, user);
+    public boolean addUserToGroup(String siteId, String groupName, String user) {
+        return provider.addUserToGroup(siteId, groupName, user);
     }
 
     @Override

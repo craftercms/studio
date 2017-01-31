@@ -159,8 +159,9 @@ public class TestSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public void addUserToGroup(String groupName, String user) {
-
+    public boolean addUserToGroup(String siteId, String groupName, String user) {
+        // TODO: DB: Implement this ?
+        return false;
     }
 
     @Override

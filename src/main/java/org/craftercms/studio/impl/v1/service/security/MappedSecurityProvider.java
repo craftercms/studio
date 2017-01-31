@@ -117,9 +117,9 @@ public class MappedSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public void addUserToGroup(String groupName, String user) {
+    public boolean addUserToGroup(String siteId, String groupName, String user) {
         SecurityProvider provider = lookupProvider(getProviderType());
-        provider.addUserToGroup(groupName, user);
+        return provider.addUserToGroup(siteId, groupName, user);
     }
 
     @Override

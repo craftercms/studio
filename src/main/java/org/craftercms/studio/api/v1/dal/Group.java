@@ -28,8 +28,7 @@ public class Group implements Serializable {
     private long id;
     private String name;
     private String description;
-    private long roleId;
-    private Role role;
+    private long siteId;
 
     public long getId() { return id; }
     public void setId(long id) { this.id = id; }
@@ -40,9 +39,6 @@ public class Group implements Serializable {
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
 
-    public long getRoleId() { return roleId; }
-    public void setRoleId(long roleId) { this.roleId = roleId; }
-
-    public Role getRole() { return role; }
-    public void setRole(Role role) { this.role = role; }
+    public long getSiteId() { return siteId; }
+    public void setSiteId(long siteId) { this.siteId = siteId; }
 }

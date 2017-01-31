@@ -421,11 +421,6 @@ public class SecurityServiceImpl implements SecurityService {
         securityProvider.addUserGroup(parentGroup, groupName);
     }
 
-    @Override
-    public void addUserToGroup(String groupName, String user) {
-        securityProvider.addUserToGroup(groupName, user);
-    }
-
 
     protected PermissionsConfigTO loadGlobalPermissionsConfiguration() {
         String globalPermissionsConfigPath = getGlobalConfigPath() + "/" + getGlobalPermissionsFileName();
@@ -573,6 +568,11 @@ public class SecurityServiceImpl implements SecurityService {
     @Override
     public boolean deleteGroup(String site, String group) {
         return securityProvider.deleteGroup(site, group);
+    }
+
+    @Override
+    public boolean addUserToGroup(String siteId, String groupName, String username) {
+        return securityProvider.addUserToGroup(siteId, groupName, username);
     }
 
     public String getConfigPath() {
