@@ -183,4 +183,8 @@
     <insert id="addUserToGroup" parameterType="java.util.Map">
         INSERT INTO cstudio_usergroup (username, groupid) VALUES (#{username}, #{groupId})
     </insert>
+
+    <insert id="removeUserFromGroup" parameterType="java.util.Map">
+        DELETE FROM cstudio_usergroup WHERE username = #{username} AND groupid = #{groupId}
+    </insert>
 </mapper>

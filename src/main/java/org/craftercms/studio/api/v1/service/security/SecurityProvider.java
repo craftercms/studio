@@ -184,4 +184,12 @@ public interface SecurityProvider {
      * @return
      */
     boolean deleteGroup(String siteId, String groupName);
+
+    /**
+     * Remove user from the group
+     * @param siteId site id
+     * @param groupName group name
+     * @param user username
+     */
+    boolean removeUserFromGroup(String siteId, String groupName, String user);
 }

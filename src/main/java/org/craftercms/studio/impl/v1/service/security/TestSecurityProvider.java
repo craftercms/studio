@@ -269,4 +269,10 @@ public class TestSecurityProvider implements SecurityProvider {
         // TODO: DB: Implement this ?
         return false;
     }
+
+    @Override
+    public boolean removeUserFromGroup(String siteId, String groupName, String user) {
+        // TODO: DB: Implement this ?
+        return false;
+    }
 }

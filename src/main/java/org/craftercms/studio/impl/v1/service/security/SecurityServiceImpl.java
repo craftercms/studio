@@ -575,6 +575,11 @@ public class SecurityServiceImpl implements SecurityService {
         return securityProvider.addUserToGroup(siteId, groupName, username);
     }
 
+    @Override
+    public boolean removeUserFromGroup(String siteId, String groupName, String username) {
+        return securityProvider.removeUserFromGroup(siteId, groupName, username);
+    }
+
     public String getConfigPath() {
         return studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH);
     }

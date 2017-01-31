@@ -320,6 +320,12 @@ public class DemoSecurityProvider implements SecurityProvider {
         return false;
     }
 
+    @Override
+    public boolean removeUserFromGroup(String siteId, String groupName, String user) {
+        // TODO: DB: Implement this ?
+        return false;
+    }
+
     class User {
 
         public String getUsername() { return username; }

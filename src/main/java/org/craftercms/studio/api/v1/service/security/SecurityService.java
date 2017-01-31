@@ -197,4 +197,14 @@ public interface SecurityService {
      * @return
      */
     boolean addUserToGroup(String siteId, String groupName, String username);
+
+    /**
+     * Remove user from the group
+     *
+     * @param siteId site id
+     * @param groupName group name
+     * @param username username
+     * @return
+     */
+    boolean removeUserFromGroup(String siteId, String groupName, String username);
 }

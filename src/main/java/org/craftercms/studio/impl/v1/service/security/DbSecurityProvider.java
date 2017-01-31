@@ -289,6 +289,19 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
+    public boolean removeUserFromGroup(String siteId, String groupName, String user) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("groupName", groupName);
+        params.put("siteId", siteId);
+        Group group = securityMapper.getGroupObject(params);
+        params = new HashMap<String, Object>();
+        params.put("username", user);
+        params.put("groupId", group.getId());
+        securityMapper.removeUserFromGroup(params);
+        return true;
+    }
+
+    @Override
     public boolean logout() {
         storeSessionTicket(null);
         storeSessionUsername(null);

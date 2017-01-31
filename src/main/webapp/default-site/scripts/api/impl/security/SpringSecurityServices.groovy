@@ -145,4 +145,9 @@ class SpringSecurityServices {
         def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
         return springBackedService.addUserToGroup(siteId, groupName, username)
     }
+
+    def removeUserFromGroup(siteId, groupName, username) {
+        def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
+        return springBackedService.removeUserFromGroup(siteId, groupName, username)
+    }
 }
