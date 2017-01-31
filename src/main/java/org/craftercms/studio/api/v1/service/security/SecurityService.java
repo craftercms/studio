@@ -180,4 +180,13 @@ public interface SecurityService {
      * @return
      */
     boolean updateGroup(String siteId, String groupName, String description);
+
+    /**
+     * Delete group for given site with given name
+     *
+     * @param site site id
+     * @param group group name
+     * @return
+     */
+    boolean deleteGroup(String site, String group);
 }

@@ -168,4 +168,14 @@ public interface SecurityProvider {
      * @return
      */
     boolean updateGroup(String siteId, String groupName, String description);
+
+    /**
+     * Delete group with given site id and group name
+     *
+     * @param groupName
+     * @param description
+     * @param siteId
+     * @return
+     */
+    boolean deleteGroup(String siteId, String groupName);
 }

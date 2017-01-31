@@ -507,6 +507,18 @@ public class DbSecurityProvider implements SecurityProvider {
         return true;
     }
 
+    @Override
+    public boolean deleteGroup(String siteId, String groupName) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("siteId", siteId);
+        SiteFeed site = siteFeedMapper.getSite(params);
+        params = new HashMap<String, Object>();
+        params.put("groupName", groupName);
+        params.put("siteId", site.getId());
+        securityMapper.deleteGroup(params);
+        return true;
+    }
+
     protected StudioConfiguration studioConfiguration;
 
     public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }

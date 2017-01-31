@@ -313,6 +313,12 @@ public class DemoSecurityProvider implements SecurityProvider {
         return false;
     }
 
+    @Override
+    public boolean deleteGroup(String siteId, String groupName) {
+        // TODO: DB: Implement this ?
+        return false;
+    }
+
     class User {
 
         public String getUsername() { return username; }

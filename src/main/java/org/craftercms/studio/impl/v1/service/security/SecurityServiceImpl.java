@@ -570,6 +570,11 @@ public class SecurityServiceImpl implements SecurityService {
         return securityProvider.updateGroup(siteId, groupName, description);
     }
 
+    @Override
+    public boolean deleteGroup(String site, String group) {
+        return securityProvider.deleteGroup(site, group);
+    }
+
     public String getConfigPath() {
         return studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH);
     }

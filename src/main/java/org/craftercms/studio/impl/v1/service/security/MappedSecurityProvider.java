@@ -217,4 +217,10 @@ public class MappedSecurityProvider implements SecurityProvider {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.updateGroup(siteId, groupName, description);
     }
+
+    @Override
+    public boolean deleteGroup(String siteId, String groupName) {
+        SecurityProvider provider = lookupProvider(getProviderType());
+        return provider.deleteGroup(siteId, groupName);
+    }
 }

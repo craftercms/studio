@@ -17,6 +17,7 @@
  *
  */
 
+
 import groovy.json.JsonSlurper
 import scripts.api.SecurityServices
 
@@ -27,19 +28,21 @@ def slurper = new JsonSlurper()
 def parsedReq = slurper.parseText(requestBody)
 
 def groupName = parsedReq.group_name
-def description = parsedReq.description
-def siteId = parsedReq.site_id.toInteger()
+def siteId = parsedReq.site_id
 
 def context = SecurityServices.createContext(applicationContext, request)
 try {
-    SecurityServices.createGroup(context, groupName, description, siteId);
-    result.status = "OK"
-    response.setStatus(201)
-    def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/group/get?group_name=" + groupName
-    response.addHeader("Location", locationHeader)
+    def success = SecurityServices.deleteGroup(context, siteId, groupName);
+    if (success) {
+        result.status = "OK"
+        response.setStatus(204)
+    } else {
+        result.status = "Group not found"
+        response.setStatus(404)
+    }
     return result
 } catch (Exception e) {
     response.setStatus(500)
     result.status = "Internal server error"
-    return result
+    return result;
 }

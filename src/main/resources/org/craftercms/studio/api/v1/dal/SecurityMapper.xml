@@ -162,4 +162,8 @@
         WHERE site_id = #{siteId}
         AND name = #{groupName}
     </update>
+
+    <update id="deleteGroup" parameterType="java.util.Map">
+        DELETE FROM cstudio_group WHERE name=#{groupName} AND site_id=#{siteId}
+    </update>
 </mapper>

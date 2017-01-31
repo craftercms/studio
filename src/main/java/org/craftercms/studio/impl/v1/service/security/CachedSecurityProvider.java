@@ -225,4 +225,10 @@ public class CachedSecurityProvider implements SecurityProvider {
         // TODO: DB: Implement this ?
         return false;
     }
+
+    @Override
+    public boolean deleteGroup(String siteId, String groupName) {
+        // TODO: DB: Implement this ?
+        return false;
+    }
 }
