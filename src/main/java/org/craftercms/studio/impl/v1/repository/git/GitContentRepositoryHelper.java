@@ -481,7 +481,7 @@ public class GitContentRepositoryHelper {
     }
 
     public boolean writeFile(Repository repo, String site, String path, InputStream content) {
-        boolean result;
+        boolean result = true;
 
         try {
             // Create basic file
@@ -496,10 +496,19 @@ public class GitContentRepositoryHelper {
             }
 
             // Create the file if it doesn't exist already
-            if (!file.createNewFile()) {
-                logger.error("error creating file: site: " + site + " path: " + path);
-                result = false;
-            } else {
+            if (!file.exists()) {
+                try {
+                    if (!file.createNewFile()) {
+                        logger.error("error creating file: site: " + site + " path: " + path);
+                        result = false;
+                    }
+                } catch (IOException e) {
+                    logger.error("error creating file: site: " + site + " path: " + path, e);
+                    result = false;
+                }
+            }
+
+            if (result) {
                 // Write the bits
                 FileChannel outChannel = new FileOutputStream(file.getPath()).getChannel();
                 logger.debug("created the file output channel");
