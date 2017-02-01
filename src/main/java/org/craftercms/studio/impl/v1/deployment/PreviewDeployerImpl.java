@@ -112,22 +112,42 @@ public class PreviewDeployerImpl implements PreviewDeployer {
     }
 
     private String getDeployerCreatePreviewTargetRequestBody(String site) {
-        String toRet = "{\n" +
-                "  \"target_id\": \"preview_SITENAME\",\n" +
-                "  \"replace\": true,\n" +
-                "  \"template_name\" : \"preview\",\n" +
-                "  \"site_name\" : \"SITENAME\",\n" +
-                "  \"remote_repo_url\" : \"REPO_URL\",\n" +
-                "  \"remote_repo_branch\" : \"master\"\n" +
-                "}";
-        toRet = toRet.replaceAll("SITENAME", site);
         Path repoPath = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH), studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH), site, studioConfiguration.getProperty(StudioConfiguration.SANDBOX_PATH));
-        toRet = toRet.replace("REPO_URL",repoPath.toAbsolutePath().toString());
-        return toRet;
+        CreateTargetRequestBody requestBody = new CreateTargetRequestBody(site, repoPath.toAbsolutePath().toString());
+        return requestBody.toJson();
     }
 
     public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
 
     protected StudioConfiguration studioConfiguration;
+
+    class CreateTargetRequestBody {
+
+        protected String targetId;
+        protected String replace = "true";
+        protected String templateName = "preview";
+        protected String siteName;
+        protected String remoteRepoUrl;
+        protected String remoteRepoBranch = "master";
+
+        public CreateTargetRequestBody(String siteName, String repoUrl) {
+            this.targetId = "preview_" + siteName;
+            this.siteName = siteName;
+            this.remoteRepoUrl = repoUrl;
+        }
+
+        public String toJson() {
+            StringBuilder sb = new StringBuilder();
+            sb.append("{ ");
+            sb.append("\"target_id\":\"").append(this.targetId).append("\", ");
+            sb.append("\"replace\":").append(this.replace).append(", ");
+            sb.append("\"template_name\":\"").append(this.templateName).append("\", ");
+            sb.append("\"site_name\":\"").append(this.siteName).append("\", ");
+            sb.append("\"remote_repo_url\":\"").append(this.remoteRepoUrl).append("\", ");
+            sb.append("\"remote_repo_branch\":\"").append(this.remoteRepoBranch).append("\"");
+            sb.append(" }");
+            return sb.toString();
+        }
+    }
 }
