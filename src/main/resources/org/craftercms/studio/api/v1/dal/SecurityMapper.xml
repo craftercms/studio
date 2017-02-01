@@ -32,6 +32,13 @@
         <result property="active" column="enabled" />
     </resultMap>
 
+    <resultMap id="GroupMap" type="org.craftercms.studio.api.v1.dal.Group">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="description" column="description"/>
+        <result property="siteId" column="site_id"/>
+    </resultMap>
+
     <resultMap id="UserProfileResultMap" type="org.craftercms.studio.api.v1.dal.UserProfileResult">
         <id property="username" column="username"/>
         <result property="firstName" column="firstname"/>
@@ -125,7 +132,13 @@
     <select id="getGroup" parameterType="java.util.Map" resultType="java.util.Map">
         SELECT cg.NAME AS group_name, cg.description AS group_description, cs.site_id AS site_id
         FROM cstudio_group cg INNER JOIN cstudio_site cs on cg.site_id = cs.id
-        WHERE cs.site_id = #{groupName} AND cg.name = #{siteId}
+        WHERE cs.site_id = #{siteId} AND cg.name = #{groupName}
+    </select>
+
+    <select id="getGroupObject" parameterType="java.util.Map" resultMap="GroupMap">
+        SELECT cg.*
+        FROM cstudio_group cg INNER JOIN cstudio_site cs on cg.site_id = cs.id
+        WHERE cs.site_id = #{siteId} AND cg.name = #{groupName}
     </select>
 
     <select id="getAllGroups" resultMap="GroupResultMap">
@@ -162,4 +175,16 @@
         WHERE site_id = #{siteId}
         AND name = #{groupName}
     </update>
+
+    <update id="deleteGroup" parameterType="java.util.Map">
+        DELETE FROM cstudio_group WHERE name=#{groupName} AND site_id=#{siteId}
+    </update>
+
+    <insert id="addUserToGroup" parameterType="java.util.Map">
+        INSERT INTO cstudio_usergroup (username, groupid) VALUES (#{username}, #{groupId})
+    </insert>
+
+    <insert id="removeUserFromGroup" parameterType="java.util.Map">
+        DELETE FROM cstudio_usergroup WHERE username = #{username} AND groupid = #{groupId}
+    </insert>
 </mapper>

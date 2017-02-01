@@ -204,8 +204,9 @@ public class DemoSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public void addUserToGroup(String groupName, String user) {
-
+    public boolean addUserToGroup(String siteId, String groupName, String user) {
+        // TODO: DB: Implement this ?
+        return false;
     }
 
     @Override
@@ -309,6 +310,18 @@ public class DemoSecurityProvider implements SecurityProvider {
 
     @Override
     public boolean updateGroup(String siteId, String groupName, String description) {
+        // TODO: DB: Implement this ?
+        return false;
+    }
+
+    @Override
+    public boolean deleteGroup(String siteId, String groupName) {
+        // TODO: DB: Implement this ?
+        return false;
+    }
+
+    @Override
+    public boolean removeUserFromGroup(String siteId, String groupName, String user) {
         // TODO: DB: Implement this ?
         return false;
     }

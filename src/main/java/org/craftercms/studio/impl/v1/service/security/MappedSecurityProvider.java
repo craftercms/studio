@@ -117,9 +117,9 @@ public class MappedSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public void addUserToGroup(String groupName, String user) {
+    public boolean addUserToGroup(String siteId, String groupName, String user) {
         SecurityProvider provider = lookupProvider(getProviderType());
-        provider.addUserToGroup(groupName, user);
+        return provider.addUserToGroup(siteId, groupName, user);
     }
 
     @Override
@@ -216,5 +216,17 @@ public class MappedSecurityProvider implements SecurityProvider {
     public boolean updateGroup(String siteId, String groupName, String description) {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.updateGroup(siteId, groupName, description);
+    }
+
+    @Override
+    public boolean deleteGroup(String siteId, String groupName) {
+        SecurityProvider provider = lookupProvider(getProviderType());
+        return provider.deleteGroup(siteId, groupName);
+    }
+
+    @Override
+    public boolean removeUserFromGroup(String siteId, String groupName, String user) {
+        SecurityProvider provider = lookupProvider(getProviderType());
+        return provider.removeUserFromGroup(siteId, groupName, user);
     }
 }
