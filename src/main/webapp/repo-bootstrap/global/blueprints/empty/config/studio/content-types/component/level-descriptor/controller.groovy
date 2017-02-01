@@ -21,7 +21,6 @@ import scripts.libs.CommonLifecycleApi;
 def contentLifecycleParams =[:];
 contentLifecycleParams.site = site;
 contentLifecycleParams.path = path;
-contentLifecycleParams.fullPath = fullPath;
 contentLifecycleParams.user = user;
 contentLifecycleParams.contentType = contentType;
 contentLifecycleParams.contentLifecycleOperation = contentLifecycleOperation;

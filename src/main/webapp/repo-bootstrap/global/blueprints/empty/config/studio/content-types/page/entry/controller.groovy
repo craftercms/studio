@@ -1,6 +1,6 @@
 /*
  * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2016 Crafter Software Corporation.
+ * Copyright (C) 2007-2017 Crafter Software Corporation.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,6 @@ import scripts.libs.CommonLifecycleApi;
 def contentLifecycleParams =[:];
 contentLifecycleParams.site = site;
 contentLifecycleParams.path = path;
-contentLifecycleParams.fullPath = fullPath;
 contentLifecycleParams.user = user;
 contentLifecycleParams.contentType = contentType;
 contentLifecycleParams.contentLifecycleOperation = contentLifecycleOperation;
