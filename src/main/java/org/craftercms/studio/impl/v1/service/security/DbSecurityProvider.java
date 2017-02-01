@@ -106,22 +106,24 @@ public class DbSecurityProvider implements SecurityProvider {
                     userProfile.put("email", row.getEmail());
                 }
                 String siteId = row.getSiteId();
-                if (!siteId.equals(lastSite)) {
-                    if (site != null) {
-                        if (groups != null) {
-                            site.put("groups", groups);
+                if (StringUtils.isNotEmpty(siteId)) {
+                    if (!siteId.equals(lastSite)) {
+                        if (site != null) {
+                            if (groups != null) {
+                                site.put("groups", groups);
+                            }
+                            sites.add(site);
                         }
-                        sites.add(site);
+                        site = new HashMap<String, Object>();
+                        site.put("site_id", siteId);
+                        site.put("site_name", row.getSiteName());
+                        groups = new ArrayList<Map<String, Object>>();
                     }
-                    site = new HashMap<String, Object>();
-                    site.put("site_id", siteId);
-                    site.put("site_name", row.getSiteName());
-                    groups = new ArrayList<Map<String, Object>>();
+                    Map<String, Object> group = new HashMap<String, Object>();
+                    group.put("group_name", row.getGroupName());
+                    groups.add(group);
+                    lastSite = siteId;
                 }
-                Map<String, Object> group = new HashMap<String, Object>();
-                group.put("group_name", row.getGroupName());
-                groups.add(group);
-                lastSite = siteId;
                 lastUser = username;
             }
             if (site != null) {
