@@ -34,6 +34,7 @@ public class DmXmlConstants {
     public static final String ELM_INTERNAL_NAME = CStudioXmlConstants.DOCUMENT_ELM_INTERNAL_TITLE;
     public static final String ELM_CONTENT_TYPE = CStudioXmlConstants.DOCUMENT_ELM_CONTENT_TYPE;
     public static final String ELM_DISPLAY_TEMPLATE = CStudioXmlConstants.DOCUMENT_ELM_DISPLAY_TEMPLATE;
+    public static final String ELM_FOLDER_NAME = "folder-name";
     public static final String ELM_LAST_MODIFIED_DATE = "lastModifiedDate";
     public static final String ELM_LAST_MODIFIED_BY = "lastModifiedBy";
     public static final String ELM_NAVIGATION = "navigation";

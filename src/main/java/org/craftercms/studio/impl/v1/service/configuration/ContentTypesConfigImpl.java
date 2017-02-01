@@ -100,7 +100,9 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
                 document = contentService.getContentAsDocument(configFileFullPath);
             }
         } catch (DocumentException e) {
-            logger.error("No content type configuration document found at " + configFileFullPath, e);
+            // TODO We can make this an error at some point
+            // It's over-called and the fact that it doesn't return a value is inert
+            logger.debug("No content type configuration document found at " + configFileFullPath, e);
         }
         if (document != null) {
             Element root = document.getRootElement();
@@ -139,7 +141,7 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
             contentTypeConfig.setType(getContentTypeTypeByName(name));
             return contentTypeConfig;
         } else {
-            logger.error("No content type configuration document found at " + configFileFullPath);
+            logger.debug("No content type configuration document found at " + configFileFullPath);
             return null;
         }
     }

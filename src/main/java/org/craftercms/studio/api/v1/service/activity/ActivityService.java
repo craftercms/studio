@@ -62,11 +62,7 @@ public interface ActivityService {
 	 * 			activity type filter
 	 * @return
 	 */
-	//public String getLastActor(String site, String key, ActivityType activity);
-
 	public void renameContentId(String site, String oldUrl, String newUrl);
-	
-	//public void updateContentSummary(String site, String url, String summary);
 
 	/**
 	 * get a list of activities by the given user
@@ -88,11 +84,14 @@ public interface ActivityService {
 	 *
 	 * @param userId - required
 	 * @param format - required
-	 * @param siteId - optional, if set then will filter by given siteId else return all sites
+	 * @param site - optional, if set then will filter by given siteId else return all sites
 	 * @return list of JSON feed entries
 	 */
-
 	public ActivityFeed getDeletedActivity(String site, String path);
 
+	/**
+	 * Remove Activities from the system for a given site.
+	 * @param site site
+	 */
 	void deleteActivitiesForSite(String site);
 }

@@ -158,53 +158,62 @@ public class DiskContentRepository extends AbstractContentRepository implements 
 
     @Override
     public boolean moveContent(String fromPath, String toPath) {
-        return moveContent(fromPath, toPath, null);
-    }
 
-    @Override
-    public boolean moveContent(String fromPath, String toPath, String newName) {
+        long startTime = System.currentTimeMillis();
+        boolean result = false;
+        boolean isMoveLocation = false;
+        boolean destFolderExists = false;
 
-        boolean success = true;
+        logger.debug("Move from {0} -> to {1}", fromPath, toPath);
+        String parentFromPath = fromPath.substring(0, fromPath.lastIndexOf("/"));
+        String fromFileName = fromPath.substring(fromPath.lastIndexOf("/")+1);
+        boolean fromIsFile = fromFileName.contains(".");
+
+        String parentToPath = toPath.substring(0, toPath.lastIndexOf("/"));
+        String toFileName = toPath.substring(toPath.lastIndexOf("/")+1);
+        boolean toIsFile = toFileName.contains(".");
 
         try {
             File source = constructRepoPath(fromPath).toFile();
             File destDir = constructRepoPath(toPath).toFile();
 
-            if (!destDir.exists()) {
-                destDir.mkdirs();
+            if(parentFromPath.equals(parentToPath)
+            && fromIsFile == toIsFile) {
+                // this is a rename only
+                logger.debug("Renaming document {0} to {1}/{2}", fromPath, toPath);
+                source.renameTo(destDir);
+            }
+            else {
+                if(!fromFileName.equals(toFileName)
+                && fromIsFile == toIsFile) {
+                    // this kind of move operation on a disk is a rename
+                    logger.debug("Moving RENAME A document {0} to {1}", fromPath, toPath);
+                    source.renameTo(destDir);
+                }
+                else if(fromFileName.equals(toFileName) && source.isDirectory()) {
+                    logger.debug("Moving RENAME B document {0} to {1}", fromPath, toPath);
+                    source.renameTo(destDir);
+                }
+                else {
+                    logger.debug("Moving MOVE document {0} to {1}", fromPath, toPath);
+                    FileUtils.moveFileToDirectory(source, destDir, true);
+                }
             }
 
-            File dest = destDir;
-            if (StringUtils.isNotEmpty(newName)) {
-                dest = new File(destDir, newName);
-                if (!dest.exists()) {
-                    dest.mkdirs();
-                }
-            }
-            if (source.isDirectory()) {
-                File[] dirList = source.listFiles();
-                for (File file : dirList) {
-                    if (file.isDirectory()) {
-                        FileUtils.moveDirectoryToDirectory(file, dest, true);
-                    } else {
-                        FileUtils.moveFileToDirectory(file, dest, true);
-                    }
-                }
-                source.delete();
-            } else {
-                if (dest.isDirectory()) {
-                    FileUtils.moveFileToDirectory(source, dest, true);
-                } else {
-                    source.renameTo(dest);
-                }
-            }
+            result = true;
         }
         catch(Exception err) {
             // log this error
-            success = false;
+            logger.error("repository failed to execute move {0} to {1} name {3}", err, fromPath, toPath);
+            result = false;
         }
 
-        return success;
+        return result;
+    }
+
+    @Override
+    public boolean moveContent(String fromPath, String toPath, String newName) {
+        return moveContent(fromPath, toPath +"/" + newName);
     }
 
 
