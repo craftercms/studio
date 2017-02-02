@@ -143,4 +143,21 @@ class SecurityServices {
         def securityServicesImpl = ServiceFactory.getSecurityServices(context)
         return securityServicesImpl.updateGroup(siteId, groupName, description)
     }
+
+    static deleteGroup(context, siteId, groupName) {
+        def securityServicesImpl = ServiceFactory.getSecurityServices(context)
+        return securityServicesImpl.deleteGroup(siteId, groupName)
+    }
+
+    static addUserToGroup(context, siteId, groupName, username) {
+        def securityServicesImpl = ServiceFactory.getSecurityServices(context)
+        return securityServicesImpl.addUserToGroup(siteId, groupName, username)
+    }
+
+    static removeUserFromGroup(context, siteId, groupName, username) {
+        def securityServicesImpl = ServiceFactory.getSecurityServices(context)
+        return securityServicesImpl.removeUserFromGroup(siteId, groupName, username)
+    }
+
+
 }

@@ -106,22 +106,24 @@ public class DbSecurityProvider implements SecurityProvider {
                     userProfile.put("email", row.getEmail());
                 }
                 String siteId = row.getSiteId();
-                if (!siteId.equals(lastSite)) {
-                    if (site != null) {
-                        if (groups != null) {
-                            site.put("groups", groups);
+                if (StringUtils.isNotEmpty(siteId)) {
+                    if (!siteId.equals(lastSite)) {
+                        if (site != null) {
+                            if (groups != null) {
+                                site.put("groups", groups);
+                            }
+                            sites.add(site);
                         }
-                        sites.add(site);
+                        site = new HashMap<String, Object>();
+                        site.put("site_id", siteId);
+                        site.put("site_name", row.getSiteName());
+                        groups = new ArrayList<Map<String, Object>>();
                     }
-                    site = new HashMap<String, Object>();
-                    site.put("site_id", siteId);
-                    site.put("site_name", row.getSiteName());
-                    groups = new ArrayList<Map<String, Object>>();
+                    Map<String, Object> group = new HashMap<String, Object>();
+                    group.put("group_name", row.getGroupName());
+                    groups.add(group);
+                    lastSite = siteId;
                 }
-                Map<String, Object> group = new HashMap<String, Object>();
-                group.put("group_name", row.getGroupName());
-                groups.add(group);
-                lastSite = siteId;
                 lastUser = username;
             }
             if (site != null) {
@@ -172,18 +174,6 @@ public class DbSecurityProvider implements SecurityProvider {
             toRet.add(userProfile);
         }
         return toRet;
-    }
-
-    public Map<String, String> getUserProfileOld(String user) {
-        User u = securityMapper.getUser(user);
-        Map<String, String> userProfile = new HashMap<String, String>();
-        if (u != null) {
-            userProfile.put("username", u.getUsername());
-            userProfile.put("first_name", u.getFirstname());
-            userProfile.put("last_name", u.getLastname());
-            userProfile.put("email", u.getEmail());
-        }
-        return userProfile;
     }
 
     @Override
@@ -288,8 +278,29 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public void addUserToGroup(String groupName, String user) {
+    public boolean addUserToGroup(String siteId, String groupName, String user) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("groupName", groupName);
+        params.put("siteId", siteId);
+        Group group = securityMapper.getGroupObject(params);
+        params = new HashMap<String, Object>();
+        params.put("username", user);
+        params.put("groupId", group.getId());
+        securityMapper.addUserToGroup(params);
+        return true;
+    }
 
+    @Override
+    public boolean removeUserFromGroup(String siteId, String groupName, String user) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("groupName", groupName);
+        params.put("siteId", siteId);
+        Group group = securityMapper.getGroupObject(params);
+        params = new HashMap<String, Object>();
+        params.put("username", user);
+        params.put("groupId", group.getId());
+        securityMapper.removeUserFromGroup(params);
+        return true;
     }
 
     @Override
@@ -504,6 +515,18 @@ public class DbSecurityProvider implements SecurityProvider {
         params.put("siteId", site.getId());
         params.put("description", description);
         securityMapper.updateGroup(params);
+        return true;
+    }
+
+    @Override
+    public boolean deleteGroup(String siteId, String groupName) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("siteId", siteId);
+        SiteFeed site = siteFeedMapper.getSite(params);
+        params = new HashMap<String, Object>();
+        params.put("groupName", groupName);
+        params.put("siteId", site.getId());
+        securityMapper.deleteGroup(params);
         return true;
     }
 

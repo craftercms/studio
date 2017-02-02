@@ -95,8 +95,8 @@ public class CachedSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public void addUserToGroup(String groupName, String user) {
-        provider.addUserToGroup(groupName, user);
+    public boolean addUserToGroup(String siteId, String groupName, String user) {
+        return provider.addUserToGroup(siteId, groupName, user);
     }
 
     @Override
@@ -222,6 +222,18 @@ public class CachedSecurityProvider implements SecurityProvider {
 
     @Override
     public boolean updateGroup(String siteId, String groupName, String description) {
+        // TODO: DB: Implement this ?
+        return false;
+    }
+
+    @Override
+    public boolean deleteGroup(String siteId, String groupName) {
+        // TODO: DB: Implement this ?
+        return false;
+    }
+
+    @Override
+    public boolean removeUserFromGroup(String siteId, String groupName, String user) {
         // TODO: DB: Implement this ?
         return false;
     }

@@ -43,7 +43,13 @@ public interface SecurityProvider {
 
     String getCurrentToken();
 
-    void addUserToGroup(String groupName, String user);
+    /**
+     * Add user to the group
+     * @param siteId site id
+     * @param groupName group name
+     * @param user username
+     */
+    boolean addUserToGroup(String siteId, String groupName, String user);
 
     boolean logout();
 
@@ -168,4 +174,22 @@ public interface SecurityProvider {
      * @return
      */
     boolean updateGroup(String siteId, String groupName, String description);
+
+    /**
+     * Delete group with given site id and group name
+     *
+     * @param groupName
+     * @param description
+     * @param siteId
+     * @return
+     */
+    boolean deleteGroup(String siteId, String groupName);
+
+    /**
+     * Remove user from the group
+     * @param siteId site id
+     * @param groupName group name
+     * @param user username
+     */
+    boolean removeUserFromGroup(String siteId, String groupName, String user);
 }

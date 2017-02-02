@@ -53,8 +53,6 @@ public interface SecurityService {
 
     void addUserGroup(String parentGroup, String groupName);
 
-    void addUserToGroup(String groupName, String user);
-
     void reloadConfiguration(String site);
 
     void reloadGlobalConfiguration();
@@ -180,4 +178,33 @@ public interface SecurityService {
      * @return
      */
     boolean updateGroup(String siteId, String groupName, String description);
+
+    /**
+     * Delete group for given site with given name
+     *
+     * @param site site id
+     * @param group group name
+     * @return
+     */
+    boolean deleteGroup(String site, String group);
+
+    /**
+     * Add user to the group
+     *
+     * @param siteId site id
+     * @param groupName group name
+     * @param username username
+     * @return
+     */
+    boolean addUserToGroup(String siteId, String groupName, String username);
+
+    /**
+     * Remove user from the group
+     *
+     * @param siteId site id
+     * @param groupName group name
+     * @param username username
+     * @return
+     */
+    boolean removeUserFromGroup(String siteId, String groupName, String username);
 }
