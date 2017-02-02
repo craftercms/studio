@@ -20,7 +20,10 @@ package org.craftercms.studio.impl.v1.deployment;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.commons.httpclient.methods.RequestEntity;
+import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.apache.commons.httpclient.params.HttpMethodParams;
+import org.apache.http.entity.ContentType;
 import org.craftercms.studio.api.v1.deployment.PreviewDeployer;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -30,6 +33,10 @@ import static org.craftercms.studio.api.v1.util.StudioConfiguration.PREVIEW_DEFA
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.PREVIEW_DEFAULT_PREVIEW_DEPLOYER_URL;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class PreviewDeployerImpl implements PreviewDeployer {
 
@@ -56,7 +63,8 @@ public class PreviewDeployerImpl implements PreviewDeployer {
         // TODO: DB: implement deployer agent configuration for preview
         // TODO: SJ: Pseudo code: check if site configuration has a Preview Deployer URL, if so, return it, if not
         // TODO: SJ: return default from studioConfiguration.getProperty(PREVIEW_DEFAULT_PREVIEW_DEPLOYER_URL);
-        return studioConfiguration.getProperty(PREVIEW_DEFAULT_PREVIEW_DEPLOYER_URL);
+        String toRet = studioConfiguration.getProperty(PREVIEW_DEFAULT_PREVIEW_DEPLOYER_URL) + "/preview_" + site;
+        return toRet;
     }
 
     @Override
@@ -66,8 +74,18 @@ public class PreviewDeployerImpl implements PreviewDeployer {
 
         PostMethod postMethod = new PostMethod(requestUrl);
         postMethod.getParams().setBooleanParameter(HttpMethodParams.USE_EXPECT_CONTINUE, true);
-
-        // TODO: DB: add all required params to post method
+        String rqBody = getDeployerCreatePreviewTargetRequestBody(site);
+        RequestEntity requestEntity = null;
+        try {
+            requestEntity = new StringRequestEntity(rqBody, ContentType.APPLICATION_JSON.toString(), StandardCharsets.UTF_8.displayName());
+        } catch (UnsupportedEncodingException e) {
+            logger.info("Unsupported encoding for request body. Using deprecated method instead.");
+        }
+        if (requestEntity != null) {
+            postMethod.setRequestEntity(requestEntity);
+        } else {
+            postMethod.setRequestBody(rqBody);
+        }
 
         HttpClient client = new HttpClient();
         try {
@@ -93,8 +111,43 @@ public class PreviewDeployerImpl implements PreviewDeployer {
         return toReturn;
     }
 
+    private String getDeployerCreatePreviewTargetRequestBody(String site) {
+        Path repoPath = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH), studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH), site, studioConfiguration.getProperty(StudioConfiguration.SANDBOX_PATH));
+        CreateTargetRequestBody requestBody = new CreateTargetRequestBody(site, repoPath.toAbsolutePath().toString());
+        return requestBody.toJson();
+    }
+
     public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
 
     protected StudioConfiguration studioConfiguration;
+
+    class CreateTargetRequestBody {
+
+        protected String targetId;
+        protected String replace = "true";
+        protected String templateName = "preview";
+        protected String siteName;
+        protected String remoteRepoUrl;
+        protected String remoteRepoBranch = "master";
+
+        public CreateTargetRequestBody(String siteName, String repoUrl) {
+            this.targetId = "preview_" + siteName;
+            this.siteName = siteName;
+            this.remoteRepoUrl = repoUrl;
+        }
+
+        public String toJson() {
+            StringBuilder sb = new StringBuilder();
+            sb.append("{ ");
+            sb.append("\"target_id\":\"").append(this.targetId).append("\", ");
+            sb.append("\"replace\":").append(this.replace).append(", ");
+            sb.append("\"template_name\":\"").append(this.templateName).append("\", ");
+            sb.append("\"site_name\":\"").append(this.siteName).append("\", ");
+            sb.append("\"remote_repo_url\":\"").append(this.remoteRepoUrl).append("\", ");
+            sb.append("\"remote_repo_branch\":\"").append(this.remoteRepoBranch).append("\"");
+            sb.append(" }");
+            return sb.toString();
+        }
+    }
 }
