@@ -21,8 +21,14 @@ import scripts.api.SecurityServices
 
 def result = [:]
 
-def start = params.start.toInteger()
-def end = params.end.toInteger()
+def start = 0
+if (params.start != null) {
+    params.start.toInteger()
+}
+def end = 25
+if (params.end != null) {
+    params.end.toInteger()
+}
 
 def context = SecurityServices.createContext(applicationContext, request)
 try {
