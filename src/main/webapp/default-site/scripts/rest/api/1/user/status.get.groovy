@@ -21,7 +21,7 @@ import scripts.api.SecurityServices
 
 def result = [:]
 
-def username = params.user;
+def username = params.username;
 
 def context = SecurityServices.createContext(applicationContext, request)
 try {
