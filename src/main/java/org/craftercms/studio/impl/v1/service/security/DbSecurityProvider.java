@@ -92,11 +92,11 @@ public class DbSecurityProvider implements SecurityProvider {
                     if (userProfile != null && !userProfile.isEmpty()) {
                         if (site != null) {
                             if (groups != null) {
-                                site.put("groups", groups);
+                                site.put("groups", new ArrayList<Map<String, Object>>(groups));
                             }
                             sites.add(site);
                         }
-                        userProfile.put("sites", sites);
+                        userProfile.put("sites", new ArrayList(sites));
                         toRet.add(userProfile);
                     }
                     userProfile = new HashMap<String, Object>();
@@ -104,13 +104,16 @@ public class DbSecurityProvider implements SecurityProvider {
                     userProfile.put("first_name", row.getFirstName());
                     userProfile.put("last_name", row.getLastName());
                     userProfile.put("email", row.getEmail());
+                    sites = new ArrayList<Object>();
+                    groups = new ArrayList<Map<String, Object>>();
+                    site = null;
                 }
                 String siteId = row.getSiteId();
                 if (StringUtils.isNotEmpty(siteId)) {
                     if (!siteId.equals(lastSite)) {
                         if (site != null) {
                             if (groups != null) {
-                                site.put("groups", groups);
+                                site.put("groups", new ArrayList<Map<String, Object>>(groups));
                             }
                             sites.add(site);
                         }
@@ -128,11 +131,11 @@ public class DbSecurityProvider implements SecurityProvider {
             }
             if (site != null) {
                 if (groups != null) {
-                    site.put("groups", groups);
+                    site.put("groups", new ArrayList<Map<String, Object>>(groups));
                 }
                 sites.add(site);
             }
-            userProfile.put("sites", sites);
+            userProfile.put("sites", new ArrayList(sites));
             toRet.add(userProfile);
         }
         return toRet;
