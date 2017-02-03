@@ -28,7 +28,7 @@ def parsedReq = slurper.parseText(requestBody)
 
 def groupName = parsedReq.group_name
 def description = parsedReq.description
-def siteId = parsedReq.site_id.toInteger()
+def siteId = parsedReq.site_id
 
 def context = SecurityServices.createContext(applicationContext, request)
 try {

@@ -107,7 +107,7 @@ public interface SecurityService {
      * @param siteId
      * @return
      */
-    boolean createGroup(String groupName, String description, long siteId);
+    boolean createGroup(String groupName, String description, String siteId);
 
     /**
      * Get status for given user

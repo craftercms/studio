@@ -387,13 +387,20 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public boolean createGroup(String groupName, String description, long siteId) {
+    public boolean createGroup(String groupName, String description, String siteId) {
         Map<String, Object> params = new HashMap<String, Object>();
-        params.put("name", groupName);
-        params.put("description", description);
         params.put("siteId", siteId);
-        securityMapper.createGroup(params);
-        return true;
+        SiteFeed site = siteFeedMapper.getSite(params);
+        if (site != null) {
+            params = new HashMap<String, Object>();
+            params.put("name", groupName);
+            params.put("description", description);
+            params.put("siteId", site.getId());
+            securityMapper.createGroup(params);
+            return true;
+        } else {
+            return false;
+        }
     }
 
     @Override
