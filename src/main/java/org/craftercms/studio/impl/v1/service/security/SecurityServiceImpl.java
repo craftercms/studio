@@ -536,7 +536,7 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
-    public boolean createGroup(String groupName, String description, long siteId) {
+    public boolean createGroup(String groupName, String description, String siteId) {
         return securityProvider.createGroup(groupName, description, siteId);
     }
 

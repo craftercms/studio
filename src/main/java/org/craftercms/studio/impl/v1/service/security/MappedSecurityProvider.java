@@ -171,7 +171,7 @@ public class MappedSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public boolean createGroup(String groupName, String description, long siteId) {
+    public boolean createGroup(String groupName, String description, String siteId) {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.createGroup(groupName, description, siteId);
     }

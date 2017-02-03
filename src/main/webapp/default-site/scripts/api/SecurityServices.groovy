@@ -107,7 +107,10 @@ class SecurityServices {
         return securityServicesImpl.getUserStatus(username)
     }
 
-
+    static getAllUsers(context) {
+        def securityServicesImpl = ServiceFactory.getSecurityServices(context)
+        return securityServicesImpl.getAllUsers()
+    }
 
     static getUsersPerSite(context, site) {
         def securityServicesImpl = ServiceFactory.getSecurityServices(context)

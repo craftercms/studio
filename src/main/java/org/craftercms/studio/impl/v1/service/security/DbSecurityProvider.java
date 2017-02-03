@@ -92,11 +92,11 @@ public class DbSecurityProvider implements SecurityProvider {
                     if (userProfile != null && !userProfile.isEmpty()) {
                         if (site != null) {
                             if (groups != null) {
-                                site.put("groups", groups);
+                                site.put("groups", new ArrayList<Map<String, Object>>(groups));
                             }
                             sites.add(site);
                         }
-                        userProfile.put("sites", sites);
+                        userProfile.put("sites", new ArrayList(sites));
                         toRet.add(userProfile);
                     }
                     userProfile = new HashMap<String, Object>();
@@ -104,13 +104,16 @@ public class DbSecurityProvider implements SecurityProvider {
                     userProfile.put("first_name", row.getFirstName());
                     userProfile.put("last_name", row.getLastName());
                     userProfile.put("email", row.getEmail());
+                    sites = new ArrayList<Object>();
+                    groups = new ArrayList<Map<String, Object>>();
+                    site = null;
                 }
                 String siteId = row.getSiteId();
                 if (StringUtils.isNotEmpty(siteId)) {
                     if (!siteId.equals(lastSite)) {
                         if (site != null) {
                             if (groups != null) {
-                                site.put("groups", groups);
+                                site.put("groups", new ArrayList<Map<String, Object>>(groups));
                             }
                             sites.add(site);
                         }
@@ -128,11 +131,11 @@ public class DbSecurityProvider implements SecurityProvider {
             }
             if (site != null) {
                 if (groups != null) {
-                    site.put("groups", groups);
+                    site.put("groups", new ArrayList<Map<String, Object>>(groups));
                 }
                 sites.add(site);
             }
-            userProfile.put("sites", sites);
+            userProfile.put("sites", new ArrayList(sites));
             toRet.add(userProfile);
         }
         return toRet;
@@ -140,6 +143,12 @@ public class DbSecurityProvider implements SecurityProvider {
 
     @Override
     public List<Map<String, Object>> getUsersPerSite(String site) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("siteId", site);
+        SiteFeed s = siteFeedMapper.getSite(params);
+        if (s == null) {
+            return null;
+        }
         List<UserProfileResult> resultSet = securityMapper.getUsersPerSite(site);
         List<Map<String, Object>> toRet = new ArrayList<Map<String, Object>>();
         Map<String, Object> userProfile = new HashMap<String, Object>();
@@ -378,13 +387,20 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public boolean createGroup(String groupName, String description, long siteId) {
+    public boolean createGroup(String groupName, String description, String siteId) {
         Map<String, Object> params = new HashMap<String, Object>();
-        params.put("name", groupName);
-        params.put("description", description);
         params.put("siteId", siteId);
-        securityMapper.createGroup(params);
-        return true;
+        SiteFeed site = siteFeedMapper.getSite(params);
+        if (site != null) {
+            params = new HashMap<String, Object>();
+            params.put("name", groupName);
+            params.put("description", description);
+            params.put("siteId", site.getId());
+            securityMapper.createGroup(params);
+            return true;
+        } else {
+            return false;
+        }
     }
 
     @Override
