@@ -26,13 +26,13 @@ def site = params.site_id;
 def context = SecurityServices.createContext(applicationContext, request)
 try {
     def users = SecurityServices.getUsersPerSite(context, site);
-    if (users != null && !users.isEmpty()) {
+    if (users != null) {
         result.users = users
         return result;
     } else {
         response.setStatus(404)
         result.status = "Site not found"
-        return result;
+        return result
     }
 } catch (Exception e) {
     response.setStatus(500)

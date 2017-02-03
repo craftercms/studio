@@ -143,6 +143,12 @@ public class DbSecurityProvider implements SecurityProvider {
 
     @Override
     public List<Map<String, Object>> getUsersPerSite(String site) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("siteId", site);
+        SiteFeed s = siteFeedMapper.getSite(params);
+        if (s == null) {
+            return null;
+        }
         List<UserProfileResult> resultSet = securityMapper.getUsersPerSite(site);
         List<Map<String, Object>> toRet = new ArrayList<Map<String, Object>>();
         Map<String, Object> userProfile = new HashMap<String, Object>();
