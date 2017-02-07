@@ -5,6 +5,7 @@
     <groupId>org.craftercms</groupId>
     <artifactId>crafter-studio-2</artifactId>
     <name>Crafter Studio</name>
+         <description>Crafter Studio</description>
     <packaging>war</packaging>
     <version>2.5.4-SNAPSHOT</version>
     <url>http://www.craftercms.org</url>
