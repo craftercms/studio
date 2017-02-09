@@ -205,6 +205,14 @@ public class DeploymentServiceImpl implements DeploymentService {
             params.put("environment", environment);
             params.put("path", path);
             params.put("state", CopyToEnvironment.State.COMPLETED);
+            boolean renamed = objectMetadataManager.isRenamed(site, path);
+            String oldPath = null;
+            
+            if(renamed) {
+                oldPath = objectMetadataManager.getOldPath(site, path);
+                params.put("path", oldPath);
+            }
+
             int numDeployments = copyToEnvironmentMapper.checkIfItemWasPublishedForEnvironment(params);
             if (numDeployments > 0) {
                 CopyToEnvironment item = new CopyToEnvironment();
@@ -215,10 +223,11 @@ public class DeploymentServiceImpl implements DeploymentService {
                 item.setScheduledDate(scheduledDate);
                 item.setState(CopyToEnvironment.State.READY_FOR_LIVE);
                 item.setAction(CopyToEnvironment.Action.DELETE);
-                if (objectMetadataManager.isRenamed(site, path)) {
-                    String oldPath = objectMetadataManager.getOldPath(site, item.getPath());
+
+                if(renamed) {
                     item.setOldPath(oldPath);
-                }
+                } 
+
                 String contentTypeClass = contentService.getContentTypeClass(site, path);
                 item.setContentTypeClass(contentTypeClass);
                 item.setUser(approver);
