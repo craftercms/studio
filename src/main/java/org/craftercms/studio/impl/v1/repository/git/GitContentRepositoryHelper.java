@@ -310,7 +310,7 @@ public class GitContentRepositoryHelper {
 
         // Get the Sandbox Path
         Path siteSandboxPath = buildRepoPath(GitRepositories.SANDBOX, site);
-        // Get parent of that (since every site has two repos: Sandbox and Published
+        // Get parent of that (since every site has two repos: Sandbox and Published)
         Path sitePath = siteSandboxPath.getParent();
         // Get a file handle to the parent and delete it
         File siteFolder = sitePath.toFile();
@@ -320,6 +320,10 @@ public class GitContentRepositoryHelper {
         if (toReturn) {
             sandboxes.remove(site);
             published.remove(site);
+
+            logger.debug("Deleted site: " + site + " at path: " + sitePath);
+        } else {
+            logger.error("Failed to delete site: " + site + " at path: " + sitePath);
         }
 
         return toReturn;
