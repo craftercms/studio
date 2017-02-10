@@ -58,6 +58,9 @@ package org.craftercms.studio.api.v1.constant;
    String PATTERN_SITE = "\\{site\\}";
    String PATTERN_WEB_PROJECT = "\\$\\{webproject\\}";
 
+   /** Studio Structure Constants **/
+   String DESCRIPTOR_ROOT_PATH  = "/site";
+
 	/**
 	 * Error Codes
 	 */
