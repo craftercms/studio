@@ -546,6 +546,26 @@ public class DbSecurityProvider implements SecurityProvider {
         return true;
     }
 
+    @Override
+    public boolean changePassword(String username, String current, String newPassword) {
+        User user = securityMapper.getUser(username);
+        if (user != null && CipherUtils.matchPassword(user.getPassword(), current)) {
+            return setUserPassword(username, newPassword);
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public boolean setUserPassword(String username, String newPassword) {
+        String hashedPassword = CipherUtils.hashPassword(newPassword);
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("username", username);
+        params.put("password", hashedPassword);
+        securityMapper.setUserPassword(params);
+        return true;
+    }
+
     protected StudioConfiguration studioConfiguration;
 
     public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }

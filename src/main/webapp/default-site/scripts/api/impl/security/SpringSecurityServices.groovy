@@ -150,4 +150,24 @@ class SpringSecurityServices {
         def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
         return springBackedService.removeUserFromGroup(siteId, groupName, username)
     }
+
+    def forgotPassword(username) {
+        def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
+        return springBackedService.forgotPassword(username)
+    }
+
+    def forgotPasswordValidateToken(token) {
+        def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
+        return springBackedService.forgotPasswordValidateToken(token)
+    }
+
+    def changePassword(username, current, newPassword) {
+        def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
+        return springBackedService.changePassword(username, current, newPassword)
+    }
+
+    def setUserPassword(username, token, newPassword) {
+        def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
+        return springBackedService.setUserPassword(username, token, newPassword)
+    }
 }

@@ -192,4 +192,21 @@ public interface SecurityProvider {
      * @param user username
      */
     boolean removeUserFromGroup(String siteId, String groupName, String user);
+
+    /**
+     * Change password
+     * @param username username
+     * @param current current password
+     * @param newPassword new password
+     * @return
+     */
+    boolean changePassword(String username, String current, String newPassword);
+
+    /**
+     * Set user password
+     * @param username username
+     * @param newPassword new password
+     * @return
+     */
+    boolean setUserPassword(String username, String newPassword);
 }

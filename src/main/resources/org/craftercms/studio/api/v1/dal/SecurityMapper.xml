@@ -187,4 +187,10 @@
     <insert id="removeUserFromGroup" parameterType="java.util.Map">
         DELETE FROM cstudio_usergroup WHERE username = #{username} AND groupid = #{groupId}
     </insert>
+
+    <update id="setUserPassword" parameterType="java.util.Map">
+        UPDATE cstudio_user
+        SET password = #{password}
+        WHERE username = #{username}
+    </update>
 </mapper>
