@@ -229,4 +229,16 @@ public class MappedSecurityProvider implements SecurityProvider {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.removeUserFromGroup(siteId, groupName, user);
     }
+
+    @Override
+    public boolean changePassword(String username, String current, String newPassword) {
+        SecurityProvider provider = lookupProvider(getProviderType());
+        return provider.changePassword(username, current, newPassword);
+    }
+
+    @Override
+    public boolean setUserPassword(String username, String newPassword) {
+        SecurityProvider provider = lookupProvider(getProviderType());
+        return provider.setUserPassword(username, newPassword);
+    }
 }

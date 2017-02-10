@@ -108,6 +108,12 @@ public interface StudioConfiguration {
     String SECURITY_TYPE = "studio.security.type";
     String SECURITY_FILE_CONFIG_LOCATION = "studio.security.file.configLocation";
     String SECURITY_DB_SESSION_TIMEOUT = "studio.security.db.sessionTimeout";
+    String SECURITY_CIPHER_SALT = "studio.security.cipher.salt";
+    String SECURITY_CIPHER_KEY = "studio.security.cipher.key";
+    String SECURITY_CIPHER_TYPE = "studio.security.cipher.type";
+    String SECURITY_CIPHER_ALGORITHM = "studio.security.cipher.algorithm";
+    String SECURITY_FORGOT_PASSWORD_MESSAGE_SUBJECT = "studio.security.forgotPassword.message.subject";
+    String SECURITY_FORGOT_PASSWORD_MESSAGE_TEXT = "studio.security.forgotPassword.message.text";
 
     /** Page Navigation Order Service */
     String PAGE_NAVIGATION_ORDER_INCREMENT = "studio.pageNavigationOrder.increment";

@@ -237,4 +237,16 @@ public class CachedSecurityProvider implements SecurityProvider {
         // TODO: DB: Implement this ?
         return false;
     }
+
+    @Override
+    public boolean changePassword(String username, String current, String newPassword) {
+        // TODO: DB: Implement this ?
+        return false;
+    }
+
+    @Override
+    public boolean setUserPassword(String username, String newPassword) {
+        // TODO: DB: Implement this ?
+        return false;
+    }
 }

@@ -207,4 +207,40 @@ public interface SecurityService {
      * @return
      */
     boolean removeUserFromGroup(String siteId, String groupName, String username);
+
+    /**
+     * Forgot password for given user
+     *
+     * @param username username
+     * @return
+     */
+    boolean forgotPassword(String username);
+
+    /**
+     * Forgot password token to validate
+     *
+     * @param username token
+     * @return
+     */
+    boolean forgotPasswordValidateToken(String token);
+
+    /**
+     * Change password
+     *
+     * @param username username
+     * @param current current password
+     * @param newPassword new password
+     * @return
+     */
+    boolean changePassword(String username, String current, String newPassword);
+
+    /**
+     * Set password
+     *
+     * @param username username
+     * @param token forgot password token
+     * @param newPassword new password
+     * @return
+     */
+    boolean setUserPassword(String username, String token, String newPassword);
 }

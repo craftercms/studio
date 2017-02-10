@@ -27,12 +27,12 @@ def slurper = new JsonSlurper()
 def parsedReq = slurper.parseText(requestBody)
 
 def username = parsedReq.username;
-def current = parsedReq.current;
+def token = parsedReq.token;
 def newPassword = parsedReq.new;
 
 def context = SecurityServices.createContext(applicationContext, request)
 try {
-    def success = SecurityServices.changePassword(context, username, current, newPassword)
+    def success = SecurityServices.setUserPassword(context, username, token, newPassword)
     if (success) {
         def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/user/get?username=" + username
         response.addHeader("Location", locationHeader)
