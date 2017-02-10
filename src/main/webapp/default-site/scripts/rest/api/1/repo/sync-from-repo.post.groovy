@@ -1,6 +1,6 @@
 /*
  * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2016 Crafter Software Corporation.
+ * Copyright (C) 2007-2017 Crafter Software Corporation.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,11 +16,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-import scripts.api.SiteServices;
+
+import groovy.json.JsonSlurper
+import scripts.api.SecurityServices
 
 def result = [:]
-def site = params.site;
+def requestBody = request.reader.text
+
+def slurper = new JsonSlurper()
+def parsedReq = slurper.parseText(requestBody)
+
+def siteId = parsedReq.site_id
 
 def context = SiteServices.createContext(applicationContext, request);
-result = SiteServices.rebuildRepositoryMetadata(context, site);
+result = SiteServices.syncRepository(context, siteId);
 return result;

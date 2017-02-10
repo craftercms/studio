@@ -18,15 +18,19 @@
 
 package org.craftercms.studio.impl.v1.service.security;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.crypto.CryptoUtils;
 import org.craftercms.commons.http.RequestContext;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.StudioXmlConstants;
@@ -46,7 +50,13 @@ import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.Node;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.security.crypto.codec.Hex;
 
+import javax.crypto.*;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 import javax.servlet.http.HttpSession;
 
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.*;
@@ -580,6 +590,97 @@ public class SecurityServiceImpl implements SecurityService {
         return securityProvider.removeUserFromGroup(siteId, groupName, username);
     }
 
+    @Override
+    public boolean forgotPassword(String username) {
+        Map<String, Object> userProfile = securityProvider.getUserProfile(username);
+        if (userProfile == null) return false;
+
+        String email = userProfile.get("email").toString();
+        long timestamp = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(15);
+        String salt = studioConfiguration.getProperty(SECURITY_CIPHER_SALT);
+
+        String token = username + "|" + timestamp + "|" + salt;
+        String hashedToken = encryptToken(token);
+        sendForgotPasswordEmail(email, hashedToken);
+        return true;
+    }
+
+    @Override
+    public boolean forgotPasswordValidateToken(String token) {
+        String decryptedToken = decryptToken(token);
+        StringTokenizer tokenElements = new StringTokenizer(decryptedToken, "|");
+        if (tokenElements.countTokens() == 3) {
+            String username = tokenElements.nextToken();
+            long tokenTimestamp = Long.parseLong(tokenElements.nextToken());
+            if (tokenTimestamp < System.currentTimeMillis()) {
+                return false;
+            } else {
+                return true;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    private String encryptToken(String token) {
+        try {
+            SecretKeySpec key = new SecretKeySpec(studioConfiguration.getProperty(SECURITY_CIPHER_KEY).getBytes(), studioConfiguration.getProperty(SECURITY_CIPHER_TYPE));
+            Cipher cipher = Cipher.getInstance(studioConfiguration.getProperty(SECURITY_CIPHER_ALGORITHM));
+            byte[] tokenBytes = token.getBytes(StandardCharsets.UTF_8);
+            cipher.init(Cipher.ENCRYPT_MODE, key, new IvParameterSpec(key.getEncoded()));
+            byte[] encrypted = cipher.doFinal(tokenBytes);
+            return Base64.getEncoder().encodeToString(encrypted);
+        } catch (NoSuchAlgorithmException | InvalidKeyException | NoSuchPaddingException | BadPaddingException | IllegalBlockSizeException | InvalidAlgorithmParameterException e) {
+            logger.error("Error while encrypting forgot password token", e);
+            return null;
+        }
+    }
+
+    private String decryptToken(String token) {
+        try {
+            SecretKeySpec key = new SecretKeySpec(studioConfiguration.getProperty(SECURITY_CIPHER_KEY).getBytes(), studioConfiguration.getProperty(SECURITY_CIPHER_TYPE));
+            Cipher cipher = Cipher.getInstance(studioConfiguration.getProperty(SECURITY_CIPHER_ALGORITHM));
+            byte[] tokenBytes = Base64.getDecoder().decode(token.getBytes(StandardCharsets.UTF_8));
+            cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(key.getEncoded()));
+            byte[] decrypted = cipher.doFinal(tokenBytes);
+            return new String(decrypted, StandardCharsets.UTF_8);
+        } catch (NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException | BadPaddingException | IllegalBlockSizeException | InvalidAlgorithmParameterException e) {
+            logger.error("Error while decrypting forgot password token", e);
+            return null;
+        }
+    }
+
+    private void sendForgotPasswordEmail(String emailAddress, String token) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom(getDefaultFromAddress());
+        message.setTo(emailAddress);
+        message.setSubject(studioConfiguration.getProperty(SECURITY_FORGOT_PASSWORD_MESSAGE_SUBJECT));
+        try {
+            message.setText(studioConfiguration.getProperty(SECURITY_FORGOT_PASSWORD_MESSAGE_TEXT).replace("{token}",  URLEncoder.encode(token, StandardCharsets.UTF_8.displayName())));
+        } catch (UnsupportedEncodingException e) {
+            message.setText(studioConfiguration.getProperty(SECURITY_FORGOT_PASSWORD_MESSAGE_TEXT).replace("{token}", URLEncoder.encode(token)));
+        }
+        if (isAuthenticatedSMTP()) {
+            emailService.send(message);
+        } else {
+            emailServiceNoAuth.send(message);
+        }
+    }
+
+    @Override
+    public boolean changePassword(String username, String current, String newPassword) {
+        return securityProvider.changePassword(username, current, newPassword);
+    }
+
+    @Override
+    public boolean setUserPassword(String username, String token, String newPassword) {
+        if (forgotPasswordValidateToken(token)) {
+            return securityProvider.setUserPassword(username, newPassword);
+        } else {
+            return false;
+        }
+    }
+
     public String getConfigPath() {
         return studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH);
     }
@@ -609,6 +710,15 @@ public class SecurityServiceImpl implements SecurityService {
         return toReturn;
     }
 
+    public boolean isAuthenticatedSMTP() {
+        boolean toReturn = Boolean.parseBoolean(studioConfiguration.getProperty(MAIL_SMTP_AUTH));
+        return toReturn;
+    }
+
+    public String getDefaultFromAddress() {
+        return studioConfiguration.getProperty(MAIL_FROM_DEFAULT);
+    }
+
     public SecurityProvider getSecurityProvider() { return securityProvider; }
     public void setSecurityProvider(SecurityProvider securityProvider) { this.securityProvider = securityProvider; }
 
@@ -624,9 +734,17 @@ public class SecurityServiceImpl implements SecurityService {
     public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
 
+    public JavaMailSender getEmailService() { return emailService; }
+    public void setEmailService(JavaMailSender emailService) { this.emailService = emailService; }
+
+    public JavaMailSender getEmailServiceNoAuth() { return emailServiceNoAuth; }
+    public void setEmailServiceNoAuth(JavaMailSender emailServiceNoAuth) { this.emailServiceNoAuth = emailServiceNoAuth; }
+
     protected SecurityProvider securityProvider;
     protected ContentTypeService contentTypeService;
     protected ContentService contentService;
     protected GeneralLockService generalLockService;
     protected StudioConfiguration studioConfiguration;
+    protected JavaMailSender emailService;
+    protected JavaMailSender emailServiceNoAuth;
 }

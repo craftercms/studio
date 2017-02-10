@@ -16,11 +16,25 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-import scripts.api.SiteServices;
+
+import scripts.api.SecurityServices
 
 def result = [:]
-def site = params.site;
 
-def context = SiteServices.createContext(applicationContext, request);
-result = SiteServices.syncRepository(context, site);
-return result;
+def token = params.token
+
+def context = SecurityServices.createContext(applicationContext, request)
+try {
+    def success = SecurityServices.forgotPasswordValidateToken(context, token);
+    if (success) {
+        return success;
+    } else {
+        response.setStatus(404)
+        result.status = "User not found"
+        return result;
+    }
+} catch (Exception e) {
+    response.setStatus(500)
+    result.status = "Internal server error"
+    return result;
+}

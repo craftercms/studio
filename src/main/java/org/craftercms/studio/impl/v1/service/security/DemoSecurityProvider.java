@@ -326,6 +326,18 @@ public class DemoSecurityProvider implements SecurityProvider {
         return false;
     }
 
+    @Override
+    public boolean changePassword(String username, String current, String newPassword) {
+        // TODO: DB: Implement this ?
+        return false;
+    }
+
+    @Override
+    public boolean setUserPassword(String username, String newPassword) {
+        // TODO: DB: Implement this ?
+        return false;
+    }
+
     class User {
 
         public String getUsername() { return username; }
