@@ -153,7 +153,7 @@ public interface StudioConfiguration {
     String PREVIEW_REPLACE = "studio.preview.replace";
     String PREVIEW_TEMPLATE_NAME = "studio.preview.templateName";
     String PREVIEW_REPO_URL = "studio.preview.repoUrl";
-    String PREVIEW_REPO_BRANCH = "studio.preview.repoBranch";
+    String PREVIEW_REPO_BRANCH = "studio.preview.previewBranch";
     String PREVIEW_ENGINE_URL = "studio.preview.engineUrl";
     String PREVIEW_NOTIFICATION_ADDRESSES = "studio.preview.notificationAddresses";
 
