@@ -121,7 +121,6 @@ public class PreviewDeployerImpl implements PreviewDeployer {
         requestBody.setRemoteRepoUrl(studioConfiguration.getProperty(PREVIEW_REPO_URL).replace("{site}", site));
         requestBody.setRemoteRepoBranch(studioConfiguration.getProperty(PREVIEW_REPO_BRANCH));
         requestBody.setEngineUrl(studioConfiguration.getProperty(PREVIEW_ENGINE_URL));
-        requestBody.setNotificationAddresses(Arrays.asList(studioConfiguration.getProperty(PREVIEW_NOTIFICATION_ADDRESSES).split(",")));
         return requestBody.toJson();
     }
 
@@ -139,7 +138,6 @@ public class PreviewDeployerImpl implements PreviewDeployer {
         protected String remoteRepoUrl;
         protected String remoteRepoBranch;
         protected String engineUrl;
-        protected List<String> notificationAddresses;
 
         public String toJson() {
             StringBuilder sb = new StringBuilder();
@@ -152,18 +150,6 @@ public class PreviewDeployerImpl implements PreviewDeployer {
             sb.append("\"remote_repo_branch\":\"").append(this.remoteRepoBranch).append("\", ");
             sb.append("\"engine_url\":\"").append(this.engineUrl).append("\"");
             sb.append(" }");
-            return sb.toString();
-        }
-
-        private String prepareNotificationAddressesString() {
-            StringBuilder sb = new StringBuilder();
-            boolean first = true;
-            for (String s : this.notificationAddresses) {
-                if (!first) {
-                    sb.append(", ");
-                }
-                sb.append("\"").append(s).append("\"");
-            }
             return sb.toString();
         }
 
@@ -187,8 +173,5 @@ public class PreviewDeployerImpl implements PreviewDeployer {
 
         public String getEngineUrl() { return engineUrl; }
         public void setEngineUrl(String engineUrl) { this.engineUrl = engineUrl; }
-
-        public List<String> getNotificationAddresses() { return notificationAddresses; }
-        public void setNotificationAddresses(List<String> notificationAddresses) { this.notificationAddresses = notificationAddresses; }
     }
 }
