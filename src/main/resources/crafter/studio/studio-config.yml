@@ -285,11 +285,19 @@ studio.contentTypes.filter.documents.includePattern: ^/document.*
 ##                    Preview Deployer                    ##
 ############################################################
 # Default preview deployer URL (can be overridden per site)
-studio.preview.defaultPreviewDeployerUrl: http://localhost:9191/api/1/target/deploy
+studio.preview.defaultPreviewDeployerUrl: http://localhost:9191/api/1/target/deploy/preview/{site}
 # Default preview create target URL (can be overridden per site)
 studio.preview.createTargetUrl: http://localhost:9191/api/1/target/create
-
-# studio.preview.siteDeploymentConfigFolder
+#
+studio.preview.replace: true
+#
+studio.preview.templateName: preview
+#
+studio.preview.repoUrl: file:///opt/crafter/data/repos/sites/{site}/sandbox
+#
+studio.preview.repoBranch: master
+#
+studio.preview.engineUrl: http://localhost:8080
 
 ############################################################
 ##                   Publishing Manager                   ##

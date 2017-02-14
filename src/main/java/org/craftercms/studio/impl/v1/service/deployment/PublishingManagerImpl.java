@@ -29,10 +29,7 @@ import org.craftercms.studio.api.v1.dal.CopyToEnvironmentMapper;
 import org.craftercms.studio.api.v1.dal.ObjectMetadata;
 import org.craftercms.studio.api.v1.dal.PublishToTarget;
 import org.craftercms.studio.api.v1.deployment.Deployer;
-import org.craftercms.studio.api.v1.ebus.DeploymentEventItem;
-import org.craftercms.studio.api.v1.ebus.DeploymentEventMessage;
-import org.craftercms.studio.api.v1.ebus.DeploymentEventService;
-import org.craftercms.studio.api.v1.ebus.RepositoryEventContext;
+import org.craftercms.studio.api.v1.ebus.*;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
@@ -353,7 +350,116 @@ public class PublishingManagerImpl implements PublishingManager {
     }
 
     @Override
-    public void processItem(CopyToEnvironment item) throws DeploymentException {
+    public DeploymentItem processItem(CopyToEnvironment item) throws DeploymentException {
+
+        if(item == null) {
+            throw new DeploymentException("Cannot processItem. Item is null");
+        }
+        DeploymentItem deploymentItem = new DeploymentItem();
+        deploymentItem.setSite(item.getSite());
+        deploymentItem.setPath(item.getPath());
+        ObjectMetadata itemMetadata = objectMetadataManager.getProperties(item.getSite(), item.getPath());
+        deploymentItem.setCommitId(itemMetadata.getCommitId());
+
+        String site = item.getSite();
+        String path = item.getPath();
+        String oldPath = item.getOldPath();
+        String environment = item.getEnvironment();
+        String action = item.getAction();
+        String user = item.getUser();
+        String submissionComment = item.getSubmissionComment();
+
+
+        String liveEnvironment = siteService.getLiveEnvironmentName(site);
+        boolean isLive = false;
+
+        if (StringUtils.isNotEmpty(liveEnvironment)) {
+            if (liveEnvironment.equals(environment)) {
+                isLive = true;
+            }
+        }
+        else if (LIVE_ENVIRONMENT.equalsIgnoreCase(item.getEnvironment()) || PRODUCTION_ENVIRONMENT.equalsIgnoreCase(environment)) {
+            isLive = true;
+        }
+
+        if (StringUtils.equals(action, CopyToEnvironment.Action.DELETE)) {
+            if (oldPath != null && oldPath.length() > 0) {
+                objectMetadataManager.clearRenamed(site, path);
+            }
+        } else {
+            LOGGER.debug("Setting system processing for {0}:{1}", site, path);
+            objectStateService.setSystemProcessing(site, path, true);
+
+            if (isLive) {
+                if (!isImportModeEnabled()) {
+                    // TODO: SJ: This bypasses the Content Service, fix
+                    contentRepository.createVersion(site, path, submissionComment, true);
+                }
+                else {
+                    LOGGER.debug("Import mode is ON. Create new version is skipped for [{0}] site \"{1}\"", path, site);
+                }
+            }
+
+            if (StringUtils.equals(action, CopyToEnvironment.Action.MOVE)) {
+                if (oldPath != null && oldPath.length() > 0) {
+                    if (isLive) {
+                        objectMetadataManager.clearRenamed(site, path);
+                    }
+                }
+            }
+
+            ObjectMetadata objectMetadata = objectMetadataManager.getProperties(site, path);
+
+
+            if (objectMetadata == null) {
+                LOGGER.debug("No object state found for {0}:{1}, create it", site, path);
+                objectMetadataManager.insertNewObjectMetadata(site, path);
+                objectMetadata = objectMetadataManager.getProperties(site, path);
+            }
+
+
+            if(objectMetadata != null) {
+                boolean sendEmail = objectMetadata.getSendEmail() == 1 ? true : false;
+
+                if (sendEmail) {
+                    String submittedByValue = objectMetadata.getSubmittedBy();
+
+                    try {
+                        LOGGER.debug("Sending approval notification for item site:{0} path:{1} user:{2}", site, path, user);
+                        notificationService.sendApprovalNotification(site, submittedByValue, path, user);
+                        LOGGER.debug("Sending approval notification SENT site:{0} path:{1} user:{2}", site, path, user);
+                    }
+                    catch(Exception eNotifyError) {
+                        LOGGER.debug("Error sending approval notification site:{0} path:{1} user:{2}", site, path, user);
+                    }
+                }
+            }
+            else {
+                LOGGER.error("Unable to get item metadata for {0}:{1}, can't notify", site, path);
+            }
+
+            if (isLive) {
+                // should consider what should be done if this does not work. Currently the method will bail and the item is stuck in processing.
+                LOGGER.debug("Environment is live, transition item to LIVE state {0}:{1}", site, path);
+                ContentItemTO contentItem = contentService.getContentItem(site, path);
+                objectStateService.transition(site, contentItem, TransitionEvent.DEPLOYMENT);
+                if (objectMetadata != null) {
+                    Map<String, Object> props = new HashMap<String, Object>();
+                    props.put(ObjectMetadata.PROP_SUBMITTED_BY, StringUtils.EMPTY);
+                    props.put(ObjectMetadata.PROP_SEND_EMAIL, 0);
+                    props.put(ObjectMetadata.PROP_SUBMITTED_FOR_DELETION, 0);
+                    props.put(ObjectMetadata.PROP_SUBMISSION_COMMENT, StringUtils.EMPTY);
+                    objectMetadataManager.setObjectMetadata(site, path, props);
+                }
+            }
+
+            LOGGER.debug("Resetting system processing for {0}:{1}", site, path);
+            objectStateService.setSystemProcessing(site, path, false);
+        }
+        return deploymentItem;
+    }
+
+    public void processItem_old(CopyToEnvironment item) throws DeploymentException {
 
         if(item == null) {
             throw new DeploymentException("Cannot processItem. Item is null");
@@ -387,7 +493,7 @@ public class PublishingManagerImpl implements PublishingManager {
             if (oldPath != null && oldPath.length() > 0) {
                 contentService.deleteContent(site, oldPath, user);
                 boolean hasRenamedChildren = false;
-                deployer.deleteFile(site, path);
+                //deployer.deleteFile(site, path);
 
                 if (oldPath.endsWith("/" + DmConstants.INDEX_FILE)) {
                     if (contentService.contentExists(site, oldPath.replace("/" + DmConstants.INDEX_FILE, ""))) {
@@ -395,7 +501,7 @@ public class PublishingManagerImpl implements PublishingManager {
                         RepositoryItem[] children = contentRepository.getContentChildren(site, oldPath.replace("/" + DmConstants.INDEX_FILE, ""));
 
                         if (children.length < 2) {
-                            deployer.deleteFile(site, oldPath.replace("/" + DmConstants.INDEX_FILE, ""));
+                            //deployer.deleteFile(site, oldPath.replace("/" + DmConstants.INDEX_FILE, ""));
                         } else {
                             hasRenamedChildren = true;
                         }
@@ -411,7 +517,7 @@ public class PublishingManagerImpl implements PublishingManager {
 
 
             boolean haschildren = false;
-            deployer.deleteFile(site, path);
+            //deployer.deleteFile(site, path);
 
 
             if (item.getPath().endsWith("/" + DmConstants.INDEX_FILE)) {
@@ -420,7 +526,7 @@ public class PublishingManagerImpl implements PublishingManager {
                     RepositoryItem[] children = contentRepository.getContentChildren(site, path.replace("/" + DmConstants.INDEX_FILE, ""));
 
                     if (children.length < 2) {
-                        deployer.deleteFile(site, path.replace("/" + DmConstants.INDEX_FILE, ""));
+                        //deployer.deleteFile(site, path.replace("/" + DmConstants.INDEX_FILE, ""));
                     } else {
                         haschildren = true;
                     }
@@ -431,7 +537,7 @@ public class PublishingManagerImpl implements PublishingManager {
                 contentService.deleteContent(site, path, user);
 
                 if (!haschildren) {
-                    deleteFolder(site, path.replace("/" + DmConstants.INDEX_FILE, ""), user, deployer);
+                    //deleteFolder(site, path.replace("/" + DmConstants.INDEX_FILE, ""), user, deployer);
                 }
             }
         }
@@ -459,7 +565,7 @@ public class PublishingManagerImpl implements PublishingManager {
                     //Deployer deployer = deployerFactory.createEnvironmentStoreDeployer(environment);
                     //Deployer deployer = deployerFactory.createEnvironmentStoreGitDeployer(environment);
                     Deployer deployer = null; //deployerFactory.createEnvironmentStoreGitBranchDeployer(environment);
-                    deployer.deleteFile(site, oldPath);
+                    //deployer.deleteFile(site, oldPath);
 
 
                     if (oldPath.endsWith("/" + DmConstants.INDEX_FILE)) {
@@ -471,7 +577,7 @@ public class PublishingManagerImpl implements PublishingManager {
                                 RepositoryItem[] children = contentRepository.getContentChildren(site, oldPath.replace("/" + DmConstants.INDEX_FILE, ""));
 
                                 if (children.length < 2) {
-                                    deployer.deleteFile(site, oldPath.replace("/" + DmConstants.INDEX_FILE, ""));
+                                    //deployer.deleteFile(site, oldPath.replace("/" + DmConstants.INDEX_FILE, ""));
                                 }
                                 else {
                                     hasRenamedChildren = true;
@@ -499,7 +605,7 @@ public class PublishingManagerImpl implements PublishingManager {
             //Deployer deployer = deployerFactory.createEnvironmentStoreDeployer(environment);
             //Deployer deployer = deployerFactory.createEnvironmentStoreGitDeployer(environment);
             Deployer deployer = null;//deployerFactory.createEnvironmentStoreGitBranchDeployer(environment);
-            deployer.deployFile(site, path);
+            //deployer.deployFile(site, path);
 
 
             ObjectMetadata objectMetadata = objectMetadataManager.getProperties(site, path);
@@ -601,7 +707,50 @@ public class PublishingManagerImpl implements PublishingManager {
     }
 
     @Override
-    public List<CopyToEnvironment> processMandatoryDependencies(CopyToEnvironment item, List<String> pathsToDeploy, Set<String> missingDependenciesPaths) throws DeploymentException {
+    public List<DeploymentItem> processMandatoryDependencies(CopyToEnvironment item, List<String> pathsToDeploy, Set<String> missingDependenciesPaths) throws DeploymentException {
+        List<DeploymentItem> mandatoryDependencies = new ArrayList<DeploymentItem>();
+        String site = item.getSite();
+        String path = item.getPath();
+
+        if (StringUtils.equals(item.getAction(), CopyToEnvironment.Action.NEW) || StringUtils.equals(item.getAction(), CopyToEnvironment.Action.MOVE)) {
+            if (ContentUtils.matchesPatterns(path, servicesConfig.getPagePatterns(site))) {
+                String helpPath = path.replace("/" + getIndexFile(), "");
+                int idx = helpPath.lastIndexOf("/");
+                String parentPath = helpPath.substring(0, idx) + "/" + getIndexFile();
+                if (objectStateService.isNew(site, parentPath) /* TODO: check renamed || objectStateService.isRenamed(site, parentPath) */) {
+                    if (!missingDependenciesPaths.contains(parentPath) && !pathsToDeploy.contains(parentPath)) {
+                        deploymentService.cancelWorkflow(site, parentPath);
+                        missingDependenciesPaths.add(parentPath);
+                        CopyToEnvironment parentItem = createMissingItem(site, parentPath, item);
+                        DeploymentItem parentDeploymentItem = processItem(parentItem);
+                        mandatoryDependencies.add(parentDeploymentItem);
+                        mandatoryDependencies.addAll(processMandatoryDependencies(parentItem, pathsToDeploy, missingDependenciesPaths));
+                    }
+                }
+            }
+
+            if (!isEnablePublishingWithoutDependencies()) {
+                List<String> dependentPaths = dmDependencyService.getDependencyPaths(site, path);
+                for (String dependentPath : dependentPaths) {
+                    // TODO: SJ: This bypasses the Content Service, fix
+                    if (objectStateService.isNew(site, dependentPath) /* TODO: check renamed || contentRepository.isRenamed(site, dependentPath) */) {
+                        if (!missingDependenciesPaths.contains(dependentPath) && !pathsToDeploy.contains(dependentPath)) {
+                            deploymentService.cancelWorkflow(site, dependentPath);
+                            missingDependenciesPaths.add(dependentPath);
+                            CopyToEnvironment dependentItem = createMissingItem(site, dependentPath, item);
+                            DeploymentItem dependentDeploymentItem = processItem(dependentItem);
+                            mandatoryDependencies.add(dependentDeploymentItem);
+                            mandatoryDependencies.addAll(processMandatoryDependencies(dependentItem, pathsToDeploy, missingDependenciesPaths));
+                        }
+                    }
+                }
+            }
+        }
+
+        return mandatoryDependencies;
+    }
+
+    public List<CopyToEnvironment> processMandatoryDependencies_old(CopyToEnvironment item, List<String> pathsToDeploy, Set<String> missingDependenciesPaths) throws DeploymentException {
         List<CopyToEnvironment> mandatoryDependencies = new ArrayList<CopyToEnvironment>();
         String site = item.getSite();
         String path = item.getPath();
@@ -618,7 +767,7 @@ public class PublishingManagerImpl implements PublishingManager {
                         CopyToEnvironment parentItem = createMissingItem(site, parentPath, item);
                         processItem(parentItem);
                         mandatoryDependencies.add(parentItem);
-                        mandatoryDependencies.addAll(processMandatoryDependencies(parentItem, pathsToDeploy, missingDependenciesPaths));
+                        mandatoryDependencies.addAll(processMandatoryDependencies_old(parentItem, pathsToDeploy, missingDependenciesPaths));
                     }
                 }
             }
@@ -634,7 +783,7 @@ public class PublishingManagerImpl implements PublishingManager {
                             CopyToEnvironment dependentItem = createMissingItem(site, dependentPath, item);
                             processItem(dependentItem);
                             mandatoryDependencies.add(dependentItem);
-                            mandatoryDependencies.addAll(processMandatoryDependencies(dependentItem, pathsToDeploy, missingDependenciesPaths));
+                            mandatoryDependencies.addAll(processMandatoryDependencies_old(dependentItem, pathsToDeploy, missingDependenciesPaths));
                         }
                     }
                 }

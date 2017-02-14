@@ -20,14 +20,19 @@
 package org.craftercms.studio.impl.v1.service.event;
 
 import org.craftercms.studio.api.v1.deployment.PreviewDeployer;
+import org.craftercms.studio.api.v1.ebus.DeploymentEventContext;
+import org.craftercms.studio.api.v1.ebus.DeploymentItem;
 import org.craftercms.studio.api.v1.ebus.PreviewEventContext;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.event.EventService;
+import org.craftercms.studio.impl.v1.deployment.EnvironmentDeployer;
 import org.jgroups.JChannel;
 import org.jgroups.blocks.MethodCall;
 import org.jgroups.blocks.RequestOptions;
 import org.jgroups.blocks.RpcDispatcher;
+
+import java.util.List;
 
 public class EventServiceImpl implements EventService {
 
@@ -93,10 +98,38 @@ public class EventServiceImpl implements EventService {
         previewDeployer.createTarget(site);
     }
 
+    @Override
+    public void firePublishToEnvironmentEvent(String site, List<DeploymentItem> items, String environment, String author, String comment) {
+        try {
+            DeploymentEventContext context = new DeploymentEventContext();
+            context.setSite(site);
+            context.setItems(items);
+            context.setEnvironment(environment);
+            context.setAuthor(author);
+            context.setComment(comment);
+            MethodCall call = new MethodCall(getClass().getMethod(PUBLISH_TO_ENVIRONMENT_LISTENER_METHOD, DeploymentEventContext.class));
+            call.setArgs(context);
+            rpcDispatcher.callRemoteMethods(null, call, RequestOptions.ASYNC());
+        } catch (NoSuchMethodException e) {
+            logger.error("Could not find listener method for event, site: " + site, e);
+        } catch (Exception e) {
+            logger.error("Error invoking preview sync event for site" + site, e);
+        }
+    }
+
+    @Override
+    public void onEnvironmentDeploymentEvent(DeploymentEventContext context) {
+        environmentDeployer.onEnvironmentDeploymentEvent(context);
+    }
+
     public PreviewDeployer getPreviewDeployer() { return previewDeployer; }
     public void setPreviewDeployer(PreviewDeployer previewDeployer) { this.previewDeployer = previewDeployer; }
 
+    public EnvironmentDeployer getEnvironmentDeployer() { return environmentDeployer; }
+    public void setEnvironmentDeployer(EnvironmentDeployer environmentDeployer) { this.environmentDeployer = environmentDeployer; }
+
     protected PreviewDeployer previewDeployer;
+    protected EnvironmentDeployer environmentDeployer;
 
     protected RpcDispatcher rpcDispatcher;
 }

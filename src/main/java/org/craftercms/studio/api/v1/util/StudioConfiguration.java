@@ -150,6 +150,12 @@ public interface StudioConfiguration {
     /** Preview Deployer **/
     String PREVIEW_DEFAULT_PREVIEW_DEPLOYER_URL = "studio.preview.defaultPreviewDeployerUrl";
     String PREVIEW_DEFAULT_CREATE_TARGET_URL = "studio.preview.createTargetUrl";
+    String PREVIEW_REPLACE = "studio.preview.replace";
+    String PREVIEW_TEMPLATE_NAME = "studio.preview.templateName";
+    String PREVIEW_REPO_URL = "studio.preview.repoUrl";
+    String PREVIEW_REPO_BRANCH = "studio.preview.repoBranch";
+    String PREVIEW_ENGINE_URL = "studio.preview.engineUrl";
+    String PREVIEW_NOTIFICATION_ADDRESSES = "studio.preview.notificationAddresses";
 
     /** Publishing Manager */
     String PUBLISHING_MANAGER_INDEX_FILE = "studio.publishingManager.indexFile";

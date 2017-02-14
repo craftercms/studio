@@ -19,6 +19,7 @@ package org.craftercms.studio.api.v1.service.deployment;
 
 import org.craftercms.studio.api.v1.dal.CopyToEnvironment;
 import org.craftercms.studio.api.v1.dal.PublishToTarget;
+import org.craftercms.studio.api.v1.ebus.DeploymentItem;
 import org.craftercms.studio.api.v1.to.DeploymentEndpointConfigTO;
 
 import java.util.Date;
@@ -42,7 +43,7 @@ public interface PublishingManager {
 
     List<CopyToEnvironment> getItemsReadyForDeployment(String site, String environment);
 
-    void processItem(CopyToEnvironment item) throws DeploymentException;
+    DeploymentItem processItem(CopyToEnvironment item) throws DeploymentException;
 
     void setupItemsForPublishingSync(String site, String environment, List<CopyToEnvironment> itemsToDeploy) throws DeploymentException;
 
@@ -54,5 +55,5 @@ public interface PublishingManager {
 
     void markItemsReady(String site, String liveEnvironment, List<CopyToEnvironment> copyToEnvironmentItems) throws DeploymentException;
 
-    List<CopyToEnvironment> processMandatoryDependencies(CopyToEnvironment item, List<String> pathsToDeploy, Set<String> missingDependenciesPaths) throws DeploymentException;
+    List<DeploymentItem> processMandatoryDependencies(CopyToEnvironment item, List<String> pathsToDeploy, Set<String> missingDependenciesPaths) throws DeploymentException;
 }
