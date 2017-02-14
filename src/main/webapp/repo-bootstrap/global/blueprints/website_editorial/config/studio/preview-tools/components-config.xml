@@ -1,0 +1,14 @@
+<config>
+	<category>
+		<label>General</label>
+        <component>
+                <label>Header</label>
+                <type>/component/header</type>
+                <path>/site/components</path>
+      </component>
+	</category>
+    <browse>
+         <label>Site Components</label>
+         <path>/site/components</path>
+    </browse>
+</config>

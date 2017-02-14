@@ -1,0 +1,53 @@
+<config>
+	<filters>
+		<filter>
+			<name>default</name>
+			<label>Default</label>
+			<default>true</default>
+		</filter>
+		<filter>
+			<name>javascript</name>
+			<label>JavaScript</label>
+		</filter>
+		<filter>
+			<name>css</name>
+			<label>Stylesheets</label>
+		</filter>
+		<filter>
+			<name>image</name>
+			<label>Images</label>
+		</filter>
+		<filter>
+			<name>xhtml</name>
+			<label>HTML</label>
+		</filter>		
+		<filter>
+			<name>flash</name>
+			<label>Flash</label>
+		</filter>		
+		<filter>
+			<name>content-type</name>
+			<label>Content Type</label>
+		</filter>
+	</filters>
+
+	<resultTemplates>
+		<template>
+			<type>*</type>
+			<name>default</name>
+		</template>
+		<template>
+			<type>*.flv</type>
+			<name>flash</name>
+		</template>
+		<template>
+			<type>gallery</type>
+			<name>gallery</name>
+		</template>
+		<template>
+			<type>gallery-flash</type>
+			<name>gallery-flash</name>
+		</template>
+
+	 </resultTemplates>
+</config>

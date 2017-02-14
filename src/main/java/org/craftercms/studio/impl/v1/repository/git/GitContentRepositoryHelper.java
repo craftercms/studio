@@ -38,6 +38,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.google.gdata.util.common.base.StringUtil;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
@@ -310,16 +311,22 @@ public class GitContentRepositoryHelper {
 
         // Get the Sandbox Path
         Path siteSandboxPath = buildRepoPath(GitRepositories.SANDBOX, site);
-        // Get parent of that (since every site has two repos: Sandbox and Published
+        // Get parent of that (since every site has two repos: Sandbox and Published)
         Path sitePath = siteSandboxPath.getParent();
         // Get a file handle to the parent and delete it
         File siteFolder = sitePath.toFile();
-        toReturn = siteFolder.delete();
 
-        // If delete successful, remove from in-memory cache
-        if (toReturn) {
+        try {
+            FileUtils.deleteDirectory(siteFolder);
             sandboxes.remove(site);
             published.remove(site);
+
+            toReturn = true;
+
+            logger.debug("Deleted site: " + site + " at path: " + sitePath);
+        } catch (IOException e) {
+            logger.error("Failed to delete site: " + site + " at path: " + sitePath + " exception " + e.toString());
+            toReturn = false;
         }
 
         return toReturn;
