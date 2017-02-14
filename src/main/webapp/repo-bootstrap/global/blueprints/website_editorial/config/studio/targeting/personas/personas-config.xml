@@ -1,0 +1,40 @@
+<personas>
+    <persona>
+        <name>Anonymous</name>
+        <description>User is unknown.</description>
+        <thumb>anonymous.png</thumb>
+        <settings>
+            <property>
+                <name>segment</name>
+                <label>Segment</label>
+                <value>unknown</value>
+            </property>
+        </settings>
+   </persona>
+   
+    <persona>
+        <name>Guy</name>
+        <description>User is a guy.</description>
+        <thumb>guy.png</thumb>
+        <settings>
+            <property>
+            	<name>segment</name>
+            	<label>Segment</label>
+            	<value>guy</value>
+            </property>
+        </settings>
+   </persona>
+
+    <persona>
+        <name>Gal</name>
+        <description>User is gal.</description>
+        <thumb>gal.png</thumb>
+        <settings>
+            <property>
+            	<name>segment</name>
+            	<label>Segment</label>
+            	<value>gal</value>
+            </property>
+        </settings>
+   </persona>
+</personas>

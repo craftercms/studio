@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/header</content-type>	<display-template>/templates/web/header.ftl</display-template>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>af02</objectGroupId>
+	<objectId>af023d71-d5ea-f8e5-2ec9-07a8b239d0c5</objectId>
+	<file-name>header.xml</file-name>
+	<folder-name/>
+	<internal-name>Header</internal-name>
+	<logo_text/>
+	<business_name>Crafter Software</business_name>
+	<logo/>
+	<social_media_links>	<item>	<url>http://twitter.com</url>
+	<social_media>fa-twitter</social_media>
+	</item>	<item>	<social_media>fa-facebook</social_media>
+	<url>http://facebook.com</url>
+	</item>	<item>	<social_media>fa-google-plus</social_media>
+	<url>http://plus.google.com</url>
+	</item></social_media_links>
+	<createdDate>2/3/2017 23:27:50</createdDate>
+	<createdDate_dt>2/3/2017 23:27:50</createdDate_dt>
+	<lastModifiedDate>2/10/2017 22:44:16</lastModifiedDate>
+	<lastModifiedDate_dt>2/10/2017 22:44:16</lastModifiedDate_dt>
+</component>
