@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<page>
+	<content-type>/page/home-page</content-type>	<display-template>/templates/web/home-page.ftl</display-template>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<placeInNav>false</placeInNav>
+	<file-name>index.xml</file-name>
+	<internal-name>Home</internal-name>
+	<orderDefault_f>-1</orderDefault_f>
+	<objectGroupId>8d7f</objectGroupId>
+	<objectId>8d7f21fa-5e09-00aa-8340-853b7db302da</objectId>
+	<folder-name/>
+	<createdDate>1/31/2017 16:18:14</createdDate>
+	<createdDate_dt>1/31/2017 16:18:14</createdDate_dt>
+	<lastModifiedDate>2/14/2017 14:23:28</lastModifiedDate>
+	<lastModifiedDate_dt>2/14/2017 14:23:28</lastModifiedDate_dt>
+	<title>Editorial</title>
+	<hero_text>&lt;p&gt;Aenean ornare velit lacus, ac varius enim ullamcorper eu. Proin aliquam facilisis ante interdum congue. Integer mollis, nisl amet convallis, porttitor magna ullamcorper, amet egestas mauris. Ut magna finibus nisi nec lacinia. Nam maximus erat id euismod egestas. Pellentesque sapien ac quam. Lorem ipsum dolor sit nullam.&lt;/p&gt;</hero_text>
+	<hero_title>&lt;h1&gt;&lt;span&gt;Hi, I&amp;rsquo;m Editorial&lt;/span&gt;&lt;/h1&gt;
+&lt;h3&gt;&lt;span style="font-size: 1.5em;"&gt;by HTML5 UP&lt;/span&gt;&lt;/h3&gt;</hero_title>
+	<hero_learn_more_text>Learn More</hero_learn_more_text>
+	<hero_learn_more_link>http://cnn.com</hero_learn_more_link>
+	<features>	<item>	<feature_title>Business Case</feature_title>
+	<feature_icon>fa-database</feature_icon>
+	<feature_body>&lt;p&gt;&lt;span&gt;Aenean ornare velit lacus, ac varius enim lorem ullamcorper dolore. Proin aliquam facilisis ante interdum. Sed nulla amet lorem feugiat tempus aliquam.&lt;/span&gt;&lt;/p&gt;</feature_body>
+	</item>	<item>	<feature_title>Sapien veroeros</feature_title>
+	<feature_icon>fa-flask</feature_icon>
+	<feature_body>&lt;p&gt;&lt;span&gt;Aenean ornare velit lacus, ac varius enim lorem ullamcorper dolore. Proin aliquam facilisis ante interdum. Sed nulla amet lorem feugiat tempus aliquam.&lt;/span&gt;&lt;/p&gt;</feature_body>
+	</item></features>
+	<section_1_title>Section 1</section_1_title>
+	<header>	<item>	<key>/site/components/header.xml</key>
+	<value>Header</value>
+	<include>/site/components/header.xml</include>
+	<disableFlattening>false</disableFlattening>
+	</item></header>
+</page>
