@@ -212,6 +212,7 @@
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="emailService" ref="mailSender"/>
         <property name="emailServiceNoAuth" ref="mailSenderNoAuth"/>
+        <property name="userDetailsManager" ref="studioUsesDetailsManager" />
     </bean>
 
     <bean id="cstudioContentTypeService" class="org.craftercms.studio.impl.v1.service.content.ContentTypeServiceImpl" >
@@ -301,6 +302,7 @@
 
     <bean id="studioEventService" class="org.craftercms.studio.impl.v1.service.event.EventServiceImpl" >
         <property name="previewDeployer" ref="previewDeployer" />
+        <property name="environmentDeployer" ref="environmentDeployer" />
     </bean>
 
     <!-- ////////////////////////////////////// -->
@@ -463,6 +465,7 @@
         <property name="generalLockService" ref="cstudioGeneralLockService"/>
         <property name="notificationService2" ref="cstudioNotificationServicev2"/>
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
+        <property name="eventService" ref="studioEventService"/>
     </bean>
 
     <bean id="cstudioPublishContentToDeploymentTargetJob" class="org.craftercms.studio.impl.v1.service.deployment.job.PublishContentToDeploymentTarget"
@@ -818,6 +821,13 @@
     <!-- ////////////////////////////////////// -->
     <bean id="previewDeployer" class="org.craftercms.studio.impl.v1.deployment.PreviewDeployerImpl">
             <property name="studioConfiguration" ref="studioConfiguration" />
+    </bean>
+
+    <!-- ////////////////////////////////////////// -->
+    <!--          Environment deployer              -->
+    <!-- ////////////////////////////////////////// -->
+    <bean id="environmentDeployer" class="org.craftercms.studio.impl.v1.deployment.EnvironmentDeployer">
+        <property name="contentRepository" ref="contentRepository" />
     </bean>
 
     <!-- ////////////////////////////////////// -->

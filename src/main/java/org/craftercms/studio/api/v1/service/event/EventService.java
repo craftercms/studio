@@ -18,7 +18,11 @@
  */
 package org.craftercms.studio.api.v1.service.event;
 
+import org.craftercms.studio.api.v1.ebus.DeploymentEventContext;
+import org.craftercms.studio.api.v1.ebus.DeploymentItem;
 import org.craftercms.studio.api.v1.ebus.PreviewEventContext;
+
+import java.util.List;
 
 public interface EventService {
     String CLUSTER_NAME = "StudioCluster";
@@ -27,6 +31,9 @@ public interface EventService {
     String PREVIEW_SYNC_LISTENER_METHOD = "onPreviewSyncEvent";
     String PREVIEW_CREATE_TARGET_LISTENER_METHOD = "onCreateTargetEvent";
 
+    /** Publish to environment Event listener method  */
+    String PUBLISH_TO_ENVIRONMENT_LISTENER_METHOD = "onEnvironmentDeploymentEvent";
+
     void firePreviewSyncEvent(String site);
 
     void onPreviewSyncEvent(PreviewEventContext context);
@@ -34,4 +41,8 @@ public interface EventService {
     boolean firePreviewCreateTargetEvent(String site);
 
     void onCreateTargetEvent(PreviewEventContext context);
+
+    void firePublishToEnvironmentEvent(String site, List<DeploymentItem> items, String environment, String author, String comment);
+
+    void onEnvironmentDeploymentEvent(DeploymentEventContext context);
 }
