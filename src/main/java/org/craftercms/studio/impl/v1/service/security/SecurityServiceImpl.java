@@ -42,6 +42,7 @@ import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.ContentTypeService;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
+import org.craftercms.studio.api.v1.service.security.UserDetailsManager;
 import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
 import org.craftercms.studio.api.v1.to.PermissionsConfigTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
@@ -52,6 +53,8 @@ import org.dom4j.Element;
 import org.dom4j.Node;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.codec.Hex;
 
 import javax.crypto.*;
@@ -674,11 +677,25 @@ public class SecurityServiceImpl implements SecurityService {
 
     @Override
     public boolean setUserPassword(String username, String token, String newPassword) {
-        if (forgotPasswordValidateToken(token)) {
+        String currentUser = getCurrentUser();
+
+        if (isAdmin(currentUser) || forgotPasswordValidateToken(token)) {
             return securityProvider.setUserPassword(username, newPassword);
         } else {
             return false;
         }
+    }
+
+    private boolean isAdmin(String username) {
+        UserDetails userDetails = userDetailsManager.loadUserByUsername(username);
+        Collection<? extends GrantedAuthority> authorities = userDetails.getAuthorities();
+        boolean toRet = false;
+        for (GrantedAuthority authority : authorities) {
+            if (authority.getAuthority().equalsIgnoreCase("ADMIN")) {
+                toRet = true;
+            }
+        }
+        return false;
     }
 
     public String getConfigPath() {
@@ -740,6 +757,9 @@ public class SecurityServiceImpl implements SecurityService {
     public JavaMailSender getEmailServiceNoAuth() { return emailServiceNoAuth; }
     public void setEmailServiceNoAuth(JavaMailSender emailServiceNoAuth) { this.emailServiceNoAuth = emailServiceNoAuth; }
 
+    public UserDetailsManager getUserDetailsManager() { return userDetailsManager; }
+    public void setUserDetailsManager(UserDetailsManager userDetailsManager) { this.userDetailsManager = userDetailsManager; }
+
     protected SecurityProvider securityProvider;
     protected ContentTypeService contentTypeService;
     protected ContentService contentService;
@@ -747,4 +767,5 @@ public class SecurityServiceImpl implements SecurityService {
     protected StudioConfiguration studioConfiguration;
     protected JavaMailSender emailService;
     protected JavaMailSender emailServiceNoAuth;
+    protected UserDetailsManager userDetailsManager;
 }
