@@ -40,7 +40,7 @@ public abstract class RepositoryJob implements Job {
 
     	String ticket = sercurityService.authenticate(getUserName(), getPassword());
         if (StringUtils.isNotEmpty(ticket)) {
-            CronJobContext cronJobContext = new CronJobContext(ticket);
+            CronJobContext cronJobContext = new CronJobContext(ticket, getUserName());
             CronJobContext.setCurrent(cronJobContext);
             executeAsSignedInUser();
             CronJobContext.clear();

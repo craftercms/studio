@@ -274,7 +274,7 @@ public class PublishingManagerImpl implements PublishingManager {
         }
         LOGGER.debug("Publishing deployment event for target \"{0}\" with \"{1}\" items.", target.getName(), eventItems.size());
         String sessionTicket = securityProvider.getCurrentToken();
-        RepositoryEventContext repositoryEventContext = new RepositoryEventContext(sessionTicket);
+        RepositoryEventContext repositoryEventContext = new RepositoryEventContext(sessionTicket, securityProvider.getCurrentUser());
         DeploymentEventMessage message = new DeploymentEventMessage(site, target.getName(), eventItems, repositoryEventContext);
         deploymentEventService.deploymentEvent(message);
 
@@ -359,7 +359,11 @@ public class PublishingManagerImpl implements PublishingManager {
         deploymentItem.setSite(item.getSite());
         deploymentItem.setPath(item.getPath());
         ObjectMetadata itemMetadata = objectMetadataManager.getProperties(item.getSite(), item.getPath());
-        deploymentItem.setCommitId(itemMetadata.getCommitId());
+        if (itemMetadata != null) {
+            deploymentItem.setCommitId(itemMetadata.getCommitId());
+        } else {
+            deploymentItem.setCommitId(contentRepository.getRepoLastCommitId(item.getSite()));
+        }
 
         String site = item.getSite();
         String path = item.getPath();
@@ -393,7 +397,7 @@ public class PublishingManagerImpl implements PublishingManager {
             if (isLive) {
                 if (!isImportModeEnabled()) {
                     // TODO: SJ: This bypasses the Content Service, fix
-                    contentRepository.createVersion(site, path, submissionComment, true);
+                    //contentRepository.createVersion(site, path, submissionComment, true);
                 }
                 else {
                     LOGGER.debug("Import mode is ON. Create new version is skipped for [{0}] site \"{1}\"", path, site);

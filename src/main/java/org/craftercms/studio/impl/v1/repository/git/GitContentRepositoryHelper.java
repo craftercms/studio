@@ -246,6 +246,13 @@ public class GitContentRepositoryHelper {
         // Create Published
         if (sandboxRepo != null) {
             publishedRepo = createGitRepository(sitePublishedPath);
+            try (Git git = new Git(publishedRepo)) {
+                StoredConfig config = git.getRepository().getConfig();
+                config.setString("remote", "origin", "url", sandboxRepo.getDirectory().getAbsolutePath());
+                config.save();
+            } catch (IOException e) {
+                logger.error("Error adding origin (sandbox) to published repository", e);
+            }
         }
 
         toReturn = (sandboxRepo != null) && (publishedRepo != null);

@@ -431,9 +431,9 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
                 try (Git git = new Git(repo)) {
                     PersonIdent currentUserIdent = helper.getCurrentUserIdent();
-                    DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+                    DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HHmmssX");
                     Calendar cal = Calendar.getInstance();
-                    String versionLabel = dateFormat.format(cal);
+                    String versionLabel = dateFormat.format(cal.getTime());
 
                     TagCommand tagCommand = git.tag()
                         .setName(versionLabel)
