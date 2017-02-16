@@ -77,6 +77,7 @@
         <property name="generalLockService" ref="cstudioGeneralLockService"/>
         <property name="rebuildRepositoryMetadata" ref="studioRebuildRepositoryMetadata"/>
         <property name="studioConfiguration" ref="studioConfiguration"/>
+        <property name="searchService" ref="searchService" />
     </bean>
 
     <bean id="cstudioImportService" class="org.craftercms.studio.impl.v1.service.content.ImportServiceImpl">
@@ -86,6 +87,10 @@
         <property name="contentService" ref="cstudioContentService"/>
         <property name="objectStateService" ref="cstudioObjectStateService"/>
         <property name="dmPublishService" ref="cstudioDmPublishService"/>
+        <property name="studioConfiguration" ref="studioConfiguration" />
+    </bean>
+
+    <bean id="searchService" class="org.craftercms.studio.impl.v1.service.search.SearchServiceImpl">
         <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 

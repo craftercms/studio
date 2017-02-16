@@ -810,6 +810,8 @@ public class SiteServiceImpl implements SiteService {
     public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
 
+    public void setSearchService(SearchService searchService) { this.searchService = searchService; }
+
     protected SiteServiceDAL _siteServiceDAL;
 	protected ServicesConfig servicesConfig;
 	protected ContentService contentService;
@@ -836,7 +838,6 @@ public class SiteServiceImpl implements SiteService {
 	@Autowired
 	protected SiteFeedMapper siteFeedMapper;
 
-	@Autowired
 	protected SearchService searchService;
 
 	/**
