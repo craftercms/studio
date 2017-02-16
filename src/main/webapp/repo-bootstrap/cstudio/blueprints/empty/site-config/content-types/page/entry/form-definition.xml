@@ -2,8 +2,8 @@
 	<title>Home Page</title>
 	<description></description>
 	<objectType>page</objectType>
-	<properties>		
-	    <property>
+	<content-type>/page/entry</content-type>
+	<properties>		<property>
 			<name>placeInNav</name>
 			<label>Show In Nav</label>
 			<value>true</value>
@@ -14,12 +14,6 @@
 			<label>Display Template</label>
 			<value>/templates/web/entry.ftl</value>
 			<type>template</type>
-		</property>
-		<property>
-			<name>content-type</name>
-			<label>Content Type</label>
-			<value>/page/entry</value>
-			<type>string</type>
 		</property>
 		<property>
 			<name>descriptor-mapper</name>
@@ -84,12 +78,11 @@
 					<constraints>
 						<constraint>
 							<name>required</name>
-							<value>true</value>
-						<type>int</type>
+							<value><![CDATA[true]]></value>
+							<type>int</type>
 						</constraint>
 					</constraints>
 				</field>
-
 				<field>
 					<type>rte</type>
 					<id>body</id>
@@ -126,7 +119,7 @@
 						</property>
 						<property>
 							<name>supportedChannels</name>
-							<value>iPhone:iphonev:300,iPad:ipadv:700</value>
+							<value>[{ value: &quot;&quot;, key: &quot;&quot;, size: &quot;&quot; }]</value>
 							<type>string</type>
 						</property>
 						<property>
@@ -134,20 +127,49 @@
 							<value>630</value>
 							<type>int</type>
 						</property>
+						<property>
+							<name>height</name>
+							<value>300</value>
+							<type>int</type>
+						</property>
+						<property>
+							<name>forceRootBlockPTag</name>
+							<value>true</value>
+							<type>boolean</type>
+						</property>
+						<property>
+							<name>forcePTags</name>
+							<value>true</value>
+							<type>boolean</type>
+						</property>
+						<property>
+							<name>forceBRTags</name>
+							<value>false</value>
+							<type>boolean</type>
+						</property>
+						<property>
+							<name>forceImageAlts</name>
+							<value>false</value>
+							<type>boolean</type>
+						</property>
+						<property>
+							<name>rteConfiguration</name>
+							<value>generic</value>
+							<type>string</type>
+						</property>
 					</properties>
 					<constraints>
 						<constraint>
 							<name>required</name>
-							<value>true</value>
-						<type>int</type>
+							<value><![CDATA[true]]></value>
+							<type>int</type>
 						</constraint>
 					</constraints>
 				</field>
 			</fields>
 		</section>
 	</sections>
-	<datasources>		
-               <datasource>
+	<datasources>				<datasource>
 					<type>img-desktop-upload</type>
 					<id>desktopImages</id>
 					<title>Upload Image</title>
