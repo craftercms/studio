@@ -36,7 +36,6 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
-import org.craftercms.studio.api.v1.service.content.DmRenameService;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
 import org.craftercms.studio.api.v1.service.dependency.DependencyRule;
 import org.craftercms.studio.api.v1.service.dependency.DependencyRules;
@@ -76,7 +75,7 @@ import static org.craftercms.studio.api.v1.util.StudioConfiguration.WORKFLOW_PUB
  */
 public class WorkflowServiceImpl implements WorkflowService {
 
-	private static final Logger logger = LoggerFactory.getLogger(WorkflowServiceImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(WorkflowServiceImpl.class);
 
     protected enum Operation {
         GO_LIVE, DELETE,
@@ -106,67 +105,67 @@ public class WorkflowServiceImpl implements WorkflowService {
     protected String JSON_KEY_SEND_EMAIL = "sendEmail";
     protected String JSON_KEY_USER = "user";
     protected String JSON_KEY_REASON = "reason";
-	public static final String COMPLETE_SUBMIT_TO_GO_LIVE_MSG = "submitToGoLive";
+    public static final String COMPLETE_SUBMIT_TO_GO_LIVE_MSG = "submitToGoLive";
 
 
-	public WorkflowJob createJob(String site, List<String> srcPaths,  String processName, Map<String, String> properties) {
-		WorkflowJob job = _workflowJobDAL.createJob(site, srcPaths, processName, properties);
-		job.setCurrentStatus(WorkflowService.STATE_STARTED);
-		job = _workflowJobDAL.updateJob(job);
+    public WorkflowJob createJob(String site, List<String> srcPaths,  String processName, Map<String, String> properties) {
+        WorkflowJob job = _workflowJobDAL.createJob(site, srcPaths, processName, properties);
+        job.setCurrentStatus(WorkflowService.STATE_STARTED);
+        job = _workflowJobDAL.updateJob(job);
 
-		return job;
-	}
+        return job;
+    }
 
-	public List<WorkflowJob> getActiveJobs() {
-		List<WorkflowJob> allJobs = _workflowJobDAL.getJobsByState(null);
-		// Reverse scan and delete STATE_ENDED jobs from list
-		for (int i = allJobs.size(); i > 0;) {
-			WorkflowJob job = allJobs.get(--i);
-			if (job.getCurrentStatus().equals(WorkflowService.STATE_ENDED))
-				allJobs.remove(i);
-		}
-		return allJobs;
-	}
+    public List<WorkflowJob> getActiveJobs() {
+        List<WorkflowJob> allJobs = _workflowJobDAL.getJobsByState(null);
+        // Reverse scan and delete STATE_ENDED jobs from list
+        for (int i = allJobs.size(); i > 0;) {
+            WorkflowJob job = allJobs.get(--i);
+            if (job.getCurrentStatus().equals(WorkflowService.STATE_ENDED))
+                allJobs.remove(i);
+        }
+        return allJobs;
+    }
 
-	public List<WorkflowJob> getJobsInState(Set<String> states) {
-		return _workflowJobDAL.getJobsByState(states);
-	}
+    public List<WorkflowJob> getJobsInState(Set<String> states) {
+        return _workflowJobDAL.getJobsByState(states);
+    }
 
-	public WorkflowJob getJob(String jobId) {
-		return _workflowJobDAL.getJob(jobId);
-	}
+    public WorkflowJob getJob(String jobId) {
+        return _workflowJobDAL.getJob(jobId);
+    }
 
-	public WorkflowJob updateJob(WorkflowJob job) {
-		return _workflowJobDAL.updateJob(job);
-	}
+    public WorkflowJob updateJob(WorkflowJob job) {
+        return _workflowJobDAL.updateJob(job);
+    }
 
-	public boolean deleteJob(String jobId) {
-		return _workflowJobDAL.deleteJob(jobId);
-	}
+    public boolean deleteJob(String jobId) {
+        return _workflowJobDAL.deleteJob(jobId);
+    }
 
-	public boolean startJob(String jobId) {
-		return false;
-	}
+    public boolean startJob(String jobId) {
+        return false;
+    }
 
-	public boolean transitionJobState(String jobId, String state) {
-		return false;
-	}
+    public boolean transitionJobState(String jobId, String state) {
+        return false;
+    }
 
-	public boolean endJob(String jobId) {
-		return false;
-	}
+    public boolean endJob(String jobId) {
+        return false;
+    }
 
-	@Override
-	public ResultTO submitToGoLive(String site, String username, String request) throws ServiceException {
-		return submitForApproval(site, username, request, false);
-	}
+    @Override
+    public ResultTO submitToGoLive(String site, String username, String request) throws ServiceException {
+        return submitForApproval(site, username, request, false);
+    }
 
-	protected ResultTO submitForApproval(final String site, String submittedBy, final String request, final boolean delete) throws ServiceException {
+    protected ResultTO submitForApproval(final String site, String submittedBy, final String request, final boolean delete) throws ServiceException {
         long start = System.currentTimeMillis();
         RequestContext requestContext = RequestContextBuilder.buildSubmitContext(site, submittedBy);
         ResultTO result = new ResultTO();
         try {
-			SimpleDateFormat format = new SimpleDateFormat(StudioConstants.DATE_PATTERN_WORKFLOW_WITH_TZ);
+            SimpleDateFormat format = new SimpleDateFormat(StudioConstants.DATE_PATTERN_WORKFLOW_WITH_TZ);
             JSONObject requestObject = JSONObject.fromObject(request);
             JSONArray items = requestObject.getJSONArray(JSON_KEY_ITEMS);
             int length = items.size();
@@ -195,7 +194,7 @@ public class WorkflowServiceImpl implements WorkflowService {
             if (length > 0) {
                 List<DmDependencyTO> submittedItems = new ArrayList<DmDependencyTO>();
                 for (int index = 0; index < length; index++) {
-					String stringItem = items.optString(index);
+                    String stringItem = items.optString(index);
                     DmDependencyTO submittedItem = getSubmittedItem(site, stringItem, format, schDate, null);
                     String user = submittedBy;
                     submittedItems.add(submittedItem);
@@ -209,8 +208,8 @@ public class WorkflowServiceImpl implements WorkflowService {
                     submittedPaths.add(goLiveItem.getUri());
                     objectStateService.setSystemProcessing(site, goLiveItem.getUri(), true);
                     DependencyRules rule = new DependencyRules(site);
-					rule.setObjectStateService(objectStateService);
-					rule.setContentService(contentService);
+                    rule.setObjectStateService(objectStateService);
+                    rule.setContentService(contentService);
                     Set<DmDependencyTO> depSet = rule.applySubmitRule(goLiveItem);
                     for (DmDependencyTO dep : depSet) {
                         submittedPaths.add(dep.getUri());
@@ -219,13 +218,13 @@ public class WorkflowServiceImpl implements WorkflowService {
                 }
                 List<DmError> errors = submitToGoLive(submittedItems, scheduledDate, sendEmail, delete, requestContext, submissionComment);
                 result.setSuccess(true);
-				result.setStatus(200);
-				if(notificationService2.isEnabled()){
-					result.setMessage(notificationService2.getNotificationMessage(site, NotificationMessageType
-						.CompleteMessages,COMPLETE_SUBMIT_TO_GO_LIVE_MSG,Locale.ENGLISH));
-				}else {
-					result.setMessage(notificationService.getCompleteMessage(site, NotificationService.COMPLETE_SUBMIT_TO_GO_LIVE));
-				}
+                result.setStatus(200);
+                if(notificationService2.isEnabled()){
+                    result.setMessage(notificationService2.getNotificationMessage(site, NotificationMessageType
+                        .CompleteMessages,COMPLETE_SUBMIT_TO_GO_LIVE_MSG,Locale.ENGLISH));
+                }else {
+                    result.setMessage(notificationService.getCompleteMessage(site, NotificationService.COMPLETE_SUBMIT_TO_GO_LIVE));
+                }
                 for (String relativePath : submittedPaths) {
                     objectStateService.setSystemProcessing(site, relativePath, false);
                 }
@@ -237,7 +236,7 @@ public class WorkflowServiceImpl implements WorkflowService {
         }
         return result;
 
-	}
+    }
 
     protected List<DmError> submitToGoLive(List<DmDependencyTO> submittedItems, Date scheduledDate, boolean sendEmail, boolean submitForDeletion, RequestContext requestContext, String submissionComment) throws ServiceException {
         List<DmError> errors = new ArrayList<DmError>();
@@ -246,8 +245,8 @@ public class WorkflowServiceImpl implements WorkflowService {
         for (DmDependencyTO submittedItem : submittedItems) {
             try {
                 DependencyRules rule = new DependencyRules(site);
-				rule.setContentService(contentService);
-				rule.setObjectStateService(objectStateService);
+                rule.setContentService(contentService);
+                rule.setObjectStateService(objectStateService);
                 submitThisAndReferredComponents(submittedItem, site, scheduledDate, sendEmail, submitForDeletion, submittedBy, rule, submissionComment);
                 List<DmDependencyTO> children = submittedItem.getChildren();
                 if (children != null && !submitForDeletion) {
@@ -261,20 +260,20 @@ public class WorkflowServiceImpl implements WorkflowService {
                 errors.add(new DmError(site, submittedItem.getUri(), e));
             }
         }
-		notificationService2.notifyApprovesContentSubmission(site,null,getDeploymentPaths(submittedItems),submittedBy,scheduledDate,
-			submitForDeletion,submissionComment,Locale.ENGLISH);
+        notificationService2.notifyApprovesContentSubmission(site,null,getDeploymentPaths(submittedItems),submittedBy,scheduledDate,
+            submitForDeletion,submissionComment,Locale.ENGLISH);
         return errors;
     }
 
-	private List<String> getDeploymentPaths(final List<DmDependencyTO> submittedItems) {
-		List<String> paths=new ArrayList<>(submittedItems.size());
-		for (DmDependencyTO submittedItem : submittedItems) {
-			paths.add(submittedItem.getUri());
-		}
-		return paths;
-	}
+    private List<String> getDeploymentPaths(final List<DmDependencyTO> submittedItems) {
+        List<String> paths=new ArrayList<>(submittedItems.size());
+        for (DmDependencyTO submittedItem : submittedItems) {
+            paths.add(submittedItem.getUri());
+        }
+        return paths;
+    }
 
-	protected void submitThisAndReferredComponents(DmDependencyTO submittedItem, String site, Date scheduledDate, boolean sendEmail, boolean submitForDeletion, String submittedBy, DependencyRules rule, String submissionComment) throws ServiceException {
+    protected void submitThisAndReferredComponents(DmDependencyTO submittedItem, String site, Date scheduledDate, boolean sendEmail, boolean submitForDeletion, String submittedBy, DependencyRules rule, String submissionComment) throws ServiceException {
         doSubmit(site, submittedItem, scheduledDate, sendEmail, submitForDeletion, submittedBy, true, submissionComment);
         Set<DmDependencyTO> stringSet;
 
@@ -299,25 +298,25 @@ public class WorkflowServiceImpl implements WorkflowService {
         removeFromWorkflow(site, dependencyTO.getUri(), true);
         ContentItemTO item = contentService.getContentItem(site, dependencyTO.getUri());
 
-		Map<String, Object> properties = new HashMap<>();
-		properties.put(ObjectMetadata.PROP_SUBMITTED_BY, user);
-		properties.put(ObjectMetadata.PROP_SEND_EMAIL, sendEmail ? 1 : 0);
-		properties.put(ObjectMetadata.PROP_SUBMITTED_FOR_DELETION, submitForDeletion ? 1 : 0);
-		properties.put(ObjectMetadata.PROP_SUBMISSION_COMMENT, submissionComment);
+        Map<String, Object> properties = new HashMap<>();
+        properties.put(ObjectMetadata.PROP_SUBMITTED_BY, user);
+        properties.put(ObjectMetadata.PROP_SEND_EMAIL, sendEmail ? 1 : 0);
+        properties.put(ObjectMetadata.PROP_SUBMITTED_FOR_DELETION, submitForDeletion ? 1 : 0);
+        properties.put(ObjectMetadata.PROP_SUBMISSION_COMMENT, submissionComment);
 
         if (null == scheduledDate) {
-			properties.put(ObjectMetadata.PROP_LAUNCH_DATE, null);
+            properties.put(ObjectMetadata.PROP_LAUNCH_DATE, null);
         } else {
-			properties.put(ObjectMetadata.PROP_LAUNCH_DATE, scheduledDate);
+            properties.put(ObjectMetadata.PROP_LAUNCH_DATE, scheduledDate);
         }
-		if (!objectMetadataManager.metadataExist(site, dependencyTO.getUri())) {
-			objectMetadataManager.insertNewObjectMetadata(site, dependencyTO.getUri());
-		}
-		objectMetadataManager.setObjectMetadata(site, dependencyTO.getUri(), properties);
+        if (!objectMetadataManager.metadataExist(site, dependencyTO.getUri())) {
+            objectMetadataManager.insertNewObjectMetadata(site, dependencyTO.getUri());
+        }
+        objectMetadataManager.setObjectMetadata(site, dependencyTO.getUri(), properties);
         if (scheduledDate != null) {
             objectStateService.transition(site, item, TransitionEvent.SUBMIT_WITH_WORKFLOW_SCHEDULED);
         } else {
-			objectStateService.transition(site, item, TransitionEvent.SUBMIT_WITH_WORKFLOW_UNSCHEDULED);
+            objectStateService.transition(site, item, TransitionEvent.SUBMIT_WITH_WORKFLOW_UNSCHEDULED);
         }
         if (notifyAdmin) {
             boolean isPreviewable = item.isPreviewable();
@@ -327,126 +326,125 @@ public class WorkflowServiceImpl implements WorkflowService {
 
     }
 
-	@Override
-	public void submitToGoLive(String site, List<String> paths, Date scheduledDate, boolean sendApprovedNotice, String submitter) {
-		/*
-		// this needs to be gutted an re-written as workflow handlers that rely on services like dependency, state, content repository
-		// that use the appropriate DAL objects.  Now is not the time to pull the thread on that sweater :-/
-		String submissionComment = "";
-		//{"items":[{"asset":false,"assets":[],"browserUri":"/","categoryRoot":"","children":[{"asset":false,"assets":[],"browserUri":"/crafter-level-descriptor.level.xml","categoryRoot":"","children":[],"component":true,"components":[],"container":false,"contentType":"/component/level-descriptor","defaultWebApp":"/wem-projects/test-fr/test-fr/work-area","deleted":false,"deletedItems":[],"directory":false,"disabled":false,"document":false,"documents":[],"endpoint":"","eventDate":"2013-04-13T21:45:05","eventDateAsDate":{"date":13,"day":6,"hours":21,"minutes":45,"month":3,"seconds":5,"time":1365903905242,"timezoneOffset":240,"year":113},"floating":false,"form":"/component/level-descriptor","formPagePath":"simple","height":0,"hideInAuthoring":false,"inFlight":false,"inProgress":true,"internalName":"crafter-level-descriptor.level.xml","lastEditDate":{},"lastEditDateAsString":"","levelDescriptor":true,"levelDescriptors":[],"live":false,"lockOwner":"","mandatoryParent":"/site/website/index.xml","metaDescription":"","name":"crafter-level-descriptor.level.xml","navigation":false,"new":true,"newFile":true,"nodeRef":"workspace://SpacesStore/552af5fc-c93e-4032-9e24-66c4f5609cf9","now":false,"numOfChildren":0,"orders":[],"pages":[],"parentPath":"/","path":"/site/website","previewable":false,"properties":{},"reference":false,"renderingTemplate":false,"renderingTemplates":[],"scheduled":false,"scheduledDate":"","scheduledDateAsDate":{},"submissionComment":"","submitted":false,"submittedByFirstName":"","submittedByLastName":"","submittedForDeletion":false,"timezone":"EST5EDT","title":"","uri":"/site/website/crafter-level-descriptor.level.xml","user":"","userFirstName":"","userLastName":"","width":0,"workflowId":""},{"asset":false,"assets":[],"browserUri":"/about","categoryRoot":"","children":[],"component":false,"components":[],"container":true,"contentType":"/page/entry","defaultWebApp":"/wem-projects/test-fr/test-fr/work-area","deleted":false,"deletedItems":[],"directory":false,"disabled":false,"document":false,"documents":[],"endpoint":"","eventDate":"2013-04-18T22:35:22","eventDateAsDate":{"date":18,"day":4,"hours":22,"minutes":35,"month":3,"seconds":22,"time":1366338922741,"timezoneOffset":240,"year":113},"floating":false,"form":"/page/entry","formPagePath":"simple","height":0,"hideInAuthoring":false,"inFlight":false,"inProgress":true,"internalName":"About","lastEditDate":{},"lastEditDateAsString":"","levelDescriptor":false,"levelDescriptors":[],"live":false,"lockOwner":"","mandatoryParent":"/site/website/index.xml","metaDescription":"","name":"index.xml","navigation":false,"new":true,"newFile":true,"nodeRef":"workspace://SpacesStore/ef1d4242-c03a-4eb0-b294-d90ae7246ec9","now":false,"numOfChildren":1,"orders":[{"disabled":"","id":"default","name":"","order":1000,"placeInNav":""}],"pages":[],"parentPath":"/","path":"/site/website/about","previewable":true,"properties":{},"reference":false,"renderingTemplate":false,"renderingTemplates":[{"asset":false,"assets":[],"browserUri":"/templates/web/entry.ftl","categoryRoot":"","children":[],"component":true,"components":[],"container":false,"contentType":"","defaultWebApp":"/wem-projects/test-fr/test-fr/work-area","deleted":false,"deletedItems":[],"directory":false,"disabled":false,"document":false,"documents":[],"endpoint":"","eventDate":"2013-04-13T21:56:03","eventDateAsDate":{"date":13,"day":6,"hours":21,"minutes":56,"month":3,"seconds":3,"time":1365904563607,"timezoneOffset":240,"year":113},"floating":false,"form":"","formPagePath":"","height":0,"hideInAuthoring":false,"inFlight":false,"inProgress":true,"internalName":"entry.ftl","lastEditDate":{},"lastEditDateAsString":"","levelDescriptor":false,"levelDescriptors":[],"live":false,"lockOwner":"","mandatoryParent":"/site/website/about/index.xml","metaDescription":"","name":"entry.ftl","navigation":false,"new":true,"newFile":true,"nodeRef":"workspace://SpacesStore/5a234a22-8f4e-48d5-9da1-7797886e6776","now":false,"numOfChildren":0,"orders":[],"pages":[],"parentPath":"","path":"/templates/web","previewable":false,"properties":{},"reference":true,"renderingTemplate":false,"renderingTemplates":[],"scheduled":false,"scheduledDate":"","scheduledDateAsDate":{},"submissionComment":"","submitted":false,"submittedByFirstName":"","submittedByLastName":"","submittedForDeletion":false,"timezone":"EST5EDT","title":"","uri":"/templates/web/entry.ftl","user":"","userFirstName":"","userLastName":"","width":0,"workflowId":""}],"scheduled":false,"scheduledDate":"","scheduledDateAsDate":{},"submissionComment":"","submitted":false,"submittedByFirstName":"","submittedByLastName":"","submittedForDeletion":false,"timezone":"EST5EDT","title":"","uri":"/site/website/about/index.xml","user":"author","userFirstName":"author","userLastName":"author","width":0,"workflowId":""},{"asset":false,"assets":[],"browserUri":"/about/crafter-level-descriptor.level.xml","categoryRoot":"","children":[],"component":true,"components":[],"container":false,"contentType":"/component/level-descriptor","defaultWebApp":"/wem-projects/test-fr/test-fr/work-area","deleted":false,"deletedItems":[],"directory":false,"disabled":false,"document":false,"documents":[],"endpoint":"","eventDate":"2013-04-18T01:11:04","eventDateAsDate":{"date":18,"day":4,"hours":1,"minutes":11,"month":3,"seconds":4,"time":1366261864668,"timezoneOffset":240,"year":113},"floating":false,"form":"/component/level-descriptor","formPagePath":"simple","height":0,"hideInAuthoring":false,"inFlight":false,"inProgress":true,"internalName":"crafter-level-descriptor.level.xml","lastEditDate":{},"lastEditDateAsString":"","levelDescriptor":true,"levelDescriptors":[],"live":false,"lockOwner":"","mandatoryParent":"/site/website/about/index.xml","metaDescription":"","name":"crafter-level-descriptor.level.xml","navigation":false,"new":true,"newFile":true,"nodeRef":"workspace://SpacesStore/873a99c8-109d-47ac-a245-7c2194b17fdf","now":false,"numOfChildren":0,"orders":[],"pages":[],"parentPath":"/about","path":"/site/website/about","previewable":false,"properties":{},"reference":false,"renderingTemplate":false,"renderingTemplates":[],"scheduled":false,"scheduledDate":"","scheduledDateAsDate":{},"submissionComment":"","submitted":false,"submittedByFirstName":"","submittedByLastName":"","submittedForDeletion":false,"timezone":"EST5EDT","title":"","uri":"/site/website/about/crafter-level-descriptor.level.xml","user":"","userFirstName":"","userLastName":"","width":0,"workflowId":""}],"component":false,"components":[],"container":true,"contentType":"/page/entry","defaultWebApp":"/wem-projects/test-fr/test-fr/work-area","deleted":false,"deletedItems":[],"directory":false,"disabled":false,"document":false,"documents":[],"endpoint":"","eventDate":"2013-04-18T03:25:40","eventDateAsDate":{"date":18,"day":4,"hours":3,"minutes":25,"month":3,"seconds":40,"time":1366269940177,"timezoneOffset":240,"year":113},"floating":false,"form":"/page/entry","formPagePath":"simple","height":0,"hideInAuthoring":false,"inFlight":false,"inProgress":true,"internalName":"Home","lastEditDate":{},"lastEditDateAsString":"","levelDescriptor":false,"levelDescriptors":[],"live":false,"lockOwner":"","mandatoryParent":"","metaDescription":"","name":"index.xml","navigation":false,"new":true,"newFile":true,"nodeRef":"workspace://SpacesStore/47a6796a-f6d0-46bc-a563-f9d08d941b01","now":true,"numOfChildren":3,"orders":[{"disabled":"","id":"default","name":"","order":-1,"placeInNav":""}],"pages":[],"parentPath":"","path":"/site/website","previewable":true,"properties":{},"reference":false,"renderingTemplate":false,"renderingTemplates":[{"asset":false,"assets":[],"browserUri":"/templates/web/entry.ftl","categoryRoot":"","children":[],"component":true,"components":[],"container":false,"contentType":"","defaultWebApp":"/wem-projects/test-fr/test-fr/work-area","deleted":false,"deletedItems":[],"directory":false,"disabled":false,"document":false,"documents":[],"endpoint":"","eventDate":"2013-04-13T21:56:03","eventDateAsDate":{"date":13,"day":6,"hours":21,"minutes":56,"month":3,"seconds":3,"time":1365904563607,"timezoneOffset":240,"year":113},"floating":false,"form":"","formPagePath":"","height":0,"hideInAuthoring":false,"inFlight":false,"inProgress":true,"internalName":"entry.ftl","lastEditDate":{},"lastEditDateAsString":"","levelDescriptor":false,"levelDescriptors":[],"live":false,"lockOwner":"","mandatoryParent":"/site/website/index.xml","metaDescription":"","name":"entry.ftl","navigation":false,"new":true,"newFile":true,"nodeRef":"workspace://SpacesStore/5a234a22-8f4e-48d5-9da1-7797886e6776","now":false,"numOfChildren":0,"orders":[],"pages":[],"parentPath":"","path":"/templates/web","previewable":false,"properties":{},"reference":true,"renderingTemplate":false,"renderingTemplates":[],"scheduled":false,"scheduledDate":"","scheduledDateAsDate":{},"submissionComment":"","submitted":false,"submittedByFirstName":"","submittedByLastName":"","submittedForDeletion":false,"timezone":"EST5EDT","title":"","uri":"/templates/web/entry.ftl","user":"","userFirstName":"","userLastName":"","width":0,"workflowId":""}],"scheduled":false,"scheduledDate":"","scheduledDateAsDate":{},"submissionComment":"","submitted":false,"submittedByFirstName":"","submittedByLastName":"","submittedForDeletion":false,"timezone":"EST5EDT","title":"","uri":"/site/website/index.xml","user":"admin","userFirstName":"Administrator","userLastName":"","width":0,"workflowId":""}],"submissionComment":"","now":"true","scheduledDate":"2010-02-26T15:00:00","sendEmail":"true"}
+    @Override
+    public void submitToGoLive(String site, List<String> paths, Date scheduledDate, boolean sendApprovedNotice, String submitter) {
+        /*
+        // this needs to be gutted an re-written as workflow handlers that rely on services like dependency, state, content repository
+        // that use the appropriate DAL objects.  Now is not the time to pull the thread on that sweater :-/
+        String submissionComment = "";
+        //{"items":[{"asset":false,"assets":[],"browserUri":"/","categoryRoot":"","children":[{"asset":false,"assets":[],"browserUri":"/crafter-level-descriptor.level.xml","categoryRoot":"","children":[],"component":true,"components":[],"container":false,"contentType":"/component/level-descriptor","defaultWebApp":"/wem-projects/test-fr/test-fr/work-area","deleted":false,"deletedItems":[],"directory":false,"disabled":false,"document":false,"documents":[],"endpoint":"","eventDate":"2013-04-13T21:45:05","eventDateAsDate":{"date":13,"day":6,"hours":21,"minutes":45,"month":3,"seconds":5,"time":1365903905242,"timezoneOffset":240,"year":113},"floating":false,"form":"/component/level-descriptor","formPagePath":"simple","height":0,"hideInAuthoring":false,"inFlight":false,"inProgress":true,"internalName":"crafter-level-descriptor.level.xml","lastEditDate":{},"lastEditDateAsString":"","levelDescriptor":true,"levelDescriptors":[],"live":false,"lockOwner":"","mandatoryParent":"/site/website/index.xml","metaDescription":"","name":"crafter-level-descriptor.level.xml","navigation":false,"new":true,"newFile":true,"nodeRef":"workspace://SpacesStore/552af5fc-c93e-4032-9e24-66c4f5609cf9","now":false,"numOfChildren":0,"orders":[],"pages":[],"parentPath":"/","path":"/site/website","previewable":false,"properties":{},"reference":false,"renderingTemplate":false,"renderingTemplates":[],"scheduled":false,"scheduledDate":"","scheduledDateAsDate":{},"submissionComment":"","submitted":false,"submittedByFirstName":"","submittedByLastName":"","submittedForDeletion":false,"timezone":"EST5EDT","title":"","uri":"/site/website/crafter-level-descriptor.level.xml","user":"","userFirstName":"","userLastName":"","width":0,"workflowId":""},{"asset":false,"assets":[],"browserUri":"/about","categoryRoot":"","children":[],"component":false,"components":[],"container":true,"contentType":"/page/entry","defaultWebApp":"/wem-projects/test-fr/test-fr/work-area","deleted":false,"deletedItems":[],"directory":false,"disabled":false,"document":false,"documents":[],"endpoint":"","eventDate":"2013-04-18T22:35:22","eventDateAsDate":{"date":18,"day":4,"hours":22,"minutes":35,"month":3,"seconds":22,"time":1366338922741,"timezoneOffset":240,"year":113},"floating":false,"form":"/page/entry","formPagePath":"simple","height":0,"hideInAuthoring":false,"inFlight":false,"inProgress":true,"internalName":"About","lastEditDate":{},"lastEditDateAsString":"","levelDescriptor":false,"levelDescriptors":[],"live":false,"lockOwner":"","mandatoryParent":"/site/website/index.xml","metaDescription":"","name":"index.xml","navigation":false,"new":true,"newFile":true,"nodeRef":"workspace://SpacesStore/ef1d4242-c03a-4eb0-b294-d90ae7246ec9","now":false,"numOfChildren":1,"orders":[{"disabled":"","id":"default","name":"","order":1000,"placeInNav":""}],"pages":[],"parentPath":"/","path":"/site/website/about","previewable":true,"properties":{},"reference":false,"renderingTemplate":false,"renderingTemplates":[{"asset":false,"assets":[],"browserUri":"/templates/web/entry.ftl","categoryRoot":"","children":[],"component":true,"components":[],"container":false,"contentType":"","defaultWebApp":"/wem-projects/test-fr/test-fr/work-area","deleted":false,"deletedItems":[],"directory":false,"disabled":false,"document":false,"documents":[],"endpoint":"","eventDate":"2013-04-13T21:56:03","eventDateAsDate":{"date":13,"day":6,"hours":21,"minutes":56,"month":3,"seconds":3,"time":1365904563607,"timezoneOffset":240,"year":113},"floating":false,"form":"","formPagePath":"","height":0,"hideInAuthoring":false,"inFlight":false,"inProgress":true,"internalName":"entry.ftl","lastEditDate":{},"lastEditDateAsString":"","levelDescriptor":false,"levelDescriptors":[],"live":false,"lockOwner":"","mandatoryParent":"/site/website/about/index.xml","metaDescription":"","name":"entry.ftl","navigation":false,"new":true,"newFile":true,"nodeRef":"workspace://SpacesStore/5a234a22-8f4e-48d5-9da1-7797886e6776","now":false,"numOfChildren":0,"orders":[],"pages":[],"parentPath":"","path":"/templates/web","previewable":false,"properties":{},"reference":true,"renderingTemplate":false,"renderingTemplates":[],"scheduled":false,"scheduledDate":"","scheduledDateAsDate":{},"submissionComment":"","submitted":false,"submittedByFirstName":"","submittedByLastName":"","submittedForDeletion":false,"timezone":"EST5EDT","title":"","uri":"/templates/web/entry.ftl","user":"","userFirstName":"","userLastName":"","width":0,"workflowId":""}],"scheduled":false,"scheduledDate":"","scheduledDateAsDate":{},"submissionComment":"","submitted":false,"submittedByFirstName":"","submittedByLastName":"","submittedForDeletion":false,"timezone":"EST5EDT","title":"","uri":"/site/website/about/index.xml","user":"author","userFirstName":"author","userLastName":"author","width":0,"workflowId":""},{"asset":false,"assets":[],"browserUri":"/about/crafter-level-descriptor.level.xml","categoryRoot":"","children":[],"component":true,"components":[],"container":false,"contentType":"/component/level-descriptor","defaultWebApp":"/wem-projects/test-fr/test-fr/work-area","deleted":false,"deletedItems":[],"directory":false,"disabled":false,"document":false,"documents":[],"endpoint":"","eventDate":"2013-04-18T01:11:04","eventDateAsDate":{"date":18,"day":4,"hours":1,"minutes":11,"month":3,"seconds":4,"time":1366261864668,"timezoneOffset":240,"year":113},"floating":false,"form":"/component/level-descriptor","formPagePath":"simple","height":0,"hideInAuthoring":false,"inFlight":false,"inProgress":true,"internalName":"crafter-level-descriptor.level.xml","lastEditDate":{},"lastEditDateAsString":"","levelDescriptor":true,"levelDescriptors":[],"live":false,"lockOwner":"","mandatoryParent":"/site/website/about/index.xml","metaDescription":"","name":"crafter-level-descriptor.level.xml","navigation":false,"new":true,"newFile":true,"nodeRef":"workspace://SpacesStore/873a99c8-109d-47ac-a245-7c2194b17fdf","now":false,"numOfChildren":0,"orders":[],"pages":[],"parentPath":"/about","path":"/site/website/about","previewable":false,"properties":{},"reference":false,"renderingTemplate":false,"renderingTemplates":[],"scheduled":false,"scheduledDate":"","scheduledDateAsDate":{},"submissionComment":"","submitted":false,"submittedByFirstName":"","submittedByLastName":"","submittedForDeletion":false,"timezone":"EST5EDT","title":"","uri":"/site/website/about/crafter-level-descriptor.level.xml","user":"","userFirstName":"","userLastName":"","width":0,"workflowId":""}],"component":false,"components":[],"container":true,"contentType":"/page/entry","defaultWebApp":"/wem-projects/test-fr/test-fr/work-area","deleted":false,"deletedItems":[],"directory":false,"disabled":false,"document":false,"documents":[],"endpoint":"","eventDate":"2013-04-18T03:25:40","eventDateAsDate":{"date":18,"day":4,"hours":3,"minutes":25,"month":3,"seconds":40,"time":1366269940177,"timezoneOffset":240,"year":113},"floating":false,"form":"/page/entry","formPagePath":"simple","height":0,"hideInAuthoring":false,"inFlight":false,"inProgress":true,"internalName":"Home","lastEditDate":{},"lastEditDateAsString":"","levelDescriptor":false,"levelDescriptors":[],"live":false,"lockOwner":"","mandatoryParent":"","metaDescription":"","name":"index.xml","navigation":false,"new":true,"newFile":true,"nodeRef":"workspace://SpacesStore/47a6796a-f6d0-46bc-a563-f9d08d941b01","now":true,"numOfChildren":3,"orders":[{"disabled":"","id":"default","name":"","order":-1,"placeInNav":""}],"pages":[],"parentPath":"","path":"/site/website","previewable":true,"properties":{},"reference":false,"renderingTemplate":false,"renderingTemplates":[{"asset":false,"assets":[],"browserUri":"/templates/web/entry.ftl","categoryRoot":"","children":[],"component":true,"components":[],"container":false,"contentType":"","defaultWebApp":"/wem-projects/test-fr/test-fr/work-area","deleted":false,"deletedItems":[],"directory":false,"disabled":false,"document":false,"documents":[],"endpoint":"","eventDate":"2013-04-13T21:56:03","eventDateAsDate":{"date":13,"day":6,"hours":21,"minutes":56,"month":3,"seconds":3,"time":1365904563607,"timezoneOffset":240,"year":113},"floating":false,"form":"","formPagePath":"","height":0,"hideInAuthoring":false,"inFlight":false,"inProgress":true,"internalName":"entry.ftl","lastEditDate":{},"lastEditDateAsString":"","levelDescriptor":false,"levelDescriptors":[],"live":false,"lockOwner":"","mandatoryParent":"/site/website/index.xml","metaDescription":"","name":"entry.ftl","navigation":false,"new":true,"newFile":true,"nodeRef":"workspace://SpacesStore/5a234a22-8f4e-48d5-9da1-7797886e6776","now":false,"numOfChildren":0,"orders":[],"pages":[],"parentPath":"","path":"/templates/web","previewable":false,"properties":{},"reference":true,"renderingTemplate":false,"renderingTemplates":[],"scheduled":false,"scheduledDate":"","scheduledDateAsDate":{},"submissionComment":"","submitted":false,"submittedByFirstName":"","submittedByLastName":"","submittedForDeletion":false,"timezone":"EST5EDT","title":"","uri":"/templates/web/entry.ftl","user":"","userFirstName":"","userLastName":"","width":0,"workflowId":""}],"scheduled":false,"scheduledDate":"","scheduledDateAsDate":{},"submissionComment":"","submitted":false,"submittedByFirstName":"","submittedByLastName":"","submittedForDeletion":false,"timezone":"EST5EDT","title":"","uri":"/site/website/index.xml","user":"admin","userFirstName":"Administrator","userLastName":"","width":0,"workflowId":""}],"submissionComment":"","now":"true","scheduledDate":"2010-02-26T15:00:00","sendEmail":"true"}
 
-		List<DmDependencyTO> submittedItems = new ArrayList<DmDependencyTO>();
-		RequestContext requestContext = new RequestContext(site, submitter);
+        List<DmDependencyTO> submittedItems = new ArrayList<DmDependencyTO>();
+        RequestContext requestContext = new RequestContext(site, submitter);
 
-		for(String path : paths) {
-			DmDependencyTO depTO = new DmDependencyTO();
-			depTO.setUri(path);
-			submittedItems.add(depTO);
-		}
+        for(String path : paths) {
+            DmDependencyTO depTO = new DmDependencyTO();
+            depTO.setUri(path);
+            submittedItems.add(depTO);
+        }
 
-		try{
-			List<DmError> errors = _dmSimpleWfService.submitToGoLive(
-					submittedItems,
-					scheduledDate,
-					sendApprovedNotice,
-					false, //submit for delete,
-					requestContext, //request context,
-					submissionComment);
-		}
-		catch(Exception err) {
-			logger.error("submitToGoLive", err);
-		}
-		*/
-	}
+        try{
+            List<DmError> errors = _dmSimpleWfService.submitToGoLive(
+                    submittedItems,
+                    scheduledDate,
+                    sendApprovedNotice,
+                    false, //submit for delete,
+                    requestContext, //request context,
+                    submissionComment);
+        }
+        catch(Exception err) {
+            logger.error("submitToGoLive", err);
+        }
+        */
+    }
 
 
-	@Override
-	public Map<String, Object> getGoLiveItems(String site, String sort, boolean ascending) throws ServiceException {
-		DmContentItemComparator comparator = new DmContentItemComparator(sort, ascending, false, false);
-		List<ContentItemTO> items = getGoLiveItems(site, comparator);
+    @Override
+    public Map<String, Object> getGoLiveItems(String site, String sort, boolean ascending) throws ServiceException {
+        DmContentItemComparator comparator = new DmContentItemComparator(sort, ascending, false, false);
+        List<ContentItemTO> items = getGoLiveItems(site, comparator);
 
-		int total = 0;
-		if (items != null) {
-			for (ContentItemTO item : items) {
-				total += item.getNumOfChildren();
-			}
-		}
-		Map<String, Object> result = new HashMap<>();
-		result.put(StudioConstants.PROPERTY_TOTAL, total);
-		result.put(StudioConstants.PROPERTY_SORTED_BY, sort);
-		result.put(StudioConstants.PROPERTY_SORT_ASCENDING, String.valueOf(ascending));
-		result.put(StudioConstants.PROPERTY_DOCUMENTS, items);
-		return result;
-	}
+        int total = 0;
+        if (items != null) {
+            for (ContentItemTO item : items) {
+                total += item.getNumOfChildren();
+            }
+        }
+        Map<String, Object> result = new HashMap<>();
+        result.put(StudioConstants.PROPERTY_TOTAL, total);
+        result.put(StudioConstants.PROPERTY_SORTED_BY, sort);
+        result.put(StudioConstants.PROPERTY_SORT_ASCENDING, String.valueOf(ascending));
+        result.put(StudioConstants.PROPERTY_DOCUMENTS, items);
+        return result;
+    }
 
-	protected List<ContentItemTO> getGoLiveItems(final String site, final DmContentItemComparator comparator) throws ServiceException {
-		List<String> displayPatterns = servicesConfig.getDisplayInWidgetPathPatterns(site);
-		List<ContentItemTO> categoryItems = getCategoryItems(site);
-		GoLiveQueue queue = new GoLiveQueue();
-		fillQueue(site, queue, null);
+    protected List<ContentItemTO> getGoLiveItems(final String site, final DmContentItemComparator comparator) throws ServiceException {
+        List<String> displayPatterns = servicesConfig.getDisplayInWidgetPathPatterns(site);
+        List<ContentItemTO> categoryItems = getCategoryItems(site);
+        GoLiveQueue queue = new GoLiveQueue();
+        fillQueue(site, queue, null);
 
-		Set<ContentItemTO> queueItems = queue.getQueue();
-		ContentItemTO.ChildFilter childFilter = new GoLiveQueueChildFilter(queue);
-		GoLiveQueueOrganizer goLiveQueueOrganizer = new GoLiveQueueOrganizer(contentService, childFilter);
-		for (ContentItemTO queueItem : queueItems) {
-			if (queueItem.getLastEditDate() != null) {
-				queueItem.setEventDate(queueItem.getLastEditDate());
-			}
-			goLiveQueueOrganizer.addToGoLiveItems(site, queueItem, categoryItems, comparator, false, displayPatterns);
-		}
-		return categoryItems;
-	}
+        Set<ContentItemTO> queueItems = queue.getQueue();
+        ContentItemTO.ChildFilter childFilter = new GoLiveQueueChildFilter(queue);
+        GoLiveQueueOrganizer goLiveQueueOrganizer = new GoLiveQueueOrganizer(contentService, childFilter);
+        for (ContentItemTO queueItem : queueItems) {
+            if (queueItem.getLastEditDate() != null) {
+                queueItem.setEventDate(queueItem.getLastEditDate());
+            }
+            goLiveQueueOrganizer.addToGoLiveItems(site, queueItem, categoryItems, comparator, false, displayPatterns);
+        }
+        return categoryItems;
+    }
 
-	/**
-	 * get the top category items that to be displayed in UI
-	 *
-	 * @param site
+    /**
+     * get the top category items that to be displayed in UI
+     *
+     * @param site
+     */
+    protected List<ContentItemTO> getCategoryItems(final String site) {
+        String siteRootPrefix = servicesConfig.getRootPrefix(site);
+        List<ContentItemTO> categories = new ArrayList<>();
+        List<DmFolderConfigTO> folders = servicesConfig.getFolders(site);
 
-	 */
-	protected List<ContentItemTO> getCategoryItems(final String site) {
-		String siteRootPrefix = servicesConfig.getRootPrefix(site);
-		List<ContentItemTO> categories = new ArrayList<>();
-		List<DmFolderConfigTO> folders = servicesConfig.getFolders(site);
+        for (DmFolderConfigTO folder : folders) {
+            String uri = (folder.isAttachRootPrefix()) ? siteRootPrefix + folder.getPath() : folder.getPath();
+            // if the flag to read direct children is set to true, get direct
+            // child folders and add them as categories
+            if (folder.isReadDirectChildren()) {
+                ContentItemTO rootItem = contentService.getContentItemTree(site, siteRootPrefix + folder.getPath(), 1);
+                if (rootItem != null) {
+                    if (rootItem.children != null) {
+                        for (ContentItemTO childItem : rootItem.children) {
+                            categories.add(childItem);
+                        }
+                    }
+                    categories.add(rootItem);
+                }
+            } else {
+                ContentItemTO categoryItem = new ContentItemTO();
+                String timeZone = servicesConfig.getDefaultTimezone(site);
+                categoryItem.setTimezone(timeZone);
+                categoryItem.setName(folder.getName());
+                categoryItem.setInternalName(folder.getName());
+                categoryItem.setUri(uri);
+                categoryItem.setPath(uri);
+                categoryItem.setCategoryRoot(uri);
+                categories.add(categoryItem);
+            }
+        }
+        return categories;
+    }
 
-		for (DmFolderConfigTO folder : folders) {
-			String uri = (folder.isAttachRootPrefix()) ? siteRootPrefix + folder.getPath() : folder.getPath();
-			// if the flag to read direct children is set to true, get direct
-			// child folders and add them as categories
-			if (folder.isReadDirectChildren()) {
-				ContentItemTO rootItem = contentService.getContentItemTree(site, siteRootPrefix + folder.getPath(), 1);
-				if (rootItem != null) {
-					if (rootItem.children != null) {
-						for (ContentItemTO childItem : rootItem.children) {
-							categories.add(childItem);
-						}
-					}
-					categories.add(rootItem);
-				}
-			} else {
-				ContentItemTO categoryItem = new ContentItemTO();
-				String timeZone = servicesConfig.getDefaultTimezone(site);
-				categoryItem.setTimezone(timeZone);
-				categoryItem.setName(folder.getName());
-				categoryItem.setInternalName(folder.getName());
-				categoryItem.setUri(uri);
-				categoryItem.setPath(uri);
-				categoryItem.setCategoryRoot(uri);
-				categories.add(categoryItem);
-			}
-		}
-		return categories;
-	}
+    public void fillQueue(String site, GoLiveQueue goLiveQueue, GoLiveQueue inProcessQueue) throws ServiceException {
+        List<ObjectState> changeSet = objectStateService.getSubmittedItems(site);
+        // TODO: implement list changed all
 
-	public void fillQueue(String site, GoLiveQueue goLiveQueue, GoLiveQueue inProcessQueue) throws ServiceException {
-		List<ObjectState> changeSet = objectStateService.getSubmittedItems(site);
-		// TODO: implement list changed all
-
-		// the category item to add all other items that do not belong to
-		// regular categories specified in the configuration
-		if (changeSet != null) {
-			// add all content items from each task if task is the review task
-			for (ObjectState state : changeSet) {
-				try {
+        // the category item to add all other items that do not belong to
+        // regular categories specified in the configuration
+        if (changeSet != null) {
+            // add all content items from each task if task is the review task
+            for (ObjectState state : changeSet) {
+                try {
                     if (contentService.contentExists( state.getSite(), state.getPath())) {
                         ContentItemTO item = contentService.getContentItem(state.getSite(), state.getPath(), 0);
                         Set<String> permissions = securityService.getUserPermissions(site, item.getUri(), securityService.getCurrentUser(), Collections.<String>emptyList());
@@ -458,184 +456,184 @@ public class WorkflowServiceImpl implements WorkflowService {
                         objectStateService.deleteObjectStateForPath(site, state.getPath());
                         objectMetadataManager.deleteObjectMetadata(site, state.getPath());
                     }
-				} catch (Exception e) {
-					logger.error("Could not warm cache for [" + state.getSite() + " : " + state.getPath() + "] " + e.getMessage());
-				}
-			}
-		}
-	}
+                } catch (Exception e) {
+                    logger.error("Could not warm cache for [" + state.getSite() + " : " + state.getPath() + "] " + e.getMessage());
+                }
+            }
+        }
+    }
 
-	protected void addToQueue(String site, GoLiveQueue queue, GoLiveQueue inProcessQueue, ContentItemTO item, ObjectState itemState) throws ServiceException {
-		if (item != null) {
-			State state = State.valueOf(itemState.getState());
-			//add only submitted items to go live Q.
-			if (State.isSubmitted(state)) {
-				queue.add(item);
-			}
+    protected void addToQueue(String site, GoLiveQueue queue, GoLiveQueue inProcessQueue, ContentItemTO item, ObjectState itemState) throws ServiceException {
+        if (item != null) {
+            State state = State.valueOf(itemState.getState());
+            //add only submitted items to go live Q.
+            if (State.isSubmitted(state)) {
+                queue.add(item);
+            }
 
-			if (inProcessQueue != null) {
-				if (!State.isLive(state)) {
-					inProcessQueue.add(item);
-					inProcessQueue.add(item.getPath(), item);
-				}
-			}
-		} else {
-			objectStateService.deleteObjectState(itemState.getObjectId());
-		}
-	}
+            if (inProcessQueue != null) {
+                if (!State.isLive(state)) {
+                    inProcessQueue.add(item);
+                    inProcessQueue.add(item.getPath(), item);
+                }
+            }
+        } else {
+            objectStateService.deleteObjectState(itemState.getObjectId());
+        }
+    }
 
-	public Map<String, Object> getInProgressItems(String site, String sort, boolean ascending, boolean inProgressOnly) throws ServiceException {
-		DmContentItemComparator comparator = new DmContentItemComparator(sort, ascending, true, true);
-		List<ContentItemTO> items = getInProgressItems(site, comparator, inProgressOnly);
-		JSONObject jsonObject = new JSONObject();
-		int total = 0;
-		if (items != null) {
-			for (ContentItemTO item : items) {
-				total += item.getNumOfChildren();
-			}
-		}
-		Map<String, Object> result = new HashMap<>();
-		result.put(StudioConstants.PROPERTY_TOTAL, total);
-		result.put(StudioConstants.PROPERTY_SORTED_BY, sort);
-		result.put(StudioConstants.PROPERTY_SORT_ASCENDING, String.valueOf(ascending));
-		result.put(StudioConstants.PROPERTY_DOCUMENTS, items);
-		return result;
-	}
+    public Map<String, Object> getInProgressItems(String site, String sort, boolean ascending, boolean inProgressOnly) throws ServiceException {
+        DmContentItemComparator comparator = new DmContentItemComparator(sort, ascending, true, true);
+        List<ContentItemTO> items = getInProgressItems(site, comparator, inProgressOnly);
+        JSONObject jsonObject = new JSONObject();
+        int total = 0;
+        if (items != null) {
+            for (ContentItemTO item : items) {
+                total += item.getNumOfChildren();
+            }
+        }
+        Map<String, Object> result = new HashMap<>();
+        result.put(StudioConstants.PROPERTY_TOTAL, total);
+        result.put(StudioConstants.PROPERTY_SORTED_BY, sort);
+        result.put(StudioConstants.PROPERTY_SORT_ASCENDING, String.valueOf(ascending));
+        result.put(StudioConstants.PROPERTY_DOCUMENTS, items);
+        return result;
+    }
 
-	protected List<ContentItemTO> getInProgressItems(final String site, final DmContentItemComparator comparator, final boolean inProgressOnly) throws ServiceException {
-		final List<ContentItemTO> categoryItems = new ArrayList<>();
+    protected List<ContentItemTO> getInProgressItems(final String site, final DmContentItemComparator comparator, final boolean inProgressOnly) throws ServiceException {
+        final List<ContentItemTO> categoryItems = new ArrayList<>();
 
-		List<ContentItemTO>categoryItems1 = getCategoryItems(site);
-		categoryItems.addAll(categoryItems1);
+        List<ContentItemTO>categoryItems1 = getCategoryItems(site);
+        categoryItems.addAll(categoryItems1);
 
 
-		long st = System.currentTimeMillis();
-		List<ObjectState> changeSet = objectStateService.getChangeSet(site);
+        long st = System.currentTimeMillis();
+        List<ObjectState> changeSet = objectStateService.getChangeSet(site);
 
-		logger.debug("Time taken listChangedAll()  " + (System.currentTimeMillis() - st));
+        logger.debug("Time taken listChangedAll()  " + (System.currentTimeMillis() - st));
 
-		// the category item to add all other items that do not belong to
-		// regular categories specified in the configuration
-		st = System.currentTimeMillis();
+        // the category item to add all other items that do not belong to
+        // regular categories specified in the configuration
+        st = System.currentTimeMillis();
 
-		if (changeSet != null) {
-			List<String> displayPatterns = servicesConfig.getDisplayInWidgetPathPatterns(site);
-			//List<String> inProgressItems = new FastList<String>();
-			for (ObjectState state : changeSet) {
-				if (contentService.contentExists(state.getSite(), state.getPath())) {
-					if (ContentUtils.matchesPatterns(state.getPath(), displayPatterns)) {
-						ContentItemTO item = contentService.getContentItem(state.getSite(), state.getPath(), 0);
-						addInProgressItems(site, item, categoryItems, comparator, inProgressOnly);
-					}
-				}
-			}
-		}
+        if (changeSet != null) {
+            List<String> displayPatterns = servicesConfig.getDisplayInWidgetPathPatterns(site);
+            //List<String> inProgressItems = new FastList<String>();
+            for (ObjectState state : changeSet) {
+                if (contentService.contentExists(state.getSite(), state.getPath())) {
+                    if (ContentUtils.matchesPatterns(state.getPath(), displayPatterns)) {
+                        ContentItemTO item = contentService.getContentItem(state.getSite(), state.getPath(), 0);
+                        addInProgressItems(site, item, categoryItems, comparator, inProgressOnly);
+                    }
+                }
+            }
+        }
 
-		logger.debug("Time taken after listChangedAll() : " + (System.currentTimeMillis() - st));
-		return categoryItems;
-	}
+        logger.debug("Time taken after listChangedAll() : " + (System.currentTimeMillis() - st));
+        return categoryItems;
+    }
 
-	protected void addInProgressItems(String site, ContentItemTO item, List<ContentItemTO> categoryItems, DmContentItemComparator comparator, boolean inProgressOnly) {
-		if (addToQueue(false, inProgressOnly, true)) {
-			if (!(item.isSubmitted() || item.isInProgress())) {
-				return;
-			}
+    protected void addInProgressItems(String site, ContentItemTO item, List<ContentItemTO> categoryItems, DmContentItemComparator comparator, boolean inProgressOnly) {
+        if (addToQueue(false, inProgressOnly, true)) {
+            if (!(item.isSubmitted() || item.isInProgress())) {
+                return;
+            }
 
-			item.setDeleted(false);
-			ContentItemTO found = null;
-			String uri = item.getUri();
-			for (ContentItemTO categoryItem : categoryItems) {
-				String categoryPath = categoryItem.getPath() + "/";
-				if (uri.startsWith(categoryPath)) {
-					found = categoryItem;
-					break;
-				}
-			}
-			if (found != null && !found.getUri().equals(item.getUri())) {
-				found.addChild(item, comparator, true);
-			}
-		}
-	}
+            item.setDeleted(false);
+            ContentItemTO found = null;
+            String uri = item.getUri();
+            for (ContentItemTO categoryItem : categoryItems) {
+                String categoryPath = categoryItem.getPath() + "/";
+                if (uri.startsWith(categoryPath)) {
+                    found = categoryItem;
+                    break;
+                }
+            }
+            if (found != null && !found.getUri().equals(item.getUri())) {
+                found.addChild(item, comparator, true);
+            }
+        }
+    }
 
-	/**
-	 * add the current item to the queue?
-	 *
-	 * @param inProgressOnly
-	 * @param includeInProgress
-	 * @param includeInProgress
-	 * @return
-	 */
-	protected boolean addToQueue(boolean submitted, boolean inProgressOnly, boolean includeInProgress) {
-		// excluded approved or scheduled items if in-progress items are
-		// included. go-live queue case the node is in review
-		if (inProgressOnly && submitted) {
-			return false;
-		}
-		// add items in following cases
-		// 1) if the item is submitted, add if the flag is not in-progress only
-		// 2) if the item is in progress, add if the flag is either in-progress
-		// only or include in progress
-		if (submitted && !inProgressOnly) {
-			return true;
-		} else if (!submitted && (inProgressOnly || includeInProgress)) {
-			return true;
-		}
-		return false;
-	}
+    /**
+     * add the current item to the queue?
+     *
+     * @param inProgressOnly
+     * @param includeInProgress
+     * @param includeInProgress
+     * @return
+     */
+    protected boolean addToQueue(boolean submitted, boolean inProgressOnly, boolean includeInProgress) {
+        // excluded approved or scheduled items if in-progress items are
+        // included. go-live queue case the node is in review
+        if (inProgressOnly && submitted) {
+            return false;
+        }
+        // add items in following cases
+        // 1) if the item is submitted, add if the flag is not in-progress only
+        // 2) if the item is in progress, add if the flag is either in-progress
+        // only or include in progress
+        if (submitted && !inProgressOnly) {
+            return true;
+        } else if (!submitted && (inProgressOnly || includeInProgress)) {
+            return true;
+        }
+        return false;
+    }
 
-	@Override
-	public boolean removeFromWorkflow(String site, String path, boolean cancelWorkflow) {
-		Set<String> processedPaths = new HashSet<>();
-		return removeFromWorkflow(site, path, processedPaths, cancelWorkflow);
-	}
+    @Override
+    public boolean removeFromWorkflow(String site, String path, boolean cancelWorkflow) {
+        Set<String> processedPaths = new HashSet<>();
+        return removeFromWorkflow(site, path, processedPaths, cancelWorkflow);
+    }
 
-	protected boolean removeFromWorkflow(String site,  String path, Set<String> processedPaths, boolean cancelWorkflow) {
-		// remove submitted aspects from all dependent items
-		if (!processedPaths.contains(path)) {
-			processedPaths.add(path);
-			//if (contentService.contentExists(site, path)) {
-				//removeSubmittedAspect(site, fullPath, null, false, DmConstants.DM_STATUS_IN_PROGRESS);
-				// cancel workflow if anything is pending
+    protected boolean removeFromWorkflow(String site,  String path, Set<String> processedPaths, boolean cancelWorkflow) {
+        // remove submitted aspects from all dependent items
+        if (!processedPaths.contains(path)) {
+            processedPaths.add(path);
+            //if (contentService.contentExists(site, path)) {
+                //removeSubmittedAspect(site, fullPath, null, false, DmConstants.DM_STATUS_IN_PROGRESS);
+                // cancel workflow if anything is pending
                 long startTime = System.currentTimeMillis();
-				if (cancelWorkflow) {
-					_cancelWorkflow(site, path);
-				}
+                if (cancelWorkflow) {
+                    _cancelWorkflow(site, path);
+                }
                 long duration = System.currentTimeMillis() - startTime;
                 logger.debug("_cancelWorkflow Duration 111: {0}", duration);
 /*
                 startTime = System.currentTimeMillis();
-				DmDependencyTO depItem = dmDependencyService.getDependencies(site, path, false, true);
+                DmDependencyTO depItem = dmDependencyService.getDependencies(site, path, false, true);
             duration = System.currentTimeMillis() - startTime;
             logger.warn("getDependencies Duration 112: {0}", duration);
-				if (depItem != null) {
-					DependencyRules dependencyRules = new DependencyRules(site);
-					dependencyRules.setObjectStateService(objectStateService);
-					dependencyRules.setContentService(contentService);
+                if (depItem != null) {
+                    DependencyRules dependencyRules = new DependencyRules(site);
+                    dependencyRules.setObjectStateService(objectStateService);
+                    dependencyRules.setContentService(contentService);
                     long startTime1 = System.currentTimeMillis();
-					Set<DmDependencyTO> submittedDeps = dependencyRules.applySubmitRule(depItem);
+                    Set<DmDependencyTO> submittedDeps = dependencyRules.applySubmitRule(depItem);
                     duration = System.currentTimeMillis() - startTime1;
                     logger.warn("applySubmitRule Duration 113: {0}", duration);
-					List<String> transitionNodes = new ArrayList<String>();
-					for (DmDependencyTO dependencyTO : submittedDeps) {
-						removeFromWorkflow(site, dependencyTO.getUri(), processedPaths, cancelWorkflow);
-						ObjectState state = objectStateService.getObjectState(site, dependencyTO.getUri());
-						if (State.isScheduled(State.valueOf(state.getState())) || State.isSubmitted(State.valueOf(state.getState()))) {
-							transitionNodes.add(dependencyTO.getUri());
-						}
-					}
+                    List<String> transitionNodes = new ArrayList<String>();
+                    for (DmDependencyTO dependencyTO : submittedDeps) {
+                        removeFromWorkflow(site, dependencyTO.getUri(), processedPaths, cancelWorkflow);
+                        ObjectState state = objectStateService.getObjectState(site, dependencyTO.getUri());
+                        if (State.isScheduled(State.valueOf(state.getState())) || State.isSubmitted(State.valueOf(state.getState()))) {
+                            transitionNodes.add(dependencyTO.getUri());
+                        }
+                    }
 
-					if (!transitionNodes.isEmpty()) {
-						objectStateService.transitionBulk(site, transitionNodes, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.SAVE, State.NEW_UNPUBLISHED_UNLOCKED);
-					}
-				}
+                    if (!transitionNodes.isEmpty()) {
+                        objectStateService.transitionBulk(site, transitionNodes, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.SAVE, State.NEW_UNPUBLISHED_UNLOCKED);
+                    }
+                }
                 duration = System.currentTimeMillis() - startTime;
                 logger.warn("removeFromWorkflow - dependencies Duration 114: {0}", duration);*/
-			//}
-		}
-		return false;
-	}
+            //}
+        }
+        return false;
+    }
 
-	protected void _cancelWorkflow(String site, String path) {
+    protected void _cancelWorkflow(String site, String path) {
         List<String> allItemsToCancel = getWorkflowAffectedPathsInternal(site, path);
         List<String> paths = new ArrayList<String>();
         for (String affectedItem : allItemsToCancel) {
@@ -656,7 +654,7 @@ public class WorkflowServiceImpl implements WorkflowService {
             }
         }
         objectStateService.transitionBulk(site, paths, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.REJECT, State.NEW_UNPUBLISHED_UNLOCKED);
-	}
+    }
 
     protected List<String> getWorkflowAffectedPathsInternal(String site, String path) {
         List<String> affectedPaths = new ArrayList<String>();
@@ -690,70 +688,70 @@ public class WorkflowServiceImpl implements WorkflowService {
         return affectedPaths;
     }
 
-	@Override
-	public List<ContentItemTO> getWorkflowAffectedPaths(String site, String path) {
-		List<String> affectedPaths = getWorkflowAffectedPathsInternal(site, path);
+    @Override
+    public List<ContentItemTO> getWorkflowAffectedPaths(String site, String path) {
+        List<String> affectedPaths = getWorkflowAffectedPathsInternal(site, path);
         return getWorkflowAffectedItems(site, affectedPaths);
-	}
+    }
 
-	private void getMandatoryChildren(String site, String path, List<String> affectedPaths) {
-		// TODO: check folders and list children
-		/*
-		PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-		String parentPath = fullPath.replace("/" + DmConstants.INDEX_FILE, "");
-		List<FileInfo> children = persistenceManagerService.list(parentPath);
-		for (FileInfo child : children) {
-			NodeRef childRef = child.getNodeRef();
-			String childPath = persistenceManagerService.getNodePath(childRef);
-			DmPathTO dmPathTO = new DmPathTO(childPath);
-			if (!affectedPaths.contains(dmPathTO.getRelativePath())) {
-				affectedPaths.add(dmPathTO.getRelativePath());
-				getMandatoryChildren(childPath, affectedPaths);
-			}
-		}*/
-	}
+    private void getMandatoryChildren(String site, String path, List<String> affectedPaths) {
+        // TODO: check folders and list children
+        /*
+        PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
+        String parentPath = fullPath.replace("/" + DmConstants.INDEX_FILE, "");
+        List<FileInfo> children = persistenceManagerService.list(parentPath);
+        for (FileInfo child : children) {
+            NodeRef childRef = child.getNodeRef();
+            String childPath = persistenceManagerService.getNodePath(childRef);
+            DmPathTO dmPathTO = new DmPathTO(childPath);
+            if (!affectedPaths.contains(dmPathTO.getRelativePath())) {
+                affectedPaths.add(dmPathTO.getRelativePath());
+                getMandatoryChildren(childPath, affectedPaths);
+            }
+        }*/
+    }
 
-	private List<String> getDependencyCandidates(String site, List<String> affectedPaths) {
-		List<String> dependenciesPaths = new ArrayList<String>();
-		for (String path : affectedPaths) {
-			getAllDependenciesRecursive(site, path, dependenciesPaths);
-		}
-		return dependenciesPaths;
-	}
+    private List<String> getDependencyCandidates(String site, List<String> affectedPaths) {
+        List<String> dependenciesPaths = new ArrayList<String>();
+        for (String path : affectedPaths) {
+            getAllDependenciesRecursive(site, path, dependenciesPaths);
+        }
+        return dependenciesPaths;
+    }
 
-	protected void getAllDependenciesRecursive(String site, String path, List<String> dependecyPaths) {
-		List<String> depPaths = dmDependencyService.getDependencyPaths(site, path);
-		for (String depPath : depPaths) {
-			if (!dependecyPaths.contains(depPath)) {
-				dependecyPaths.add(depPath);
-				getAllDependenciesRecursive(site, depPath, dependecyPaths);
-			}
-		}
-	}
+    protected void getAllDependenciesRecursive(String site, String path, List<String> dependecyPaths) {
+        List<String> depPaths = dmDependencyService.getDependencyPaths(site, path);
+        for (String depPath : depPaths) {
+            if (!dependecyPaths.contains(depPath)) {
+                dependecyPaths.add(depPath);
+                getAllDependenciesRecursive(site, depPath, dependecyPaths);
+            }
+        }
+    }
 
-	protected List<ContentItemTO> getWorkflowAffectedItems(String site, List<String> paths) {
-		List<ContentItemTO> items = new ArrayList<>();
+    protected List<ContentItemTO> getWorkflowAffectedItems(String site, List<String> paths) {
+        List<ContentItemTO> items = new ArrayList<>();
 
-		for (String path : paths) {
-			ContentItemTO item = contentService.getContentItem(site, path);
-			items.add(item);
-		}
-		return items;
-	}
+        for (String path : paths) {
+            ContentItemTO item = contentService.getContentItem(site, path);
+            items.add(item);
+        }
+        return items;
+    }
 
-	@Override
-	public void updateWorkflowSandboxes(String site, String path) {
-		// TODO: copy to live repo node
-		/*
-		PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-		NodeRef node = persistenceManagerService.getNodeRef(fullPath);
-		if (node != null) {
-			NodeRef liveRepoNode = persistenceManagerService.getNodeRef(getPathFromLiveRepo(fullPath));
-			if (liveRepoNode != null) {
-				persistenceManagerService.copy(node, liveRepoNode);
-			}
-		}*/
-	}
+    @Override
+    public void updateWorkflowSandboxes(String site, String path) {
+        // TODO: copy to live repo node
+        /*
+        PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
+        NodeRef node = persistenceManagerService.getNodeRef(fullPath);
+        if (node != null) {
+            NodeRef liveRepoNode = persistenceManagerService.getNodeRef(getPathFromLiveRepo(fullPath));
+            if (liveRepoNode != null) {
+                persistenceManagerService.copy(node, liveRepoNode);
+            }
+        }*/
+    }
 
     /**
      * approve workflows and schedule them as specified in the request
@@ -832,7 +830,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                 String stringItem = items.optString(index);
                 DmDependencyTO submittedItem = null;
 
-				submittedItem = getSubmittedItem(site, stringItem, format, scheduledDate, null);
+                submittedItem = getSubmittedItem(site, stringItem, format, scheduledDate, null);
                 List<DmDependencyTO> submitForDeleteChildren = removeSubmitToDeleteChildrenForGoLive(submittedItem, operation);
                 if (submittedItem.isReference()) {
                     submittedItem.setReference(false);
@@ -854,7 +852,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                         if (item.isSubmittedForDeletion()) {
                             submitToDeleteItems.add(item);
                         } else {
-                            if (!dmRenameService.isItemRenamed(site, item)) {
+                            if (!isItemRenamed(site, item)) {
                                 goLiveItems.add(item);
                             } else {
                                 renameItems.add(item);
@@ -915,7 +913,8 @@ public class WorkflowServiceImpl implements WorkflowService {
                             renameItems.set(i, renamedItem);
                         }
 
-                        dmRenameService.goLive(site, renameItems, approver, mcpContext);
+                        //RD: dmRenameService
+                        renameServiceGoLive(site, renameItems, approver, mcpContext);
                     }
 
                     break;
@@ -934,12 +933,12 @@ public class WorkflowServiceImpl implements WorkflowService {
             }
             result.setSuccess(true);
             result.setStatus(200);
-			if(notificationService2.isEnabled()){
-				result.setMessage(notificationService2.getNotificationMessage(site,
-					NotificationMessageType.CompleteMessages,responseMessageKey,Locale.ENGLISH));
-			}else{
-				result.setMessage(notificationService.getCompleteMessage(site, responseMessageKey));
-			}
+            if(notificationService2.isEnabled()){
+                result.setMessage(notificationService2.getNotificationMessage(site,
+                    NotificationMessageType.CompleteMessages,responseMessageKey,Locale.ENGLISH));
+            }else{
+                result.setMessage(notificationService.getCompleteMessage(site, responseMessageKey));
+            }
         } catch (JSONException e) {
             logger.error("error performing operation " + operation + " " + e);
 
@@ -951,6 +950,15 @@ public class WorkflowServiceImpl implements WorkflowService {
             result.setMessage(e.getMessage());
         }
         return result;
+    }
+
+    protected boolean isItemRenamed(String site, DmDependencyTO item) {
+        if (item.getUri().endsWith(DmConstants.XML_PATTERN) || !item.getUri().contains(".")) {
+            return objectMetadataManager.isRenamed(site, item.getUri());
+        } else {
+            // if not xml or a folder, skip checking if renamed
+            return false;
+        }
     }
 
     /**
@@ -1025,7 +1033,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                         if (item.isSubmittedForDeletion()) {
                             submitToDeleteItems.add(item);
                         } else {
-                            if (!dmRenameService.isItemRenamed(site, item)) {
+                            if (!isItemRenamed(site, item)) {
                                 goLiveItems.add(item);
                             } else {
                                 renameItems.add(item);
@@ -1087,7 +1095,8 @@ public class WorkflowServiceImpl implements WorkflowService {
                             renameItems.set(i, renamedItem);
                         }
 
-                        dmRenameService.goLive(site, renameItems, approver, mcpContext);
+                        //RD: dmRenameService.
+                        renameServiceGoLive(site, renameItems, approver, mcpContext);
                     }
 
                     break;
@@ -1107,12 +1116,12 @@ public class WorkflowServiceImpl implements WorkflowService {
             }
             result.setSuccess(true);
             result.setStatus(200);
-			if(notificationService2.isEnabled()) {
-				result.setMessage(notificationService2.getNotificationMessage(site,NotificationMessageType
-					.CompleteMessages,responseMessageKey,Locale.ENGLISH));
-			}else {
-				result.setMessage(notificationService.getCompleteMessage(site, responseMessageKey));
-			}
+            if(notificationService2.isEnabled()) {
+                result.setMessage(notificationService2.getNotificationMessage(site,NotificationMessageType
+                    .CompleteMessages,responseMessageKey,Locale.ENGLISH));
+            }else {
+                result.setMessage(notificationService.getCompleteMessage(site, responseMessageKey));
+            }
 
         } catch (JSONException e) {
             logger.error("error performing operation " + operation + " " + e);
@@ -1199,7 +1208,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                         if (item.isSubmittedForDeletion()) {
                             submitToDeleteItems.add(item);
                         } else {
-                            if (!dmRenameService.isItemRenamed(site, item)) {
+                            if (!isItemRenamed(site, item)) {
                                 goLiveItems.add(item);
                             } else {
                                 renameItems.add(item);
@@ -1261,7 +1270,8 @@ public class WorkflowServiceImpl implements WorkflowService {
                             renameItems.set(i, renamedItem);
                         }
 
-                        dmRenameService.goLive(site, renameItems, approver, mcpContext);
+                        //RD dmRenameService.
+                        renameServiceGoLive(site, renameItems, approver, mcpContext);
                     }
 
                     break;
@@ -1413,22 +1423,22 @@ public class WorkflowServiceImpl implements WorkflowService {
         return submittedItem;
     }
 
-	protected DmDependencyTO getSubmittedItem(String site, String itemPath, SimpleDateFormat format, String globalSchDate, Set<String> processedDependencies) throws JSONException {
-		DmDependencyTO submittedItem = dmDependencyService.getDependenciesNoCalc(site, itemPath, false, true, processedDependencies);
-		// TODO: check scheduled date to make sure it is not null when isNow =
-		// true and also it is not past
-		Date scheduledDate = null;
-		if (globalSchDate != null && !StringUtils.isEmpty(globalSchDate)) {
-			scheduledDate = getScheduledDate(site, format, globalSchDate);
-		} else {
-			if (submittedItem.getScheduledDate() != null) {
+    protected DmDependencyTO getSubmittedItem(String site, String itemPath, SimpleDateFormat format, String globalSchDate, Set<String> processedDependencies) throws JSONException {
+        DmDependencyTO submittedItem = dmDependencyService.getDependenciesNoCalc(site, itemPath, false, true, processedDependencies);
+        // TODO: check scheduled date to make sure it is not null when isNow =
+        // true and also it is not past
+        Date scheduledDate = null;
+        if (globalSchDate != null && !StringUtils.isEmpty(globalSchDate)) {
+            scheduledDate = getScheduledDate(site, format, globalSchDate);
+        } else {
+            if (submittedItem.getScheduledDate() != null) {
                 scheduledDate = getScheduledDate(site, format, format.format(submittedItem.getScheduledDate()));
             }
-		}
-		if (scheduledDate == null) {
-			submittedItem.setNow(true);
-		}
-		submittedItem.setScheduledDate(scheduledDate);
+        }
+        if (scheduledDate == null) {
+            submittedItem.setNow(true);
+        }
+        submittedItem.setScheduledDate(scheduledDate);
         if (processedDependencies == null) {
             processedDependencies = new HashSet<String>();
         }
@@ -1480,8 +1490,8 @@ public class WorkflowServiceImpl implements WorkflowService {
             }
         }
 
-		return submittedItem;
-	}
+        return submittedItem;
+    }
 
     protected DmDependencyTO getSubmittedItem_new(String site, String itemPath, SimpleDateFormat format, String globalSchDate) throws JSONException {
         DmDependencyTO submittedItem = dmDependencyService.getDependenciesNoCalc(site, itemPath, false, true, null);
@@ -1713,12 +1723,12 @@ public class WorkflowServiceImpl implements WorkflowService {
     }
 
     protected void handleReferences(String site, SubmitPackage submitpackage, DmDependencyTO dmDependencyTO, boolean isNotScheduled, SubmitPackage dependencyPackage, String approver, Set<String> rescheduledUris) {//,boolean isReferencePage) {
-		ObjectMetadata properties = objectMetadataManager.getProperties(site, dmDependencyTO.getUri());
-		Date scheduledDate = null;
+        ObjectMetadata properties = objectMetadataManager.getProperties(site, dmDependencyTO.getUri());
+        Date scheduledDate = null;
         if (properties != null) {
             scheduledDate = properties.getLaunchDate();
         }
-		ObjectState state = objectStateService.getObjectState(site, dmDependencyTO.getUri());
+        ObjectState state = objectStateService.getObjectState(site, dmDependencyTO.getUri());
         if (state != null) {
             if (!State.isSubmitted(State.valueOf(state.getState())) && scheduledDate != null && scheduledDate.equals(dmDependencyTO.getScheduledDate())) {
                 if (objectStateService.isScheduled(site, dmDependencyTO.getUri())) {
@@ -2434,9 +2444,9 @@ public class WorkflowServiceImpl implements WorkflowService {
         }*/
     }
 
-	public ResultTO submitToDelete(String site, String user, String requestBody) throws ServiceException {
-		return submitForApproval(site, user, requestBody, true);
-	}
+    public ResultTO submitToDelete(String site, String user, String requestBody) throws ServiceException {
+        return submitForApproval(site, user, requestBody, true);
+    }
 
     @Override
     public ResultTO reject(String site, String user, String request) throws ServiceException {
@@ -2507,18 +2517,18 @@ public class WorkflowServiceImpl implements WorkflowService {
 
 
             }
-			if(!submittedItems.isEmpty()) {
-				// for some reason ,  submittedItems.get(0).getSubmittedBy() returns empty and
-				// metadata for the same value is also empty , using last modify to blame the rejection.
-				final ObjectMetadata metaData = objectMetadataManager.getProperties(site, submittedItems.get(0).getUri
-					());
-				 String whoToBlame = "admin"; //worst case, we need someone to blame.
-				if(metaData!=null && StringUtils.isNotBlank(metaData.getModifier())){
-					whoToBlame=metaData.getModifier();
-				}
-				notificationService2.notifyContentRejection(site,whoToBlame
-					, getDeploymentPaths(submittedItems),reason,approver, Locale.ENGLISH);
-			}
+            if(!submittedItems.isEmpty()) {
+                // for some reason ,  submittedItems.get(0).getSubmittedBy() returns empty and
+                // metadata for the same value is also empty , using last modify to blame the rejection.
+                final ObjectMetadata metaData = objectMetadataManager.getProperties(site, submittedItems.get(0).getUri
+                    ());
+                 String whoToBlame = "admin"; //worst case, we need someone to blame.
+                if(metaData!=null && StringUtils.isNotBlank(metaData.getModifier())){
+                    whoToBlame=metaData.getModifier();
+                }
+                notificationService2.notifyContentRejection(site,whoToBlame
+                    , getDeploymentPaths(submittedItems),reason,approver, Locale.ENGLISH);
+            }
         }
 
         // TODO: send the reason to the user
@@ -2573,28 +2583,202 @@ public class WorkflowServiceImpl implements WorkflowService {
         }
     }
 
+    /* ================= */
+    // Methods from rename service
+    protected void renameServiceGoLive(String site, List<DmDependencyTO> submittedItems, String approver, MultiChannelPublishingContext mcpContext) throws ServiceException {
+                long start = System.currentTimeMillis();
+
+        try {
+            Date now = new Date();
+            Map<Date, List<DmDependencyTO>> groupedPackages = groupByDate(submittedItems, now);
+
+            for (Date scheduledDate : groupedPackages.keySet()) {
+                submitWorkflow(site, groupedPackages.get(scheduledDate),now, scheduledDate, approver, mcpContext);
+            }
+
+        } catch (ContentNotFoundException e) {
+            throw new ServiceException("Error during go live",e);
+        } catch (ServiceException e) {
+            throw new ServiceException("Error during go live",e);
+        }
+        long end = System.currentTimeMillis();
+        logger.debug("Total go live time on rename item = " + (end - start));
+    }
+
+    /**
+     *
+     * Prepares and starts workflow
+     *
+     * Reverts any child nodes which are not in the same version as staging since only URL changes has to be pushed to staging.
+     * A copy of the new version is placed in a temp location and recovered once we push things to workflow
+     *
+     */
+    protected void submitWorkflow(final String site, final List<DmDependencyTO> submittedItems, Date now, Date scheduledDate,
+                                  final String approver, MultiChannelPublishingContext mcpContext) throws ServiceException{
+
+        final String assignee = "" ;//DmUtils.getAssignee(site, sub);
+        final List<String> paths = new ArrayList<>();
+        final List<String> dependenices = new ArrayList<>();
+        Date launchDate = scheduledDate.equals(now) ? null : scheduledDate;
+        final boolean isScheduled = launchDate == null ? false : true;
+        String pathPrefix = "/wem-projects/" + site + "/" + site + "/work-area";
+
+        //label will keep track of all nodes that has been reverted to staging version and used during postStagingSubmission
+        final StringBuilder label = new StringBuilder();
+        label.append(isScheduled ? DmConstants.SCHEDULE_RENAME_WORKFLOW_PREFIX : DmConstants.RENAME_WORKFLOW_PREFIX);
+        label.append(":");
+        final Set<String> rescheduledUris = new HashSet<String>();
+        for (DmDependencyTO submittedItem : submittedItems) {
+            String workflowLabel = getWorkflowPaths(site, submittedItem, pathPrefix, paths, dependenices, isScheduled, rescheduledUris);
+            label.append(workflowLabel);
+            label.append(",");
+        }
+
+        Set<String>uris = new HashSet<String>();
+        Map<String, String> submittedBy = new HashMap<>();
+        for (String path : paths) {
+            String uri = path.substring(pathPrefix.length());
+            uris.add(uri);
+            dmPublishService.cancelScheduledItem(site, uri);
+        }
+        GoLiveContext context = new GoLiveContext(approver, site);
+        SubmitLifeCycleOperation operation = null;
+        if (launchDate == null){
+            operation = new PreGoLiveOperation(this, uris, context, rescheduledUris);
+        }else{
+            //uri will not be have dependencies
+            for (String dependency: dependenices) {
+                String uri = dependency.substring(pathPrefix.length());
+                uris.add(uri);
+            }
+            operation = new PreScheduleOperation(this, uris,launchDate, context, rescheduledUris);
+        }
+        workflowProcessor.addToWorkflow(site, paths, launchDate, label.toString(), operation, approver, mcpContext);
+        logger.debug("Go live rename: paths posted " + paths + "for workflow scheduled at : " + launchDate);
+    }
+
+    /**
+     *
+     * Compute the paths to be moved and paths to be deleted from Staging
+     *
+     * @throws ContentNotFoundException
+     * @throws ServiceException
+     */
+    protected String getWorkflowPaths(final String site, DmDependencyTO submittedItem,
+                                      final String pathPrefix, final List<String> paths, List<String> dependenices, boolean isScheduled, Set<String> rescheduledUris) throws ContentNotFoundException, ServiceException {
+
+        logger.debug("GoLive on renamed node " + submittedItem.getUri());
+
+        List <String> childUris = new ArrayList<>();
+        String submittedUri = submittedItem.getUri();
+        List<String> submittedChildUris = getSubmittedChildUri(submittedItem);
+        // handles the file content submission
+        if (submittedUri.endsWith(DmConstants.XML_PATTERN) && !submittedUri.endsWith(DmConstants.INDEX_FILE)) {
+            childUris.add(submittedUri);
+        } else {
+            getChildrenUri(site, ContentUtils.getParentUrl(submittedItem.getUri()),childUris);
+        }
+        StringBuilder label = new StringBuilder();
+        label.append(ContentUtils.getParentUrl(submittedUri));
+        for (String uri :childUris){
+            //find all child items that are already live and revert the sandbox to staging version
+            String oldStagingUri = objectMetadataManager.getOldPath(site, uri);
+
+            if(submittedChildUris.contains(uri) || submittedItem.getUri().equals(uri)){
+                //if child is one of the submitted item then add itself and references
+                paths.add(pathPrefix + uri);
+                List<String> refPaths = getReferencePaths(site, uri, submittedItem, pathPrefix, rescheduledUris);
+                dependenices.addAll(refPaths);
+                if (!isScheduled && refPaths != null && refPaths.size() > 0) { //Update dependencies during prestaging submission for dependenices
+                    paths.addAll(refPaths);
+                }
+            }
+        }
+        return label.toString();
+    }
+
+    protected List<String> getSubmittedChildUri(DmDependencyTO submittedItem) {
+        List<String> childUri = new ArrayList<>();
+        if(submittedItem.getChildren()!=null){
+            for(DmDependencyTO child:submittedItem.getChildren()){
+                childUri.add(child.getUri());
+            }
+        }
+        return childUri;
+    }
+
+    protected List<String> getChildrenUri(String site, String path, List<String> paths){
+        ContentItemTO itemTree = contentService.getContentItemTree(site, path, 2);
+        if (itemTree.getNumOfChildren() > 0) {
+            for (ContentItemTO child : itemTree.getChildren()) {
+                getChildrenUri(site, child.getUri(), paths);
+            }
+        }
+        paths.add(itemTree.getUri());
+        return paths;
+    }
+
+    /**
+     * Get depedency for a given uri
+     *
+     */
+    protected List<String> getReferencePaths(final String site, String uri, DmDependencyTO submittedItem,String pathPrefix, Set<String> rescheduledUris) throws ServiceException{
+        //TODO figure out a better way to do this
+        DmDependencyTO to = null;
+        List<String> depedencyPaths = new ArrayList<>();
+        if(uri.equals(submittedItem.getUri())){
+            to = submittedItem;
+        }else{
+            if(submittedItem.getChildren()==null)
+                return null;
+            for(DmDependencyTO depedencyTo:submittedItem.getChildren()){
+                if(uri.equals(depedencyTo.getUri())){
+                    to = depedencyTo;
+                    break;
+                }
+            }
+        }
+        if(isRescheduleRequest(to, site)){
+            rescheduledUris.add(to.getUri());
+        }
+
+        DependencyRules rule = new DependencyRules(site);
+        rule.setContentService(contentService);
+        rule.setObjectStateService(objectStateService);
+        Set<DmDependencyTO> dependencyTOSet;
+        dependencyTOSet = rule.applySubmitRule(to);
+        for (DmDependencyTO dependencyTO : dependencyTOSet) {
+            depedencyPaths.add(pathPrefix+dependencyTO.getUri());
+        }
+
+        return depedencyPaths;
+    }
+
+     // End Rename Service Methods
+     /* ================ */
+
     public void setWorkflowJobDAL(WorkflowJobDAL dal) { _workflowJobDAL = dal; }
 
 
-	// // @Override
-	public NotificationService getNotificationService() { return notificationService; }
-	public void setNotificationService(NotificationService service) { notificationService = service; }
+    // // @Override
+    public NotificationService getNotificationService() { return notificationService; }
+    public void setNotificationService(NotificationService service) { notificationService = service; }
 
-	public ServicesConfig getServicesConfig() { return servicesConfig; }
-	public void setServicesConfig(ServicesConfig servicesConfig) { this.servicesConfig = servicesConfig; }
+    public ServicesConfig getServicesConfig() { return servicesConfig; }
+    public void setServicesConfig(ServicesConfig servicesConfig) { this.servicesConfig = servicesConfig; }
 
-	public void setDmDependencyService(DmDependencyService dmDependencyService) { this.dmDependencyService = dmDependencyService; }
+    public void setDmDependencyService(DmDependencyService dmDependencyService) { this.dmDependencyService = dmDependencyService; }
 
-	public void setDmFilterWrapper(DmFilterWrapper dmFilterWrapper) { this.dmFilterWrapper = dmFilterWrapper; }
+    public void setDmFilterWrapper(DmFilterWrapper dmFilterWrapper) { this.dmFilterWrapper = dmFilterWrapper; }
 
-	public void setContentService(ContentService contentService) { this.contentService = contentService; }
+    public void setContentService(ContentService contentService) { this.contentService = contentService; }
 
-	public void setDeploymentService(DeploymentService deploymentService) { this.deploymentService = deploymentService; }
+    public void setDeploymentService(DeploymentService deploymentService) { this.deploymentService = deploymentService; }
 
-	public void setObjectStateService(ObjectStateService objectStateService) { this.objectStateService = objectStateService; }
+    public void setObjectStateService(ObjectStateService objectStateService) { this.objectStateService = objectStateService; }
 
-	public DmPublishService getDmPublishService() { return dmPublishService; }
-	public void setDmPublishService(DmPublishService dmPublishService) { this.dmPublishService = dmPublishService; }
+    public DmPublishService getDmPublishService() { return dmPublishService; }
+    public void setDmPublishService(DmPublishService dmPublishService) { this.dmPublishService = dmPublishService; }
 
     public GeneralLockService getGeneralLockService() { return generalLockService; }
     public void setGeneralLockService(GeneralLockService generalLockService) { this.generalLockService = generalLockService; }
@@ -2604,9 +2788,6 @@ public class WorkflowServiceImpl implements WorkflowService {
 
     public SiteService getSiteService() { return siteService; }
     public void setSiteService(SiteService siteService) { this.siteService = siteService; }
-
-    public DmRenameService getDmRenameService() { return dmRenameService; }
-    public void setDmRenameService(DmRenameService dmRenameService) { this.dmRenameService = dmRenameService; }
 
     public WorkflowProcessor getWorkflowProcessor() { return workflowProcessor; }
     public void setWorkflowProcessor(WorkflowProcessor workflowProcessor) { this.workflowProcessor = workflowProcessor; }
@@ -2641,23 +2822,22 @@ public class WorkflowServiceImpl implements WorkflowService {
     }
 
     private WorkflowJobDAL _workflowJobDAL;
-	private NotificationService notificationService;
-	protected ServicesConfig servicesConfig;
-	protected DeploymentService deploymentService;
-	protected ContentService contentService;
-	protected DmFilterWrapper dmFilterWrapper;
-	protected DmDependencyService dmDependencyService;
-	protected ObjectStateService objectStateService;
-	protected DmPublishService dmPublishService;
+    private NotificationService notificationService;
+    protected ServicesConfig servicesConfig;
+    protected DeploymentService deploymentService;
+    protected ContentService contentService;
+    protected DmFilterWrapper dmFilterWrapper;
+    protected DmDependencyService dmDependencyService;
+    protected ObjectStateService objectStateService;
+    protected DmPublishService dmPublishService;
     protected GeneralLockService generalLockService;
     protected SecurityService securityService;
     protected SiteService siteService;
-    protected DmRenameService dmRenameService;
     protected WorkflowProcessor workflowProcessor;
     protected ObjectMetadataManager objectMetadataManager;
     protected DependencyRule deploymentDependencyRule;
     protected DependencyRule submitForApprovalDependencyRule;
-	protected org.craftercms.studio.api.v2.service.notification.NotificationService notificationService2;
+    protected org.craftercms.studio.api.v2.service.notification.NotificationService notificationService2;
     protected StudioConfiguration studioConfiguration;
 
     public static class SubmitPackage {
