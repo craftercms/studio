@@ -656,11 +656,14 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
         synchronized(helper.getRepository(site, GitRepositories.PUBLISHED)) {
             try (Git git = new Git(repo)) {
-                // fetch "origin/master"
-                FetchResult fetchResult = git.fetch().setRemote(Constants.DEFAULT_REMOTE_NAME).call();
-
                 // checkout environment branch
-                Ref checkoutResult = git.checkout().setCreateBranch(true).setName(environment).call();
+                Ref checkoutResult = git.checkout().setCreateBranch(true)
+                        .setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK)
+                        .setName(environment)
+                        .call();
+
+                // fetch "origin/master"
+                FetchResult fetchResult = git.fetch().call();
 
                 // cherry pick all commit ids
                 CherryPickCommand cherryPickCommand = git.cherryPick().setStrategy(MergeStrategy.THEIRS);

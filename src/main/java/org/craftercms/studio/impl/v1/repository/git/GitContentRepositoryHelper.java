@@ -48,7 +48,7 @@ import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.Status;
-import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.dircache.DirCache;
 import org.eclipse.jgit.errors.AmbiguousObjectException;
 import org.eclipse.jgit.errors.IncorrectObjectTypeException;
@@ -247,10 +247,17 @@ public class GitContentRepositoryHelper {
         if (sandboxRepo != null) {
             publishedRepo = createGitRepository(sitePublishedPath);
             try (Git git = new Git(publishedRepo)) {
+
+                git.add().addFilepattern(".").call();
+                RevCommit commit = git.commit()
+                        .setMessage("initial content")
+                        .setAllowEmpty(true)
+                        .call();
+
                 StoredConfig config = git.getRepository().getConfig();
-                config.setString("remote", "origin", "url", sandboxRepo.getDirectory().getAbsolutePath());
+                config.setString("remote", "origin", "url", sandboxRepo.getDirectory().toPath().normalize().toAbsolutePath().toString());
                 config.save();
-            } catch (IOException e) {
+            } catch (IOException | GitAPIException e) {
                 logger.error("Error adding origin (sandbox) to published repository", e);
             }
         }
