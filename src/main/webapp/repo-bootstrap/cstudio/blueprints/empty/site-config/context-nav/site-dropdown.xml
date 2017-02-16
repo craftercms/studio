@@ -39,7 +39,7 @@
 									<params>
 										<label>Static Assets</label>
 										<path>/static-assets</path>
-										<!-- showRootItem>false</showRootItem -->
+										<showRootItem>true</showRootItem>
 										<onClick>none</onClick>
 									</params>
 								</modulehook>
@@ -49,7 +49,7 @@
 									<params>
 										<label>Templates</label>
 										<path>/templates</path>
-										<!-- showRootItem>false</showRootItem -->
+										<showRootItem>true</showRootItem>
 										<onClick>none</onClick>
 									</params>
 								</modulehook>
@@ -60,15 +60,11 @@
 									<params>
 										<label>Scripts</label>
 										<path>/scripts</path>
-										<!-- showRootItem>false</showRootItem -->
+										<showRootItem>false</showRootItem>
 										<onClick>none</onClick>
 									</params>
 								</modulehook>
 								
-								<modulehook>
-									<name>analytics-dashboard</name>
-									<showDivider>true</showDivider>
-								</modulehook>
 								<modulehook>
 									<name>admin-console</name>
 									<showDivider>true</showDivider>

@@ -74,10 +74,8 @@
 		</tool>
 		<tool><name>admin-configurations</name><label>Configuration</label></tool>
 		<tool><name>bulkoperations</name><label>Bulk Operations</label></tool>
-		<tool><name>workflow-jobs</name><label>Workflow Jobs</label></tool>
 		<tool><name>workflow-states</name><label>Workflow States</label></tool>
 		<tool><name>logging</name><label>Logging Levels</label></tool>
 		<tool><name>log-view</name><label>Log Console</label></tool>
-		<tool><name>marketplace</name><label>Crafter App Store</label></tool>
 	</tools>
 </config>

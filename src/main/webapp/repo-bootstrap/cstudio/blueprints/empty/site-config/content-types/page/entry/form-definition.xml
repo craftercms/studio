@@ -1,9 +1,9 @@
 <form>
-	<title>A Page</title>
-	<description>A Simple Page</description>
+	<title>Home Page</title>
+	<description></description>
 	<objectType>page</objectType>
-	<properties>		
-	    <property>
+	<content-type>/page/entry</content-type>
+	<properties>		<property>
 			<name>placeInNav</name>
 			<label>Show In Nav</label>
 			<value>true</value>
@@ -14,12 +14,6 @@
 			<label>Display Template</label>
 			<value>/templates/web/entry.ftl</value>
 			<type>template</type>
-		</property>
-		<property>
-			<name>content-type</name>
-			<label>Content Type</label>
-			<value>/page/entry</value>
-			<type>string</type>
 		</property>
 		<property>
 			<name>descriptor-mapper</name>
@@ -37,10 +31,10 @@
 					<type>file-name</type>
 					<id>file-name</id>
 					<iceId></iceId>
-					<title>pageURL</title>
-					<description>DESC</description>
+					<title>Page URL</title>
+					<description></description>
 					<defaultValue></defaultValue>
-					<help>HELP</help>
+					<help></help>
 					<properties>
 						<property>
 							<name>size</name>
@@ -65,7 +59,7 @@
 					<type>input</type>
 					<id>internal-name</id>
 					<iceId>optional</iceId>
-					<title>Internal Title</title>
+					<title>Internal Name</title>
 					<description>optional</description>
 					<defaultValue></defaultValue>
 					<help>optional</help>
@@ -84,18 +78,11 @@
 					<constraints>
 						<constraint>
 							<name>required</name>
-							<value>true</value>
-						<type>int</type>
+							<value><![CDATA[true]]></value>
+							<type>int</type>
 						</constraint>
 					</constraints>
 				</field>
-			</fields>
-		</section>
-		<section>
-			<title>Main Content</title>
-			<description></description>
-			<defaultOpen>false</defaultOpen>
-			<fields>
 				<field>
 					<type>rte</type>
 					<id>body</id>
@@ -112,7 +99,7 @@
 						</property>
 						<property>
 							<name>rows</name>
-							<value></value>
+							<value>500</value>
 							<type>int</type>
 						</property>
 						<property>
@@ -132,7 +119,7 @@
 						</property>
 						<property>
 							<name>supportedChannels</name>
-							<value>iPhone:iphonev:300,iPad:ipadv:700</value>
+							<value>[{ value: &quot;&quot;, key: &quot;&quot;, size: &quot;&quot; }]</value>
 							<type>string</type>
 						</property>
 						<property>
@@ -140,118 +127,42 @@
 							<value>630</value>
 							<type>int</type>
 						</property>
-					</properties>
-					<constraints>
-						<constraint>
-							<name>required</name>
-							<value>true</value>
-				\t		<type>int</type>
-						</constraint>
-					</constraints>
-				</field>
-			</fields>
-		</section>
-		<section>
-			<title>Metadata</title>
-			<description></description>
-			<defaultOpen>false</defaultOpen>
-			<fields>
-				<field>
-					<type>input</type>
-					<id>title</id>
-					<iceId></iceId>
-					<title>Title</title>
-					<description></description>
-					<defaultValue></defaultValue>
-					<help>Field Help</help>
-					<properties>
 						<property>
-							<name>size</name>
-							<value>100</value>
+							<name>height</name>
+							<value>300</value>
 							<type>int</type>
 						</property>
 						<property>
-							<name>maxlength</name>
-							<value>100</value>
-							<type>int</type>
-						</property>
-					</properties>
-					<constraints>
-						<constraint>
-							<name>required</name>
-							<value>true</value>
-				\t		<type>int</type>
-						</constraint>
-					</constraints>
-				</field>
-				<field>
-					<type>textarea</type>
-					<id>meta-description</id>
-					<iceId></iceId>
-					<title>Description</title>
-					<description></description>
-					<defaultValue></defaultValue>
-					<help></help>
-					<properties>
-						<property>
-							<name>size</name>
-							<value>100</value>
-							<type>int</type>
-						</property>
-						<property>
-							<name>maxlength</name>
-							<value>100</value>
-							<type>int</type>
-						</property>
-						<property>
-							<name>allowResize</name>
+							<name>forceRootBlockPTag</name>
 							<value>true</value>
 							<type>boolean</type>
 						</property>
 						<property>
-							<name>cols</name>
-							<value>60</value>
-							<type>int</type>
-						</property>
-						<property>
-							<name>rows</name>
-							<value>10</value>
-							<type>int</type>
-						</property>
-					</properties>
-					<constraints>
-						<constraint>
-							<name>required</name>
-							<value></value>
-				\t		<type>int</type>
-						</constraint>
-					</constraints>
-				</field>
-				<field>
-					<type>input</type>
-					<id>meta-keywords</id>
-					<iceId></iceId>
-					<title>Keywords</title>
-					<description></description>
-					<defaultValue></defaultValue>
-					<help></help>
-					<properties>
-						<property>
-							<name>size</name>
-							<value>100</value>
-							<type>int</type>
-						</property>
-						<property>
-							<name>maxlength</name>
-							<value>100</value>
-							<type>int</type>
-						</property>
-					</properties>
-					<constraints>
-						<constraint>
-							<name>required</name>
+							<name>forcePTags</name>
 							<value>true</value>
-				\t		<type>int</type>
+							<type>boolean</type>
+						</property>
+						<property>
+							<name>forceBRTags</name>
+							<value>false</value>
+							<type>boolean</type>
+						</property>
+						<property>
+							<name>forceImageAlts</name>
+							<value>false</value>
+							<type>boolean</type>
+						</property>
+						<property>
+							<name>rteConfiguration</name>
+							<value>generic</value>
+							<type>string</type>
+						</property>
+					</properties>
+					<constraints>
+						<constraint>
+							<name>required</name>
+							<value><![CDATA[true]]></value>
+							<type>int</type>
 						</constraint>
 					</constraints>
 				</field>
@@ -261,8 +172,8 @@
 	<datasources>				<datasource>
 					<type>img-desktop-upload</type>
 					<id>desktopImages</id>
-					<title>Desktop Images</title>
-					<interface>undefined</interface>
+					<title>Upload Image</title>
+					<interface>image</interface>
 					<properties>
 						<property>
 							<name>repoPath</name>
