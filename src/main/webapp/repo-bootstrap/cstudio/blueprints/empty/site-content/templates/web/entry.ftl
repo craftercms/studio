@@ -5,7 +5,7 @@
   </head>
   
   <body>
-	<h1>Empty Site</h1>
+    <h1>Empty Site</h1>
     <p>Welcome to your Crafter Site. </p>
     <p>This site blueprint is the equivalent of a Hello World.  It's a blank slate on which you can build
     your own digital experience.  For sites with built in features, try other blueprints or visit the Crafter CMS App Store
@@ -19,10 +19,11 @@
 
         </ul>
      </p>
+    <div id='exampleAuthoredContent' <@studio.iceAttr iceGroup="body"/>>
+    ${model.body}
+    </div>
+    
 
-	${model.body}
-	
-
-		<@studio.toolSupport/>	
-	</body>
+        <@studio.toolSupport/>    
+    </body>
 </html>
