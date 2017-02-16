@@ -916,7 +916,7 @@
     </bean>
 
     <bean id="studioConfiguration" class="org.craftercms.studio.impl.v1.util.StudioConfigurationImpl" init-method="init" >
-        <property name="configLocation" value="crafter/studio/studio-config.yml"/>
+        <property name="configLocation" value="crafter/studio/studio-config.yaml"/>
     </bean>
 
     <import resource="classpath:crafter/studio/cache/studio-cache-context.xml"/>
