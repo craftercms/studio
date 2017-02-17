@@ -60,7 +60,7 @@
 					<id>internal-name</id>
 					<iceId>optional</iceId>
 					<title>Internal Name</title>
-					<description>Display label for the content used throughout the Studio</description>
+					<description>Display label for this content used throughout the Studio</description>
 					<defaultValue></defaultValue>
 					<help>optional</help>
 					<properties>
