@@ -44,6 +44,18 @@
         WHERE source_path = #{sourcePath} AND site = #{site}
     </select>
 
+    <select id="getDependant" resultMap="DependencyMap" parameterType="java.util.HashMap" databaseId="oracle">
+        SELECT site, source_path, target_path, "type"
+        FROM cstudio_DEPENDENCY
+        WHERE target_path = #{targetPath} AND site = #{site}
+    </select>
+
+    <select id="getDependant" resultMap="DependencyMap" parameterType="java.util.HashMap">
+        SELECT site, source_path, target_path, type
+        FROM cstudio_DEPENDENCY
+        WHERE target_path = #{targetPath} AND site = #{site}
+    </select>
+
     <delete id="deleteAllSourceDependencies" parameterType="java.util.Map">
         DELETE
         FROM cstudio_DEPENDENCY
