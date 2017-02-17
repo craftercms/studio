@@ -36,12 +36,17 @@ public class RepositoryEventContext implements Serializable {
         threadLocal.remove();
     }
 
-    public RepositoryEventContext(String authenticationToken) {
+    public RepositoryEventContext(String authenticationToken, String currentUser) {
         this.authenticationToken = authenticationToken;
+        this.currentUser = currentUser;
     }
 
     public String getAuthenticationToken() { return authenticationToken; }
     public void setAuthenticationToken(String authenticationToken) { this.authenticationToken = authenticationToken; }
 
+    public String getCurrentUser() { return currentUser; }
+    public void setCurrentUser(String currentUser) { this.currentUser = currentUser; }
+
     private String authenticationToken;
+    private String currentUser;
 }

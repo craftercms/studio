@@ -2109,8 +2109,6 @@ public class WorkflowServiceImpl implements WorkflowService {
             throws ServiceException {
         long start = System.currentTimeMillis();
         // get web project information
-        //final String assignee = getAssignee(site, sub);
-        final String pathPrefix = "/wem-projects/" + site + "/" + site + "/work-area";
         final Date now = new Date();
         if (submittedItems != null) {
             // group submitted items into packages by their scheduled date
@@ -2124,7 +2122,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                     final boolean isNotScheduled = (launchDate == null);
                     // for submit direct, package them together and submit them
                     // together as direct submit
-                    final SubmitPackage submitpackage = new SubmitPackage(pathPrefix);
+                    final SubmitPackage submitpackage = new SubmitPackage("");
                     /*
                         dependencyPackage holds references of page.
                      */
@@ -2150,9 +2148,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                     if (!stringList.isEmpty()) {
                         // get the workflow initiator mapping
                         Map<String, String> submittedBy = new HashMap<String, String>();
-                        for (String longPath : stringList) {
-                            String uri = longPath.substring(pathPrefix.length());
-                            //ContentUtils.addToSubmittedByMapping(getService(PersistenceManagerService.class), dmContentService, site, uri, submittedBy, approver);
+                        for (String uri : stringList) {
                             dmPublishService.cancelScheduledItem(site, uri);
                         }
                         workflowProcessor.addToWorkflow(site, stringList, launchDate, label, operation, approver, mcpContext);

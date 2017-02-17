@@ -24,7 +24,7 @@ public class ClearConfigurationCache {
         logger.info("ClearConfigurationCache event invoked for site" + message.getSite());
         String site = message.getSite();
         String ticket = securityProvider.authenticate(adminUser, adminPassword);
-        RepositoryEventContext repositoryEventContext = new RepositoryEventContext(ticket);
+        RepositoryEventContext repositoryEventContext = new RepositoryEventContext(ticket, adminUser);
         RepositoryEventContext.setCurrent(repositoryEventContext);
         siteService.reloadSiteConfiguration(site, false);
         RepositoryEventContext.setCurrent(null);

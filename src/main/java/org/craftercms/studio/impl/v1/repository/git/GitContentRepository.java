@@ -431,9 +431,9 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
                 try (Git git = new Git(repo)) {
                     PersonIdent currentUserIdent = helper.getCurrentUserIdent();
-                    DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+                    DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HHmmssX");
                     Calendar cal = Calendar.getInstance();
-                    String versionLabel = dateFormat.format(cal);
+                    String versionLabel = dateFormat.format(cal.getTime());
 
                     TagCommand tagCommand = git.tag()
                         .setName(versionLabel)
@@ -656,14 +656,17 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
         synchronized(helper.getRepository(site, GitRepositories.PUBLISHED)) {
             try (Git git = new Git(repo)) {
-                // fetch "origin/master"
-                FetchResult fetchResult = git.fetch().setRemote(Constants.DEFAULT_REMOTE_NAME).call();
-
                 // checkout environment branch
-                Ref checkoutResult = git.checkout().setCreateBranch(true).setName(environment).call();
+                Ref checkoutResult = git.checkout().setCreateBranch(true)
+                        .setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK)
+                        .setName(environment)
+                        .call();
+
+                // fetch "origin/master"
+                FetchResult fetchResult = git.fetch().call();
 
                 // cherry pick all commit ids
-                CherryPickCommand cherryPickCommand = git.cherryPick().setStrategy(MergeStrategy.THEIRS);
+                CherryPickCommand cherryPickCommand = git.cherryPick();
                 for (String commitId : commitIds) {
                     ObjectId objectId = ObjectId.fromString(commitId);
                     cherryPickCommand.include(objectId);
@@ -674,6 +677,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 PersonIdent authorIdent = helper.getAuthorIdent(author);
                 Ref tagResult = git.tag().setTagger(authorIdent).setMessage(comment).call();
             } catch (GitAPIException e) {
+                logger.error("Error when publishing site " + site + " to environment " + environment, e);
+            } catch (Exception e) {
                 logger.error("Error when publishing site " + site + " to environment " + environment, e);
             }
         }

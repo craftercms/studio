@@ -830,18 +830,6 @@ public class DeploymentServiceImpl implements DeploymentService {
         }
         jobList.add(copyToEnvStoreJob);
 
-        DeploymentJobTO publishToTargetJob = new DeploymentJobTO();
-        publishToTargetJob.setId(publishContentToDeploymentTargetJob.getClass().getCanonicalName());
-        publishToTargetJob.setName(publishContentToDeploymentTargetJob.getClass().getSimpleName());
-        publishToTargetJob.setEnabled(publishContentToDeploymentTargetJob.isMasterPublishingNode());
-        publishToTargetJob.setRunning(false);
-        try {
-            publishToTargetJob.setHost(InetAddress.getLocalHost().toString());
-        } catch (UnknownHostException e) {
-            logger.debug("Error while getting host information");
-        }
-        jobList.add(publishToTargetJob);
-
         return jobList;
     }
 
@@ -899,10 +887,6 @@ public class DeploymentServiceImpl implements DeploymentService {
     public DeployContentToEnvironmentStore getDeployContentToEnvironmentStoreJob() { return deployContentToEnvironmentStoreJob; }
     public void setDeployContentToEnvironmentStoreJob(DeployContentToEnvironmentStore deployContentToEnvironmentStoreJob) { this.deployContentToEnvironmentStoreJob = deployContentToEnvironmentStoreJob; }
 
-    public PublishContentToDeploymentTarget getPublishContentToDeploymentTargetJob() { return publishContentToDeploymentTargetJob; }
-    public void setPublishContentToDeploymentTargetJob(PublishContentToDeploymentTarget publishContentToDeploymentTargetJob) { this.publishContentToDeploymentTargetJob = publishContentToDeploymentTargetJob; }
-
-
     public void setNotificationService(final NotificationService notificationService) {
         this.notificationService = notificationService;
     }
@@ -924,7 +908,6 @@ public class DeploymentServiceImpl implements DeploymentService {
     protected SecurityService securityService;
     protected EventService eventService;
     protected DeployContentToEnvironmentStore deployContentToEnvironmentStoreJob;
-    protected PublishContentToDeploymentTarget publishContentToDeploymentTargetJob;
     protected NotificationService notificationService;
     @Autowired
     protected DeploymentSyncHistoryMapper deploymentSyncHistoryMapper;

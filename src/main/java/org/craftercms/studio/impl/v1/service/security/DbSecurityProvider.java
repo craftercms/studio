@@ -55,6 +55,17 @@ public class DbSecurityProvider implements SecurityProvider {
         if(context != null) {
             HttpSession httpSession = context.getRequest().getSession();
             username = (String)httpSession.getAttribute("studio_user");
+        } else {
+            CronJobContext cronJobContext = CronJobContext.getCurrent();
+
+            if (cronJobContext != null) {
+                username = cronJobContext.getCurrentUser();
+            } else {
+                RepositoryEventContext repositoryEventContext = RepositoryEventContext.getCurrent();
+                if (repositoryEventContext != null) {
+                    username = repositoryEventContext.getCurrentUser();
+                }
+            }
         }
 
         return username;

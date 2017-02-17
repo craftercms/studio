@@ -35,7 +35,7 @@ public class SiteConfigurationLoader implements ApplicationListener<ContextRefre
     @Override
     public void onApplicationEvent(ContextRefreshedEvent event) {
         String ticket = securityProvider.authenticate(getAdminUser(), getAdminPassword());
-        RepositoryEventContext repositoryEventContext = new RepositoryEventContext(ticket);
+        RepositoryEventContext repositoryEventContext = new RepositoryEventContext(ticket, getAdminUser());
         RepositoryEventContext.setCurrent(repositoryEventContext);
         siteService.reloadSiteConfigurations();
     }
