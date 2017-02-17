@@ -2,7 +2,7 @@
     <preview-server-url>http://localhost:8080</preview-server-url>
     <authoring-server-url>http://localhost:8080/studio</authoring-server-url>
     <form-server-url>http://localhost:8080/form-server</form-server-url>
-    <live-server-url>http://SITENAME</live-server-url>
+    <live-server-url>http://{siteName}</live-server-url>
     <publishing-channels>
         <channel-group>
             <label>Production</label>

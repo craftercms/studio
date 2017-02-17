@@ -37,7 +37,7 @@
 										</ul>
 									</div>
 									<span class="image object">
-										<img src="static-assets/images/pic10.jpg" alt="" />
+										<img src="${model.hero_image !""}" alt="" />
 									</span>
 								</section>
 
