@@ -68,4 +68,11 @@
         <property name="delimiter" value=" ;"/>
         <property name="studioConfiguration" ref="studioConfiguration"/>
     </bean>
+<!--
+    <bean id="studioMariaDBService" class="ch.vorburger.mariadb4j.springframework.MariaDB4jSpringService" init-method="start" destroy-method="stop">
+        <property name="defaultBaseDir" value="./data/mariadb"/>
+        <property name="defaultDataDir" value="./data/mariadb/data"/>
+        <property name="defaultPort" value="3306" />
+    </bean>
+-->
 </beans>
