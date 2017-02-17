@@ -60,7 +60,7 @@
 					<id>internal-name</id>
 					<iceId>optional</iceId>
 					<title>Internal Name</title>
-					<description>optional</description>
+					<description>Display label for this content used throughout the Studio</description>
 					<defaultValue></defaultValue>
 					<help>optional</help>
 					<properties>
@@ -87,7 +87,7 @@
 					<type>rte</type>
 					<id>body</id>
 					<iceId>body</iceId>
-					<title>Body Copy</title>
+					<title>Body Content</title>
 					<description></description>
 					<defaultValue></defaultValue>
 					<help></help>
