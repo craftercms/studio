@@ -155,7 +155,9 @@ public interface StudioConfiguration {
     String PREVIEW_REPO_URL = "studio.preview.repoUrl";
     String PREVIEW_REPO_BRANCH = "studio.preview.previewBranch";
     String PREVIEW_ENGINE_URL = "studio.preview.engineUrl";
-    String PREVIEW_NOTIFICATION_ADDRESSES = "studio.preview.notificationAddresses";
+
+    /** Preview Search **/
+    String PREVIEW_SEARCH_CREATE_URL = "studio.preview.search.createUrl";
 
     /** Publishing Manager */
     String PUBLISHING_MANAGER_INDEX_FILE = "studio.publishingManager.indexFile";

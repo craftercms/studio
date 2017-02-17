@@ -44,6 +44,7 @@ import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.notification.NotificationService;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.api.v1.service.objectstate.TransitionEvent;
+import org.craftercms.studio.api.v1.service.search.SearchService;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteConfigNotFoundException;
@@ -307,6 +308,11 @@ public class SiteServiceImpl implements SiteService {
    	public boolean createSiteFromBlueprint(String blueprintName, String siteName, String siteId, String desc) {
         boolean success = true;
 
+	    // TODO: SJ: We must fail site creation if any of the site creations steps fail and rollback
+	    // TODO: SJ: For example: Create site => Create Search Index (success), create Deployer Target (fail) = fail
+	    // TODO: SJ: and rollback the whole thing.
+	    // TODO: SJ: What we need to do for site creation and the order of execution:
+	    // TODO: SJ: 1) search index, 2) deployer target, 3) git repo, 4) database, 5) kick deployer
  		try {
             success = createSiteFromBlueprintGit(blueprintName, siteName, siteId, desc);
 
@@ -328,6 +334,8 @@ public class SiteServiceImpl implements SiteService {
 			siteFeed.setSiteId(siteId);
 			siteFeed.setDescription(desc);
 			siteFeedMapper.createSite(siteFeed);
+
+			searchService.createIndex(siteId);
 
 			// TODO: SJ: Must call PreviewDeployer and ask it to call to create target(s) for PreviewDeployer(s)
             deploymentService.createPreviewTarget(siteId);
@@ -802,6 +810,8 @@ public class SiteServiceImpl implements SiteService {
     public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
 
+    public void setSearchService(SearchService searchService) { this.searchService = searchService; }
+
     protected SiteServiceDAL _siteServiceDAL;
 	protected ServicesConfig servicesConfig;
 	protected ContentService contentService;
@@ -828,6 +838,7 @@ public class SiteServiceImpl implements SiteService {
 	@Autowired
 	protected SiteFeedMapper siteFeedMapper;
 
+	protected SearchService searchService;
 
 	/**
 	 * a map of site key and site information
