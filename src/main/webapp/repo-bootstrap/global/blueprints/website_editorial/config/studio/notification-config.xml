@@ -36,7 +36,7 @@
 
     </complete-messages>
     <general-messages>
-        <message name="scheduling-policy"><![CDATA[The SITENAME Website Marketing Team processes all Go Live requests each business day, between 4 and 6:00pmE, unless a specific date/time is requested.<br/><br/>All requests received after 4:00pmE may not be processed until the next business day.<br/><br/>If you have any questions about this policy or need a Go Live request processed immediately, please email the Web Marketing Operations Team.]]>
+        <message name="scheduling-policy"><![CDATA[The {siteName} Website Marketing Team processes all Go Live requests each business day, between 4 and 6:00pmE, unless a specific date/time is requested.<br/><br/>All requests received after 4:00pmE may not be processed until the next business day.<br/><br/>If you have any questions about this policy or need a Go Live request processed immediately, please email the Web Marketing Operations Team.]]>
         </message>
     </general-messages>
 

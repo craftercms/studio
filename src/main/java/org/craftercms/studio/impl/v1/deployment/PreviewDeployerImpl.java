@@ -24,6 +24,7 @@ import org.apache.commons.httpclient.methods.RequestEntity;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.http.entity.ContentType;
+import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.deployment.PreviewDeployer;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -65,7 +66,8 @@ public class PreviewDeployerImpl implements PreviewDeployer {
         // TODO: DB: implement deployer agent configuration for preview
         // TODO: SJ: Pseudo code: check if site configuration has a Preview Deployer URL, if so, return it, if not
         // TODO: SJ: return default from studioConfiguration.getProperty(PREVIEW_DEFAULT_PREVIEW_DEPLOYER_URL);
-        String toRet = studioConfiguration.getProperty(PREVIEW_DEFAULT_PREVIEW_DEPLOYER_URL).replace("{site}", site);
+        String toRet = studioConfiguration.getProperty(PREVIEW_DEFAULT_PREVIEW_DEPLOYER_URL).replace(StudioConstants
+            .CONFIG_SITENAME_VARIABLE, site);
         return toRet;
     }
 
@@ -79,7 +81,8 @@ public class PreviewDeployerImpl implements PreviewDeployer {
         String rqBody = getDeployerCreatePreviewTargetRequestBody(site);
         RequestEntity requestEntity = null;
         try {
-            requestEntity = new StringRequestEntity(rqBody, ContentType.APPLICATION_JSON.toString(), StandardCharsets.UTF_8.displayName());
+            requestEntity = new StringRequestEntity(rqBody, ContentType.APPLICATION_JSON.toString(), StandardCharsets
+                .UTF_8.displayName());
         } catch (UnsupportedEncodingException e) {
             logger.info("Unsupported encoding for request body. Using deprecated method instead.");
         }
@@ -118,7 +121,8 @@ public class PreviewDeployerImpl implements PreviewDeployer {
         requestBody.setSiteName(site);
         requestBody.setReplace(Boolean.parseBoolean(studioConfiguration.PREVIEW_REPLACE));
         requestBody.setTemplateName(studioConfiguration.getProperty(PREVIEW_TEMPLATE_NAME));
-        requestBody.setRemoteRepoUrl(studioConfiguration.getProperty(PREVIEW_REPO_URL).replace("{site}", site));
+        requestBody.setRemoteRepoUrl(studioConfiguration.getProperty(PREVIEW_REPO_URL).replace
+            (StudioConstants.CONFIG_SITENAME_VARIABLE, site));
         requestBody.setRemoteRepoBranch(studioConfiguration.getProperty(PREVIEW_REPO_BRANCH));
         requestBody.setEngineUrl(studioConfiguration.getProperty(PREVIEW_ENGINE_URL));
         return requestBody.toJson();
