@@ -125,7 +125,6 @@
          <property name="deploymentEndpointConfig" ref="cstudioDeploymentConfig"/>
          <property name="securityService" ref="cstudioSecurityService"/>
          <property name="deployContentToEnvironmentStoreJob" ref="cstudioDeployContentToEnvironmentJobs"/>
-         <property name="publishContentToDeploymentTargetJob" ref="cstudioPublishContentToDeploymentTargetJob"/>
          <property name="notificationService" ref="cstudioNotificationServicev2"/>
          <property name="eventService" ref="studioEventService"/>
      </bean>
@@ -456,24 +455,13 @@
 
     <bean id="cstudioDeployContentToEnvironmentJobs" class="org.craftercms.studio.impl.v1.service.deployment.job.DeployContentToEnvironmentStore"
           parent="cstudioRepositoryJob">
-        <property name="transactionService" ref="cstudioTransactionServiceSimple" />
         <property name="publishingManager" ref="cstudioPublishingManager" />
         <property name="contentRepository" ref="contentRepository" />
         <property name="siteService" ref="cstudioSiteServiceSimple"/>
-        <property name="contentService" ref="cstudioContentService" />
         <property name="notificationService" ref="cstudioNotificationService"/>
         <property name="generalLockService" ref="cstudioGeneralLockService"/>
         <property name="notificationService2" ref="cstudioNotificationServicev2"/>
-        <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
         <property name="eventService" ref="studioEventService"/>
-    </bean>
-
-    <bean id="cstudioPublishContentToDeploymentTargetJob" class="org.craftercms.studio.impl.v1.service.deployment.job.PublishContentToDeploymentTarget"
-            parent="cstudioRepositoryJob">
-        <property name="siteService" ref="cstudioSiteServiceSimple"/>
-        <property name="publishingManager" ref="cstudioPublishingManager" />
-        <property name="notificationService" ref="cstudioNotificationService"/>
-        <property name="notificationService2" ref="cstudioNotificationServicev2"/>
     </bean>
 
     <!-- scheduled actions -->
@@ -500,23 +488,10 @@
         <property name="startDelay" value="2000" />
     </bean>
 
-    <bean id="cstudioPublishContentToDeploymentTargetJobSchedule" class="org.springframework.scheduling.quartz.SimpleTriggerFactoryBean">
-        <property name="jobDetail">
-            <bean class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
-                <property name="targetObject" ref="cstudioPublishContentToDeploymentTargetJob"/>
-                <property name="targetMethod" value="execute"/>
-                <property name="concurrent" value="false"/>
-            </bean>
-        </property>
-        <property name="repeatInterval" value="10000" />
-        <property name="startDelay" value="4000" />
-    </bean>
-
     <bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
         <property name="triggers">
             <list>
                 <ref bean="cstudioDeployContentToEnvironmentJobsScheduled" />
-                <ref bean="cstudioPublishContentToDeploymentTargetJobSchedule" />
             </list>
         </property>
     </bean>

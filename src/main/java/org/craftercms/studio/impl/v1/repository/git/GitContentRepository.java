@@ -666,7 +666,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 FetchResult fetchResult = git.fetch().call();
 
                 // cherry pick all commit ids
-                CherryPickCommand cherryPickCommand = git.cherryPick().setStrategy(MergeStrategy.THEIRS);
+                CherryPickCommand cherryPickCommand = git.cherryPick();
                 for (String commitId : commitIds) {
                     ObjectId objectId = ObjectId.fromString(commitId);
                     cherryPickCommand.include(objectId);
@@ -677,6 +677,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 PersonIdent authorIdent = helper.getAuthorIdent(author);
                 Ref tagResult = git.tag().setTagger(authorIdent).setMessage(comment).call();
             } catch (GitAPIException e) {
+                logger.error("Error when publishing site " + site + " to environment " + environment, e);
+            } catch (Exception e) {
                 logger.error("Error when publishing site " + site + " to environment " + environment, e);
             }
         }

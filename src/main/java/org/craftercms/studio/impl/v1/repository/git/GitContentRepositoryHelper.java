@@ -63,13 +63,8 @@ import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 
-import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_PARAMETER_BIG_FILE_THRESHOLD;
-import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_PARAMETER_BIG_FILE_THRESHOLD_DEFAULT;
-import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_PARAMETER_COMPRESSION;
-import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_PARAMETER_COMPRESSION_DEFAULT;
-import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_SECTION_CORE;
-import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_COMMIT_ALL_ITEMS;
-import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_ROOT;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.*;
+import static org.eclipse.jgit.lib.Constants.DEFAULT_REMOTE_NAME;
 
 /**
  * Created by Sumer Jabri
@@ -247,15 +242,17 @@ public class GitContentRepositoryHelper {
         if (sandboxRepo != null) {
             publishedRepo = createGitRepository(sitePublishedPath);
             try (Git git = new Git(publishedRepo)) {
-
+                // Initialize repository
                 git.add().addFilepattern(".").call();
                 RevCommit commit = git.commit()
                         .setMessage("initial content")
                         .setAllowEmpty(true)
                         .call();
 
+                // Configure remote
                 StoredConfig config = git.getRepository().getConfig();
-                config.setString("remote", "origin", "url", sandboxRepo.getDirectory().toPath().normalize().toAbsolutePath().toString());
+                config.setString(CONFIG_SECTION_REMOTE, DEFAULT_REMOTE_NAME, CONFIG_PARAMETER_URL, siteSandboxPath.normalize().toAbsolutePath().toString());
+                config.setString(CONFIG_SECTION_REMOTE, DEFAULT_REMOTE_NAME, CONFIG_PARAMETER_FETCH, CONFIG_PARAMETER_FETCH_DEFAULT);
                 config.save();
             } catch (IOException | GitAPIException e) {
                 logger.error("Error adding origin (sandbox) to published repository", e);
