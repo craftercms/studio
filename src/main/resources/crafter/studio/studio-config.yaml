@@ -285,11 +285,11 @@ studio.contentTypes.filter.documents.includePattern: ^/document/.*
 ##                    Preview Deployer                    ##
 ############################################################
 # Default preview deployer URL (can be overridden per site)
-studio.preview.defaultPreviewDeployerUrl: http://localhost:9191/api/1/target/deploy/preview/{site}
+studio.preview.defaultPreviewDeployerUrl: http://localhost:9191/api/1/target/deploy/preview/{siteName}
 # Default preview create target URL (can be overridden per site)
 studio.preview.createTargetUrl: http://localhost:9191/api/1/target/create
 # URL to the preview repository (aka Sandbox) where authors save work-in-progress
-studio.preview.repoUrl: file:///opt/crafter/deployer/target/{siteName}
+studio.preview.repoUrl: file://./deployer/target/{siteName}
 # Branch that holds the preview content
 studio.preview.previewBranch: master
 # URL to the preview Crafter Engine
