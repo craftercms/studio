@@ -44,6 +44,7 @@ import org.craftercms.studio.api.v1.service.workflow.context.MultiChannelPublish
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.PublishingChannelConfigTO;
 import org.craftercms.studio.api.v1.to.PublishingChannelGroupConfigTO;
+import org.craftercms.studio.api.v1.to.PublishingTargetTO;
 
 public class DmPublishServiceImpl extends AbstractRegistrableService implements DmPublishService {
 
@@ -139,15 +140,10 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
 	public boolean hasChannelsConfigure(String site, MultiChannelPublishingContext mcpContext) {
     	boolean toReturn = false;
         if (mcpContext != null) {
-            Map<String, PublishingChannelGroupConfigTO> publishingChannelGroupConfigs = siteService.getPublishingChannelGroupConfigs(site);
-            PublishingChannelGroupConfigTO configTO = publishingChannelGroupConfigs.get(mcpContext.getPublishingChannelGroup());
-            if (configTO != null) {
-                for (PublishingChannelConfigTO channelConfigTO : configTO.getChannels()) {
-                    if (channelConfigTO != null) {
-                        if (siteService.getDeploymentEndpoint(site, channelConfigTO.getName()) != null) {
-                            toReturn = true;
-                        }
-                    }
+            List<PublishingTargetTO> publishingTargets = siteService.getPublishingTargetsForSite(site);
+            for (PublishingTargetTO target : publishingTargets) {
+                if (target.getDisplayLabel().equals(mcpContext.getPublishingChannelGroup())) {
+                    return false;
                 }
             }
         }

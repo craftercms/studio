@@ -23,6 +23,7 @@ import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.to.DeploymentEndpointConfigTO;
 import org.craftercms.studio.api.v1.to.PublishingChannelGroupConfigTO;
+import org.craftercms.studio.api.v1.to.PublishingTargetTO;
 import org.dom4j.Document;
 
 import java.util.List;
@@ -89,13 +90,11 @@ public interface SiteService {
 
     DeploymentEndpointConfigTO getDeploymentEndpoint(String site, String endpoint);
 
-    Map<String, PublishingChannelGroupConfigTO> getPublishingChannelGroupConfigs(String site);
+    List<PublishingTargetTO> getPublishingTargetsForSite(String site);
 
     DeploymentEndpointConfigTO getPreviewDeploymentEndpoint(String site);
 
     Set<String> getAllAvailableSites();
-
-    String getLiveEnvironmentName(String site);
 
     /**
      * Create a new site based on an existing blueprint

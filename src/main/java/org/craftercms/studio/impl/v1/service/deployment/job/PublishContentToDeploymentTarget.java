@@ -26,6 +26,7 @@ import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.DeploymentEndpointConfigTO;
 import org.craftercms.studio.api.v1.to.PublishingChannelConfigTO;
 import org.craftercms.studio.api.v1.to.PublishingChannelGroupConfigTO;
+import org.craftercms.studio.api.v1.to.PublishingTargetTO;
 import org.craftercms.studio.impl.v1.job.RepositoryJob;
 
 import java.util.*;
@@ -211,39 +212,34 @@ public class PublishContentToDeploymentTarget extends RepositoryJob {
     }
 
     protected Set<DeploymentEndpointConfigTO> getAllTargetsForSite(String site) {
-        Map<String, PublishingChannelGroupConfigTO> groupConfigTOs = siteService.getPublishingChannelGroupConfigs(site);
+        List<PublishingTargetTO> publishingTargets = siteService.getPublishingTargetsForSite(site);
         Set<DeploymentEndpointConfigTO> targets = new HashSet<DeploymentEndpointConfigTO>();
         Map<String, DeploymentEndpointConfigTO> targetMap = new HashMap<String, DeploymentEndpointConfigTO>();
-        if (groupConfigTOs != null && groupConfigTOs.size() > 0) {
-            for (PublishingChannelGroupConfigTO groupConfigTO : groupConfigTOs.values()) {
-                List<PublishingChannelConfigTO> channelConfigTOs = groupConfigTO.getChannels();
-                if (channelConfigTOs != null && channelConfigTOs.size() > 0) {
-                    for (PublishingChannelConfigTO channelConfigTO : channelConfigTOs) {
-                        DeploymentEndpointConfigTO endpoint = siteService.getDeploymentEndpoint(site, channelConfigTO.getName());
-                        if (endpoint != null) {
-                            DeploymentEndpointConfigTO targetItem = targetMap.get(endpoint.getName());
-                            if (targetItem == null) {
-                                targetItem = new DeploymentEndpointConfigTO();
-                                targetItem.setName(endpoint.getName());
-                                targetItem.setTarget(endpoint.getTarget());
-                                targetItem.setType(endpoint.getType());
-                                targetItem.setServerUrl(endpoint.getServerUrl());
-                                targetItem.setStatusUrl(endpoint.getStatusUrl());
-                                targetItem.setVersionUrl(endpoint.getVersionUrl());
-                                targetItem.setPassword(endpoint.getPassword());
-                                targetItem.setExcludePattern(endpoint.getExcludePattern());
-                                targetItem.setIncludePattern(endpoint.getIncludePattern());
-                                targetItem.setBucketSize(endpoint.getBucketSize());
-                                targetItem.setSiteId(endpoint.getSiteId());
-                                targetItem.setSendMetadata(endpoint.isSendMetadata());
-                                targetItem.setOrder(endpoint.getOrder());
-                                targets.add(targetItem);
+        if (publishingTargets != null && publishingTargets.size() > 0) {
+            for (PublishingTargetTO target : publishingTargets) {
+                DeploymentEndpointConfigTO endpoint = siteService.getDeploymentEndpoint(site, target.getRepoBranchName());
+                if (endpoint != null) {
+                    DeploymentEndpointConfigTO targetItem = targetMap.get(endpoint.getName());
+                    if (targetItem == null) {
+                        targetItem = new DeploymentEndpointConfigTO();
+                        targetItem.setName(endpoint.getName());
+                        targetItem.setTarget(endpoint.getTarget());
+                        targetItem.setType(endpoint.getType());
+                        targetItem.setServerUrl(endpoint.getServerUrl());
+                        targetItem.setStatusUrl(endpoint.getStatusUrl());
+                        targetItem.setVersionUrl(endpoint.getVersionUrl());
+                        targetItem.setPassword(endpoint.getPassword());
+                        targetItem.setExcludePattern(endpoint.getExcludePattern());
+                        targetItem.setIncludePattern(endpoint.getIncludePattern());
+                        targetItem.setBucketSize(endpoint.getBucketSize());
+                        targetItem.setSiteId(endpoint.getSiteId());
+                        targetItem.setSendMetadata(endpoint.isSendMetadata());
+                        targetItem.setOrder(endpoint.getOrder());
+                        targets.add(targetItem);
 
-                                targetMap.put(endpoint.getName(), targetItem);
-                            }
-                            targetItem.addEnvironment(groupConfigTO.getName());
-                        }
+                        targetMap.put(endpoint.getName(), targetItem);
                     }
+                    targetItem.addEnvironment(target.getRepoBranchName());
                 }
             }
         }

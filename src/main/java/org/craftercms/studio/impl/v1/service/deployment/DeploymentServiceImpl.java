@@ -185,12 +185,12 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     protected Set<String> getAllPublishingEnvironments(String site) {
-        Map<String, PublishingChannelGroupConfigTO> groupConfigTOs = siteService.getPublishingChannelGroupConfigs(site);
+        List<PublishingTargetTO> publishingTargets = siteService.getPublishingTargetsForSite(site);
         Set<String> environments = new HashSet<String>();
-        if (groupConfigTOs != null && groupConfigTOs.size() > 0) {
-            for (PublishingChannelGroupConfigTO groupConfigTO : groupConfigTOs.values()) {
-                if (StringUtils.isNotEmpty(groupConfigTO.getName())) {
-                    environments.add(groupConfigTO.getName());
+        if (publishingTargets != null && publishingTargets.size() > 0) {
+            for (PublishingTargetTO target : publishingTargets) {
+                if (StringUtils.isNotEmpty(target.getRepoBranchName())) {
+                    environments.add(target.getRepoBranchName());
                 }
             }
         }
@@ -491,11 +491,9 @@ public class DeploymentServiceImpl implements DeploymentService {
      * @param site
      * @param launchDate
      * @param format
-     * @param node
      * @param scheduledItems
      * @param comparator
      * @param subComparator
-     * @param taskId
      * @param displayPatterns
      * @throws ServiceException
      */
@@ -636,27 +634,15 @@ public class DeploymentServiceImpl implements DeploymentService {
 
     protected List<String> getPublishingChannels(String site) {
         List<String> channels = new ArrayList<String>();
-        Map<String, PublishingChannelGroupConfigTO> channelGroupConfigTOs = siteService.getPublishingChannelGroupConfigs(site);
-        List<PublishingChannelGroupConfigTO> channelGroupConfigs = new ArrayList<>(channelGroupConfigTOs.values());
-        Collections.sort(channelGroupConfigs, new Comparator<PublishingChannelGroupConfigTO>() {
+        List<PublishingTargetTO> publishingTargets = siteService.getPublishingTargetsForSite(site);
+        Collections.sort(publishingTargets, new Comparator<PublishingTargetTO>() {
             @Override
-            public int compare(PublishingChannelGroupConfigTO o1, PublishingChannelGroupConfigTO o2) {
+            public int compare(PublishingTargetTO o1, PublishingTargetTO o2) {
                 return o1.getOrder() - o2.getOrder();
             }
         });
-        String user = securityService.getCurrentUser();
-        Set<String> userRoles = new HashSet<>();
-        if (org.apache.commons.lang3.StringUtils.isNotEmpty(user)) {
-            userRoles = securityService.getUserRoles(site, user);
-        }
-        for (PublishingChannelGroupConfigTO configTO : channelGroupConfigs) {
-            if (CollectionUtils.isEmpty(configTO.getRoles())) {
-                channels.add(configTO.getName());
-            } else {
-                if (CollectionUtils.containsAny(configTO.getRoles(), userRoles)) {
-                    channels.add(configTO.getName());
-                }
-            }
+        for (PublishingTargetTO target : publishingTargets) {
+            channels.add(target.getDisplayLabel());
         }
         return channels;
     }
@@ -773,20 +759,11 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     protected Set<String> getEndpontEnvironments(String site, String endpoint) {
-        Map<String, PublishingChannelGroupConfigTO> groupConfigTOs = siteService.getPublishingChannelGroupConfigs(site);
+        List<PublishingTargetTO> publishingTargets = siteService.getPublishingTargetsForSite(site);
         Set<String> environments = new HashSet<String>();
-        Map<String, DeploymentEndpointConfigTO> targetMap = new HashMap<String, DeploymentEndpointConfigTO>();
-        if (groupConfigTOs != null && groupConfigTOs.size() > 0) {
-            for (PublishingChannelGroupConfigTO groupConfigTO : groupConfigTOs.values()) {
-                List<PublishingChannelConfigTO> channelConfigTOs = groupConfigTO.getChannels();
-                if (channelConfigTOs != null && channelConfigTOs.size() > 0) {
-                    for (PublishingChannelConfigTO channelConfigTO : channelConfigTOs) {
-                        DeploymentEndpointConfigTO endpointTO = siteService.getDeploymentEndpoint(site, channelConfigTO.getName());
-                        if (endpointTO != null && StringUtils.equals(endpoint, endpointTO.getName())) {
-                            environments.add(groupConfigTO.getName());
-                        }
-                    }
-                }
+        if (publishingTargets != null && publishingTargets.size() > 0) {
+            for (PublishingTargetTO target : publishingTargets) {
+                environments.add(target.getRepoBranchName());
             }
         }
         return environments;

@@ -34,35 +34,19 @@ public class SiteTO implements Serializable {
 	private static final long serialVersionUID = 5106269319021769281L;
 	
 	/** site id **/
-	protected String _site;
-	/** wcm web project **/
-	protected String _webProject;
-	/** collaborative sandbox **/
-	protected String _collabSandbox;
+	protected String site;
 	/** live url **/
-	protected String _liveUrl;
+	protected String liveUrl;
 	/** authoring url **/
-	protected String _authoringUrl;
-	/** form server url **/
-	protected String _formServerUrl;
+	protected String authoringUrl;
 	/** preview url **/
-	protected String _previewUrl;
-	/** authoring url **/
-	protected String _authoringUrlPattern;
-	/** preview url **/
-	protected String _previewUrlPattern;
-	/** cookie domain **/
-	protected String _cookieDomain;
+	protected String previewUrl;
 	/** environment value **/
-	protected String _environment;
+	protected String environment;
 	/** admin email **/
-	protected String _adminEmail;
+	protected String adminEmail;
 	/** admin email **/
-	protected boolean _openSiteDropdown;
-    /** repository root path **/
-    protected String _repositoryRootPath;
-    /** publisihng channels group configuration **/
-    protected Map<String, PublishingChannelGroupConfigTO> _publishingChannelGroupConfigs = new HashMap<String, PublishingChannelGroupConfigTO>();
+	protected boolean openSiteDropdown;
 
     protected Map<String, DeploymentEndpointConfigTO> deploymentEndpointConfigs = new HashMap<String, DeploymentEndpointConfigTO>();
 	
@@ -70,137 +54,90 @@ public class SiteTO implements Serializable {
 	 * @return the site
 	 */
 	public String getSite() {
-		return _site;
+		return site;
 	}
 	/**
 	 * @param site the site to set
 	 */
 	public void setSite(String site) {
-		this._site = site;
+		this.site = site;
 	}
 	/**
 	 * @return the openSiteDropdown flag
 	 */
 	public boolean getOpenSiteDropdown() {
-		return _openSiteDropdown;
+		return openSiteDropdown;
 	}
 	/**
 	 * @param openSiteDropdown flag to set
 	 */
 	public void setOpenSiteDropdown(boolean openSiteDropdown) {
-		this._openSiteDropdown = openSiteDropdown;
+		this.openSiteDropdown = openSiteDropdown;
 	}
 
-	/**
-	 * @return the webProject
-	 */
-	public String getWebProject() {
-		return _webProject;
-	}
-	/**
-	 * @param webProject the webProject to set
-	 */
-	public void setWebProject(String webProject) {
-		this._webProject = webProject;
-	}
-	/**
-	 * @return the collabSandbox
-	 */
-	public String getCollabSandbox() {
-		return _collabSandbox;
-	}
-	/**
-	 * @param collabSandbox the collabSandbox to set
-	 */
-	public void setCollabSandbox(String collabSandbox) {
-		this._collabSandbox = collabSandbox;
-	}
 	/**
 	 * @return the authoringUrl
 	 */
 	public String getAuthoringUrl() {
-		return _authoringUrl;
+		return authoringUrl;
 	}
 	/**
 	 * @param authoringUrl the authoringUrl to set
 	 */
 	public void setAuthoringUrl(String authoringUrl) {
-		this._authoringUrl = authoringUrl;
+		this.authoringUrl = authoringUrl;
 	}
-	/**
-	 * @return the authoringUrl
-	 */
-	public String getFormServerUrl() {
-		return _formServerUrl;
-	}
-	/**
-	 * @param formServerUrl the authoringUrl to set
-	 */
-	public void setFormServerUrl(String formServerUrl) {
-		this._formServerUrl = formServerUrl;
-	}
+
 	/**
 	 * @return the previewUrl
 	 */
 	public String getPreviewUrl() {
-		return _previewUrl;
+		return previewUrl;
 	}
 	/**
 	 * @param previewUrl the previewUrl to set
 	 */
 	public void setPreviewUrl(String previewUrl) {
-		this._previewUrl = previewUrl;
-	}
-	/**
-	 * @return the cookieDomain
-	 */
-	public String getCookieDomain() {
-		return _cookieDomain;
-	}
-	/**
-	 * @param cookieDomain the cookieDomain to set
-	 */
-	public void setCookieDomain(String cookieDomain) {
-		this._cookieDomain = cookieDomain;
+		this.previewUrl = previewUrl;
 	}
 
 	/**
 	 * @return the environment
 	 */
 	public String getEnvironment() {
-		return _environment;
+		return environment;
 	}
 	/**
 	 * @param environment the environment to set
 	 */
 	public void setEnvironment(String environment) {
-		this._environment = environment;
+		this.environment = environment;
 	}
 
 	/**
 	 * @return the adminEmail
 	 */
 	public String getAdminEmail() {
-		return _adminEmail;
+		return adminEmail;
 	}
 	/**
 	 * @param adminEmail the adminEmail to set
 	 */
 	public void setAdminEmail(String adminEmail) {
-		this._adminEmail = adminEmail;
+		this.adminEmail = adminEmail;
 	}
 
 	/**
 	 * @return the liveUrl
 	 */
 	public String getLiveUrl() {
-		return _liveUrl;
+		return liveUrl;
 	}
 	/**
 	 * @param liveUrl the liveUrl to set
 	 */
 	public void setLiveUrl(String liveUrl) {
-		this._liveUrl = liveUrl;
+		this.liveUrl = liveUrl;
 	}
 	
 	/*
@@ -208,7 +145,7 @@ public class SiteTO implements Serializable {
 	 * @see java.lang.Object#toString()
 	 */
 	public String toString() {
-		return _site + ":" + _environment;
+		return site + ":" + environment;
 	}
 	
 	/*
@@ -221,46 +158,6 @@ public class SiteTO implements Serializable {
 		SiteTO targetSite = (SiteTO) target;
 		return this.toString().equals(targetSite.toString());
 	}
-	/**
-	 * @return the authoringUrlPattern
-	 */
-	public String getAuthoringUrlPattern() {
-		return _authoringUrlPattern;
-	}
-	/**
-	 * @param authoringUrlPattern the authoringUrlPattern to set
-	 */
-	public void setAuthoringUrlPattern(String authoringUrlPattern) {
-		this._authoringUrlPattern = authoringUrlPattern;
-	}
-	/**
-	 * @return the previewUrlPattern
-	 */
-	public String getPreviewUrlPattern() {
-		return _previewUrlPattern;
-	}
-	/**
-	 * @param previewUrlPattern the previewUrlPattern to set
-	 */
-	public void setPreviewUrlPattern(String previewUrlPattern) {
-		this._previewUrlPattern = previewUrlPattern;
-	}
-
-    public String getRepositoryRootPath() {
-        return _repositoryRootPath;
-    }
-
-    public void setRepositoryRootPath(String repositoryRootPath) {
-        this._repositoryRootPath = repositoryRootPath;
-    }
-
-    public Map<String, PublishingChannelGroupConfigTO> getPublishingChannelGroupConfigs() {
-        return _publishingChannelGroupConfigs;
-    }
-
-    public void setPublishingChannelGroupConfigs(Map<String, PublishingChannelGroupConfigTO> publishingChannelGroupConfigs) {
-        this._publishingChannelGroupConfigs = publishingChannelGroupConfigs;
-    }
 
     public Map<String, DeploymentEndpointConfigTO> getDeploymentEndpointConfigs() {
         return deploymentEndpointConfigs;

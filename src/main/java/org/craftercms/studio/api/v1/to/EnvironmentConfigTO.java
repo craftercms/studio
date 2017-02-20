@@ -24,170 +24,92 @@ public class EnvironmentConfigTO implements TimeStamped,Serializable {
 
     private static final long serialVersionUID = -8009424857607808612L;
     /** preview server URL **/
-	protected String _previewServerUrl = "";
+	protected String previewServerUrl = "";
 	/** authoring server URL **/
-	protected String _authoringServerUrl = "";
-	/** preview server URL **/
-	protected String _previewServerUrlPattern = "";
-	/** authoring server URL **/
-	protected String _authoringServerUrlPattern = "";
-	/** form server URL **/
-	protected String _formServerUrlPattern = "";
+	protected String authoringServerUrl = "";
 	/** live server url **/
-	protected String _liveServerUrl = "";
+	protected String liveServerUrl = "";
 	/** admin email address **/
-	protected String _adminEmailAddress;
-	/** cookie domain **/
-	protected String _cookieDomain;
+	protected String adminEmailAddress;
 	/** the last updated date of this configuration **/
-	protected Date _lastUpdated;
-    /** publisihng channels configuration **/
-    protected Map<String, PublishingChannelGroupConfigTO> _publishingChannelGroupConfigs = new HashMap<String, PublishingChannelGroupConfigTO>();
+	protected Date lastUpdated;
+    /** publisihng targets configuration **/
+    protected List<PublishingTargetTO> publishingTargets = new ArrayList<PublishingTargetTO>();
 
-	protected boolean _openDropdown = false;
+	protected boolean openDropdown = false;
 
-    protected PublishingChannelGroupConfigTO _liveEnvironmentPublishingGroup = null;
-
-    protected String _previewDeploymentEndpoint = null;
+    protected String previewDeploymentEndpoint = null;
 
 
 	public String getAdminEmailAddress() {
-		return _adminEmailAddress;
+		return adminEmailAddress;
 	}
 
 	public void setAdminEmailAddress(String adminEmailAddress) {
-		this._adminEmailAddress = adminEmailAddress;
+		this.adminEmailAddress = adminEmailAddress;
 	}
 
     public boolean getOpenDropdown() {
-		return _openDropdown;
+		return openDropdown;
 	}
 
 	public void setOpenDropdown(boolean openDropdown) {
-		this._openDropdown = openDropdown;
+		this.openDropdown = openDropdown;
 	}
 
     public String getLiveServerUrl() {
-		return _liveServerUrl;
+		return liveServerUrl;
 	}
 
 	public void setLiveServerUrl(String liveServerUrl) {
-		this._liveServerUrl = liveServerUrl;
+		this.liveServerUrl = liveServerUrl;
 	}
 
 	public Date getLastUpdated() {
-		return _lastUpdated;
+		return lastUpdated;
 	}
 
 	public void setLastUpdated(Date lastUpdated) {
-		this._lastUpdated = lastUpdated;
+		this.lastUpdated = lastUpdated;
 	}
 
 	/**
 	 * @param previewServerUrl the previewServerUrl to set
 	 */
 	public void setPreviewServerUrl(String previewServerUrl) {
-		this._previewServerUrl = previewServerUrl;
+		this.previewServerUrl = previewServerUrl;
 	}
 
 	/**
 	 * @return the previewServerUrl
 	 */
 	public String getPreviewServerUrl() {
-		return _previewServerUrl;
+		return previewServerUrl;
 	}
 
 	/**
 	 * @param authoringServerUrl the authoringServerUrl to set
 	 */
 	public void setAuthoringServerUrl(String authoringServerUrl) {
-		this._authoringServerUrl = authoringServerUrl;
+		this.authoringServerUrl = authoringServerUrl;
 	}
 
 	/**
 	 * @return the authoringServerUrl
 	 */
 	public String getAuthoringServerUrl() {
-		return _authoringServerUrl;
+		return authoringServerUrl;
 	}
 
-	/**
-	 * @return the orbeonServerUrl
-	 */
-	public String getFormServerUrlPattern() {
-		return _formServerUrlPattern;
-	}
 
-	/**
-	 * Sets the orbeonServerUrl
-	 */
-	public void setFormServerUrlPattern(String formUrl) {
-		_formServerUrlPattern = formUrl;
-	}
-
-	/**
-	 * @return the cookieDomain
-	 */
-	public String getCookieDomain() {
-		return _cookieDomain;
-	}
-
-	/**
-	 * @param cookieDomain the cookieDomain to set
-	 */
-	public void setCookieDomain(String cookieDomain) {
-		this._cookieDomain = cookieDomain;
-	}
-
-	/**
-	 * @return the previewServerUrlPattern
-	 */
-	public String getPreviewServerUrlPattern() {
-		return _previewServerUrlPattern;
-	}
-
-	/**
-	 * @param previewServerUrlPattern the previewServerUrlPattern to set
-	 */
-	public void setPreviewServerUrlPattern(String previewServerUrlPattern) {
-		this._previewServerUrlPattern = previewServerUrlPattern;
-	}
-
-	/**
-	 * @return the authoringServerUrlPattern
-	 */
-	public String getAuthoringServerUrlPattern() {
-		return _authoringServerUrlPattern;
-	}
-
-	/**
-	 * @param authoringServerUrlPattern the authoringServerUrlPattern to set
-	 */
-	public void setAuthoringServerUrlPattern(String authoringServerUrlPattern) {
-		this._authoringServerUrlPattern = authoringServerUrlPattern;
-	}
-
-    public Map<String, PublishingChannelGroupConfigTO> getPublishingChannelGroupConfigs() {
-        return _publishingChannelGroupConfigs;
-    }
-
-    public void setPublishingChannelGroupConfigs(Map<String, PublishingChannelGroupConfigTO> publishingChannelGroupConfigs) {
-        this._publishingChannelGroupConfigs = publishingChannelGroupConfigs;
-    }
-
-    public PublishingChannelGroupConfigTO getLiveEnvironmentPublishingGroup() {
-        return _liveEnvironmentPublishingGroup;
-    }
-
-    public void setLiveEnvironmentPublishingGroup(PublishingChannelGroupConfigTO liveEnvironmentPublishingGroup) {
-        this._liveEnvironmentPublishingGroup = liveEnvironmentPublishingGroup;
-    }
+    public List<PublishingTargetTO> getPublishingTargets() { return publishingTargets; }
+    public void setPublishingTargets(List<PublishingTargetTO> publishingTargets) { this.publishingTargets = publishingTargets; }
 
     public String getPreviewDeploymentEndpoint() {
-        return _previewDeploymentEndpoint;
+        return previewDeploymentEndpoint;
     }
 
     public void setPreviewDeploymentEndpoint(String previewDeploymentEndpoint) {
-        this._previewDeploymentEndpoint = previewDeploymentEndpoint;
+        this.previewDeploymentEndpoint = previewDeploymentEndpoint;
     }
 }

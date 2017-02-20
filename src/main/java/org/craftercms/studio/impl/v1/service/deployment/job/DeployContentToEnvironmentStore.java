@@ -31,6 +31,7 @@ import org.craftercms.studio.api.v1.service.event.EventService;
 import org.craftercms.studio.api.v1.service.notification.NotificationService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.PublishingChannelGroupConfigTO;
+import org.craftercms.studio.api.v1.to.PublishingTargetTO;
 import org.craftercms.studio.impl.v1.job.RepositoryJob;
 
 import java.util.*;
@@ -201,12 +202,12 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
     }
 
     private Set<String> getAllPublishingEnvironments(String site) {
-        Map<String, PublishingChannelGroupConfigTO> groupConfigTOs = siteService.getPublishingChannelGroupConfigs(site);
+        List<PublishingTargetTO> publishingTargets = siteService.getPublishingTargetsForSite(site);
         Set<String> environments = new HashSet<String>();
-        if (groupConfigTOs != null && groupConfigTOs.size() > 0) {
-            for (PublishingChannelGroupConfigTO groupConfigTO : groupConfigTOs.values()) {
-                if (StringUtils.isNotEmpty(groupConfigTO.getName())) {
-                    environments.add(groupConfigTO.getName());
+        if (publishingTargets != null && publishingTargets.size() > 0) {
+            for (PublishingTargetTO target : publishingTargets) {
+                if (StringUtils.isNotEmpty(target.getRepoBranchName())) {
+                    environments.add(target.getRepoBranchName());
                 }
             }
         }

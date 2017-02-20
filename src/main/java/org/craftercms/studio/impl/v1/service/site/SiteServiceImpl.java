@@ -195,17 +195,6 @@ public class SiteServiceImpl implements SiteService {
 		return map;
 	}
 
-	/**
-	 * load site configuration info (not environment specific)
-	 *
-	 * @param site
-	 * @param siteConfig
-	 */
-	protected void loadSiteConfig(String site, SiteTO siteConfig) {
-		// get site configuration
-		siteConfig.setWebProject(servicesConfig.getWemProject(site));
-		siteConfig.setRepositoryRootPath("/wem-projects/" + site + "/" + site + "/work-area");
-	}
 
 	/***
 	 * load site environment specific info
@@ -223,14 +212,9 @@ public class SiteServiceImpl implements SiteService {
 		}
 		siteConfig.setLiveUrl(environmentConfigTO.getLiveServerUrl());
 		siteConfig.setAuthoringUrl(environmentConfigTO.getAuthoringServerUrl());
-		siteConfig.setAuthoringUrlPattern(environmentConfigTO.getAuthoringServerUrlPattern());
 		siteConfig.setPreviewUrl(environmentConfigTO.getPreviewServerUrl());
-		siteConfig.setPreviewUrlPattern(environmentConfigTO.getPreviewServerUrlPattern());
 		siteConfig.setAdminEmail(environmentConfigTO.getAdminEmailAddress());
-		siteConfig.setCookieDomain(environmentConfigTO.getCookieDomain());
 		siteConfig.setOpenSiteDropdown(environmentConfigTO.getOpenDropdown());
-		siteConfig.setFormServerUrl(environmentConfigTO.getFormServerUrlPattern());
-		siteConfig.setPublishingChannelGroupConfigs(environmentConfigTO.getPublishingChannelGroupConfigs());
 	}
 
 	/***
@@ -256,11 +240,11 @@ public class SiteServiceImpl implements SiteService {
     }
 
     @Override
-    public Map<String, PublishingChannelGroupConfigTO> getPublishingChannelGroupConfigs(String site) {
-        return environmentConfig.getPublishingChannelGroupConfigs(site);
+    public List<PublishingTargetTO> getPublishingTargetsForSite(String site) {
+        return environmentConfig.getPublishingTargetsForSite(site);
     }
 
-	@Override
+    @Override
 	public List<SiteFeed> getUserSites(String user) {
         String username = user;
         if (StringUtils.isEmpty(username)) {
@@ -292,16 +276,6 @@ public class SiteServiceImpl implements SiteService {
             toRet.add(site.getSiteId());
         }
         return toRet;
-    }
-
-    @Override
-    public String getLiveEnvironmentName(String site) {
-        PublishingChannelGroupConfigTO pcgcTO = environmentConfig.getLiveEnvironmentPublishingGroup(site);
-        if (pcgcTO != null) {
-            return pcgcTO.getName();
-        } else {
-            return null;
-        }
     }
 
    	@Override
@@ -538,7 +512,6 @@ public class SiteServiceImpl implements SiteService {
         siteConfig.setSite(site);
         siteConfig.setEnvironment(getEnvironment());
         servicesConfig.reloadConfiguration(site);
-        loadSiteConfig(site, siteConfig);
         environmentConfig.reloadConfiguration(site);
         loadSiteEnvironmentConfig(site, siteConfig);
         deploymentEndpointConfig.reloadConfiguration(site);
