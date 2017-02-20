@@ -17,6 +17,7 @@
  ******************************************************************************/
 package org.craftercms.studio.api.v1.service.dependency;
 
+import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.DmDependencyTO;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.dom4j.Document;
@@ -159,7 +160,25 @@ public interface DmDependencyService {
 
 	//Set<DmDependencyTO> getDeleteDependencies(String site, String sourceContentPath, String dependencyPath, boolean isLiveRepo) throws ServiceException;
 
+    List<String> getDependantPaths(String site, String path);
+
     void deleteDependenciesForSite(String site);
 
     void deleteDependenciesForSiteAndPath(String site, String path);
+
+    /**
+     * Get the content information of all dependant Items of the given path
+     * @param site Site of owner of the path.
+     * @param path Path of the content which will be check for dependant items.
+     * @return A unmodifiable Set of ContentItemTO with all dependant items.
+     */
+    Set<ContentItemTO> getDependantItems(String site, String path);
+
+    /**
+     * Get the content information of all dependencies Items of the given path
+     * @param site Site of owner of the path.
+     * @param path Path of the content which will be check for dependency items.
+     * @return A unmodifiable Set of ContentItemTO with all dependencies items.
+     */
+    Set<ContentItemTO> getDependenciesItems(String site, String path);
 }

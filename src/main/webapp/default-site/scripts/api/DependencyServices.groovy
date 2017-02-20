@@ -36,4 +36,16 @@ class DependencyServices {
         return dependencyServiceImpl.getDependencies(site, requestBody, deleteDependencies);
     }
 
+    static getDependantItems(context,site,path){
+        def dependencyServiceImpl = ServiceFactory.getDependencyServices(context);
+        return dependencyServiceImpl.getDependantItems(site, path);
+    }
+
+
+    static getDependenciesItems(context,site,path){
+        def dependencyServiceImpl = ServiceFactory.getDependencyServices(context);
+        return dependencyServiceImpl.getDependenciesItems(site, path);
+    }
+
+
 }
