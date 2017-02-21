@@ -237,7 +237,7 @@ studio.contentProcessor.assetsSystemPath: /static-assets/system
 ##                   Email Service                   ##
 #######################################################
 # Default value for from header when sending emails.
-studio.mail.from.default: default@mail.com
+studio.mail.from.default: admin@example.com
 # SMTP server name to send emails.
 studio.mail.host: localhost
 # SMTP port number to send emails.

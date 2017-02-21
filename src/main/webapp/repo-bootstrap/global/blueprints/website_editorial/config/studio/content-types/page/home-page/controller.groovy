@@ -1,12 +1,13 @@
-import scripts.libs.ExtractMetadataApi;
+import scripts.libs.CommonLifecycleApi
 
-def extractMetadataParams =[:];
-extractMetadataParams.site = site;
-extractMetadataParams.path = path;
-extractMetadataParams.user = user;
-extractMetadataParams.contentType = contentType;
-extractMetadataParams.contentXml = contentXml;
-extractMetadataParams.applicationContext = applicationContext;
+def contentLifecycleParams =[:]
+contentLifecycleParams.site = site
+contentLifecycleParams.path = path
+contentLifecycleParams.user = user
+contentLifecycleParams.contentType = contentType
+contentLifecycleParams.contentLifecycleOperation = contentLifecycleOperation
+contentLifecycleParams.contentLoader = contentLoader
+contentLifecycleParams.applicationContext = applicationContext
 
-def extractor = new ExtractMetadataApi(extractMetadataParams);
-extractor.execute();
+def controller = new CommonLifecycleApi(contentLifecycleParams)
+controller.execute()
