@@ -135,4 +135,6 @@ public interface SiteService {
     void importSite(String config);
 
     void rebuildRepositoryMetadata(String site);
+
+    boolean exists(String site);
 }

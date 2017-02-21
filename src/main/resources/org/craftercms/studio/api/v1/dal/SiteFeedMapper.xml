@@ -48,6 +48,10 @@
     </insert>
 
     <delete id="deleteSite" parameterType="java.util.Map" >
-        DELETE FROM cstudio_site WHERE  site_id = #{site_id}
+        DELETE FROM cstudio_site WHERE  site_id = #{siteId}
     </delete>
+
+    <select id="exists" parameterType="java.lang.String" resultType="int">
+        SELECT count(1) FROM cstudio_site WHERE site_id = #{siteId}
+    </select>
 </mapper>
