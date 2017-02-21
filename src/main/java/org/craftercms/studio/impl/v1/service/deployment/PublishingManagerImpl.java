@@ -374,7 +374,7 @@ public class PublishingManagerImpl implements PublishingManager {
         String submissionComment = item.getSubmissionComment();
 
 
-        String liveEnvironment = siteService.getLiveEnvironmentName(site);
+        String liveEnvironment = LIVE_ENVIRONMENT;
         boolean isLive = false;
 
         if (StringUtils.isNotEmpty(liveEnvironment)) {

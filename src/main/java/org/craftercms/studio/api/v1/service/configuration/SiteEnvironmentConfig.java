@@ -20,10 +20,16 @@ package org.craftercms.studio.api.v1.service.configuration;
 
 import org.craftercms.studio.api.v1.to.EnvironmentConfigTO;
 import org.craftercms.studio.api.v1.to.PublishingChannelGroupConfigTO;
+import org.craftercms.studio.api.v1.to.PublishingTargetTO;
 
+import java.util.List;
 import java.util.Map;
 
 public interface SiteEnvironmentConfig {
+
+    String PUBLISHING_TARGET_XPATH = "publishing-targets/target";
+    String XML_TAG_REPO_BRANCH_NAME = "repo-branch-name";
+    String XML_TAG_DISPLAY_LABEL = "display-label";
 
 	/**
 	 * get the common preview server URL for all content in the given site
@@ -31,7 +37,7 @@ public interface SiteEnvironmentConfig {
 	 * @param site
 	 * @return preview server url
 	 */
-	public String getPreviewServerUrl(String site);
+	String getPreviewServerUrl(String site);
 	
 	/**
 	 * get the live site url 
@@ -39,7 +45,7 @@ public interface SiteEnvironmentConfig {
 	 * @param site
 	 * @return
 	 */
-	public String getLiveServerUrl(String site);
+	String getLiveServerUrl(String site);
 	
 	/**
 	 * get admin email address
@@ -47,7 +53,7 @@ public interface SiteEnvironmentConfig {
 	 * @param site
 	 * @return
 	 */
-	public String getAdminEmailAddress(String site);
+	String getAdminEmailAddress(String site);
 	
 	/**
 	 * get the authoring server URL 
@@ -55,23 +61,7 @@ public interface SiteEnvironmentConfig {
 	 * @param site
 	 * @return authoring server URL
 	 */
-	public String getAuthoringServerUrl(String site);
-	
-	/**
-	 * get the form server URL 
-	 * 
-	 * @param site
-	 * @return form server URL
-	 */
-	public String getFormServerUrl(String site);
-
-    /**
-     * get the cookie domain of the given site
-     * 
-     * @param site
-     * @return
-     */
-	public String getCookieDomain(String site);
+    String getAuthoringServerUrl(String site);
 
 	/**
 	 * get the environment config for the given site
@@ -79,19 +69,11 @@ public interface SiteEnvironmentConfig {
 	 * @param site
 	 * @return
 	 */
-	public EnvironmentConfigTO getEnvironmentConfig(String site);
+	EnvironmentConfigTO getEnvironmentConfig(String site);
 
-    /**
-     * get Publishing Channels configuration
-     *
-     * @param site
-     * @return
-     */
-    public Map<String, PublishingChannelGroupConfigTO> getPublishingChannelGroupConfigs(String site);
+	List<PublishingTargetTO> getPublishingTargetsForSite(String site);
     
-    public boolean exists(String site);
-
-    PublishingChannelGroupConfigTO getLiveEnvironmentPublishingGroup(String site);
+    boolean exists(String site);
 
     String getPreviewDeploymentEndpoint(String site);
 

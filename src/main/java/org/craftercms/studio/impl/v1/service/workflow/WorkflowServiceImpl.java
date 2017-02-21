@@ -808,17 +808,6 @@ public class WorkflowServiceImpl implements WorkflowService {
             String statusMessage = (jsonObjectStatus != null && jsonObjectStatus.containsKey(JSON_KEY_STATUS_MESSAGE)) ? jsonObjectStatus.getString(JSON_KEY_STATUS_MESSAGE) : null;
             String submissionComment = (requestObject != null && requestObject.containsKey(JSON_KEY_SUBMISSION_COMMENT)) ? requestObject.getString(JSON_KEY_SUBMISSION_COMMENT) : "Test Go Live";
             MultiChannelPublishingContext mcpContext = new MultiChannelPublishingContext(publishChannelGroupName, statusMessage, submissionComment);
-            if(operation!=Operation.DELETE && !dmPublishService.hasChannelsConfigure(site, mcpContext)){
-                ResultTO toReturn = new ResultTO();
-                List<PublishingChannelConfigTO> channelsList = siteService.getPublishingChannelGroupConfigs(site).get(mcpContext.getPublishingChannelGroup()).getChannels();
-                String channels = StringUtils.join(channelsList, " ");
-                toReturn.setMessage(" Specified target '"+channels+"' was not found. Please check if an endpoint or channel with name '"+channels+"' exists in site configuration");
-                toReturn.setSuccess(false);
-                toReturn.setInvalidateCache(false);
-                return toReturn;
-            }
-
-
 
             int length = items.size();
             if (length == 0) {
@@ -978,15 +967,6 @@ public class WorkflowServiceImpl implements WorkflowService {
             String statusMessage = (jsonObjectStatus != null && jsonObjectStatus.containsKey(JSON_KEY_STATUS_MESSAGE)) ? jsonObjectStatus.getString(JSON_KEY_STATUS_MESSAGE) : null;
             String submissionComment = (requestObject != null && requestObject.containsKey(JSON_KEY_SUBMISSION_COMMENT)) ? requestObject.getString(JSON_KEY_SUBMISSION_COMMENT) : "Test Go Live";
             MultiChannelPublishingContext mcpContext = new MultiChannelPublishingContext(publishChannelGroupName, statusMessage, submissionComment);
-            if(operation != Operation.DELETE && !dmPublishService.hasChannelsConfigure(site, mcpContext)){
-                ResultTO toReturn = new ResultTO();
-                List<PublishingChannelConfigTO> channelsList = siteService.getPublishingChannelGroupConfigs(site).get(mcpContext.getPublishingChannelGroup()).getChannels();
-                String channels = StringUtils.join(channelsList, " ");
-                toReturn.setMessage(" Specified target '"+channels+"' was not found. Please check if an endpoint or channel with name '"+channels+"' exists in site configuration");
-                toReturn.setSuccess(false);
-                toReturn.setInvalidateCache(false);
-                return toReturn;
-            }
 
             int length = items.size();
             if (length == 0) {
@@ -1152,15 +1132,6 @@ public class WorkflowServiceImpl implements WorkflowService {
             String statusMessage = (jsonObjectStatus != null && jsonObjectStatus.containsKey(JSON_KEY_STATUS_MESSAGE)) ? jsonObjectStatus.getString(JSON_KEY_STATUS_MESSAGE) : null;
             String submissionComment = (requestObject != null && requestObject.containsKey(JSON_KEY_SUBMISSION_COMMENT)) ? requestObject.getString(JSON_KEY_SUBMISSION_COMMENT) : "Test Go Live";
             MultiChannelPublishingContext mcpContext = new MultiChannelPublishingContext(publishChannelGroupName, statusMessage, submissionComment);
-            if(operation != Operation.DELETE && !dmPublishService.hasChannelsConfigure(site, mcpContext)){
-                ResultTO toReturn = new ResultTO();
-                List<PublishingChannelConfigTO> channelsList = siteService.getPublishingChannelGroupConfigs(site).get(mcpContext.getPublishingChannelGroup()).getChannels();
-                String channels = StringUtils.join(channelsList, " ");
-                toReturn.setMessage(" Specified target '"+channels+"' was not found. Please check if an endpoint or channel with name '"+channels+"' exists in site configuration");
-                toReturn.setSuccess(false);
-                toReturn.setInvalidateCache(false);
-                return toReturn;
-            }
 
             int length = items.size();
             if (length == 0) {
