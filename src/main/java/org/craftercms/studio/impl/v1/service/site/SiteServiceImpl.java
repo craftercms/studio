@@ -607,6 +607,12 @@ public class SiteServiceImpl implements SiteService {
     }
 
     @Override
+    public boolean exists(String site) {
+	    boolean toRet = siteFeedMapper.exists(site) > 0 ? true : false;
+        return toRet;
+    }
+
+    @Override
     public void rebuildRepositoryMetadata(String site) {
         rebuildRepositoryMetadata.execute(site);
     }
