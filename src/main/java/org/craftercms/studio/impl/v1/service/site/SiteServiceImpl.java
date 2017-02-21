@@ -287,42 +287,50 @@ public class SiteServiceImpl implements SiteService {
 	    // TODO: SJ: and rollback the whole thing.
 	    // TODO: SJ: What we need to do for site creation and the order of execution:
 	    // TODO: SJ: 1) search index, 2) deployer target, 3) git repo, 4) database, 5) kick deployer
- 		try {
-            success = createSiteFromBlueprintGit(blueprintName, siteName, siteId, desc);
+	    try {
+		    searchService.createIndex(siteId);
+	    } catch (ServiceException e) {
+		    success = false;
+		    logger.error("Error while creating site: " + siteName + " ID: " + siteId + " from blueprint: " +
+			    blueprintName + ". Is the Search running and configured correctly in Studio?", e);
+	    }
 
-			// Set object states
-			createObjectStatesforNewSite(siteId);
+	    if (success) {
+	 		try {
+			    success = createSiteFromBlueprintGit(blueprintName, siteName, siteId, desc);
 
-			// Extract dependencies
-			extractDependenciesForNewSite(siteId);
+			    // Set object states
+			    createObjectStatesforNewSite(siteId);
 
-			// Extract metadata ?
+			    // Extract dependencies
+			    extractDependenciesForNewSite(siteId);
 
-	 		// permissions
-	 		// environment overrides
-	 		// deployment
+			    // Extract metadata ?
 
-	 		// insert database records
-			SiteFeed siteFeed = new SiteFeed();
-			siteFeed.setName(siteName);
-			siteFeed.setSiteId(siteId);
-			siteFeed.setDescription(desc);
-			siteFeedMapper.createSite(siteFeed);
+			    // permissions
+			    // environment overrides
+			    // deployment
 
-			searchService.createIndex(siteId);
+			    // insert database records
+			    SiteFeed siteFeed = new SiteFeed();
+			    siteFeed.setName(siteName);
+			    siteFeed.setSiteId(siteId);
+			    siteFeed.setDescription(desc);
+			    siteFeedMapper.createSite(siteFeed);
 
-			// TODO: SJ: Must call PreviewDeployer and ask it to call to create target(s) for PreviewDeployer(s)
-            deploymentService.createPreviewTarget(siteId);
-            deploymentService.syncAllContentToPreview(siteId);
 
-            reloadSiteConfiguration(siteId);
-        }
-	 	catch(Exception e) {
- 		    // TODO: SJ: We need better exception handling here
-            success = false;
-            logger.error("Error while creating site: " + siteName + " ID: " + siteId + " from blueprint: " +
-                    blueprintName, e);
-	 	}
+			    // TODO: SJ: Must call PreviewDeployer and ask it to call to create target(s) for PreviewDeployer(s)
+			    deploymentService.createPreviewTarget(siteId);
+			    deploymentService.syncAllContentToPreview(siteId);
+
+			    reloadSiteConfiguration(siteId);
+	        } catch(Exception e) {
+	            // TODO: SJ: We need better exception handling here
+	            success = false;
+	            logger.error("Error while creating site: " + siteName + " ID: " + siteId + " from blueprint: " +
+	                    blueprintName, e);
+		    }
+	    }
 
 	 	return success;
     }
