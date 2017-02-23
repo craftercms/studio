@@ -238,32 +238,10 @@ public class GitContentRepositoryHelper {
         // Create Sandbox
         sandboxRepo = createGitRepository(siteSandboxPath);
 
-        // Create Published
-        if (sandboxRepo != null) {
-            publishedRepo = createGitRepository(sitePublishedPath);
-            try (Git git = new Git(publishedRepo)) {
-                // Initialize repository
-                git.add().addFilepattern(".").call();
-                RevCommit commit = git.commit()
-                        .setMessage("initial content")
-                        .setAllowEmpty(true)
-                        .call();
-
-                // Configure remote
-                StoredConfig config = git.getRepository().getConfig();
-                config.setString(CONFIG_SECTION_REMOTE, DEFAULT_REMOTE_NAME, CONFIG_PARAMETER_URL, siteSandboxPath.normalize().toAbsolutePath().toString());
-                config.setString(CONFIG_SECTION_REMOTE, DEFAULT_REMOTE_NAME, CONFIG_PARAMETER_FETCH, CONFIG_PARAMETER_FETCH_DEFAULT);
-                config.save();
-            } catch (IOException | GitAPIException e) {
-                logger.error("Error adding origin (sandbox) to published repository", e);
-            }
-        }
-
-        toReturn = (sandboxRepo != null) && (publishedRepo != null);
+        toReturn = (sandboxRepo != null);
 
         if (toReturn) {
             sandboxes.put(site, sandboxRepo);
-            published.put(site, publishedRepo);
         }
 
         return toReturn;
@@ -417,6 +395,24 @@ public class GitContentRepositoryHelper {
                     .call();
                 // TODO: SJ: Do we need the commit id?
                 // commitId = commit.getName();
+            }
+
+            // Create Published by cloning Sandbox
+
+            // Build a path for the site/sandbox
+            Path siteSandboxPath = buildRepoPath(GitRepositories.SANDBOX, site);
+            // Built a path for the site/published
+            Path sitePublishedPath = buildRepoPath(GitRepositories.PUBLISHED, site);
+            try (Git publishedGit = Git.cloneRepository()
+                    .setURI(siteSandboxPath.normalize().toAbsolutePath().toString())
+                    .setDirectory(sitePublishedPath.normalize().toAbsolutePath().toFile())
+                    .call()) {
+                Repository publishedRepo = publishedGit.getRepository();
+                if (publishedRepo != null) {
+                    published.put(site, publishedRepo);
+                }
+            } catch (GitAPIException e) {
+                logger.error("Error adding origin (sandbox) to published repository", e);
             }
         } catch (GitAPIException err) {
             logger.error("error creating initial commit for site:  " + site, err);

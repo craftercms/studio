@@ -99,6 +99,8 @@ public class DeploymentServiceImpl implements DeploymentService {
         groupedPaths.put(CopyToEnvironment.Action.MOVE, movedPaths);
         groupedPaths.put(CopyToEnvironment.Action.UPDATE, updatedPaths);
 
+        environment = resolveEnvironment(site, environment);
+
         List<CopyToEnvironment> items = createItems(site, environment, groupedPaths, scheduledDate, approver, submissionComment);
         for (CopyToEnvironment item : items) {
             copyToEnvironmentMapper.insertItemForDeployment(item);
@@ -109,7 +111,19 @@ public class DeploymentServiceImpl implements DeploymentService {
         }catch(Exception errNotify) {
             logger.error("Error sending approval notification ",errNotify);
         }
-}
+    }
+
+    private String resolveEnvironment(String site, String environment) {
+        String toRet = environment;
+        List<PublishingTargetTO> publishingTargets = siteService.getPublishingTargetsForSite(site);
+        for (PublishingTargetTO target : publishingTargets) {
+            if (target.getDisplayLabel().equals(environment)) {
+                toRet = target.getRepoBranchName();
+                break;
+            }
+        }
+        return toRet;
+    }
 
     protected void sendContentApprovalEmail(List<CopyToEnvironment> itemList,boolean scheduleDateNow) {
         if(notificationService.isEnabled()) {
