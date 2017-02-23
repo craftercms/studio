@@ -275,8 +275,18 @@
         select *
         from cstudio_activity
         where site_network = #{site}
+        <if test="user != null and user != '' ">
+            and post_user_id = #{user}
+        </if>
+        <if test="actions != null">
+            and activity in
+            <foreach item="action" index="index" collection="actions"
+                     open="(" separator="," close=")">
+                #{action}
+            </foreach>
+        </if>
         order by modified_date desc
-        offset #{startPos} rows fetch next #{feedSize} rows only
+        offset #{start} rows fetch next #{num} rows only
     </select>
 
     <select id="getAuditLogForSite" databaseId="sqlserver" parameterType="java.util.Map" resultMap="ActivityFeedMap">
@@ -298,6 +308,16 @@
         select *
         from cstudio_activity
         where site_network = #{site}
-        order by modified_date desc limit #{startPos},#{feedSize}
+        <if test="user != null and user != '' ">
+            and post_user_id = #{user}
+        </if>
+        <if test="actions != null">
+            and activity in
+            <foreach item="action" index="index" collection="actions"
+                     open="(" separator="," close=")">
+                #{action}
+            </foreach>
+        </if>
+        order by modified_date desc limit #{start},#{num}
     </select>
 </mapper>

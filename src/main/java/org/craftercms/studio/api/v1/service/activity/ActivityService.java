@@ -83,5 +83,5 @@ public interface ActivityService {
 
 	void deleteActivitiesForSite(String site);
 
-    List<ActivityFeed> getAuditLogForSite(String site, int startPos, int feedSize);
+    List<ActivityFeed> getAuditLogForSite(String site, int start, int end, String user, List<String> actions);
 }

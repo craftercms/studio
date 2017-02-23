@@ -139,9 +139,11 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
                                     if (isMandatoryDependenciesCheckEnabled() && missingDependencies.size() > 0) {
                                         List<DeploymentItem> mergedList = new ArrayList<DeploymentItem>(deploymentItemList);
                                         mergedList.addAll(missingDependencies);
-                                        eventService.firePublishToEnvironmentEvent(site, mergedList, environment, "TODO: DB: author", "TODO: DB: comment");
+                                        // TODO: DB: figure out author and comment
+                                        eventService.firePublishToEnvironmentEvent(site, mergedList, environment, "admin", "TODO: DB: comment");
                                     } else {
-                                        eventService.firePublishToEnvironmentEvent(site, deploymentItemList, environment, "TODO: DB: author", "TODO: DB: comment");
+                                        // TODO: DB: figure out author and comment
+                                        eventService.firePublishToEnvironmentEvent(site, deploymentItemList, environment, "admin", "TODO: DB: comment");
                                     }
 
                                     logger.debug("Mark deployment completed for processed items for site \"{0}\"", site);

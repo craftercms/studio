@@ -29,6 +29,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
 import javax.servlet.ServletContext;
@@ -49,7 +50,9 @@ import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.RefNotFoundException;
 import org.eclipse.jgit.diff.DiffEntry;
+import org.eclipse.jgit.dircache.DirCache;
 import org.eclipse.jgit.internal.storage.file.LockFile;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.merge.MergeStrategy;
@@ -61,6 +64,7 @@ import org.eclipse.jgit.transport.FetchResult;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
+import org.eclipse.jgit.treewalk.filter.TreeFilter;
 import org.springframework.web.context.ServletContextAware;
 
 import static org.craftercms.studio.api.v1.constant.GitRepositories.PUBLISHED;
@@ -330,6 +334,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         try {
             RevTree tree = helper.getTreeForLastCommit(repo);
             try (TreeWalk tw = TreeWalk.forPath(repo, helper.getGitPath(path), tree)) {
+
                 if (tw != null) {
                     // Loop for all children and gather path of item excluding the item, file/folder name, and
                     // whether or not it's a folder
@@ -359,6 +364,39 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         tw.close();
                     } else {
                         logger.error("Error getChildren invoked for a file for site: " + site + " path: " + path);
+                    }
+                } else {
+                    String gitPath = helper.getGitPath(path);
+                    if (StringUtils.isEmpty(gitPath) || gitPath.equals(".")) {
+                        try (TreeWalk treeWalk = new TreeWalk(repo)) {
+                                treeWalk.addTree(tree);
+
+                                while (treeWalk.next()) {
+
+                                    ObjectLoader loader = repo.open(treeWalk.getObjectId(0));
+
+                                    RepositoryItem item = new RepositoryItem();
+                                    item.name = treeWalk.getNameString();
+
+                                    String visitFolderPath = File.separator + treeWalk.getPathString();
+                                    loader = repo.open(treeWalk.getObjectId(0));
+                                    item.isFolder = loader.getType() == Constants.OBJ_TREE;
+                                    int lastIdx = visitFolderPath.lastIndexOf(File.separator + item.name);
+                                    if (lastIdx > 0) {
+                                        item.path = visitFolderPath.substring(0, lastIdx);
+                                    } else {
+                                        item.path = StringUtils.EMPTY;
+                                    }
+
+                                    if (!ArrayUtils.contains(IGNORE_FILES, item.name)) {
+                                        retItems.add(item);
+                                    }
+                                }
+
+                        } catch (IOException e) {
+                            logger.error("Error while getting children for site: " + site + " path: " + path, e);
+                        }
+
                     }
                 }
             } catch (IOException e) {
@@ -656,26 +694,59 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
         synchronized(helper.getRepository(site, GitRepositories.PUBLISHED)) {
             try (Git git = new Git(repo)) {
+
                 // checkout environment branch
-                Ref checkoutResult = git.checkout().setCreateBranch(true)
-                        .setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK)
-                        .setName(environment)
-                        .call();
+                try {
+                    Ref checkoutResult = git.checkout()
+                            .setName(environment)
+                            .call();
+                } catch (RefNotFoundException e) {
+                    logger.info("Not able to find branch " + environment + " for site " + site + ". Creating new branch");
+                    // checkout environment branch
+                    Ref checkoutResult = git.checkout().setCreateBranch(true).setForce(true).setStartPoint("master")
+                            .setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK)
+                            .setName(environment)
+                            .call();
+                }
 
                 // fetch "origin/master"
                 FetchResult fetchResult = git.fetch().call();
 
                 // cherry pick all commit ids
-                CherryPickCommand cherryPickCommand = git.cherryPick();
+                CherryPickCommand cherryPickCommand = git
+                        .cherryPick()
+                        .setNoCommit(false);
                 for (String commitId : commitIds) {
-                    ObjectId objectId = ObjectId.fromString(commitId);
-                    cherryPickCommand.include(objectId);
+                    if (StringUtils.isNotEmpty(commitId)) {
+                        ObjectId objectId = ObjectId.fromString(commitId);
+                        cherryPickCommand.include(objectId);
+                    }
                 }
                 CherryPickResult cherryPickResult = cherryPickCommand.call();
 
-                // tag
-                PersonIdent authorIdent = helper.getAuthorIdent(author);
-                Ref tagResult = git.tag().setTagger(authorIdent).setMessage(comment).call();
+                switch (cherryPickResult.getStatus()) {
+                    case FAILED:
+                        // TODO: DB: what to do if cherry pick failed ?
+                        logger.error("Cherry-pick failed " + cherryPickResult.getFailingPaths());
+                        break;
+
+                    case CONFLICTING:
+                        // TODO: DB: what to do if cherry pick has conflict ?
+                        logger.error("Conflict executing cherry-pick " + cherryPickResult.getFailingPaths());
+                        break;
+
+                    case OK:
+                        long commitTime = 1000l * cherryPickResult.getNewHead().getCommitTime();
+                        // tag
+                        Date tagDate2 = new Date(commitTime);
+                        SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy-MM-dd'T'HHmmssX");
+                        String tagName2 = sdf2.format(tagDate2);
+                        PersonIdent authorIdent2 = helper.getAuthorIdent(author);
+                        Ref tagResult2 = git.tag().setTagger(authorIdent2).setName(tagName2).setMessage(comment).call();
+                        break;
+                }
+
+
             } catch (GitAPIException e) {
                 logger.error("Error when publishing site " + site + " to environment " + environment, e);
             } catch (Exception e) {

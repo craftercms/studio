@@ -22,7 +22,8 @@ import java.util.*;
 import javolution.util.FastList;
 import net.sf.json.JSONObject;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.ActivityFeed;
@@ -383,11 +384,17 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 	}
 
     @Override
-    public List<ActivityFeed> getAuditLogForSite(String site, int startPos, int feedSize) {
+    public List<ActivityFeed> getAuditLogForSite(String site, int start, int end, String user, List<String> actions) {
         Map<String, Object> params = new HashMap<String,Object>();
         params.put("site", site);
-        params.put("startPos", startPos);
-        params.put("feedSize", feedSize);
+        params.put("start", start);
+        params.put("num", end - start);
+        if (StringUtils.isNotEmpty(user)) {
+            params.put("user", user);
+        }
+        if (CollectionUtils.isNotEmpty(actions)) {
+            params.put("actions", actions);
+        }
         return activityFeedMapper.getAuditLogForSite(params);
     }
 

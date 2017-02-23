@@ -299,8 +299,13 @@ public class SiteServiceImpl implements SiteService {
 	 		try {
 			    success = createSiteFromBlueprintGit(blueprintName, siteName, siteId, desc);
 
+			    String lastCommitId = contentRepository.getRepoLastCommitId(siteId);
+
 			    // Set object states
 			    createObjectStatesforNewSite(siteId);
+
+			    // set object metadata
+                createObjectMetadataforNewSite(siteId, lastCommitId);
 
 			    // Extract dependencies
 			    extractDependenciesForNewSite(siteId);
@@ -385,6 +390,22 @@ public class SiteServiceImpl implements SiteService {
 			}
 		}
 	}
+
+    protected void createObjectMetadataforNewSite(String site, String lastCommitId) {
+        createObjectMetadataNewSiteObjectFolder(site, "/", lastCommitId);
+    }
+
+    protected void createObjectMetadataNewSiteObjectFolder(String site, String path, String lastCommitId) {
+	    logger.error("Processing: site=" + site + " path=" + path);
+        RepositoryItem[] children = contentRepository.getContentChildren(site, path);
+        for (RepositoryItem child : children) {
+            if (child.isFolder) {
+                createObjectMetadataNewSiteObjectFolder(site, child.path + "/" + child.name, lastCommitId);
+            } else {
+                objectMetadataManager.insertNewObjectMetadata(site, child.path + "/" + child.name);
+            }
+        }
+    }
 
 	protected void extractDependenciesForNewSite(String site) {
         Map<String, Set<String>> globalDeps = new HashMap<String, Set<String>>();
