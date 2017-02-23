@@ -38,7 +38,7 @@ class ActivityServices {
 
     static getActivities(context, site, user, num, sort, ascending, excludeLive, filterType) {
         def activitiesServicesImpl = ServiceFactory.getActivityServices(context)
-        return activitiesServicesImpl.getActivities(site, user, num, sort, ascending, excludeLive, filterType);
+        return activitiesServicesImpl.getActivities(site, user, num, sort, ascending, excludeLive, filterType)
     }
 
     static postActivity(context, site, user, path, activityType, extraInfo) {
@@ -46,8 +46,8 @@ class ActivityServices {
         return activitiesServicesImpl.postActivity(site, user, path, activityType, extraInfo)
     }
 
-    static getAuditLog(context, site, startPos, num) {
+    static getAuditLog(context, site, start, end, user, actions) {
         def activitiesServicesImpl = ServiceFactory.getActivityServices(context);
-        return activitiesServicesImpl.getAuditLog(site, startPos, num);
+        return activitiesServicesImpl.getAuditLog(site, start, end, user, actions)
     }
 }

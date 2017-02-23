@@ -25,15 +25,29 @@
 import scripts.api.ActivityServices;
 
 def result = [:]
-def site = params.site;
-def num = params.num.toInteger();
-def valid = true;
-def startPos = params.startpos.toInteger();
+def site = params.site_id
+def start = 0
+if (params.start != null && params.start != '') {
+    start = params.start.toInteger()
+}
+def end = 10
+if (params.end != null && params.end != '') {
+    end = params.end.toInteger()
+}
+def user = ''
+if (params.user != null && params.user != '') {
+    user = params.user
+}
+def actions = []
+if (params.actions != null && params.actions != '') {
+    actions = params.actions
+}
+
 
 
 def context = ActivityServices.createContext(applicationContext, request)
-def activities = ActivityServices.getAuditLog(context, site, startPos, num);
+def activities = ActivityServices.getAuditLog(context, site, start, end, user, actions)
 
-result.total = activities.size();
-result.items = activities;
+result.total = activities.size()
+result.items = activities
 return result
