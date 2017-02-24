@@ -78,6 +78,7 @@
         <property name="rebuildRepositoryMetadata" ref="studioRebuildRepositoryMetadata"/>
         <property name="studioConfiguration" ref="studioConfiguration"/>
         <property name="searchService" ref="searchService" />
+        <property name="eventService" ref="studioEventService"/>
     </bean>
 
     <bean id="cstudioImportService" class="org.craftercms.studio.impl.v1.service.content.ImportServiceImpl">
