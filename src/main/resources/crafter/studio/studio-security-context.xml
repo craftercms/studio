@@ -40,6 +40,10 @@
         <security:intercept-url pattern="/api/1/services/api/1/user/login.json" access="permitAll" />
         <security:intercept-url pattern="/api/1/services/api/1/user/logout.json" access="permitAll" />
         <security:intercept-url pattern="/api/1/services/api/1/server/get-available-languages.json" access="permitAll" />
+        <security:intercept-url pattern="/api/1/services/api/1/server/get-ui-resource-override.json" access="permitAll" />
+        <security:intercept-url pattern="/api/1/services/api/1/user/reset-password.json" access="permitAll" />
+        <security:intercept-url pattern="/api/1/services/api/1/user/forgot-password.json" access="permitAll" />
+        <security:intercept-url pattern="/api/1/services/api/1/user/set-password.json" access="permitAll" />
         <security:intercept-url pattern="/api/**" access="authenticated" />
         <security:intercept-url pattern="/**" access="permitAll" />
     </security:http>

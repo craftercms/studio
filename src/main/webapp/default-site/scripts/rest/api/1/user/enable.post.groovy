@@ -17,10 +17,16 @@
  *
  */
 
+import groovy.json.JsonSlurper
 import scripts.api.SecurityServices
 
 def result = [:]
-def username = params.username
+def requestBody = request.reader.text
+
+def slurper = new JsonSlurper()
+def parsedReq = slurper.parseText(requestBody)
+
+def username = parsedReq.username;
 
 def context = SecurityServices.createContext(applicationContext, request)
 try {

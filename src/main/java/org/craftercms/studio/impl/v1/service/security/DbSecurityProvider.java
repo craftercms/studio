@@ -418,7 +418,7 @@ public class DbSecurityProvider implements SecurityProvider {
     public Map<String, Object> getGroup(String site, String group) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("groupName", group);
-        params.put("site", site);
+        params.put("siteId", site);
         return securityMapper.getGroup(params);
     }
 

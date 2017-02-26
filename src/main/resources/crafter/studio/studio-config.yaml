@@ -193,7 +193,7 @@ studio.security.urlsToInclude: /api/**
 # Urls to exclude from restriction for authenticated user only.
 studio.security.urlsToExclude: "**,/**"
 # Urls to be treated as exception to the rules.
-studio.security.exceptionUrls: /api/1/services/api/1/user/login.json,/api/1/services/api/1/user/logut.json,/api/1/services/api/1/server/get-available-languages.json,/api/1/services/api/1/server/get-ui-resource-override.json,/api/1/services/api/1/user/reset-password.json
+studio.security.exceptionUrls: /api/1/services/api/1/user/login.json,/api/1/services/api/1/user/logut.json,/api/1/services/api/1/server/get-available-languages.json,/api/1/services/api/1/server/get-ui-resource-override.json,/api/1/services/api/1/user/reset-password.json,/api/1/services/api/1/user/forgot-password.json,/api/1/services/api/1/user/set-password.json
 # Defines security provider for accessing repository. Possible values:
 #   default (basic provider with 3 users - admin, author, approver)
 #   file (users are stored in XML file)
@@ -288,6 +288,8 @@ studio.contentTypes.filter.documents.includePattern: ^/document/.*
 studio.preview.defaultPreviewDeployerUrl: http://localhost:9191/api/1/target/deploy/preview/{siteName}
 # Default preview create target URL (can be overridden per site)
 studio.preview.createTargetUrl: http://localhost:9191/api/1/target/create
+# Default preview create target URL (can be overridden per site)
+studio.preview.deleteTargetUrl: http://localhost:9191/api/1/target/delete
 # URL to the preview repository (aka Sandbox) where authors save work-in-progress
 studio.preview.repoUrl: file://./deployer/target/{siteName}
 # Branch that holds the preview content

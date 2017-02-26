@@ -41,6 +41,7 @@ import org.craftercms.studio.api.v1.service.configuration.SiteEnvironmentConfig;
 import org.craftercms.studio.api.v1.service.content.*;
 import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
+import org.craftercms.studio.api.v1.service.event.EventService;
 import org.craftercms.studio.api.v1.service.notification.NotificationService;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.api.v1.service.objectstate.TransitionEvent;
@@ -478,7 +479,8 @@ public class SiteServiceImpl implements SiteService {
             objectStateService.deleteObjectStatesForSite(siteId);
             dmPageNavigationOrderService.deleteSequencesForSite(siteId);
 
-            // TODO: SJ: Must call PreviewDeployer to delete site from PreviewDeployer(s)
+            // delete site from PreviewDeployer(s)
+            eventService.firePreviewDeleteTargetEvent(siteId);
 	 	} catch(Exception err) {
 	 		success = false;
 	 	}
@@ -814,6 +816,9 @@ public class SiteServiceImpl implements SiteService {
 
     public void setSearchService(SearchService searchService) { this.searchService = searchService; }
 
+    public EventService getEventService() { return eventService; }
+    public void setEventService(EventService eventService) { this.eventService = eventService; }
+
     protected SiteServiceDAL _siteServiceDAL;
 	protected ServicesConfig servicesConfig;
 	protected ContentService contentService;
@@ -834,6 +839,7 @@ public class SiteServiceImpl implements SiteService {
 	protected org.craftercms.studio.api.v2.service.notification.NotificationService notificationService2;
     protected GeneralLockService generalLockService;
     protected RebuildRepositoryMetadata rebuildRepositoryMetadata;
+    protected EventService eventService;
 
     protected StudioConfiguration studioConfiguration;
 

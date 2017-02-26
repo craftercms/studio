@@ -30,6 +30,7 @@ public interface EventService {
     /** Preview Sync Event listener method */
     String PREVIEW_SYNC_LISTENER_METHOD = "onPreviewSyncEvent";
     String PREVIEW_CREATE_TARGET_LISTENER_METHOD = "onCreateTargetEvent";
+    String PREVIEW_DELETE_TARGET_LISTENER_METHOD = "onDeleteTargetEvent";
 
     /** Publish to environment Event listener method  */
     String PUBLISH_TO_ENVIRONMENT_LISTENER_METHOD = "onEnvironmentDeploymentEvent";
@@ -39,6 +40,10 @@ public interface EventService {
     void onPreviewSyncEvent(PreviewEventContext context);
 
     boolean firePreviewCreateTargetEvent(String site);
+
+    void onDeleteTargetEvent(PreviewEventContext context);
+
+    boolean firePreviewDeleteTargetEvent(String site);
 
     void onCreateTargetEvent(PreviewEventContext context);
 

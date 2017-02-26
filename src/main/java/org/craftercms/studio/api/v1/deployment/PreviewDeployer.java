@@ -24,4 +24,6 @@ public interface PreviewDeployer {
     void onEvent(String site);
 
     boolean createTarget(String site);
+
+    boolean deleteTarget(String site);
 }

@@ -430,7 +430,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         VersionTO versionTO = new VersionTO();
                         versionTO.setVersionNumber(revCommit.getName());
                         versionTO.setLastModifier(revCommit.getAuthorIdent().getName());
-                        versionTO.setLastModifiedDate(new Date(revCommit.getCommitTime() * 1000));
+                        versionTO.setLastModifiedDate(new Date(revCommit.getCommitTime() * 1000l));
                         versionTO.setComment(revCommit.getFullMessage());
                         versionHistory.add(versionTO);
                     }

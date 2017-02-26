@@ -119,13 +119,46 @@ public class PreviewDeployerImpl implements PreviewDeployer {
         CreateTargetRequestBody requestBody = new CreateTargetRequestBody();
         requestBody.setEnvironment("preview");
         requestBody.setSiteName(site);
-        requestBody.setReplace(Boolean.parseBoolean(studioConfiguration.PREVIEW_REPLACE));
+        requestBody.setReplace(Boolean.parseBoolean(studioConfiguration.getProperty(PREVIEW_REPLACE)));
         requestBody.setTemplateName(studioConfiguration.getProperty(PREVIEW_TEMPLATE_NAME));
         requestBody.setRemoteRepoUrl(studioConfiguration.getProperty(PREVIEW_REPO_URL).replace
             (StudioConstants.CONFIG_SITENAME_VARIABLE, site));
         requestBody.setRemoteRepoBranch(studioConfiguration.getProperty(PREVIEW_REPO_BRANCH));
         requestBody.setEngineUrl(studioConfiguration.getProperty(PREVIEW_ENGINE_URL));
         return requestBody.toJson();
+    }
+
+    @Override
+    public boolean deleteTarget(String site) {
+        boolean toReturn = true;
+        String requestUrl = getDeployerDeletePreviewTargetUrl(site);
+
+        PostMethod postMethod = new PostMethod(requestUrl);
+        postMethod.getParams().setBooleanParameter(HttpMethodParams.USE_EXPECT_CONTINUE, true);
+
+        HttpClient client = new HttpClient();
+        try {
+            int status = client.executeMethod(postMethod);
+            if (status != 200) {
+                toReturn = false;
+            }
+        } catch (IOException e) {
+            logger.error("Error while sending delete preview target request for site " + site, e);
+            toReturn = false;
+        } finally {
+            postMethod.releaseConnection();
+        }
+        return toReturn;
+    }
+
+    private String getDeployerDeletePreviewTargetUrl(String site) {
+        // TODO: DB: implement deployer agent configuration for preview
+        // TODO: SJ: Pseudo code: check if site configuration has a Preview Deployer URL, if so, return it, if not
+        // TODO: SJ: return default from studioConfiguration.getProperty(PREVIEW_DEFAULT_DELETE_TARGET_URL);
+        StringBuilder sb = new StringBuilder();
+        sb.append(studioConfiguration.getProperty(PREVIEW_DEFAULT_DELETE_TARGET_URL));
+        sb.append("/preview").append("/").append(site);
+        return sb.toString();
     }
 
     public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
