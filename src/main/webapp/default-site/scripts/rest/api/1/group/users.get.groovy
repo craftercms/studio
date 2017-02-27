@@ -23,9 +23,14 @@ def result = [:]
 
 def groupName = params.group_name
 def siteId = params.site_id
-def start = params.start.toInteger()
-def end = params.end.toInteger()
-
+def start = 0
+if (params.start != null && params.start != '') {
+    start = params.start.toInteger()
+}
+def end = 10
+if (params.end != null && params.end != '') {
+    end = params.end.toInteger()
+}
 def context = SecurityServices.createContext(applicationContext, request)
 try {
     def usersPerGroup = SecurityServices.getUsersPerGroup(context, siteId, groupName, start, end);
