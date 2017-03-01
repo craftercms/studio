@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <permissions>
-    <site id="editorial">
+    <site id="{siteName}">
         <role name="admin">
             <rule regex="/.*">
                 <allowed-permissions>
@@ -38,7 +38,7 @@
                     <permission>Write</permission>
                 </allowed-permissions>
             </rule>
-        </role>    
+        </role>
         <role name="*">
             <rule regex="/.*">
                 <allowed-permissions>
