@@ -397,7 +397,6 @@ public class SiteServiceImpl implements SiteService {
     }
 
     protected void createObjectMetadataNewSiteObjectFolder(String site, String path, String lastCommitId) {
-	    logger.error("Processing: site=" + site + " path=" + path);
         RepositoryItem[] children = contentRepository.getContentChildren(site, path);
         for (RepositoryItem child : children) {
             if (child.isFolder) {

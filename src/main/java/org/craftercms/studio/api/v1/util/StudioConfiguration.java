@@ -152,9 +152,9 @@ public interface StudioConfiguration {
     String PREVIEW_DEFAULT_CREATE_TARGET_URL = "studio.preview.createTargetUrl";
     String PREVIEW_DEFAULT_DELETE_TARGET_URL = "studio.preview.deleteTargetUrl";
     String PREVIEW_REPLACE = "studio.preview.replace";
+    String PREVIEW_DISABLE_DEPLOY_CRON = "studio.preview.disableDeployCron";
     String PREVIEW_TEMPLATE_NAME = "studio.preview.templateName";
     String PREVIEW_REPO_URL = "studio.preview.repoUrl";
-    String PREVIEW_REPO_BRANCH = "studio.preview.previewBranch";
     String PREVIEW_ENGINE_URL = "studio.preview.engineUrl";
 
     /** Preview Search **/
