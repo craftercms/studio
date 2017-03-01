@@ -476,6 +476,7 @@ public class SiteServiceImpl implements SiteService {
 			dmDependencyService.deleteDependenciesForSite(siteId);
             deploymentService.deleteDeploymentDataForSite(siteId);
             objectStateService.deleteObjectStatesForSite(siteId);
+            objectMetadataManager.deleteObjectMetadataForSite(siteId);
             dmPageNavigationOrderService.deleteSequencesForSite(siteId);
 
             // delete site from PreviewDeployer(s)
