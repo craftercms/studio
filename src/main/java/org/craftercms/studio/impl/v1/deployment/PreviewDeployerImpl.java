@@ -120,10 +120,9 @@ public class PreviewDeployerImpl implements PreviewDeployer {
         requestBody.setEnvironment("preview");
         requestBody.setSiteName(site);
         requestBody.setReplace(Boolean.parseBoolean(studioConfiguration.getProperty(PREVIEW_REPLACE)));
+        requestBody.setDisableDeployCron(Boolean.parseBoolean(studioConfiguration.getProperty(PREVIEW_DISABLE_DEPLOY_CRON)));
         requestBody.setTemplateName(studioConfiguration.getProperty(PREVIEW_TEMPLATE_NAME));
-        requestBody.setRemoteRepoUrl(studioConfiguration.getProperty(PREVIEW_REPO_URL).replace
-            (StudioConstants.CONFIG_SITENAME_VARIABLE, site));
-        requestBody.setRemoteRepoBranch(studioConfiguration.getProperty(PREVIEW_REPO_BRANCH));
+        requestBody.setRepoUrl(studioConfiguration.getProperty(PREVIEW_REPO_URL).replaceAll(StudioConstants.CONFIG_SITENAME_VARIABLE, site));
         requestBody.setEngineUrl(studioConfiguration.getProperty(PREVIEW_ENGINE_URL));
         return requestBody.toJson();
     }
@@ -171,9 +170,9 @@ public class PreviewDeployerImpl implements PreviewDeployer {
         protected String environment;
         protected String siteName;
         protected boolean replace;
+        protected boolean disableDeployCron;
         protected String templateName;
-        protected String remoteRepoUrl;
-        protected String remoteRepoBranch;
+        protected String repoUrl;
         protected String engineUrl;
 
         public String toJson() {
@@ -182,9 +181,9 @@ public class PreviewDeployerImpl implements PreviewDeployer {
             sb.append("\"env\":\"").append(this.environment).append("\", ");
             sb.append("\"site_name\":\"").append(this.siteName).append("\", ");
             sb.append("\"replace\":").append(this.replace).append(", ");
+            sb.append("\"disable_deploy_cron\":").append(this.disableDeployCron).append(", ");
             sb.append("\"template_name\":\"").append(this.templateName).append("\", ");
-            sb.append("\"remote_repo_url\":\"").append(this.remoteRepoUrl).append("\", ");
-            sb.append("\"remote_repo_branch\":\"").append(this.remoteRepoBranch).append("\", ");
+            sb.append("\"repo_url\":\"").append(this.repoUrl).append("\", ");
             sb.append("\"engine_url\":\"").append(this.engineUrl).append("\"");
             sb.append(" }");
             return sb.toString();
@@ -199,14 +198,14 @@ public class PreviewDeployerImpl implements PreviewDeployer {
         public boolean isReplace() { return replace; }
         public void setReplace(boolean replace) { this.replace = replace; }
 
+        public boolean isDisableDeployCron() { return disableDeployCron; }
+        public void setDisableDeployCron(boolean disableDeployCron) { this.disableDeployCron = disableDeployCron; }
+
         public String getTemplateName() { return templateName; }
         public void setTemplateName(String templateName) { this.templateName = templateName; }
 
-        public String getRemoteRepoUrl() { return remoteRepoUrl; }
-        public void setRemoteRepoUrl(String remoteRepoUrl) { this.remoteRepoUrl = remoteRepoUrl; }
-
-        public String getRemoteRepoBranch() { return remoteRepoBranch; }
-        public void setRemoteRepoBranch(String remoteRepoBranch) { this.remoteRepoBranch = remoteRepoBranch; }
+        public String getRepoUrl() { return repoUrl; }
+        public void setRepoUrl(String repoUrl) { this.repoUrl = repoUrl; }
 
         public String getEngineUrl() { return engineUrl; }
         public void setEngineUrl(String engineUrl) { this.engineUrl = engineUrl; }

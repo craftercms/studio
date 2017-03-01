@@ -291,15 +291,15 @@ studio.preview.createTargetUrl: http://localhost:9191/api/1/target/create
 # Default preview create target URL (can be overridden per site)
 studio.preview.deleteTargetUrl: http://localhost:9191/api/1/target/delete
 # URL to the preview repository (aka Sandbox) where authors save work-in-progress
-studio.preview.repoUrl: file://./deployer/target/{siteName}
-# Branch that holds the preview content
-studio.preview.previewBranch: master
+studio.preview.repoUrl: deployer/target/{siteName}
 # URL to the preview Crafter Engine
 studio.preview.engineUrl: http://localhost:8080
 # Name of template to use with the deployer for preview
-studio.preview.templateName: preview
+studio.preview.templateName: local
 # Replace existing configuration if one exists?
 studio.preview.replace: true
+# Disable deploy cron job for preview target
+studio.preview.disableDeployCron: true
 
 ############################################################
 ##                   Preview Search                       ##
