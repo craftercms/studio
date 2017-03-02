@@ -19,6 +19,7 @@
 package org.craftercms.studio.impl.v1.deployment;
 
 import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.RequestEntity;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
@@ -33,11 +34,6 @@ import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.List;
-import java.util.StringTokenizer;
 
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.*;
 
@@ -95,7 +91,7 @@ public class PreviewDeployerImpl implements PreviewDeployer {
         HttpClient client = new HttpClient();
         try {
             int status = client.executeMethod(postMethod);
-            if (status != 200) {
+            if (status != HttpStatus.SC_CREATED) {
                 toReturn = false;
             }
         } catch (IOException e) {

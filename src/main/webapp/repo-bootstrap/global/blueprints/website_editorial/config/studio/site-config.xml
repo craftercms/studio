@@ -1,8 +1,8 @@
 <!-- Example site configuration -->
 <site-config>
-    <wem-project>editorial</wem-project>
-    <name>editorial</name>
-    <display-name>editorial</display-name>
+    <wem-project>{siteName}</wem-project>
+    <name>{siteName}</name>
+    <display-name>{siteName}</display-name>
     <default-timezone>EST5EDT</default-timezone>
     <default-content-type/>
     <namespace-to-type-map>
@@ -80,6 +80,8 @@
             <display-in-widget-pattern>/site/components/([^&lt;]+).xml</display-in-widget-pattern>
             <display-in-widget-pattern>/static-assets/([^&lt;"'\)]+)</display-in-widget-pattern>
             <display-in-widget-pattern>/templates/([^&lt;"]+)\.ftl</display-in-widget-pattern>
+            <display-in-widget-pattern>/scripts/([^&lt;"]+)\.groovy</display-in-widget-pattern>
+            <display-in-widget-pattern>/config/([^&lt;"]+)\.xml</display-in-widget-pattern>
         </display-in-widget-patterns>
         <common-prototype-config>
 

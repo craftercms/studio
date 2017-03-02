@@ -115,6 +115,9 @@
     <bean id="crafter.analyticsService" class="org.craftercms.studio.impl.v1.GoogleAnalyticsServiceImpl">
     </bean>
 
+    <bean id="crafter.searchService" class="org.craftercms.search.service.impl.SolrRestClientSearchService">
+        <property name="serverUrl" value="${crafter.engine.search.server.url}"/>
+    </bean>
 
     <!-- ////////////////////////////////// -->
     <!--                                    -->

@@ -79,6 +79,7 @@
         <property name="studioConfiguration" ref="studioConfiguration"/>
         <property name="searchService" ref="searchService" />
         <property name="eventService" ref="studioEventService"/>
+        <property name="previewDeployer" ref="previewDeployer"/>
     </bean>
 
     <bean id="cstudioImportService" class="org.craftercms.studio.impl.v1.service.content.ImportServiceImpl">
