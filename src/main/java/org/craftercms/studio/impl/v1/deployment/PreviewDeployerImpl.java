@@ -118,7 +118,10 @@ public class PreviewDeployerImpl implements PreviewDeployer {
         requestBody.setReplace(Boolean.parseBoolean(studioConfiguration.getProperty(PREVIEW_REPLACE)));
         requestBody.setDisableDeployCron(Boolean.parseBoolean(studioConfiguration.getProperty(PREVIEW_DISABLE_DEPLOY_CRON)));
         requestBody.setTemplateName(studioConfiguration.getProperty(PREVIEW_TEMPLATE_NAME));
-        requestBody.setRepoUrl(studioConfiguration.getProperty(PREVIEW_REPO_URL).replaceAll(StudioConstants.CONFIG_SITENAME_VARIABLE, site));
+        String repoUrl = studioConfiguration.getProperty(PREVIEW_REPO_URL).replaceAll(StudioConstants.CONFIG_SITENAME_VARIABLE, site);
+        Path repoUrlPath = Paths.get(repoUrl);
+        repoUrl = repoUrlPath.normalize().toAbsolutePath().toString();
+        requestBody.setRepoUrl(repoUrl);
         requestBody.setEngineUrl(studioConfiguration.getProperty(PREVIEW_ENGINE_URL));
         return requestBody.toJson();
     }
