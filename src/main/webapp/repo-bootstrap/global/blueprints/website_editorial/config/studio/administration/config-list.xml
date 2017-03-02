@@ -26,8 +26,8 @@
         </file>
         <file>
             <path>/environment-overrides/dev/environment-config.xml</path>
-            <title>confTabLocalEnvironmentConf</title>
-            <description>confTabLocalEnvironmentConfDesc</description>
+            <title>Local Environment Configuration</title>
+            <description>Local Environment Configuration</description>
             <samplePath>/administration/samples/sample-local-environment-config.xml</samplePath>
         </file>
         <file>
