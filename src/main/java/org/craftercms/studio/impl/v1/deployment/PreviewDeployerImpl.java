@@ -34,6 +34,8 @@ import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.*;
 
