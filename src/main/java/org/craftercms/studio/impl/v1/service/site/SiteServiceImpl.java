@@ -29,6 +29,7 @@ import org.craftercms.studio.api.v1.dal.ObjectMetadata;
 import org.craftercms.studio.api.v1.dal.ObjectState;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
+import org.craftercms.studio.api.v1.deployment.PreviewDeployer;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -288,12 +289,37 @@ public class SiteServiceImpl implements SiteService {
 	    // TODO: SJ: and rollback the whole thing.
 	    // TODO: SJ: What we need to do for site creation and the order of execution:
 	    // TODO: SJ: 1) search index, 2) deployer target, 3) git repo, 4) database, 5) kick deployer
+
+	    // Attempt to create the search index for the new site
 	    try {
 		    searchService.createIndex(siteId);
 	    } catch (ServiceException e) {
 		    success = false;
 		    logger.error("Error while creating site: " + siteName + " ID: " + siteId + " from blueprint: " +
 			    blueprintName + ". Is the Search running and configured correctly in Studio?", e);
+	    }
+
+	    // Check if search index creation was successful, create the site in the preview deployer
+	    if (success) {
+	    	    try {
+	    	    	success = previewDeployer.createTarget(siteId);
+		        } catch (Exception e) {
+			        success = false;
+			        logger.error("Error while creating site: " + siteName + " ID: " + siteId + " from blueprint: " +
+				        blueprintName + ". Is the Preview Deployer running and configured correctly in Studio?", e);
+		        }
+		        if (!success) {
+			        logger.error("Error while creating site: " + siteName + " ID: " + siteId + " from blueprint: " +
+				        blueprintName + ". Is the Preview Deployer running and configured correctly in Studio?");
+			        // Rollback search index creation
+			        try {
+				        searchService.deleteIndex(siteId);
+			        } catch (ServiceException e) {
+				        logger.error("Error while rolling back/deleting site: " + siteName + " ID: " + siteId +
+					        " from blueprint: " + blueprintName + ". This means the site search index (core) is " +
+					        "still present, but the site is not successfully created.", e);
+			        }
+		        }
 	    }
 
 	    if (success) {
@@ -324,17 +350,38 @@ public class SiteServiceImpl implements SiteService {
 			    siteFeed.setDescription(desc);
 			    siteFeedMapper.createSite(siteFeed);
 
-
-			    // TODO: SJ: Must call PreviewDeployer and ask it to call to create target(s) for PreviewDeployer(s)
-			    deploymentService.createPreviewTarget(siteId);
-			    deploymentService.syncAllContentToPreview(siteId);
-
 			    reloadSiteConfiguration(siteId);
 	        } catch(Exception e) {
 	            // TODO: SJ: We need better exception handling here
 	            success = false;
 	            logger.error("Error while creating site: " + siteName + " ID: " + siteId + " from blueprint: " +
-	                    blueprintName, e);
+	                    blueprintName + ". Rolling back.", e);
+
+			    boolean deleted = previewDeployer.deleteTarget(siteId);
+				if (!deleted) {
+					logger.error("Error while rolling back/deleting site: " + siteName + " ID: " + siteId +
+						" from blueprint: " + blueprintName + ". This means the site's preview deployer target is " +
+						"still present, but the site is not successfully created.");
+				}
+
+			    try {
+				    searchService.deleteIndex(siteId);
+			    } catch (ServiceException ex) {
+				    logger.error("Error while rolling back/deleting site: " + siteName + " ID: " + siteId +
+					    " from blueprint: " + blueprintName + ". This means the site search index (core) is " +
+					    "still present, but the site is not successfully created.", ex);
+			    }
+		    }
+	    }
+
+	    if (success) {
+		    // Now that everything is created, we can sync the preview deployer with the new content
+		    try {
+			    deploymentService.syncAllContentToPreview(siteId);
+		    } catch (ServiceException e) {
+			    // TODO: SJ: We need better exception handling here
+			    logger.error("Error while syncing site: " + siteName + " ID: " + siteId + " to preview. Site was "
+				    + "successfully created otherwise. Ignoring.", e);
 		    }
 	    }
 
@@ -819,6 +866,15 @@ public class SiteServiceImpl implements SiteService {
     public EventService getEventService() { return eventService; }
     public void setEventService(EventService eventService) { this.eventService = eventService; }
 
+	public PreviewDeployer getPreviewDeployer() {
+		return previewDeployer;
+	}
+
+	public void setPreviewDeployer(final PreviewDeployer previewDeployer) {
+		this.previewDeployer = previewDeployer;
+	}
+
+	protected PreviewDeployer previewDeployer;
     protected SiteServiceDAL _siteServiceDAL;
 	protected ServicesConfig servicesConfig;
 	protected ContentService contentService;

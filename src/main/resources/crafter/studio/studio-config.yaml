@@ -305,6 +305,7 @@ studio.preview.disableDeployCron: true
 ##                   Preview Search                       ##
 ############################################################
 studio.preview.search.createUrl: http://localhost:8080/search/api/2/admin/index/create
+studio.preview.search.deleteUrl: http://localhost:8080/search/api/2/admin/index/delete
 
 ############################################################
 ##                   Publishing Manager                   ##

@@ -4,17 +4,17 @@
         <group name="crafter-admin">
             <role>admin</role>
         </group>
-        <group name="crafter_editorial_admin">
+        <group name="crafter_{siteName}_admin">
             <role>admin</role>
         </group>
         <group name="crafter-author">
             <role>author</role>
         </group>
-        <group name="crafter_editorial_author">
+        <group name="crafter_{siteName}_author">
             <role>author</role>
         </group>
-        <group name="crafter_editorial_viewer">
+        <group name="crafter_{siteName}_viewer">
             <role>viewer</role>
-        </group>         
+        </group>
     </groups>
 </role-mappings>

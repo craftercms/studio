@@ -14,4 +14,12 @@ public interface SearchService {
 	 * @throws ServiceException
 	 */
 	void createIndex(String siteId) throws ServiceException;
+
+	/**
+	 * Delete a search index (core) in Crafter Search for a site
+	 *
+	 * @param siteId the Site ID for the site to delete the index for
+	 * @throws ServiceException
+	 */
+	public void deleteIndex(final String siteId) throws ServiceException;
 }

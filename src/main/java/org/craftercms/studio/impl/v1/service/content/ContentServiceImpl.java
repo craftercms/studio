@@ -574,7 +574,7 @@ public class ContentServiceImpl implements ContentService {
         item.browserUri = contentPath;
 
         if(item.page) {
-            // TODO: SJ: This is hokey, fix in 2.7.x
+            // TODO: SJ: This is hokey, fix in 4.x
             item.browserUri = contentPath.replace("/site/website", "").replace("/index.xml", "");
         }
 
