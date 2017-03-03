@@ -52,7 +52,8 @@ public class SearchServiceImpl implements SearchService {
 		try {
 			int status = client.executeMethod(postMethod);
 			if (status != HttpStatus.SC_CREATED) {
-				throw new ServiceException("Error while creating search index for site " + siteId + ". Response: "
+				throw new ServiceException("Error while creating search index for site " + siteId + ". Request URL: "
+					+ requestUrl + ". Request Body: " + rqBody + ". Response: "
 					+ postMethod.getResponseBodyAsString());
 			}
 		} catch (IOException e) {
@@ -88,7 +89,8 @@ public class SearchServiceImpl implements SearchService {
 		try {
 			int status = client.executeMethod(postMethod);
 			if (status != HttpStatus.SC_NO_CONTENT) {
-				throw new ServiceException("Error while deleting search index for site " + siteId + ". Response: "
+				throw new ServiceException("Error while deleting search index for site " + siteId + ". Request URL: "
+					+ requestUrl + ". Request Body: " + rqBody + ". Response: "
 					+ postMethod.getResponseBodyAsString());
 			}
 		} catch (IOException e) {
