@@ -32,7 +32,8 @@
         <property name="minIdle" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_POOL_MIN_IDLE_CONNECTIONS)}" />
         <property name="maxWaitMillis" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_POOL_MAX_WAIT_TIME)}" />
         <property name="testOnBorrow" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_TEST_ON_BORROW)}" />
-        <property name="validationQuery" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_VALIDATION_QUERY + '.' + T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_PLATFORM)}" />
+        <property name="validationQuery"
+                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_VALIDATION_QUERY)}" />
         <property name="validationQueryTimeout" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_VALIDATION_INTERVAL)}"/>
     </bean>
 
@@ -71,9 +72,10 @@
         <property name="mariaDB4jService" ref="studioMariaDBService" />
     </bean>
 
-    <bean id="studioMariaDBService" class="ch.vorburger.mariadb4j.springframework.MariaDB4jSpringService" init-method="start" destroy-method="stop">
-        <property name="defaultBaseDir" value="./data/mariadb"/>
-        <property name="defaultDataDir" value="./data/mariadb/data"/>
-        <property name="defaultPort" value="3306" />
+    <bean id="studioMariaDBService" class="ch.vorburger.mariadb4j.springframework.MariaDB4jSpringService"
+          init-method="start" destroy-method="stop" depends-on="studioConfiguration">
+        <property name="defaultBaseDir" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_BASE_PATH)}" />
+        <property name="defaultDataDir" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_DATA_PATH)}" />
+        <property name="defaultPort" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_PORT)}"  />
     </bean>
 </beans>
