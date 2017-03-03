@@ -18,7 +18,7 @@
  */
 
 import groovy.json.JsonSlurper
-import scripts.api.SecurityServices
+import scripts.api.SiteServices
 
 def result = [:]
 def requestBody = request.reader.text
