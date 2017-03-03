@@ -25,12 +25,6 @@
             <samplePath>/administration/samples/sample-site-dropdown.xml</samplePath>
         </file>
         <file>
-            <path>/environment-overrides/dev/environment-config.xml</path>
-            <title>Local Environment Configuration</title>
-            <description>Local Environment Configuration</description>
-            <samplePath>/administration/samples/sample-local-environment-config.xml</samplePath>
-        </file>
-        <file>
             <path>/form-control-config/rte/rte-setup.xml</path>
             <title>confTabRTEConf</title>
             <description>confTabRTEConfDesc</description>
@@ -77,12 +71,6 @@
             <title>confTabSiteConf</title>
             <description>confTabSiteConfDesc</description>
             <samplePath>/administration/samples/sample-site-config.xml</samplePath>
-        </file>
-        <file>
-            <path>/workflow-config.xml</path>
-            <title>confTabWorkflowConf</title>
-            <description>confTabWorkflowConfDesc</description>
-            <samplePath>/administration/samples/sample-workflow-config.xml</samplePath>
         </file>
     </files>
 </config>
