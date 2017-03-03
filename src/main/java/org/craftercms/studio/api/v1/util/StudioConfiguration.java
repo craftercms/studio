@@ -36,7 +36,6 @@ public interface StudioConfiguration {
     String REPO_REBUILD_METADATA_BATCH_SIZE = "studio.repo.rebuildMetadata.batchSize";
 
     /** Database */
-    String DB_PLATFORM = "studio.db.platform";
     String DB_DRIVER = "studio.db.driver";
     String DB_URL = "studio.db.url";
     String DB_USERNAME = "studio.db.username";
@@ -48,6 +47,7 @@ public interface StudioConfiguration {
     String DB_POOL_MAX_WAIT_TIME = "studio.db.pool.maxWaitTime";
     String DB_INITIALIZER_ENABLED = "studio.db.initializer.enabled";
     String DB_INITIALIZER_URL = "studio.db.initializer.url";
+    String DB_INITIALIZER_SCRIPT_LOCATION = "studio.db.initializer.scriptLocation";
     String DB_TEST_ON_BORROW = "studio.db.testOnBorrow";
     String DB_VALIDATION_QUERY = "studio.db.validationQuery";
     String DB_VALIDATION_INTERVAL = "studio.db.validationInterval";

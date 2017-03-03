@@ -257,8 +257,6 @@ studio.publishingManager.publishingWithoutDependencies.enabled: false
 ##                   Database                   ##
 ##################################################
 # Embedded database configuration
-# Be careful changing these
-studio.db.platform: mariadb
 # JDBC driver and Java class used for accessing crafter database
 studio.db.driver: org.mariadb.jdbc.Driver
 # Username used for authentication to access crafter database.
@@ -288,6 +286,8 @@ studio.db.pool.maxWaitTime: 10000
 studio.db.initializer.enabled: true
 # Connection string used to initialize database
 studio.db.initializer.url: jdbc:mariadb://127.0.0.1:33306?user=root&password=
+# Initialize database SQL script location
+studio.db.initializer.scriptLocation: crafter/studio/database/createDDL.sql
 # Test database connections retrieved from the pool before being used (value true).
 # If value is set to false database connection will not be tested before being used.
 studio.db.testOnBorrow: true

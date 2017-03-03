@@ -79,17 +79,9 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
     }
 
     private String getScriptPath() {
-        String pathToScript = vendorScriptsMapping.get(getVendor());
-        return pathToScript;
+        return studioConfiguration.getProperty(DB_INITIALIZER_SCRIPT_LOCATION);
     }
 
-    public String getVendor() {
-        return studioConfiguration.getProperty(DB_PLATFORM);
-    }
-
-    public Map<String, String> getVendorScriptsMapping() { return vendorScriptsMapping; }
-    @Override
-    public void setVendorScriptsMapping(Map<String, String> vendorScriptsMapping) { this.vendorScriptsMapping = vendorScriptsMapping; }
 
     public String getDelimiter() { return delimiter; }
     public void setDelimiter(String delimiter) { this.delimiter = delimiter; }
@@ -100,7 +92,6 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
     public MariaDB4jService getMariaDB4jService() { return mariaDB4jService; }
     public void setMariaDB4jService(MariaDB4jService mariaDB4jService) { this.mariaDB4jService = mariaDB4jService; }
 
-    protected Map<String, String> vendorScriptsMapping;
     protected String delimiter;
     protected StudioConfiguration studioConfiguration;
 

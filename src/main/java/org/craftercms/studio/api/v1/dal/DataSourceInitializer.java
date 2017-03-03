@@ -23,7 +23,5 @@ import java.util.Map;
 
 public interface DataSourceInitializer {
 
-    void setVendorScriptsMapping(Map<String, String> scriptsMap);
-
     void initDataSource();
 }
