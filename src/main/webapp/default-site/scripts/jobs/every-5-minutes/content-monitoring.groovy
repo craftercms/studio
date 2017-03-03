@@ -30,7 +30,7 @@ def pw = job.password
 
 def ticket = sercurityService.authenticate(user, pw)
 if (StringUtils.isNotEmpty(ticket)) {
-    CronJobContext cronJobContext = new CronJobContext(ticket)
+    CronJobContext cronJobContext = new CronJobContext(ticket, user)
     CronJobContext.setCurrent(cronJobContext)
 	
 	ContentMonitoring.doMonitoringForAllSites(context, logger)
