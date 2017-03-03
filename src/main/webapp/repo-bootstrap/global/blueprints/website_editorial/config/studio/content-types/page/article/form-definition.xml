@@ -1,12 +1,12 @@
 <form>
-	<title>Generic</title>
+	<title>Page - Article</title>
 	<description></description>
 	<objectType>page</objectType>
-	<content-type>/page/generic</content-type>
+	<content-type>/page/article</content-type>
 	<properties>		<property>
 			<name>display-template</name>
 			<label>Display Template</label>
-			<value>/templates/web/generic.ftl</value>
+			<value>/templates/web/pages/article.ftl</value>
 			<type>template</type>
 		</property>
 		<property>
@@ -17,7 +17,7 @@
 		</property>
 	</properties>
 	<sections>		<section>
-			<title>Generic Properties</title>
+			<title>Page - Article Properties</title>
 			<description></description>
 			<defaultOpen>true</defaultOpen>
 			<fields>
@@ -78,29 +78,6 @@
 					</constraints>
 				</field>
 				<field>
-					<type>page-nav-order</type>
-					<id>placeInNav</id>
-					<iceId></iceId>
-					<title>Place in Nav</title>
-					<description></description>
-					<defaultValue></defaultValue>
-					<help></help>
-					<properties>
-						<property>
-							<name>readonly</name>
-							<value></value>
-							<type>boolean</type>
-						</property>
-					</properties>
-					<constraints>
-						<constraint>
-							<name>required</name>
-							<value><![CDATA[]]></value>
-							<type>boolean</type>
-						</constraint>
-					</constraints>
-				</field>
-				<field>
 					<type>input</type>
 					<id>title</id>
 					<iceId>core</iceId>
@@ -154,7 +131,7 @@
 					<properties>
 						<property>
 							<name>minSize</name>
-							<value>0</value>
+							<value>1</value>
 							<type>int</type>
 						</property>
 						<property>
@@ -174,7 +151,7 @@
 						</property>
 						<property>
 							<name>disableFlattening</name>
-							<value></value>
+							<value>true</value>
 							<type>boolean</type>
 						</property>
 						<property>
@@ -194,7 +171,80 @@
 			</fields>
 		</section>
 		<section>
-			<title>Article Content</title>
+			<title>Metadata</title>
+			<description></description>
+			<defaultOpen>false</defaultOpen>
+			<fields>
+				<field>
+					<type>checkbox-group</type>
+					<id>categories</id>
+					<iceId></iceId>
+					<title>Categories</title>
+					<description></description>
+					<defaultValue></defaultValue>
+					<help></help>
+					<properties>
+						<property>
+							<name>datasource</name>
+							<value>categories</value>
+							<type>datasource:item</type>
+						</property>
+						<property>
+							<name>selectAll</name>
+							<value>true</value>
+							<type>boolean</type>
+						</property>
+						<property>
+							<name>readonly</name>
+							<value></value>
+							<type>boolean</type>
+						</property>
+					</properties>
+					<constraints>
+						<constraint>
+							<name>minSize</name>
+							<value><![CDATA[1]]></value>
+							<type>int</type>
+						</constraint>
+					</constraints>
+				</field>
+				<field>
+					<type>checkbox-group</type>
+					<id>audience</id>
+					<iceId></iceId>
+					<title>Audience</title>
+					<description></description>
+					<defaultValue></defaultValue>
+					<help></help>
+					<properties>
+						<property>
+							<name>datasource</name>
+							<value>audience</value>
+							<type>datasource:item</type>
+						</property>
+						<property>
+							<name>selectAll</name>
+							<value>true</value>
+							<type>boolean</type>
+						</property>
+						<property>
+							<name>readonly</name>
+							<value></value>
+							<type>boolean</type>
+						</property>
+					</properties>
+					<constraints>
+						<constraint>
+							<name>minSize</name>
+							<value><![CDATA[1]]></value>
+							<type>int</type>
+						</constraint>
+					</constraints>
+				</field>
+			</fields>
+		</section>
+		<section>
+			<title>Content</title>
 			<description></description>
 			<defaultOpen>true</defaultOpen>
 			<fields>
@@ -243,9 +293,9 @@
 				</field>
 				<field>
 					<type>input</type>
-					<id>by_line</id>
+					<id>author</id>
 					<iceId>subject</iceId>
-					<title>By Line</title>
+					<title>Author</title>
 					<description></description>
 					<defaultValue></defaultValue>
 					<help></help>
@@ -285,6 +335,74 @@
 					</constraints>
 				</field>
 				<field>
+					<type>date-time</type>
+					<id>date</id>
+					<iceId></iceId>
+					<title>Date</title>
+					<description></description>
+					<defaultValue></defaultValue>
+					<help></help>
+					<properties>
+						<property>
+							<name>showDate</name>
+							<value>true</value>
+							<type>boolean</type>
+						</property>
+						<property>
+							<name>showTime</name>
+							<value></value>
+							<type>boolean</type>
+						</property>
+						<property>
+							<name>showClear</name>
+							<value>true</value>
+							<type>boolean</type>
+						</property>
+						<property>
+							<name>showNowLink</name>
+							<value>true</value>
+							<type>boolean</type>
+						</property>
+						<property>
+							<name>populate</name>
+							<value>true</value>
+							<type>boolean</type>
+						</property>
+						<property>
+							<name>allowPastDate</name>
+							<value>true</value>
+							<type>boolean</type>
+						</property>
+						<property>
+							<name>populateDateExp</name>
+							<value>now</value>
+							<type>string</type>
+						</property>
+						<property>
+							<name>useCustomTimezone</name>
+							<value>false</value>
+							<type>boolean</type>
+						</property>
+						<property>
+							<name>readonly</name>
+							<value></value>
+							<type>boolean</type>
+						</property>
+						<property>
+							<name>readonlyEdit</name>
+							<value>false</value>
+							<type>boolean</type>
+						</property>
+					</properties>
+					<constraints>
+						<constraint>
+							<name>required</name>
+							<value><![CDATA[true]]></value>
+							<type>boolean</type>
+						</constraint>
+					</constraints>
+				</field>
+				<field>
 					<type>repeat</type>
 					<id>sections</id>
 					<iceId>article</iceId>
@@ -307,7 +425,7 @@
 					<fields>
 				<field>
 					<type>rte</type>
-					<id>section</id>
+					<id>section_html</id>
 					<iceId>article</iceId>
 					<title>Section</title>
 					<description></description>
@@ -366,7 +484,7 @@
 						</property>
 						<property>
 							<name>imageManager</name>
-							<value>upload_image,</value>
+							<value>uploadimage,,upload_images,existing_images</value>
 							<type>datasource:image</type>
 						</property>
 					</properties>
@@ -428,6 +546,52 @@
 						<property>
 							<name>repoPath</name>
 							<value>/static-assets/images</value>
+								<type>undefined</type>
+						</property>
+					</properties>
+				</datasource>
+				<datasource>
+					<type>key-value-list</type>
+					<id>categories</id>
+					<title>Categories</title>
+					<interface>item</interface>
+					<properties>
+						<property>
+							<name>dataType</name>
+							<value>[{&quot;value&quot;:&quot;value&quot;,&quot;label&quot;:&quot;&quot;,&quot;selected&quot;:false},{&quot;value&quot;:&quot;value_s&quot;,&quot;label&quot;:&quot;String&quot;,&quot;selected&quot;:true},{&quot;value&quot;:&quot;value_i&quot;,&quot;label&quot;:&quot;Integer&quot;,&quot;selected&quot;:false},{&quot;value&quot;:&quot;value_f&quot;,&quot;label&quot;:&quot;Float&quot;,&quot;selected&quot;:false},{&quot;value&quot;:&quot;value_dt&quot;,&quot;label&quot;:&quot;Date&quot;,&quot;selected&quot;:false},{&quot;value&quot;:&quot;value_html&quot;,&quot;label&quot;:&quot;HTML&quot;,&quot;selected&quot;:false}]</value>
+								<type>undefined</type>
+						</property>
+						<property>
+							<name>options</name>
+							<value>[{&quot;key&quot;:&quot;technology&quot;,&quot;value&quot;:&quot;Technology&quot;},{&quot;key&quot;:&quot;entertainment&quot;,&quot;value&quot;:&quot;Entertainment&quot;},{&quot;key&quot;:&quot;finance&quot;,&quot;value&quot;:&quot;Finance&quot;},{&quot;key&quot;:&quot;health&quot;,&quot;value&quot;:&quot;Health&quot;},{&quot;key&quot;:&quot;style&quot;,&quot;value&quot;:&quot;Style&quot;}]</value>
+								<type>undefined</type>
+						</property>
+						<property>
+							<name>showkeys</name>
+							<value></value>
+								<type>undefined</type>
+						</property>
+					</properties>
+				</datasource>
+				<datasource>
+					<type>key-value-list</type>
+					<id>audience</id>
+					<title>Audience</title>
+					<interface>item</interface>
+					<properties>
+						<property>
+							<name>dataType</name>
+							<value>[{&quot;value&quot;:&quot;value&quot;,&quot;label&quot;:&quot;&quot;,&quot;selected&quot;:false},{&quot;value&quot;:&quot;value_s&quot;,&quot;label&quot;:&quot;String&quot;,&quot;selected&quot;:true},{&quot;value&quot;:&quot;value_i&quot;,&quot;label&quot;:&quot;Integer&quot;,&quot;selected&quot;:false},{&quot;value&quot;:&quot;value_f&quot;,&quot;label&quot;:&quot;Float&quot;,&quot;selected&quot;:false},{&quot;value&quot;:&quot;value_dt&quot;,&quot;label&quot;:&quot;Date&quot;,&quot;selected&quot;:false},{&quot;value&quot;:&quot;value_html&quot;,&quot;label&quot;:&quot;HTML&quot;,&quot;selected&quot;:false}]</value>
+								<type>undefined</type>
+						</property>
+						<property>
+							<name>options</name>
+							<value>[{&quot;key&quot;:&quot;guy&quot;,&quot;value&quot;:&quot;Guy&quot;},{&quot;key&quot;:&quot;gal&quot;,&quot;value&quot;:&quot;Gal&quot;}]</value>
+								<type>undefined</type>
+						</property>
+						<property>
+							<name>showkeys</name>
+							<value></value>
 								<type>undefined</type>
 						</property>
 					</properties>
