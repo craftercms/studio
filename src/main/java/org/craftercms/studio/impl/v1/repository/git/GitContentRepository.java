@@ -253,9 +253,9 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             try (Git git = new Git(repo)) {
                 // Check if destination is a file, then this is a rename operation
                 // Perform rename and exit
-                Path sourcePath = Paths.get(repo.getDirectory().getParent(), fromPath);
+                Path sourcePath = Paths.get(repo.getDirectory().getParent(), gitFromPath);
                 File sourceFile = sourcePath.toFile();
-                Path targetPath = Paths.get(repo.getDirectory().getParent(), toPath);
+                Path targetPath = Paths.get(repo.getDirectory().getParent(), gitToPath);
                 File targetFile = targetPath.toFile();
                 if (targetFile.isFile()) {
                     if (sourceFile.isFile()) {
