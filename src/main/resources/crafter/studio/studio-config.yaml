@@ -42,15 +42,16 @@ studio.repo.rebuildMetadata.batchSize: 100
 #   oracle
 #   sqlserver
 # If value is not specified application will not startup.
-studio.db.platform: derby
+studio.db.platform: mariadb
 # Crafter CMS supports the follow databases
 #   derby
 #   mysql
+#   mariadb
 #   postgres
 #   oracle
 #   sqlserver
 # JDBC driver and Java class used for accessing crafter database
-studio.db.driver: org.apache.derby.jdbc.EmbeddedDriver
+studio.db.driver: org.mariadb.jdbc.Driver
 # Username used for authentication to access crafter database.
 studio.db.username: crafter
 # Password used for authentication to access crafter database.
@@ -59,7 +60,7 @@ studio.db.password: crafter
 # Format:
 # jdbc:DATABASE_PLATFORM;databaseName=DATABASE_NAME;create=true;user=DATABASE_USERNAME;password=DATABASE_USER_PASSWORD
 # Note that a relative path is not suitable for a production deployment
-studio.db.url: jdbc:derby:./data/derby/crafter;databaseName=crafter;create=true;user=crafter;password=crafter
+studio.db.url: jdbc:mariadb://127.0.0.1:3306/crafter?user=crafter&password=crafter
 # Defines initial number of database connections in database connection pool
 studio.db.pool.initialConnections: 10
 # Defines maximum number of active database connections in database connection pool
@@ -76,6 +77,8 @@ studio.db.pool.maxWaitTime: 10000
 # When database already exists, initializer can be turned off for faster startup. If database is deleted or dropped
 # for any reason, initializer needs to be turned on.
 studio.db.initializer.enabled: true
+# Connection string used to initialize database
+studio.db.initializer.url: jdbc:mariadb://127.0.0.1:3306?user=root&password=
 # Test database connections retrieved from the pool before being used (value true).
 # If value is set to false database connection will not be tested before being used.
 studio.db.testOnBorrow: true

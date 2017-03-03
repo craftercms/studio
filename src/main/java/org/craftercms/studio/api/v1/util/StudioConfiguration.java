@@ -47,6 +47,7 @@ public interface StudioConfiguration {
     String DB_POOL_MIN_IDLE_CONNECTIONS = "studio.db.pool.minIdleConnections";
     String DB_POOL_MAX_WAIT_TIME = "studio.db.pool.maxWaitTime";
     String DB_INITIALIZER_ENABLED = "studio.db.initializer.enabled";
+    String DB_INITIALIZER_URL = "studio.db.initializer.url";
     String DB_TEST_ON_BORROW = "studio.db.testOnBorrow";
     String DB_VALIDATION_QUERY = "studio.db.validationQuery";
     String DB_VALIDATION_QUERY_SQLSERVER = "studio.db.validationQuery.sqlserver";
