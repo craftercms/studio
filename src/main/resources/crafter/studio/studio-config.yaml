@@ -27,73 +27,8 @@ studio.repo.sitePublishedPath: published
 studio.repo.blueprintsPath: blueprints
 # Bootstrap the repository with fresh content if no repository is detected in the paths specified. Default is true.
 studio.repo.bootstrapRepo: true
-# Location where preview content is stored. It is used with alfrescoext repository type to improve performance.
-studio.repo.previewRootPath: ./crafter/data/repo
 # Defines size of a batch when rebuilding crafter repository metadata stored in database.
 studio.repo.rebuildMetadata.batchSize: 100
-
-##################################################
-##                   Database                   ##
-##################################################
-# Defines database DBMS platform used for crafter database. Supported values:
-#   derby
-#   mysql
-#   postgres
-#   oracle
-#   sqlserver
-# If value is not specified application will not startup.
-studio.db.platform: derby
-# Crafter CMS supports the follow databases
-#   derby
-#   mysql
-#   postgres
-#   oracle
-#   sqlserver
-# JDBC driver and Java class used for accessing crafter database
-studio.db.driver: org.apache.derby.jdbc.EmbeddedDriver
-# Username used for authentication to access crafter database.
-studio.db.username: crafter
-# Password used for authentication to access crafter database.
-studio.db.password: crafter
-# Connection string used when connecting database with JDBC driver
-# Format:
-# jdbc:DATABASE_PLATFORM;databaseName=DATABASE_NAME;create=true;user=DATABASE_USERNAME;password=DATABASE_USER_PASSWORD
-# Note that a relative path is not suitable for a production deployment
-studio.db.url: jdbc:derby:./data/derby/crafter;databaseName=crafter;create=true;user=crafter;password=crafter
-# Defines initial number of database connections in database connection pool
-studio.db.pool.initialConnections: 10
-# Defines maximum number of active database connections in database connection pool
-studio.db.pool.maxActiveConnections: 100
-# Defines maximum number of idle database connections to retain in database connection pool.
-studio.db.pool.maxIdleConnections: 30
-# Defines minimum number of idle database connections to retain in database connection pool.
-studio.db.pool.minIdleConnections: 10
-# Defines maximum waiting time for a database connection to become available (value is in milliseconds).
-studio.db.pool.maxWaitTime: 10000
-# Turn database initializer on (value true) or off (value false).
-# When initializer is turned off, system will not try to initialize database on startup.
-# When system is starting for the first time initializer must be turned on.
-# When database already exists, initializer can be turned off for faster startup. If database is deleted or dropped
-# for any reason, initializer needs to be turned on.
-studio.db.initializer.enabled: true
-# Test database connections retrieved from the pool before being used (value true).
-# If value is set to false database connection will not be tested before being used.
-studio.db.testOnBorrow: true
-# The SQL query to validate the connection for MS SQL Server.
-studio.db.validationQuery.sqlserver: SELECT 1
-# The SQL query to validate the connection for Postgres.
-studio.db.validationQuery.postgres: SELECT 1
-# The SQL query to validate the connection for MySQL.
-studio.db.validationQuery.mysql: SELECT 1
-# The SQL query to validate the connection for Oracle
-studio.db.validationQuery.oracle: SELECT 1 FROM DUAL
-# The SQL query to validate the connection for Derby
-studio.db.validationQuery.derby: SELECT 1 FROM SYSIBM.SYSDUMMY1
-# The SQL query to validate the connection for DB2
-studio.db.validationQuery.db2: SELECT 1 FROM SYSIBM.SYSDUMMY1
-# Defines the amount of time, in seconds, that connection validation will wait for a response from the database when executing a validation query.
-# Use a value less than or equal to 0 for no timeout.
-studio.db.validationInterval: 34000
 
 ############################################################
 ##                   Site Configuration                   ##
@@ -291,7 +226,7 @@ studio.preview.createTargetUrl: http://localhost:9191/api/1/target/create
 # Default preview create target URL (can be overridden per site)
 studio.preview.deleteTargetUrl: http://localhost:9191/api/1/target/delete
 # URL to the preview repository (aka Sandbox) where authors save work-in-progress
-studio.preview.repoUrl: deployer/target/{siteName}
+studio.preview.repoUrl: data/repos/sites/{siteName}/sandbox
 # URL to the preview Crafter Engine
 studio.preview.engineUrl: http://localhost:8080
 # Name of template to use with the deployer for preview
@@ -317,3 +252,53 @@ studio.publishingManager.importModeEnabled: false
 # Turn on/off (value true/false) publishing without dependencies.
 # When turned on, deployment engine does not check for missing mandatory dependencies of published content.
 studio.publishingManager.publishingWithoutDependencies.enabled: false
+
+##################################################
+##                   Database                   ##
+##################################################
+# Embedded database configuration
+# Be careful changing these
+studio.db.platform: mariadb
+# JDBC driver and Java class used for accessing crafter database
+studio.db.driver: org.mariadb.jdbc.Driver
+# Username used for authentication to access crafter database.
+studio.db.username: crafter
+# Password used for authentication to access crafter database.
+studio.db.password: crafter
+# Connection string used when connecting database with JDBC driver
+# Format:
+# jdbc:DATABASE_PLATFORM;databaseName=DATABASE_NAME;create=true;user=DATABASE_USERNAME;password=DATABASE_USER_PASSWORD
+# Note that a relative path is not suitable for a production deployment
+studio.db.url: jdbc:mariadb://127.0.0.1:33306/crafter?user=crafter&password=crafter
+# Defines initial number of database connections in database connection pool
+studio.db.pool.initialConnections: 10
+# Defines maximum number of active database connections in database connection pool
+studio.db.pool.maxActiveConnections: 100
+# Defines maximum number of idle database connections to retain in database connection pool.
+studio.db.pool.maxIdleConnections: 30
+# Defines minimum number of idle database connections to retain in database connection pool.
+studio.db.pool.minIdleConnections: 10
+# Defines maximum waiting time for a database connection to become available (value is in milliseconds).
+studio.db.pool.maxWaitTime: 10000
+# Turn database initializer on (value true) or off (value false).
+# When initializer is turned off, system will not try to initialize database on startup.
+# When system is starting for the first time initializer must be turned on.
+# When database already exists, initializer can be turned off for faster startup. If database is deleted or dropped
+# for any reason, initializer needs to be turned on.
+studio.db.initializer.enabled: true
+# Connection string used to initialize database
+studio.db.initializer.url: jdbc:mariadb://127.0.0.1:33306?user=root&password=
+# Test database connections retrieved from the pool before being used (value true).
+# If value is set to false database connection will not be tested before being used.
+studio.db.testOnBorrow: true
+# The SQL query to validate the connection for database
+studio.db.validationQuery: SELECT 1
+# Defines the amount of time, in seconds, that connection validation will wait for a response from the database when executing a validation query.
+# Use a value less than or equal to 0 for no timeout.
+studio.db.validationInterval: 34000
+# Base folder for the embedded database
+studio.db.basePath: ./data/db
+# Data folder for the embedded database
+studio.db.dataPath: ./data/db/data
+# Port number for the embedded database (note this must match what's in the connection URLs in this config file)
+studio.db.port: 33306

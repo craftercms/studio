@@ -95,6 +95,18 @@
                     <groupId>commons-logging</groupId>
                     <artifactId>commons-logging</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>jcl-over-slf4j</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
 
@@ -281,6 +293,12 @@
             <groupId>org.jgroups</groupId>
             <artifactId>jgroups</artifactId>
             <version>3.6.6.Final</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
@@ -365,11 +383,35 @@
         </dependency>
 
         <!-- MariaDB -->
-<!--        <dependency>
+        <dependency>
             <groupId>ch.vorburger.mariaDB4j</groupId>
             <artifactId>mariaDB4j</artifactId>
             <version>2.2.3</version>
-        </dependency>-->
+        </dependency>
+
+        <dependency>
+            <groupId>org.mariadb.jdbc</groupId>
+            <artifactId>mariadb-java-client</artifactId>
+            <version>1.5.8</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>jcl-over-slf4j</artifactId>
+            <version>1.7.23</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>1.7.23</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.23</version>
+        </dependency>
 
     </dependencies>
 
@@ -486,6 +528,10 @@
                                 <exclude>WEB-INF/lib/httpcore-4.3.2.jar</exclude>
                                 <exclude>WEB-INF/lib/freemarker-2.3.20.jar</exclude>
                                 <exclude>WEB-INF/lib/commons-logging-1.1.1.jar</exclude>
+                                <exclude>WEB-INF/lib/slf4j-api-1.6.1.jarr</exclude>
+                                <exclude>WEB-INF/lib/slf4j-api-1.7.7.jar</exclude>
+                                <exclude>WEB-INF/lib/slf4j-log4j12-1.7.7.jar</exclude>
+                                <exclude>WEB-INF/lib/jcl-over-slf4j-1.7.7.jar</exclude>
                                 <exclude>WEB-INF/lib/spring-security-core-3.2.3.RELEASE.jar</exclude>
                                 <exclude>WEB-INF/lib/spring-security-web-3.2.3.RELEASE.jar</exclude>
                                 <exclude>>WEB-INF/templates/system/common/versionInfo.ftl</exclude>

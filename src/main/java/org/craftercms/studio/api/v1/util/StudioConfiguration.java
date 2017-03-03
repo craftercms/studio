@@ -47,15 +47,14 @@ public interface StudioConfiguration {
     String DB_POOL_MIN_IDLE_CONNECTIONS = "studio.db.pool.minIdleConnections";
     String DB_POOL_MAX_WAIT_TIME = "studio.db.pool.maxWaitTime";
     String DB_INITIALIZER_ENABLED = "studio.db.initializer.enabled";
+    String DB_INITIALIZER_URL = "studio.db.initializer.url";
     String DB_TEST_ON_BORROW = "studio.db.testOnBorrow";
     String DB_VALIDATION_QUERY = "studio.db.validationQuery";
-    String DB_VALIDATION_QUERY_SQLSERVER = "studio.db.validationQuery.sqlserver";
-    String DB_VALIDATION_QUERY_POSTGRES = "studio.db.validationQuery.postgres";
-    String DB_VALIDATION_QUERY_MYSQL = "studio.db.validationQuery.mysql";
-    String DB_VALIDATION_QUERY_ORACLE = "studio.db.validationQuery.oracle";
-    String DB_VALIDATION_QUERY_DERBY = "studio.db.validationQuery.derby";
-    String DB_VALIDATION_QUERY_DB2 = "studio.db.validationQuery.db2";
     String DB_VALIDATION_INTERVAL = "studio.db.validationInterval";
+    String DB_BASE_PATH = "studio.db.basePath";
+    String DB_DATA_PATH = "studio.db.dataPath";
+    String DB_PORT = "studio.db.port";
+
 
     /** Configuration */
     String CONFIGURATION_GLOBAL_CONFIG_BASE_PATH = "studio.configuration.global.configBasePath";
