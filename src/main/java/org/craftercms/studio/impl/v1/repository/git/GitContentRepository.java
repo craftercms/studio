@@ -248,7 +248,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                  GitRepositories.SANDBOX);
 
             String gitFromPath = helper.getGitPath(fromPath);
-            String gitToPath = helper.getGitPath(toPath + newName);
+            String gitToPath = helper.getGitPath(toPath + File.separator + newName);
 
             try (Git git = new Git(repo)) {
                 // Check if destination is a file, then this is a rename operation

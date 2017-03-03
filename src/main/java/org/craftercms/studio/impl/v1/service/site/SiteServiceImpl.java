@@ -778,6 +778,12 @@ public class SiteServiceImpl implements SiteService {
 	    return toReturn;
     }
 
+    @Override
+    public boolean exists(String site) {
+        boolean toRet = siteFeedMapper.exists(site) > 0 ? true : false;
+        return toRet;
+    }
+
     public String getGlobalConfigRoot() {
         return studioConfiguration.getProperty(CONFIGURATION_GLOBAL_CONFIG_BASE_PATH);
     }

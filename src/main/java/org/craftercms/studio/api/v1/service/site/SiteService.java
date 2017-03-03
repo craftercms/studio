@@ -146,4 +146,12 @@ public interface SiteService {
     void rebuildRepositoryMetadata(String site);
 
     void updateLastCommitId(String site, String commitId);
+
+    /**
+     * Check if site already exists
+     *
+     * @param site site ID
+     * @return true if site exists, false otherwise
+     */
+    boolean exists(String site);
 }

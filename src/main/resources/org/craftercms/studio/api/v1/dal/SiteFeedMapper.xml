@@ -64,4 +64,8 @@
     <select id="getLastCommitId" parameterType="java.util.Map" resultType="java.lang.String">
         SELECT last_commit_id FROM cstudio_site WHERE site_id = #{siteId}
     </select>
+
+    <select id="exists" parameterType="java.lang.String" resultType="int">
+        SELECT count(1) FROM cstudio_site WHERE site_id = #{siteId}
+    </select>
 </mapper>
