@@ -1,3 +1,25 @@
+SET GLOBAL innodb_large_prefix = true ;
+
+SET GLOBAL innodb_file_format = 'BARRACUDA' ;
+
+SET GLOBAL innodb_file_format_max = 'BARRACUDA' ;
+
+SET GLOBAL innodb_file_per_table = true ;
+
+CREATE DATABASE crafter DEFAULT CHARACTER SET utf8 ;
+
+FLUSH PRIVILEGES ;
+
+CREATE USER 'crafter'@'localhost' identified by 'crafter' ;
+
+GRANT ALL PRIVILEGES ON crafter.* TO 'crafter'@'localhost' WITH GRANT OPTION ;
+
+CREATE USER 'crafter'@'%' identified by 'crafter' ;
+
+GRANT ALL PRIVILEGES ON crafter.* TO 'crafter'@'%' WITH GRANT OPTION ;
+
+USE crafter ;
+
 CREATE TABLE IF NOT EXISTS `cstudio_activity` (
   `id`             BIGINT(20)   NOT NULL AUTO_INCREMENT,
   `modified_date`  DATETIME     NOT NULL,
@@ -18,7 +40,7 @@ CREATE TABLE IF NOT EXISTS `cstudio_activity` (
   DEFAULT CHARSET =utf8
   ROW_FORMAT=DYNAMIC ;
 
-CREATE TABLE IF NOT EXISTS `cstudio_DEPENDENCY` (
+CREATE TABLE IF NOT EXISTS `cstudio_dependency` (
   `id`          BIGINT(20)  NOT NULL AUTO_INCREMENT,
   `site`        VARCHAR(35) NOT NULL,
   `source_path` TEXT        NOT NULL,
@@ -132,8 +154,8 @@ CREATE TABLE IF NOT EXISTS `cstudio_site` (
   `last_commit_id` VARCHAR(50) NULL,
   `system` INT NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
-  UNIQUE INDEX `id_UNIQUE` (`id` ASC),
-  UNIQUE INDEX `site_id_UNIQUE` (`site_id` ASC),
+  UNIQUE INDEX `id_unique` (`id` ASC),
+  UNIQUE INDEX `site_id_unique` (`site_id` ASC),
   INDEX `site_id_idx` (`site_id` ASC)
 )
 
@@ -187,39 +209,39 @@ CREATE TABLE IF NOT EXISTS `cstudio_user`
   DEFAULT CHARSET =utf8
   ROW_FORMAT=DYNAMIC ;
 
-INSERT INTO CSTUDIO_USER (username, password, firstname, lastname, email, enabled)
+INSERT INTO cstudio_user (username, password, firstname, lastname, email, enabled)
 VALUES ('admin', 'vTwNOJ8GJdyrP7rrvQnpwsd2hCV1xRrJdTX2sb51i+w=|R68ms0Od3AngQMdEeKY6lA==', 'admin', 'admin', 'evaladmin@example.com', 1) ;
 
-CREATE TABLE CSTUDIO_GROUP
+CREATE TABLE cstudio_group
 (
   `id` BIGINT(20) NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(255) NOT NULL,
   `description` VARCHAR(3000),
   `site_id` BIGINT(20),
   PRIMARY KEY (`id`),
-  FOREIGN KEY GROUP_SITE_FK(site_id) REFERENCES CSTUDIO_SITE(id)
+  FOREIGN KEY group_site_fk(site_id) REFERENCES cstudio_site(id)
 )
   ENGINE =InnoDB
   DEFAULT CHARSET =utf8
   ROW_FORMAT=DYNAMIC ;
 
-CREATE TABLE CSTUDIO_USERGROUP
+CREATE TABLE cstudio_usergroup
 (
   `id` BIGINT(20) NOT NULL AUTO_INCREMENT,
   `username` VARCHAR(255) NOT NULL,
   `groupid` BIGINT NOT NULL,
   PRIMARY KEY (`id`),
-  FOREIGN KEY USER_UG_FOREIGN_KEY(username) REFERENCES CSTUDIO_USER(username),
-  FOREIGN KEY GROUP_UG_FOREIGN_KEY(groupid) REFERENCES CSTUDIO_GROUP(groupid)
+  FOREIGN KEY user_ug_foreign_key(username) REFERENCES cstudio_user(username),
+  FOREIGN KEY group_ug_foreign_key(groupid) REFERENCES cstudio_group(id)
 )
   ENGINE =InnoDB
   DEFAULT CHARSET =utf8
   ROW_FORMAT=DYNAMIC ;
 
-INSERT INTO CSTUDIO_SITE (SITE_ID, NAME, DESCRIPTION, SYSTEM) VALUES ('studio_root', 'Studio Root', 'Studio Root for global permissions', 1) ;
+INSERT INTO cstudio_site (site_id, name, description, system) VALUES ('studio_root', 'Studio Root', 'Studio Root for global permissions', 1) ;
 
-INSERT INTO CSTUDIO_GROUP (NAME, DESCRIPTION, SITE_ID) VALUES ('crafter-admin', 'crafter admin', 1) ;
-INSERT INTO CSTUDIO_GROUP (NAME, DESCRIPTION, SITE_ID) VALUES ('crafter-create-sites', 'crafter-create-sites', 1) ;
+INSERT INTO cstudio_group (name, description, site_id) VALUES ('crafter-admin', 'crafter admin', 1) ;
+INSERT INTO cstudio_group (name, description, site_id) VALUES ('crafter-create-sites', 'crafter-create-sites', 1) ;
 
-INSERT INTO CSTUDIO_USERGROUP (USERNAME, GROUPID) VALUES ('admin', 1) ;
-INSERT INTO CSTUDIO_USERGROUP (USERNAME, GROUPID) VALUES ('admin', 2) ;
+INSERT INTO cstudio_usergroup (username, groupid) VALUES ('admin', 1) ;
+INSERT INTO cstudio_usergroup (username, groupid) VALUES ('admin', 2) ;

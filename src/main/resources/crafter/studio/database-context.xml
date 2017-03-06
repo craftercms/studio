@@ -2,7 +2,7 @@
 <beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:jdbc="http://www.springframework.org/schema/jdbc" xmlns="http://www.springframework.org/schema/beans"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc.xsd">
-
+<!--
     <bean id="vendorProperties" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
         <property name="properties">
             <props>
@@ -10,17 +10,18 @@
                 <prop key="DB2">db2</prop>
                 <prop key="Oracle">oracle</prop>
                 <prop key="MySQL">mysql</prop>
+                <prop key="MariaDB">mariadb</prop>
                 <prop key="PostgreSQL">postgres</prop>
                 <prop key="Derby">derby</prop>
             </props>
         </property>
     </bean>
 
-    <bean id="databaseIdProvider" class="org.apache.ibatis.mapping.VendorDatabaseIdProvider">
+    <bean id="databaseIdProvider" class="org.apache.ibatis.mapping.VendorDatabaseIdProvider" depends-on="databaseInitializer">
         <property name="properties" ref="vendorProperties"/>
     </bean>
-
-    <bean id="dataSource" class="org.apache.commons.dbcp2.BasicDataSource" depends-on="studioConfiguration">
+-->
+    <bean id="dataSource" class="org.apache.commons.dbcp2.BasicDataSource" depends-on="studioConfiguration,databaseInitializer">
         <property name="driverClassName" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_DRIVER)}" />
         <property name="url" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_URL)}" />
         <property name="username" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_USERNAME)}" />
@@ -31,48 +32,40 @@
         <property name="minIdle" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_POOL_MIN_IDLE_CONNECTIONS)}" />
         <property name="maxWaitMillis" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_POOL_MAX_WAIT_TIME)}" />
         <property name="testOnBorrow" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_TEST_ON_BORROW)}" />
-        <property name="validationQuery" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_VALIDATION_QUERY + '.' + T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_PLATFORM)}" />
+        <property name="validationQuery"
+                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_VALIDATION_QUERY)}" />
         <property name="validationQueryTimeout" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_VALIDATION_INTERVAL)}"/>
     </bean>
 
     <!-- define the SqlSessionFactory -->
-    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean" depends-on="databaseInitializer">
         <property name="dataSource" ref="dataSource"/>
-        <property name="databaseIdProvider" ref="databaseIdProvider"/>
+        <!--<property name="databaseIdProvider" ref="databaseIdProvider"/>-->
         <property name="typeAliasesPackage" value="org.craftercms.studio.api.domain"/>
         <property name="configLocation" value="classpath:crafter/studio/database/mybatis-config.xml"/>
     </bean>
 
     <!-- scan for mappers and let them be autowired -->
-    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer" depends-on="databaseInitializer">
         <property name="basePackage" value="org.craftercms.studio.api.v1.dal"/>
         <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>
     </bean>
 
-    <bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate">
+    <bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate" depends-on="databaseInitializer">
         <constructor-arg index="0" ref="sqlSessionFactory"/>
     </bean>
 
     <bean id="databaseInitializer" class="org.craftercms.studio.impl.v1.dal.DataSourceInitializerImpl"
-          init-method="initDataSource">
-        <property name="sqlSessionFactory" ref="sqlSessionFactory"/>
-        <property name="vendorScriptsMapping">
-            <map>
-                <entry key="derby" value="crafter/studio/database/createDDL-derby.sql"/>
-                <entry key="mysql" value="crafter/studio/database/createDDL-mysql.sql"/>
-                <entry key="oracle" value="crafter/studio/database/createDDL-oracle.sql"/>
-                <entry key="sqlserver" value="crafter/studio/database/createDDL-sqlserver.sql"/>
-                <entry key="db2" value="crafter/studio/database/createDDL-db2.sql"/>
-            </map>
-        </property>
+          init-method="initDataSource" depends-on="studioMariaDBService">
         <property name="delimiter" value=" ;"/>
         <property name="studioConfiguration" ref="studioConfiguration"/>
+        <property name="mariaDB4jService" ref="studioMariaDBService" />
     </bean>
-<!--
-    <bean id="studioMariaDBService" class="ch.vorburger.mariadb4j.springframework.MariaDB4jSpringService" init-method="start" destroy-method="stop">
-        <property name="defaultBaseDir" value="./data/mariadb"/>
-        <property name="defaultDataDir" value="./data/mariadb/data"/>
-        <property name="defaultPort" value="3306" />
+
+    <bean id="studioMariaDBService" class="ch.vorburger.mariadb4j.springframework.MariaDB4jSpringService"
+          init-method="start" destroy-method="stop" depends-on="studioConfiguration">
+        <property name="defaultBaseDir" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_BASE_PATH)}" />
+        <property name="defaultDataDir" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_DATA_PATH)}" />
+        <property name="defaultPort" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_PORT)}"  />
     </bean>
--->
 </beans>

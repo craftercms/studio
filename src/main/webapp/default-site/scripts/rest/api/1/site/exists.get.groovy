@@ -1,6 +1,6 @@
 /*
  * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2016 Crafter Software Corporation.
+ * Copyright (C) 2007-2017 Crafter Software Corporation.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,26 +14,15 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 
-package org.craftercms.studio.api.v1.dal;
+import scripts.api.SiteServices;
 
-import java.util.List;
-import java.util.Map;
+def result = [:]
+def site = params.site
 
-public interface SiteFeedMapper {
+def context = SiteServices.createContext(applicationContext, request)
+result.exists = SiteServices.exists(context, site);
 
-    List<SiteFeed> getSites();
-
-    SiteFeed getSite(Map params);
-
-	boolean createSite(SiteFeed siteFeed);
-
-    boolean deleteSite(String siteId);
-
-    void updateLastCommitId(Map params);
-
-    String getLastCommitId(Map params);
-
-    int exists(String siteId);
-}
+return result
