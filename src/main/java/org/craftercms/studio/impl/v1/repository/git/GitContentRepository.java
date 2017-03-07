@@ -790,7 +790,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                                 // also include date/time of commit by taking number of seconds and multiply by 1000 and
                                 // convert to java date before sending over
                                 operations.addAll(processDiffEntry(diffEntries, new Date(firstCommit.getCommitTime() *
-                                        1000)));
+                                        1000l)));
                             }
                         }
                     }
@@ -830,7 +830,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                                 // also include date/time of commit by taking number of seconds and multiply by 1000 and
                                 // convert to java date before sending over
                                 operations.addAll(processDiffEntry(diffEntries, new Date(commit.getCommitTime() *
-                                    1000)));
+                                    1000l)));
                                 prevCommitId = nextCommitId;
                             }
                         }

@@ -111,6 +111,11 @@ class SpringSiteServices {
         return springBackedService.syncRepository(site)
     }
 
+    def rebuildDatabase(site) {
+        def springBackedService = this.context.applicationContext.get("cstudioSiteServiceSimple")
+        return springBackedService.rebuildDatabase(site)
+    }
+
     def exists(site) {
         def springBackedService = this.context.applicationContext.get("cstudioSiteServiceSimple")
         return springBackedService.exists(site)
