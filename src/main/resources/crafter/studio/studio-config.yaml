@@ -224,7 +224,7 @@ studio.preview.defaultPreviewDeployerUrl: http://localhost:9191/api/1/target/dep
 # Default preview create target URL (can be overridden per site)
 studio.preview.createTargetUrl: http://localhost:9191/api/1/target/create
 # Default preview create target URL (can be overridden per site)
-studio.preview.deleteTargetUrl: http://localhost:9191/api/1/target/delete
+studio.preview.deleteTargetUrl: http://localhost:9191/api/1/target/delete/{siteEnv}/{siteName}
 # URL to the preview repository (aka Sandbox) where authors save work-in-progress
 studio.preview.repoUrl: data/repos/sites/{siteName}/sandbox
 # URL to the preview Crafter Engine
@@ -240,7 +240,7 @@ studio.preview.disableDeployCron: true
 ##                   Preview Search                       ##
 ############################################################
 studio.preview.search.createUrl: http://localhost:8080/crafter-search/api/2/admin/index/create
-studio.preview.search.deleteUrl: http://localhost:8080/crafter-search/api/2/admin/index/delete
+studio.preview.search.deleteUrl: http://localhost:8080/crafter-search/api/2/admin/index/delete/{siteName}
 
 ############################################################
 ##                   Publishing Manager                   ##

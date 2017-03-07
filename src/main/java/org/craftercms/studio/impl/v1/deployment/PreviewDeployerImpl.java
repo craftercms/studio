@@ -155,10 +155,10 @@ public class PreviewDeployerImpl implements PreviewDeployer {
         // TODO: DB: implement deployer agent configuration for preview
         // TODO: SJ: Pseudo code: check if site configuration has a Preview Deployer URL, if so, return it, if not
         // TODO: SJ: return default from studioConfiguration.getProperty(PREVIEW_DEFAULT_DELETE_TARGET_URL);
-        StringBuilder sb = new StringBuilder();
-        sb.append(studioConfiguration.getProperty(PREVIEW_DEFAULT_DELETE_TARGET_URL));
-        sb.append("/preview").append("/").append(site);
-        return sb.toString();
+        String url = new String(studioConfiguration.getProperty(PREVIEW_DEFAULT_DELETE_TARGET_URL));
+        url = url.replaceAll(StudioConstants.CONFIG_SITENAME_VARIABLE, site);
+        url = url.replaceAll(StudioConstants.CONFIG_SITEENV_VARIABLE, "preview");
+        return url;
     }
 
     public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
