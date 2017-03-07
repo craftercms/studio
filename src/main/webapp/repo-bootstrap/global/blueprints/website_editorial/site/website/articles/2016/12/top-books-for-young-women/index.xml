@@ -19,9 +19,7 @@
 	<categories>	<item>	<key>entertainment</key>
 	<value_smv>Entertainment</value_smv>
 	</item></categories>
-	<audience>	<item>	<key>guy</key>
-	<value_smv>Guy</value_smv>
-	</item>	<item>	<key>gal</key>
+	<audience>	<item>	<key>gal</key>
 	<value_smv>Gal</value_smv>
 	</item></audience>
 	<header>	<item>	<key>/site/components/header.xml</key>
@@ -32,6 +30,6 @@
 	<date>12/28/2016 05:00:00</date>
 	<createdDate>3/2/2017 20:48:57</createdDate>
 	<createdDate_dt>3/2/2017 20:48:57</createdDate_dt>
-	<lastModifiedDate>3/2/2017 21:11:35</lastModifiedDate>
-	<lastModifiedDate_dt>3/2/2017 21:11:35</lastModifiedDate_dt>
+	<lastModifiedDate>3/3/2017 20:10:53</lastModifiedDate>
+	<lastModifiedDate_dt>3/3/2017 20:10:53</lastModifiedDate_dt>
 </page>
