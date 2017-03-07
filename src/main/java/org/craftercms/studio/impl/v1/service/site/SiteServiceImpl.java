@@ -634,7 +634,7 @@ public class SiteServiceImpl implements SiteService {
     }
 
     @Override
-    public void rebuildRepositoryMetadata(String site) {
+    public void syncRepository(String site) {
         rebuildRepositoryMetadata.execute(site);
     }
 
