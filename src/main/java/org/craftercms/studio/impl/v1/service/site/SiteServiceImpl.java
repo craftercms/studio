@@ -635,6 +635,14 @@ public class SiteServiceImpl implements SiteService {
 
     @Override
     public void syncRepository(String site) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("siteId", site);
+	    String lastDbCommitId = siteFeedMapper.getLastCommitId(params);
+	    syncDatabaseWithRepo(site, lastDbCommitId);
+    }
+
+    @Override
+    public void rebuildDatabase(String site) {
         rebuildRepositoryMetadata.execute(site);
     }
 

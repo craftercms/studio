@@ -143,7 +143,19 @@ public interface SiteService {
 
     void importSite(String config);
 
+    /**
+     * Synchronize Database with repository
+     *
+     * @param site site id
+     */
     void syncRepository(String site);
+
+    /**
+     * Rebuild database for site
+     *
+     * @param site site id
+     */
+    void rebuildDatabase(String site);
 
     void updateLastCommitId(String site, String commitId);
 
