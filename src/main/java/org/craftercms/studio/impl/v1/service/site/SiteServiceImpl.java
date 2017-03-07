@@ -514,23 +514,46 @@ public class SiteServiceImpl implements SiteService {
 	@Override
    	public boolean deleteSite(String siteId) {
  		boolean success = true;
- 		try {
- 			contentRepository.deleteSite(siteId);
+        logger.debug("Deleting site:" + siteId);
 
-	 		// delete database records
+        try {
+	        logger.debug("Deleting search index");
+	        searchService.deleteIndex(siteId);
+        } catch(Exception e) {
+	        success = false;
+	        logger.error("Failed to delete search index for site:" + siteId, e);
+        }
+
+		try {
+		    logger.debug("Deleting preview deployer");
+		    previewDeployer.deleteTarget(siteId);
+		} catch(Exception e) {
+			success = false;
+			logger.error("Failed to delete the preview deployer target for site:" + siteId, e);
+		}
+
+		try {
+		    logger.debug("Deleting repo");
+		    contentRepository.deleteSite(siteId);
+		} catch(Exception e) {
+			success = false;
+			logger.error("Failed to delete the repository for site:" + siteId, e);
+		}
+
+	    try {
+		    // delete database records
+		    logger.debug("Deleting database records");
 			siteFeedMapper.deleteSite(siteId);
 			activityService.deleteActivitiesForSite(siteId);
 			dmDependencyService.deleteDependenciesForSite(siteId);
-            deploymentService.deleteDeploymentDataForSite(siteId);
-            objectStateService.deleteObjectStatesForSite(siteId);
-            objectMetadataManager.deleteObjectMetadataForSite(siteId);
-            dmPageNavigationOrderService.deleteSequencesForSite(siteId);
-
-            // delete site from PreviewDeployer(s)
-            eventService.firePreviewDeleteTargetEvent(siteId);
-	 	} catch(Exception err) {
-	 		success = false;
-	 	}
+	        deploymentService.deleteDeploymentDataForSite(siteId);
+	        objectStateService.deleteObjectStatesForSite(siteId);
+	        objectMetadataManager.deleteObjectMetadataForSite(siteId);
+	        dmPageNavigationOrderService.deleteSequencesForSite(siteId);
+	    } catch(Exception e) {
+		    success = false;
+		    logger.error("Failed to delete the database for site:" + siteId, e);
+	    }
 
 	 	return success;
     }
