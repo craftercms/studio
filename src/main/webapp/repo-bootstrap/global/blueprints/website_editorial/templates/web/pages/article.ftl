@@ -37,7 +37,7 @@
 
                                     <#list model.sections.item as item>
                                     	<div <@studio.iceAttr iceGroup="article"/>>
-											${item.section}
+											${item.section_html}
                                         </div>
 										<hr class="major" />
 									</#list>

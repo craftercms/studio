@@ -53,7 +53,16 @@
 										<onClick>none</onClick>
 									</params>
 								</modulehook>
-
+								<modulehook>
+									<name>wcm-assets-folder</name>
+									<showDivider>true</showDivider>
+									<params>
+										<label>Classes</label>
+										<path>/classes</path>
+										<showRootItem>true</showRootItem>
+										<onClick>none</onClick>
+									</params>
+								</modulehook>
 								<modulehook>
 									<name>wcm-assets-folder</name>
 									<showDivider>true</showDivider>
