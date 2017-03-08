@@ -494,12 +494,14 @@ public class DbSecurityProvider implements SecurityProvider {
                     group.put("group_description", row.getGroupDescription());
                     users = new ArrayList<Map<String, Object>>();
                 }
-                Map<String, Object> user = new HashMap<String, Object>();
-                user.put("username", row.getUsername());
-                user.put("first_name", row.getFirstName());
-                user.put("last_name", row.getLastName());
-                user.put("email", row.getEmail());
-                users.add(user);
+                if (StringUtils.isNotEmpty(row.getUsername())) {
+                    Map<String, Object> user = new HashMap<String, Object>();
+                    user.put("username", row.getUsername());
+                    user.put("first_name", row.getFirstName());
+                    user.put("last_name", row.getLastName());
+                    user.put("email", row.getEmail());
+                    users.add(user);
+                }
                 lastGroup = groupName;
             }
             if (group != null) {
