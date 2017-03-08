@@ -21,15 +21,15 @@
 	</item></header>
 	<file-name>index.xml</file-name>
 	<folder-name>new-acme-phone-released-today</folder-name>
-	<categories>	<item>	<key>technology</key>
+	<tags>	<item>	<key>technology</key>
 	<value_smv>Technology</value_smv>
-	</item></categories>
+	</item></tags>
 	<audience>	<item>	<key>guy</key>
 	<value_smv>Guy</value_smv>
 	</item>	<item>	<key>gal</key>
 	<value_smv>Gal</value_smv>
 	</item></audience>
-	<date>07/03/2016 04:00:00</date>
+	<date_dt>07/03/2016 04:00:00</date_dt>
 	<createdDate>3/3/2017 20:48:50</createdDate>
 	<createdDate_dt>3/3/2017 20:48:50</createdDate_dt>
 	<lastModifiedDate>3/3/2017 21:2:8</lastModifiedDate>

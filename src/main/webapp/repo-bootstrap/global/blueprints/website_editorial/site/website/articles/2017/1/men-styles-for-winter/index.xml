@@ -21,13 +21,13 @@
 	<title>Men Styles For Winter</title>
 	<subject>Men Styles For Winter</subject>
 	<author>John Doe</author>
-	<categories>	<item>	<key>style</key>
+	<tags>	<item>	<key>style</key>
 	<value_smv>Style</value_smv>
-	</item></categories>
+	</item></tags>
 	<audience>	<item>	<key>guy</key>
 	<value_smv>Guy</value_smv>
 	</item></audience>
-	<date>01/05/2017 05:00:00</date>
+	<date_dt>01/05/2017 05:00:00</date_dt>
 	<createdDate>3/3/2017 20:57:7</createdDate>
 	<createdDate_dt>3/3/2017 20:57:7</createdDate_dt>
 	<lastModifiedDate>3/3/2017 21:2:55</lastModifiedDate>

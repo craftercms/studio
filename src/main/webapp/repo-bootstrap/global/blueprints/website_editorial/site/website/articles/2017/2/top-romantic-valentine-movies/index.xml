@@ -15,9 +15,9 @@
 	<author>Jane Doe</author>
 	<file-name>index.xml</file-name>
 	<folder-name>top-romantic-valentine-movies</folder-name>
-	<categories>	<item>	<key>entertainment</key>
+	<tags>	<item>	<key>entertainment</key>
 	<value_smv>Entertainment</value_smv>
-	</item></categories>
+	</item></tags>
 	<audience>	<item>	<key>gal</key>
 	<value_smv>Gal</value_smv>
 	</item></audience>
@@ -26,7 +26,7 @@
 	<include>/site/components/header.xml</include>
 	<disableFlattening>true</disableFlattening>
 	</item></header>
-	<date>02/14/2017 05:00:00</date>
+	<date_dt>02/14/2017 05:00:00</date_dt>
 	<createdDate>3/3/2017 20:14:16</createdDate>
 	<createdDate_dt>3/3/2017 20:14:16</createdDate_dt>
 	<lastModifiedDate>3/3/2017 20:14:16</lastModifiedDate>
