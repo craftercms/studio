@@ -21,15 +21,15 @@
 	</item></header>
 	<file-name>index.xml</file-name>
 	<folder-name>acme-stocks-tumble-for-second-day-in-a-row</folder-name>
-	<categories>	<item>	<key>finance</key>
+	<tags>	<item>	<key>finance</key>
 	<value_smv>Finance</value_smv>
-	</item></categories>
+	</item></tags>
 	<audience>	<item>	<key>guy</key>
 	<value_smv>Guy</value_smv>
 	</item>	<item>	<key>gal</key>
 	<value_smv>Gal</value_smv>
 	</item></audience>
-	<date>07/04/2016 04:00:00</date>
+	<date_dt>07/04/2016 04:00:00</date_dt>
 	<createdDate>3/3/2017 20:45:5</createdDate>
 	<createdDate_dt>3/3/2017 20:45:5</createdDate_dt>
 	<lastModifiedDate>3/3/2017 20:50:35</lastModifiedDate>
