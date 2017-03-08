@@ -171,7 +171,8 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 			activityPost.setContentType(contentType);
 			//activityFeedMapper.updateActivityFeed(activityPost);
 			try {
-				long postId = postFeedEntry(activityPost);
+                activityPost.setCreationDate(new Date());
+				long postId = insertFeedEntry(activityPost);
 				activityPost.setId(postId);
 				logger.debug("Posted: " + activityPost);
 
@@ -185,20 +186,6 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 			logger.error("Error in posting feed", e);
 		}
 
-	}
-
-	private long postFeedEntry(ActivityFeed activityFeed) {
-		int count=getCountUserContentFeedEntries(activityFeed.getUserId(),activityFeed.getSiteNetwork(),activityFeed.getContentId());
-		if(count==0)
-		{
-			activityFeed.setCreationDate(new Date());
-			return insertFeedEntry(activityFeed);
-		}
-		else
-		{
-			updateFeedEntry(activityFeed);
-			return -1;
-		}
 	}
 
 	private int getCountUserContentFeedEntries(String feedUserId, String siteId,String contentId) {
