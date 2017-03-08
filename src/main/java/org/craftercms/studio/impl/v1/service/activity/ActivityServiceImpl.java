@@ -99,7 +99,7 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 		String contentType = null;
 		if(extraInfo!=null)
 			contentType = extraInfo.get(DmConstants.KEY_CONTENT_TYPE);
-		postActivity(ContentUtils.generateActivityValue(activity), site, null, activityPost.toString(),contentId,contentType, user);
+		postActivity(activity.toString(), site, null, activityPost.toString(),contentId,contentType, user);
 
 	}
 
@@ -371,7 +371,7 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 		HashMap<String,String> params = new HashMap<String,String>();
 		params.put("contentId", path);
 		params.put("siteNetwork", site);
-		String activityType = ContentUtils.generateActivityValue(ActivityType.DELETED);
+		String activityType = ActivityType.DELETED.toString();
 		params.put("activityType", activityType);
 		return activityFeedMapper.getDeletedActivity(params);
 	}

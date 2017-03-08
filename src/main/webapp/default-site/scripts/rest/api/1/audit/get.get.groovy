@@ -22,6 +22,7 @@
  * @auhor Dejan Brkic
  */
 
+import groovy.json.JsonSlurper
 import scripts.api.ActivityServices;
 
 def result = [:]
@@ -38,9 +39,10 @@ def user = ''
 if (params.user != null && params.user != '') {
     user = params.user
 }
+def slurper = new JsonSlurper()
 def actions = []
 if (params.actions != null && params.actions != '') {
-    actions = params.actions
+    actions = slurper.parseText(params.actions)
 }
 
 

@@ -110,7 +110,7 @@
             and post_user_id = #{user}
         </if>
         <if test="actions != null">
-            and activity in
+            and activity_type in
             <foreach item="action" index="index" collection="actions"
                      open="(" separator="," close=")">
                 #{action}
