@@ -21,9 +21,9 @@
 	<include>/site/components/header.xml</include>
 	<disableFlattening>true</disableFlattening>
 	</item></header>
-	<categories>	<item>	<key>style</key>
+	<tags>	<item>	<key>style</key>
 	<value_smv>Style</value_smv>
-	</item></categories>
+	</item></tags>
 	<audience>	<item>	<key>gal</key>
 	<value_smv>Gal</value_smv>
 	</item></audience>
@@ -31,5 +31,5 @@
 	<createdDate_dt>3/3/2017 21:7:20</createdDate_dt>
 	<lastModifiedDate>3/3/2017 21:7:20</lastModifiedDate>
 	<lastModifiedDate_dt>3/3/2017 21:7:20</lastModifiedDate_dt>
-	<date>03/03/2017 05:00:00</date>
+	<date_dt>03/03/2017 05:00:00</date_dt>
 </page>

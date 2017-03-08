@@ -177,16 +177,16 @@
 			<fields>
 				<field>
 					<type>checkbox-group</type>
-					<id>categories</id>
+					<id>tags</id>
 					<iceId></iceId>
-					<title>Categories</title>
+					<title>Tags</title>
 					<description></description>
 					<defaultValue></defaultValue>
 					<help></help>
 					<properties>
 						<property>
 							<name>datasource</name>
-							<value>categories</value>
+							<value>tags</value>
 							<type>datasource:item</type>
 						</property>
 						<property>
@@ -336,7 +336,7 @@
 				</field>
 				<field>
 					<type>date-time</type>
-					<id>date</id>
+					<id>date_dt</id>
 					<iceId></iceId>
 					<title>Date</title>
 					<description></description>
@@ -552,8 +552,8 @@
 				</datasource>
 				<datasource>
 					<type>key-value-list</type>
-					<id>categories</id>
-					<title>Categories</title>
+					<id>tags</id>
+					<title>Tags</title>
 					<interface>item</interface>
 					<properties>
 						<property>
