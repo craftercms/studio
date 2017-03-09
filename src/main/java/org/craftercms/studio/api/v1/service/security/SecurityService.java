@@ -245,4 +245,13 @@ public interface SecurityService {
      * @return
      */
     boolean setUserPassword(String username, String token, String newPassword);
+
+    /**
+     * Reset user password
+     *
+     * @param username username
+     * @param newPassword new password
+     * @return
+     */
+    boolean resetPassword(String username, String newPassword);
 }

@@ -715,6 +715,17 @@ public class SecurityServiceImpl implements SecurityService {
         }
     }
 
+    @Override
+    public boolean resetPassword(String username, String newPassword) {
+        String currentUser = getCurrentUser();
+
+        if (isAdmin(currentUser)) {
+            return securityProvider.setUserPassword(username, newPassword);
+        } else {
+            return false;
+        }
+    }
+
     private boolean isAdmin(String username) {
         UserDetails userDetails = userDetailsManager.loadUserByUsername(username);
         Collection<? extends GrantedAuthority> authorities = userDetails.getAuthorities();

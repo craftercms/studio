@@ -170,4 +170,10 @@ class SpringSecurityServices {
         def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
         return springBackedService.validateToken(token)
     }
+
+    def resetPassword(username, newPassword) {
+        def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
+        return springBackedService.resetPassword(username, newPassword)
+    }
+
 }
