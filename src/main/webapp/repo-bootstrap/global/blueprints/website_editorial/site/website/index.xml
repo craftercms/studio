@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <page>
-	<content-type>/page/home-page</content-type>	<display-template>/templates/web/home-page.ftl</display-template>
+	<content-type>/page/home</content-type>	<display-template>/templates/web/pages/home.ftl</display-template>
 	<merge-strategy>inherit-levels</merge-strategy>
 	<placeInNav>false</placeInNav>
 	<file-name>index.xml</file-name>
@@ -11,8 +11,8 @@
 	<folder-name/>
 	<createdDate>1/31/2017 16:18:14</createdDate>
 	<createdDate_dt>1/31/2017 16:18:14</createdDate_dt>
-	<lastModifiedDate>2/14/2017 19:1:15</lastModifiedDate>
-	<lastModifiedDate_dt>2/14/2017 19:1:15</lastModifiedDate_dt>
+	<lastModifiedDate>3/9/2017 20:41:53</lastModifiedDate>
+	<lastModifiedDate_dt>3/9/2017 20:41:53</lastModifiedDate_dt>
 	<title>Editorial</title>
 	<hero_text>&lt;p&gt;Aenean ornare velit lacus, ac varius enim ullamcorper eu. Proin aliquam facilisis ante interdum congue. Integer mollis, nisl amet convallis, porttitor magna ullamcorper, amet egestas mauris. Ut magna finibus nisi nec lacinia. Nam maximus erat id euismod egestas. Pellentesque sapien ac quam. Lorem ipsum dolor sit nullam.&lt;/p&gt;</hero_text>
 	<hero_title>&lt;h1&gt;&lt;span&gt;Hi, I&amp;rsquo;m Editorial&lt;/span&gt;&lt;/h1&gt;

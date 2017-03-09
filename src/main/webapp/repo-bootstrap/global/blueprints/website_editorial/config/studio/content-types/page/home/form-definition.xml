@@ -1,12 +1,12 @@
 <form>
-	<title>Home Page</title>
+	<title>Page - Home</title>
 	<description></description>
 	<objectType>page</objectType>
-	<content-type>/page/home-page</content-type>
+	<content-type>/page/home</content-type>
 	<properties>		<property>
 			<name>display-template</name>
 			<label>Display Template</label>
-			<value>/templates/web/home-page.ftl</value>
+			<value>/templates/web/pages/home.ftl</value>
 			<type>template</type>
 		</property>
 		<property>
@@ -17,7 +17,7 @@
 		</property>
 	</properties>
 	<sections>		<section>
-			<title>Home Page Properties</title>
+			<title>Page - Home Properties</title>
 			<description></description>
 			<defaultOpen>true</defaultOpen>
 			<fields>
