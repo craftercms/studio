@@ -17,8 +17,8 @@ class SearchHelper {
   def searchArticlesByFeatured() {
     def queryStr = "${ARTICLE_CONTENT_TYPE_QUERY_STR} AND featured_b:true"
     def query = createSortedArticleQuery(queryStr)
-	def result = searchService.search(query)
-    
+    def result = searchService.search(query)
+
     if (result) {
     	return result.response.documents
     } else {
@@ -42,7 +42,7 @@ class SearchHelper {
     def queryStr = "${ARTICLE_CONTENT_TYPE_QUERY_STR} AND ${tagsQueryStr} AND ${audienceQueryStr}"
     def query = createSortedArticleQuery(queryStr)
 	def result = searchService.search(query)
-    
+
 	if (result) {
     	return result.response.documents
     } else {

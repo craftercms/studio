@@ -437,9 +437,9 @@
 				</field>
 				<field>
 					<type>textarea</type>
-					<id>headline</id>
+					<id>summary</id>
 					<iceId></iceId>
-					<title>Headline</title>
+					<title>Summary</title>
 					<description></description>
 					<defaultValue></defaultValue>
 					<help></help>
