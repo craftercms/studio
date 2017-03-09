@@ -167,11 +167,6 @@ class SecurityServices {
         return securityServicesImpl.forgotPassword(username)
     }
 
-    static forgotPasswordValidateToken(context, token) {
-        def securityServicesImpl = ServiceFactory.getSecurityServices(context)
-        return securityServicesImpl.forgotPasswordValidateToken(token)
-    }
-
     static changePassword(context, username, current, newPassword) {
         def securityServicesImpl = ServiceFactory.getSecurityServices(context)
         return securityServicesImpl.changePassword(username, current, newPassword)

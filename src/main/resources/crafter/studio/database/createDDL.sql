@@ -219,7 +219,8 @@ CREATE TABLE cstudio_group
   `description` VARCHAR(3000),
   `site_id` BIGINT(20),
   PRIMARY KEY (`id`),
-  FOREIGN KEY group_site_fk(site_id) REFERENCES cstudio_site(id)
+  FOREIGN KEY group_site_fk(site_id) REFERENCES cstudio_site(id) ON DELETE CASCADE,
+  UNIQUE `uq_group_name_siteid` (`name`, `site_id`)
 )
   ENGINE =InnoDB
   DEFAULT CHARSET =utf8
@@ -231,8 +232,8 @@ CREATE TABLE cstudio_usergroup
   `username` VARCHAR(255) NOT NULL,
   `groupid` BIGINT NOT NULL,
   PRIMARY KEY (`id`),
-  FOREIGN KEY user_ug_foreign_key(username) REFERENCES cstudio_user(username),
-  FOREIGN KEY group_ug_foreign_key(groupid) REFERENCES cstudio_group(id)
+  FOREIGN KEY user_ug_foreign_key(username) REFERENCES cstudio_user(username) ON DELETE CASCADE,
+  FOREIGN KEY group_ug_foreign_key(groupid) REFERENCES cstudio_group(id) ON DELETE CASCADE
 )
   ENGINE =InnoDB
   DEFAULT CHARSET =utf8

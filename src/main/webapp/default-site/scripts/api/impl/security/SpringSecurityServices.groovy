@@ -156,11 +156,6 @@ class SpringSecurityServices {
         return springBackedService.forgotPassword(username)
     }
 
-    def forgotPasswordValidateToken(token) {
-        def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
-        return springBackedService.forgotPasswordValidateToken(token)
-    }
-
     def changePassword(username, current, newPassword) {
         def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
         return springBackedService.changePassword(username, current, newPassword)
