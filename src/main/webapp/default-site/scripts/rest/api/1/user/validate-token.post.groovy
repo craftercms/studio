@@ -17,24 +17,26 @@
  *
  */
 
+import groovy.json.JsonSlurper
 import scripts.api.SecurityServices
 
 def result = [:]
+def requestBody = request.reader.text
 
-def username = params.username
+def slurper = new JsonSlurper()
+def parsedReq = slurper.parseText(requestBody)
+
+def token = parsedReq.token;
 
 def context = SecurityServices.createContext(applicationContext, request)
 try {
-    def res = SecurityServices.forgotPassword(context, username);
-    if (res.success) {
-        def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/user/get?username=" + username
-        response.addHeader("Location", locationHeader)
-        result.message = res.message;
-        return result;
+    def success = SecurityServices.validateToken(context, token)
+    if (success) {
+        result.message = "OK"
+        response.setStatus(200)
     } else {
-        response.setStatus(404)
-        result.message = res.message
-        return result;
+        result.message = "Unauthorized"
+        response.setStatus(401)
     }
 } catch (Exception e) {
     response.setStatus(500)

@@ -452,7 +452,7 @@ public class DbSecurityProvider implements SecurityProvider {
                 }
                 Map<String, Object> group = new HashMap<String, Object>();
                 group.put("group_name", row.getGroupName());
-                group.put("group_description", row.getGroupDescription());
+                group.put("description", row.getGroupDescription());
                 groups.add(group);
                 lastSite = siteId;
             }
@@ -491,7 +491,7 @@ public class DbSecurityProvider implements SecurityProvider {
                     }
                     group = new HashMap<String, Object>();
                     group.put("group_name", groupName);
-                    group.put("group_description", row.getGroupDescription());
+                    group.put("description", row.getGroupDescription());
                     users = new ArrayList<Map<String, Object>>();
                 }
                 if (StringUtils.isNotEmpty(row.getUsername())) {
