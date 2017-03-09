@@ -1,8 +1,8 @@
 <!-- Example site configuration -->
 <site-config>
-    <wem-project>{siteName}</wem-project>
-    <name>{siteName}</name>
-    <display-name>{siteName}</display-name>
+    <wem-project>666</wem-project>
+    <name>666</name>
+    <display-name>666</display-name>
     <default-timezone>EST5EDT</default-timezone>
     <default-content-type/>
     <namespace-to-type-map>
