@@ -18,6 +18,8 @@
 
 package org.craftercms.studio.api.v1.service.security;
 
+import org.craftercms.studio.api.v1.exception.ServiceException;
+
 import java.util.List;
 import java.util.Set;
 import java.util.Map;
@@ -214,7 +216,7 @@ public interface SecurityService {
      * @param username username
      * @return
      */
-    boolean forgotPassword(String username);
+    Map<String, Object> forgotPassword(String username) throws ServiceException;
 
     /**
      * Forgot password token to validate

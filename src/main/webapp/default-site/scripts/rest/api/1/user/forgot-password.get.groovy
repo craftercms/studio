@@ -25,18 +25,19 @@ def username = params.username
 
 def context = SecurityServices.createContext(applicationContext, request)
 try {
-    def success = SecurityServices.forgotPassword(context, username);
-    if (success) {
+    def res = SecurityServices.forgotPassword(context, username);
+    if (res.success) {
         def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/user/get?username=" + username
         response.addHeader("Location", locationHeader)
-        return success;
+        result.message = res.message;
+        return result;
     } else {
         response.setStatus(404)
-        result.status = "User not found"
+        result.message = res.message
         return result;
     }
 } catch (Exception e) {
     response.setStatus(500)
-    result.status = "Internal server error"
+    result.message = "Internal server error"
     return result;
 }
