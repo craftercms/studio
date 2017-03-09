@@ -631,7 +631,7 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
-    public boolean forgotPasswordValidateToken(String token) {
+    public boolean validateToken(String token) {
         String decryptedToken = decryptToken(token);
         StringTokenizer tokenElements = new StringTokenizer(decryptedToken, "|");
         if (tokenElements.countTokens() == 3) {
@@ -708,7 +708,7 @@ public class SecurityServiceImpl implements SecurityService {
     public boolean setUserPassword(String username, String token, String newPassword) {
         String currentUser = getCurrentUser();
 
-        if (isAdmin(currentUser) || forgotPasswordValidateToken(token)) {
+        if (isAdmin(currentUser) || validateToken(token)) {
             return securityProvider.setUserPassword(username, newPassword);
         } else {
             return false;

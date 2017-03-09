@@ -224,7 +224,7 @@ public interface SecurityService {
      * @param username token
      * @return
      */
-    boolean forgotPasswordValidateToken(String token);
+    boolean validateToken(String token);
 
     /**
      * Change password
