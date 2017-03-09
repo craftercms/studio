@@ -176,4 +176,14 @@ class SecurityServices {
         def securityServicesImpl = ServiceFactory.getSecurityServices(context)
         return securityServicesImpl.setUserPassword(username, token, newPassword)
     }
+
+    static validateToken(context, token) {
+        def securityServicesImpl = ServiceFactory.getSecurityServices(context)
+        return securityServicesImpl.validateToken(token)
+    }
+
+    static resetPassword(context, username, newPassword) {
+        def securityServicesImpl = ServiceFactory.getSecurityServices(context)
+        return securityServicesImpl.resetPassword(username, newPassword)
+    }
 }
