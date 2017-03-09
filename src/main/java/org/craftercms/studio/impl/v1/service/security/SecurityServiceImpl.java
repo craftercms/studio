@@ -595,17 +595,29 @@ public class SecurityServiceImpl implements SecurityService {
 
     @Override
     public boolean forgotPassword(String username) {
+        logger.debug("Gettting user profile for " + username);
         Map<String, Object> userProfile = securityProvider.getUserProfile(username);
-        if (userProfile == null) return false;
+        if (userProfile == null) {
+            logger.info("User profile not found for " + username);
+            return false;
+        }
 
-        String email = userProfile.get("email").toString();
-        long timestamp = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(15);
-        String salt = studioConfiguration.getProperty(SECURITY_CIPHER_SALT);
+        if (userProfile.get("email") != null) {
+            String email = userProfile.get("email").toString();
 
-        String token = username + "|" + timestamp + "|" + salt;
-        String hashedToken = encryptToken(token);
-        sendForgotPasswordEmail(email, hashedToken);
-        return true;
+            logger.debug("Creating security token for forgot password");
+            long timestamp = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(15);
+            String salt = studioConfiguration.getProperty(SECURITY_CIPHER_SALT);
+
+            String token = username + "|" + timestamp + "|" + salt;
+            String hashedToken = encryptToken(token);
+            logger.debug("Sending forgot password email to " + email);
+            sendForgotPasswordEmail(email, hashedToken);
+            return true;
+        } else {
+            logger.info("User " + username + " does not have assigned email with account");
+            return false;
+        }
     }
 
     @Override

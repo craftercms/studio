@@ -155,8 +155,8 @@
           cu.lastname AS last_name,
           cu.email AS email
         FROM cstudio_group cg INNER JOIN cstudio_site cs ON cg.site_id = cs.id
-          INNER JOIN cstudio_usergroup cug ON cg.id = cug.groupid
-          INNER JOIN cstudio_user cu ON cug.username = cu.username
+          LEFT JOIN cstudio_usergroup cug ON cg.id = cug.groupid
+          LEFT JOIN cstudio_user cu ON cug.username = cu.username
         WHERE cs.site_id = #{site}
     </select>
 
