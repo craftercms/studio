@@ -82,6 +82,7 @@
         cstudio_user cu LEFT JOIN cstudio_usergroup cug on cu.username = cug.username
         LEFT JOIN cstudio_group cg on cug.groupId = cg.id
         LEFT JOIN cstudio_site cs on cg.site_id=cs.id
+        ORDER BY username
     </select>
 
     <select id="getUsersPerSite" resultMap="UserProfileResultMap">
@@ -90,6 +91,7 @@
         INNER JOIN cstudio_group cg on cug.groupId = cg.id
         INNER JOIN cstudio_site cs on cg.site_id=cs.id
         WHERE cs.site_id = #{site}
+        ORDER BY username
     </select>
 
     <select id="getUserGroups" resultType="Group">
@@ -155,8 +157,8 @@
           cu.lastname AS last_name,
           cu.email AS email
         FROM cstudio_group cg INNER JOIN cstudio_site cs ON cg.site_id = cs.id
-          INNER JOIN cstudio_usergroup cug ON cg.id = cug.groupid
-          INNER JOIN cstudio_user cu ON cug.username = cu.username
+          LEFT JOIN cstudio_usergroup cug ON cg.id = cug.groupid
+          LEFT JOIN cstudio_user cu ON cug.username = cu.username
         WHERE cs.site_id = #{site}
     </select>
 
