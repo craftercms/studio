@@ -255,14 +255,6 @@
         <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
-    <bean id="cstudioDmMetadataService" class="org.craftercms.studio.impl.v1.service.content.DmMetadataServiceImpl"
-          parent="cstudioRegistrableService">
-         <property name="securityService" ref="cstudioSecurityService" />
-        <property name="contentService" ref="cstudioContentService"/>
-        <property name="scriptExecutor" ref="studioGroovyScriptExecutor"/>
-        <property name="studioConfiguration" ref="studioConfiguration" />
-    </bean>
-
     <bean id="cstudioContentLifeCycleService" class="org.craftercms.studio.impl.v1.service.content.DmContentLifeCycleServiceImpl"
           parent="cstudioRegistrableService">
         <property name="contentService" ref="cstudioContentService"/>
@@ -684,7 +676,6 @@
                 <ref bean="cstudioFormDmContentProcessor"></ref>
                 <!--<ref bean="cstudioWcmSnapshotProcessor"></ref>-->
                 <ref bean="cstudioCleanPreviewContentProcessor"></ref>
-                <ref bean="cstudioExtractMetadataProcessor"></ref>
                 <ref bean="cstudioExtractDependencyProcessor"></ref>
                 <ref bean="cstudioDmWorkflowProcessor"></ref>
                 <ref bean="cstudioPostActivityProcessor"></ref>
@@ -710,7 +701,6 @@
                 <ref bean="cstudioFormNavOrderProcessor"></ref>
                 <ref bean="cstudioFileFolderPathProcessor"></ref>
                 <ref bean="cstudioImportContentProcessor"></ref>
-                <ref bean="cstudioExtractMetadataProcessor"></ref>
                 <ref bean="cstudioExtractDependencyProcessor"></ref>
                 <ref bean="cstudioPostActivityProcessor"></ref>
                 <ref bean="cstudioContentLifeCycleProcessor"></ref>
@@ -776,10 +766,6 @@
     </bean>
 
     <bean id="cstudioCleanWorkContentProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.CleanWorkContentProcessor"/>
-
-    <bean id="cstudioExtractMetadataProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.ExtractMetadataProcessor">
-        <property name="dmMetadataService" ref="cstudioDmMetadataService" />
-    </bean>
 
     <bean id="cstudioExtractDependencyProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.ExtractDependencyProcessor">
         <property name="dmDependencyService" ref="cstudioDmDependencyService"/>
