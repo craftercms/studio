@@ -25,10 +25,14 @@ import org.craftercms.commons.crypto.CryptoUtils;
 import org.craftercms.commons.http.RequestContext;
 import org.craftercms.studio.api.v1.dal.*;
 import org.craftercms.studio.api.v1.ebus.RepositoryEventContext;
+import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
 import org.craftercms.studio.api.v1.job.CronJobContext;
+import org.craftercms.studio.api.v1.log.Logger;
+import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
 
 import javax.servlet.http.HttpSession;
 import java.util.*;
@@ -36,6 +40,8 @@ import java.util.*;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_DB_SESSION_TIMEOUT;
 
 public class DbSecurityProvider implements SecurityProvider {
+
+    public final static Logger logger = LoggerFactory.getLogger(DbSecurityProvider.class);
 
     @Override
     public Set<String> getUserGroups(String user) {
@@ -398,7 +404,7 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public boolean createGroup(String groupName, String description, String siteId) {
+    public boolean createGroup(String groupName, String description, String siteId) throws GroupAlreadyExistsException {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("siteId", siteId);
         SiteFeed site = siteFeedMapper.getSite(params);
@@ -407,7 +413,12 @@ public class DbSecurityProvider implements SecurityProvider {
             params.put("name", groupName);
             params.put("description", description);
             params.put("siteId", site.getId());
-            securityMapper.createGroup(params);
+            try {
+                securityMapper.createGroup(params);
+            } catch (DuplicateKeyException e) {
+                logger.error("Error creating group " + groupName, e);
+                throw new GroupAlreadyExistsException("Group already exists.", e);
+            }
             return true;
         } else {
             return false;

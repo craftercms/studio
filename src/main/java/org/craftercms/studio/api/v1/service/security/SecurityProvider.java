@@ -18,6 +18,8 @@
 
 package org.craftercms.studio.api.v1.service.security;
 
+import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
+
 import java.util.List;
 import java.util.Set;
 import java.util.Map;
@@ -113,7 +115,7 @@ public interface SecurityProvider {
      * @param siteId
      * @return
      */
-    boolean createGroup(String groupName, String description, String siteId);
+    boolean createGroup(String groupName, String description, String siteId) throws GroupAlreadyExistsException;
 
     /**
      * Get all users
