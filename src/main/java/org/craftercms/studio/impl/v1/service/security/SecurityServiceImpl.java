@@ -709,7 +709,7 @@ public class SecurityServiceImpl implements SecurityService {
     public boolean setUserPassword(String username, String token, String newPassword) {
         String currentUser = getCurrentUser();
 
-        if (isAdmin(currentUser) || validateToken(token)) {
+        if (validateToken(token)) {
             return securityProvider.setUserPassword(username, newPassword);
         } else {
             return false;
