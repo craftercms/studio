@@ -18,6 +18,7 @@
  */
 
 import groovy.json.JsonSlurper
+import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException
 import scripts.api.SecurityServices
 
 def result = [:]
@@ -33,13 +34,19 @@ def siteId = parsedReq.site_id
 def context = SecurityServices.createContext(applicationContext, request)
 try {
     SecurityServices.createGroup(context, groupName, description, siteId);
-    result.status = "OK"
+    result.message = "OK"
     response.setStatus(201)
     def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/group/get?group_name=" + groupName
     response.addHeader("Location", locationHeader)
     return result
+} catch (GroupAlreadyExistsException e) {
+    response.setStatus(409)
+    def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/group/get?group_name=" + groupName
+    response.addHeader("Location", locationHeader)
+    result.message = "Group already exists"
+    return result
 } catch (Exception e) {
     response.setStatus(500)
-    result.status = "Internal server error"
+    result.message = "Internal server error"
     return result
 }
