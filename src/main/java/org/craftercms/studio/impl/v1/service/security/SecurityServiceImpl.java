@@ -718,6 +718,10 @@ public class SecurityServiceImpl implements SecurityService {
 
     @Override
     public boolean resetPassword(String username, String newPassword) {
+        UserDetails userDetails = userDetailsManager.loadUserByUsername(username);
+        if (userDetails == null) {
+            return false;
+        }
         String currentUser = getCurrentUser();
 
         if (isAdmin(currentUser)) {
@@ -728,15 +732,17 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     private boolean isAdmin(String username) {
-        UserDetails userDetails = userDetailsManager.loadUserByUsername(username);
-        Collection<? extends GrantedAuthority> authorities = userDetails.getAuthorities();
+        Set<String> userGroups = securityProvider.getUserGroups(username);
         boolean toRet = false;
-        for (GrantedAuthority authority : authorities) {
-            if (authority.getAuthority().equalsIgnoreCase("ADMIN")) {
-                toRet = true;
+        if (CollectionUtils.isNotEmpty(userGroups)) {
+            for (String group : userGroups) {
+                if (StringUtils.equalsIgnoreCase(group, "crafter-admin")) {
+                    toRet = true;
+                    break;
+                }
             }
         }
-        return false;
+        return toRet;
     }
 
     public String getConfigPath() {

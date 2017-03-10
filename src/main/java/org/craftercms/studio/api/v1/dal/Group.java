@@ -19,9 +19,11 @@
 
 package org.craftercms.studio.api.v1.dal;
 
+import org.springframework.security.core.GrantedAuthority;
+
 import java.io.Serializable;
 
-public class Group implements Serializable {
+public class Group implements Serializable, GrantedAuthority {
 
     private static final long serialVersionUID = 4723035066512137838L;
 
@@ -41,4 +43,9 @@ public class Group implements Serializable {
 
     public long getSiteId() { return siteId; }
     public void setSiteId(long siteId) { this.siteId = siteId; }
+
+    @Override
+    public String getAuthority() {
+        return name;
+    }
 }
