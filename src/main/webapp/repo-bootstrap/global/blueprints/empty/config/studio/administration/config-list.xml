@@ -13,24 +13,6 @@
             <samplePath>/administration/samples/sample-tools.xml</samplePath>
         </file>
         <file>
-            <path>/analytics/dashboard-config.xml</path>
-            <title>confTabAnalyticsDashboardConf</title>
-            <description>confTabAnalyticsDashboardConfDesc</description>
-            <samplePath>/administration/samples/sample-analytics-dashboard-config.xml</samplePath>
-        </file>
-        <file>
-            <path>/analytics/preview-config.xml</path>
-            <title>confTabAnalyticsPreviewConf</title>
-            <description></description>
-            <samplePath>/administration/samples/sample-analytics-preview-config.xml</samplePath>
-        </file>
-        <file>
-            <path>/analytics/report-config.xml</path>
-            <title>confTabAnalyticsReportConf</title>
-            <description></description>
-            <samplePath>/administration/samples/sample-analytics-report-config.xml</samplePath>
-        </file>
-        <file>
             <path>/context-nav/contextual-nav.xml</path>
             <title>confTabContextualNavigationConf</title>
             <description>confTabContextualNavigationConfDesc</description>
@@ -43,34 +25,10 @@
             <samplePath>/administration/samples/sample-site-dropdown.xml</samplePath>
         </file>
         <file>
-            <path>/deployment/endpoints-config.xml</path>
-            <title>confTabEndpointsConf</title>
-            <description>confTabEndpointsConfDesc</description>
-            <samplePath>/administration/samples/sample-endpoints-config.xml</samplePath>
-        </file>
-        <file>
-            <path>/environment-overrides/dev/environment-config.xml</path>
-            <title>confTabLocalEnvironmentConf</title>
-            <description>confTabLocalEnvironmentConfDesc</description>
-            <samplePath>/administration/samples/sample-local-environment-config.xml</samplePath>
-        </file>
-        <file>
-            <path>/form-control-config/configured-lists/targets.xml</path>
-            <title>confTabTargetsConf</title>
-            <description>confTabTargetsConfDesc</description>
-            <samplePath>/administration/samples/sample-configured-lists-targets.xml</samplePath>
-        </file>
-        <file>
             <path>/form-control-config/rte/rte-setup.xml</path>
             <title>confTabRTEConf</title>
             <description>confTabRTEConfDesc</description>
             <samplePath>/administration/samples/sample-form-control-rte-setup.xml</samplePath>
-        </file>
-        <file>
-            <path>/preview-tools/assets-config.xml</path>
-            <title>confTabPreviewAssetConf</title>
-            <description>confTabPreviewAssetConfDesc</description>
-            <samplePath>/administration/samples/sample-preview-assets-config.xml</samplePath>
         </file>
         <file>
             <path>/preview-tools/components-config.xml</path>
@@ -113,12 +71,6 @@
             <title>confTabSiteConf</title>
             <description>confTabSiteConfDesc</description>
             <samplePath>/administration/samples/sample-site-config.xml</samplePath>
-        </file>
-        <file>
-            <path>/workflow-config.xml</path>
-            <title>confTabWorkflowConf</title>
-            <description>confTabWorkflowConfDesc</description>
-            <samplePath>/administration/samples/sample-workflow-config.xml</samplePath>
         </file>
     </files>
 </config>
