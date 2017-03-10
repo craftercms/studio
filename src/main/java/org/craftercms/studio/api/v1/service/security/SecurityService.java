@@ -18,6 +18,9 @@
 
 package org.craftercms.studio.api.v1.service.security;
 
+import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
+
 import java.util.List;
 import java.util.Set;
 import java.util.Map;
@@ -107,7 +110,7 @@ public interface SecurityService {
      * @param siteId
      * @return
      */
-    boolean createGroup(String groupName, String description, String siteId);
+    boolean createGroup(String groupName, String description, String siteId) throws GroupAlreadyExistsException;
 
     /**
      * Get status for given user
@@ -214,7 +217,7 @@ public interface SecurityService {
      * @param username username
      * @return
      */
-    boolean forgotPassword(String username);
+    Map<String, Object> forgotPassword(String username) throws ServiceException;
 
     /**
      * Forgot password token to validate
@@ -222,7 +225,7 @@ public interface SecurityService {
      * @param username token
      * @return
      */
-    boolean forgotPasswordValidateToken(String token);
+    boolean validateToken(String token);
 
     /**
      * Change password
@@ -243,4 +246,13 @@ public interface SecurityService {
      * @return
      */
     boolean setUserPassword(String username, String token, String newPassword);
+
+    /**
+     * Reset user password
+     *
+     * @param username username
+     * @param newPassword new password
+     * @return
+     */
+    boolean resetPassword(String username, String newPassword);
 }

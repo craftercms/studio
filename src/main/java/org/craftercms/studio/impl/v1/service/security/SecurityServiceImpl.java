@@ -29,12 +29,14 @@ import java.security.NoSuchProviderException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoUtils;
 import org.craftercms.commons.http.RequestContext;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.StudioXmlConstants;
 import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
@@ -51,6 +53,7 @@ import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.Node;
+import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.core.GrantedAuthority;
@@ -549,7 +552,7 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
-    public boolean createGroup(String groupName, String description, String siteId) {
+    public boolean createGroup(String groupName, String description, String siteId) throws GroupAlreadyExistsException {
         return securityProvider.createGroup(groupName, description, siteId);
     }
 
@@ -594,34 +597,42 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
-    public boolean forgotPassword(String username) {
+    public Map<String, Object> forgotPassword(String username) throws ServiceException {
         logger.debug("Gettting user profile for " + username);
         Map<String, Object> userProfile = securityProvider.getUserProfile(username);
-        if (userProfile == null) {
+        boolean success = false;
+        String message = StringUtils.EMPTY;
+        if (userProfile == null || userProfile.isEmpty()) {
             logger.info("User profile not found for " + username);
-            return false;
-        }
-
-        if (userProfile.get("email") != null) {
-            String email = userProfile.get("email").toString();
-
-            logger.debug("Creating security token for forgot password");
-            long timestamp = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(15);
-            String salt = studioConfiguration.getProperty(SECURITY_CIPHER_SALT);
-
-            String token = username + "|" + timestamp + "|" + salt;
-            String hashedToken = encryptToken(token);
-            logger.debug("Sending forgot password email to " + email);
-            sendForgotPasswordEmail(email, hashedToken);
-            return true;
+            success = false;
+            message = "User not found";
         } else {
-            logger.info("User " + username + " does not have assigned email with account");
-            return false;
+            if (userProfile.get("email") != null) {
+                String email = userProfile.get("email").toString();
+
+                logger.debug("Creating security token for forgot password");
+                long timestamp = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(15);
+                String salt = studioConfiguration.getProperty(SECURITY_CIPHER_SALT);
+
+                String token = username + "|" + timestamp + "|" + salt;
+                String hashedToken = encryptToken(token);
+                logger.debug("Sending forgot password email to " + email);
+                sendForgotPasswordEmail(email, hashedToken);
+                success = true;
+                message = "OK";
+            } else {
+                logger.info("User " + username + " does not have assigned email with account");
+                throw new ServiceException("User " + username + " does not have assigned email with account");
+            }
         }
+        Map<String, Object> toRet = new HashMap<String, Object>();
+        toRet.put("success", success);
+        toRet.put("message", message);
+        return toRet;
     }
 
     @Override
-    public boolean forgotPasswordValidateToken(String token) {
+    public boolean validateToken(String token) {
         String decryptedToken = decryptToken(token);
         StringTokenizer tokenElements = new StringTokenizer(decryptedToken, "|");
         if (tokenElements.countTokens() == 3) {
@@ -675,10 +686,17 @@ public class SecurityServiceImpl implements SecurityService {
         } catch (UnsupportedEncodingException e) {
             message.setText(studioConfiguration.getProperty(SECURITY_FORGOT_PASSWORD_MESSAGE_TEXT).replace("{token}", URLEncoder.encode(token)));
         }
-        if (isAuthenticatedSMTP()) {
-            emailService.send(message);
-        } else {
-            emailServiceNoAuth.send(message);
+        logger.info("Sending password recovery message to " + emailAddress);
+        try {
+            if (isAuthenticatedSMTP()) {
+                emailService.send(message);
+            } else {
+                emailServiceNoAuth.send(message);
+            }
+            logger.info("Password recovery message successfully sent to " + emailAddress);
+        } catch (MailException e) {
+            logger.error("Failed to send password recovery message to " + emailAddress, e);
+            throw e;
         }
     }
 
@@ -691,7 +709,18 @@ public class SecurityServiceImpl implements SecurityService {
     public boolean setUserPassword(String username, String token, String newPassword) {
         String currentUser = getCurrentUser();
 
-        if (isAdmin(currentUser) || forgotPasswordValidateToken(token)) {
+        if (isAdmin(currentUser) || validateToken(token)) {
+            return securityProvider.setUserPassword(username, newPassword);
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public boolean resetPassword(String username, String newPassword) {
+        String currentUser = getCurrentUser();
+
+        if (isAdmin(currentUser)) {
             return securityProvider.setUserPassword(username, newPassword);
         } else {
             return false;

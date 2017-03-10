@@ -132,7 +132,7 @@
     </insert>
 
     <select id="getGroup" parameterType="java.util.Map" resultType="java.util.Map">
-        SELECT cg.name AS group_name, cg.description AS group_description, cs.site_id AS site_id
+        SELECT cg.name AS group_name, cg.description AS description, cs.site_id AS site_id
         FROM cstudio_group cg INNER JOIN cstudio_site cs on cg.site_id = cs.id
         WHERE cs.site_id = #{siteId} AND cg.name = #{groupName}
     </select>

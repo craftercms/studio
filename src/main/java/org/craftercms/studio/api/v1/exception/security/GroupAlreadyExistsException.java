@@ -17,27 +17,27 @@
  *
  */
 
-import scripts.api.SecurityServices
+package org.craftercms.studio.api.v1.exception.security;
 
-def result = [:]
+public class GroupAlreadyExistsException extends Exception {
+    private static final long serialVersionUID = 5510295023051460726L;
 
-def username = params.username
-
-def context = SecurityServices.createContext(applicationContext, request)
-try {
-    def res = SecurityServices.forgotPassword(context, username);
-    if (res.success) {
-        def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/user/get?username=" + username
-        response.addHeader("Location", locationHeader)
-        result.message = res.message;
-        return result;
-    } else {
-        response.setStatus(404)
-        result.message = res.message
-        return result;
+    public GroupAlreadyExistsException() {
     }
-} catch (Exception e) {
-    response.setStatus(500)
-    result.message = "Internal server error"
-    return result;
+
+    public GroupAlreadyExistsException(String message) {
+        super(message);
+    }
+
+    public GroupAlreadyExistsException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public GroupAlreadyExistsException(Throwable cause) {
+        super(cause);
+    }
+
+    public GroupAlreadyExistsException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+        super(message, cause, enableSuppression, writableStackTrace);
+    }
 }

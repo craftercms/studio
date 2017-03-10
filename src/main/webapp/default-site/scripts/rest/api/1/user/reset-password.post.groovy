@@ -18,7 +18,6 @@
  */
 
 import groovy.json.JsonSlurper
-import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException
 import scripts.api.SecurityServices
 
 def result = [:]
@@ -27,26 +26,24 @@ def requestBody = request.reader.text
 def slurper = new JsonSlurper()
 def parsedReq = slurper.parseText(requestBody)
 
-def groupName = parsedReq.group_name
-def description = parsedReq.description
-def siteId = parsedReq.site_id
+def username = parsedReq.username;
+def newPassword = parsedReq.new;
 
 def context = SecurityServices.createContext(applicationContext, request)
 try {
-    SecurityServices.createGroup(context, groupName, description, siteId);
-    result.message = "OK"
-    response.setStatus(201)
-    def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/group/get?group_name=" + groupName
-    response.addHeader("Location", locationHeader)
-    return result
-} catch (GroupAlreadyExistsException e) {
-    response.setStatus(409)
-    def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/group/get?group_name=" + groupName
-    response.addHeader("Location", locationHeader)
-    result.message = "Group already exists"
-    return result
+    def success = SecurityServices.resetPassword(context, username, newPassword)
+    if (success) {
+        def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/user/get?username=" + username
+        response.addHeader("Location", locationHeader)
+        result.message = "OK"
+        response.setStatus(200)
+    } else {
+        response.setStatus(404)
+        result.message = "User not found"
+        return result;
+    }
 } catch (Exception e) {
     response.setStatus(500)
     result.message = "Internal server error"
-    return result
+    return result;
 }
