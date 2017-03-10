@@ -150,7 +150,7 @@ studio.security.cipher.algorithm: AES/CBC/PKCS5Padding
 # Forgot password email subject
 studio.security.forgotPassword.message.subject: Forgot Password
 # Forgot password email text
-studio.security.forgotPassword.message.text: http://localhost:8080/studio/api/1/services/api/1/user/change-password.json?token={token}
+studio.security.forgotPassword.message.text: http://localhost:8080/studio#/reset-password?token={token}
 
 ###############################################################
 ##               Page Navigation Order Service               ##
@@ -161,8 +161,6 @@ studio.pageNavigationOrder.increment: 1000
 ############################################################
 ##                   Content Processors                   ##
 ############################################################
-# Location where groovy script for metadata extraction processor is stored.
-studio.contentProcessor.extractMetadata.scriptLocation: /config/studio/content-types/{content-type}/extract.groovy
 # Location where groovy script for content lifecycle processor is stored.
 studio.contentProcessor.contentLifeCycle.scriptLocation: /config/studio/content-types/{content-type}/controller.groovy
 # Path pattern where system assets are stored.
