@@ -26,7 +26,7 @@
 						<div class="inner">
 
 							<!-- Header -->
-                          		<@renderComponent component=model.header.item />
+                          		<@renderComponent component=contentModel.header.item />
 
 							<!-- Content -->
 								<section>
@@ -34,8 +34,16 @@
 										<h1>${contentModel.subject!""}</h1>
                                         <h2>by ${contentModel.author!""}</h2>
 									</header>
+                                    
+									<#if contentModel.image??>
+										<#assign image = contentModel.image/>
+									<#else>
+										<#assign image = "/static-assets/images/pic11.jpg"/>                                                	
+									</#if>
+                                    
+                                    <span class="image main"><img src="${image}" alt="" /></span>
 
-                                    <#list model.sections.item as item>
+                                    <#list contentModel.sections.item as item>
                                     	<div <@studio.iceAttr iceGroup="article"/>>
 											${item.section_html}
                                         </div>
