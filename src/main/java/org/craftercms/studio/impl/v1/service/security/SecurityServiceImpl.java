@@ -38,6 +38,7 @@ import org.craftercms.studio.api.v1.constant.StudioXmlConstants;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
@@ -709,14 +710,40 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
-    public boolean setUserPassword(String username, String token, String newPassword) {
-        String currentUser = getCurrentUser();
-
+    public Map<String, Object> setUserPassword(String token, String newPassword) throws UserNotFoundException {
+        Map<String, Object> toRet = new HashMap<String, Object>();
+        toRet.put("username", StringUtils.EMPTY);
+        toRet.put("success", false);
         if (validateToken(token)) {
-            return securityProvider.setUserPassword(username, newPassword);
-        } else {
-            return false;
+            String username = getUsernameFromToken(token);
+            if (StringUtils.isNotEmpty(username)) {
+                toRet.put("username", username);
+                Map<String, Object> userStatus = securityProvider.getUserStatus(username);
+                if (userStatus != null && !userStatus.isEmpty()) {
+                    boolean enabled = (Boolean)userStatus.get("enabled");
+                    if (enabled) {
+                        toRet.put("success",securityProvider.setUserPassword(username, newPassword));
+                    }
+                } else {
+                    throw new UserNotFoundException("User not found");
+                }
+            } else {
+                throw new UserNotFoundException("User not found");
+            }
         }
+        return toRet;
+    }
+
+    private String getUsernameFromToken(String token) {
+        String toRet = StringUtils.EMPTY;
+        String decryptedToken = decryptToken(token);
+        if (StringUtils.isNotEmpty(decryptedToken)) {
+            StringTokenizer tokenElements = new StringTokenizer(decryptedToken, "|");
+            if (tokenElements.countTokens() == 3) {
+                toRet = tokenElements.nextToken();
+            }
+        }
+        return toRet;
     }
 
     @Override
