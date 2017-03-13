@@ -227,4 +227,6 @@ public interface ContentService {
     void lockContent(String site, String path);
 
     void unLockContent(String site, String path);
+
+    List<DmOrderTO> getItemOrders(String site, String path) throws ContentNotFoundException;
 }
