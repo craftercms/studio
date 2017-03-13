@@ -17,24 +17,27 @@
  *
  */
 
-import groovy.json.JsonSlurper
-import scripts.api.SecurityServices
+package org.craftercms.studio.api.v1.exception.security;
 
-def result = [:]
-def token = params.token;
+public class UserNotFoundException extends Exception {
+    private static final long serialVersionUID = 3057034888405716974L;
 
-def context = SecurityServices.createContext(applicationContext, request)
-try {
-    def success = SecurityServices.validateToken(context, token)
-    if (success) {
-        result.message = "OK"
-        response.setStatus(200)
-    } else {
-        result.message = "Unauthorized"
-        response.setStatus(401)
+    public UserNotFoundException() {
     }
-} catch (Exception e) {
-    response.setStatus(500)
-    result.message = "Internal server error"
-    return result;
+
+    public UserNotFoundException(String message) {
+        super(message);
+    }
+
+    public UserNotFoundException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public UserNotFoundException(Throwable cause) {
+        super(cause);
+    }
+
+    public UserNotFoundException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+        super(message, cause, enableSuppression, writableStackTrace);
+    }
 }

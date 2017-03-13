@@ -18,6 +18,7 @@
  */
 
 import groovy.json.JsonSlurper
+import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException
 import scripts.api.SecurityServices
 
 def result = [:]
@@ -35,13 +36,19 @@ def email = parsedReq.email;
 def context = SecurityServices.createContext(applicationContext, request)
 try {
     SecurityServices.createUser(context, username, password, firstname, lastname, email);
-    result.status = "OK"
+    result.message = "OK"
     def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/user/get?user=" + username
     response.addHeader("Location", locationHeader)
     response.setStatus(201)
     return result
+} catch (UserAlreadyExistsException e) {
+    response.setStatus(409)
+    def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/user/get?user=" + username
+    response.addHeader("Location", locationHeader)
+    result.message = "User already exists"
+    return result
 } catch (Exception e) {
     response.setStatus(500)
-    result.status = "Internal server error"
+    result.message = "Internal server error"
     return result
 }

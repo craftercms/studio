@@ -19,6 +19,7 @@
 package org.craftercms.studio.impl.v1.service.security;
 
 import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
+import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 
@@ -142,7 +143,7 @@ public class MappedSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public boolean createUser(String username, String password, String firstName, String lastName, String email) {
+    public boolean createUser(String username, String password, String firstName, String lastName, String email) throws UserAlreadyExistsException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.createUser(username, password, firstName, lastName, email);
     }

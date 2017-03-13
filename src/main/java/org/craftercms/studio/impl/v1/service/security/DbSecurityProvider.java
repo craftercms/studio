@@ -26,6 +26,7 @@ import org.craftercms.commons.http.RequestContext;
 import org.craftercms.studio.api.v1.dal.*;
 import org.craftercms.studio.api.v1.ebus.RepositoryEventContext;
 import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
+import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
 import org.craftercms.studio.api.v1.job.CronJobContext;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -205,7 +206,7 @@ public class DbSecurityProvider implements SecurityProvider {
     @Override
     public String authenticate(String username, String password) {
         User user = securityMapper.getUser(username);
-        if (user != null && CipherUtils.matchPassword(user.getPassword(), password)) {
+        if (user != null && user.isEnabled() && CipherUtils.matchPassword(user.getPassword(), password)) {
             byte[] randomBytes = CryptoUtils.generateRandomBytes(20);
             String token = randomBytes.toString();
             storeSessionTicket(token);
@@ -351,7 +352,7 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public boolean createUser(String username, String password, String firstName, String lastName, String email) {
+    public boolean createUser(String username, String password, String firstName, String lastName, String email) throws UserAlreadyExistsException {
         String hashedPassword = CipherUtils.hashPassword(password);
         Map<String, String> params = new HashMap<String, String>();
         params.put("username", username);
@@ -359,7 +360,12 @@ public class DbSecurityProvider implements SecurityProvider {
         params.put("firstname", firstName);
         params.put("lastname", lastName);
         params.put("email", email);
+        try {
         securityMapper.createUser(params);
+        } catch (DuplicateKeyException e) {
+            logger.error("Error creating user " + username, e);
+            throw new UserAlreadyExistsException("User already exists.", e);
+        }
         return true;
     }
 

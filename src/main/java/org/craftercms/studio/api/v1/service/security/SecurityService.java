@@ -20,6 +20,8 @@ package org.craftercms.studio.api.v1.service.security;
 
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
+import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 
 import java.util.List;
 import java.util.Set;
@@ -72,7 +74,7 @@ public interface SecurityService {
      * @param email User's email address
      * @return true if success, otherwise false
      */
-    boolean createUser(String username, String password, String firstName, String lastName, String email);
+    boolean createUser(String username, String password, String firstName, String lastName, String email) throws UserAlreadyExistsException;
 
     /**
      * Delete user with given username
@@ -238,14 +240,13 @@ public interface SecurityService {
     boolean changePassword(String username, String current, String newPassword);
 
     /**
-     * Set password
+     * Set user password - forgot password token
      *
-     * @param username username
      * @param token forgot password token
      * @param newPassword new password
      * @return
      */
-    boolean setUserPassword(String username, String token, String newPassword);
+    Map<String, Object> setUserPassword(String token, String newPassword) throws UserNotFoundException;
 
     /**
      * Reset user password

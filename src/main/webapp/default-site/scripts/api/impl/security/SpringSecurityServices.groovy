@@ -161,9 +161,9 @@ class SpringSecurityServices {
         return springBackedService.changePassword(username, current, newPassword)
     }
 
-    def setUserPassword(username, token, newPassword) {
+    def setUserPassword(token, newPassword) {
         def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
-        return springBackedService.setUserPassword(username, token, newPassword)
+        return springBackedService.setUserPassword(token, newPassword)
     }
 
     def validateToken(token) {

@@ -17,29 +17,28 @@
  *
  */
 
-import groovy.json.JsonSlurper
-import scripts.api.SecurityServices
+package org.craftercms.studio.api.v1.exception.security;
 
-def result = [:]
-def requestBody = request.reader.text
+public class UserAlreadyExistsException extends Exception {
 
-def slurper = new JsonSlurper()
-def parsedReq = slurper.parseText(requestBody)
+    private static final long serialVersionUID = -1049930069697110997L;
 
-def token = parsedReq.token;
-
-def context = SecurityServices.createContext(applicationContext, request)
-try {
-    def success = SecurityServices.validateToken(context, token)
-    if (success) {
-        result.message = "OK"
-        response.setStatus(200)
-    } else {
-        result.message = "Unauthorized"
-        response.setStatus(401)
+    public UserAlreadyExistsException() {
     }
-} catch (Exception e) {
-    response.setStatus(500)
-    result.message = "Internal server error"
-    return result;
+
+    public UserAlreadyExistsException(String message) {
+        super(message);
+    }
+
+    public UserAlreadyExistsException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public UserAlreadyExistsException(Throwable cause) {
+        super(cause);
+    }
+
+    public UserAlreadyExistsException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+        super(message, cause, enableSuppression, writableStackTrace);
+    }
 }
