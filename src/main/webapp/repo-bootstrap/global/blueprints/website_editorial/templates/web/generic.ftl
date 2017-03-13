@@ -8,7 +8,7 @@
 -->
 <html>
 	<head>
-		<title>${model.title}</title>
+		<title>${contentModel.title}</title>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 		<!--[if lte IE 8]><script src="static-assets/js/ie/html5shiv.js"></script><![endif]-->
@@ -21,9 +21,9 @@
 
 		<!-- Wrapper -->
 			<div id="wrapper">
-<div <@studio.componentContainerAttr target="rightRailModules" objectId=model.objectId />>
-    	<#if model.rightRailModules?? && model.rightRailModules.item??>
-        	<#list model.rightRailModules.item as module>
+<div <@studio.componentContainerAttr target="rightRailModules" objectId=contentModel.objectId />>
+    	<#if contentModel.rightRailModules?? && contentModel.rightRailModules.item??>
+        	<#list contentModel.rightRailModules.item as module>
 				<@renderComponent component=module />
 			</#list>
         </#if>
@@ -33,16 +33,16 @@
 						<div class="inner">
 
 							<!-- Header -->
-                          		<@renderComponent component=model.header.item />
+                          		<@renderComponent component=contentModel.header.item />
 
 							<!-- Content -->
 								<section>
 									<header class="main" <@studio.iceAttr iceGroup="subject"/>>
-										<h1>${model.subject!""}</h1>
-                                        <h2>${model.by_line!""}</h2>
+										<h1>${contentModel.subject!""}</h1>
+                                        <h2>${contentModel.by_line!""}</h2>
 									</header>
 
-                                    <#list model.sections.item as item>
+                                    <#list contentModel.sections.item as item>
                                     	<div <@studio.iceAttr iceGroup="article"/>>
 											${item.section}
                                         </div>

@@ -8,7 +8,7 @@
 -->
 <html>
 	<head>
-		<title>${model.title}</title>
+		<title>${contentModel.title}</title>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 		<!--[if lte IE 8]><script src="static-assets/js/ie/html5shiv.js"></script><![endif]-->
@@ -25,29 +25,29 @@
 						<div class="inner">
 
 							<!-- Header -->
-                          		<@renderComponent component=model.header.item />
+                          		<@renderComponent component=contentModel.header.item />
 
 							<!-- Banner -->
 								<section id="banner" <@studio.iceAttr iceGroup="hero"/>>
 									<div class="content">
-										<header>${model.hero_title}</header>
-											${model.hero_text}
+										<header>${contentModel.hero_title}</header>
+											${contentModel.hero_text}
 										<ul class="actions">
-											<li><a href="${model.hero_learn_more_link}" class="button big">${model.hero_learn_more_text}</a></li>
+											<li><a href="${contentModel.hero_learn_more_link}" class="button big">${contentModel.hero_learn_more_text}</a></li>
 										</ul>
 									</div>
 									<span class="image object">
-										<img src="${model.hero_image !""}" alt="" />
+										<img src="${contentModel.hero_image !""}" alt="" />
 									</span>
 								</section>
 
 							<!-- Section -->
 								<section <@studio.iceAttr iceGroup="features"/>>
 									<header class="major">
-										<h2>${model.section_1_title}</h2>
+										<h2>${contentModel.section_1_title}</h2>
 									</header>
 									<div class="features">
-										<#list model.features.item as item>
+										<#list contentModel.features.item as item>
 											<article>
 												<span class="icon ${item.feature_icon}"></span>
 												<div class="content">
@@ -62,57 +62,26 @@
 							<!-- Section -->
 								<section>
 									<header class="major">
-										<h2>Ipsum sed dolor</h2>
+										<h2>Featured Articles</h2>
 									</header>
 									<div class="posts">
+                                    	<#list articles as article>
 										<article>
-											<a href="#" class="image"><img src="static-assets/images/pic01.jpg" alt="" /></a>
-											<h3>Interdum aenean</h3>
-											<p>Aenean ornare velit lacus, ac varius enim lorem ullamcorper dolore. Proin aliquam facilisis ante interdum. Sed nulla amet lorem feugiat tempus aliquam.</p>
+											<a href="#" class="image">
+                                            	<#if article.image??>
+                                                	<#assign articleImage = article.image/>
+                                                <#else>
+ 													<#assign articleImage = "static-assets/images/pic01.jpg"/>                                                	
+                                                </#if>
+                                                <img src="${articleImage}" alt="" />
+                                            </a>
+											<h3>${article.title}</h3>
+											<p>${article.summary}</p>
 											<ul class="actions">
-												<li><a href="#" class="button">More</a></li>
+												<li><a href="${article.url}" class="button">More</a></li>
 											</ul>
 										</article>
-										<article>
-											<a href="#" class="image"><img src="static-assets/images/pic02.jpg" alt="" /></a>
-											<h3>Nulla amet dolore</h3>
-											<p>Aenean ornare velit lacus, ac varius enim lorem ullamcorper dolore. Proin aliquam facilisis ante interdum. Sed nulla amet lorem feugiat tempus aliquam.</p>
-											<ul class="actions">
-												<li><a href="#" class="button">More</a></li>
-											</ul>
-										</article>
-										<article>
-											<a href="#" class="image"><img src="static-assets/images/pic03.jpg" alt="" /></a>
-											<h3>Tempus ullamcorper</h3>
-											<p>Aenean ornare velit lacus, ac varius enim lorem ullamcorper dolore. Proin aliquam facilisis ante interdum. Sed nulla amet lorem feugiat tempus aliquam.</p>
-											<ul class="actions">
-												<li><a href="#" class="button">More</a></li>
-											</ul>
-										</article>
-										<article>
-											<a href="#" class="image"><img src="static-assets/images/pic04.jpg" alt="" /></a>
-											<h3>Sed etiam facilis</h3>
-											<p>Aenean ornare velit lacus, ac varius enim lorem ullamcorper dolore. Proin aliquam facilisis ante interdum. Sed nulla amet lorem feugiat tempus aliquam.</p>
-											<ul class="actions">
-												<li><a href="#" class="button">More</a></li>
-											</ul>
-										</article>
-										<article>
-											<a href="#" class="image"><img src="static-assets/images/pic05.jpg" alt="" /></a>
-											<h3>Feugiat lorem aenean</h3>
-											<p>Aenean ornare velit lacus, ac varius enim lorem ullamcorper dolore. Proin aliquam facilisis ante interdum. Sed nulla amet lorem feugiat tempus aliquam.</p>
-											<ul class="actions">
-												<li><a href="#" class="button">More</a></li>
-											</ul>
-										</article>
-										<article>
-											<a href="#" class="image"><img src="static-assets/images/pic06.jpg" alt="" /></a>
-											<h3>Amet varius aliquam</h3>
-											<p>Aenean ornare velit lacus, ac varius enim lorem ullamcorper dolore. Proin aliquam facilisis ante interdum. Sed nulla amet lorem feugiat tempus aliquam.</p>
-											<ul class="actions">
-												<li><a href="#" class="button">More</a></li>
-											</ul>
-										</article>
+                                        </#list>
 									</div>
 								</section>
 
