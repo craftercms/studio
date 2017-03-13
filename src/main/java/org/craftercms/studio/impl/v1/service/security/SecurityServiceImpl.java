@@ -634,19 +634,21 @@ public class SecurityServiceImpl implements SecurityService {
 
     @Override
     public boolean validateToken(String token) {
+        boolean toRet = false;
         String decryptedToken = decryptToken(token);
-        StringTokenizer tokenElements = new StringTokenizer(decryptedToken, "|");
-        if (tokenElements.countTokens() == 3) {
-            String username = tokenElements.nextToken();
-            long tokenTimestamp = Long.parseLong(tokenElements.nextToken());
-            if (tokenTimestamp < System.currentTimeMillis()) {
-                return false;
-            } else {
-                return true;
+        if (StringUtils.isNotEmpty(decryptedToken)) {
+            StringTokenizer tokenElements = new StringTokenizer(decryptedToken, "|");
+            if (tokenElements.countTokens() == 3) {
+                String username = tokenElements.nextToken();
+                long tokenTimestamp = Long.parseLong(tokenElements.nextToken());
+                if (tokenTimestamp < System.currentTimeMillis()) {
+                    toRet = false;
+                } else {
+                    toRet = true;
+                }
             }
-        } else {
-            return false;
         }
+        return toRet;
     }
 
     private String encryptToken(String token) {
@@ -671,7 +673,7 @@ public class SecurityServiceImpl implements SecurityService {
             cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(key.getEncoded()));
             byte[] decrypted = cipher.doFinal(tokenBytes);
             return new String(decrypted, StandardCharsets.UTF_8);
-        } catch (NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException | BadPaddingException | IllegalBlockSizeException | InvalidAlgorithmParameterException e) {
+        } catch (IllegalArgumentException | NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException | BadPaddingException | IllegalBlockSizeException | InvalidAlgorithmParameterException e) {
             logger.error("Error while decrypting forgot password token", e);
             return null;
         }
