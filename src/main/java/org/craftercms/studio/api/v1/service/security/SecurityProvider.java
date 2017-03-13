@@ -19,6 +19,7 @@
 package org.craftercms.studio.api.v1.service.security;
 
 import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
+import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
 
 import java.util.List;
 import java.util.Set;
@@ -69,7 +70,7 @@ public interface SecurityProvider {
      * @param email User's email address
      * @return true if success, otherwise false
      */
-    boolean createUser(String username, String password, String firstName, String lastName, String email);
+    boolean createUser(String username, String password, String firstName, String lastName, String email) throws UserAlreadyExistsException;
 
     /**
      * Delete user with given username
