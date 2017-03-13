@@ -82,7 +82,7 @@
         cstudio_user cu LEFT JOIN cstudio_usergroup cug on cu.username = cug.username
         LEFT JOIN cstudio_group cg on cug.groupId = cg.id
         LEFT JOIN cstudio_site cs on cg.site_id=cs.id
-        ORDER BY username
+        ORDER BY username, siteid, groupname
     </select>
 
     <select id="getUsersPerSite" resultMap="UserProfileResultMap">
