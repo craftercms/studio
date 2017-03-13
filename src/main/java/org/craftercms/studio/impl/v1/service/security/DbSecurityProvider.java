@@ -206,7 +206,7 @@ public class DbSecurityProvider implements SecurityProvider {
     @Override
     public String authenticate(String username, String password) {
         User user = securityMapper.getUser(username);
-        if (user != null && CipherUtils.matchPassword(user.getPassword(), password)) {
+        if (user != null && user.isEnabled() && CipherUtils.matchPassword(user.getPassword(), password)) {
             byte[] randomBytes = CryptoUtils.generateRandomBytes(20);
             String token = randomBytes.toString();
             storeSessionTicket(token);
