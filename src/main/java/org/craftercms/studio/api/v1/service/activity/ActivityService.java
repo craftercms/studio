@@ -20,6 +20,7 @@ package org.craftercms.studio.api.v1.service.activity;
 
 import org.craftercms.studio.api.v1.dal.ActivityFeed;
 import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 
 import java.util.List;
@@ -27,7 +28,7 @@ import java.util.Map;
 
 /**
  * Provides services for tracking user activities
- * 
+ *
  * @author hyanghee
  *
  */
@@ -35,16 +36,16 @@ public interface ActivityService {
 
 	/** a prefix to attach to all activities **/
 	public static final String ACTIVITY_TYPE_KEY_PREFIX = "org.craftercms.cstudio.";
-	
+
 	enum ActivityType {
 		CREATED,
 		UPDATED,
 		DELETED
 	}
-	
+
 	/**
 	 * post an activity
-	 * 
+	 *
 	 * @param site
 	 * @param user
 	 * @param key
@@ -83,5 +84,5 @@ public interface ActivityService {
 
 	void deleteActivitiesForSite(String site);
 
-    List<ActivityFeed> getAuditLogForSite(String site, int start, int end, String user, List<String> actions);
+    List<ActivityFeed> getAuditLogForSite(String site, int start, int end, String user, List<String> actions) throws SiteNotFoundException;
 }

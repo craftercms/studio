@@ -1,7 +1,6 @@
-
 /*
  * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2016 Crafter Software Corporation.
+ * Copyright (C) 2007-2017 Crafter Software Corporation.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +22,8 @@
  */
 
 import groovy.json.JsonSlurper
-import scripts.api.ActivityServices;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException
+import scripts.api.ActivityServices
 
 def result = [:]
 def site = params.site_id
@@ -45,11 +45,19 @@ if (params.actions != null && params.actions != '') {
     actions = slurper.parseText(params.actions)
 }
 
-
-
 def context = ActivityServices.createContext(applicationContext, request)
-def activities = ActivityServices.getAuditLog(context, site, start, end, user, actions)
+try {
+    def activities = ActivityServices.getAuditLog(context, site, start, end, user, actions)
+    result.message = "OK"
+    response.setStatus(200)
+    result.total = activities.size()
+    result.items = activities
+} catch (SiteNotFoundException e) {
+    response.setStatus(404)
+    result.message = "Site not found"
+} catch (Exception e) {
+    response.setStatus(500)
+    result.message = "Internal server error: \n" + e
+}
 
-result.total = activities.size()
-result.items = activities
 return result

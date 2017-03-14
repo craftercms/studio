@@ -878,7 +878,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 rw.markStart(root);
                 ObjectId first = rw.next();
                 toReturn = first.getName();
-                logger.error("FIRST COMMIT ID !!!: " + toReturn);
+                logger.debug("getRepoFirstCommitId for site: " + site + " First commit ID: " + toReturn);
             } catch (IOException e) {
                 logger.error("Error getting first commit ID for site " + site, e);
             }

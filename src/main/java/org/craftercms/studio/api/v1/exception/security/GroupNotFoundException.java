@@ -17,24 +17,27 @@
  *
  */
 
-import scripts.api.SecurityServices
+package org.craftercms.studio.api.v1.exception.security;
 
-def result = [:]
+public class GroupNotFoundException extends Exception {
+    private static final long serialVersionUID = 3057034888405716974L;
 
-def context = SecurityServices.createContext(applicationContext, request)
-try {
-    def users = SecurityServices.getAllUsers(context)
-    if (users != null && !users.isEmpty()) {
-        result.users = users
-        result.message = "OK"
-        response.setStatus(200)
-    } else {
-        response.setStatus(404)
-        result.status = "User not found"
+    public GroupNotFoundException() {
     }
-} catch (Exception e) {
-    response.setStatus(500)
-    result.status = "Internal server error: \n" + e
-}
 
-return result
+    public GroupNotFoundException(String message) {
+        super(message);
+    }
+
+    public GroupNotFoundException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public GroupNotFoundException(Throwable cause) {
+        super(cause);
+    }
+
+    public GroupNotFoundException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+        super(message, cause, enableSuppression, writableStackTrace);
+    }
+}

@@ -36,7 +36,9 @@ import org.craftercms.commons.http.RequestContext;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.StudioXmlConstants;
 import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
+import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -554,12 +556,12 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
-    public boolean createGroup(String groupName, String description, String siteId) throws GroupAlreadyExistsException {
+    public boolean createGroup(String groupName, String description, String siteId) throws GroupAlreadyExistsException, SiteNotFoundException {
         return securityProvider.createGroup(groupName, description, siteId);
     }
 
     @Override
-    public Map<String, Object> getGroup(String site, String group) {
+    public Map<String, Object> getGroup(String site, String group) throws GroupNotFoundException {
         return securityProvider.getGroup(site, group);
     }
 
@@ -569,32 +571,35 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
-    public List<Map<String, Object>> getGroupsPerSite(String site) {
+    public List<Map<String, Object>> getGroupsPerSite(String site) throws SiteNotFoundException {
         return securityProvider.getGroupsPerSite(site);
     }
 
     @Override
-    public List<Map<String, Object>> getUsersPerGroup(String site, String group, int start, int end) {
+    public List<Map<String, Object>> getUsersPerGroup(String site, String group, int start, int end) throws
+	    GroupNotFoundException {
         return securityProvider.getUsersPerGroup(site, group, start, end);
     }
 
     @Override
-    public boolean updateGroup(String siteId, String groupName, String description) {
+    public boolean updateGroup(String siteId, String groupName, String description) throws GroupNotFoundException {
         return securityProvider.updateGroup(siteId, groupName, description);
     }
 
     @Override
-    public boolean deleteGroup(String site, String group) {
+    public boolean deleteGroup(String site, String group) throws GroupNotFoundException {
         return securityProvider.deleteGroup(site, group);
     }
 
     @Override
-    public boolean addUserToGroup(String siteId, String groupName, String username) {
+    public boolean addUserToGroup(String siteId, String groupName, String username) throws
+	    UserAlreadyExistsException, UserNotFoundException, GroupNotFoundException {
         return securityProvider.addUserToGroup(siteId, groupName, username);
     }
 
     @Override
-    public boolean removeUserFromGroup(String siteId, String groupName, String username) {
+    public boolean removeUserFromGroup(String siteId, String groupName, String username) throws
+	    UserNotFoundException, GroupNotFoundException {
         return securityProvider.removeUserFromGroup(siteId, groupName, username);
     }
 

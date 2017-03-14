@@ -136,7 +136,7 @@ public class DemoSecurityProvider implements SecurityProvider {
             username = activeUser.get("username");
         }
         else {
-             username = activeProcess.get("username"); 
+             username = activeProcess.get("username");
         }
 
         return username;
@@ -158,13 +158,13 @@ public class DemoSecurityProvider implements SecurityProvider {
     public boolean validateTicket(String ticket) {
         String theTicket = ticket;
         RequestContext context = RequestContext.getCurrent();
-       
+
         if(theTicket == null) {
             if(context != null) {
                 theTicket = activeUser.get("ticket");
             }
             else {
-                theTicket = activeProcess.get("ticket");    
+                theTicket = activeProcess.get("ticket");
             }
         }
 
@@ -217,6 +217,21 @@ public class DemoSecurityProvider implements SecurityProvider {
         } else {
             return activeProcess.get("ticket");
         }
+    }
+
+    @Override
+    public boolean groupExists(final String siteId, final String groupName) {
+        return false;
+    }
+
+    @Override
+    public boolean userExists(final String username) {
+        return false;
+    }
+
+    @Override
+    public boolean userExistsInGroup(final String siteId, final String groupName, final String username) {
+        return false;
     }
 
     @Override
