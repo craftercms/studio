@@ -1236,6 +1236,15 @@ public class ContentServiceImpl implements ContentService {
         objectMetadataManager.unLockContent(site, path);
     }
 
+    @Override
+    public List<DmOrderTO> getItemOrders(String site, String path) throws ContentNotFoundException {
+        List<DmOrderTO> dmOrderTOs = getOrders(site, path, "default", false);
+        for (DmOrderTO dmOrderTO : dmOrderTOs) {
+            dmOrderTO.setName(StringUtils.escape(dmOrderTO.getName()));
+        }
+        return dmOrderTOs;
+    }
+
     private List<DmOrderTO> getOrders(String site, String relativePath, String orderName, boolean includeFloating) {
         // TODO: SJ: Refactor this in 3.1+
         // TODO: SJ: Crafter Core already does some of this, refactor/redo

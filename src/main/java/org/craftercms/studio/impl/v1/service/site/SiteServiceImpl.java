@@ -32,6 +32,7 @@ import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v1.deployment.PreviewDeployer;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
@@ -70,6 +71,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_DEFAULT_GROUPS_DESCRIPTION;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.*;
 
 /**
@@ -350,7 +352,10 @@ public class SiteServiceImpl implements SiteService {
 			    siteFeed.setDescription(desc);
 			    siteFeedMapper.createSite(siteFeed);
 
-			    reloadSiteConfiguration(siteId);
+                // Add default groups
+                addDefaultGroupsForNewSite(siteId);
+
+                reloadSiteConfiguration(siteId);
 	        } catch(Exception e) {
 	            // TODO: SJ: We need better exception handling here
 	            success = false;
@@ -507,6 +512,18 @@ public class SiteServiceImpl implements SiteService {
                         logger.error("Failed to extract dependencies for: site " + site + " path " + childPath, e);
                     }
                 }
+            }
+        }
+    }
+
+    private void addDefaultGroupsForNewSite(String siteId) {
+        List<String> defaultGroups = getDefaultGroups();
+        for (String group : defaultGroups) {
+            String description = group + SITE_DEFAULT_GROUPS_DESCRIPTION;
+            try {
+                securityService.createGroup(group, description, siteId);
+            } catch (GroupAlreadyExistsException e) {
+                logger.warn("Default group: " + group + " not created. It already exists for site " + siteId + ".");
             }
         }
     }
@@ -829,6 +846,10 @@ public class SiteServiceImpl implements SiteService {
 
     public String getEnvironmentConfigPath() {
         return studioConfiguration.getProperty(CONFIGURATION_SITE_ENVIRONMENT_CONFIG_BASE_PATH);
+    }
+
+    public List<String> getDefaultGroups() {
+        return Arrays.asList(studioConfiguration.getProperty(CONFIGURATION_SITE_DEFAULT_GROUPS).split(","));
     }
 
     /** getter site service dal */

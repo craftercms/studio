@@ -125,6 +125,7 @@ public class DbSecurityProvider implements SecurityProvider {
                     sites = new ArrayList<Object>();
                     groups = new ArrayList<Map<String, Object>>();
                     site = null;
+                    lastSite = null;
                 }
                 String siteId = row.getSiteId();
                 if (StringUtils.isNotEmpty(siteId)) {
