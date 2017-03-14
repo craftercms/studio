@@ -27,11 +27,11 @@ def requestBody = request.reader.text
 def slurper = new JsonSlurper()
 def parsedReq = slurper.parseText(requestBody)
 
-def username = parsedReq.username;
-def password = parsedReq.password;
-def firstname = parsedReq.first_name;
-def lastname = parsedReq.last_name;
-def email = parsedReq.email;
+def username = parsedReq.username
+def password = parsedReq.password
+def firstname = parsedReq.first_name
+def lastname = parsedReq.last_name
+def email = parsedReq.email
 
 def context = SecurityServices.createContext(applicationContext, request)
 try {
@@ -40,15 +40,14 @@ try {
     def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/user/get?user=" + username
     response.addHeader("Location", locationHeader)
     response.setStatus(201)
-    return result
 } catch (UserAlreadyExistsException e) {
     response.setStatus(409)
     def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/user/get?user=" + username
     response.addHeader("Location", locationHeader)
     result.message = "User already exists"
-    return result
 } catch (Exception e) {
     response.setStatus(500)
     result.message = "Internal server error"
-    return result
 }
+
+return result

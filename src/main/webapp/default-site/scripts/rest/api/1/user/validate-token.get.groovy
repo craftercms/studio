@@ -21,7 +21,7 @@ import groovy.json.JsonSlurper
 import scripts.api.SecurityServices
 
 def result = [:]
-def token = params.token;
+def token = params.token
 
 def context = SecurityServices.createContext(applicationContext, request)
 try {
@@ -36,5 +36,6 @@ try {
 } catch (Exception e) {
     response.setStatus(500)
     result.message = "Internal server error"
-    return result;
 }
+
+return result

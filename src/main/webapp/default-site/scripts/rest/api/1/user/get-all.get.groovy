@@ -23,17 +23,18 @@ def result = [:]
 
 def context = SecurityServices.createContext(applicationContext, request)
 try {
-    def users = SecurityServices.getAllUsers(context);
+    def users = SecurityServices.getAllUsers(context)
     if (users != null && !users.isEmpty()) {
         result.users = users
-        return result;
+        result.message = "OK"
+        response.setStatus(200)
     } else {
         response.setStatus(404)
         result.status = "User not found"
-        return result;
     }
 } catch (Exception e) {
     response.setStatus(500)
     result.status = "Internal server error"
-    return result;
 }
+
+return result

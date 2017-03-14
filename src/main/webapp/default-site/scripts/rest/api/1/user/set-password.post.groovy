@@ -27,8 +27,8 @@ def requestBody = request.reader.text
 def slurper = new JsonSlurper()
 def parsedReq = slurper.parseText(requestBody)
 
-def token = parsedReq.token;
-def newPassword = parsedReq.new;
+def token = parsedReq.token
+def newPassword = parsedReq.new
 
 def context = SecurityServices.createContext(applicationContext, request)
 try {
@@ -41,14 +41,13 @@ try {
     } else {
         response.setStatus(401)
         result.message = "Unauthorized"
-        return result;
     }
 } catch (UserNotFoundException e) {
     response.setStatus(404)
     result.message = "User not found"
-    return result;
 } catch (Exception e) {
     response.setStatus(500)
     result.message = "Internal server error"
-    return result;
 }
+
+return result

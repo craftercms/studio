@@ -114,6 +114,7 @@ public interface StudioConfiguration {
     String SECURITY_CIPHER_ALGORITHM = "studio.security.cipher.algorithm";
     String SECURITY_FORGOT_PASSWORD_MESSAGE_SUBJECT = "studio.security.forgotPassword.message.subject";
     String SECURITY_FORGOT_PASSWORD_MESSAGE_TEXT = "studio.security.forgotPassword.message.text";
+    String SECURITY_FORGOT_PASSWORD_TOKEN_TIMEOUT = "studio.security.forgotPassword.token.timeout";
 
     /** Page Navigation Order Service */
     String PAGE_NAVIGATION_ORDER_INCREMENT = "studio.pageNavigationOrder.increment";
