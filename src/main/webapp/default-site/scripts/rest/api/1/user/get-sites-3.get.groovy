@@ -1,4 +1,3 @@
-
 /*
  * Crafter Studio Web-content authoring solution
  * Copyright (C) 2007-2016 Crafter Software Corporation.
@@ -17,12 +16,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import scripts.api.SiteServices;
+import scripts.api.SiteServices
 
-def result = [:];
-def user = params.user;
+def result = [:]
+def user = params.user
 
-def context = SiteServices.createContext(applicationContext, request);
-result = SiteServices.getUserSites(context, user);
+def context = SiteServices.createContext(applicationContext, request)
+result = SiteServices.getUserSites(context, user)
 
-return result;
+return result

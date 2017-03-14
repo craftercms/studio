@@ -600,7 +600,7 @@ public class SecurityServiceImpl implements SecurityService {
 
     @Override
     public Map<String, Object> forgotPassword(String username) throws ServiceException {
-        logger.debug("Gettting user profile for " + username);
+        logger.debug("Getting user profile for " + username);
         Map<String, Object> userProfile = securityProvider.getUserProfile(username);
         boolean success = false;
         String message = StringUtils.EMPTY;
@@ -613,7 +613,8 @@ public class SecurityServiceImpl implements SecurityService {
                 String email = userProfile.get("email").toString();
 
                 logger.debug("Creating security token for forgot password");
-                long timestamp = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(15);
+                long timestamp = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(Long.parseLong(studioConfiguration
+                    .getProperty(SECURITY_FORGOT_PASSWORD_TOKEN_TIMEOUT)));
                 String salt = studioConfiguration.getProperty(SECURITY_CIPHER_SALT);
 
                 String token = username + "|" + timestamp + "|" + salt;
@@ -722,7 +723,7 @@ public class SecurityServiceImpl implements SecurityService {
                 if (userStatus != null && !userStatus.isEmpty()) {
                     boolean enabled = (Boolean)userStatus.get("enabled");
                     if (enabled) {
-                        toRet.put("success",securityProvider.setUserPassword(username, newPassword));
+                        toRet.put("success", securityProvider.setUserPassword(username, newPassword));
                     }
                 } else {
                     throw new UserNotFoundException("User not found");
