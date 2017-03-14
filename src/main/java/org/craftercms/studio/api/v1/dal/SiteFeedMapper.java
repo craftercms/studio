@@ -35,5 +35,5 @@ public interface SiteFeedMapper {
 
     String getLastCommitId(Map params);
 
-    int exists(String siteId);
+    Integer exists(String siteId);
 }

@@ -32,6 +32,7 @@ import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v1.deployment.PreviewDeployer;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -350,6 +351,7 @@ public class SiteServiceImpl implements SiteService {
 			    siteFeed.setName(siteName);
 			    siteFeed.setSiteId(siteId);
 			    siteFeed.setDescription(desc);
+			    siteFeed.setLastCommitId(lastCommitId);
 			    siteFeedMapper.createSite(siteFeed);
 
                 // Add default groups
@@ -522,8 +524,10 @@ public class SiteServiceImpl implements SiteService {
             String description = group + SITE_DEFAULT_GROUPS_DESCRIPTION;
             try {
                 securityService.createGroup(group, description, siteId);
+            } catch (SiteNotFoundException e) {
+	            logger.warn("Default group: " + group + " not created. Site " + siteId + "is not found.", e);
             } catch (GroupAlreadyExistsException e) {
-                logger.warn("Default group: " + group + " not created. It already exists for site " + siteId + ".");
+                logger.warn("Default group: " + group + " not created. It already exists for site " + siteId + ".", e);
             }
         }
     }
@@ -651,11 +655,19 @@ public class SiteServiceImpl implements SiteService {
     }
 
     @Override
-    public void syncRepository(String site) {
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put("siteId", site);
-	    String lastDbCommitId = siteFeedMapper.getLastCommitId(params);
-	    syncDatabaseWithRepo(site, lastDbCommitId);
+    public void syncRepository(String site) throws SiteNotFoundException {
+		if (!exists(site)) {
+			throw new SiteNotFoundException();
+		} else {
+			Map<String, Object> params = new HashMap<String, Object>();
+			params.put("siteId", site);
+			String lastDbCommitId = siteFeedMapper.getLastCommitId(params);
+			if (lastDbCommitId != null) {
+				syncDatabaseWithRepo(site, lastDbCommitId);
+			} else {
+				rebuildDatabase(site);
+			}
+		}
     }
 
     @Override
@@ -675,8 +687,15 @@ public class SiteServiceImpl implements SiteService {
     public boolean syncDatabaseWithRepo(String site, String fromCommitId) {
 		boolean toReturn = true;
 
+		logger.debug("Syncing database with repository for site: " + site + " fromCommitId = " + fromCommitId);
+
 	    List<RepoOperationTO> repoOperations = contentRepository.getOperations(site, fromCommitId, contentRepository
 		    .getRepoLastCommitId(site));
+
+	    logger.debug("Operations to sync: ");
+	    for (RepoOperationTO repoOperation: repoOperations) {
+	    	logger.debug("\tOperation: " + repoOperation.getOperation().toString() + " " + repoOperation.getPath());
+	    }
 
 	    for (RepoOperationTO repoOperation: repoOperations) {
 		    switch (repoOperation.getOperation()) {
@@ -780,6 +799,7 @@ public class SiteServiceImpl implements SiteService {
             } else {
 		    	// Failed during sync database from repo, we're aborting
 			    // TODO: SJ: Must log and make some noise here, this is bad
+			    logger.error("Failed to sync database from repository for site " + site);
 		    	break;
 		    }
 	    }
@@ -828,8 +848,7 @@ public class SiteServiceImpl implements SiteService {
 
     @Override
     public boolean exists(String site) {
-        boolean toRet = siteFeedMapper.exists(site) > 0 ? true : false;
-        return toRet;
+        return siteFeedMapper.exists(site) > 0;
     }
 
     public String getGlobalConfigRoot() {

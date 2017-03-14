@@ -21,6 +21,7 @@ import net.sf.json.JSON;
 import net.sf.json.JSONObject;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.to.DeploymentEndpointConfigTO;
 import org.craftercms.studio.api.v1.to.PublishingChannelGroupConfigTO;
 import org.craftercms.studio.api.v1.to.PublishingTargetTO;
@@ -148,7 +149,7 @@ public interface SiteService {
      *
      * @param site site id
      */
-    void syncRepository(String site);
+    void syncRepository(String site) throws SiteNotFoundException;
 
     /**
      * Rebuild database for site

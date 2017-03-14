@@ -48,7 +48,7 @@ public class TestSecurityProvider implements SecurityProvider {
         adminProfile.put("email", "evaladmin@example.com");
         adminProfile.put("firstName", "Joe");
         adminProfile.put("lastName", "Admin");
-        
+
         Map<String, Object> authorProfile = new HashMap<String, Object>();
         authorProfile.put("username", "author");
         authorProfile.put("email", "evalauthor@example.com");
@@ -85,26 +85,26 @@ public class TestSecurityProvider implements SecurityProvider {
         String username = null;
 
         if(context!=null) {
-            username = activeUser.get("username"); 
+            username = activeUser.get("username");
             //HttpSession httpSession = context.getRequest().getSession();
             //(String)httpSession.getValue("username");
         }
         else {
-             username = activeProcess.get("username"); 
+             username = activeProcess.get("username");
         }
 
         return username;
     }
 
     public Map<String, Object> getUserProfile(String user) {
-       
+
         return USER_PROFILES.get(user);
     }
 
     public boolean validateTicket(String ticket) {
         String theTicket = ticket;
         RequestContext context = RequestContext.getCurrent();
-       
+
         if(theTicket == null) {
             if(context != null) {
                 theTicket = activeUser.get("ticket");
@@ -115,7 +115,7 @@ public class TestSecurityProvider implements SecurityProvider {
                 //}
             }
             else {
-                theTicket = activeProcess.get("ticket");    
+                theTicket = activeProcess.get("ticket");
             }
         }
 
@@ -125,7 +125,7 @@ public class TestSecurityProvider implements SecurityProvider {
     public String authenticate(String username, String password) {
         RequestContext context = RequestContext.getCurrent();
         String ticket = null;
-        
+
         if(getUserProfile(username) != null) {
             ticket = username + "_FAKETICKET";
 
@@ -137,7 +137,7 @@ public class TestSecurityProvider implements SecurityProvider {
                 //     }
                 activeUser.put("username", username);
                 activeUser.put("ticket", ticket);
-       
+
              }
              else {
                 activeProcess.put("username", username);
@@ -167,6 +167,21 @@ public class TestSecurityProvider implements SecurityProvider {
     @Override
     public String getCurrentToken() {
         return activeProcess.get("ticket");
+    }
+
+    @Override
+    public boolean groupExists(final String siteId, final String groupName) {
+        return false;
+    }
+
+    @Override
+    public boolean userExists(final String username) {
+        return false;
+    }
+
+    @Override
+    public boolean userExistsInGroup(final String siteId, final String groupName, final String username) {
+        return false;
     }
 
     @Override

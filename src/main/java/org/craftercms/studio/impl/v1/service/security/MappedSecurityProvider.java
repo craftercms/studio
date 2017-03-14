@@ -18,8 +18,11 @@
 
 package org.craftercms.studio.impl.v1.service.security;
 
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
+import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 
@@ -69,7 +72,7 @@ public class MappedSecurityProvider implements SecurityProvider {
     }
 
     /**
-     * default constructor 
+     * default constructor
      */
     public MappedSecurityProvider() {
         providerMap = new HashMap<String, SecurityProvider>();
@@ -77,27 +80,27 @@ public class MappedSecurityProvider implements SecurityProvider {
 
     public Set<String> getUserGroups(String user) {
     	SecurityProvider provider = lookupProvider(getProviderType());
-        return provider.getUserGroups(user); 
+        return provider.getUserGroups(user);
     };
 
     public String getCurrentUser() {
         SecurityProvider provider = lookupProvider(getProviderType());
-        return provider.getCurrentUser(); 
+        return provider.getCurrentUser();
     };
 
     public Map<String, Object> getUserProfile(String user) {
     	SecurityProvider provider = lookupProvider(getProviderType());
-        return provider.getUserProfile(user); 
+        return provider.getUserProfile(user);
     }
 
     public String authenticate(String username, String password) {
         SecurityProvider provider = lookupProvider(getProviderType());
-        return provider.authenticate(username, password); 
+        return provider.authenticate(username, password);
     }
 
     public boolean validateTicket(String ticket){
         SecurityProvider provider = lookupProvider(getProviderType());
-        return provider.validateTicket(ticket); 
+        return provider.validateTicket(ticket);
     }
 
     @Override
@@ -119,7 +122,25 @@ public class MappedSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public boolean addUserToGroup(String siteId, String groupName, String user) {
+    public boolean groupExists(final String siteId, final String groupName) {
+        SecurityProvider provider = lookupProvider(getProviderType());
+        return provider.groupExists(siteId, groupName);
+    }
+
+    @Override
+    public boolean userExists(final String username) {
+        SecurityProvider provider = lookupProvider(getProviderType());
+        return provider.userExists(username);
+    }
+
+    @Override
+    public boolean userExistsInGroup(final String siteId, final String groupName, final String username) {
+        SecurityProvider provider = lookupProvider(getProviderType());
+        return provider.userExistsInGroup(siteId, groupName, username);
+    }
+
+    @Override
+    public boolean addUserToGroup(String siteId, String groupName, String user) throws UserNotFoundException, UserAlreadyExistsException, GroupNotFoundException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.addUserToGroup(siteId, groupName, user);
     }
@@ -173,7 +194,7 @@ public class MappedSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public boolean createGroup(String groupName, String description, String siteId) throws GroupAlreadyExistsException {
+    public boolean createGroup(String groupName, String description, String siteId) throws GroupAlreadyExistsException, SiteNotFoundException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.createGroup(groupName, description, siteId);
     }
@@ -191,7 +212,7 @@ public class MappedSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public Map<String, Object> getGroup(String site, String group) {
+    public Map<String, Object> getGroup(String site, String group) throws GroupNotFoundException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.getGroup(site, group);
     }
@@ -203,31 +224,31 @@ public class MappedSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public List<Map<String, Object>> getGroupsPerSite(String site) {
+    public List<Map<String, Object>> getGroupsPerSite(String site) throws SiteNotFoundException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.getGroupsPerSite(site);
     }
 
     @Override
-    public List<Map<String, Object>> getUsersPerGroup(String site, String group, int start, int end) {
+    public List<Map<String, Object>> getUsersPerGroup(String site, String group, int start, int end) throws GroupNotFoundException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.getUsersPerGroup(site, group, start, end);
     }
 
     @Override
-    public boolean updateGroup(String siteId, String groupName, String description) {
+    public boolean updateGroup(String siteId, String groupName, String description) throws GroupNotFoundException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.updateGroup(siteId, groupName, description);
     }
 
     @Override
-    public boolean deleteGroup(String siteId, String groupName) {
+    public boolean deleteGroup(String siteId, String groupName) throws GroupNotFoundException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.deleteGroup(siteId, groupName);
     }
 
     @Override
-    public boolean removeUserFromGroup(String siteId, String groupName, String user) {
+    public boolean removeUserFromGroup(String siteId, String groupName, String user) throws UserNotFoundException, GroupNotFoundException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.removeUserFromGroup(siteId, groupName, user);
     }

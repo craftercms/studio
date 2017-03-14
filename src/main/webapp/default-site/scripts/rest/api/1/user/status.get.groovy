@@ -37,7 +37,7 @@ try {
     }
 } catch (Exception e) {
     response.setStatus(500)
-    result.status = "Internal server error"
+    result.status = "Internal server error: \n" + e
 }
 
 return result
