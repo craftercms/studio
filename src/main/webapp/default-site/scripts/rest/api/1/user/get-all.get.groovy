@@ -21,9 +21,20 @@ import scripts.api.SecurityServices
 
 def result = [:]
 
+def start = 0
+if (params.start != null) {
+    start = params.start.toInteger()
+}
+
+// TODO: SJ: These should be constants
+def number = 25
+if (params.number != null) {
+    number = params.number.toInteger()
+}
+
 def context = SecurityServices.createContext(applicationContext, request)
 try {
-    def users = SecurityServices.getAllUsers(context)
+    def users = SecurityServices.getAllUsers(context, start, number)
     if (users != null && !users.isEmpty()) {
         result.users = users
         result.message = "OK"

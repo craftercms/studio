@@ -96,9 +96,9 @@ class SpringSecurityServices {
         return springBackedService.getUserStatus(username)
     }
 
-    def getAllUsers() {
+    def getAllUsers(start, number) {
         def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
-        return springBackedService.getAllUsers()
+        return springBackedService.getAllUsers(start, number)
     }
 
     def getUsersPerSite(site) {
@@ -121,14 +121,14 @@ class SpringSecurityServices {
         return springBackedService.getAllGroups(start, end)
     }
 
-    def getGroupsPerSite(siteId) {
+    def getGroupsPerSite(siteId, start, number) {
         def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
-        return springBackedService.getGroupsPerSite(siteId)
+        return springBackedService.getGroupsPerSite(siteId, start, number)
     }
 
-    def getUsersPerGroup(siteId, groupName, start, end) {
+    def getUsersPerGroup(siteId, groupName, start, number) {
         def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
-        return springBackedService.getUsersPerGroup(siteId, groupName, start, end)
+        return springBackedService.getUsersPerGroup(siteId, groupName, start, number)
     }
 
     def updateGroup(siteId, groupName, description) {
