@@ -146,6 +146,7 @@
     <select id="getAllGroups" resultMap="GroupResultMap">
         SELECT cs.site_id AS site_id, cs.name AS site_name, cg.name AS group_name, cg.description AS group_description
         FROM cstudio_group cg INNER JOIN cstudio_site cs on cg.site_id = cs.id
+        LIMIT #{start},#{num}
     </select>
 
     <select id="getGroupsPerSite" resultMap="GroupPerSiteResultMap" parameterType="java.util.Map">

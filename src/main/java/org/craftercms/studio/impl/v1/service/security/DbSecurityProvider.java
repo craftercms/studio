@@ -499,7 +499,7 @@ public class DbSecurityProvider implements SecurityProvider {
     public List<Map<String, Object>> getAllGroups(int start, int end) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("start", start);
-        params.put("end", end);
+        params.put("num", end - start);
         List<GroupResult> resultSet = securityMapper.getAllGroups(params);
         return parseGroupResultSet(resultSet);
     }
