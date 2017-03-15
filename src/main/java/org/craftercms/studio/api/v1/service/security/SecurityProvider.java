@@ -186,9 +186,10 @@ public interface SecurityProvider {
      *
      * @param site site id
      * @param start
-     *@param end @return
+     * @param number
+     * @return
      */
-    List<Map<String, Object>> getGroupsPerSite(String site, int start, int end) throws SiteNotFoundException;
+    List<Map<String, Object>> getGroupsPerSite(String site, int start, int number) throws SiteNotFoundException;
 
     /**
      * Get all users for given site and group

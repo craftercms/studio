@@ -571,8 +571,8 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
-    public List<Map<String, Object>> getGroupsPerSite(String site, int start, int end) throws SiteNotFoundException {
-        return securityProvider.getGroupsPerSite(site, start, end);
+    public List<Map<String, Object>> getGroupsPerSite(String site, int start, int number) throws SiteNotFoundException {
+        return securityProvider.getGroupsPerSite(site, start, number);
     }
 
     @Override
