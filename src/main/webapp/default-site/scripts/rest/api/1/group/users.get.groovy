@@ -28,15 +28,15 @@ def start = 0
 if (params.start != null && params.start != '') {
     start = params.start.toInteger()
 }
-def end = 10
-if (params.end != null && params.end != '') {
-    end = params.end.toInteger()
+def number = 10
+if (params.number != null && params.number != '') {
+    number = params.number.toInteger()
 }
 def context = SecurityServices.createContext(applicationContext, request)
 try {
-    def usersPerGroup = SecurityServices.getUsersPerGroup(context, siteId, groupName, start, end);
+    def usersPerGroup = SecurityServices.getUsersPerGroup(context, siteId, groupName, start, number);
     if (usersPerGroup != null) {
-        def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/group/users?site_id=" + siteId + "&group_name=" + groupName + "&start="+ start + "&end=" + end
+        def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/group/users?site_id=" + siteId + "&group_name=" + groupName + "&start="+ start + "&number=" + number
         response.addHeader("Location", locationHeader)
         response.setStatus(200)
         result.users = usersPerGroup

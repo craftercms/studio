@@ -172,6 +172,7 @@
           INNER JOIN cstudio_user cu ON cug.username = cu.username
         WHERE cs.site_id = #{siteId}
         AND cg.name = #{groupName}
+        LIMIT #{start},#{number}
     </select>
 
     <update id="updateGroup" parameterType="java.util.Map">

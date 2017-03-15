@@ -597,7 +597,7 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public List<Map<String, Object>> getUsersPerGroup(String site, String group, int start, int end) throws
+    public List<Map<String, Object>> getUsersPerGroup(String site, String group, int start, int number) throws
         GroupNotFoundException {
         if (!groupExists(site, group)) {
             throw new GroupNotFoundException();
@@ -605,6 +605,8 @@ public class DbSecurityProvider implements SecurityProvider {
             Map<String, Object> params = new HashMap<String, Object>();
             params.put("siteId", site);
             params.put("groupName", group);
+            params.put("start", start);
+            params.put("number", number);
             List<User> resultSet = securityMapper.getUsersPerGroup(params);
             List<Map<String, Object>> toRet = new ArrayList<Map<String, Object>>();
             if (resultSet != null && !resultSet.isEmpty()) {

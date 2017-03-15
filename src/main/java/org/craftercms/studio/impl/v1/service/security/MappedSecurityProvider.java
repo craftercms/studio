@@ -230,9 +230,9 @@ public class MappedSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public List<Map<String, Object>> getUsersPerGroup(String site, String group, int start, int end) throws GroupNotFoundException {
+    public List<Map<String, Object>> getUsersPerGroup(String site, String group, int start, int number) throws GroupNotFoundException {
         SecurityProvider provider = lookupProvider(getProviderType());
-        return provider.getUsersPerGroup(site, group, start, end);
+        return provider.getUsersPerGroup(site, group, start, number);
     }
 
     @Override
