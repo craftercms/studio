@@ -15,22 +15,18 @@
 	<author>Jane Doe</author>
 	<file-name>index.xml</file-name>
 	<folder-name>top-romantic-valentine-movies</folder-name>
-	<tags>	<item>	<key>entertainment</key>
+	<categories>	<item>	<key>entertainment</key>
 	<value_smv>Entertainment</value_smv>
-	</item></tags>
-	<audience>	<item>	<key>gal</key>
+	</item></categories>
+	<segments>	<item>	<key>gal</key>
 	<value_smv>Gal</value_smv>
-	</item></audience>
-	<header>	<item>	<key>/site/components/header.xml</key>
-	<value>Header</value>
-	<include>/site/components/header.xml</include>
-	<disableFlattening>true</disableFlattening>
-	</item></header>
+	</item></segments>
+	<header/>
 	<date_dt>02/14/2017 05:00:00</date_dt>
 	<createdDate>3/3/2017 20:14:16</createdDate>
 	<createdDate_dt>3/3/2017 20:14:16</createdDate_dt>
-	<lastModifiedDate>3/11/2017 0:37:25</lastModifiedDate>
-	<lastModifiedDate_dt>3/11/2017 0:37:25</lastModifiedDate_dt>
+	<lastModifiedDate>3/13/2017 20:33:25</lastModifiedDate>
+	<lastModifiedDate_dt>3/13/2017 20:33:25</lastModifiedDate_dt>
 	<featured_b>true</featured_b>
 	<summary>Suspendisse a faucibus orci. Sed porta justo vel sapien iaculis pulvinar. Quisque bibendum pretium lectus ut auctor. Integer vitae libero volutpat est congue lacinia. Morbi at massa odio. Quisque non elit tellus. Donec porttitor viverra tortor. </summary>
 	<image>/static-assets/images/romantic-pic.jpg</image>

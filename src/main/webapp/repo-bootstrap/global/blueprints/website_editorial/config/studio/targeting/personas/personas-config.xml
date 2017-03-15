@@ -9,6 +9,11 @@
                 <label>Segment</label>
                 <value>unknown</value>
             </property>
+            <property>
+            	<name>name</name>
+                <label>Name</label>
+                <value>unknown</value>
+            </property>
         </settings>
    </persona>
    
@@ -22,6 +27,11 @@
             	<label>Segment</label>
             	<value>guy</value>
             </property>
+			<property>
+            	<name>name</name>
+                <label>Name</label>
+                <value>John</value>
+            </property>
         </settings>
    </persona>
 
@@ -34,6 +44,11 @@
             	<name>segment</name>
             	<label>Segment</label>
             	<value>gal</value>
+            </property>
+            <property>
+            	<name>name</name>
+                <label>Name</label>
+                <value>Jane</value>
             </property>
         </settings>
    </persona>

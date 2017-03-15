@@ -1,5 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<levelDescriptor>
-  <descriptor-mapper>hierarchical-mapper</descriptor-mapper>
-  <content-type>/component/level-descriptor</content-type>
- </levelDescriptor>
+<component>
+	<content-type>/component/level-descriptor</content-type>	<display-template/>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<placeInNav>false</placeInNav>
+	<file-name>crafter-level-descriptor.level.xml</file-name>
+	<objectGroupId>0a68</objectGroupId>
+	<objectId>0a68e8ad-77d8-0a58-e7bf-09a71fb3077b</objectId>
+	<folder-name/>
+	<header>	<item>	<key>/site/components/header.xml</key>
+	<value>Header</value>
+	<include>/site/components/header.xml</include>
+	<disableFlattening>false</disableFlattening>
+	</item></header>
+	<createdDate>3/13/2017 20:26:50</createdDate>
+	<createdDate_dt>3/13/2017 20:26:50</createdDate_dt>
+	<lastModifiedDate>3/13/2017 20:37:36</lastModifiedDate>
+	<lastModifiedDate_dt>3/13/2017 20:37:36</lastModifiedDate_dt>
+</component>

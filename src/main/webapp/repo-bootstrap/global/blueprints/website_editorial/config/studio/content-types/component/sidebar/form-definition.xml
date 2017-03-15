@@ -1,13 +1,13 @@
 <form>
-	<title>Level Descriptor</title>
+	<title>Component - Sidebar</title>
 	<description></description>
 	<objectType>component</objectType>
-	<content-type>/component/level-descriptor</content-type>
+	<content-type>/component/sidebar</content-type>
 	<imageThumbnail>undefined</imageThumbnail>
 	<properties>		<property>
 			<name>display-template</name>
 			<label>Display Template</label>
-			<value></value>
+			<value>/templates/web/components/sidebar.ftl</value>
 			<type>template</type>
 		</property>
 		<property>
@@ -18,7 +18,7 @@
 		</property>
 	</properties>
 	<sections>		<section>
-			<title>Level Descriptor Properties</title>
+			<title>Component - Sidebar Properties</title>
 			<description></description>
 			<defaultOpen>true</defaultOpen>
 			<fields>
@@ -26,7 +26,7 @@
 					<type>file-name</type>
 					<id>file-name</id>
 					<iceId></iceId>
-					<title>File Name</title>
+					<title>Component ID</title>
 					<description></description>
 					<defaultValue></defaultValue>
 					<help></help>
@@ -51,49 +51,29 @@
 					</constraints>
 				</field>
 				<field>
-					<type>node-selector</type>
-					<id>header</id>
+					<type>input</type>
+					<id>internal-name</id>
 					<iceId></iceId>
-					<title>Header</title>
+					<title>Internal Name</title>
 					<description></description>
 					<defaultValue></defaultValue>
 					<help></help>
 					<properties>
 						<property>
-							<name>minSize</name>
-							<value>1</value>
+							<name>size</name>
+							<value>50</value>
 							<type>int</type>
 						</property>
 						<property>
-							<name>maxSize</name>
-							<value>1</value>
+							<name>maxlength</name>
+							<value>50</value>
 							<type>int</type>
-						</property>
-						<property>
-							<name>itemManager</name>
-							<value>components</value>
-							<type>datasource:item</type>
-						</property>
-						<property>
-							<name>readonly</name>
-							<value></value>
-							<type>boolean</type>
-						</property>
-						<property>
-							<name>disableFlattening</name>
-							<value></value>
-							<type>boolean</type>
-						</property>
-						<property>
-							<name>useSingleValueFilename</name>
-							<value></value>
-							<type>boolean</type>
 						</property>
 					</properties>
 					<constraints>
 						<constraint>
-							<name>allowDuplicates</name>
-							<value><![CDATA[]]></value>
+							<name>required</name>
+							<value><![CDATA[true]]></value>
 							<type>boolean</type>
 						</constraint>
 					</constraints>
@@ -101,28 +81,5 @@
 			</fields>
 		</section>
 	</sections>
-	<datasources>				<datasource>
-					<type>child-content</type>
-					<id>components</id>
-					<title>Components</title>
-					<interface>item</interface>
-					<properties>
-						<property>
-							<name>repoPath</name>
-							<value>/site/components</value>
-								<type>undefined</type>
-						</property>
-						<property>
-							<name>browsePath</name>
-							<value></value>
-								<type>undefined</type>
-						</property>
-						<property>
-							<name>type</name>
-							<value></value>
-								<type>undefined</type>
-						</property>
-					</properties>
-				</datasource>
-	</datasources>
+	<datasources>	</datasources>
 </form>

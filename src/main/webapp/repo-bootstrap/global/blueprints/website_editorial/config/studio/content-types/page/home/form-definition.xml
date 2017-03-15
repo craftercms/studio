@@ -3,6 +3,7 @@
 	<description></description>
 	<objectType>page</objectType>
 	<content-type>/page/home</content-type>
+	<imageThumbnail>undefined</imageThumbnail>
 	<properties>		<property>
 			<name>display-template</name>
 			<label>Display Template</label>
@@ -17,7 +18,7 @@
 		</property>
 	</properties>
 	<sections>		<section>
-			<title>Page - Home Properties</title>
+			<title>Page Properties</title>
 			<description></description>
 			<defaultOpen>true</defaultOpen>
 			<fields>
@@ -125,13 +126,13 @@
 					<id>header</id>
 					<iceId>core</iceId>
 					<title>Header</title>
-					<description></description>
+					<description>Default header is inherited from Section Defaults. Specify a new header to overwrite it.</description>
 					<defaultValue></defaultValue>
 					<help></help>
 					<properties>
 						<property>
 							<name>minSize</name>
-							<value>1</value>
+							<value>0</value>
 							<type>int</type>
 						</property>
 						<property>
