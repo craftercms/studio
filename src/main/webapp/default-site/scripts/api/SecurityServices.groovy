@@ -107,9 +107,9 @@ class SecurityServices {
         return securityServicesImpl.getUserStatus(username)
     }
 
-    static getAllUsers(context) {
+    static getAllUsers(context, start, number) {
         def securityServicesImpl = ServiceFactory.getSecurityServices(context)
-        return securityServicesImpl.getAllUsers()
+        return securityServicesImpl.getAllUsers(start, number)
     }
 
     static getUsersPerSite(context, site) {
@@ -132,14 +132,14 @@ class SecurityServices {
         return securityServicesImpl.getAllGroups(start, end)
     }
 
-    static getGroupsPerSite(context, siteId) {
+    static getGroupsPerSite(context, siteId, start, number) {
         def securityServicesImpl = ServiceFactory.getSecurityServices(context)
-        return securityServicesImpl.getGroupsPerSite(siteId)
+        return securityServicesImpl.getGroupsPerSite(siteId, start, number)
     }
 
-    static getUsersPerGroup(context, siteId, groupName, start, end) {
+    static getUsersPerGroup(context, siteId, groupName, start, number) {
         def securityServicesImpl = ServiceFactory.getSecurityServices(context)
-        return securityServicesImpl.getUsersPerGroup(siteId, groupName, start, end)
+        return securityServicesImpl.getUsersPerGroup(siteId, groupName, start, number)
     }
 
     static updateGroup(context, siteId, groupName, description) {

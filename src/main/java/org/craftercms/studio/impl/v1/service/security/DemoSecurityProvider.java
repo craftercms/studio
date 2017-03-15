@@ -288,7 +288,7 @@ public class DemoSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public List<Map<String, Object>> getAllUsers() {
+    public List<Map<String, Object>> getAllUsers(int start, int number) {
         // TODO: DB: Implement this ?
         return null;
     }
@@ -312,13 +312,13 @@ public class DemoSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public List<Map<String, Object>> getGroupsPerSite(String site) {
+    public List<Map<String, Object>> getGroupsPerSite(String site, int start, int end) {
         // TODO: DB: Implement this ?
         return null;
     }
 
     @Override
-    public List<Map<String, Object>> getUsersPerGroup(String site, String group, int start, int end) {
+    public List<Map<String, Object>> getUsersPerGroup(String site, String group, int start, int number) {
         // TODO: DB: Implement this ?
         return null;
     }

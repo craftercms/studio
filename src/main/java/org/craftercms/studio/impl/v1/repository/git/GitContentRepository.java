@@ -34,6 +34,7 @@ import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
 import javax.servlet.ServletContext;
 
+import org.apache.commons.collections4.iterators.ReverseListIterator;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -807,9 +808,20 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         ObjectId prevCommitId = objCommitIdFrom;
                         ObjectId nextCommitId = objCommitIdFrom;
 
+                        // Reverse orders of commits
+                        // TODO: DB: try to find better algorithm
                         Iterator<RevCommit> iterator = commits.iterator();
+                        List<RevCommit> revCommits = new ArrayList<RevCommit>();
                         while (iterator.hasNext()) {
+
                             RevCommit commit = iterator.next();
+                            revCommits.add(commit);
+                        }
+
+                        ReverseListIterator<RevCommit> reverseIterator = new ReverseListIterator<RevCommit>(revCommits);
+                        while (reverseIterator.hasNext()) {
+
+                            RevCommit commit = reverseIterator.next();
                             nextCommitId = commit.getId();
 
                             RevTree prevTree = helper.getTreeForCommit(repo, prevCommitId.getName());

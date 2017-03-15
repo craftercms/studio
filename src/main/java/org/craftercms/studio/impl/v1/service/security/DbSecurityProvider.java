@@ -93,8 +93,11 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public List<Map<String, Object>> getAllUsers() {
-        List<UserProfileResult> resultSet = securityMapper.getAllUsers();
+    public List<Map<String, Object>> getAllUsers(int start, int number) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("start", start);
+        params.put("number", number);
+        List<UserProfileResult> resultSet = securityMapper.getAllUsers(params);
         return parseUserResultSet(resultSet);
     }
 
@@ -499,7 +502,7 @@ public class DbSecurityProvider implements SecurityProvider {
     public List<Map<String, Object>> getAllGroups(int start, int end) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("start", start);
-        params.put("end", end);
+        params.put("num", end - start);
         List<GroupResult> resultSet = securityMapper.getAllGroups(params);
         return parseGroupResultSet(resultSet);
     }
@@ -540,12 +543,14 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public List<Map<String, Object>> getGroupsPerSite(String site) throws SiteNotFoundException {
+    public List<Map<String, Object>> getGroupsPerSite(String site, int start, int number) throws SiteNotFoundException {
         if (!(siteFeedMapper.exists(site) > 0)) {
             throw new SiteNotFoundException();
         } else {
             Map<String, Object> params = new HashMap<String, Object>();
             params.put("site", site);
+            params.put("start", start);
+            params.put("number", number);
             List<GroupPerSiteResult> resultSet = securityMapper.getGroupsPerSite(params);
             return parseGroupsPerSiteResultSet(resultSet);
         }
@@ -592,7 +597,7 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public List<Map<String, Object>> getUsersPerGroup(String site, String group, int start, int end) throws
+    public List<Map<String, Object>> getUsersPerGroup(String site, String group, int start, int number) throws
         GroupNotFoundException {
         if (!groupExists(site, group)) {
             throw new GroupNotFoundException();
@@ -600,6 +605,8 @@ public class DbSecurityProvider implements SecurityProvider {
             Map<String, Object> params = new HashMap<String, Object>();
             params.put("siteId", site);
             params.put("groupName", group);
+            params.put("start", start);
+            params.put("number", number);
             List<User> resultSet = securityMapper.getUsersPerGroup(params);
             List<Map<String, Object>> toRet = new ArrayList<Map<String, Object>>();
             if (resultSet != null && !resultSet.isEmpty()) {
