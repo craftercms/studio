@@ -161,6 +161,7 @@
           LEFT JOIN cstudio_usergroup cug ON cg.id = cug.groupid
           LEFT JOIN cstudio_user cu ON cug.username = cu.username
         WHERE cs.site_id = #{site}
+        LIMIT #{start},#{num}
     </select>
 
     <select id="getUsersPerGroup" resultMap="UserMap" parameterType="java.util.Map">

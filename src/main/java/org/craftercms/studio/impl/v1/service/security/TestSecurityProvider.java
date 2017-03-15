@@ -23,8 +23,6 @@ import java.util.*;
 import org.craftercms.commons.http.RequestContext;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 
-import javax.servlet.http.HttpSession;
-
 /**
  */
 public class TestSecurityProvider implements SecurityProvider {
@@ -262,7 +260,7 @@ public class TestSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public List<Map<String, Object>> getGroupsPerSite(String site) {
+    public List<Map<String, Object>> getGroupsPerSite(String site, int start, int end) {
         // TODO: DB: Implement this ?
         return null;
     }

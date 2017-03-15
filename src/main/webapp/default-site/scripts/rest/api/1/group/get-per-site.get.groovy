@@ -24,10 +24,20 @@ import scripts.api.SecurityServices
 def result = [:]
 
 def siteId = params.site_id
+def start = 0
+if (params.start != null) {
+    start = params.start.toInteger()
+}
+
+// TODO: SJ: These should be constants
+def end = 25
+if (params.end != null) {
+    end = params.end.toInteger()
+}
 
 def context = SecurityServices.createContext(applicationContext, request)
 try {
-    def groupMap = SecurityServices.getGroupsPerSite(context, siteId)
+    def groupMap = SecurityServices.getGroupsPerSite(context, siteId, start, end)
     if (groupMap != null) {
         def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/get/get-per-site?site_id=" + siteId
         response.addHeader("Location", locationHeader)

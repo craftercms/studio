@@ -540,12 +540,14 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public List<Map<String, Object>> getGroupsPerSite(String site) throws SiteNotFoundException {
+    public List<Map<String, Object>> getGroupsPerSite(String site, int start, int end) throws SiteNotFoundException {
         if (!(siteFeedMapper.exists(site) > 0)) {
             throw new SiteNotFoundException();
         } else {
             Map<String, Object> params = new HashMap<String, Object>();
             params.put("site", site);
+            params.put("start", start);
+            params.put("num", end - start);
             List<GroupPerSiteResult> resultSet = securityMapper.getGroupsPerSite(params);
             return parseGroupsPerSiteResultSet(resultSet);
         }
