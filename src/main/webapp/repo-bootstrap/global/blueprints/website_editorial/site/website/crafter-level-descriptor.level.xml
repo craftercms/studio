@@ -14,6 +14,11 @@
 	</item></header>
 	<createdDate>3/13/2017 20:26:50</createdDate>
 	<createdDate_dt>3/13/2017 20:26:50</createdDate_dt>
-	<lastModifiedDate>3/13/2017 20:37:36</lastModifiedDate>
-	<lastModifiedDate_dt>3/13/2017 20:37:36</lastModifiedDate_dt>
+	<lastModifiedDate>3/15/2017 14:5:37</lastModifiedDate>
+	<lastModifiedDate_dt>3/15/2017 14:5:37</lastModifiedDate_dt>
+	<sidebar>	<item>	<key>/site/components/sidebar.xml</key>
+	<value>Sidebar</value>
+	<include>/site/components/sidebar.xml</include>
+	<disableFlattening>false</disableFlattening>
+	</item></sidebar>
 </component>

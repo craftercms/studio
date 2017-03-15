@@ -179,6 +179,54 @@
 						</constraint>
 					</constraints>
 				</field>
+				<field>
+					<type>node-selector</type>
+					<id>sidebar</id>
+					<iceId></iceId>
+					<title>Sidebar</title>
+					<description>Default sidebar is inherited from Section Defaults. Specify a new sidebar to overwrite it.</description>
+					<defaultValue></defaultValue>
+					<help></help>
+					<properties>
+						<property>
+							<name>minSize</name>
+							<value>0</value>
+							<type>int</type>
+						</property>
+						<property>
+							<name>maxSize</name>
+							<value>1</value>
+							<type>int</type>
+						</property>
+						<property>
+							<name>itemManager</name>
+							<value>components</value>
+							<type>datasource:item</type>
+						</property>
+						<property>
+							<name>readonly</name>
+							<value></value>
+							<type>boolean</type>
+						</property>
+						<property>
+							<name>disableFlattening</name>
+							<value></value>
+							<type>boolean</type>
+						</property>
+						<property>
+							<name>useSingleValueFilename</name>
+							<value></value>
+							<type>boolean</type>
+						</property>
+					</properties>
+					<constraints>
+						<constraint>
+							<name>allowDuplicates</name>
+							<value><![CDATA[]]></value>
+							<type>boolean</type>
+						</constraint>
+					</constraints>
+				</field>
 			</fields>
 		</section>
 		<section>
