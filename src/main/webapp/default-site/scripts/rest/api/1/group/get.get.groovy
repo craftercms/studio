@@ -18,6 +18,7 @@
  */
 
 import scripts.api.SecurityServices
+import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException
 
 def result = [:]
 
@@ -26,18 +27,21 @@ def siteId = params.site_id
 
 def context = SecurityServices.createContext(applicationContext, request)
 try {
-    def groupMap = SecurityServices.getGroup(context, siteId, groupName);
-    if (groupMap != null && !groupMap.isEmpty()) {
+    def groupMap = SecurityServices.getGroup(context, siteId, groupName)
+    if (groupMap != null) {
         def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/get/get?site_id=" + siteId + "&group_name=" + groupName
         response.addHeader("Location", locationHeader)
-        return groupMap;
+        result = groupMap
     } else {
-        response.setStatus(404)
-        result.status = "Group not found"
-        return result;
+        response.setStatus(500)
+        result.message = "Internal server error"
     }
+} catch (GroupNotFoundException e) {
+    response.setStatus(404)
+    result.message = "Group not found"
 } catch (Exception e) {
     response.setStatus(500)
-    result.status = "Internal server error"
-    return result;
+    result.message = "Internal server error: \n" + e
 }
+
+return result

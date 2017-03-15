@@ -19,7 +19,11 @@
 package org.craftercms.studio.api.v1.service.security;
 
 import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
+import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 
 import java.util.List;
 import java.util.Set;
@@ -30,7 +34,7 @@ import java.util.Map;
  */
 public interface SecurityService {
 
-	/** 
+	/**
 	 * authenticate a user. returns ticket
 	 * @param username
 	 * @param password
@@ -47,7 +51,7 @@ public interface SecurityService {
     Set<String> getUserRoles(String site, String user);
 
     Map<String, Object> getUserProfile(String user);
-    
+
     Set<String> getUserPermissions(String site, String path, String user, List<String> groups);
 
     boolean validateTicket(String token);
@@ -72,7 +76,7 @@ public interface SecurityService {
      * @param email User's email address
      * @return true if success, otherwise false
      */
-    boolean createUser(String username, String password, String firstName, String lastName, String email);
+    boolean createUser(String username, String password, String firstName, String lastName, String email) throws UserAlreadyExistsException;
 
     /**
      * Delete user with given username
@@ -110,7 +114,7 @@ public interface SecurityService {
      * @param siteId
      * @return
      */
-    boolean createGroup(String groupName, String description, String siteId) throws GroupAlreadyExistsException;
+    boolean createGroup(String groupName, String description, String siteId) throws GroupAlreadyExistsException, SiteNotFoundException;
 
     /**
      * Get status for given user
@@ -142,7 +146,7 @@ public interface SecurityService {
      * @param group group name
      * @return
      */
-    Map<String, Object> getGroup(String site, String group);
+    Map<String, Object> getGroup(String site, String group) throws GroupNotFoundException;
 
     /**
      * Get all groups
@@ -159,7 +163,7 @@ public interface SecurityService {
      * @param site site id
      * @return
      */
-    List<Map<String, Object>> getGroupsPerSite(String site);
+    List<Map<String, Object>> getGroupsPerSite(String site) throws SiteNotFoundException;
 
     /**
      * Get all users for given site and group
@@ -170,7 +174,8 @@ public interface SecurityService {
      * @param end end index
      * @return list of users
      */
-    List<Map<String, Object>> getUsersPerGroup(String site, String group, int start, int end);
+    List<Map<String, Object>> getUsersPerGroup(String site, String group, int start, int end) throws
+	    GroupNotFoundException;
 
     /**
      * Update group with given parameters
@@ -180,7 +185,7 @@ public interface SecurityService {
      * @param siteId
      * @return
      */
-    boolean updateGroup(String siteId, String groupName, String description);
+    boolean updateGroup(String siteId, String groupName, String description) throws GroupNotFoundException;
 
     /**
      * Delete group for given site with given name
@@ -189,7 +194,7 @@ public interface SecurityService {
      * @param group group name
      * @return
      */
-    boolean deleteGroup(String site, String group);
+    boolean deleteGroup(String site, String group) throws GroupNotFoundException;
 
     /**
      * Add user to the group
@@ -199,7 +204,8 @@ public interface SecurityService {
      * @param username username
      * @return
      */
-    boolean addUserToGroup(String siteId, String groupName, String username);
+    boolean addUserToGroup(String siteId, String groupName, String username) throws UserAlreadyExistsException,
+	    UserNotFoundException, GroupNotFoundException;
 
     /**
      * Remove user from the group
@@ -209,7 +215,8 @@ public interface SecurityService {
      * @param username username
      * @return
      */
-    boolean removeUserFromGroup(String siteId, String groupName, String username);
+    boolean removeUserFromGroup(String siteId, String groupName, String username) throws UserNotFoundException,
+	    GroupNotFoundException;
 
     /**
      * Forgot password for given user
@@ -238,14 +245,13 @@ public interface SecurityService {
     boolean changePassword(String username, String current, String newPassword);
 
     /**
-     * Set password
+     * Set user password - forgot password token
      *
-     * @param username username
      * @param token forgot password token
      * @param newPassword new password
      * @return
      */
-    boolean setUserPassword(String username, String token, String newPassword);
+    Map<String, Object> setUserPassword(String token, String newPassword) throws UserNotFoundException;
 
     /**
      * Reset user password

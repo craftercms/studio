@@ -26,9 +26,9 @@ def requestBody = request.reader.text
 def slurper = new JsonSlurper()
 def parsedReq = slurper.parseText(requestBody)
 
-def username = parsedReq.username;
-def current = parsedReq.current;
-def newPassword = parsedReq.new;
+def username = parsedReq.username
+def current = parsedReq.current
+def newPassword = parsedReq.new
 
 def context = SecurityServices.createContext(applicationContext, request)
 try {
@@ -36,15 +36,15 @@ try {
     if (success) {
         def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/user/get?username=" + username
         response.addHeader("Location", locationHeader)
-        result.status = "OK"
+        result.message = "OK"
         response.setStatus(200)
     } else {
         response.setStatus(404)
-        result.status = "User not found"
-        return result;
+        result.message = "User not found"
     }
 } catch (Exception e) {
     response.setStatus(500)
-    result.status = "Internal server error"
-    return result;
+    result.message = "Internal server error: \n" + e
 }
+
+return result

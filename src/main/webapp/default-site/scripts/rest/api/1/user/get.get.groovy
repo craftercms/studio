@@ -25,18 +25,19 @@ def username = params.username
 
 def context = SecurityServices.createContext(applicationContext, request)
 try {
-    def userMap = SecurityServices.getUserDetails(context, username);
+    def userMap = SecurityServices.getUserDetails(context, username)
     if (userMap != null && !userMap.isEmpty()) {
         def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/user/get?username=" + username
         response.addHeader("Location", locationHeader)
-        return userMap;
+        response.setStatus(200)
+        return userMap
     } else {
         response.setStatus(404)
-        result.status = "User not found"
-        return result;
+        result.message = "User not found"
     }
 } catch (Exception e) {
     response.setStatus(500)
-    result.status = "Internal server error"
-    return result;
+    result.message = "Internal server error: \n" + e
 }
+
+return result

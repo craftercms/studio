@@ -18,6 +18,7 @@
  */
 
 import groovy.json.JsonSlurper
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException
 import scripts.api.SiteServices
 
 def result = [:]
@@ -28,6 +29,18 @@ def parsedReq = slurper.parseText(requestBody)
 
 def siteId = parsedReq.site_id
 
-def context = SiteServices.createContext(applicationContext, request);
-result = SiteServices.syncRepository(context, siteId);
-return result;
+def context = SiteServices.createContext(applicationContext, request)
+
+try {
+    SiteServices.syncRepository(context, siteId)
+    response.setStatus(200)
+    result.message = "OK"
+} catch (SiteNotFoundException e) {
+    response.setStatus(404)
+    result.message = "Site not found"
+} catch (Exception e) {
+    response.setStatus(500)
+    result.message = "Internal server error: \n" + e
+}
+
+return result

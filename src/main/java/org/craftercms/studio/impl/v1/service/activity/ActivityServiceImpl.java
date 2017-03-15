@@ -29,12 +29,14 @@ import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.ActivityFeed;
 import org.craftercms.studio.api.v1.dal.ActivityFeedMapper;
 import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.AbstractRegistrableService;
 import org.craftercms.studio.api.v1.service.activity.ActivityService;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.objectstate.State;
+import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.util.DebugUtils;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
@@ -371,18 +373,23 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 	}
 
     @Override
-    public List<ActivityFeed> getAuditLogForSite(String site, int start, int end, String user, List<String> actions) {
-        Map<String, Object> params = new HashMap<String,Object>();
-        params.put("site", site);
-        params.put("start", start);
-        params.put("num", end - start);
-        if (StringUtils.isNotEmpty(user)) {
-            params.put("user", user);
-        }
-        if (CollectionUtils.isNotEmpty(actions)) {
-            params.put("actions", actions);
-        }
-        return activityFeedMapper.getAuditLogForSite(params);
+    public List<ActivityFeed> getAuditLogForSite(String site, int start, int end, String user, List<String> actions)
+	throws SiteNotFoundException {
+		if (!siteService.exists(site)) {
+			throw new SiteNotFoundException();
+		} else {
+			Map<String, Object> params = new HashMap<String, Object>();
+			params.put("site", site);
+			params.put("start", start);
+			params.put("num", end - start);
+			if (StringUtils.isNotEmpty(user)) {
+				params.put("user", user);
+			}
+			if (CollectionUtils.isNotEmpty(actions)) {
+				params.put("actions", actions);
+			}
+			return activityFeedMapper.getAuditLogForSite(params);
+		}
     }
 
     public boolean getUserNamesAreCaseSensitive() {
@@ -392,7 +399,18 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 
     @Autowired
 	protected ActivityFeedMapper activityFeedMapper;
+
 	protected ContentService contentService;
+
+	public SiteService getSiteService() {
+		return siteService;
+	}
+
+	public void setSiteService(final SiteService siteService) {
+		this.siteService = siteService;
+	}
+
+	protected SiteService siteService;
 
 	public void setContentService(ContentService contentService) {
 		this.contentService = contentService;

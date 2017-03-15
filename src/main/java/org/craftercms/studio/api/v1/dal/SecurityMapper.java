@@ -52,6 +52,12 @@ public interface SecurityMapper {
 
     List<User> getUsersPerGroup(Map params);
 
+    Integer userExistsInGroup(Map params);
+
+    Integer userExists(Map params);
+
+    Integer groupExists(Map params);
+
     void updateGroup(Map params);
 
     void deleteGroup(Map params);

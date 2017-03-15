@@ -26,21 +26,21 @@ def requestBody = request.reader.text
 def slurper = new JsonSlurper()
 def parsedReq = slurper.parseText(requestBody)
 
-def username = parsedReq.username;
+def username = parsedReq.username
 
 def context = SecurityServices.createContext(applicationContext, request)
 try {
     def success = SecurityServices.deleteUser(context, username);
     if (success) {
-        result.status = "OK"
+        result.message = "OK"
         response.setStatus(204)
     } else {
-        result.status = "User not found"
+        result.message = "User not found"
         response.setStatus(404)
     }
-    return result
 } catch (Exception e) {
-    result.status = "Internal server error"
+    result.message = "Internal server error: \n" + e
     response.setStatus(500)
-    return result
 }
+
+return result

@@ -17,8 +17,8 @@
  *
  */
 
-
 import groovy.json.JsonSlurper
+import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException
 import scripts.api.SecurityServices
 
 def result = [:]
@@ -32,17 +32,15 @@ def siteId = parsedReq.site_id
 
 def context = SecurityServices.createContext(applicationContext, request)
 try {
-    def success = SecurityServices.deleteGroup(context, siteId, groupName);
-    if (success) {
-        result.status = "OK"
-        response.setStatus(204)
-    } else {
-        result.status = "Group not found"
-        response.setStatus(404)
-    }
-    return result
+    def success = SecurityServices.deleteGroup(context, siteId, groupName)
+    result.message = "OK"
+    response.setStatus(204)
+} catch (GroupNotFoundException e) {
+    response.setStatus(404)
+    result.message = "Group not found"
 } catch (Exception e) {
     response.setStatus(500)
-    result.status = "Internal server error"
-    return result;
+    result.message = "Internal server error: \n" + e
 }
+
+return result

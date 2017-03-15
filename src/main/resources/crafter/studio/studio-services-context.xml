@@ -189,6 +189,7 @@
         <property name="contentService" ref="cstudioContentService" />
         <property name="securityService" ref="cstudioSecurityService" />
         <property name="studioConfiguration" ref="studioConfiguration" />
+        <property name="siteService" ref="cstudioSiteServiceSimple" />
     </bean>
 
     <bean id="cstudioDmDependencyService" class="org.craftercms.studio.impl.v1.service.dependency.DmDependencyServiceImpl"

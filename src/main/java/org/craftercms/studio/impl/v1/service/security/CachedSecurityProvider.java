@@ -18,6 +18,9 @@
 
 package org.craftercms.studio.impl.v1.service.security;
 
+import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 
@@ -43,7 +46,7 @@ public class CachedSecurityProvider implements SecurityProvider {
 
 
     /**
-     * default constructor 
+     * default constructor
      */
     public CachedSecurityProvider() {
     }
@@ -53,7 +56,7 @@ public class CachedSecurityProvider implements SecurityProvider {
         value = (Set<String>)getCachedObject("getUserGroups-"+user);
 
         if(value == null) {
-            value = provider.getUserGroups(user); 
+            value = provider.getUserGroups(user);
 
             if(value != null) {
                 cacheObject("getUserGroups-"+user, value);
@@ -64,19 +67,19 @@ public class CachedSecurityProvider implements SecurityProvider {
     };
 
     public String getCurrentUser() {
-        return provider.getCurrentUser(); 
+        return provider.getCurrentUser();
     };
 
     public Map<String, Object> getUserProfile(String user) {
-        return provider.getUserProfile(user); 
+        return provider.getUserProfile(user);
     }
 
     public String authenticate(String username, String password) {
-        return provider.authenticate(username, password); 
+        return provider.authenticate(username, password);
     }
 
     public boolean validateTicket(String ticket){
-        return provider.validateTicket(ticket); 
+        return provider.validateTicket(ticket);
     }
 
     @Override
@@ -95,7 +98,22 @@ public class CachedSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public boolean addUserToGroup(String siteId, String groupName, String user) {
+    public boolean groupExists(final String siteId, final String groupName) {
+        return false;
+    }
+
+    @Override
+    public boolean userExists(final String username) {
+        return false;
+    }
+
+    @Override
+    public boolean userExistsInGroup(final String siteId, final String groupName, final String username) {
+        return false;
+    }
+
+    @Override
+    public boolean addUserToGroup(String siteId, String groupName, String user) throws UserNotFoundException, UserAlreadyExistsException, GroupNotFoundException {
         return provider.addUserToGroup(siteId, groupName, user);
     }
 
@@ -110,7 +128,7 @@ public class CachedSecurityProvider implements SecurityProvider {
         HashMap<String, Object> cache = this.getCache();
         cache.put(key, value);
     }
-    
+
     protected Object getCachedObject(String key) {
         Object value = null;
 
@@ -131,11 +149,11 @@ public class CachedSecurityProvider implements SecurityProvider {
         HashMap<String, Object> cache = null;
 
         if(System.currentTimeMillis() - cacheAge > 10000){
-            cacheAge = System.currentTimeMillis(); 
+            cacheAge = System.currentTimeMillis();
             globalCache = new HashMap<String, Object>();
         }
 
-        return globalCache;        
+        return globalCache;
     }
 
     @Override

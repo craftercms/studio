@@ -36,7 +36,11 @@ import org.craftercms.commons.http.RequestContext;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.StudioXmlConstants;
 import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
+import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
@@ -517,7 +521,7 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
-    public boolean createUser(String username, String password, String firstName, String lastName, String email) {
+    public boolean createUser(String username, String password, String firstName, String lastName, String email) throws UserAlreadyExistsException {
         return securityProvider.createUser(username, password, firstName, lastName, email);
     }
 
@@ -552,12 +556,12 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
-    public boolean createGroup(String groupName, String description, String siteId) throws GroupAlreadyExistsException {
+    public boolean createGroup(String groupName, String description, String siteId) throws GroupAlreadyExistsException, SiteNotFoundException {
         return securityProvider.createGroup(groupName, description, siteId);
     }
 
     @Override
-    public Map<String, Object> getGroup(String site, String group) {
+    public Map<String, Object> getGroup(String site, String group) throws GroupNotFoundException {
         return securityProvider.getGroup(site, group);
     }
 
@@ -567,38 +571,41 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
-    public List<Map<String, Object>> getGroupsPerSite(String site) {
+    public List<Map<String, Object>> getGroupsPerSite(String site) throws SiteNotFoundException {
         return securityProvider.getGroupsPerSite(site);
     }
 
     @Override
-    public List<Map<String, Object>> getUsersPerGroup(String site, String group, int start, int end) {
+    public List<Map<String, Object>> getUsersPerGroup(String site, String group, int start, int end) throws
+	    GroupNotFoundException {
         return securityProvider.getUsersPerGroup(site, group, start, end);
     }
 
     @Override
-    public boolean updateGroup(String siteId, String groupName, String description) {
+    public boolean updateGroup(String siteId, String groupName, String description) throws GroupNotFoundException {
         return securityProvider.updateGroup(siteId, groupName, description);
     }
 
     @Override
-    public boolean deleteGroup(String site, String group) {
+    public boolean deleteGroup(String site, String group) throws GroupNotFoundException {
         return securityProvider.deleteGroup(site, group);
     }
 
     @Override
-    public boolean addUserToGroup(String siteId, String groupName, String username) {
+    public boolean addUserToGroup(String siteId, String groupName, String username) throws
+	    UserAlreadyExistsException, UserNotFoundException, GroupNotFoundException {
         return securityProvider.addUserToGroup(siteId, groupName, username);
     }
 
     @Override
-    public boolean removeUserFromGroup(String siteId, String groupName, String username) {
+    public boolean removeUserFromGroup(String siteId, String groupName, String username) throws
+	    UserNotFoundException, GroupNotFoundException {
         return securityProvider.removeUserFromGroup(siteId, groupName, username);
     }
 
     @Override
     public Map<String, Object> forgotPassword(String username) throws ServiceException {
-        logger.debug("Gettting user profile for " + username);
+        logger.debug("Getting user profile for " + username);
         Map<String, Object> userProfile = securityProvider.getUserProfile(username);
         boolean success = false;
         String message = StringUtils.EMPTY;
@@ -611,7 +618,8 @@ public class SecurityServiceImpl implements SecurityService {
                 String email = userProfile.get("email").toString();
 
                 logger.debug("Creating security token for forgot password");
-                long timestamp = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(15);
+                long timestamp = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(Long.parseLong(studioConfiguration
+                    .getProperty(SECURITY_FORGOT_PASSWORD_TOKEN_TIMEOUT)));
                 String salt = studioConfiguration.getProperty(SECURITY_CIPHER_SALT);
 
                 String token = username + "|" + timestamp + "|" + salt;
@@ -633,19 +641,21 @@ public class SecurityServiceImpl implements SecurityService {
 
     @Override
     public boolean validateToken(String token) {
+        boolean toRet = false;
         String decryptedToken = decryptToken(token);
-        StringTokenizer tokenElements = new StringTokenizer(decryptedToken, "|");
-        if (tokenElements.countTokens() == 3) {
-            String username = tokenElements.nextToken();
-            long tokenTimestamp = Long.parseLong(tokenElements.nextToken());
-            if (tokenTimestamp < System.currentTimeMillis()) {
-                return false;
-            } else {
-                return true;
+        if (StringUtils.isNotEmpty(decryptedToken)) {
+            StringTokenizer tokenElements = new StringTokenizer(decryptedToken, "|");
+            if (tokenElements.countTokens() == 3) {
+                String username = tokenElements.nextToken();
+                long tokenTimestamp = Long.parseLong(tokenElements.nextToken());
+                if (tokenTimestamp < System.currentTimeMillis()) {
+                    toRet = false;
+                } else {
+                    toRet = true;
+                }
             }
-        } else {
-            return false;
         }
+        return toRet;
     }
 
     private String encryptToken(String token) {
@@ -670,7 +680,7 @@ public class SecurityServiceImpl implements SecurityService {
             cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(key.getEncoded()));
             byte[] decrypted = cipher.doFinal(tokenBytes);
             return new String(decrypted, StandardCharsets.UTF_8);
-        } catch (NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException | BadPaddingException | IllegalBlockSizeException | InvalidAlgorithmParameterException e) {
+        } catch (IllegalArgumentException | NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException | BadPaddingException | IllegalBlockSizeException | InvalidAlgorithmParameterException e) {
             logger.error("Error while decrypting forgot password token", e);
             return null;
         }
@@ -706,14 +716,40 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
-    public boolean setUserPassword(String username, String token, String newPassword) {
-        String currentUser = getCurrentUser();
-
+    public Map<String, Object> setUserPassword(String token, String newPassword) throws UserNotFoundException {
+        Map<String, Object> toRet = new HashMap<String, Object>();
+        toRet.put("username", StringUtils.EMPTY);
+        toRet.put("success", false);
         if (validateToken(token)) {
-            return securityProvider.setUserPassword(username, newPassword);
-        } else {
-            return false;
+            String username = getUsernameFromToken(token);
+            if (StringUtils.isNotEmpty(username)) {
+                toRet.put("username", username);
+                Map<String, Object> userStatus = securityProvider.getUserStatus(username);
+                if (userStatus != null && !userStatus.isEmpty()) {
+                    boolean enabled = (Boolean)userStatus.get("enabled");
+                    if (enabled) {
+                        toRet.put("success", securityProvider.setUserPassword(username, newPassword));
+                    }
+                } else {
+                    throw new UserNotFoundException("User not found");
+                }
+            } else {
+                throw new UserNotFoundException("User not found");
+            }
         }
+        return toRet;
+    }
+
+    private String getUsernameFromToken(String token) {
+        String toRet = StringUtils.EMPTY;
+        String decryptedToken = decryptToken(token);
+        if (StringUtils.isNotEmpty(decryptedToken)) {
+            StringTokenizer tokenElements = new StringTokenizer(decryptedToken, "|");
+            if (tokenElements.countTokens() == 3) {
+                toRet = tokenElements.nextToken();
+            }
+        }
+        return toRet;
     }
 
     @Override
