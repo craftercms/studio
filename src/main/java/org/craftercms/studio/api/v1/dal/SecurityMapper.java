@@ -40,7 +40,7 @@ public interface SecurityMapper {
 
     List<UserProfileResult> getUserDetails(String username);
 
-    List<UserProfileResult> getAllUsers();
+    List<UserProfileResult> getAllUsers(Map params);
 
     List<UserProfileResult> getUsersPerSite(String site);
 

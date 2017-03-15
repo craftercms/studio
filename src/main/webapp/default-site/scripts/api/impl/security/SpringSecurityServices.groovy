@@ -96,9 +96,9 @@ class SpringSecurityServices {
         return springBackedService.getUserStatus(username)
     }
 
-    def getAllUsers() {
+    def getAllUsers(start, number) {
         def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
-        return springBackedService.getAllUsers()
+        return springBackedService.getAllUsers(start, number)
     }
 
     def getUsersPerSite(site) {

@@ -200,9 +200,9 @@ public class MappedSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public List<Map<String, Object>> getAllUsers() {
+    public List<Map<String, Object>> getAllUsers(int start, int number) {
         SecurityProvider provider = lookupProvider(getProviderType());
-        return provider.getAllUsers();
+        return provider.getAllUsers(start, number);
     }
 
     @Override

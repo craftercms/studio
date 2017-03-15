@@ -93,8 +93,11 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public List<Map<String, Object>> getAllUsers() {
-        List<UserProfileResult> resultSet = securityMapper.getAllUsers();
+    public List<Map<String, Object>> getAllUsers(int start, int number) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("start", start);
+        params.put("number", number);
+        List<UserProfileResult> resultSet = securityMapper.getAllUsers(params);
         return parseUserResultSet(resultSet);
     }
 

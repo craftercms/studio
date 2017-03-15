@@ -203,7 +203,7 @@ public class CachedSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public List<Map<String, Object>> getAllUsers() {
+    public List<Map<String, Object>> getAllUsers(int start, int number) {
         // TODO: DB: Implement this ?
         return null;
     }

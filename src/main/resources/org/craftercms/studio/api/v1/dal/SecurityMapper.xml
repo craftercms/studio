@@ -77,12 +77,13 @@
         WHERE cu.username = #{username}
     </select>
 
-    <select id="getAllUsers" resultMap="UserProfileResultMap">
+    <select id="getAllUsers" resultMap="UserProfileResultMap" parameterType="java.util.Map">
         SELECT cu.username as username, cu.firstname as firstname, cu.lastname as lastname, cu.email as email, cg.name as groupname, cs.site_id as siteid, cs.name as sitename from
         cstudio_user cu LEFT JOIN cstudio_usergroup cug on cu.username = cug.username
         LEFT JOIN cstudio_group cg on cug.groupId = cg.id
         LEFT JOIN cstudio_site cs on cg.site_id=cs.id
         ORDER BY username, siteid, groupname
+        LIMIT #{start}, #{number}
     </select>
 
     <select id="getUsersPerSite" resultMap="UserProfileResultMap">

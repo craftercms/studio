@@ -546,8 +546,8 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
-    public List<Map<String, Object>> getAllUsers() {
-        return securityProvider.getAllUsers();
+    public List<Map<String, Object>> getAllUsers(int start, int number) {
+        return securityProvider.getAllUsers(start, number);
     }
 
     @Override

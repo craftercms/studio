@@ -154,7 +154,7 @@ public interface SecurityProvider {
      *
      * @return List of all users
      */
-    List<Map<String, Object>> getAllUsers();
+    List<Map<String, Object>> getAllUsers(int start, int number);
 
     /**
      * Get all users for given site
