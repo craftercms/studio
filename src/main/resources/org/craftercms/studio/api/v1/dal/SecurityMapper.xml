@@ -77,18 +77,31 @@
         WHERE cu.username = #{username}
     </select>
 
-    <select id="getAllUsers" resultMap="UserProfileResultMap" parameterType="java.util.Map">
-        SELECT cu.username as username, cu.firstname as firstname, cu.lastname as lastname, cu.email as email, cg.name as groupname, cs.site_id as siteid, cs.name as sitename from
-        cstudio_user cu LEFT JOIN cstudio_usergroup cug on cu.username = cug.username
+    <select id="getAllUsersQuery" resultType="java.lang.String" parameterType="java.util.Map">
+        SELECT DISTINCT cu.username as username
+        FROM cstudio_user cu LEFT JOIN cstudio_usergroup cug on cu.username = cug.username
         LEFT JOIN cstudio_group cg on cug.groupId = cg.id
         LEFT JOIN cstudio_site cs on cg.site_id=cs.id
-        ORDER BY username, siteid, groupname
+        ORDER BY username
         LIMIT #{start}, #{number}
     </select>
 
+    <select id="getAllUsersData" resultMap="UserProfileResultMap" parameterType="java.util.Map">
+        SELECT cu.username as username, cu.firstname as firstname, cu.lastname as lastname, cu.email as email, cg.name as groupname, cs.site_id as siteid, cs.name as sitename
+        FROM cstudio_user cu LEFT JOIN cstudio_usergroup cug on cu.username = cug.username
+        LEFT JOIN cstudio_group cg on cug.groupId = cg.id
+        LEFT JOIN cstudio_site cs on cg.site_id=cs.id
+        WHERE cu.username in
+        <foreach item="username" index="index" collection="usernames"
+                 open="(" separator="," close=")">
+            #{username}
+        </foreach>
+        ORDER BY username, siteid, groupname
+    </select>
+
     <select id="getUsersPerSiteData" resultMap="UserProfileResultMap" parameterType="java.util.Map">
-        SELECT cu.username as username, cu.firstname as firstname, cu.lastname as lastname, cu.email as email, cg.name as groupname, cs.site_id as siteid, cs.name as sitename from
-        cstudio_user cu INNER JOIN cstudio_usergroup cug on cu.username = cug.username
+        SELECT cu.username as username, cu.firstname as firstname, cu.lastname as lastname, cu.email as email, cg.name as groupname, cs.site_id as siteid, cs.name as sitename
+        FROM cstudio_user cu INNER JOIN cstudio_usergroup cug on cu.username = cug.username
         INNER JOIN cstudio_group cg on cug.groupId = cg.id
         INNER JOIN cstudio_site cs on cg.site_id=cs.id
         WHERE cu.username in
