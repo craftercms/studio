@@ -17,7 +17,9 @@
  *
  */
 
+
 import scripts.api.SecurityServices
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException
 
 def result = [:]
 
@@ -46,6 +48,9 @@ try {
         response.setStatus(500)
         result.message = "Internal server error"
     }
+} catch (SiteNotFoundException e) {
+    response.setStatus(404)
+    result.message = "Site not found"
 } catch (Exception e) {
     response.setStatus(500)
     result.message = "Internal server error: \n" + e

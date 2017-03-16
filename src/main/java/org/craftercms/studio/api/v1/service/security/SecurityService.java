@@ -139,7 +139,7 @@ public interface SecurityService {
      * @param number
      * @return
      */
-    List<Map<String, Object>> getUsersPerSite(String site, int start, int number);
+    List<Map<String, Object>> getUsersPerSite(String site, int start, int number) throws SiteNotFoundException;
 
     /**
      * Get group for given site with given name

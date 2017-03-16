@@ -546,7 +546,7 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
-    public List<Map<String, Object>> getUsersPerSite(String site, int start, int number) {
+    public List<Map<String, Object>> getUsersPerSite(String site, int start, int number) throws SiteNotFoundException {
         return securityProvider.getUsersPerSite(site, start, number);
     }
 
