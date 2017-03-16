@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<page>
+	<content-type>/page/category-landing</content-type>	<display-template>/templates/web/pages/landing.ftl</display-template>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>102f</objectGroupId>
+	<objectId>102fb288-0dd8-806c-7651-2dd8838ca016</objectId>
+	<categoryToDisplay>style</categoryToDisplay>
+	<header/>
+	<file-name>index.xml</file-name>
+	<folder-name>style</folder-name>
+	<internal-name>Style</internal-name>
+	<title>Style</title>
+	<placeInNav>true</placeInNav>
+	<orderDefault_f>4000</orderDefault_f>
+	<createdDate>3/13/2017 22:26:52</createdDate>
+	<createdDate_dt>3/13/2017 22:26:52</createdDate_dt>
+	<lastModifiedDate>3/13/2017 22:26:52</lastModifiedDate>
+	<lastModifiedDate_dt>3/13/2017 22:26:52</lastModifiedDate_dt>
+</page>

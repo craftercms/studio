@@ -27,42 +27,10 @@
 							<!-- Header -->
 							<@renderComponent component=contentModel.header.item />
 
-							<!-- Banner -->
-								<section id="banner" <@studio.iceAttr iceGroup="hero"/>>
-									<div class="content">
-										<header>${contentModel.hero_title}</header>
-											${contentModel.hero_text}
-										<ul class="actions">
-											<li><a href="${contentModel.hero_learn_more_link}" class="button big">${contentModel.hero_learn_more_text}</a></li>
-										</ul>
-									</div>
-									<span class="image object">
-										<img src="${contentModel.hero_image !""}" alt="" />
-									</span>
-								</section>
-
-							<!-- Section -->
-								<section <@studio.iceAttr iceGroup="features"/>>
-									<header class="major">
-										<h2>${contentModel.section_1_title}</h2>
-									</header>
-									<div class="features">
-										<#list contentModel.features.item as item>
-											<article>
-												<span class="icon ${item.feature_icon}"></span>
-												<div class="content">
-													<h3>${item.feature_title}</h3>
-													${item.feature_body}
-												</div>
-											</article>
-										</#list>
-									</div>
-								</section>
-
 							<!-- Section -->
 								<section>
-									<header class="major">
-										<h2>Featured Articles</h2>
+									<header class="main">
+										<h1>${contentModel.title}</h1>
 									</header>
 									<div class="posts">
 										<#list articles as article>
@@ -88,8 +56,8 @@
 						</div>
 					</div>
 
-				<!-- Sidebar -->
-				<@renderComponent component=contentModel.sidebar.item />
+					<!-- Sidebar -->
+					<@renderComponent component=contentModel.sidebar.item />
 
 			</div>
 
@@ -102,4 +70,3 @@
 
 		<@studio.toolSupport/>
 	</body>
-</html>

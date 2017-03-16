@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<page>
+	<content-type>/page/category-landing</content-type>	<display-template>/templates/web/pages/landing.ftl</display-template>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>167e</objectGroupId>
+	<objectId>167e20e8-11c2-0f26-1802-b842a068c162</objectId>
+	<header/>
+	<internal-name>Entertainment</internal-name>
+	<title>Entertainment</title>
+	<placeInNav>true</placeInNav>
+	<orderDefault_f>7000</orderDefault_f>
+	<file-name>index.xml</file-name>
+	<folder-name>entertainment</folder-name>
+	<categoryToDisplay>entertainment</categoryToDisplay>
+	<createdDate>3/14/2017 15:23:12</createdDate>
+	<createdDate_dt>3/14/2017 15:23:12</createdDate_dt>
+	<lastModifiedDate>3/14/2017 15:23:12</lastModifiedDate>
+	<lastModifiedDate_dt>3/14/2017 15:23:12</lastModifiedDate_dt>
+</page>
