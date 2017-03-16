@@ -294,7 +294,7 @@ public class DemoSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public List<Map<String, Object>> getUsersPerSite(String site) {
+    public List<Map<String, Object>> getUsersPerSite(String site, int start, int number) {
         // TODO: DB: Implement this ?
         return null;
     }

@@ -135,9 +135,11 @@ public interface SecurityService {
      * Get all users for given site
      *
      * @param site
+     * @param start
+     * @param number
      * @return
      */
-    List<Map<String, Object>> getUsersPerSite(String site);
+    List<Map<String, Object>> getUsersPerSite(String site, int start, int number);
 
     /**
      * Get group for given site with given name

@@ -167,45 +167,54 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public List<Map<String, Object>> getUsersPerSite(String site) {
+    public List<Map<String, Object>> getUsersPerSite(String site, int start, int number) {
+        List<Map<String, Object>> toRet = new ArrayList<Map<String, Object>>();
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("siteId", site);
         SiteFeed s = siteFeedMapper.getSite(params);
         if (s == null) {
             return null;
         }
-        List<UserProfileResult> resultSet = securityMapper.getUsersPerSite(site);
-        List<Map<String, Object>> toRet = new ArrayList<Map<String, Object>>();
-        Map<String, Object> userProfile = new HashMap<String, Object>();
-        if (resultSet != null && !resultSet.isEmpty()) {
-            String lastUser = null;
-            List<Object> sites = new ArrayList<Object>();
-            List<Map<String, Object>> groups = null;
-            for (UserProfileResult row : resultSet) {
-                String username = row.getUsername();
-                if (!username.equals(lastUser)) {
-                    if (userProfile != null && !userProfile.isEmpty()) {
-                        if (groups != null) {
-                            userProfile.put("groups", groups);
+        params = new HashMap<String, Object>();
+        params.put("siteId", site);
+        params.put("start", start);
+        params.put("number", number);
+        List<String> usernames = securityMapper.getUsersPerSiteQuery(params);
+        if (usernames != null && !usernames.isEmpty()) {
+            params = new HashMap<String, Object>();
+            params.put("usernames", usernames);
+            List<UserProfileResult> resultSet = securityMapper.getUsersPerSiteData(params);
+            Map<String, Object> userProfile = new HashMap<String, Object>();
+            if (resultSet != null && !resultSet.isEmpty()) {
+                String lastUser = null;
+                List<Object> sites = new ArrayList<Object>();
+                List<Map<String, Object>> groups = null;
+                for (UserProfileResult row : resultSet) {
+                    String username = row.getUsername();
+                    if (!username.equals(lastUser)) {
+                        if (userProfile != null && !userProfile.isEmpty()) {
+                            if (groups != null) {
+                                userProfile.put("groups", groups);
+                            }
+                            toRet.add(userProfile);
                         }
-                        toRet.add(userProfile);
+                        userProfile = new HashMap<String, Object>();
+                        userProfile.put("username", username);
+                        userProfile.put("first_name", row.getFirstName());
+                        userProfile.put("last_name", row.getLastName());
+                        userProfile.put("email", row.getEmail());
+                        groups = new ArrayList<Map<String, Object>>();
                     }
-                    userProfile = new HashMap<String, Object>();
-                    userProfile.put("username", username);
-                    userProfile.put("first_name", row.getFirstName());
-                    userProfile.put("last_name", row.getLastName());
-                    userProfile.put("email", row.getEmail());
-                    groups = new ArrayList<Map<String, Object>>();
+                    Map<String, Object> group = new HashMap<String, Object>();
+                    group.put("group_name", row.getGroupName());
+                    groups.add(group);
+                    lastUser = username;
                 }
-                Map<String, Object> group = new HashMap<String, Object>();
-                group.put("group_name", row.getGroupName());
-                groups.add(group);
-                lastUser = username;
+                if (groups != null) {
+                    userProfile.put("groups", groups);
+                }
+                toRet.add(userProfile);
             }
-            if (groups != null) {
-                userProfile.put("groups", groups);
-            }
-            toRet.add(userProfile);
         }
         return toRet;
     }
