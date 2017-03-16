@@ -177,19 +177,34 @@
         LIMIT #{start},#{num}
     </select>
 
-    <select id="getGroupsPerSite" resultMap="GroupPerSiteResultMap" parameterType="java.util.Map">
+    <select id="getGroupsPerSiteQuery" resultType="long" parameterType="java.util.Map">
         SELECT
-          cg.name AS group_name,
-          cg.description AS group_description,
-          cu.username AS username,
-          cu.firstname AS first_name,
-          cu.lastname AS last_name,
-          cu.email AS email
+          DISTINCT cg.id as groupid
         FROM cstudio_group cg INNER JOIN cstudio_site cs ON cg.site_id = cs.id
           LEFT JOIN cstudio_usergroup cug ON cg.id = cug.groupid
           LEFT JOIN cstudio_user cu ON cug.username = cu.username
         WHERE cs.site_id = #{site}
+        ORDER BY cg.name
         LIMIT #{start},#{number}
+    </select>
+
+    <select id="getGroupsPerSiteData" resultMap="GroupPerSiteResultMap" parameterType="java.util.Map">
+        SELECT
+        cg.name AS group_name,
+        cg.description AS group_description,
+        cu.username AS username,
+        cu.firstname AS first_name,
+        cu.lastname AS last_name,
+        cu.email AS email
+        FROM cstudio_group cg INNER JOIN cstudio_site cs ON cg.site_id = cs.id
+        LEFT JOIN cstudio_usergroup cug ON cg.id = cug.groupid
+        LEFT JOIN cstudio_user cu ON cug.username = cu.username
+        WHERE cg.id IN
+        <foreach item="groupid" index="index" collection="groupids"
+                 open="(" separator="," close=")">
+            #{groupid}
+        </foreach>
+        ORDER BY cg.name
     </select>
 
     <select id="getUsersPerGroup" resultMap="UserMap" parameterType="java.util.Map">

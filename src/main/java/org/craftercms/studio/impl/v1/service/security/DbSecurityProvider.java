@@ -565,7 +565,13 @@ public class DbSecurityProvider implements SecurityProvider {
             params.put("site", site);
             params.put("start", start);
             params.put("number", number);
-            List<GroupPerSiteResult> resultSet = securityMapper.getGroupsPerSite(params);
+            List<Long> groupIds = securityMapper.getGroupsPerSiteQuery(params);
+            List<GroupPerSiteResult> resultSet = new ArrayList<GroupPerSiteResult>();
+            if (groupIds != null && !groupIds.isEmpty()) {
+                params = new HashMap<String, Object>();
+                params.put("groupids", groupIds);
+                resultSet = securityMapper.getGroupsPerSiteData(params);
+            }
             return parseGroupsPerSiteResultSet(resultSet);
         }
     }
