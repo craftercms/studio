@@ -571,9 +571,9 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
-    public List<Map<String, Object>> getUsersPerGroup(String site, String group, int start, int end) throws
+    public List<Map<String, Object>> getUsersPerGroup(String site, String group, int start, int number) throws
 	    GroupNotFoundException {
-        return securityProvider.getUsersPerGroup(site, group, start, end);
+        return securityProvider.getUsersPerGroup(site, group, start, number);
     }
 
     @Override
