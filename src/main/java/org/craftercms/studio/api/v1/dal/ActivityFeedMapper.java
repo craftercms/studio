@@ -24,4 +24,6 @@ public interface ActivityFeedMapper {
     void deleteActivitiesForSite(Map params);
 
     List<ActivityFeed> getAuditLogForSite(Map params);
+
+    long getAuditLogForSiteTotal(Map params);
 }

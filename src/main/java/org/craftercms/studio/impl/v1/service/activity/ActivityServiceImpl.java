@@ -373,7 +373,7 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 	}
 
     @Override
-    public List<ActivityFeed> getAuditLogForSite(String site, int start, int end, String user, List<String> actions)
+    public List<ActivityFeed> getAuditLogForSite(String site, int start, int number, String user, List<String> actions)
 	throws SiteNotFoundException {
 		if (!siteService.exists(site)) {
 			throw new SiteNotFoundException();
@@ -381,7 +381,7 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 			Map<String, Object> params = new HashMap<String, Object>();
 			params.put("site", site);
 			params.put("start", start);
-			params.put("num", end - start);
+			params.put("number", number);
 			if (StringUtils.isNotEmpty(user)) {
 				params.put("user", user);
 			}
@@ -390,6 +390,24 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 			}
 			return activityFeedMapper.getAuditLogForSite(params);
 		}
+    }
+
+    @Override
+    public long getAuditLogForSiteTotal(String site, String user, List<String> actions)
+            throws SiteNotFoundException {
+        if (!siteService.exists(site)) {
+            throw new SiteNotFoundException();
+        } else {
+            Map<String, Object> params = new HashMap<String, Object>();
+            params.put("site", site);
+            if (StringUtils.isNotEmpty(user)) {
+                params.put("user", user);
+            }
+            if (CollectionUtils.isNotEmpty(actions)) {
+                params.put("actions", actions);
+            }
+            return activityFeedMapper.getAuditLogForSiteTotal(params);
+        }
     }
 
     public boolean getUserNamesAreCaseSensitive() {
