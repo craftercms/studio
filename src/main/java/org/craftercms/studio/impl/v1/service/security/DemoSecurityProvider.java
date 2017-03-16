@@ -306,13 +306,13 @@ public class DemoSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public List<Map<String, Object>> getAllGroups(int start, int end) {
+    public List<Map<String, Object>> getAllGroups(int start, int number) {
         // TODO: DB: Implement this ?
         return null;
     }
 
     @Override
-    public List<Map<String, Object>> getGroupsPerSite(String site, int start, int end) {
+    public List<Map<String, Object>> getGroupsPerSite(String site, int start, int number) {
         // TODO: DB: Implement this ?
         return null;
     }

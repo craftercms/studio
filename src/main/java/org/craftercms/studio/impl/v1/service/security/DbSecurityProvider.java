@@ -513,11 +513,17 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public List<Map<String, Object>> getAllGroups(int start, int end) {
+    public List<Map<String, Object>> getAllGroups(int start, int number) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("start", start);
-        params.put("num", end - start);
-        List<GroupResult> resultSet = securityMapper.getAllGroups(params);
+        params.put("number", number);
+        List<Long> groupIds = securityMapper.getAllGroupsQuery(params);
+        List<GroupResult> resultSet = new ArrayList<GroupResult>();
+        if (groupIds != null && !groupIds.isEmpty()) {
+            params = new HashMap<String, Object>();
+            params.put("groupids", groupIds);
+            resultSet = securityMapper.getAllGroupsData(params);
+        }
         return parseGroupResultSet(resultSet);
     }
 

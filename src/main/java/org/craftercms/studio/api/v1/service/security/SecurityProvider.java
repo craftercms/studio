@@ -177,10 +177,10 @@ public interface SecurityProvider {
     /**
      * Get all groups
      * @param start start index
-     * @param end end index
+     * @param number Number of records to retrieve in the result set
      * @return
      */
-    List<Map<String, Object>> getAllGroups(int start, int end);
+    List<Map<String, Object>> getAllGroups(int start, int number);
 
     /**
      * Get all groups for given site

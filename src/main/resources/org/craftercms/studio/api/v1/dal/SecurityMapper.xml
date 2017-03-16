@@ -171,10 +171,22 @@
         WHERE cs.site_id = #{siteId} AND cg.name = #{groupName}
     </select>
 
-    <select id="getAllGroups" resultMap="GroupResultMap">
+    <select id="getAllGroupsQuery" resultType="long" parameterType="java.util.Map">
+        SELECT DISTINCT cg.id
+        FROM cstudio_group cg INNER JOIN cstudio_site cs on cg.site_id = cs.id
+        ORDER BY cs.name, cg.name
+        LIMIT #{start},#{number}
+    </select>
+
+    <select id="getAllGroupsData" resultMap="GroupResultMap" parameterType="java.util.Map">
         SELECT cs.site_id AS site_id, cs.name AS site_name, cg.name AS group_name, cg.description AS group_description
         FROM cstudio_group cg INNER JOIN cstudio_site cs on cg.site_id = cs.id
-        LIMIT #{start},#{num}
+        WHERE cg.id IN
+        <foreach item="groupid" index="index" collection="groupids"
+                 open="(" separator="," close=")">
+            #{groupid}
+        </foreach>
+        ORDER BY cs.name, cg.name
     </select>
 
     <select id="getGroupsPerSiteQuery" resultType="long" parameterType="java.util.Map">

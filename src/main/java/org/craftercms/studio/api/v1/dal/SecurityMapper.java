@@ -50,7 +50,9 @@ public interface SecurityMapper {
 
     Map<String, Object> getGroup(Map params);
 
-    List<GroupResult> getAllGroups(Map params);
+    List<Long> getAllGroupsQuery(Map params);
+
+    List<GroupResult> getAllGroupsData(Map params);
 
     List<Long> getGroupsPerSiteQuery(Map params);
 

@@ -127,9 +127,9 @@ class SecurityServices {
         return securityServicesImpl.getGroup(siteId, groupName)
     }
 
-    static getAllGroups(context, start, end) {
+    static getAllGroups(context, start, number) {
         def securityServicesImpl = ServiceFactory.getSecurityServices(context)
-        return securityServicesImpl.getAllGroups(start, end)
+        return securityServicesImpl.getAllGroups(start, number)
     }
 
     static getGroupsPerSite(context, siteId, start, number) {
