@@ -9,7 +9,8 @@ if (profile) {
     }
 }
 
+def category = contentModel.categoryToDisplay.text
 def searchHelper = new SearchHelper(searchService, urlTransformationService)
-def articles = searchHelper.searchArticles(true, null, segment)
+def articles = searchHelper.searchArticles(false, category, segment)
 
 templateModel.articles = articles
