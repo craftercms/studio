@@ -11,10 +11,10 @@
 		<title>${contentModel.title}</title>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
-		<!--[if lte IE 8]><script src="static-assets/js/ie/html5shiv.js"></script><![endif]-->
-		<link rel="stylesheet" href="static-assets/css/main.css" />
-		<!--[if lte IE 9]><link rel="stylesheet" href="static-assets/css/ie9.css" /><![endif]-->
-		<!--[if lte IE 8]><link rel="stylesheet" href="static-assets/css/ie8.css" /><![endif]-->
+		<!--[if lte IE 8]><script src="/static-assets/js/ie/html5shiv.js"></script><![endif]-->
+		<link rel="stylesheet" href="/static-assets/css/main.css" />
+		<!--[if lte IE 9]><link rel="stylesheet" href="/static-assets/css/ie9.css" /><![endif]-->
+		<!--[if lte IE 8]><link rel="stylesheet" href="/static-assets/css/ie8.css" /><![endif]-->
 	</head>
 	<body>
 		<!-- Wrapper -->
@@ -71,7 +71,7 @@
 												<#if article.image??>
 													<#assign articleImage = article.image/>
 												<#else>
-													<#assign articleImage = "static-assets/images/pic01.jpg"/>
+													<#assign articleImage = "/static-assets/images/placeholder.png"/>
 												</#if>
 												<img src="${articleImage}" alt="" />
 											</a>
@@ -94,11 +94,11 @@
 			</div>
 
 		<!-- Scripts -->
-			<script src="static-assets/js/jquery.min.js"></script>
-			<script src="static-assets/js/skel.min.js"></script>
-			<script src="static-assets/js/util.js"></script>
-			<!--[if lte IE 8]><script src="static-assets/js/ie/respond.min.js"></script><![endif]-->
-			<script src="static-assets/js/main.js"></script>
+			<script src="/static-assets/js/jquery.min.js"></script>
+			<script src="/static-assets/js/skel.min.js"></script>
+			<script src="/static-assets/js/util.js"></script>
+			<!--[if lte IE 8]><script src="/static-assets/js/ie/respond.min.js"></script><![endif]-->
+			<script src="/static-assets/js/main.js"></script>
 
 		<@studio.toolSupport/>
 	</body>
