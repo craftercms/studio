@@ -206,9 +206,21 @@ public class MappedSecurityProvider implements SecurityProvider {
     }
 
     @Override
+    public int getAllUsersTotal() {
+        SecurityProvider provider = lookupProvider(getProviderType());
+        return provider.getAllUsersTotal();
+    }
+
+    @Override
     public List<Map<String, Object>> getUsersPerSite(String site, int start, int number) throws SiteNotFoundException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.getUsersPerSite(site, start, number);
+    }
+
+    @Override
+    public int getUsersPerSiteTotal(String site) throws SiteNotFoundException {
+        SecurityProvider provider = lookupProvider(getProviderType());
+        return provider.getGroupsPerSiteTotal(site);
     }
 
     @Override

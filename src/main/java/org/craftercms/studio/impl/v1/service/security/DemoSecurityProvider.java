@@ -21,6 +21,7 @@ package org.craftercms.studio.impl.v1.service.security;
 
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.http.RequestContext;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -295,9 +296,21 @@ public class DemoSecurityProvider implements SecurityProvider {
     }
 
     @Override
+    public int getAllUsersTotal() {
+        // TODO: DB: Implement this ?
+        return 0;
+    }
+
+    @Override
     public List<Map<String, Object>> getUsersPerSite(String site, int start, int number) {
         // TODO: DB: Implement this ?
         return null;
+    }
+
+    @Override
+    public int getUsersPerSiteTotal(String site) throws SiteNotFoundException {
+        // TODO: DB: Implement this ?
+        return 0;
     }
 
     @Override

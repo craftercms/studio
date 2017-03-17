@@ -38,11 +38,13 @@ if (params.number != null) {
 
 def context = SecurityServices.createContext(applicationContext, request)
 try {
+    def total = SecurityServices.getUsersPerSiteTotal(context, site);
     def users = SecurityServices.getUsersPerSite(context, site, start, number);
     if (users != null) {
         def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/user/get-per-site.json?site_id=" + site + "&start=" + start + "&number=" + number
         response.addHeader("Location", locationHeader)
         result.users = users
+        result.total = total
         response.setStatus(200)
     } else {
         response.setStatus(500)

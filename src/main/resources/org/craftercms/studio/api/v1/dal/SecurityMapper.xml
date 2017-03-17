@@ -85,6 +85,13 @@
         ORDER BY username
         LIMIT #{start}, #{number}
     </select>
+    <select id="getAllUsersQueryTotal" resultType="int" parameterType="java.util.Map">
+        SELECT COUNT(DISTINCT cu.username)
+        FROM cstudio_user cu LEFT JOIN cstudio_usergroup cug on cu.username = cug.username
+        LEFT JOIN cstudio_group cg on cug.groupId = cg.id
+        LEFT JOIN cstudio_site cs on cg.site_id=cs.id
+    </select>
+
 
     <select id="getAllUsersData" resultMap="UserProfileResultMap" parameterType="java.util.Map">
         SELECT cu.username as username, cu.firstname as firstname, cu.lastname as lastname, cu.email as email, cg.name as groupname, cs.site_id as siteid, cs.name as sitename
@@ -120,6 +127,14 @@
         WHERE cs.site_id = #{siteId}
         ORDER BY username
         LIMIT #{start}, #{number}
+    </select>
+
+    <select id="getUsersPerSiteQueryTotal" resultType="int" parameterType="java.util.Map">
+        SELECT COUNT(DISTINCT cu.username)
+        FROM cstudio_user cu INNER JOIN cstudio_usergroup cug on cu.username = cug.username
+        INNER JOIN cstudio_group cg on cug.groupId = cg.id
+        INNER JOIN cstudio_site cs on cg.site_id=cs.id
+        WHERE cs.site_id = #{siteId}
     </select>
 
     <select id="getUserGroups" resultType="Group">
@@ -202,7 +217,7 @@
 
     <select id="getGroupsPerSiteQueryTotal" resultType="int" parameterType="java.util.Map">
         SELECT
-        COUNT(1)
+        COUNT(DISTINCT cg.id)
         FROM cstudio_group cg INNER JOIN cstudio_site cs ON cg.site_id = cs.id
         LEFT JOIN cstudio_usergroup cug ON cg.id = cug.groupid
         LEFT JOIN cstudio_user cu ON cug.username = cu.username

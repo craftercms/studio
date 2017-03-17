@@ -18,6 +18,7 @@
 
 package org.craftercms.studio.impl.v1.service.security;
 
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
@@ -209,9 +210,21 @@ public class CachedSecurityProvider implements SecurityProvider {
     }
 
     @Override
+    public int getAllUsersTotal() {
+        // TODO: DB: Implement this ?
+        return 0;
+    }
+
+    @Override
     public List<Map<String, Object>> getUsersPerSite(String site, int start, int number) {
         // TODO: DB: Implement this ?
         return null;
+    }
+
+    @Override
+    public int getUsersPerSiteTotal(String site) throws SiteNotFoundException {
+        // TODO: DB: Implement this ?
+        return 0;
     }
 
     @Override

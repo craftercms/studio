@@ -107,6 +107,13 @@ public class DbSecurityProvider implements SecurityProvider {
         return parseUserResultSet(resultSet);
     }
 
+    @Override
+    public int getAllUsersTotal() {
+        List<UserProfileResult> resultSet = new ArrayList<UserProfileResult>();
+        Map<String, Object> params = new HashMap<String, Object>();
+        return securityMapper.getAllUsersQueryTotal(params);
+    }
+
     private List<Map<String, Object>> parseUserResultSet(List<UserProfileResult> usersResultSet) {
         List<Map<String, Object>> toRet = new ArrayList<Map<String, Object>>();
         Map<String, Object> userProfile = new HashMap<String, Object>();
@@ -222,6 +229,19 @@ public class DbSecurityProvider implements SecurityProvider {
             }
         }
         return toRet;
+    }
+
+    @Override
+    public int getUsersPerSiteTotal(String site) throws SiteNotFoundException {
+        List<Map<String, Object>> toRet = new ArrayList<Map<String, Object>>();
+        if (!(siteFeedMapper.exists(site) > 0)) {
+            throw new SiteNotFoundException();
+        } else {
+            Map<String, Object> params = new HashMap<String, Object>();
+            params = new HashMap<String, Object>();
+            params.put("siteId", site);
+            return securityMapper.getUsersPerSiteQueryTotal(params);
+        }
     }
 
     @Override
