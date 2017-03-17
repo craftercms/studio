@@ -39,7 +39,7 @@ def context = SecurityServices.createContext(applicationContext, request)
 try {
     def groupMap = SecurityServices.getGroupsPerSite(context, siteId, start, number)
     if (groupMap != null) {
-        def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/get/get-per-site?site_id=" + siteId + "&start=" + start + "&number=" + number
+        def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/get/get-per-site.json?site_id=" + siteId + "&start=" + start + "&number=" + number
         response.addHeader("Location", locationHeader)
         result.groups = groupMap
     } else {

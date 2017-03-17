@@ -135,9 +135,11 @@ public interface SecurityService {
      * Get all users for given site
      *
      * @param site
+     * @param start
+     * @param number
      * @return
      */
-    List<Map<String, Object>> getUsersPerSite(String site);
+    List<Map<String, Object>> getUsersPerSite(String site, int start, int number) throws SiteNotFoundException;
 
     /**
      * Get group for given site with given name
@@ -152,10 +154,9 @@ public interface SecurityService {
      * Get all groups
      *
      * @param start start index
-     * @param end end index
-     * @return
+     * @param number Number of records to retrieve in the result set
      */
-    List<Map<String, Object>> getAllGroups(int start, int end);
+    List<Map<String, Object>> getAllGroups(int start, int number);
 
     /**
      * Get all groups for given site

@@ -20,18 +20,15 @@ package org.craftercms.studio.impl.v1.service.security;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.craftercms.commons.crypto.CryptoUtils;
 import org.craftercms.commons.http.RequestContext;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.StudioXmlConstants;
@@ -60,9 +57,7 @@ import org.dom4j.Node;
 import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.codec.Hex;
 
 import javax.crypto.*;
 import javax.crypto.spec.IvParameterSpec;
@@ -551,8 +546,8 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
-    public List<Map<String, Object>> getUsersPerSite(String site) {
-        return securityProvider.getUsersPerSite(site);
+    public List<Map<String, Object>> getUsersPerSite(String site, int start, int number) throws SiteNotFoundException {
+        return securityProvider.getUsersPerSite(site, start, number);
     }
 
     @Override
@@ -566,8 +561,8 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
-    public List<Map<String, Object>> getAllGroups(int start, int end) {
-        return securityProvider.getAllGroups(start, end);
+    public List<Map<String, Object>> getAllGroups(int start, int number) {
+        return securityProvider.getAllGroups(start, number);
     }
 
     @Override
@@ -576,9 +571,9 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
-    public List<Map<String, Object>> getUsersPerGroup(String site, String group, int start, int end) throws
+    public List<Map<String, Object>> getUsersPerGroup(String site, String group, int start, int number) throws
 	    GroupNotFoundException {
-        return securityProvider.getUsersPerGroup(site, group, start, end);
+        return securityProvider.getUsersPerGroup(site, group, start, number);
     }
 
     @Override

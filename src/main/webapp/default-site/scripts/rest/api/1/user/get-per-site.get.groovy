@@ -17,23 +17,40 @@
  *
  */
 
+
 import scripts.api.SecurityServices
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException
 
 def result = [:]
 
 def site = params.site_id
 
+def start = 0
+if (params.start != null) {
+    start = params.start.toInteger()
+}
+
+// TODO: SJ: These should be constants
+def number = 25
+if (params.number != null) {
+    number = params.number.toInteger()
+}
+
 def context = SecurityServices.createContext(applicationContext, request)
 try {
-    def users = SecurityServices.getUsersPerSite(context, site);
+    def users = SecurityServices.getUsersPerSite(context, site, start, number);
     if (users != null) {
+        def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/user/get-per-site.json?site_id=" + site + "&start=" + start + "&number=" + number
+        response.addHeader("Location", locationHeader)
         result.users = users
-        result.message = "OK"
         response.setStatus(200)
     } else {
-        response.setStatus(404)
-        result.message = "Site not found"
+        response.setStatus(500)
+        result.message = "Internal server error"
     }
+} catch (SiteNotFoundException e) {
+    response.setStatus(404)
+    result.message = "Site not found"
 } catch (Exception e) {
     response.setStatus(500)
     result.message = "Internal server error: \n" + e
