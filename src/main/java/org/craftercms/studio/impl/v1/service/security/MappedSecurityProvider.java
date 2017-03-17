@@ -242,6 +242,12 @@ public class MappedSecurityProvider implements SecurityProvider {
     }
 
     @Override
+    public int getUsersPerGroupTotal(String site, String group) throws GroupNotFoundException {
+        SecurityProvider provider = lookupProvider(getProviderType());
+        return provider.getUsersPerGroupTotal(site, group);
+    }
+
+    @Override
     public boolean updateGroup(String siteId, String groupName, String description) throws GroupNotFoundException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.updateGroup(siteId, groupName, description);

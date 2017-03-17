@@ -245,6 +245,12 @@ public class CachedSecurityProvider implements SecurityProvider {
     }
 
     @Override
+    public int getUsersPerGroupTotal(String site, String group) throws GroupNotFoundException {
+        // TODO: DB: Implement this ?
+        return 0;
+    }
+
+    @Override
     public boolean updateGroup(String siteId, String groupName, String description) {
         // TODO: DB: Implement this ?
         return false;

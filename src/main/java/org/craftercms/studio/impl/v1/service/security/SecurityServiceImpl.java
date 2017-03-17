@@ -582,6 +582,12 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
+    public int getUsersPerGroupTotal(String site, String group) throws
+            GroupNotFoundException {
+        return securityProvider.getUsersPerGroupTotal(site, group);
+    }
+
+    @Override
     public boolean updateGroup(String siteId, String groupName, String description) throws GroupNotFoundException {
         return securityProvider.updateGroup(siteId, groupName, description);
     }

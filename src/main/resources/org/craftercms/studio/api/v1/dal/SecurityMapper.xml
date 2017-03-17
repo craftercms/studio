@@ -239,6 +239,15 @@
         LIMIT #{start},#{number}
     </select>
 
+    <select id="getUsersPerGroupTotal" resultType="int" parameterType="java.util.Map">
+        SELECT COUNT(1)
+        FROM cstudio_group cg INNER JOIN cstudio_site cs ON cg.site_id = cs.id
+        INNER JOIN cstudio_usergroup cug ON cg.id = cug.groupid
+        INNER JOIN cstudio_user cu ON cug.username = cu.username
+        WHERE cs.site_id = #{siteId}
+        AND cg.name = #{groupName}
+    </select>
+
     <update id="updateGroup" parameterType="java.util.Map">
         UPDATE cstudio_group
         SET description = #{description}

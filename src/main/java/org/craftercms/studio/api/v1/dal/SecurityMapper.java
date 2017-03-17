@@ -62,6 +62,8 @@ public interface SecurityMapper {
 
     List<User> getUsersPerGroup(Map params);
 
+    int getUsersPerGroupTotal(Map params);
+
     Integer userExistsInGroup(Map params);
 
     Integer userExists(Map params);

@@ -661,6 +661,18 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
+    public int getUsersPerGroupTotal(String site, String group) throws GroupNotFoundException {
+        if (!groupExists(site, group)) {
+            throw new GroupNotFoundException();
+        } else {
+            Map<String, Object> params = new HashMap<String, Object>();
+            params.put("siteId", site);
+            params.put("groupName", group);
+            return securityMapper.getUsersPerGroupTotal(params);
+        }
+    }
+
+    @Override
     public boolean updateGroup(String siteId, String groupName, String description) throws GroupNotFoundException {
         if (!groupExists(siteId, groupName)) {
             throw new GroupNotFoundException();

@@ -189,6 +189,16 @@ public interface SecurityService {
 	    GroupNotFoundException;
 
     /**
+     * Get number of all users for given site and group
+     *
+     * @param site site id
+     * @param group group name
+     * @return list of users
+     */
+    int getUsersPerGroupTotal(String site, String group) throws
+            GroupNotFoundException;
+
+    /**
      * Update group with given parameters
      *
      * @param groupName
