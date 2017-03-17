@@ -11,10 +11,10 @@
 		<title>${contentModel.title}</title>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
-		<!--[if lte IE 8]><script src="static-assets/js/ie/html5shiv.js"></script><![endif]-->
+		<!--[if lte IE 8]><script src="/static-assets/js/ie/html5shiv.js"></script><![endif]-->
 		<link rel="stylesheet" href="/static-assets/css/main.css" />
-		<!--[if lte IE 9]><link rel="stylesheet" href="static-assets/css/ie9.css" /><![endif]-->
-		<!--[if lte IE 8]><link rel="stylesheet" href="static-assets/css/ie8.css" /><![endif]-->
+		<!--[if lte IE 9]><link rel="stylesheet" href="/static-assets/css/ie9.css" /><![endif]-->
+		<!--[if lte IE 8]><link rel="stylesheet" href="/static-assets/css/ie8.css" /><![endif]-->
 	</head>
 
     <body>
@@ -26,7 +26,7 @@
 						<div class="inner">
 
 							<!-- Header -->
-							<@renderComponent component=contentModel.header.item />
+							<@renderComponent component = contentModel.header.item />
 
 							<!-- Content -->
 								<section>
@@ -37,7 +37,7 @@
 									<#if contentModel.image??>
 										<#assign image = contentModel.image/>
 									<#else>
-										<#assign image = "/static-assets/images/pic11.jpg"/>
+										<#assign image = "/static-assets/images/placeholder.png"/>
 									</#if>
 									<span class="image main"><img src="${image}" alt="" /></span>
 									<#list contentModel.sections.item as item>
@@ -50,8 +50,12 @@
 						</div>
 					</div>
 
+					<#assign articleCategories = contentModel.queryValues("//categories/item/key")/>
+					<#assign articlePath = contentModel.storeUrl />
+					<#assign additionalModel = {"articleCategories": articleCategories, "articlePath": articlePath }/>
+
 					<!-- Sidebar -->
-					<@renderComponent component=contentModel.sidebar.item />
+					<@renderComponent component = contentModel.sidebar.item additionalModel = additionalModel />
 
 			</div>
 
@@ -59,7 +63,7 @@
 			<script src="/static-assets/js/jquery.min.js"></script>
 			<script src="/static-assets/js/skel.min.js"></script>
 			<script src="/static-assets/js/util.js"></script>
-			<!--[if lte IE 8]><script src="static-assets/js/ie/respond.min.js"></script><![endif]-->
+			<!--[if lte IE 8]><script src="/static-assets/js/ie/respond.min.js"></script><![endif]-->
 			<script src="/static-assets/js/main.js"></script>
 
 		<@studio.toolSupport/>

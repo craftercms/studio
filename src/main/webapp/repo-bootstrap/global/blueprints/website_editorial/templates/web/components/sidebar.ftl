@@ -21,28 +21,26 @@
     </nav>
 
     <!-- Section -->
+    <#if sidebarArticles?? && sidebarArticles?size &gt; 0>
     <section>
       <header class="major">
-        <h2>Ante interdum</h2>
+        <h2>${contentModel.articles_section_header}</h2>
       </header>
       <div class="mini-posts">
+      <#list sidebarArticles as article>
+        <#if article.image??>
+          <#assign articleImage = article.image/>
+        <#else>
+          <#assign articleImage = "/static-assets/images/placeholder.png"/>
+        </#if>
         <article>
-          <a href="#" class="image"><img src="static-assets/images/pic07.jpg" alt="" /></a>
-          <p>Aenean ornare velit lacus, ac varius enim lorem ullamcorper dolore aliquam.</p>
+          <a href="${article.url}" class="image"><img src="${articleImage}" alt="" /></a>
+          <h4><a href="${article.url}">${article.title}</a></h4>
         </article>
-        <article>
-          <a href="#" class="image"><img src="static-assets/images/pic08.jpg" alt="" /></a>
-          <p>Aenean ornare velit lacus, ac varius enim lorem ullamcorper dolore aliquam.</p>
-        </article>
-        <article>
-          <a href="#" class="image"><img src="static-assets/images/pic09.jpg" alt="" /></a>
-          <p>Aenean ornare velit lacus, ac varius enim lorem ullamcorper dolore aliquam.</p>
-        </article>
+      </#list>
       </div>
-      <ul class="actions">
-        <li><a href="#" class="button">More</a></li>
-      </ul>
     </section>
+    </#if>
 
     <!-- Section -->
     <section>

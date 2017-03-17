@@ -1,14 +1,7 @@
 import org.craftercms.sites.editorial.SearchHelper
+import org.craftercms.sites.editorial.ProfileUtils
 
-def segment = null
-
-if (profile) {
-    segment = profile.attributes.segment
-    if (segment == "unknown") {
-      segment = null
-    }
-}
-
+def segment = ProfileUtils.getSegment(profile)
 def searchHelper = new SearchHelper(searchService, urlTransformationService)
 def articles = searchHelper.searchArticles(true, null, segment)
 
