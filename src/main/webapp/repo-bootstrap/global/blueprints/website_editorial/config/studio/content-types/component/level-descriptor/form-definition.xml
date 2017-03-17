@@ -61,7 +61,7 @@
 					<properties>
 						<property>
 							<name>minSize</name>
-							<value>1</value>
+							<value>0</value>
 							<type>int</type>
 						</property>
 						<property>
@@ -109,7 +109,7 @@
 					<properties>
 						<property>
 							<name>minSize</name>
-							<value>1</value>
+							<value>0</value>
 							<type>int</type>
 						</property>
 						<property>

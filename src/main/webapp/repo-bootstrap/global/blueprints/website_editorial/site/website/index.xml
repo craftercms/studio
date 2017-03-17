@@ -11,8 +11,8 @@
 	<folder-name/>
 	<createdDate>1/31/2017 16:18:14</createdDate>
 	<createdDate_dt>1/31/2017 16:18:14</createdDate_dt>
-	<lastModifiedDate>3/13/2017 20:35:54</lastModifiedDate>
-	<lastModifiedDate_dt>3/13/2017 20:35:54</lastModifiedDate_dt>
+	<lastModifiedDate>3/17/2017 19:54:1</lastModifiedDate>
+	<lastModifiedDate_dt>3/17/2017 19:54:1</lastModifiedDate_dt>
 	<title>Editorial</title>
 	<hero_text>&lt;p&gt;Aenean ornare velit lacus, ac varius enim ullamcorper eu. Proin aliquam facilisis ante interdum congue. Integer mollis, nisl amet convallis, porttitor magna ullamcorper, amet egestas mauris. Ut magna finibus nisi nec lacinia. Nam maximus erat id euismod egestas. Pellentesque sapien ac quam. Lorem ipsum dolor sit nullam.&lt;/p&gt;</hero_text>
 	<hero_title>&lt;h1&gt;&lt;span&gt;Hi, I&amp;rsquo;m Editorial&lt;/span&gt;&lt;/h1&gt;
@@ -28,5 +28,10 @@
 	</item></features>
 	<section_1_title>Section 1</section_1_title>
 	<header/>
-	<hero_image>/static-assets/images/pic10.jpg</hero_image>
+	<hero_image>/static-assets/images/castle-pic.jpg</hero_image>
+	<sidebar>	<item>	<key>/site/components/sidebar-with-latest-articles.xml</key>
+	<value>Sidebar with Latest Articles</value>
+	<include>/site/components/sidebar-with-latest-articles.xml</include>
+	<disableFlattening>false</disableFlattening>
+	</item></sidebar>
 </page>
