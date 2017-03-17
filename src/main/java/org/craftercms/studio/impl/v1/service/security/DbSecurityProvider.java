@@ -582,6 +582,17 @@ public class DbSecurityProvider implements SecurityProvider {
         }
     }
 
+    @Override
+    public int getGroupsPerSiteTotal(String site) throws SiteNotFoundException {
+        if (!(siteFeedMapper.exists(site) > 0)) {
+            throw new SiteNotFoundException();
+        } else {
+            Map<String, Object> params = new HashMap<String, Object>();
+            params.put("site", site);
+            return securityMapper.getGroupsPerSiteQueryTotal(params);
+        }
+    }
+
     private  List<Map<String, Object>> parseGroupsPerSiteResultSet(List<GroupPerSiteResult> resultSet) {
         List<Map<String, Object>> toRet = new ArrayList<Map<String, Object>>();
         if (resultSet != null && !resultSet.isEmpty()) {

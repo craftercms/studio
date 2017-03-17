@@ -169,6 +169,14 @@ public interface SecurityService {
     List<Map<String, Object>> getGroupsPerSite(String site, int start, int number) throws SiteNotFoundException;
 
     /**
+     * Get number of all groups for given site
+     *
+     * @param site site id
+     * @return
+     */
+    int getGroupsPerSiteTotal(String site) throws SiteNotFoundException;
+
+    /**
      * Get all users for given site and group
      *
      * @param site site id

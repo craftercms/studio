@@ -56,6 +56,8 @@ public interface SecurityMapper {
 
     List<Long> getGroupsPerSiteQuery(Map params);
 
+    int getGroupsPerSiteQueryTotal(Map<String, Object> params);
+
     List<GroupPerSiteResult> getGroupsPerSiteData(Map params);
 
     List<User> getUsersPerGroup(Map params);

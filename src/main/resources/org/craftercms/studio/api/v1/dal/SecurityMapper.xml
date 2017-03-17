@@ -200,6 +200,16 @@
         LIMIT #{start},#{number}
     </select>
 
+    <select id="getGroupsPerSiteQueryTotal" resultType="int" parameterType="java.util.Map">
+        SELECT
+        COUNT(1)
+        FROM cstudio_group cg INNER JOIN cstudio_site cs ON cg.site_id = cs.id
+        LEFT JOIN cstudio_usergroup cug ON cg.id = cug.groupid
+        LEFT JOIN cstudio_user cu ON cug.username = cu.username
+        WHERE cs.site_id = #{site}
+        ORDER BY cg.name
+    </select>
+
     <select id="getGroupsPerSiteData" resultMap="GroupPerSiteResultMap" parameterType="java.util.Map">
         SELECT
         cg.name AS group_name,
