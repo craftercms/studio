@@ -36,7 +36,7 @@ def context = SecurityServices.createContext(applicationContext, request)
 try {
     def usersPerGroup = SecurityServices.getUsersPerGroup(context, siteId, groupName, start, number);
     if (usersPerGroup != null) {
-        def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/group/users?site_id=" + siteId + "&group_name=" + groupName + "&start="+ start + "&number=" + number
+        def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/group/users.json?site_id=" + siteId + "&group_name=" + groupName + "&start="+ start + "&number=" + number
         response.addHeader("Location", locationHeader)
         response.setStatus(200)
         result.users = usersPerGroup

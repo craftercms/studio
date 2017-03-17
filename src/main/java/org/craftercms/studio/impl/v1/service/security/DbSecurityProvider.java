@@ -94,10 +94,16 @@ public class DbSecurityProvider implements SecurityProvider {
 
     @Override
     public List<Map<String, Object>> getAllUsers(int start, int number) {
+        List<UserProfileResult> resultSet = new ArrayList<UserProfileResult>();
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("start", start);
         params.put("number", number);
-        List<UserProfileResult> resultSet = securityMapper.getAllUsers(params);
+        List<String> usernames = securityMapper.getAllUsersQuery(params);
+        if (usernames != null && !usernames.isEmpty()) {
+            params = new HashMap<String, Object>();
+            params.put("usernames", usernames);
+            resultSet = securityMapper.getAllUsersData(params);
+        }
         return parseUserResultSet(resultSet);
     }
 
@@ -167,45 +173,53 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public List<Map<String, Object>> getUsersPerSite(String site) {
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put("siteId", site);
-        SiteFeed s = siteFeedMapper.getSite(params);
-        if (s == null) {
-            return null;
-        }
-        List<UserProfileResult> resultSet = securityMapper.getUsersPerSite(site);
+    public List<Map<String, Object>> getUsersPerSite(String site, int start, int number) throws SiteNotFoundException {
         List<Map<String, Object>> toRet = new ArrayList<Map<String, Object>>();
-        Map<String, Object> userProfile = new HashMap<String, Object>();
-        if (resultSet != null && !resultSet.isEmpty()) {
-            String lastUser = null;
-            List<Object> sites = new ArrayList<Object>();
-            List<Map<String, Object>> groups = null;
-            for (UserProfileResult row : resultSet) {
-                String username = row.getUsername();
-                if (!username.equals(lastUser)) {
-                    if (userProfile != null && !userProfile.isEmpty()) {
-                        if (groups != null) {
-                            userProfile.put("groups", groups);
+        if (!(siteFeedMapper.exists(site) > 0)) {
+            throw new SiteNotFoundException();
+        } else {
+            Map<String, Object> params = new HashMap<String, Object>();
+            params = new HashMap<String, Object>();
+            params.put("siteId", site);
+            params.put("start", start);
+            params.put("number", number);
+            List<String> usernames = securityMapper.getUsersPerSiteQuery(params);
+            if (usernames != null && !usernames.isEmpty()) {
+                params = new HashMap<String, Object>();
+                params.put("usernames", usernames);
+                List<UserProfileResult> resultSet = securityMapper.getUsersPerSiteData(params);
+                Map<String, Object> userProfile = new HashMap<String, Object>();
+                if (resultSet != null && !resultSet.isEmpty()) {
+                    String lastUser = null;
+                    List<Object> sites = new ArrayList<Object>();
+                    List<Map<String, Object>> groups = null;
+                    for (UserProfileResult row : resultSet) {
+                        String username = row.getUsername();
+                        if (!username.equals(lastUser)) {
+                            if (userProfile != null && !userProfile.isEmpty()) {
+                                if (groups != null) {
+                                    userProfile.put("groups", groups);
+                                }
+                                toRet.add(userProfile);
+                            }
+                            userProfile = new HashMap<String, Object>();
+                            userProfile.put("username", username);
+                            userProfile.put("first_name", row.getFirstName());
+                            userProfile.put("last_name", row.getLastName());
+                            userProfile.put("email", row.getEmail());
+                            groups = new ArrayList<Map<String, Object>>();
                         }
-                        toRet.add(userProfile);
+                        Map<String, Object> group = new HashMap<String, Object>();
+                        group.put("group_name", row.getGroupName());
+                        groups.add(group);
+                        lastUser = username;
                     }
-                    userProfile = new HashMap<String, Object>();
-                    userProfile.put("username", username);
-                    userProfile.put("first_name", row.getFirstName());
-                    userProfile.put("last_name", row.getLastName());
-                    userProfile.put("email", row.getEmail());
-                    groups = new ArrayList<Map<String, Object>>();
+                    if (groups != null) {
+                        userProfile.put("groups", groups);
+                    }
+                    toRet.add(userProfile);
                 }
-                Map<String, Object> group = new HashMap<String, Object>();
-                group.put("group_name", row.getGroupName());
-                groups.add(group);
-                lastUser = username;
             }
-            if (groups != null) {
-                userProfile.put("groups", groups);
-            }
-            toRet.add(userProfile);
         }
         return toRet;
     }
@@ -499,11 +513,17 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public List<Map<String, Object>> getAllGroups(int start, int end) {
+    public List<Map<String, Object>> getAllGroups(int start, int number) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("start", start);
-        params.put("num", end - start);
-        List<GroupResult> resultSet = securityMapper.getAllGroups(params);
+        params.put("number", number);
+        List<Long> groupIds = securityMapper.getAllGroupsQuery(params);
+        List<GroupResult> resultSet = new ArrayList<GroupResult>();
+        if (groupIds != null && !groupIds.isEmpty()) {
+            params = new HashMap<String, Object>();
+            params.put("groupids", groupIds);
+            resultSet = securityMapper.getAllGroupsData(params);
+        }
         return parseGroupResultSet(resultSet);
     }
 
@@ -551,7 +571,13 @@ public class DbSecurityProvider implements SecurityProvider {
             params.put("site", site);
             params.put("start", start);
             params.put("number", number);
-            List<GroupPerSiteResult> resultSet = securityMapper.getGroupsPerSite(params);
+            List<Long> groupIds = securityMapper.getGroupsPerSiteQuery(params);
+            List<GroupPerSiteResult> resultSet = new ArrayList<GroupPerSiteResult>();
+            if (groupIds != null && !groupIds.isEmpty()) {
+                params = new HashMap<String, Object>();
+                params.put("groupids", groupIds);
+                resultSet = securityMapper.getGroupsPerSiteData(params);
+            }
             return parseGroupsPerSiteResultSet(resultSet);
         }
     }

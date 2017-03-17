@@ -31,9 +31,9 @@ def start = 0
 if (params.start != null && params.start != '') {
     start = params.start.toInteger()
 }
-def end = 10
-if (params.end != null && params.end != '') {
-    end = params.end.toInteger()
+def number = 10
+if (params.number != null && params.number != '') {
+    number = params.number.toInteger()
 }
 def user = ''
 if (params.user != null && params.user != '') {
@@ -47,10 +47,10 @@ if (params.actions != null && params.actions != '') {
 
 def context = ActivityServices.createContext(applicationContext, request)
 try {
-    def activities = ActivityServices.getAuditLog(context, site, start, end, user, actions)
+    result.total = ActivityServices.getAuditLogTotal(context, site, user, actions)
+    def activities = ActivityServices.getAuditLog(context, site, start, number, user, actions)
     result.message = "OK"
     response.setStatus(200)
-    result.total = activities.size()
     result.items = activities
 } catch (SiteNotFoundException e) {
     response.setStatus(404)

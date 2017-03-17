@@ -112,9 +112,9 @@ class SecurityServices {
         return securityServicesImpl.getAllUsers(start, number)
     }
 
-    static getUsersPerSite(context, site) {
+    static getUsersPerSite(context, site, start, number) {
         def securityServicesImpl = ServiceFactory.getSecurityServices(context)
-        return securityServicesImpl.getUsersPerSite(site)
+        return securityServicesImpl.getUsersPerSite(site, start, number)
     }
 
     static createGroup(context, groupName, description, siteId) {
@@ -127,9 +127,9 @@ class SecurityServices {
         return securityServicesImpl.getGroup(siteId, groupName)
     }
 
-    static getAllGroups(context, start, end) {
+    static getAllGroups(context, start, number) {
         def securityServicesImpl = ServiceFactory.getSecurityServices(context)
-        return securityServicesImpl.getAllGroups(start, end)
+        return securityServicesImpl.getAllGroups(start, number)
     }
 
     static getGroupsPerSite(context, siteId, start, number) {

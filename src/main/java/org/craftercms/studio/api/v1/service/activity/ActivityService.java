@@ -84,5 +84,18 @@ public interface ActivityService {
 
 	void deleteActivitiesForSite(String site);
 
-    List<ActivityFeed> getAuditLogForSite(String site, int start, int end, String user, List<String> actions) throws SiteNotFoundException;
+    /**
+     * Get audit log for site
+     *
+     * @param site site
+     * @param start
+     * @param number
+     * @param user
+     * @param actions
+     * @return
+     * @throws SiteNotFoundException
+     */
+    List<ActivityFeed> getAuditLogForSite(String site, int start, int number, String user, List<String> actions) throws SiteNotFoundException;
+
+    long getAuditLogForSiteTotal(String site, String user, List<String> actions) throws SiteNotFoundException;
 }

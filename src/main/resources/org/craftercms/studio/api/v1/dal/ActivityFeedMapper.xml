@@ -116,6 +116,22 @@
                 #{action}
             </foreach>
         </if>
-        order by modified_date desc limit #{start},#{num}
+        order by modified_date desc limit #{start},#{number}
+    </select>
+
+    <select id="getAuditLogForSiteTotal" parameterType="java.util.Map" resultType="long">
+        select count(1)
+        from cstudio_activity
+        where site_network = #{site}
+        <if test="user != null and user != '' ">
+            and post_user_id = #{user}
+        </if>
+        <if test="actions != null">
+            and activity_type in
+            <foreach item="action" index="index" collection="actions"
+                     open="(" separator="," close=")">
+                #{action}
+            </foreach>
+        </if>
     </select>
 </mapper>

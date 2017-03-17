@@ -160,9 +160,10 @@ public interface SecurityProvider {
      * Get all users for given site
      *
      * @param site
-     * @return
+     * @param start
+     *@param number @return
      */
-    List<Map<String, Object>> getUsersPerSite(String site);
+    List<Map<String, Object>> getUsersPerSite(String site, int start, int number) throws SiteNotFoundException;
 
     /**
      * Get group for given site id with given group name
@@ -176,10 +177,10 @@ public interface SecurityProvider {
     /**
      * Get all groups
      * @param start start index
-     * @param end end index
+     * @param number Number of records to retrieve in the result set
      * @return
      */
-    List<Map<String, Object>> getAllGroups(int start, int end);
+    List<Map<String, Object>> getAllGroups(int start, int number);
 
     /**
      * Get all groups for given site

@@ -46,8 +46,13 @@ class ActivityServices {
         return activitiesServicesImpl.postActivity(site, user, path, activityType, extraInfo)
     }
 
-    static getAuditLog(context, site, start, end, user, actions) {
+    static getAuditLog(context, site, start, number, user, actions) {
         def activitiesServicesImpl = ServiceFactory.getActivityServices(context);
-        return activitiesServicesImpl.getAuditLog(site, start, end, user, actions)
+        return activitiesServicesImpl.getAuditLog(site, start, number, user, actions)
+    }
+
+    static getAuditLogTotal(context, site, user, actions) {
+        def activitiesServicesImpl = ServiceFactory.getActivityServices(context);
+        return activitiesServicesImpl.getAuditLogTotal(site, user, actions)
     }
 }
