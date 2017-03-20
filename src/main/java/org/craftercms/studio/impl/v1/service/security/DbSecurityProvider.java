@@ -107,6 +107,13 @@ public class DbSecurityProvider implements SecurityProvider {
         return parseUserResultSet(resultSet);
     }
 
+    @Override
+    public int getAllUsersTotal() {
+        List<UserProfileResult> resultSet = new ArrayList<UserProfileResult>();
+        Map<String, Object> params = new HashMap<String, Object>();
+        return securityMapper.getAllUsersQueryTotal(params);
+    }
+
     private List<Map<String, Object>> parseUserResultSet(List<UserProfileResult> usersResultSet) {
         List<Map<String, Object>> toRet = new ArrayList<Map<String, Object>>();
         Map<String, Object> userProfile = new HashMap<String, Object>();
@@ -222,6 +229,19 @@ public class DbSecurityProvider implements SecurityProvider {
             }
         }
         return toRet;
+    }
+
+    @Override
+    public int getUsersPerSiteTotal(String site) throws SiteNotFoundException {
+        List<Map<String, Object>> toRet = new ArrayList<Map<String, Object>>();
+        if (!(siteFeedMapper.exists(site) > 0)) {
+            throw new SiteNotFoundException();
+        } else {
+            Map<String, Object> params = new HashMap<String, Object>();
+            params = new HashMap<String, Object>();
+            params.put("siteId", site);
+            return securityMapper.getUsersPerSiteQueryTotal(params);
+        }
     }
 
     @Override
@@ -582,6 +602,17 @@ public class DbSecurityProvider implements SecurityProvider {
         }
     }
 
+    @Override
+    public int getGroupsPerSiteTotal(String site) throws SiteNotFoundException {
+        if (!(siteFeedMapper.exists(site) > 0)) {
+            throw new SiteNotFoundException();
+        } else {
+            Map<String, Object> params = new HashMap<String, Object>();
+            params.put("site", site);
+            return securityMapper.getGroupsPerSiteQueryTotal(params);
+        }
+    }
+
     private  List<Map<String, Object>> parseGroupsPerSiteResultSet(List<GroupPerSiteResult> resultSet) {
         List<Map<String, Object>> toRet = new ArrayList<Map<String, Object>>();
         if (resultSet != null && !resultSet.isEmpty()) {
@@ -646,6 +677,18 @@ public class DbSecurityProvider implements SecurityProvider {
                 }
             }
             return toRet;
+        }
+    }
+
+    @Override
+    public int getUsersPerGroupTotal(String site, String group) throws GroupNotFoundException {
+        if (!groupExists(site, group)) {
+            throw new GroupNotFoundException();
+        } else {
+            Map<String, Object> params = new HashMap<String, Object>();
+            params.put("siteId", site);
+            params.put("groupName", group);
+            return securityMapper.getUsersPerGroupTotal(params);
         }
     }
 

@@ -39,7 +39,7 @@ import java.util.Map;
 
 import com.google.gdata.util.common.base.StringUtil;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -172,7 +172,9 @@ public class GitContentRepositoryHelper {
         if (StringUtils.isEmpty(gitPath.toString())) {
             return ".";
         }
-        return gitPath.toString();
+        String toRet = gitPath.toString();
+        toRet = StringUtils.replace(toRet, File.separator, "/");
+        return toRet;
     }
 
     public Repository createGitRepository(Path path) {

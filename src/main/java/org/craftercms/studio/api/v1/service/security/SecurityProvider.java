@@ -157,6 +157,13 @@ public interface SecurityProvider {
     List<Map<String, Object>> getAllUsers(int start, int number);
 
     /**
+     * Get all users
+     *
+     * @return List of all users
+     */
+    int getAllUsersTotal();
+
+    /**
      * Get all users for given site
      *
      * @param site
@@ -164,6 +171,14 @@ public interface SecurityProvider {
      *@param number @return
      */
     List<Map<String, Object>> getUsersPerSite(String site, int start, int number) throws SiteNotFoundException;
+
+    /**
+     * Get number of all users for given site
+     *
+     * @param site
+     * @return
+     */
+    int getUsersPerSiteTotal(String site) throws SiteNotFoundException;
 
     /**
      * Get group for given site id with given group name
@@ -193,6 +208,14 @@ public interface SecurityProvider {
     List<Map<String, Object>> getGroupsPerSite(String site, int start, int number) throws SiteNotFoundException;
 
     /**
+     * Get number of all groups for given site
+     *
+     * @param site site id
+     * @return
+     */
+    int getGroupsPerSiteTotal(String site) throws SiteNotFoundException;
+
+    /**
      * Get all users for given site and group
      * @param site site id
      * @param group group name
@@ -202,6 +225,15 @@ public interface SecurityProvider {
      */
     List<Map<String, Object>> getUsersPerGroup(String site, String group, int start, int number) throws
 	    GroupNotFoundException;
+
+    /**
+     * Get number of all users for given site and group
+     * @param site site id
+     * @param group group name
+     * @return
+     */
+    int getUsersPerGroupTotal(String site, String group) throws
+            GroupNotFoundException;
 
     /**
      * Update group with given parameters

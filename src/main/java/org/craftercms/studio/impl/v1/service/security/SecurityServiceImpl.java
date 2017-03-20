@@ -546,8 +546,18 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
+    public int getAllUsersTotal() {
+        return securityProvider.getAllUsersTotal();
+    }
+
+    @Override
     public List<Map<String, Object>> getUsersPerSite(String site, int start, int number) throws SiteNotFoundException {
         return securityProvider.getUsersPerSite(site, start, number);
+    }
+
+    @Override
+    public int getUsersPerSiteTotal(String site) throws SiteNotFoundException {
+        return securityProvider.getUsersPerSiteTotal(site);
     }
 
     @Override
@@ -571,9 +581,20 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
+    public int getGroupsPerSiteTotal(String site) throws SiteNotFoundException {
+        return securityProvider.getGroupsPerSiteTotal(site);
+    }
+
+    @Override
     public List<Map<String, Object>> getUsersPerGroup(String site, String group, int start, int number) throws
 	    GroupNotFoundException {
         return securityProvider.getUsersPerGroup(site, group, start, number);
+    }
+
+    @Override
+    public int getUsersPerGroupTotal(String site, String group) throws
+            GroupNotFoundException {
+        return securityProvider.getUsersPerGroupTotal(site, group);
     }
 
     @Override

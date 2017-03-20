@@ -206,9 +206,21 @@ public class MappedSecurityProvider implements SecurityProvider {
     }
 
     @Override
+    public int getAllUsersTotal() {
+        SecurityProvider provider = lookupProvider(getProviderType());
+        return provider.getAllUsersTotal();
+    }
+
+    @Override
     public List<Map<String, Object>> getUsersPerSite(String site, int start, int number) throws SiteNotFoundException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.getUsersPerSite(site, start, number);
+    }
+
+    @Override
+    public int getUsersPerSiteTotal(String site) throws SiteNotFoundException {
+        SecurityProvider provider = lookupProvider(getProviderType());
+        return provider.getGroupsPerSiteTotal(site);
     }
 
     @Override
@@ -230,9 +242,21 @@ public class MappedSecurityProvider implements SecurityProvider {
     }
 
     @Override
+    public int getGroupsPerSiteTotal(String site) throws SiteNotFoundException {
+        SecurityProvider provider = lookupProvider(getProviderType());
+        return provider.getGroupsPerSiteTotal(site);
+    }
+
+    @Override
     public List<Map<String, Object>> getUsersPerGroup(String site, String group, int start, int number) throws GroupNotFoundException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.getUsersPerGroup(site, group, start, number);
+    }
+
+    @Override
+    public int getUsersPerGroupTotal(String site, String group) throws GroupNotFoundException {
+        SecurityProvider provider = lookupProvider(getProviderType());
+        return provider.getUsersPerGroupTotal(site, group);
     }
 
     @Override

@@ -34,12 +34,14 @@ if (params.number != null && params.number != '') {
 }
 def context = SecurityServices.createContext(applicationContext, request)
 try {
+    def total = SecurityServices.getUsersPerGroupTotal(context, siteId, groupName);
     def usersPerGroup = SecurityServices.getUsersPerGroup(context, siteId, groupName, start, number);
     if (usersPerGroup != null) {
         def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/group/users.json?site_id=" + siteId + "&group_name=" + groupName + "&start="+ start + "&number=" + number
         response.addHeader("Location", locationHeader)
         response.setStatus(200)
         result.users = usersPerGroup
+        result.total = total
     } else {
         response.setStatus(500)
         result.message = "Internal server error"
