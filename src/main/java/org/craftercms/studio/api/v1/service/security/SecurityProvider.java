@@ -19,10 +19,7 @@
 package org.craftercms.studio.api.v1.service.security;
 
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
-import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
-import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
-import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.*;
 
 import java.util.List;
 import java.util.Set;
@@ -108,7 +105,7 @@ public interface SecurityProvider {
      * @param username
      * @return
      */
-    boolean deleteUser(String username);
+    boolean deleteUser(String username) throws UserNotFoundException;
 
     /**
      * Update user details
@@ -119,7 +116,7 @@ public interface SecurityProvider {
      * @param email
      * @return
      */
-    boolean updateUser(String username, String firstName, String lastName, String email);
+    boolean updateUser(String username, String firstName, String lastName, String email) throws UserNotFoundException;
 
     /**
      * Enable/disable user with given username
@@ -128,7 +125,7 @@ public interface SecurityProvider {
      * @param enabled true: enable user; false: disable user
      * @return
      */
-    boolean enableUser(String username, boolean enabled);
+    boolean enableUser(String username, boolean enabled) throws UserNotFoundException;
 
     /**
      * Get status for given user
@@ -136,7 +133,7 @@ public interface SecurityProvider {
      * @param username
      * @return
      */
-    Map<String, Object> getUserStatus(String username);
+    Map<String, Object> getUserStatus(String username) throws UserNotFoundException;
 
     /**
      * Create group with given parameters
@@ -271,7 +268,7 @@ public interface SecurityProvider {
      * @param newPassword new password
      * @return
      */
-    boolean changePassword(String username, String current, String newPassword);
+    boolean changePassword(String username, String current, String newPassword) throws UserNotFoundException, PasswordDoesNotMatchException;
 
     /**
      * Set user password
@@ -279,5 +276,5 @@ public interface SecurityProvider {
      * @param newPassword new password
      * @return
      */
-    boolean setUserPassword(String username, String newPassword);
+    boolean setUserPassword(String username, String newPassword) throws UserNotFoundException;
 }
