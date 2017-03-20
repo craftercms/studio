@@ -26,10 +26,7 @@ import org.craftercms.commons.http.RequestContext;
 import org.craftercms.studio.api.v1.dal.*;
 import org.craftercms.studio.api.v1.ebus.RepositoryEventContext;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
-import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
-import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
-import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.*;
 import org.craftercms.studio.api.v1.job.CronJobContext;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -454,43 +451,59 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public boolean deleteUser(String username) {
-        Map<String, String> params = new HashMap<String, String>();
-        params.put("username", username);
-        securityMapper.deleteUser(params);
-        return true;
-    }
-
-    @Override
-    public boolean updateUser(String username, String firstName, String lastName, String email) {
-        Map<String, String> params = new HashMap<String, String>();
-        params.put("username", username);
-        params.put("firstname", firstName);
-        params.put("lastname", lastName);
-        params.put("email", email);
-        securityMapper.updateUser(params);
-        return true;
-    }
-
-    @Override
-    public boolean enableUser(String username, boolean enabled) {
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put("username", username);
-        params.put("enabled", enabled ? 1 : 0);
-        securityMapper.enableUser(params);
-        return true;
-    }
-
-    @Override
-    public Map<String, Object> getUserStatus(String user) {
-        User u = securityMapper.getUser(user);
-        Map<String, Object> userStatus = new HashMap<String, Object>();
-        if (u != null) {
-            userStatus.put("username", u.getUsername());
-            userStatus.put("enabled", u.isEnabled());
-
+    public boolean deleteUser(String username) throws UserNotFoundException {
+        if (!userExists(username)) {
+            throw new UserNotFoundException();
+        } else {
+            Map<String, String> params = new HashMap<String, String>();
+            params.put("username", username);
+            securityMapper.deleteUser(params);
+            return true;
         }
-        return userStatus;
+    }
+
+    @Override
+    public boolean updateUser(String username, String firstName, String lastName, String email) throws UserNotFoundException {
+        if (!userExists(username)) {
+            throw new UserNotFoundException();
+        } else {
+            Map<String, String> params = new HashMap<String, String>();
+            params.put("username", username);
+            params.put("firstname", firstName);
+            params.put("lastname", lastName);
+            params.put("email", email);
+            securityMapper.updateUser(params);
+            return true;
+        }
+    }
+
+    @Override
+    public boolean enableUser(String username, boolean enabled) throws UserNotFoundException {
+        if (!userExists(username)) {
+            throw new UserNotFoundException();
+        } else {
+            Map<String, Object> params = new HashMap<String, Object>();
+            params.put("username", username);
+            params.put("enabled", enabled ? 1 : 0);
+            securityMapper.enableUser(params);
+            return true;
+        }
+    }
+
+    @Override
+    public Map<String, Object> getUserStatus(String user) throws UserNotFoundException {
+        if (!userExists(user)) {
+            throw new UserNotFoundException();
+        } else {
+            User u = securityMapper.getUser(user);
+            Map<String, Object> userStatus = new HashMap<String, Object>();
+            if (u != null) {
+                userStatus.put("username", u.getUsername());
+                userStatus.put("enabled", u.isEnabled());
+
+            }
+            return userStatus;
+        }
     }
 
     @Override
@@ -726,23 +739,31 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public boolean changePassword(String username, String current, String newPassword) {
-        User user = securityMapper.getUser(username);
-        if (user != null && CipherUtils.matchPassword(user.getPassword(), current)) {
-            return setUserPassword(username, newPassword);
+    public boolean changePassword(String username, String current, String newPassword) throws UserNotFoundException, PasswordDoesNotMatchException {
+        if (!userExists(username)) {
+            throw new UserNotFoundException();
         } else {
-            return false;
+            User user = securityMapper.getUser(username);
+            if (CipherUtils.matchPassword(user.getPassword(), current)) {
+                return setUserPassword(username, newPassword);
+            } else {
+                throw new PasswordDoesNotMatchException();
+            }
         }
     }
 
     @Override
-    public boolean setUserPassword(String username, String newPassword) {
-        String hashedPassword = CipherUtils.hashPassword(newPassword);
-        Map<String, String> params = new HashMap<String, String>();
-        params.put("username", username);
-        params.put("password", hashedPassword);
-        securityMapper.setUserPassword(params);
-        return true;
+    public boolean setUserPassword(String username, String newPassword) throws UserNotFoundException {
+        if (!userExists(username)) {
+            throw new UserNotFoundException();
+        } else {
+            String hashedPassword = CipherUtils.hashPassword(newPassword);
+            Map<String, String> params = new HashMap<String, String>();
+            params.put("username", username);
+            params.put("password", hashedPassword);
+            securityMapper.setUserPassword(params);
+            return true;
+        }
     }
 
     protected StudioConfiguration studioConfiguration;

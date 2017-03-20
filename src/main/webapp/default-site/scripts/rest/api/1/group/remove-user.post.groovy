@@ -37,7 +37,7 @@ def context = SecurityServices.createContext(applicationContext, request)
 try {
     SecurityServices.removeUserFromGroup(context, siteId, groupName, username)
     response.setStatus(204)
-    def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/group/get?group_name=" + groupName
+    def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/group/get.json?group_name=" + groupName
     response.addHeader("Location", locationHeader)
 } catch (UserNotFoundException e) {
     response.setStatus(404)
