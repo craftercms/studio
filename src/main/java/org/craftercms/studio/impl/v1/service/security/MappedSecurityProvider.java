@@ -220,7 +220,7 @@ public class MappedSecurityProvider implements SecurityProvider {
     @Override
     public int getUsersPerSiteTotal(String site) throws SiteNotFoundException {
         SecurityProvider provider = lookupProvider(getProviderType());
-        return provider.getGroupsPerSiteTotal(site);
+        return provider.getUsersPerSiteTotal(site);
     }
 
     @Override
