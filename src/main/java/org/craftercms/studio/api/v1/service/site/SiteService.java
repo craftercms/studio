@@ -22,6 +22,7 @@ import net.sf.json.JSONObject;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.to.DeploymentEndpointConfigTO;
 import org.craftercms.studio.api.v1.to.PublishingChannelGroupConfigTO;
 import org.craftercms.studio.api.v1.to.PublishingTargetTO;
@@ -86,8 +87,6 @@ public interface SiteService {
 	 * @return configuration as XML string
 	 */
 	Map<String, Object> getConfiguration(String site, String path, boolean applyEnv);
-
-	List<SiteFeed> getUserSites(String user);
 
     DeploymentEndpointConfigTO getDeploymentEndpoint(String site, String endpoint);
 
@@ -167,4 +166,24 @@ public interface SiteService {
      * @return true if site exists, false otherwise
      */
     boolean exists(String site);
+
+    /**
+     * Get total number of sites that user is allowed access to for given username
+     *
+     * @param username username
+     * @return number of sites
+     * @throws UserNotFoundException
+     */
+    int getSitesPerUserTotal(String username) throws UserNotFoundException;
+
+    /**
+     * Get sites that user is allowed access to for given username
+     *
+     * @param username username
+     * @param start start position for pagination
+     * @param number number of sites per page
+     * @return number of sites
+     * @throws UserNotFoundException
+     */
+    List<SiteFeed> getSitesPerUser(String username, int start, int number) throws UserNotFoundException;
 }
