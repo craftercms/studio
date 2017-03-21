@@ -788,6 +788,11 @@ public class SecurityServiceImpl implements SecurityService {
         return toRet;
     }
 
+    @Override
+    public boolean userExists(String username) {
+        return securityProvider.userExists(username);
+    }
+
     public String getConfigPath() {
         return studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH);
     }

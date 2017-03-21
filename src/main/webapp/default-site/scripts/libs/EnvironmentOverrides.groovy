@@ -47,7 +47,7 @@ class EnvironmentOverrides {
 			}
 
 
-    		def sites = SiteServices.getUserSites(context, result.user)
+    		def sites = SiteServices.getSitesPerUser(context, result.user)
 
 			result.siteTitle = result.site +sites.size;
 

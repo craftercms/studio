@@ -19,7 +19,7 @@ package org.craftercms.studio.impl.v1.service.site;
 
 import net.sf.json.JSON;
 import net.sf.json.JSONObject;
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.studio.api.v1.constant.RepoOperation;
@@ -34,6 +34,7 @@ import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
@@ -248,24 +249,6 @@ public class SiteServiceImpl implements SiteService {
     public List<PublishingTargetTO> getPublishingTargetsForSite(String site) {
         return environmentConfig.getPublishingTargetsForSite(site);
     }
-
-    @Override
-	public List<SiteFeed> getUserSites(String user) {
-        String username = user;
-        if (StringUtils.isEmpty(username)) {
-            username = securityService.getCurrentUser();
-        }
-        List<SiteFeed> sites = siteFeedMapper.getSites();
-        List<SiteFeed> toRet = new ArrayList<SiteFeed>();
-        for (SiteFeed site : sites) {
-            Set<String> userRoles = securityService.getUserRoles(site.getSiteId(),username);
-            if (CollectionUtils.isNotEmpty(userRoles)) {
-                site.setLiveUrl(getLiveServerUrl(site.getSiteId()));
-                toRet.add(site);
-            }
-        }
-        return toRet;
-	}
 
     @Override
     public DeploymentEndpointConfigTO getPreviewDeploymentEndpoint(String site) {
@@ -849,6 +832,37 @@ public class SiteServiceImpl implements SiteService {
     @Override
     public boolean exists(String site) {
         return siteFeedMapper.exists(site) > 0;
+    }
+
+    @Override
+    public int getSitesPerUserTotal(String username) throws UserNotFoundException {
+	    if (securityService.userExists(username)) {
+            Map<String, Object> params = new HashMap<String, Object>();
+            params.put("username", username);
+            return siteFeedMapper.getSitesPerUserQueryTotal(params);
+        } else {
+	        throw new UserNotFoundException();
+        }
+    }
+
+    @Override
+    public List<SiteFeed> getSitesPerUser(String username, int start, int number) throws UserNotFoundException {
+        if (securityService.userExists(username)) {
+            Map<String, Object> params = new HashMap<String, Object>();
+            params.put("username", username);
+            params.put("start", start);
+            params.put("number", number);
+            List<String> siteIds = siteFeedMapper.getSitesPerUserQuery(params);
+            List<SiteFeed> toRet = new ArrayList<SiteFeed>();
+            if (siteIds != null && !siteIds.isEmpty()) {
+                params = new HashMap<String, Object>();
+                params.put("siteids", siteIds);
+                toRet = siteFeedMapper.getSitesPerUserData(params);
+            }
+            return toRet;
+        } else {
+            throw new UserNotFoundException();
+        }
     }
 
     public String getGlobalConfigRoot() {

@@ -59,11 +59,6 @@ class SpringSiteServices {
         return springBackedService.getAllAvailableSites()
     }
 
-    def getUserSites(user) {
-        def springBackedService = this.context.applicationContext.get("cstudioSiteServiceSimple")
-        return springBackedService.getUserSites(user);
-    }
-
     def createSiteFromBlueprint(blueprintName, siteName, siteId, desc) {
         def springBackedService = this.context.applicationContext.get("cstudioSiteServiceSimple")
         return springBackedService.createSiteFromBlueprint(blueprintName, siteName, siteId, desc)
@@ -119,5 +114,15 @@ class SpringSiteServices {
     def exists(site) {
         def springBackedService = this.context.applicationContext.get("cstudioSiteServiceSimple")
         return springBackedService.exists(site)
+    }
+
+    def getSitesPerUserTotal(username) {
+        def springBackedService = this.context.applicationContext.get("cstudioSiteServiceSimple")
+        return springBackedService.getSitesPerUserTotal(username)
+    }
+
+    def getSitesPerUser(username, start, number) {
+        def springBackedService = this.context.applicationContext.get("cstudioSiteServiceSimple")
+        return springBackedService.getSitesPerUser(username, start, number)
     }
 }

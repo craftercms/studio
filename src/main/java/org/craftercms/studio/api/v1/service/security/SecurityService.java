@@ -64,6 +64,14 @@ public interface SecurityService {
     boolean logout();
 
     /**
+     * Check if user exists
+     *
+     * @param username username
+     * @return
+     */
+    boolean userExists(String username);
+
+    /**
      * Create new user with given parameters
      *
      * @param username username
