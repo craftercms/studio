@@ -277,4 +277,12 @@ public interface SecurityProvider {
      * @return
      */
     boolean setUserPassword(String username, String newPassword) throws UserNotFoundException;
+
+    /**
+     * Check if given user is a system user
+     *
+     * @param username username
+     * @return
+     */
+    boolean isSystemUser(String username) throws UserNotFoundException;
 }

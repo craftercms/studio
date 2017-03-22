@@ -285,4 +285,10 @@ public class MappedSecurityProvider implements SecurityProvider {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.setUserPassword(username, newPassword);
     }
+
+    @Override
+    public boolean isSystemUser(String username) throws UserNotFoundException {
+        SecurityProvider provider = lookupProvider(getProviderType());
+        return provider.isSystemUser(username);
+    }
 }

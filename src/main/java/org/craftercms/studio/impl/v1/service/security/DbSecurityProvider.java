@@ -766,6 +766,18 @@ public class DbSecurityProvider implements SecurityProvider {
         }
     }
 
+    @Override
+    public boolean isSystemUser(String username) throws UserNotFoundException {
+        if (!userExists(username)) {
+            throw new UserNotFoundException();
+        } else {
+            Map<String, String> params = new HashMap<String, String>();
+            params.put("username", username);
+            int result = securityMapper.isSystemUser(params);
+            return result > 0;
+        }
+    }
+
     protected StudioConfiguration studioConfiguration;
 
     public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
