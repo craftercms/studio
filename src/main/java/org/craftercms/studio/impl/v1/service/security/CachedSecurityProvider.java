@@ -292,4 +292,10 @@ public class CachedSecurityProvider implements SecurityProvider {
         // TODO: DB: Implement this ?
         return false;
     }
+
+    @Override
+    public boolean isSystemUser(String username) throws UserNotFoundException {
+        // TODO: DB: Implement this ?
+        return false;
+    }
 }

@@ -89,7 +89,7 @@ public interface SecurityService {
      * @param username
      * @return
      */
-    boolean deleteUser(String username) throws UserNotFoundException;
+    boolean deleteUser(String username) throws UserNotFoundException, DeleteUserNotAllowedException;
 
     /**
      * Update user details

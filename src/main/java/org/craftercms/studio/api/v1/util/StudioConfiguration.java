@@ -54,6 +54,7 @@ public interface StudioConfiguration {
     String DB_BASE_PATH = "studio.db.basePath";
     String DB_DATA_PATH = "studio.db.dataPath";
     String DB_PORT = "studio.db.port";
+    String DB_SOCKET = "studio.db.socket";
 
 
     /** Configuration */
@@ -75,6 +76,7 @@ public interface StudioConfiguration {
     String CONFIGURATION_SITE_DEPLOYMENT_CONFIG_FILE_NAME = "studio.configuration.site.deployment.configFileName";
     String CONFIGURATION_SITE_CONTENT_TYPES_CONFIG_FILE_NAME = "studio.configuration.site.contentTypes.configFileName";
     String CONFIGURATION_SITE_DEFAULT_GROUPS = "studio.configuration.site.defaultGroups";
+    String CONFIGURATION_SITE_DEFAULT_ADMIN_GROUP = "studio.configuration.site.defaultAdminGroup";
 
     /** Import Service */
     String IMPORT_ASSIGNEE = "studio.import.assignee";
