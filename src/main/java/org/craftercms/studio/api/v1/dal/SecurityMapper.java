@@ -85,4 +85,6 @@ public interface SecurityMapper {
     void removeUserFromGroup(Map params);
 
     void setUserPassword(Map params);
+
+    int isSystemUser(Map params);
 }

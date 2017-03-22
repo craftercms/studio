@@ -23,6 +23,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.http.RequestContext;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
@@ -375,6 +376,12 @@ public class DemoSecurityProvider implements SecurityProvider {
 
     @Override
     public boolean setUserPassword(String username, String newPassword) {
+        // TODO: DB: Implement this ?
+        return false;
+    }
+
+    @Override
+    public boolean isSystemUser(String username) throws UserNotFoundException {
         // TODO: DB: Implement this ?
         return false;
     }

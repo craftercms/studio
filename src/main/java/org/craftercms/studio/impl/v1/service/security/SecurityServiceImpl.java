@@ -518,8 +518,33 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
-    public boolean deleteUser(String username) throws UserNotFoundException {
-        return securityProvider.deleteUser(username);
+    public boolean deleteUser(String username) throws UserNotFoundException, DeleteUserNotAllowedException {
+        if (!isDeleteUserAllowed(username)) {
+            throw new DeleteUserNotAllowedException();
+        } else {
+            return securityProvider.deleteUser(username);
+        }
+    }
+
+    private boolean isDeleteUserAllowed(String username) throws UserNotFoundException {
+        boolean toRet = true;
+
+        // check if it is current user - not allowed to delete current user
+        if (toRet) {
+            toRet = !StringUtils.equals(username, getCurrentUser());
+        }
+
+        // check if it is system user - not allowed to delete system user
+        if (toRet) {
+            toRet = !securityProvider.isSystemUser(username);
+        }
+
+        // check if it is admin - not allowed to delete admin
+        if (toRet) {
+            toRet = !isAdmin(username);
+        }
+
+        return toRet;
     }
 
     @Override
