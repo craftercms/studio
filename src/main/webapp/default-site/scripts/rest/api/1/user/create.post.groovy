@@ -37,12 +37,12 @@ def context = SecurityServices.createContext(applicationContext, request)
 try {
     SecurityServices.createUser(context, username, password, firstname, lastname, email);
     result.message = "OK"
-    def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/user/get?user=" + username
+    def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/user/get.json?user=" + username
     response.addHeader("Location", locationHeader)
     response.setStatus(201)
 } catch (UserAlreadyExistsException e) {
     response.setStatus(409)
-    def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/user/get?user=" + username
+    def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/user/get.json?user=" + username
     response.addHeader("Location", locationHeader)
     result.message = "User already exists"
 } catch (Exception e) {

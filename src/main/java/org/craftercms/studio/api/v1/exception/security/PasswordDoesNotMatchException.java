@@ -17,29 +17,26 @@
  *
  */
 
-import groovy.json.JsonSlurper
-import org.craftercms.studio.api.v1.exception.security.UserNotFoundException
-import scripts.api.SecurityServices
+package org.craftercms.studio.api.v1.exception.security;
 
-def result = [:]
-def requestBody = request.reader.text
+public class PasswordDoesNotMatchException extends Exception {
 
-def slurper = new JsonSlurper()
-def parsedReq = slurper.parseText(requestBody)
+    public PasswordDoesNotMatchException() {
+    }
 
-def username = parsedReq.username
+    public PasswordDoesNotMatchException(String message) {
+        super(message);
+    }
 
-def context = SecurityServices.createContext(applicationContext, request)
-try {
-    def success = SecurityServices.deleteUser(context, username);
-    result.message = "OK"
-    response.setStatus(204)
-} catch (UserNotFoundException e) {
-    response.setStatus(404)
-    result.message = "User not found"
-} catch (Exception e) {
-    result.message = "Internal server error: \n" + e
-    response.setStatus(500)
+    public PasswordDoesNotMatchException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public PasswordDoesNotMatchException(Throwable cause) {
+        super(cause);
+    }
+
+    public PasswordDoesNotMatchException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+        super(message, cause, enableSuppression, writableStackTrace);
+    }
 }
-
-return result

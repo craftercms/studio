@@ -19,10 +19,7 @@
 package org.craftercms.studio.impl.v1.service.security;
 
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
-import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
-import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
-import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.*;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 
@@ -170,25 +167,25 @@ public class MappedSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public boolean deleteUser(String username) {
+    public boolean deleteUser(String username) throws UserNotFoundException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.deleteUser(username);
     }
 
     @Override
-    public boolean updateUser(String username, String firstName, String lastName, String email) {
+    public boolean updateUser(String username, String firstName, String lastName, String email) throws UserNotFoundException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.updateUser(username, firstName, lastName, email);
     }
 
     @Override
-    public boolean enableUser(String username, boolean enabled) {
+    public boolean enableUser(String username, boolean enabled) throws UserNotFoundException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.enableUser(username, enabled);
     }
 
     @Override
-    public Map<String, Object> getUserStatus(String username) {
+    public Map<String, Object> getUserStatus(String username) throws UserNotFoundException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.getUserStatus(username);
     }
@@ -206,9 +203,21 @@ public class MappedSecurityProvider implements SecurityProvider {
     }
 
     @Override
+    public int getAllUsersTotal() {
+        SecurityProvider provider = lookupProvider(getProviderType());
+        return provider.getAllUsersTotal();
+    }
+
+    @Override
     public List<Map<String, Object>> getUsersPerSite(String site, int start, int number) throws SiteNotFoundException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.getUsersPerSite(site, start, number);
+    }
+
+    @Override
+    public int getUsersPerSiteTotal(String site) throws SiteNotFoundException {
+        SecurityProvider provider = lookupProvider(getProviderType());
+        return provider.getUsersPerSiteTotal(site);
     }
 
     @Override
@@ -230,9 +239,21 @@ public class MappedSecurityProvider implements SecurityProvider {
     }
 
     @Override
+    public int getGroupsPerSiteTotal(String site) throws SiteNotFoundException {
+        SecurityProvider provider = lookupProvider(getProviderType());
+        return provider.getGroupsPerSiteTotal(site);
+    }
+
+    @Override
     public List<Map<String, Object>> getUsersPerGroup(String site, String group, int start, int number) throws GroupNotFoundException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.getUsersPerGroup(site, group, start, number);
+    }
+
+    @Override
+    public int getUsersPerGroupTotal(String site, String group) throws GroupNotFoundException {
+        SecurityProvider provider = lookupProvider(getProviderType());
+        return provider.getUsersPerGroupTotal(site, group);
     }
 
     @Override
@@ -254,13 +275,13 @@ public class MappedSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public boolean changePassword(String username, String current, String newPassword) {
+    public boolean changePassword(String username, String current, String newPassword) throws UserNotFoundException, PasswordDoesNotMatchException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.changePassword(username, current, newPassword);
     }
 
     @Override
-    public boolean setUserPassword(String username, String newPassword) {
+    public boolean setUserPassword(String username, String newPassword) throws UserNotFoundException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.setUserPassword(username, newPassword);
     }

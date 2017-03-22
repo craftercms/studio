@@ -1,6 +1,6 @@
 /*
  * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2017 Crafter Software Corporation.
+ * Copyright (C) 2007-2016 Crafter Software Corporation.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,16 +14,14 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 
-import scripts.api.SecurityServices
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException
+import scripts.api.SiteServices
 
 def result = [:]
-
-def site = params.site_id
+def username = params.username
 
 def start = 0
 if (params.start != null) {
@@ -36,23 +34,23 @@ if (params.number != null) {
     number = params.number.toInteger()
 }
 
-def context = SecurityServices.createContext(applicationContext, request)
+def context = SiteServices.createContext(applicationContext, request)
 try {
-    def total = SecurityServices.getUsersPerSiteTotal(context, site);
-    def users = SecurityServices.getUsersPerSite(context, site, start, number);
-    if (users != null) {
-        def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/user/get-per-site.json?site_id=" + site + "&start=" + start + "&number=" + number
+    def total = SiteServices.getSitesPerUserTotal(context, username);
+    def sites = SiteServices.getSitesPerUser(context, username, start, number);
+    if (sites != null) {
+        def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/site/get-per-user.json?username=" + username + "&start=" + start + "&number=" + number
         response.addHeader("Location", locationHeader)
-        result.users = users
+        result.sites = sites
         result.total = total
         response.setStatus(200)
     } else {
         response.setStatus(500)
         result.message = "Internal server error"
     }
-} catch (SiteNotFoundException e) {
+} catch (UserNotFoundException e) {
     response.setStatus(404)
-    result.message = "Site not found"
+    result.message = "User not found"
 } catch (Exception e) {
     response.setStatus(500)
     result.message = "Internal server error: \n" + e

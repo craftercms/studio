@@ -26,10 +26,7 @@ import org.craftercms.commons.http.RequestContext;
 import org.craftercms.studio.api.v1.dal.*;
 import org.craftercms.studio.api.v1.ebus.RepositoryEventContext;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
-import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
-import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
-import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.*;
 import org.craftercms.studio.api.v1.job.CronJobContext;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -105,6 +102,13 @@ public class DbSecurityProvider implements SecurityProvider {
             resultSet = securityMapper.getAllUsersData(params);
         }
         return parseUserResultSet(resultSet);
+    }
+
+    @Override
+    public int getAllUsersTotal() {
+        List<UserProfileResult> resultSet = new ArrayList<UserProfileResult>();
+        Map<String, Object> params = new HashMap<String, Object>();
+        return securityMapper.getAllUsersQueryTotal(params);
     }
 
     private List<Map<String, Object>> parseUserResultSet(List<UserProfileResult> usersResultSet) {
@@ -222,6 +226,19 @@ public class DbSecurityProvider implements SecurityProvider {
             }
         }
         return toRet;
+    }
+
+    @Override
+    public int getUsersPerSiteTotal(String site) throws SiteNotFoundException {
+        List<Map<String, Object>> toRet = new ArrayList<Map<String, Object>>();
+        if (!(siteFeedMapper.exists(site) > 0)) {
+            throw new SiteNotFoundException();
+        } else {
+            Map<String, Object> params = new HashMap<String, Object>();
+            params = new HashMap<String, Object>();
+            params.put("siteId", site);
+            return securityMapper.getUsersPerSiteQueryTotal(params);
+        }
     }
 
     @Override
@@ -434,43 +451,59 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public boolean deleteUser(String username) {
-        Map<String, String> params = new HashMap<String, String>();
-        params.put("username", username);
-        securityMapper.deleteUser(params);
-        return true;
-    }
-
-    @Override
-    public boolean updateUser(String username, String firstName, String lastName, String email) {
-        Map<String, String> params = new HashMap<String, String>();
-        params.put("username", username);
-        params.put("firstname", firstName);
-        params.put("lastname", lastName);
-        params.put("email", email);
-        securityMapper.updateUser(params);
-        return true;
-    }
-
-    @Override
-    public boolean enableUser(String username, boolean enabled) {
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put("username", username);
-        params.put("enabled", enabled ? 1 : 0);
-        securityMapper.enableUser(params);
-        return true;
-    }
-
-    @Override
-    public Map<String, Object> getUserStatus(String user) {
-        User u = securityMapper.getUser(user);
-        Map<String, Object> userStatus = new HashMap<String, Object>();
-        if (u != null) {
-            userStatus.put("username", u.getUsername());
-            userStatus.put("enabled", u.isEnabled());
-
+    public boolean deleteUser(String username) throws UserNotFoundException {
+        if (!userExists(username)) {
+            throw new UserNotFoundException();
+        } else {
+            Map<String, String> params = new HashMap<String, String>();
+            params.put("username", username);
+            securityMapper.deleteUser(params);
+            return true;
         }
-        return userStatus;
+    }
+
+    @Override
+    public boolean updateUser(String username, String firstName, String lastName, String email) throws UserNotFoundException {
+        if (!userExists(username)) {
+            throw new UserNotFoundException();
+        } else {
+            Map<String, String> params = new HashMap<String, String>();
+            params.put("username", username);
+            params.put("firstname", firstName);
+            params.put("lastname", lastName);
+            params.put("email", email);
+            securityMapper.updateUser(params);
+            return true;
+        }
+    }
+
+    @Override
+    public boolean enableUser(String username, boolean enabled) throws UserNotFoundException {
+        if (!userExists(username)) {
+            throw new UserNotFoundException();
+        } else {
+            Map<String, Object> params = new HashMap<String, Object>();
+            params.put("username", username);
+            params.put("enabled", enabled ? 1 : 0);
+            securityMapper.enableUser(params);
+            return true;
+        }
+    }
+
+    @Override
+    public Map<String, Object> getUserStatus(String user) throws UserNotFoundException {
+        if (!userExists(user)) {
+            throw new UserNotFoundException();
+        } else {
+            User u = securityMapper.getUser(user);
+            Map<String, Object> userStatus = new HashMap<String, Object>();
+            if (u != null) {
+                userStatus.put("username", u.getUsername());
+                userStatus.put("enabled", u.isEnabled());
+
+            }
+            return userStatus;
+        }
     }
 
     @Override
@@ -582,6 +615,17 @@ public class DbSecurityProvider implements SecurityProvider {
         }
     }
 
+    @Override
+    public int getGroupsPerSiteTotal(String site) throws SiteNotFoundException {
+        if (!(siteFeedMapper.exists(site) > 0)) {
+            throw new SiteNotFoundException();
+        } else {
+            Map<String, Object> params = new HashMap<String, Object>();
+            params.put("site", site);
+            return securityMapper.getGroupsPerSiteQueryTotal(params);
+        }
+    }
+
     private  List<Map<String, Object>> parseGroupsPerSiteResultSet(List<GroupPerSiteResult> resultSet) {
         List<Map<String, Object>> toRet = new ArrayList<Map<String, Object>>();
         if (resultSet != null && !resultSet.isEmpty()) {
@@ -650,6 +694,18 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
+    public int getUsersPerGroupTotal(String site, String group) throws GroupNotFoundException {
+        if (!groupExists(site, group)) {
+            throw new GroupNotFoundException();
+        } else {
+            Map<String, Object> params = new HashMap<String, Object>();
+            params.put("siteId", site);
+            params.put("groupName", group);
+            return securityMapper.getUsersPerGroupTotal(params);
+        }
+    }
+
+    @Override
     public boolean updateGroup(String siteId, String groupName, String description) throws GroupNotFoundException {
         if (!groupExists(siteId, groupName)) {
             throw new GroupNotFoundException();
@@ -683,23 +739,31 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public boolean changePassword(String username, String current, String newPassword) {
-        User user = securityMapper.getUser(username);
-        if (user != null && CipherUtils.matchPassword(user.getPassword(), current)) {
-            return setUserPassword(username, newPassword);
+    public boolean changePassword(String username, String current, String newPassword) throws UserNotFoundException, PasswordDoesNotMatchException {
+        if (!userExists(username)) {
+            throw new UserNotFoundException();
         } else {
-            return false;
+            User user = securityMapper.getUser(username);
+            if (CipherUtils.matchPassword(user.getPassword(), current)) {
+                return setUserPassword(username, newPassword);
+            } else {
+                throw new PasswordDoesNotMatchException();
+            }
         }
     }
 
     @Override
-    public boolean setUserPassword(String username, String newPassword) {
-        String hashedPassword = CipherUtils.hashPassword(newPassword);
-        Map<String, String> params = new HashMap<String, String>();
-        params.put("username", username);
-        params.put("password", hashedPassword);
-        securityMapper.setUserPassword(params);
-        return true;
+    public boolean setUserPassword(String username, String newPassword) throws UserNotFoundException {
+        if (!userExists(username)) {
+            throw new UserNotFoundException();
+        } else {
+            String hashedPassword = CipherUtils.hashPassword(newPassword);
+            Map<String, String> params = new HashMap<String, String>();
+            params.put("username", username);
+            params.put("password", hashedPassword);
+            securityMapper.setUserPassword(params);
+            return true;
+        }
     }
 
     protected StudioConfiguration studioConfiguration;

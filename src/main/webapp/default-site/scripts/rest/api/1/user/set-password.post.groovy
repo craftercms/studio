@@ -34,7 +34,7 @@ def context = SecurityServices.createContext(applicationContext, request)
 try {
     def res = SecurityServices.setUserPassword(context, token, newPassword)
     if (res.success) {
-        def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/user/get?username=" + res.username
+        def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/user/get.json?username=" + res.username
         response.addHeader("Location", locationHeader)
         result.message = "OK"
         response.setStatus(200)

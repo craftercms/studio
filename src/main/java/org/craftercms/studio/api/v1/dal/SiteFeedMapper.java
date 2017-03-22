@@ -36,4 +36,10 @@ public interface SiteFeedMapper {
     String getLastCommitId(Map params);
 
     Integer exists(String siteId);
+
+    int getSitesPerUserQueryTotal(Map params);
+
+    List<String> getSitesPerUserQuery(Map params);
+
+    List<SiteFeed> getSitesPerUserData(Map params);
 }

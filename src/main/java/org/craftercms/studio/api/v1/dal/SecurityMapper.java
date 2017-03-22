@@ -42,9 +42,13 @@ public interface SecurityMapper {
 
     List<String> getAllUsersQuery(Map params);
 
+    int getAllUsersQueryTotal(Map params);
+
     List<UserProfileResult> getAllUsersData(Map params);
 
     List<String> getUsersPerSiteQuery(Map params);
+
+    int getUsersPerSiteQueryTotal(Map params);
 
     List<UserProfileResult> getUsersPerSiteData(Map params);
 
@@ -56,9 +60,13 @@ public interface SecurityMapper {
 
     List<Long> getGroupsPerSiteQuery(Map params);
 
+    int getGroupsPerSiteQueryTotal(Map<String, Object> params);
+
     List<GroupPerSiteResult> getGroupsPerSiteData(Map params);
 
     List<User> getUsersPerGroup(Map params);
+
+    int getUsersPerGroupTotal(Map params);
 
     Integer userExistsInGroup(Map params);
 

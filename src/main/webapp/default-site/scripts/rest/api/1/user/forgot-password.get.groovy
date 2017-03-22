@@ -17,6 +17,8 @@
  *
  */
 
+
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException
 import scripts.api.SecurityServices
 
 def result = [:]
@@ -27,14 +29,17 @@ def context = SecurityServices.createContext(applicationContext, request)
 try {
     def res = SecurityServices.forgotPassword(context, username)
     if (res.success) {
-        def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/user/get?username=" + username
+        def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/user/get.json?username=" + username
         response.addHeader("Location", locationHeader)
         result.message = res.message
         response.setStatus(200)
     } else {
-        response.setStatus(404)
-        result.message = res.message
+        response.setStatus(500)
+        result.message = "Internal server error"
     }
+} catch (UserNotFoundException e) {
+    response.setStatus(404)
+    result.message = "User not found"
 } catch (Exception e) {
     response.setStatus(500)
     result.message = "Internal server error: \n" + e

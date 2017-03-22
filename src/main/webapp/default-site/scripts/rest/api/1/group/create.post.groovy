@@ -37,14 +37,14 @@ try {
     SecurityServices.createGroup(context, groupName, description, siteId)
     result.message = "OK"
     response.setStatus(201)
-    def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/group/get?group_name=" + groupName
+    def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/group/get.json?group_name=" + groupName
     response.addHeader("Location", locationHeader)
 } catch (SiteNotFoundException e) {
     response.setStatus(404)
     result.message = "Site not found"
 } catch (GroupAlreadyExistsException e) {
     response.setStatus(409)
-    def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/group/get?group_name=" + groupName
+    def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/group/get.json?group_name=" + groupName
     response.addHeader("Location", locationHeader)
     result.message = "Group already exists"
 } catch (Exception e) {

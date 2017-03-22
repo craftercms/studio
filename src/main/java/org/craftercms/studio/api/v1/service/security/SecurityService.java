@@ -20,10 +20,7 @@ package org.craftercms.studio.api.v1.service.security;
 
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
-import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
-import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
-import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.*;
 
 import java.util.List;
 import java.util.Set;
@@ -67,6 +64,14 @@ public interface SecurityService {
     boolean logout();
 
     /**
+     * Check if user exists
+     *
+     * @param username username
+     * @return
+     */
+    boolean userExists(String username);
+
+    /**
      * Create new user with given parameters
      *
      * @param username username
@@ -84,7 +89,7 @@ public interface SecurityService {
      * @param username
      * @return
      */
-    boolean deleteUser(String username);
+    boolean deleteUser(String username) throws UserNotFoundException;
 
     /**
      * Update user details
@@ -95,7 +100,7 @@ public interface SecurityService {
      * @param email
      * @return
      */
-    boolean updateUser(String username, String firstName, String lastName, String email);
+    boolean updateUser(String username, String firstName, String lastName, String email) throws UserNotFoundException;
 
     /**
      * Enable/disable user with given username
@@ -104,7 +109,7 @@ public interface SecurityService {
      * @param enabled true: enable user; false: disable user
      * @return
      */
-    boolean enableUser(String username, boolean enabled);
+    boolean enableUser(String username, boolean enabled) throws UserNotFoundException;
 
     /**
      * Create group with given parameters
@@ -122,7 +127,7 @@ public interface SecurityService {
      * @param username username
      * @return
      */
-    Map<String, Object> getUserStatus(String username);
+    Map<String, Object> getUserStatus(String username) throws UserNotFoundException;
 
     /**
      * Get all users
@@ -130,6 +135,13 @@ public interface SecurityService {
      * @return list of all users
      */
     List<Map<String, Object>> getAllUsers(int start, int number);
+
+    /**
+     * Get all users
+     *
+     * @return number of all users
+     */
+    int getAllUsersTotal();
 
     /**
      * Get all users for given site
@@ -140,6 +152,14 @@ public interface SecurityService {
      * @return
      */
     List<Map<String, Object>> getUsersPerSite(String site, int start, int number) throws SiteNotFoundException;
+    /**
+     * Get number of all users for given site
+     *
+     * @param site
+     * @return
+     */
+    int getUsersPerSiteTotal(String site) throws SiteNotFoundException;
+
 
     /**
      * Get group for given site with given name
@@ -169,6 +189,14 @@ public interface SecurityService {
     List<Map<String, Object>> getGroupsPerSite(String site, int start, int number) throws SiteNotFoundException;
 
     /**
+     * Get number of all groups for given site
+     *
+     * @param site site id
+     * @return
+     */
+    int getGroupsPerSiteTotal(String site) throws SiteNotFoundException;
+
+    /**
      * Get all users for given site and group
      *
      * @param site site id
@@ -179,6 +207,16 @@ public interface SecurityService {
      */
     List<Map<String, Object>> getUsersPerGroup(String site, String group, int start, int number) throws
 	    GroupNotFoundException;
+
+    /**
+     * Get number of all users for given site and group
+     *
+     * @param site site id
+     * @param group group name
+     * @return list of users
+     */
+    int getUsersPerGroupTotal(String site, String group) throws
+            GroupNotFoundException;
 
     /**
      * Update group with given parameters
@@ -227,7 +265,7 @@ public interface SecurityService {
      * @param username username
      * @return
      */
-    Map<String, Object> forgotPassword(String username) throws ServiceException;
+    Map<String, Object> forgotPassword(String username) throws ServiceException, UserNotFoundException;
 
     /**
      * Forgot password token to validate
@@ -245,7 +283,7 @@ public interface SecurityService {
      * @param newPassword new password
      * @return
      */
-    boolean changePassword(String username, String current, String newPassword);
+    boolean changePassword(String username, String current, String newPassword) throws UserNotFoundException, PasswordDoesNotMatchException;
 
     /**
      * Set user password - forgot password token
@@ -263,5 +301,5 @@ public interface SecurityService {
      * @param newPassword new password
      * @return
      */
-    boolean resetPassword(String username, String newPassword);
+    boolean resetPassword(String username, String newPassword) throws UserNotFoundException;
 }

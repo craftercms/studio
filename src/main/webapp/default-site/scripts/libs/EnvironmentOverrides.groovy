@@ -32,22 +32,25 @@ class EnvironmentOverrides {
    				language = "en"
    			}
 			result.language = language
-			
-			def roles = SecurityServices.getUserRoles(context, result.site, result.user)
-			  
-			if(roles!=null && roles.size() > 0) {
-                if (roles.contains("admin")) {
-                    result.role = "admin"
-                } else {
-                    result.role = roles[0]
+
+            try{
+                def roles = SecurityServices.getUserRoles(context, result.site, result.user)
+
+                if(roles!=null && roles.size() > 0) {
+                    if (roles.contains("admin")) {
+                        result.role = "admin"
+                    } else {
+                        result.role = roles[0]
+                    }
                 }
-			}
-			else {
-				response.sendRedirect("/studio/#/sites")
-			}
+                else {
+                    response.sendRedirect("/studio/#/sites?siteValidation="+result.site)
+                }
+            }catch(error){
+                response.sendRedirect("/studio/#/sites?siteValidation="+result.site)
+            }
 
-
-    		def sites = SiteServices.getUserSites(context, result.user)
+    		def sites = SiteServices.getSitesPerUser(context, result.user)
 
 			result.siteTitle = result.site +sites.size;
 

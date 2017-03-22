@@ -39,7 +39,7 @@ try {
     SecurityServices.addUserToGroup(context, siteId, groupName, username)
     result.message = "OK"
     response.setStatus(200)
-    def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/group/get?group_name=" + groupName
+    def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/group/get.json?group_name=" + groupName
     response.addHeader("Location", locationHeader)
 } catch (UserNotFoundException e) {
     response.setStatus(404)
@@ -49,7 +49,7 @@ try {
     result.message = "Group not found"
 } catch (UserAlreadyExistsException e) {
     response.setStatus(409)
-    def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/group/get?group_name=" + groupName
+    def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/group/get.json?group_name=" + groupName
     response.addHeader("Location", locationHeader)
     result.message = "User already in group"
 } catch (Exception e) {

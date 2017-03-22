@@ -34,10 +34,7 @@ import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.StudioXmlConstants;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
-import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
-import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
-import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.*;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
@@ -521,22 +518,22 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
-    public boolean deleteUser(String username) {
+    public boolean deleteUser(String username) throws UserNotFoundException {
         return securityProvider.deleteUser(username);
     }
 
     @Override
-    public boolean updateUser(String username, String firstName, String lastName, String email) {
+    public boolean updateUser(String username, String firstName, String lastName, String email) throws UserNotFoundException {
         return securityProvider.updateUser(username, firstName, lastName, email);
     }
 
     @Override
-    public boolean enableUser(String username, boolean enabled) {
+    public boolean enableUser(String username, boolean enabled) throws UserNotFoundException {
         return securityProvider.enableUser(username, enabled);
     }
 
     @Override
-    public Map<String, Object> getUserStatus(String username) {
+    public Map<String, Object> getUserStatus(String username) throws UserNotFoundException {
         return securityProvider.getUserStatus(username);
     }
 
@@ -546,8 +543,18 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
+    public int getAllUsersTotal() {
+        return securityProvider.getAllUsersTotal();
+    }
+
+    @Override
     public List<Map<String, Object>> getUsersPerSite(String site, int start, int number) throws SiteNotFoundException {
         return securityProvider.getUsersPerSite(site, start, number);
+    }
+
+    @Override
+    public int getUsersPerSiteTotal(String site) throws SiteNotFoundException {
+        return securityProvider.getUsersPerSiteTotal(site);
     }
 
     @Override
@@ -571,9 +578,20 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
+    public int getGroupsPerSiteTotal(String site) throws SiteNotFoundException {
+        return securityProvider.getGroupsPerSiteTotal(site);
+    }
+
+    @Override
     public List<Map<String, Object>> getUsersPerGroup(String site, String group, int start, int number) throws
 	    GroupNotFoundException {
         return securityProvider.getUsersPerGroup(site, group, start, number);
+    }
+
+    @Override
+    public int getUsersPerGroupTotal(String site, String group) throws
+            GroupNotFoundException {
+        return securityProvider.getUsersPerGroupTotal(site, group);
     }
 
     @Override
@@ -599,15 +617,14 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
-    public Map<String, Object> forgotPassword(String username) throws ServiceException {
+    public Map<String, Object> forgotPassword(String username) throws ServiceException, UserNotFoundException {
         logger.debug("Getting user profile for " + username);
         Map<String, Object> userProfile = securityProvider.getUserProfile(username);
         boolean success = false;
         String message = StringUtils.EMPTY;
         if (userProfile == null || userProfile.isEmpty()) {
             logger.info("User profile not found for " + username);
-            success = false;
-            message = "User not found";
+            throw new UserNotFoundException();
         } else {
             if (userProfile.get("email") != null) {
                 String email = userProfile.get("email").toString();
@@ -706,7 +723,7 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
-    public boolean changePassword(String username, String current, String newPassword) {
+    public boolean changePassword(String username, String current, String newPassword) throws UserNotFoundException, PasswordDoesNotMatchException {
         return securityProvider.changePassword(username, current, newPassword);
     }
 
@@ -748,13 +765,8 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
-    public boolean resetPassword(String username, String newPassword) {
-        UserDetails userDetails = userDetailsManager.loadUserByUsername(username);
-        if (userDetails == null) {
-            return false;
-        }
+    public boolean resetPassword(String username, String newPassword) throws UserNotFoundException {
         String currentUser = getCurrentUser();
-
         if (isAdmin(currentUser)) {
             return securityProvider.setUserPassword(username, newPassword);
         } else {
@@ -774,6 +786,11 @@ public class SecurityServiceImpl implements SecurityService {
             }
         }
         return toRet;
+    }
+
+    @Override
+    public boolean userExists(String username) {
+        return securityProvider.userExists(username);
     }
 
     public String getConfigPath() {
