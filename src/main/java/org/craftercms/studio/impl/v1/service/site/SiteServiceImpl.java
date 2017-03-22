@@ -343,6 +343,9 @@ public class SiteServiceImpl implements SiteService {
                 // Add default groups
                 addDefaultGroupsForNewSite(siteId);
 
+                // Add creator to admin group
+                securityService.addUserToGroup(siteId, getDefaultAdminGroup(), securityService.getCurrentUser());
+
                 reloadSiteConfiguration(siteId);
 	        } catch(Exception e) {
 	            // TODO: SJ: We need better exception handling here
@@ -897,6 +900,10 @@ public class SiteServiceImpl implements SiteService {
 
     public List<String> getDefaultGroups() {
         return Arrays.asList(studioConfiguration.getProperty(CONFIGURATION_SITE_DEFAULT_GROUPS).split(","));
+    }
+
+    public String getDefaultAdminGroup() {
+	    return studioConfiguration.getProperty(CONFIGURATION_SITE_DEFAULT_ADMIN_GROUP);
     }
 
     /** getter site service dal */

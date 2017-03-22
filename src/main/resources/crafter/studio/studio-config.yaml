@@ -69,6 +69,8 @@ studio.configuration.site.deployment.configFileName: endpoints-config.xml
 studio.configuration.site.contentTypes.configFileName: config.xml
 # Default user groups when site is created
 studio.configuration.site.defaultGroups: Author,Publisher,Developer,Reviewer,Admin
+# Default admin group when site is created to add creator as admin
+studio.configuration.site.defaultAdminGroup: Admin
 ########################################################
 ##                   Import Service                   ##
 ########################################################
