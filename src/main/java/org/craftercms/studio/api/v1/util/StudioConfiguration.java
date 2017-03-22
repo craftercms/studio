@@ -54,6 +54,7 @@ public interface StudioConfiguration {
     String DB_BASE_PATH = "studio.db.basePath";
     String DB_DATA_PATH = "studio.db.dataPath";
     String DB_PORT = "studio.db.port";
+    String DB_SOCKET = "studio.db.socket";
 
 
     /** Configuration */

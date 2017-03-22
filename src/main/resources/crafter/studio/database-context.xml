@@ -67,5 +67,6 @@
         <property name="defaultBaseDir" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_BASE_PATH)}" />
         <property name="defaultDataDir" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_DATA_PATH)}" />
         <property name="defaultPort" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_PORT)}"  />
+        <property name="defaultSocket" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_SOCKET)}" />
     </bean>
 </beans>
