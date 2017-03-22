@@ -129,15 +129,15 @@
 			</fields>
 		</section>
 		<section>
-			<title>Articles Section</title>
+			<title>Articles</title>
 			<description></description>
 			<defaultOpen>true</defaultOpen>
 			<fields>
 				<field>
 					<type>input</type>
-					<id>articles_section_header</id>
-					<iceId></iceId>
-					<title>Articles Section Header</title>
+					<id>articles_title</id>
+					<iceId>articles</iceId>
+					<title>Articles Title</title>
 					<description></description>
 					<defaultValue></defaultValue>
 					<help></help>
@@ -150,6 +150,49 @@
 						<property>
 							<name>maxlength</name>
 							<value>50</value>
+							<type>int</type>
+						</property>
+						<property>
+							<name>readonly</name>
+							<value></value>
+							<type>boolean</type>
+						</property>
+						<property>
+							<name>tokenize</name>
+							<value>false</value>
+							<type>boolean</type>
+						</property>
+					</properties>
+					<constraints>
+						<constraint>
+							<name>required</name>
+							<value><![CDATA[false]]></value>
+							<type>boolean</type>
+						</constraint>
+						<constraint>
+							<name>pattern</name>
+							<value><![CDATA[]]></value>
+							<type>string</type>
+						</constraint>
+					</constraints>
+				</field>
+				<field>
+					<type>input</type>
+					<id>max_articles</id>
+					<iceId>articles</iceId>
+					<title>Max Articles</title>
+					<description></description>
+					<defaultValue>3</defaultValue>
+					<help></help>
+					<properties>
+						<property>
+							<name>size</name>
+							<value>3</value>
+							<type>int</type>
+						</property>
+						<property>
+							<name>maxlength</name>
+							<value>3</value>
 							<type>int</type>
 						</property>
 						<property>

@@ -28,9 +28,9 @@
 							<@renderComponent component=contentModel.header.item />
 
 							<!-- Section -->
-								<section>
+								<section <@studio.iceAttr iceGroup="articles"/>>
 									<header class="main">
-										<h1>${contentModel.title}</h1>
+										<h1>${contentModel.heading}</h1>
 									</header>
 									<div class="posts">
 										<#list articles as article>

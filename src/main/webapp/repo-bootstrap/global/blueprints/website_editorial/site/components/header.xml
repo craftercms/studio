@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component>
-	<content-type>/component/header</content-type>	<display-template>/templates/web/header.ftl</display-template>
+	<content-type>/component/header</content-type>	<display-template>/templates/web/components/header.ftl</display-template>
 	<merge-strategy>inherit-levels</merge-strategy>
 	<objectGroupId>af02</objectGroupId>
 	<objectId>af023d71-d5ea-f8e5-2ec9-07a8b239d0c5</objectId>

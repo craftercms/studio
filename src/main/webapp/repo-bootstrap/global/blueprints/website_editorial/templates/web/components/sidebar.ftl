@@ -1,6 +1,7 @@
+<#import "/templates/system/common/cstudio-support.ftl" as studio />
 <#import "/templates/web/navigation2/navigation.ftl" as nav/>
 
-<div id="sidebar">
+<div id="sidebar" <@studio.componentAttr path=contentModel.storeUrl ice=true />>
   <div class="inner">
 
     <!-- Search -->
@@ -24,7 +25,7 @@
     <#if sidebarArticles?? && sidebarArticles?size &gt; 0>
     <section>
       <header class="major">
-        <h2>${contentModel.articles_section_header}</h2>
+        <h2>${contentModel.articles_title}</h2>
       </header>
       <div class="mini-posts">
       <#list sidebarArticles as article>

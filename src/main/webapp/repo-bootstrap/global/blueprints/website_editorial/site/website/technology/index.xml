@@ -1,19 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <page>
-	<content-type>/page/category-landing</content-type>	<display-template>/templates/web/pages/landing.ftl</display-template>
+	<content-type>/page/category-landing</content-type>	<display-template>/templates/web/pages/category-landing.ftl</display-template>
 	<merge-strategy>inherit-levels</merge-strategy>
 	<objectGroupId>49c9</objectGroupId>
 	<objectId>49c9c85d-5349-158a-3001-a5d66f3ce168</objectId>
 	<file-name>index.xml</file-name>
 	<folder-name>technology</folder-name>
 	<placeInNav>true</placeInNav>
-	<orderDefault_f>8000</orderDefault_f>
+	<orderDefault_f>11000</orderDefault_f>
 	<internal-name>Technology</internal-name>
 	<title>Technology</title>
 	<header/>
-	<categoryToDisplay>technology</categoryToDisplay>
 	<createdDate>3/14/2017 15:24:15</createdDate>
 	<createdDate_dt>3/14/2017 15:24:15</createdDate_dt>
-	<lastModifiedDate>3/14/2017 15:24:15</lastModifiedDate>
-	<lastModifiedDate_dt>3/14/2017 15:24:15</lastModifiedDate_dt>
+	<lastModifiedDate>3/21/2017 18:16:22</lastModifiedDate>
+	<lastModifiedDate_dt>3/21/2017 18:16:22</lastModifiedDate_dt>
+	<sidebar/>
+	<category>technology</category>
+	<max_articles>10</max_articles>
+	<articles_title>Technology</articles_title>
 </page>

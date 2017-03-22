@@ -1,12 +1,13 @@
 <form>
-	<title>Header</title>
+	<title>Component - Header</title>
 	<description></description>
 	<objectType>component</objectType>
 	<content-type>/component/header</content-type>
+	<imageThumbnail>undefined</imageThumbnail>
 	<properties>		<property>
 			<name>display-template</name>
 			<label>Display Template</label>
-			<value>/templates/web/header.ftl</value>
+			<value>/templates/web/components/header.ftl</value>
 			<type>template</type>
 		</property>
 		<property>
@@ -17,7 +18,7 @@
 		</property>
 	</properties>
 	<sections>		<section>
-			<title>Social Media Links Properties</title>
+			<title>Component - Header Properties</title>
 			<description></description>
 			<defaultOpen>true</defaultOpen>
 			<fields>
