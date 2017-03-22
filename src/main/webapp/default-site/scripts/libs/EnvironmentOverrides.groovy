@@ -50,7 +50,7 @@ class EnvironmentOverrides {
                 response.sendRedirect("/studio/#/sites?siteValidation="+result.site)
             }
 
-    		def sites = SiteServices.getSitesPerUser(context, result.user)
+    		def sites = SiteServices.getSitesPerUser(context, result.user, 0, 25)
 
 			result.siteTitle = result.site +sites.size;
 
