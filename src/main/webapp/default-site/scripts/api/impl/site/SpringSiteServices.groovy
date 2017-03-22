@@ -125,4 +125,9 @@ class SpringSiteServices {
         def springBackedService = this.context.applicationContext.get("cstudioSiteServiceSimple")
         return springBackedService.getSitesPerUser(username, start, number)
     }
+
+    def getSite(siteId) {
+        def springBackedService = this.context.applicationContext.get("cstudioSiteServiceSimple")
+        return springBackedService.getSite(siteId)
+    }
 }

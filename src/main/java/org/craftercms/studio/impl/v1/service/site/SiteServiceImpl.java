@@ -19,10 +19,8 @@ package org.craftercms.studio.impl.v1.service.site;
 
 import net.sf.json.JSON;
 import net.sf.json.JSONObject;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.craftercms.studio.api.v1.constant.RepoOperation;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.ObjectMetadata;
@@ -32,6 +30,7 @@ import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v1.deployment.PreviewDeployer;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
@@ -267,7 +266,11 @@ public class SiteServiceImpl implements SiteService {
     }
 
    	@Override
-   	public boolean createSiteFromBlueprint(String blueprintName, String siteName, String siteId, String desc) {
+   	public boolean createSiteFromBlueprint(String blueprintName, String siteName, String siteId, String desc) throws SiteAlreadyExistsException {
+	    if (exists(siteId)) {
+	        throw new SiteAlreadyExistsException();
+        }
+
         boolean success = true;
 
 	    // TODO: SJ: We must fail site creation if any of the site creations steps fail and rollback
@@ -862,6 +865,17 @@ public class SiteServiceImpl implements SiteService {
             return toRet;
         } else {
             throw new UserNotFoundException();
+        }
+    }
+
+    @Override
+    public SiteFeed getSite(String siteId) throws SiteNotFoundException {
+        if (exists(siteId)) {
+            Map<String, Object> params = new HashMap<String, Object>();
+            params.put("siteId", siteId);
+            return siteFeedMapper.getSite(params);
+        } else {
+            throw new SiteNotFoundException();
         }
     }
 

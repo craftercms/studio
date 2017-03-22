@@ -21,6 +21,7 @@ import net.sf.json.JSON;
 import net.sf.json.JSONObject;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.to.DeploymentEndpointConfigTO;
@@ -103,7 +104,7 @@ public interface SiteService {
      * @param siteId
      * @param desc
      */
-    boolean createSiteFromBlueprint(String blueprintName, String siteName, String siteId, String desc);
+    boolean createSiteFromBlueprint(String blueprintName, String siteName, String siteId, String desc) throws SiteAlreadyExistsException;
 
     /**
      * remove a site from the system
@@ -186,4 +187,11 @@ public interface SiteService {
      * @throws UserNotFoundException
      */
     List<SiteFeed> getSitesPerUser(String username, int start, int number) throws UserNotFoundException;
+
+    /**
+     * Get site details
+     * @param siteId site id
+     * @return
+     */
+    SiteFeed getSite(String siteId) throws SiteNotFoundException;
 }

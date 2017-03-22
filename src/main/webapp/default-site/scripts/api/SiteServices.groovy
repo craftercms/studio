@@ -115,4 +115,9 @@ class SiteServices {
         def siteServicesImpl = ServiceFactory.getSiteServices(context)
         return siteServicesImpl.getSitesPerUser(username, start, number)
     }
+
+    static getSite(context, siteId) {
+        def siteServicesImpl = ServiceFactory.getSiteServices(context)
+        return siteServicesImpl.getSite(siteId)
+    }
 }
