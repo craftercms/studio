@@ -69,7 +69,7 @@
 									<params>
 										<roles>
 											<role>admin</role>
-											<role>developer</role>
+											<!--role>developer</role-->
 										</roles>
 									</params>
 								</modulehook>
