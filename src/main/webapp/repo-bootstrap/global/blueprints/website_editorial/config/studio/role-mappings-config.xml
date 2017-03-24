@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <role-mappings>
     <groups>
-        <group name="crafter-admin">
+        <group name="Admin">
             <role>admin</role>
         </group>
-        <group name="crafter_{siteName}_admin">
-            <role>admin</role>
+        <group name="Developer">
+            <role>developer</role>
         </group>
-        <group name="crafter-author">
+        <group name="Author">
             <role>author</role>
         </group>
-        <group name="crafter_{siteName}_author">
-            <role>author</role>
+        <group name="Publisher">
+            <role>publisher</role>
         </group>
-        <group name="crafter_{siteName}_viewer">
-            <role>viewer</role>
+        <group name="Reviewer">
+            <role>reviewer</role>
         </group>
     </groups>
 </role-mappings>

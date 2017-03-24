@@ -31,10 +31,7 @@
 								<section id="banner" <@studio.iceAttr iceGroup="hero"/>>
 									<div class="content">
 										<header>${contentModel.hero_title}</header>
-											${contentModel.hero_text}
-										<ul class="actions">
-											<li><a href="${contentModel.hero_learn_more_link}" class="button big">${contentModel.hero_learn_more_text}</a></li>
-										</ul>
+										${contentModel.hero_text}
 									</div>
 									<span class="image object">
 										<img src="${contentModel.hero_image !""}" alt="" />

@@ -69,6 +69,7 @@
 									<params>
 										<roles>
 											<role>admin</role>
+											<!--role>developer</role-->
 										</roles>
 									</params>
 								</modulehook>
@@ -80,13 +81,13 @@
 										</roles>
 									</params>
 								</modulehook>
-                                <modulehook>
-    								<name>syncrepo</name>
-    								<params>
-        								<roles>
-            								<role>admin</role>
-        								</roles>
-    								</params>
+								<modulehook>
+									<name>syncrepo</name>
+									<params>
+										<roles>
+											<role>admin</role>
+										</roles>
+									</params>
 								</modulehook>
 							</modulehooks>
 
