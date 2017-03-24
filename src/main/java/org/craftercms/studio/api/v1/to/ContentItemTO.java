@@ -129,6 +129,9 @@ public class ContentItemTO implements Serializable {
 
     public List<ContentItemTO> children = new ArrayList<ContentItemTO>();
 
+    public double size;
+    public String sizeUnit;
+
 	public ContentItemTO() {}
 
 	// Copy constructors
@@ -387,7 +390,13 @@ public class ContentItemTO implements Serializable {
 		return -1.0;
 	}
 
-	public void addChild(ContentItemTO itemToAdd, boolean recursive, boolean renamed) {
+    public double getSize() { return size; }
+    public void setSize(double size) { this.size = size; }
+
+    public String getSizeUnit() { return sizeUnit; }
+    public void setSizeUnit(String sizeUnit) { this.sizeUnit = sizeUnit; }
+
+    public void addChild(ContentItemTO itemToAdd, boolean recursive, boolean renamed) {
 
 		if (uri != null && uri.equals(itemToAdd.uri)) {
 			// do not add itself
