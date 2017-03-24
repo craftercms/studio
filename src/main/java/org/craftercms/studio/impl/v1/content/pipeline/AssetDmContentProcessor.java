@@ -17,6 +17,7 @@
  */
 package org.craftercms.studio.impl.v1.content.pipeline;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.content.pipeline.PipelineContent;
@@ -32,7 +33,10 @@ import org.craftercms.studio.api.v1.to.ResultTO;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -163,6 +167,29 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
                 }
                 ContentAssetInfoTO assetInfo = new ContentAssetInfoTO();
                 assetInfo.setFileName(assetName);
+                InputStream is = contentService.getContent(site, path + "/" + assetName);
+                long sizeInBytes = 0;
+                double convertedSize = 0;
+                try {
+                    sizeInBytes = IOUtils.toByteArray(is).length;
+                } catch (Exception e) {
+                    logger.error("Unable to determine size for content at site: " + site + " path " + contentPath);
+                }
+                if (sizeInBytes > 0) {
+                    convertedSize = sizeInBytes / 1024d;
+                    if (convertedSize >= 1024) {
+                        assetInfo.setSizeUnit(FILE_SIZE_MB);
+                        assetInfo.setSize(convertedSize / 1024d);
+                    } else {
+                        if (convertedSize > 0 && convertedSize < 1) {
+                            assetInfo.setSize(1);
+                        } else {
+                            assetInfo.setSize(Math.round(convertedSize));
+                        }
+
+                        assetInfo.setSizeUnit(FILE_SIZE_KB);
+                    }
+                }
                 assetInfo.setFileExtension(ext);
                 return assetInfo;
             } else {
