@@ -7,10 +7,11 @@
 	<file-name>sidebar-with-no-articles.xml</file-name>
 	<folder-name/>
 	<internal-name>Sidebar with No Articles</internal-name>
-	<articles_section_header/>
 	<scripts/>
 	<createdDate>3/17/2017 19:53:17</createdDate>
 	<createdDate_dt>3/17/2017 19:53:17</createdDate_dt>
-	<lastModifiedDate>3/17/2017 19:53:17</lastModifiedDate>
-	<lastModifiedDate_dt>3/17/2017 19:53:17</lastModifiedDate_dt>
+	<lastModifiedDate>3/21/2017 18:15:37</lastModifiedDate>
+	<lastModifiedDate_dt>3/21/2017 18:15:37</lastModifiedDate_dt>
+	<articles_title/>
+	<max_articles/>
 </component>

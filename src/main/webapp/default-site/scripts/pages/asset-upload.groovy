@@ -134,3 +134,6 @@ model.fileName = result.message.name
 
 def dotPos = fileName.indexOf(".")
 model.fileExtension = (dotPos != -1) ? fileName.substring(dotPos+1) : ""
+
+model.size = result.message.size
+model.sizeUnit = result.message.sizeUnit

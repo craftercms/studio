@@ -342,11 +342,13 @@ public class ContentServiceImpl implements ContentService {
                 }
             }
             ResultTO result = processContent(id, in, false, params, DmConstants.CONTENT_CHAIN_ASSET);
+            ContentAssetInfoTO assetInfoTO = (ContentAssetInfoTO)result.getItem();
             if (isSystemAsset) {
-                ContentAssetInfoTO assetInfoTO = (ContentAssetInfoTO)result.getItem();
                 path = path.replace(assetName, assetInfoTO.getFileName());
             }
             item = getContentItem(site, path);
+            item.setSize(assetInfoTO.getSize());
+            item.setSizeUnit(assetInfoTO.getSizeUnit());
             if (item != null) {
                 objectStateService.transition(site, item, TransitionEvent.SAVE);
             }
