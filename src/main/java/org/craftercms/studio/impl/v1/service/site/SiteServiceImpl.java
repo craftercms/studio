@@ -29,8 +29,11 @@ import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v1.deployment.PreviewDeployer;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
+import org.craftercms.studio.api.v1.exception.PreviewDeployerUnreachableException;
+import org.craftercms.studio.api.v1.exception.SearchUnreachableException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
+import org.craftercms.studio.api.v1.exception.SiteCreationException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
@@ -266,7 +269,8 @@ public class SiteServiceImpl implements SiteService {
     }
 
    	@Override
-   	public boolean createSiteFromBlueprint(String blueprintName, String siteName, String siteId, String desc) throws SiteAlreadyExistsException {
+   	public void createSiteFromBlueprint(String blueprintName, String siteName, String siteId, String desc) throws
+	    SiteAlreadyExistsException, SiteCreationException, PreviewDeployerUnreachableException, SearchUnreachableException {
 	    if (exists(siteId)) {
 	        throw new SiteAlreadyExistsException();
         }
@@ -286,6 +290,8 @@ public class SiteServiceImpl implements SiteService {
 		    success = false;
 		    logger.error("Error while creating site: " + siteName + " ID: " + siteId + " from blueprint: " +
 			    blueprintName + ". Is the Search running and configured correctly in Studio?", e);
+		    throw new SearchUnreachableException("Error while creating site: " + siteName + " ID: " + siteId + " from"
+			    + " blueprint: " + blueprintName + ". Is the Search running and configured correctly in Studio?");
 	    }
 
 	    // Check if search index creation was successful, create the site in the preview deployer
@@ -297,6 +303,7 @@ public class SiteServiceImpl implements SiteService {
 			        logger.error("Error while creating site: " + siteName + " ID: " + siteId + " from blueprint: " +
 				        blueprintName + ". Is the Preview Deployer running and configured correctly in Studio?", e);
 		        }
+
 		        if (!success) {
 			        logger.error("Error while creating site: " + siteName + " ID: " + siteId + " from blueprint: " +
 				        blueprintName + ". Is the Preview Deployer running and configured correctly in Studio?");
@@ -308,6 +315,10 @@ public class SiteServiceImpl implements SiteService {
 					        " from blueprint: " + blueprintName + ". This means the site search index (core) is " +
 					        "still present, but the site is not successfully created.", e);
 			        }
+
+			        throw new PreviewDeployerUnreachableException("Error while creating site: " + siteName + " ID: "
+				        + siteId + " from blueprint: " + blueprintName + ". Is the Preview Deployer running and "
+				        + "configured correctly in Studio?");
 		        }
 	    }
 
@@ -367,6 +378,9 @@ public class SiteServiceImpl implements SiteService {
 					    " from blueprint: " + blueprintName + ". This means the site search index (core) is " +
 					    "still present, but the site is not successfully created.", ex);
 			    }
+
+			    throw new SiteCreationException("Error while creating site: " + siteName + " ID: " + siteId + " from blueprint: " +
+				    blueprintName + ". Rolling back.");
 		    }
 	    }
 
@@ -378,10 +392,13 @@ public class SiteServiceImpl implements SiteService {
 			    // TODO: SJ: We need better exception handling here
 			    logger.error("Error while syncing site: " + siteName + " ID: " + siteId + " to preview. Site was "
 				    + "successfully created otherwise. Ignoring.", e);
-		    }
-	    }
 
-	 	return success;
+			    throw new SiteCreationException("Error while syncing site: " + siteName + " ID: " + siteId + " to preview. Site was "
+				    + "successfully created, but it won't be preview-able until the Preview Deployer is reachable.");
+		    }
+	    } else {
+		    throw new SiteCreationException("Error while creating site: " + siteName + " ID: " + siteId + ".");
+	    }
     }
 
     protected boolean createSiteFromBlueprintGit(String blueprintName, String siteName, String siteId, String desc) throws Exception {
