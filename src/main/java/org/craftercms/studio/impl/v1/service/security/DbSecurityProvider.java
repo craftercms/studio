@@ -190,6 +190,7 @@ public class DbSecurityProvider implements SecurityProvider {
             List<String> usernames = securityMapper.getUsersPerSiteQuery(params);
             if (usernames != null && !usernames.isEmpty()) {
                 params = new HashMap<String, Object>();
+                params.put("siteId", site);
                 params.put("usernames", usernames);
                 List<UserProfileResult> resultSet = securityMapper.getUsersPerSiteData(params);
                 Map<String, Object> userProfile = new HashMap<String, Object>();
@@ -608,6 +609,7 @@ public class DbSecurityProvider implements SecurityProvider {
             List<GroupPerSiteResult> resultSet = new ArrayList<GroupPerSiteResult>();
             if (groupIds != null && !groupIds.isEmpty()) {
                 params = new HashMap<String, Object>();
+                params.put("site", site);
                 params.put("groupids", groupIds);
                 resultSet = securityMapper.getGroupsPerSiteData(params);
             }

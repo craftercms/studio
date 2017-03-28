@@ -111,7 +111,8 @@
         FROM cstudio_user cu INNER JOIN cstudio_usergroup cug ON cu.username = cug.username
         INNER JOIN cstudio_group cg ON cug.groupId = cg.id
         INNER JOIN cstudio_site cs ON cg.site_id=cs.id
-        WHERE cu.username IN
+        WHERE cs.site_id = #{siteId}
+        AND cu.username IN
         <foreach item="username" index="index" collection="usernames"
                  open="(" separator="," close=")">
             #{username}
@@ -236,7 +237,8 @@
         FROM cstudio_group cg INNER JOIN cstudio_site cs ON cg.site_id = cs.id
         LEFT JOIN cstudio_usergroup cug ON cg.id = cug.groupid
         LEFT JOIN cstudio_user cu ON cug.username = cu.username
-        WHERE cg.id IN
+        WHERE cs.site_id = #{site}
+        AND cg.id IN
         <foreach item="groupid" index="index" collection="groupids"
                  open="(" separator="," close=")">
             #{groupid}
