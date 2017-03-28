@@ -421,15 +421,15 @@
 			</fields>
 		</section>
 		<section>
-			<title>Section 1</title>
+			<title>Features</title>
 			<description></description>
 			<defaultOpen>true</defaultOpen>
 			<fields>
 				<field>
 					<type>input</type>
-					<id>section_1_title</id>
+					<id>features_title</id>
 					<iceId>features</iceId>
-					<title>Section 1 Title</title>
+					<title>Features Title</title>
 					<description></description>
 					<defaultValue></defaultValue>
 					<help></help>
@@ -469,176 +469,52 @@
 					</constraints>
 				</field>
 				<field>
-					<type>repeat</type>
+					<type>node-selector</type>
 					<id>features</id>
 					<iceId>features</iceId>
 					<title>Features</title>
 					<description></description>
-					<minOccurs>2</minOccurs>
-					<maxOccurs>*</maxOccurs>
-					<properties>
-						<property>
-							<name>minOccurs</name>
-							<value>2</value>
-							<type>string</type>
-						</property>
-						<property>
-							<name>maxOccurs</name>
-							<value>*</value>
-							<type>string</type>
-						</property>
-					</properties>
-					<fields>
-				<field>
-					<type>dropdown</type>
-					<id>feature_icon</id>
-					<iceId>features</iceId>
-					<title>Feature Icon</title>
-					<description></description>
 					<defaultValue></defaultValue>
 					<help></help>
 					<properties>
 						<property>
-							<name>datasource</name>
-							<value>font_awesome_icons</value>
+							<name>minSize</name>
+							<value></value>
+							<type>int</type>
+						</property>
+						<property>
+							<name>maxSize</name>
+							<value></value>
+							<type>int</type>
+						</property>
+						<property>
+							<name>itemManager</name>
+							<value>features</value>
 							<type>datasource:item</type>
 						</property>
 						<property>
-							<name>emptyvalue</name>
+							<name>readonly</name>
 							<value></value>
 							<type>boolean</type>
 						</property>
 						<property>
-							<name>readonly</name>
+							<name>disableFlattening</name>
+							<value></value>
+							<type>boolean</type>
+						</property>
+						<property>
+							<name>useSingleValueFilename</name>
 							<value></value>
 							<type>boolean</type>
 						</property>
 					</properties>
 					<constraints>
 						<constraint>
-							<name>required</name>
-							<value><![CDATA[true]]></value>
-							<type>boolean</type>
-						</constraint>
-					</constraints>
-				</field>
-				<field>
-					<type>input</type>
-					<id>feature_title</id>
-					<iceId>features</iceId>
-					<title>Feature Title</title>
-					<description></description>
-					<defaultValue></defaultValue>
-					<help></help>
-					<properties>
-						<property>
-							<name>size</name>
-							<value>50</value>
-							<type>int</type>
-						</property>
-						<property>
-							<name>maxlength</name>
-							<value>50</value>
-							<type>int</type>
-						</property>
-						<property>
-							<name>readonly</name>
-							<value></value>
-							<type>boolean</type>
-						</property>
-						<property>
-							<name>tokenize</name>
-							<value>false</value>
-							<type>boolean</type>
-						</property>
-					</properties>
-					<constraints>
-						<constraint>
-							<name>required</name>
-							<value><![CDATA[true]]></value>
-							<type>boolean</type>
-						</constraint>
-						<constraint>
-							<name>pattern</name>
+							<name>allowDuplicates</name>
 							<value><![CDATA[]]></value>
-							<type>string</type>
-						</constraint>
-					</constraints>
-				</field>
-				<field>
-					<type>rte</type>
-					<id>feature_body</id>
-					<iceId>features</iceId>
-					<title>Feature Body</title>
-					<description></description>
-					<defaultValue></defaultValue>
-					<help></help>
-					<properties>
-						<property>
-							<name>width</name>
-							<value></value>
-							<type>int</type>
-						</property>
-						<property>
-							<name>height</name>
-							<value></value>
-							<type>int</type>
-						</property>
-						<property>
-							<name>maxlength</name>
-							<value></value>
-							<type>int</type>
-						</property>
-						<property>
-							<name>allowResize</name>
-							<value></value>
-							<type>boolean</type>
-						</property>
-						<property>
-							<name>forceRootBlockPTag</name>
-							<value>true</value>
-							<type>boolean</type>
-						</property>
-						<property>
-							<name>forcePTags</name>
-							<value>true</value>
-							<type>boolean</type>
-						</property>
-						<property>
-							<name>forceBRTags</name>
-							<value>false</value>
-							<type>boolean</type>
-						</property>
-						<property>
-							<name>forceImageAlts</name>
-							<value>false</value>
-							<type>boolean</type>
-						</property>
-						<property>
-							<name>supportedChannels</name>
-							<value></value>
-							<type>supportedChannels</type>
-						</property>
-						<property>
-							<name>rteConfiguration</name>
-							<value>generic</value>
-							<type>string</type>
-						</property>
-						<property>
-							<name>imageManager</name>
-							<value>existingImages,uploadImages</value>
-							<type>datasource:image</type>
-						</property>
-					</properties>
-					<constraints>
-						<constraint>
-							<name>required</name>
-							<value><![CDATA[true]]></value>
 							<type>boolean</type>
 						</constraint>
 					</constraints>
-				</field>
-					</fields>
 				</field>
 			</fields>
 		</section>
@@ -693,24 +569,24 @@
 					</properties>
 				</datasource>
 				<datasource>
-					<type>key-value-list</type>
-					<id>font_awesome_icons</id>
-					<title>Font Awesome Icons</title>
+					<type>child-content</type>
+					<id>features</id>
+					<title>Features</title>
 					<interface>item</interface>
 					<properties>
 						<property>
-							<name>dataType</name>
-							<value>[{&quot;value&quot;:&quot;value&quot;,&quot;label&quot;:&quot;&quot;,&quot;selected&quot;:false},{&quot;value&quot;:&quot;value_s&quot;,&quot;label&quot;:&quot;String&quot;,&quot;selected&quot;:true},{&quot;value&quot;:&quot;value_i&quot;,&quot;label&quot;:&quot;Integer&quot;,&quot;selected&quot;:false},{&quot;value&quot;:&quot;value_f&quot;,&quot;label&quot;:&quot;Float&quot;,&quot;selected&quot;:false},{&quot;value&quot;:&quot;value_dt&quot;,&quot;label&quot;:&quot;Date&quot;,&quot;selected&quot;:false},{&quot;value&quot;:&quot;value_html&quot;,&quot;label&quot;:&quot;HTML&quot;,&quot;selected&quot;:false}]</value>
+							<name>repoPath</name>
+							<value>/site/components/features/</value>
 								<type>undefined</type>
 						</property>
 						<property>
-							<name>options</name>
-							<value>[{&quot;key&quot;:&quot;fa-diamond&quot;,&quot;value&quot;:&quot;Diamond&quot;},{&quot;key&quot;:&quot;fa-paper-plane&quot;,&quot;value&quot;:&quot;Paper Plane&quot;},{&quot;key&quot;:&quot;fa-rocket&quot;,&quot;value&quot;:&quot;Rocket&quot;},{&quot;key&quot;:&quot;fa-signal&quot;,&quot;value&quot;:&quot;Signal&quot;},{&quot;key&quot;:&quot;fa-gavel&quot;,&quot;value&quot;:&quot;Gavel&quot;},{&quot;key&quot;:&quot;fa-tachometer&quot;,&quot;value&quot;:&quot;Tachometer&quot;},{&quot;key&quot;:&quot;fa-sliders&quot;,&quot;value&quot;:&quot;Sliders&quot;},{&quot;key&quot;:&quot;fa-lightbulb&quot;,&quot;value&quot;:&quot;Lightbulb&quot;},{&quot;key&quot;:&quot;fa-cloud&quot;,&quot;value&quot;:&quot;Cloud&quot;},{&quot;key&quot;:&quot;fa-users&quot;,&quot;value&quot;:&quot;Users&quot;},{&quot;key&quot;:&quot;fa-briefcase&quot;,&quot;value&quot;:&quot;Briefcase&quot;},{&quot;key&quot;:&quot;fa-database&quot;,&quot;value&quot;:&quot;Database&quot;},{&quot;key&quot;:&quot;fa-flask&quot;,&quot;value&quot;:&quot;Flask&quot;}]</value>
-								<type>undefined</type>
-						</property>
-						<property>
-							<name>showkeys</name>
+							<name>browsePath</name>
 							<value></value>
+								<type>undefined</type>
+						</property>
+						<property>
+							<name>type</name>
+							<value>/component/feature</value>
 								<type>undefined</type>
 						</property>
 					</properties>

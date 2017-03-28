@@ -43,6 +43,12 @@
             <samplePath>/administration/samples/sample-configured-list.xml</samplePath>
         </file>
         <file>
+            <path>/form-control-config/configured-lists/feature-icons.xml</path>
+            <title>Feature Icons Configured List</title>
+            <description>List of feature icons</description>
+            <samplePath>/administration/samples/sample-configured-list.xml</samplePath>
+        </file>        
+        <file>
             <path>/preview-tools/components-config.xml</path>
             <title>confTabPreviewComponentsConf</title>
             <description>confTabPreviewComponentsConfDesc</description>

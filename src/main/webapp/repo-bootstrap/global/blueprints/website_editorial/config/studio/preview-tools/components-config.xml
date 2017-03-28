@@ -2,13 +2,13 @@
 	<category>
 		<label>General</label>
         <component>
-                <label>Header</label>
-                <type>/component/header</type>
-                <path>/site/components</path>
+                <label>Feature</label>
+                <type>/component/feature</type>
+                <path>/site/components/features</path>
       </component>
 	</category>
     <browse>
-         <label>Site Components</label>
-         <path>/site/components</path>
+         <label>Features</label>
+         <path>/site/components/features</path>
     </browse>
 </config>

@@ -21,41 +21,15 @@
       </ul>
     </nav>
 
-    <!-- Section -->
-    <#if sidebarArticles?? && sidebarArticles?size &gt; 0>
-    <section>
-      <header class="major">
-        <h2>${contentModel.articles_title}</h2>
-      </header>
-      <div class="mini-posts">
-      <#list sidebarArticles as article>
-        <#if article.image??>
-          <#assign articleImage = article.image/>
-        <#else>
-          <#assign articleImage = "/static-assets/images/placeholder.png"/>
-        </#if>
-        <article>
-          <a href="${article.url}" class="image"><img src="${articleImage}" alt="" /></a>
-          <h4><a href="${article.url}">${article.title}</a></h4>
-        </article>
-      </#list>
-      </div>
-    </section>
+    <!-- Widgets -->
+    <#if articleCategories?? && articlePath??>
+    	<#assign additionalModel = {"articleCategories": articleCategories, "articlePath": articlePath } />
+    <#else>
+    	<#assign additionalModel = {} />
     </#if>
-
-    <!-- Section -->
-    <section>
-      <header class="major">
-        <h2>Get in touch</h2>
-      </header>
-      <p>Sed varius enim lorem ullamcorper dolore aliquam aenean ornare velit lacus, ac varius enim lorem ullamcorper dolore. Proin sed aliquam facilisis ante interdum. Sed nulla amet lorem feugiat tempus aliquam.</p>
-      <ul class="contact">
-        <li class="fa-envelope-o"><a href="#">information@untitled.tld</a></li>
-        <li class="fa-phone">(000) 000-0000</li>
-        <li class="fa-home">1234 Somewhere Road #8254<br />
-          Nashville, TN 00000-0000</li>
-      </ul>
-    </section>
+    <#list contentModel.widgets.item as widget>
+      <@renderComponent component = widget additionalModel = additionalModel />
+    </#list>
 
     <!-- Footer -->
     <footer id="footer">

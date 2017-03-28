@@ -1,13 +1,13 @@
 <form>
-	<title>Component - Sidebar</title>
+	<title>Component - Articles Widget</title>
 	<description></description>
 	<objectType>component</objectType>
-	<content-type>/component/sidebar</content-type>
+	<content-type>/component/articles-widget</content-type>
 	<imageThumbnail>undefined</imageThumbnail>
 	<properties>		<property>
 			<name>display-template</name>
 			<label>Display Template</label>
-			<value>/templates/web/components/sidebar.ftl</value>
+			<value>/templates/web/components/articles-widget.ftl</value>
 			<type>template</type>
 		</property>
 		<property>
@@ -18,7 +18,7 @@
 		</property>
 	</properties>
 	<sections>		<section>
-			<title>Component - Sidebar Properties</title>
+			<title>Component - Articles Widget Properties</title>
 			<description></description>
 			<defaultOpen>true</defaultOpen>
 			<fields>
@@ -78,25 +78,18 @@
 						</constraint>
 					</constraints>
 				</field>
-			</fields>
-		</section>
-		<section>
-			<title>Widgets</title>
-			<description></description>
-			<defaultOpen>true</defaultOpen>
-			<fields>
 				<field>
 					<type>node-selector</type>
-					<id>widgets</id>
+					<id>scripts</id>
 					<iceId></iceId>
-					<title>Widgets</title>
-					<description></description>
+					<title>Controllers</title>
+					<description>The controller script(s) that will be executed before the component is rendered</description>
 					<defaultValue></defaultValue>
 					<help></help>
 					<properties>
 						<property>
 							<name>minSize</name>
-							<value>0</value>
+							<value>1</value>
 							<type>int</type>
 						</property>
 						<property>
@@ -106,7 +99,7 @@
 						</property>
 						<property>
 							<name>itemManager</name>
-							<value>components</value>
+							<value>scripts</value>
 							<type>datasource:item</type>
 						</property>
 						<property>
@@ -133,18 +126,104 @@
 						</constraint>
 					</constraints>
 				</field>
+				<field>
+					<type>input</type>
+					<id>title</id>
+					<iceId></iceId>
+					<title>Title</title>
+					<description></description>
+					<defaultValue></defaultValue>
+					<help></help>
+					<properties>
+						<property>
+							<name>size</name>
+							<value>50</value>
+							<type>int</type>
+						</property>
+						<property>
+							<name>maxlength</name>
+							<value>50</value>
+							<type>int</type>
+						</property>
+						<property>
+							<name>readonly</name>
+							<value></value>
+							<type>boolean</type>
+						</property>
+						<property>
+							<name>tokenize</name>
+							<value>false</value>
+							<type>boolean</type>
+						</property>
+					</properties>
+					<constraints>
+						<constraint>
+							<name>required</name>
+							<value><![CDATA[true]]></value>
+							<type>boolean</type>
+						</constraint>
+						<constraint>
+							<name>pattern</name>
+							<value><![CDATA[]]></value>
+							<type>string</type>
+						</constraint>
+					</constraints>
+				</field>
+				<field>
+					<type>input</type>
+					<id>max_articles</id>
+					<iceId></iceId>
+					<title>Max Articles</title>
+					<description></description>
+					<defaultValue></defaultValue>
+					<help></help>
+					<properties>
+						<property>
+							<name>size</name>
+							<value>3</value>
+							<type>int</type>
+						</property>
+						<property>
+							<name>maxlength</name>
+							<value>3</value>
+							<type>int</type>
+						</property>
+						<property>
+							<name>readonly</name>
+							<value></value>
+							<type>boolean</type>
+						</property>
+						<property>
+							<name>tokenize</name>
+							<value>false</value>
+							<type>boolean</type>
+						</property>
+					</properties>
+					<constraints>
+						<constraint>
+							<name>required</name>
+							<value><![CDATA[true]]></value>
+							<type>boolean</type>
+						</constraint>
+						<constraint>
+							<name>pattern</name>
+							<value><![CDATA[]]></value>
+							<type>string</type>
+						</constraint>
+					</constraints>
+				</field>
 			</fields>
 		</section>
 	</sections>
 	<datasources>				<datasource>
 					<type>child-content</type>
-					<id>components</id>
-					<title>Components</title>
+					<id>scripts</id>
+					<title>Scripts</title>
 					<interface>item</interface>
 					<properties>
 						<property>
 							<name>repoPath</name>
-							<value>/site/components</value>
+							<value>/scripts/components</value>
 								<type>undefined</type>
 						</property>
 						<property>

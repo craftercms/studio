@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/articles-widget</content-type>	<display-template>/templates/web/components/articles-widget.ftl</display-template>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>cb76</objectGroupId>
+	<objectId>cb760193-06a0-e1d9-6653-0f0dd1e2650e</objectId>
+	<file-name>latest-articles-widget.xml</file-name>
+	<folder-name/>
+	<internal-name>Latest Articles Widget</internal-name>
+	<title>Latest Articles</title>
+	<max_articles>3</max_articles>
+	<scripts>	<item>	<key>/scripts/components/latest-articles.groovy</key>
+	<value>latest-articles.groovy</value>
+	</item></scripts>
+	<createdDate>3/28/2017 22:27:45</createdDate>
+	<createdDate_dt>3/28/2017 22:27:45</createdDate_dt>
+	<lastModifiedDate>3/28/2017 22:27:45</lastModifiedDate>
+	<lastModifiedDate_dt>3/28/2017 22:27:45</lastModifiedDate_dt>
+</component>
