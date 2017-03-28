@@ -41,18 +41,14 @@
 							<!-- Section -->
 								<section <@studio.iceAttr iceGroup="features"/>>
 									<header class="major">
-										<h2>${contentModel.section_1_title}</h2>
+										<h2>${contentModel.features_title}</h2>
 									</header>
-									<div class="features">
-										<#list contentModel.features.item as item>
-											<article>
-												<span class="icon ${item.feature_icon}"></span>
-												<div class="content">
-													<h3>${item.feature_title}</h3>
-													${item.feature_body}
-												</div>
-											</article>
-										</#list>
+									<div class="features" <@studio.componentContainerAttr target="features" objectId=contentModel.objectId/>>
+										<#if contentModel.features?? && contentModel.features.item??>
+										  <#list contentModel.features.item as feature>
+										      <@renderComponent component=feature />
+										  </#list>
+										</#if>
 									</div>
 								</section>
 
@@ -64,7 +60,7 @@
 									<div class="posts">
 										<#list articles as article>
 										<article>
-											<a href="#" class="image">
+											<a href="${article.url}" class="image">
 												<#if article.image??>
 													<#assign articleImage = article.image/>
 												<#else>
@@ -72,7 +68,7 @@
 												</#if>
 												<img src="${articleImage}" alt="" />
 											</a>
-											<h3>${article.title}</h3>
+											<h3><a href="${article.url}">${article.title}</a></h3>
 											<p>${article.summary}</p>
 											<ul class="actions">
 												<li><a href="${article.url}" class="button">More</a></li>

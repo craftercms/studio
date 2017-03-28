@@ -1,0 +1,11 @@
+<content-type name="/page/search-results" is-wcm-type="true">
+	<label>Page - Search Results</label>
+	<form>/page/search-results</form>
+	<form-path>simple</form-path>
+	<model-instance-path>NOT-USED-BY-SIMPLE-FORM-ENGINE</model-instance-path>
+	<file-extension>xml</file-extension>
+	<content-as-folder>true</content-as-folder>
+	<previewable>true</previewable>
+	<noThumbnail>true</noThumbnail>
+	<image-thumbnail></image-thumbnail>
+</content-type>

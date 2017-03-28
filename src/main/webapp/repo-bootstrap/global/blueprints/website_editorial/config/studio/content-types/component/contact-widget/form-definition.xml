@@ -1,12 +1,13 @@
 <form>
-	<title>Generic</title>
+	<title>Component - Contact Widget</title>
 	<description></description>
-	<objectType>page</objectType>
-	<content-type>/page/generic</content-type>
+	<objectType>component</objectType>
+	<content-type>/component/contact-widget</content-type>
+	<imageThumbnail>undefined</imageThumbnail>
 	<properties>		<property>
 			<name>display-template</name>
 			<label>Display Template</label>
-			<value>/templates/web/generic.ftl</value>
+			<value>/templates/web/components/contact-widget.ftl</value>
 			<type>template</type>
 		</property>
 		<property>
@@ -17,7 +18,7 @@
 		</property>
 	</properties>
 	<sections>		<section>
-			<title>Generic Properties</title>
+			<title>Component - Contact Widget Properties</title>
 			<description></description>
 			<defaultOpen>true</defaultOpen>
 			<fields>
@@ -25,7 +26,7 @@
 					<type>file-name</type>
 					<id>file-name</id>
 					<iceId></iceId>
-					<title>Page URL</title>
+					<title>Component ID</title>
 					<description></description>
 					<defaultValue></defaultValue>
 					<help></help>
@@ -77,33 +78,17 @@
 						</constraint>
 					</constraints>
 				</field>
-				<field>
-					<type>page-nav-order</type>
-					<id>placeInNav</id>
-					<iceId></iceId>
-					<title>Place in Nav</title>
-					<description></description>
-					<defaultValue></defaultValue>
-					<help></help>
-					<properties>
-						<property>
-							<name>readonly</name>
-							<value></value>
-							<type>boolean</type>
-						</property>
-					</properties>
-					<constraints>
-						<constraint>
-							<name>required</name>
-							<value><![CDATA[]]></value>
-							<type>boolean</type>
-						</constraint>
-					</constraints>
-				</field>
+			</fields>
+		</section>
+		<section>
+			<title>Content</title>
+			<description></description>
+			<defaultOpen>true</defaultOpen>
+			<fields>
 				<field>
 					<type>input</type>
 					<id>title</id>
-					<iceId>core</iceId>
+					<iceId></iceId>
 					<title>Title</title>
 					<description></description>
 					<defaultValue></defaultValue>
@@ -133,104 +118,6 @@
 					<constraints>
 						<constraint>
 							<name>required</name>
-							<value><![CDATA[]]></value>
-							<type>boolean</type>
-						</constraint>
-						<constraint>
-							<name>pattern</name>
-							<value><![CDATA[]]></value>
-							<type>string</type>
-						</constraint>
-					</constraints>
-				</field>
-				<field>
-					<type>node-selector</type>
-					<id>header</id>
-					<iceId>core</iceId>
-					<title>Header</title>
-					<description></description>
-					<defaultValue></defaultValue>
-					<help></help>
-					<properties>
-						<property>
-							<name>minSize</name>
-							<value>0</value>
-							<type>int</type>
-						</property>
-						<property>
-							<name>maxSize</name>
-							<value>1</value>
-							<type>int</type>
-						</property>
-						<property>
-							<name>itemManager</name>
-							<value>components</value>
-							<type>datasource:item</type>
-						</property>
-						<property>
-							<name>readonly</name>
-							<value></value>
-							<type>boolean</type>
-						</property>
-						<property>
-							<name>disableFlattening</name>
-							<value></value>
-							<type>boolean</type>
-						</property>
-						<property>
-							<name>useSingleValueFilename</name>
-							<value></value>
-							<type>boolean</type>
-						</property>
-					</properties>
-					<constraints>
-						<constraint>
-							<name>allowDuplicates</name>
-							<value><![CDATA[]]></value>
-							<type>boolean</type>
-						</constraint>
-					</constraints>
-				</field>
-			</fields>
-		</section>
-		<section>
-			<title>Article Content</title>
-			<description></description>
-			<defaultOpen>true</defaultOpen>
-			<fields>
-				<field>
-					<type>input</type>
-					<id>subject</id>
-					<iceId>subject</iceId>
-					<title>Subject</title>
-					<description></description>
-					<defaultValue></defaultValue>
-					<help></help>
-					<properties>
-						<property>
-							<name>size</name>
-							<value>50</value>
-							<type>int</type>
-						</property>
-						<property>
-							<name>maxlength</name>
-							<value>50</value>
-							<type>int</type>
-						</property>
-						<property>
-							<name>readonly</name>
-							<value></value>
-							<type>boolean</type>
-						</property>
-						<property>
-							<name>tokenize</name>
-							<value>false</value>
-							<type>boolean</type>
-						</property>
-					</properties>
-					<constraints>
-						<constraint>
-							<name>required</name>
 							<value><![CDATA[true]]></value>
 							<type>boolean</type>
 						</constraint>
@@ -241,75 +128,11 @@
 						</constraint>
 					</constraints>
 				</field>
-				<field>
-					<type>input</type>
-					<id>by_line</id>
-					<iceId>subject</iceId>
-					<title>By Line</title>
-					<description></description>
-					<defaultValue></defaultValue>
-					<help></help>
-					<properties>
-						<property>
-							<name>size</name>
-							<value>50</value>
-							<type>int</type>
-						</property>
-						<property>
-							<name>maxlength</name>
-							<value>50</value>
-							<type>int</type>
-						</property>
-						<property>
-							<name>readonly</name>
-							<value></value>
-							<type>boolean</type>
-						</property>
-						<property>
-							<name>tokenize</name>
-							<value>false</value>
-							<type>boolean</type>
-						</property>
-					</properties>
-					<constraints>
-						<constraint>
-							<name>required</name>
-							<value><![CDATA[true]]></value>
-							<type>boolean</type>
-						</constraint>
-						<constraint>
-							<name>pattern</name>
-							<value><![CDATA[]]></value>
-							<type>string</type>
-						</constraint>
-					</constraints>
-				</field>
-				<field>
-					<type>repeat</type>
-					<id>sections</id>
-					<iceId>article</iceId>
-					<title>Sections</title>
-					<description></description>
-					<minOccurs>1</minOccurs>
-					<maxOccurs>*</maxOccurs>
-					<properties>
-						<property>
-							<name>minOccurs</name>
-							<value>1</value>
-							<type>string</type>
-						</property>
-						<property>
-							<name>maxOccurs</name>
-							<value>*</value>
-							<type>string</type>
-						</property>
-					</properties>
-					<fields>
 				<field>
 					<type>rte</type>
-					<id>section</id>
-					<iceId>article</iceId>
-					<title>Section</title>
+					<id>text_html</id>
+					<iceId></iceId>
+					<title>Text</title>
 					<description></description>
 					<defaultValue></defaultValue>
 					<help></help>
@@ -366,7 +189,7 @@
 						</property>
 						<property>
 							<name>imageManager</name>
-							<value>upload_image,</value>
+							<value></value>
 							<type>datasource:image</type>
 						</property>
 					</properties>
@@ -378,59 +201,167 @@
 						</constraint>
 					</constraints>
 				</field>
-					</fields>
+				<field>
+					<type>input</type>
+					<id>email</id>
+					<iceId></iceId>
+					<title>Email</title>
+					<description></description>
+					<defaultValue></defaultValue>
+					<help></help>
+					<properties>
+						<property>
+							<name>size</name>
+							<value>50</value>
+							<type>int</type>
+						</property>
+						<property>
+							<name>maxlength</name>
+							<value>50</value>
+							<type>int</type>
+						</property>
+						<property>
+							<name>readonly</name>
+							<value></value>
+							<type>boolean</type>
+						</property>
+						<property>
+							<name>tokenize</name>
+							<value>false</value>
+							<type>boolean</type>
+						</property>
+					</properties>
+					<constraints>
+						<constraint>
+							<name>required</name>
+							<value><![CDATA[true]]></value>
+							<type>boolean</type>
+						</constraint>
+						<constraint>
+							<name>pattern</name>
+							<value><![CDATA[]]></value>
+							<type>string</type>
+						</constraint>
+					</constraints>
+				</field>
+				<field>
+					<type>input</type>
+					<id>phone</id>
+					<iceId></iceId>
+					<title>Phone</title>
+					<description></description>
+					<defaultValue></defaultValue>
+					<help></help>
+					<properties>
+						<property>
+							<name>size</name>
+							<value>50</value>
+							<type>int</type>
+						</property>
+						<property>
+							<name>maxlength</name>
+							<value>50</value>
+							<type>int</type>
+						</property>
+						<property>
+							<name>readonly</name>
+							<value></value>
+							<type>boolean</type>
+						</property>
+						<property>
+							<name>tokenize</name>
+							<value>false</value>
+							<type>boolean</type>
+						</property>
+					</properties>
+					<constraints>
+						<constraint>
+							<name>required</name>
+							<value><![CDATA[true]]></value>
+							<type>boolean</type>
+						</constraint>
+						<constraint>
+							<name>pattern</name>
+							<value><![CDATA[]]></value>
+							<type>string</type>
+						</constraint>
+					</constraints>
+				</field>
+				<field>
+					<type>rte</type>
+					<id>address_html</id>
+					<iceId></iceId>
+					<title>Address</title>
+					<description></description>
+					<defaultValue></defaultValue>
+					<help></help>
+					<properties>
+						<property>
+							<name>width</name>
+							<value></value>
+							<type>int</type>
+						</property>
+						<property>
+							<name>height</name>
+							<value></value>
+							<type>int</type>
+						</property>
+						<property>
+							<name>maxlength</name>
+							<value></value>
+							<type>int</type>
+						</property>
+						<property>
+							<name>allowResize</name>
+							<value></value>
+							<type>boolean</type>
+						</property>
+						<property>
+							<name>forceRootBlockPTag</name>
+							<value>true</value>
+							<type>boolean</type>
+						</property>
+						<property>
+							<name>forcePTags</name>
+							<value>true</value>
+							<type>boolean</type>
+						</property>
+						<property>
+							<name>forceBRTags</name>
+							<value>false</value>
+							<type>boolean</type>
+						</property>
+						<property>
+							<name>forceImageAlts</name>
+							<value>false</value>
+							<type>boolean</type>
+						</property>
+						<property>
+							<name>supportedChannels</name>
+							<value></value>
+							<type>supportedChannels</type>
+						</property>
+						<property>
+							<name>rteConfiguration</name>
+							<value>generic</value>
+							<type>string</type>
+						</property>
+						<property>
+							<name>imageManager</name>
+							<value></value>
+							<type>datasource:image</type>
+						</property>
+					</properties>
+					<constraints>
+						<constraint>
+							<name>required</name>
+							<value><![CDATA[true]]></value>
+							<type>boolean</type>
+						</constraint>
+					</constraints>
 				</field>
 			</fields>
 		</section>
 	</sections>
-	<datasources>				<datasource>
-					<type>child-content</type>
-					<id>components</id>
-					<title>Components</title>
-					<interface>item</interface>
-					<properties>
-						<property>
-							<name>repoPath</name>
-							<value>/site/components/</value>
-								<type>undefined</type>
-						</property>
-						<property>
-							<name>browsePath</name>
-							<value></value>
-								<type>undefined</type>
-						</property>
-						<property>
-							<name>type</name>
-							<value></value>
-								<type>undefined</type>
-						</property>
-					</properties>
-				</datasource>
-				<datasource>
-					<type>img-desktop-upload</type>
-					<id>upload_images</id>
-					<title>Upload Images</title>
-					<interface>image</interface>
-					<properties>
-						<property>
-							<name>repoPath</name>
-							<value>/static-assets/images/page/{objectId}/</value>
-								<type>undefined</type>
-						</property>
-					</properties>
-				</datasource>
-				<datasource>
-					<type>img-repository-upload</type>
-					<id>existing_images</id>
-					<title>Existing Images</title>
-					<interface>image</interface>
-					<properties>
-						<property>
-							<name>repoPath</name>
-							<value>/static-assets/images</value>
-								<type>undefined</type>
-						</property>
-					</properties>
-				</datasource>
-	</datasources>
+	<datasources>	</datasources>
 </form>

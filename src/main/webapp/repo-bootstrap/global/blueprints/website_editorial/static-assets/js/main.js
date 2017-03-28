@@ -280,6 +280,18 @@
 
 				});
 
+				// Search
+				var $query = $('#query');
+
+				$query.keypress(function (e) {
+						var value = $query.val();
+  					if (e.which == 13  && value) {
+							e.preventDefault();
+
+    					window.location.replace("/search-results?q=" + value);
+  					}
+				});
+
 	});
 
 })(jQuery);
