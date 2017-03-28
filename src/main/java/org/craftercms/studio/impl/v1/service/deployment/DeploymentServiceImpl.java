@@ -36,10 +36,7 @@ import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
 import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
-import org.craftercms.studio.api.v1.service.deployment.CopyToEnvironmentItem;
-import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
-import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
-import org.craftercms.studio.api.v1.service.deployment.DmPublishService;
+import org.craftercms.studio.api.v1.service.deployment.*;
 import org.craftercms.studio.api.v1.service.event.EventService;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
@@ -335,7 +332,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         // get the filtered list of attempts in a specific date range
         Date toDate = new Date();
         Date fromDate = new Date(toDate.getTime() - (1000L * 60L * 60L * 24L * daysFromToday));
-        List<DeploymentSyncHistory> deployReports = getDeploymentHistory(site, fromDate, toDate, filterType, numberOfItems); //findDeploymentReports(site, fromDate, toDate);
+        List<DeploymentSyncHistory> deployReports = deploymentHistoryProvider.getDeploymentHistory(site, fromDate, toDate, filterType, numberOfItems); //findDeploymentReports(site, fromDate, toDate);
         List<DmDeploymentTaskTO> tasks = new ArrayList<DmDeploymentTaskTO>();
 
         if (deployReports != null) {
@@ -371,22 +368,6 @@ public class DeploymentServiceImpl implements DeploymentService {
             }
         }
         return tasks;
-    }
-
-    protected List<DeploymentSyncHistory> getDeploymentHistory(String site, Date fromDate, Date toDate, String filterType, int numberOfItems) {
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put("site", site);
-        params.put("from_date", fromDate);
-        params.put("to_date", toDate);
-        if (numberOfItems <= 0) {
-            params.put("limit", HISTORY_ALL_LIMIT);
-        } else {
-            params.put("limit", numberOfItems);
-        }
-        if (!filterType.equalsIgnoreCase(CONTENT_TYPE_ALL)) {
-            params.put("filter", filterType);
-        }
-        return deploymentSyncHistoryMapper.getDeploymentHistory(params);
     }
 
     /**
@@ -880,6 +861,9 @@ public class DeploymentServiceImpl implements DeploymentService {
     public EventService getEventService() { return eventService; }
     public void setEventService(EventService eventService) { this.eventService = eventService; }
 
+    public DeploymentHistoryProvider getDeploymentHistoryProvider() { return deploymentHistoryProvider; }
+    public void setDeploymentHistoryProvider(DeploymentHistoryProvider deploymentHistoryProvider) { this.deploymentHistoryProvider = deploymentHistoryProvider; }
+
     protected ServicesConfig servicesConfig;
     protected ContentService contentService;
     protected ActivityService activityService;
@@ -895,6 +879,8 @@ public class DeploymentServiceImpl implements DeploymentService {
     protected EventService eventService;
     protected DeployContentToEnvironmentStore deployContentToEnvironmentStoreJob;
     protected NotificationService notificationService;
+    protected DeploymentHistoryProvider deploymentHistoryProvider;
+
     @Autowired
     protected DeploymentSyncHistoryMapper deploymentSyncHistoryMapper;
 

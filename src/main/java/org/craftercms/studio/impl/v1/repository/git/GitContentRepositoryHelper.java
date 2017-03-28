@@ -33,9 +33,7 @@ import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import com.google.gdata.util.common.base.StringUtil;
 import org.apache.commons.io.FileUtils;
@@ -49,19 +47,20 @@ import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.*;
+import org.eclipse.jgit.diff.DiffEntry;
+import org.eclipse.jgit.diff.RawTextComparator;
 import org.eclipse.jgit.dircache.DirCache;
 import org.eclipse.jgit.errors.AmbiguousObjectException;
+import org.eclipse.jgit.errors.CorruptObjectException;
 import org.eclipse.jgit.errors.IncorrectObjectTypeException;
 import org.eclipse.jgit.errors.MissingObjectException;
-import org.eclipse.jgit.lib.Constants;
-import org.eclipse.jgit.lib.ObjectId;
-import org.eclipse.jgit.lib.PersonIdent;
-import org.eclipse.jgit.lib.Repository;
-import org.eclipse.jgit.lib.StoredConfig;
+import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
+import org.eclipse.jgit.treewalk.CanonicalTreeParser;
+import org.eclipse.jgit.treewalk.TreeWalk;
 
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.*;
 import static org.eclipse.jgit.lib.Constants.DEFAULT_REMOTE_NAME;
@@ -114,7 +113,7 @@ public class GitContentRepositoryHelper {
         Repository publishedRepo;
 
         Path siteSandboxRepoPath = buildRepoPath(GitRepositories.SANDBOX, site).resolve(GIT_ROOT);
-        Path sitePublishedRepoPath = buildRepoPath(GitRepositories.SANDBOX, site).resolve(GIT_ROOT);
+        Path sitePublishedRepoPath = buildRepoPath(GitRepositories.PUBLISHED, site).resolve(GIT_ROOT);
 
         try {
             if (Files.exists(siteSandboxRepoPath)) {
@@ -603,5 +602,56 @@ public class GitContentRepositoryHelper {
                         currentUserProfile.get("email").toString());
 
         return currentUserIdent;
+    }
+
+    public List<String> getFilesInCommit(Repository repository, RevCommit commit) {
+
+        List<String> files = new ArrayList<String>();
+        RevWalk rw = new RevWalk(repository);
+        try (Git git = new Git(repository)) {
+            if (commit.getParentCount() == 0) {
+                TreeWalk tw = new TreeWalk(repository);
+                tw.reset();
+                tw.setRecursive(true);
+                tw.addTree(commit.getTree());
+                while (tw.next()) {
+                    files.add(File.separator + tw.getPathString());
+                }
+                tw.close();
+            } else {
+                RevCommit parent = rw.parseCommit(commit.getParent(0).getId());
+
+                ObjectId commitId = commit.getId();
+                ObjectId parentCommitId = parent.getId();
+
+                RevTree parentTree = getTreeForCommit(repository, parentCommitId.getName());
+                RevTree commitTree = getTreeForCommit(repository, commitId.getName());
+
+                try (ObjectReader reader = repository.newObjectReader()) {
+                    CanonicalTreeParser prevCommitTreeParser = new CanonicalTreeParser();
+                    CanonicalTreeParser nextCommitTreeParser = new CanonicalTreeParser();
+                    prevCommitTreeParser.reset(reader, parentTree.getId());
+                    nextCommitTreeParser.reset(reader, commitTree.getId());
+
+                    // Diff the two commit Ids
+                    List<DiffEntry> diffEntries = git.diff().setOldTree(prevCommitTreeParser).setNewTree(nextCommitTreeParser).call();
+                    for (DiffEntry diffEntry : diffEntries) {
+                        if (diffEntry.getChangeType() == DiffEntry.ChangeType.DELETE) {
+                            files.add(File.separator + diffEntry.getOldPath());
+                        } else {
+                            files.add(File.separator + diffEntry.getNewPath());
+                        }
+                    }
+                } catch (IOException | GitAPIException e) {
+                    logger.error("Error while getting list of files in commit " + commit.getId().getName());
+                }
+            }
+
+        } catch (IOException e) {
+            logger.error("Error while getting list of files in commit " + commit.getId().getName());
+        } finally {
+            rw.dispose();
+        }
+        return files;
     }
 }
