@@ -977,7 +977,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 }
             }
         } catch (IOException | GitAPIException e1) {
-            e1.printStackTrace();
+            logger.error("Error while getting deployment history for site " + site, e1);
         }
         return toRet;
     }
