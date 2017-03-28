@@ -134,6 +134,7 @@
          <property name="deployContentToEnvironmentStoreJob" ref="cstudioDeployContentToEnvironmentJobs"/>
          <property name="notificationService" ref="cstudioNotificationServicev2"/>
          <property name="eventService" ref="studioEventService"/>
+         <property name="deploymentHistoryProvider" ref="contentRepository"/>
      </bean>
 
      <bean id="cstudioNotificationService" class="org.craftercms.studio.impl.v1.service.notification.NotificationServiceImpl" >

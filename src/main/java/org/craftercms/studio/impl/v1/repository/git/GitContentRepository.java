@@ -40,20 +40,25 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.constant.RepoOperation;
+import org.craftercms.studio.api.v1.dal.DeploymentSyncHistory;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
+import org.craftercms.studio.api.v1.service.deployment.DeploymentHistoryProvider;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.to.RepoOperationTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.NoHeadException;
 import org.eclipse.jgit.api.errors.RefNotFoundException;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.dircache.DirCache;
+import org.eclipse.jgit.errors.IncorrectObjectTypeException;
+import org.eclipse.jgit.errors.MissingObjectException;
 import org.eclipse.jgit.internal.storage.file.LockFile;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.merge.MergeStrategy;
@@ -61,6 +66,8 @@ import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevSort;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
+import org.eclipse.jgit.revwalk.filter.AndRevFilter;
+import org.eclipse.jgit.revwalk.filter.CommitTimeRevFilter;
 import org.eclipse.jgit.transport.FetchResult;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.treewalk.TreeWalk;
@@ -78,7 +85,7 @@ import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryC
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.INITIAL_COMMIT;
 
-public class GitContentRepository implements ContentRepository, ServletContextAware {
+public class GitContentRepository implements ContentRepository, ServletContextAware, DeploymentHistoryProvider {
 
     private static final Logger logger = LoggerFactory.getLogger(GitContentRepository.class);
     private GitContentRepositoryHelper helper = null;
@@ -938,6 +945,41 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             toReturn.add(repoOperation);
         }
         return toReturn;
+    }
+
+    @Override
+    public List<DeploymentSyncHistory> getDeploymentHistory(String site, Date fromDate, Date toDate, String filterType, int numberOfItems) {
+        List<DeploymentSyncHistory> toRet = new ArrayList<DeploymentSyncHistory>();
+        Repository publishedRepo = helper.getRepository(site, PUBLISHED);
+        try (Git git = new Git(publishedRepo)) {
+            // List all environments
+            List<Ref> environments = git.branchList().call();
+            for (Ref env : environments) {
+                String environment = env.getName();
+                Iterable<RevCommit> branchLog = git.log()
+                        .add(env.getObjectId())
+                        .setRevFilter(AndRevFilter.create(CommitTimeRevFilter.after(fromDate), CommitTimeRevFilter.before(toDate)))
+                        .call();
+
+                Iterator<RevCommit> iterator = branchLog.iterator();
+                while (iterator.hasNext()) {
+                    RevCommit revCommit = iterator.next();
+                    List<String> files = helper.getFilesInCommit(publishedRepo, revCommit);
+                    for (String file : files) {
+                        DeploymentSyncHistory dsh = new DeploymentSyncHistory();
+                        dsh.setSite(site);
+                        dsh.setPath(file);
+                        dsh.setSyncDate(new Date(1000l * revCommit.getCommitTime()));
+                        dsh.setUser(revCommit.getAuthorIdent().getName());
+                        dsh.setEnvironment(environment);
+                        toRet.add(dsh);
+                    }
+                }
+            }
+        } catch (IOException | GitAPIException e1) {
+            e1.printStackTrace();
+        }
+        return toRet;
     }
 
     public void setServletContext(ServletContext ctx) { this.ctx = ctx; }

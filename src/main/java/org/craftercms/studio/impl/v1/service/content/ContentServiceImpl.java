@@ -1300,6 +1300,50 @@ public class ContentServiceImpl implements ContentService {
         return null;
     }
 
+    @Override
+    public double reorderItems(String site, String relativePath, String before, String after, String orderName) throws ServiceException {
+        Double beforeOrder = null;
+        Double afterOrder = null;
+        DmOrderTO beforeOrderTO = null;
+        DmOrderTO afterOrderTO = null;
+        // get the order of the content before
+        // if the path is not provided, the order is 0
+        if (!StringUtils.isEmpty(before)) {
+            ContentItemTO beforeItem = getContentItem(site, before, 0);
+            beforeOrder = beforeItem.getOrder(orderName);
+            beforeOrderTO = new DmOrderTO();
+            beforeOrderTO.setId(before);
+            if (beforeOrder != null && beforeOrder > 0) {
+                beforeOrderTO.setOrder(beforeOrder);
+            }
+        }
+        // get the order of the content after
+        // if the path is not provided, the order is the order of before +
+        // ORDER_INCREMENT
+        if (!StringUtils.isEmpty(after)) {
+            ContentItemTO afterItem = getContentItem(site, after, 0);
+            afterOrder = afterItem.getOrder(orderName);
+            afterOrderTO = new DmOrderTO();
+            afterOrderTO.setId(after);
+            if (afterOrder != null && afterOrder > 0) {
+                afterOrderTO.setOrder(afterOrder);
+            }
+        }
+
+        // if no after and before provided, the initial value is ORDER_INCREMENT
+        if (afterOrder == null && beforeOrder == null) {
+            return dmPageNavigationOrderService.getNewNavOrder(site, ContentUtils.getParentUrl(relativePath.replace("/" + DmConstants.INDEX_FILE, "")));
+        } else if (beforeOrder == null) {
+            return (0 + afterOrder) / 2;
+        } else if (afterOrder == null) {
+            logger.info("afterOrder == null");
+            return dmPageNavigationOrderService.getNewNavOrder(site, ContentUtils.getParentUrl(relativePath.replace("/" + DmConstants.INDEX_FILE, "")));
+        } else {
+            //return (beforeOrder + afterOrder) / 2;
+            return computeReorder(site, relativePath, beforeOrderTO, afterOrderTO, orderName);
+        }
+    }
+
     /**
      * Will need to include the floating pages as well for orderValue computation
      * Since the beforeOrder and afterOrder in the UI does not include floating pages will need to do special processing
