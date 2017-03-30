@@ -145,13 +145,9 @@ class SearchHelper {
   }
 
   private def getFieldQueryWithMultipleValues(field, values) {
-    System.out.println(values.class)
-
     if (values.class.isArray()) {
       values = values as List
     }
-
-    System.out.println(values.class)
 
     if (values instanceof Iterable) {
       values = "(" + StringUtils.join((Iterable)values, " OR ") + ")"
