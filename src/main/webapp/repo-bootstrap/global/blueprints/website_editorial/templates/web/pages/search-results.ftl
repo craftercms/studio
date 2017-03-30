@@ -28,28 +28,32 @@
 							<@renderComponent component=contentModel.header.item />
 
 							<!-- Section -->
-								<section <@studio.iceAttr iceGroup="articles"/>>
+								<section>
 									<header class="main">
-										<h1>${contentModel.articles_title}</h1>
+										<h1>Search Results</h1>
 									</header>
-									<div class="posts">
-										<#list articles as article>
-										<article>
-											<a href="${article.url}" class="image">
-												<#if article.image??>
-													<#assign articleImage = article.image/>
-												<#else>
-													<#assign articleImage = "/static-assets/images/placeholder.png"/>
-												</#if>
-												<img src="${articleImage}" alt="" />
-											</a>
-											<h3><a href="${article.url}">${article.title}</a></h3>
-											<p>${article.summary}</p>
-											<ul class="actions">
-												<li><a href="${article.url}" class="button">More</a></li>
-											</ul>
-										</article>
-										</#list>
+                  <form id="categories">
+                  	<div class="row uniform">
+											<div class="3u 6u(medium) 12u$(small)">
+												<input type="checkbox" id="style" name="style" value="style">
+												<label for="style">Style</label>
+											</div>
+											<div class="3u 6u$(medium) 12u$(small)">
+												<input type="checkbox" id="health" name="health" value="health">
+												<label for="health">Health</label>
+											</div>
+											<div class="3u 6u(medium) 12u$(small)">
+												<input type="checkbox" id="entertainment" name="entertainment" value="entertainment">
+												<label for="entertainment">Entertainment</label>
+											</div>
+											<div class="3u 6u$(medium) 12u$(small)">
+												<input type="checkbox" id="technology" name="technology" value="technology">
+												<label for="technology">Technology</label>
+											</div>
+										</div>
+                  </form>
+									<hr class="major"/>
+									<div id="search-results">
 									</div>
 								</section>
 
@@ -61,12 +65,29 @@
 
 			</div>
 
+			<!-- Handlebar Templates -->
+			<script id="search-results-template" type="text/x-handlebars-template">
+				{{#each results}}
+				<div>
+					<h4><a href="{{url}}">{{title}}</a></h4>
+					{{#if highlight}}
+					<p>{{{highlight}}}</p>
+					{{/if}}
+				</div>
+				{{else}}
+				<p>No results found</p>
+				{{/each}}
+			</script>
+
 		<!-- Scripts -->
 			<script src="/static-assets/js/jquery.min.js"></script>
 			<script src="/static-assets/js/skel.min.js"></script>
+			<script src="/static-assets/js/handlebars.min-latest.js"></script>
 			<script src="/static-assets/js/util.js"></script>
 			<!--[if lte IE 8]><script src="/static-assets/js/ie/respond.min.js"></script><![endif]-->
 			<script src="/static-assets/js/main.js"></script>
+			<script src="/static-assets/js/search.js"></script>
 
 		<@studio.toolSupport/>
 	</body>
+</html>

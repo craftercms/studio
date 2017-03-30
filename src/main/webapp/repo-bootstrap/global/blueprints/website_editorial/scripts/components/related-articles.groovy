@@ -7,4 +7,4 @@ def searchHelper = new SearchHelper(searchService, urlTransformationService)
 // should be the categories of the current article
 def articles = searchHelper.searchArticles(false, articleCategories, segment, 0, 3, "-localId:\"${articlePath}\"")
 
-templateModel.sidebarArticles = articles
+templateModel.articles = articles
