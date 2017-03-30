@@ -33,7 +33,7 @@
 	<disableFlattening>false</disableFlattening>
 	</item></features>
 	<header/>
-	<hero_image>/static-assets/images/castle-pic.jpg</hero_image>
+	<hero_image>/static-assets/images/strawberries.jpg</hero_image>
 	<sidebar>	<item>	<key>/site/components/sidebar-with-latest-articles.xml</key>
 	<value>Sidebar with Latest Articles</value>
 	<include>/site/components/sidebar-with-latest-articles.xml</include>
