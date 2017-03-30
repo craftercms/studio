@@ -39,6 +39,8 @@ import javax.servlet.http.HttpSession;
 import java.util.*;
 
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_DB_SESSION_TIMEOUT;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_SESSION_TIMEOUT;
+import static org.craftercms.studio.impl.v1.service.security.SecurityServiceImpl.STUDIO_SESSION_TOKEN_ATRIBUTE;
 
 public class DbSecurityProvider implements SecurityProvider {
 
@@ -246,8 +248,11 @@ public class DbSecurityProvider implements SecurityProvider {
     public String authenticate(String username, String password) {
         User user = securityMapper.getUser(username);
         if (user != null && user.isEnabled() && CipherUtils.matchPassword(user.getPassword(), password)) {
-            byte[] randomBytes = CryptoUtils.generateRandomBytes(20);
-            String token = randomBytes.toString();
+            //byte[] randomBytes = CryptoUtils.generateRandomBytes(20);
+            //String token = randomBytes.toString();
+            int timeout = Integer.parseInt(studioConfiguration.getProperty(SECURITY_SESSION_TIMEOUT));
+            long ttl = 1000L * 60 * timeout;
+            String token = TokenUtils.createToken(user, ttl);
             storeSessionTicket(token);
             storeSessionUsername(username);
             return token;
@@ -261,7 +266,7 @@ public class DbSecurityProvider implements SecurityProvider {
 
         if(context != null) {
             HttpSession httpSession = context.getRequest().getSession();
-            httpSession.setAttribute("studio_ticket", ticket);
+            httpSession.setAttribute(STUDIO_SESSION_TOKEN_ATRIBUTE, ticket);
         }
     }
 
@@ -315,7 +320,7 @@ public class DbSecurityProvider implements SecurityProvider {
 
         if (context != null) {
             HttpSession httpSession = context.getRequest().getSession();
-            ticket = (String)httpSession.getAttribute("studio_ticket");
+            ticket = (String)httpSession.getAttribute(STUDIO_SESSION_TOKEN_ATRIBUTE);
         } else {
             ticket = getJobOrEventTicket();
         }
