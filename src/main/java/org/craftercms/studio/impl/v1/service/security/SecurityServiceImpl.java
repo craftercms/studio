@@ -59,6 +59,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import javax.crypto.*;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.*;
@@ -70,17 +71,16 @@ public class SecurityServiceImpl implements SecurityService {
 
     private static final Logger logger = LoggerFactory.getLogger(SecurityServiceImpl.class);
 
-    private final static String STUDIO_SESSION_TOKEN_ATRIBUTE = "studioSessionToken";
-
     @Override
     public String authenticate(String username, String password) {
         String toRet = securityProvider.authenticate(username, password);
+        /*
         String sessionToken = SessionTokenUtils.createToken(username, getSessionTimeout());
         RequestContext context = RequestContext.getCurrent();
         if (context != null) {
             HttpSession httpSession = context.getRequest().getSession();
             httpSession.setAttribute(STUDIO_SESSION_TOKEN_ATRIBUTE, sessionToken);
-        }
+        }*/
         return toRet;
     }
 
@@ -508,6 +508,7 @@ public class SecurityServiceImpl implements SecurityService {
         if (context != null) {
             HttpSession httpSession = context.getRequest().getSession();
             httpSession.removeAttribute(STUDIO_SESSION_TOKEN_ATRIBUTE);
+            httpSession.invalidate();
         }
         return toRet;
     }
@@ -816,6 +817,32 @@ public class SecurityServiceImpl implements SecurityService {
     @Override
     public boolean userExists(String username) {
         return securityProvider.userExists(username);
+    }
+
+    @Override
+    public boolean validateSession(HttpServletRequest request) {
+        HttpSession httpSession = request.getSession();
+        String authToken = (String)httpSession.getAttribute(STUDIO_SESSION_TOKEN_ATRIBUTE);
+        String userName = securityProvider.getCurrentUser();
+
+        if (userName != null) {
+
+            UserDetails userDetails = this.userDetailsManager.loadUserByUsername(userName);
+
+            return (TokenUtils.validateToken(authToken, userDetails));
+
+        }
+        /*
+        if (StringUtils.isEmpty(sessionToken) || StringUtils.isEmpty(user)) {
+            return true;
+        }
+        if (StringUtils.isNotEmpty(sessionToken) && StringUtils.isNotEmpty(user)) {
+            if (SessionTokenUtils.validateToken(sessionToken, user)) {
+                return true;
+            }
+        }
+      */
+        return false;
     }
 
     public String getConfigPath() {

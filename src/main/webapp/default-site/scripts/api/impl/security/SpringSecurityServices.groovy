@@ -196,4 +196,8 @@ class SpringSecurityServices {
         return springBackedService.resetPassword(username, newPassword)
     }
 
+    def validateSession(request) {
+        def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
+        return springBackedService.validateSession(request)
+    }
 }
