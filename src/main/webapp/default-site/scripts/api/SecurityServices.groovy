@@ -206,4 +206,9 @@ class SecurityServices {
         def securityServicesImpl = ServiceFactory.getSecurityServices(context)
         return securityServicesImpl.resetPassword(username, newPassword)
     }
+
+    static validateSession(context, request) {
+        def securityServicesImpl = ServiceFactory.getSecurityServices(context)
+        return securityServicesImpl.validateSession(request)
+    }
 }

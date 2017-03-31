@@ -14,17 +14,15 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 import scripts.api.SecurityServices
 
 def result = [:]
-def token = params.token
 
 def context = SecurityServices.createContext(applicationContext, request)
 try {
-    def success = SecurityServices.validateToken(context, token)
+    def success = SecurityServices.validateSession(context, request)
     if (success) {
         result.message = "OK"
         response.setStatus(200)

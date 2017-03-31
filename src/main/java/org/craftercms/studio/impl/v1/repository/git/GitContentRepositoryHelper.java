@@ -609,16 +609,7 @@ public class GitContentRepositoryHelper {
         List<String> files = new ArrayList<String>();
         RevWalk rw = new RevWalk(repository);
         try (Git git = new Git(repository)) {
-            if (commit.getParentCount() == 0) {
-                TreeWalk tw = new TreeWalk(repository);
-                tw.reset();
-                tw.setRecursive(true);
-                tw.addTree(commit.getTree());
-                while (tw.next()) {
-                    files.add(File.separator + tw.getPathString());
-                }
-                tw.close();
-            } else {
+            if (commit.getParentCount() > 0) {
                 RevCommit parent = rw.parseCommit(commit.getParent(0).getId());
 
                 ObjectId commitId = commit.getId();

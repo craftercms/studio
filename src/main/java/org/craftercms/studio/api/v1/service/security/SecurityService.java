@@ -22,6 +22,7 @@ import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Set;
 import java.util.Map;
@@ -30,6 +31,8 @@ import java.util.Map;
  * @author Dejan Brkic
  */
 public interface SecurityService {
+
+    final static String STUDIO_SESSION_TOKEN_ATRIBUTE = "studioSessionToken";
 
 	/**
 	 * authenticate a user. returns ticket
@@ -302,4 +305,12 @@ public interface SecurityService {
      * @return
      */
     boolean resetPassword(String username, String newPassword) throws UserNotFoundException;
+
+    /**
+     * Validate user's active session
+     *
+     * @param request
+     * @return
+     */
+    boolean validateSession(HttpServletRequest request);
 }
