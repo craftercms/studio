@@ -76,7 +76,7 @@
             <if test="sendEmail != null">sendemail=#{sendEmail},</if>
             <if test="submissionComment != null">submissioncomment=#{submissionComment},</if>
             <if test="launchDate != null">launchdate=#{launchDate}</if>
-            <if test="commitId != null">commid_id=#{commitId}</if>
+            <if test="commitId != null">commit_id=#{commitId}</if>
         </trim>
         WHERE site=#{site}
         AND path=#{path}
@@ -105,7 +105,8 @@
             submittedfordeletion=#{submittedForDeletion},
             sendemail=#{sendEmail},
             submissioncomment=#{submissionComment},
-            launchdate=#{launchDate}
+            launchdate=#{launchDate},
+            commit_id=#{commitId}
         WHERE id = #{id}
     </update>
 
