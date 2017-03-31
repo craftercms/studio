@@ -112,6 +112,9 @@
 								event.preventDefault();
 								event.stopPropagation();
 
+                            //Studio event to repaint the pencils.
+                                studioICERepaint();
+
 							// Toggle.
 								$sidebar.toggleClass('inactive');
 
