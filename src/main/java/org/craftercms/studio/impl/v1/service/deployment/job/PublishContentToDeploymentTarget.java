@@ -27,6 +27,7 @@ import org.craftercms.studio.api.v1.to.DeploymentEndpointConfigTO;
 import org.craftercms.studio.api.v1.to.PublishingChannelConfigTO;
 import org.craftercms.studio.api.v1.to.PublishingChannelGroupConfigTO;
 import org.craftercms.studio.api.v1.to.PublishingTargetTO;
+import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.impl.v1.job.RepositoryJob;
 
 import java.util.*;
@@ -68,7 +69,7 @@ public class PublishContentToDeploymentTarget extends RepositoryJob {
         running = isRunning;
     }
 
-    public void executeAsSignedInUser() {
+    public void execute() {
         if (isMasterPublishingNode() && !stopSignaled) {
             setRunning(true);
             if (singleWorkerLock.tryLock()) {
@@ -323,8 +324,12 @@ public class PublishContentToDeploymentTarget extends RepositoryJob {
         this.notificationService2 = notificationService2;
     }
 
+    public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
+
     protected SiteService siteService;
     protected PublishingManager publishingManager;
     protected NotificationService notificationService;
     protected org.craftercms.studio.api.v2.service.notification.NotificationService notificationService2;
+    protected StudioConfiguration studioConfiguration;
 }

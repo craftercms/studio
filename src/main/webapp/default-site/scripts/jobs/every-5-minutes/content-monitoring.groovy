@@ -21,7 +21,7 @@ import org.craftercms.studio.api.v1.job.CronJobContext;
 import scripts.api.SiteServices
 import scripts.api.SecurityServices
 import scripts.api.impl.content.ContentMonitoring
-
+/*
 def context = applicationContext
 def sercurityService = context.get("cstudioSecurityService")
 def job = context.get("cstudioDeployContentToEnvironmentJobs")
@@ -40,3 +40,4 @@ if (StringUtils.isNotEmpty(ticket)) {
 else {
 	logger.error("Not able to authenticate user for cron job.")
 }
+*/

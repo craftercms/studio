@@ -44,7 +44,7 @@ public class ProcessInFlightJobs extends RepositoryJob {
     protected final String MSG_ERROR_PROCESSING_WORKFLOW_JOB = "err_processing_workflow_job";
     protected final String MSG_ERROR_NO_TRANSACTION_PROCESSING_WORKFLOW_JOB = "err_no_transaction_while_processing_workflow_job";
 
-    public void executeAsSignedInUser() {
+    public void execute() {
 		try {
 			processJobs();
 		}
