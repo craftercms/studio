@@ -58,26 +58,27 @@ public class StudioAuthenticationTokenProcessingFilter extends GenericFilterBean
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
         HttpServletRequest httpRequest = this.getAsHttpRequest(servletRequest);
+        HttpSession httpSession = httpRequest.getSession();
+        synchronized (httpSession) {
+            String userName = securityService.getCurrentUser();
+            String authToken = securityService.getCurrentToken();
 
-        String userName = securityService.getCurrentUser();
-        String authToken = securityService.getCurrentToken();
+            if (userName != null) {
 
-        if (userName != null) {
+                UserDetails userDetails = this.userDetailsManager.loadUserByUsername(userName);
 
-            UserDetails userDetails = this.userDetailsManager.loadUserByUsername(userName);
+                if (TokenUtils.validateToken(authToken, userDetails)) {
 
-            if (TokenUtils.validateToken(authToken, userDetails)) {
+                    UsernamePasswordAuthenticationToken authentication =
+                            new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
 
-                UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-
-                if (httpRequest.getRequestURI().startsWith("/\\w/api/1") && !httpRequest.getRequestURI().contains("/validate-session.json")) {
-                    HttpSession httpSession = httpRequest.getSession();
-                    int timeout = Integer.parseInt(studioConfiguration.getProperty(SECURITY_SESSION_TIMEOUT));
-                    long ttl = 1000L * 60 * timeout;
-                    String newToken = TokenUtils.createToken(userDetails, ttl);
-                    httpSession.setAttribute(STUDIO_SESSION_TOKEN_ATRIBUTE, newToken);
+                    if (httpRequest.getRequestURI().startsWith(httpRequest.getContextPath() + "/api/1") && !httpRequest.getRequestURI().contains("/validate-session.json")) {
+                        int timeout = Integer.parseInt(studioConfiguration.getProperty(SECURITY_SESSION_TIMEOUT));
+                        long ttl = 1000L * 60 * timeout;
+                        String newToken = TokenUtils.createToken(userDetails, ttl);
+                        httpSession.setAttribute(STUDIO_SESSION_TOKEN_ATRIBUTE, newToken);
+                    }
                 }
             }
         }
