@@ -50,6 +50,7 @@ import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.event.EventService;
 import org.craftercms.studio.api.v1.service.notification.NotificationService;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
+import org.craftercms.studio.api.v1.service.objectstate.State;
 import org.craftercms.studio.api.v1.service.objectstate.TransitionEvent;
 import org.craftercms.studio.api.v1.service.search.SearchService;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
@@ -342,6 +343,7 @@ public class SiteServiceImpl implements SiteService {
 			    // permissions
 			    // environment overrides
 			    // deployment
+                objectStateService.setStateForSiteContent(siteId, State.EXISTING_UNEDITED_UNLOCKED);
 
 			    // insert database records
 			    SiteFeed siteFeed = new SiteFeed();
