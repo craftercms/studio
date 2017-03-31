@@ -128,4 +128,10 @@
     <select id="isFolderLive" parameterType="java.util.Map" resultType="java.lang.Integer">
         SELECT count(*) FROM cstudio_objectstate where site=#{site} and path like #{folderPath} and state like 'EXISTING%'
     </select>
+
+    <update id="setStateForSiteContent" parameterType="org.craftercms.studio.api.v1.dal.ObjectState" flushCache="true">
+        UPDATE cstudio_objectstate
+        SET state = #{state}, system_processing = 0
+        WHERE site = #{siteId}
+    </update>
 </mapper>
