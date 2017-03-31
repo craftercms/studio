@@ -443,19 +443,14 @@
 
     <!-- continue refactoring -->
     <!-- Jobs -->
-    <bean id="cstudioRepositoryJob" abstract="true" class="org.craftercms.studio.impl.v1.job.RepositoryJob">
-        <property name="securityService" ref="cstudioSecurityService"/>
-        <property name="studioConfiguration" ref="studioConfiguration" />
-    </bean>
+
     <bean id="cstudioProcessInFlightJobs" class="org.craftercms.studio.impl.v1.service.workflow.job.ProcessInFlightJobs">
         <property name="workflowService" ref="cstudioWorkflowService" />
         <property name="workflowManager" ref="cstudioWorkflowManager"/>
         <property name="transactionService" ref="cstudioTransactionServiceSimple" />
-         <property name="securityService" ref="cstudioSecurityService" />
     </bean>
 
-    <bean id="cstudioDeployContentToEnvironmentJobs" class="org.craftercms.studio.impl.v1.service.deployment.job.DeployContentToEnvironmentStore"
-          parent="cstudioRepositoryJob">
+    <bean id="cstudioDeployContentToEnvironmentJobs" class="org.craftercms.studio.impl.v1.service.deployment.job.DeployContentToEnvironmentStore">
         <property name="publishingManager" ref="cstudioPublishingManager" />
         <property name="contentRepository" ref="contentRepository" />
         <property name="siteService" ref="cstudioSiteServiceSimple"/>
@@ -463,6 +458,7 @@
         <property name="generalLockService" ref="cstudioGeneralLockService"/>
         <property name="notificationService2" ref="cstudioNotificationServicev2"/>
         <property name="eventService" ref="studioEventService"/>
+        <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
     <!-- scheduled actions -->
@@ -856,8 +852,6 @@
     <!-- Application Listeners -->
     <bean class="org.craftercms.studio.impl.v1.util.spring.context.SiteConfigurationLoader">
         <property name="siteService" ref="cstudioSiteServiceSimple"/>
-        <property name="securityProvider" ref="securityProvider"/>
-        <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
     <!-- Utilities -->

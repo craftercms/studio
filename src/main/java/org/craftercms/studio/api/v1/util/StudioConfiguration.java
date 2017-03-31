@@ -138,8 +138,6 @@ public interface StudioConfiguration {
     String MAIL_DEBUG = "studio.mail.debug";
 
     /** Jobs */
-    String JOB_PASSWORD = "studio.job.password";
-    String JOB_USERNAME = "studio.job.username";
     String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_PROCESSING_CHUNK_SIZE = "studio.job.deployContentToEnvironment.processingChunkSize";
     String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_MANDATORY_DEPENDENCIES_CHECK_ENABLED = "studio.job.deployContentToEnvironment.mandatoryDependenciesCheckEnabled";
     String JOB_DEPLOYMENT_MASTER_PUBLISHING_NODE = "studio.job.deployment.masterPublishingNode";

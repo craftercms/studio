@@ -32,6 +32,7 @@ import org.craftercms.studio.api.v1.service.notification.NotificationService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.PublishingChannelGroupConfigTO;
 import org.craftercms.studio.api.v1.to.PublishingTargetTO;
+import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.impl.v1.job.RepositoryJob;
 
 import java.util.*;
@@ -64,7 +65,7 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
         running = isRunning;
     }
 
-    public void executeAsSignedInUser() {
+    public void execute() {
         if (isMasterPublishingNode() && !stopSignaled) {
             setRunning(true);
             if (singleWorkerLock.tryLock()) {
@@ -255,6 +256,9 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
     public EventService getEventService() { return eventService; }
     public void setEventService(EventService eventService) { this.eventService = eventService; }
 
+    public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
+
     protected PublishingManager publishingManager;
     protected ContentRepository contentRepository;
     protected SiteService siteService;
@@ -262,4 +266,5 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
     protected org.craftercms.studio.api.v2.service.notification.NotificationService notificationService2;
     protected GeneralLockService generalLockService;
     protected EventService eventService;
+    protected StudioConfiguration studioConfiguration;
 }
