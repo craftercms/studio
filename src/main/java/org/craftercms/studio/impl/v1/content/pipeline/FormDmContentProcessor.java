@@ -300,7 +300,9 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
             String folderPath = fileToFolder(site, parentItem.getUri());
             try {
                 contentService.writeContent(site, parentItem.getUri() + "/" + fileName, input);
-                objectMetadataManager.insertNewObjectMetadata(site, parentItem.getUri() + "/" + fileName);
+                if (!objectMetadataManager.metadataExist(site, parentItem.getUri() + "/" + fileName)) {
+                    objectMetadataManager.insertNewObjectMetadata(site, parentItem.getUri() + "/" + fileName);
+                }
                 Map<String, Object> properties = new HashMap<>();
                 properties.put(ObjectMetadata.PROP_NAME, fileName);
                 properties.put(ObjectMetadata.PROP_MODIFIED, new Date());

@@ -384,6 +384,9 @@ public class ContentServiceImpl implements ContentService {
 
         if (result) {
             // Update database with commitId
+            if (!objectMetadataManager.metadataExist(site, path)) {
+                objectMetadataManager.insertNewObjectMetadata(site, path);
+            }
             objectMetadataManager.updateCommitId(site, path, commitId);
             siteService.updateLastCommitId(site, commitId);
         }
