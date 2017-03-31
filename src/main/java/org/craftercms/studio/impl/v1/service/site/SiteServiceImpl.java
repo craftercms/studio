@@ -707,24 +707,24 @@ public class SiteServiceImpl implements SiteService {
 		    switch (repoOperation.getOperation()) {
 			    case CREATE:
 			    case COPY:
-			        ObjectState state = objectStateService.getObjectState(site, repoOperation.getPath(), false);
-			        if (state == null) {
-                        objectStateService.insertNewEntry(site, repoOperation.getPath());
-                    } else {
-                        objectStateService.transition(site, repoOperation.getPath(), TransitionEvent.SAVE);
-                    }
-                    if (!objectMetadataManager.metadataExist(site, repoOperation.getPath())) {
-                        objectMetadataManager.insertNewObjectMetadata(site, repoOperation.getPath());
-                    }
+				    ObjectState state = objectStateService.getObjectState(site, repoOperation.getPath(), false);
+				    if (state == null) {
+					    objectStateService.insertNewEntry(site, repoOperation.getPath());
+				    } else {
+					    objectStateService.transition(site, repoOperation.getPath(), TransitionEvent.SAVE);
+				    }
+				    if (!objectMetadataManager.metadataExist(site, repoOperation.getPath())) {
+					    objectMetadataManager.insertNewObjectMetadata(site, repoOperation.getPath());
+				    }
 				    toReturn = extractDependenciesForItem(site, repoOperation.getPath());
 				    break;
 
 			    case UPDATE:
-                    objectStateService.getObjectState(site, repoOperation.getPath());
+				    objectStateService.getObjectState(site, repoOperation.getPath());
 				    objectStateService.transition(site, repoOperation.getPath(), TransitionEvent.SAVE);
-                    if (!objectMetadataManager.metadataExist(site, repoOperation.getPath())) {
-                        objectMetadataManager.insertNewObjectMetadata(site, repoOperation.getPath());
-                    }
+				    if (!objectMetadataManager.metadataExist(site, repoOperation.getPath())) {
+					    objectMetadataManager.insertNewObjectMetadata(site, repoOperation.getPath());
+				    }
 				    toReturn = extractDependenciesForItem(site, repoOperation.getPath());
 				    break;
 
@@ -735,81 +735,81 @@ public class SiteServiceImpl implements SiteService {
 				    break;
 
 			    case MOVE:
-                    ObjectState stateRename = objectStateService.getObjectState(site, repoOperation.getPath(), false);
-                    if (stateRename == null) {
-                        objectStateService.getObjectState(site, repoOperation.getPath());
-                        objectStateService.transition(site, repoOperation.getPath(), TransitionEvent.SAVE);
-                    } else {
-                        objectStateService.updateObjectPath(site, repoOperation.getPath(), repoOperation.getMoveToPath());
-                        objectStateService.transition(site, repoOperation.getPath(), TransitionEvent.SAVE);
-                    }
-                    if (!objectMetadataManager.metadataExist(site, repoOperation.getPath())) {
-                        if (!objectMetadataManager.metadataExist(site, repoOperation.getMoveToPath())) {
-                            objectMetadataManager.insertNewObjectMetadata(site, repoOperation.getMoveToPath());
-                        } else {
-                            if (!objectMetadataManager.isRenamed(site, repoOperation.getMoveToPath())) {
-                                // set renamed and old path
-                                Map<String, Object> properties = new HashMap<String, Object>();
-                                properties.put(ObjectMetadata.PROP_SITE, site);
-                                properties.put(ObjectMetadata.PROP_PATH, repoOperation.getMoveToPath());
-                                properties.put(ObjectMetadata.PROP_RENAMED, 1);
-                                properties.put(ObjectMetadata.PROP_OLD_URL, repoOperation.getPath());
-                                objectMetadataManager.setObjectMetadata(site, repoOperation.getMoveToPath(), properties);
-                            }
-                        }
-                    } else {
-                        if (!objectMetadataManager.metadataExist(site, repoOperation.getMoveToPath())) {
-                            // preform move: update path, set renamed, set old url
-                            objectMetadataManager.updateObjectPath(site, repoOperation.getPath(), repoOperation.getMoveToPath());
-                            Map<String, Object> properties = new HashMap<String, Object>();
-                            properties.put(ObjectMetadata.PROP_SITE, site);
-                            properties.put(ObjectMetadata.PROP_PATH, repoOperation.getMoveToPath());
-                            properties.put(ObjectMetadata.PROP_RENAMED, 1);
-                            properties.put(ObjectMetadata.PROP_OLD_URL, repoOperation.getPath());
-                            objectMetadataManager.setObjectMetadata(site, repoOperation.getMoveToPath(), properties);
-                        } else {
-                            // if not already renamed set renamed and old url
-                            if (!objectMetadataManager.isRenamed(site, repoOperation.getMoveToPath())) {
-                                // set renamed and old path
-                                Map<String, Object> properties = new HashMap<String, Object>();
-                                properties.put(ObjectMetadata.PROP_SITE, site);
-                                properties.put(ObjectMetadata.PROP_PATH, repoOperation.getMoveToPath());
-                                properties.put(ObjectMetadata.PROP_RENAMED, 1);
-                                properties.put(ObjectMetadata.PROP_OLD_URL, repoOperation.getPath());
-                                objectMetadataManager.setObjectMetadata(site, repoOperation.getMoveToPath(), properties);
-                            }
-                            objectMetadataManager.deleteObjectMetadata(site, repoOperation.getPath());
-                        }
-                    }
+				    ObjectState stateRename = objectStateService.getObjectState(site, repoOperation.getPath(), false);
+				    if (stateRename == null) {
+					    objectStateService.getObjectState(site, repoOperation.getPath());
+					    objectStateService.transition(site, repoOperation.getPath(), TransitionEvent.SAVE);
+				    } else {
+					    objectStateService.updateObjectPath(site, repoOperation.getPath(), repoOperation.getMoveToPath());
+
+					    objectStateService.transition(site, repoOperation.getPath(), TransitionEvent.SAVE);
+				    }
+				    if (!objectMetadataManager.metadataExist(site, repoOperation.getPath())) {
+					    if (!objectMetadataManager.metadataExist(site, repoOperation.getMoveToPath())) {
+						    objectMetadataManager.insertNewObjectMetadata(site, repoOperation.getMoveToPath());
+					    } else {
+						    if (!objectMetadataManager.isRenamed(site, repoOperation.getMoveToPath())) {
+							    // set renamed and old path
+							    Map<String, Object> properties = new HashMap<String, Object>();
+							    properties.put(ObjectMetadata.PROP_SITE, site);
+							    properties.put(ObjectMetadata.PROP_PATH, repoOperation.getMoveToPath());
+							    properties.put(ObjectMetadata.PROP_RENAMED, 1);
+							    properties.put(ObjectMetadata.PROP_OLD_URL, repoOperation.getPath());
+							    objectMetadataManager.setObjectMetadata(site, repoOperation.getMoveToPath(), properties);
+						    }
+					    }
+				    } else {
+					    if (!objectMetadataManager.metadataExist(site, repoOperation.getMoveToPath())) {
+						    // preform move: update path, set renamed, set old url
+						    objectMetadataManager.updateObjectPath(site, repoOperation.getPath(), repoOperation.getMoveToPath());
+						    Map<String, Object> properties = new HashMap<String, Object>();
+						    properties.put(ObjectMetadata.PROP_SITE, site);
+						    properties.put(ObjectMetadata.PROP_PATH, repoOperation.getMoveToPath());
+						    properties.put(ObjectMetadata.PROP_RENAMED, 1);
+						    properties.put(ObjectMetadata.PROP_OLD_URL, repoOperation.getPath());
+						    objectMetadataManager.setObjectMetadata(site, repoOperation.getMoveToPath(), properties);
+					    } else {
+						    // if not already renamed set renamed and old url
+						    if (!objectMetadataManager.isRenamed(site, repoOperation.getMoveToPath())) {
+							    // set renamed and old path
+							    Map<String, Object> properties = new HashMap<String, Object>();
+							    properties.put(ObjectMetadata.PROP_SITE, site);
+							    properties.put(ObjectMetadata.PROP_PATH, repoOperation.getMoveToPath());
+							    properties.put(ObjectMetadata.PROP_RENAMED, 1);
+							    properties.put(ObjectMetadata.PROP_OLD_URL, repoOperation.getPath());
+							    objectMetadataManager.setObjectMetadata(site, repoOperation.getMoveToPath(), properties);
+						    }
+						    objectMetadataManager.deleteObjectMetadata(site, repoOperation.getPath());
+					    }
+				    }
 				    toReturn = extractDependenciesForItem(site, repoOperation.getPath());
 				    break;
 
 			    default:
-				    logger.error("Error: Unknown repo operation for site " + site + " operation: " +
-					    repoOperation.getOperation());
-			    	toReturn = false;
+				    logger.error("Error: Unknown repo operation for site " + site + " operation: " + repoOperation.getOperation());
+				    toReturn = false;
 				    break;
 		    }
+	    }
 
-		    // If successful so far, update the database
-		    if (toReturn) {
-			    logger.info("Done sync'ing operations, now syncing database lastCommitId for site: " + site);
+	    // If successful so far, update the database
+	    if (toReturn) {
+		    logger.info("Done syncing operations, now syncing database lastCommitId for site: " + site);
 
-			    // Update database
-                String lastCommitId = contentRepository.getRepoLastCommitId(site);
-                updateLastCommitId(site, lastCommitId);
-                // Sync all preview deployers
-                try {
-                    deploymentService.syncAllContentToPreview(site);
-                } catch (ServiceException e) {
-                    logger.error("Error synchronizing preview with repository for site: " + site, e);
-                }
-            } else {
-		    	// Failed during sync database from repo, we're aborting
-			    // TODO: SJ: Must log and make some noise here, this is bad
-			    logger.error("Failed to sync database from repository for site " + site);
-		    	break;
-		    }
+		    // Update database
+            String lastCommitId = contentRepository.getRepoLastCommitId(site);
+            updateLastCommitId(site, lastCommitId);
+            // Sync all preview deployers
+            try {
+                deploymentService.syncAllContentToPreview(site);
+            } catch (ServiceException e) {
+                logger.error("Error synchronizing preview with repository for site: " + site, e);
+            }
+        } else {
+	        // Failed during sync database from repo, we're aborting
+		    // TODO: SJ: Must log and make some noise here, this is bad
+		    logger.error("Failed to sync database from repository for site " + site);
+	        break;
 	    }
 
 	    logger.info("Done syncing database with repository for site: " + site + " fromCommitId = " + fromCommitId +
