@@ -693,7 +693,7 @@ public class SiteServiceImpl implements SiteService {
     public boolean syncDatabaseWithRepo(String site, String fromCommitId) {
 		boolean toReturn = true;
 
-		logger.debug("Syncing database with repository for site: " + site + " fromCommitId = " + fromCommitId);
+		logger.info("Syncing database with repository for site: " + site + " fromCommitId = " + fromCommitId);
 
 	    List<RepoOperationTO> repoOperations = contentRepository.getOperations(site, fromCommitId, contentRepository
 		    .getRepoLastCommitId(site));
@@ -793,6 +793,8 @@ public class SiteServiceImpl implements SiteService {
 
 		    // If successful so far, update the database
 		    if (toReturn) {
+			    logger.info("Done sync'ing operations, now syncing database lastCommitId for site: " + site);
+
 			    // Update database
                 String lastCommitId = contentRepository.getRepoLastCommitId(site);
                 updateLastCommitId(site, lastCommitId);
@@ -809,6 +811,9 @@ public class SiteServiceImpl implements SiteService {
 		    	break;
 		    }
 	    }
+
+	    logger.info("Done syncing database with repository for site: " + site + " fromCommitId = " + fromCommitId +
+		    " with a final result of: " + toReturn);
 
 	    return toReturn;
     }
