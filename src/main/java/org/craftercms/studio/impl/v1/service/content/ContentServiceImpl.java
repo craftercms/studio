@@ -86,7 +86,7 @@ public class ContentServiceImpl implements ContentService {
     @Override
     public InputStream getContent(String site, String path) throws ContentNotFoundException {
         // TODO: SJ: Refactor in 2.7.x as this already exists in Crafter Core (which is part of the new Studio)
-       return this._contentRepository.getContent(site, path);
+        return this._contentRepository.getContent(site, path);
     }
 
     @Override
@@ -106,7 +106,7 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     public Document getContentAsDocument(String site, String path)
-    throws DocumentException {
+            throws DocumentException {
         // TODO: SJ: Refactor in 2.7.x as this already exists in Crafter Core (which is part of the new Studio)
         Document retDocument = null;
         InputStream is = null;
@@ -178,17 +178,17 @@ public class ContentServiceImpl implements ContentService {
                     if (objectState.getSystemProcessing() != 0) {
                         // TODO: SJ: Review and refactor/redo
                         logger.error("Error Content {0} is being processed (Object State is system "
-                            + "processing);", fileName);
+                                + "processing);", fileName);
                         throw new ServiceException("Content " + fileName + " is in system processing, we can't write "
-                            + "it");
+                                + "it");
                     }
 
                     objectStateService.setSystemProcessing(site, path, true);
                 }
                 else {
                     logger.error("the object state is still null even after attempting to create it for site {0} "
-                        + "path {1} fileName {2} contentType {3}"
-                        + ".", site, path, fileName, contentType);
+                            + "path {1} fileName {2} contentType {3}"
+                            + ".", site, path, fileName, contentType);
                 }
             }
 
@@ -263,7 +263,7 @@ public class ContentServiceImpl implements ContentService {
 
         // TODO: SJ: FIXME: Remove the log below after testing
         logger.debug("Write and rename for site '{}' path '{}' targetPath '{}' "
-            + "fileName '{}' content type '{}'", site, path, targetPath, fileName, contentType);
+                + "fileName '{}' content type '{}'", site, path, targetPath, fileName, contentType);
 
         // TODO: SJ: The block below seems to be there to fix a stuck lock, refactor and remove in 2.7.x
         if (!generalLockService.tryLock(id)) {
@@ -274,10 +274,12 @@ public class ContentServiceImpl implements ContentService {
 
         try {
             writeContent(site, path, fileName, contentType, input, createFolders, edit, unlock);
-            dmRenameService.rename(site, path, targetPath, createFolder);
+            // RDTMP_COPYPASTE
+            // GET RID OF DM RENAME SERVIE
+            // dmWorkflowService.rename(site, path, targetPath, createFolder);
         } catch (ServiceException | RuntimeException e) {
             logger.error("Error while executing write and rename for site '{}' path '{}' targetPath '{}' "
-                + "fileName '{}' content type '{}'", e, site, path, targetPath, fileName, contentType);
+                    + "fileName '{}' content type '{}'", e, site, path, targetPath, fileName, contentType);
         } finally {
             generalLockService.unlock(id);
         }
@@ -549,7 +551,7 @@ public class ContentServiceImpl implements ContentService {
     }
 
     protected ContentItemTO populateContentDrivenProperties(String site, ContentItemTO item)
-    throws Exception {
+            throws Exception {
         // This method load an XML content item and populates properties in the TO from the XML
         // TODO: SJ: Two problems here that need to be fixed in 3.1+
         // TODO: SJ: Use Crafter Core for some/all of this work
@@ -611,7 +613,7 @@ public class ContentServiceImpl implements ContentService {
             }
         }
         else {
-             logger.error("no xml document could be loaded for site '{}' path '{}'", site, contentPath);
+            logger.error("no xml document could be loaded for site '{}' path '{}'", site, contentPath);
         }
 
         return item;
@@ -669,7 +671,7 @@ public class ContentServiceImpl implements ContentService {
         item.numOfChildren = 0;
 
         if(contentPath.indexOf("/index.xml") != -1
-        || contentPath.indexOf(".") == -1 ) { // item.isFolder?
+                || contentPath.indexOf(".") == -1 ) { // item.isFolder?
 
             if (contentPath.indexOf("/index.xml") != -1) {
                 contentPath = contentPath.replace("/index.xml", "");
@@ -727,9 +729,9 @@ public class ContentServiceImpl implements ContentService {
                 }
 
                 // ORDER THE CHILDREN
-                    // level descriptors first
-                    // nav pages by order
-                    // floating pages via Alpha
+                // level descriptors first
+                // nav pages by order
+                // floating pages via Alpha
                 Comparator<ContentItemTO> comparator = new ContentItemOrderComparator("default", true, true, true);
                 Collections.sort(children, comparator);
                 item.children = children;
@@ -842,7 +844,7 @@ public class ContentServiceImpl implements ContentService {
             String mimeType = mimeTypesMap.getContentType(item.getName());
             if (mimeType != null && !StringUtils.isEmpty(mimeType)) {
                 item.setPreviewable(ContentUtils.matchesPatterns(mimeType, servicesConfig
-                    .getPreviewableMimetypesPaterns(site)));
+                        .getPreviewableMimetypesPaterns(site)));
                 item.isPreviewable = item.previewable;
             }
         }
@@ -960,7 +962,7 @@ public class ContentServiceImpl implements ContentService {
 
         long executionTime = System.currentTimeMillis() - startTime;
         logger.debug("Content item tree ['{}':'{}' depth '{}'] retrieved in '{}' milli-seconds", site, path, depth,
-            executionTime);
+                executionTime);
 
         return root;
     }
@@ -991,15 +993,15 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
- 	public InputStream getContentVersion(String site, String path, String version)
- 	throws ContentNotFoundException {
- 		return _contentRepository.getContentVersion(site, path, version);
- 	}
+    public InputStream getContentVersion(String site, String path, String version)
+            throws ContentNotFoundException {
+        return _contentRepository.getContentVersion(site, path, version);
+    }
 
- 	@Override
- 	public String getContentVersionAsString(String site, String path, String version)
-	throws ContentNotFoundException {
- 		String content = null;
+    @Override
+    public String getContentVersionAsString(String site, String path, String version)
+            throws ContentNotFoundException {
+        String content = null;
 
         try {
             content = IOUtils.toString(getContentVersion(site, path, version));
@@ -1010,9 +1012,9 @@ public class ContentServiceImpl implements ContentService {
         }
 
         return content;
- 	}
+    }
 
- 	@Override
+    @Override
     public ContentItemTO createDummyDmContentItemForDeletedNode(String site, String relativePath) {
         // TODO: SJ: Think of another way to do this in 3.1+
 
@@ -1117,7 +1119,7 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     public ResultTO processContent(String id, InputStream input, boolean isXml, Map<String, String> params, String contentChainForm) throws ServiceException {
- 	    // TODO: SJ: Pipeline Processor is not defined right, we need to refactor in 3.1+
+        // TODO: SJ: Pipeline Processor is not defined right, we need to refactor in 3.1+
         // TODO: SJ: Pipeline should take input, and give you back output
         // TODO: SJ: Presently, this takes action and performs the action as a side effect of the processor chain
         // TODO: SJ: Furthermore, we have redundancy in the code of the processors
@@ -1370,7 +1372,6 @@ public class ContentServiceImpl implements ContentService {
     protected ObjectStateService objectStateService;
     protected DmDependencyService dependencyService;
     protected ProcessContentExecutor contentProcessor;
-    protected DmRenameService dmRenameService;
     protected ObjectMetadataManager objectMetadataManager;
     protected SecurityService securityService;
     protected DmPageNavigationOrderService dmPageNavigationOrderService;
@@ -1397,9 +1398,6 @@ public class ContentServiceImpl implements ContentService {
 
     public ProcessContentExecutor getContentProcessor() { return contentProcessor; }
     public void setContentProcessor(ProcessContentExecutor contentProcessor) { this.contentProcessor = contentProcessor; }
-
-    public DmRenameService getDmRenameService() { return dmRenameService; }
-    public void setDmRenameService(DmRenameService dmRenameService) { this.dmRenameService = dmRenameService; }
 
     public ObjectMetadataManager getObjectMetadataManager() { return objectMetadataManager; }
     public void setObjectMetadataManager(ObjectMetadataManager objectMetadataManager) { this.objectMetadataManager = objectMetadataManager; }

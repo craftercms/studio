@@ -19,11 +19,7 @@ package org.craftercms.studio.api.v1.constant;
 
 
 /**
- * Created by IntelliJ IDEA.
- * User: dejan
- * Date: 12/22/11
- * Time: 2:00 PM
- * To change this template use File | Settings | File Templates.
+ * Tag names used by Crafter CMS XML representation of content objects
  */
 public class DmXmlConstants {
     public static final String ELM_COMPONENT = "component";
@@ -32,6 +28,7 @@ public class DmXmlConstants {
     public static final String ELM_PLACEINNAV = "placeInNav";
     public static final String ELM_DISABLED = "disabled";
     public static final String ELM_INTERNAL_NAME = StudioXmlConstants.DOCUMENT_ELM_INTERNAL_TITLE;
+    public static final String ELM_FOLDER_NAME = "folder-name";
     public static final String ELM_CONTENT_TYPE = StudioXmlConstants.DOCUMENT_ELM_CONTENT_TYPE;
     public static final String ELM_DISPLAY_TEMPLATE = StudioXmlConstants.DOCUMENT_ELM_DISPLAY_TEMPLATE;
     public static final String ELM_LAST_MODIFIED_DATE = "lastModifiedDate";

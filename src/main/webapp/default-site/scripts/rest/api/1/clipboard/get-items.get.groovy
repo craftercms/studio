@@ -1,16 +1,23 @@
-import scripts.api.ClipboardServices;
+import scripts.api.ClipboardServices
 
 def result = [:]
 def site = params.site
-def session = request.session
 
 def context = ClipboardServices.createContext(applicationContext, request)
-def clipboardItem = ClipboardServices.getItems(site, session, context)
+def clipboardOp = ClipboardServices.getItems(site, context)
 
+result.count = 0
 result.site = site
-if (clipboardItem != null) {
-    result.item = clipboardItem.item
-    result.count = clipboardItem.item.size
+
+if (clipboardOp != null) {
+    result.count = 1 + clipboardOp.children.size()
+
+    result.item = []
+
+	def item = [:]
+	item.uri = clipboardOp.path
+	result.item.add(item)
+
 }
 
 return result
