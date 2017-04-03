@@ -32,69 +32,6 @@ import org.craftercms.studio.api.v1.to.ResultTO;
 
 public interface WorkflowService {
 
-	public static final String STATE_CREATED = "created";
-	public static final String STATE_STARTED = "started";
-	public static final String STATE_IN_PROGRESS = "in-progress";
-	public static final String STATE_COMPLETE = "complete";
-	public static final String STATE_ENDED = "ended";
-	
-	/**
-	 * create a workflow job
-	 * @param site the site which owns the workflow
-	 * @param paths the paths in-flight
-	 * @param processName the name of the workflow process
-	 * @param properties the properties for the flow
-	 */
-	WorkflowJob createJob(String site, List<String> paths,  String processName, Map<String, String> properties);
-	
-	/**
-	 * get a list of active jobs
-	 */
-	List<WorkflowJob> getActiveJobs();
-	
-	/**
-	 * get a list of jobs in a particular set of states
-	 * @param states the list of states to filter for (null is all states)
-	 */
-	List<WorkflowJob> getJobsInState(Set<String> states);
-
-	/**
-	 * for a given job ID return the job object
-	 * @jobId the id of the job to return
-	 */
-	WorkflowJob getJob(String jobId);
-	
-	/**
-	 * given a workflow job transfer object, update the workflow in the system
-	 * @param job the job to update
-	 */
-	WorkflowJob updateJob(WorkflowJob job);
-	
-	/**
-	 * given a job ID, delete the job
-	 * @jobId the job to delete
-	 */
-	boolean deleteJob(String jobId);
-	
-	/**
-	 * given a jobID move it to the start phase
-	 * @param jobId the ID of the job to start
-	 */
-	boolean startJob(String jobId);
-
-	/**
-	 * Set the state of a job to a given state
-	 * @param jobId the id of the job to transition
-	 * @parm the state to transition to
-	 */
-	boolean transitionJobState(String jobId, String state);
-	
-	/**
-	 * end a job
-	 * @param jobId the id of the job to end
-	 */
-	boolean endJob(String jobId);
-	
 	/**
 	 * submit content to go-live
 	 * - convienience method for workflow that puts items in the approval queue for go-live

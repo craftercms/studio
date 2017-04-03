@@ -49,7 +49,6 @@ import org.craftercms.studio.api.v1.service.objectstate.State;
 import org.craftercms.studio.api.v1.service.objectstate.TransitionEvent;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.api.v1.service.workflow.WorkflowJob;
 import org.craftercms.studio.api.v1.service.workflow.WorkflowService;
 import org.craftercms.studio.api.v1.service.notification.NotificationService;
 import org.craftercms.studio.api.v1.service.workflow.context.GoLiveContext;
@@ -61,7 +60,6 @@ import org.craftercms.studio.api.v1.util.DmContentItemComparator;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 import org.craftercms.studio.api.v2.service.notification.NotificationMessageType;
-import org.craftercms.studio.impl.v1.service.workflow.dal.WorkflowJobDAL;
 import org.craftercms.studio.impl.v1.service.workflow.operation.*;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
@@ -107,54 +105,6 @@ public class WorkflowServiceImpl implements WorkflowService {
     protected String JSON_KEY_USER = "user";
     protected String JSON_KEY_REASON = "reason";
 	public static final String COMPLETE_SUBMIT_TO_GO_LIVE_MSG = "submitToGoLive";
-
-
-	public WorkflowJob createJob(String site, List<String> srcPaths,  String processName, Map<String, String> properties) {
-		WorkflowJob job = _workflowJobDAL.createJob(site, srcPaths, processName, properties);
-		job.setCurrentStatus(WorkflowService.STATE_STARTED);
-		job = _workflowJobDAL.updateJob(job);
-
-		return job;
-	}
-
-	public List<WorkflowJob> getActiveJobs() {
-		List<WorkflowJob> allJobs = _workflowJobDAL.getJobsByState(null);
-		// Reverse scan and delete STATE_ENDED jobs from list
-		for (int i = allJobs.size(); i > 0;) {
-			WorkflowJob job = allJobs.get(--i);
-			if (job.getCurrentStatus().equals(WorkflowService.STATE_ENDED))
-				allJobs.remove(i);
-		}
-		return allJobs;
-	}
-
-	public List<WorkflowJob> getJobsInState(Set<String> states) {
-		return _workflowJobDAL.getJobsByState(states);
-	}
-
-	public WorkflowJob getJob(String jobId) {
-		return _workflowJobDAL.getJob(jobId);
-	}
-
-	public WorkflowJob updateJob(WorkflowJob job) {
-		return _workflowJobDAL.updateJob(job);
-	}
-
-	public boolean deleteJob(String jobId) {
-		return _workflowJobDAL.deleteJob(jobId);
-	}
-
-	public boolean startJob(String jobId) {
-		return false;
-	}
-
-	public boolean transitionJobState(String jobId, String state) {
-		return false;
-	}
-
-	public boolean endJob(String jobId) {
-		return false;
-	}
 
 	@Override
 	public ResultTO submitToGoLive(String site, String username, String request) throws ServiceException {
@@ -401,7 +351,6 @@ public class WorkflowServiceImpl implements WorkflowService {
 	 * get the top category items that to be displayed in UI
 	 *
 	 * @param site
-
 	 */
 	protected List<ContentItemTO> getCategoryItems(final String site) {
 		String siteRootPrefix = servicesConfig.getRootPrefix(site);
@@ -2540,8 +2489,6 @@ public class WorkflowServiceImpl implements WorkflowService {
         }
     }
 
-    public void setWorkflowJobDAL(WorkflowJobDAL dal) { _workflowJobDAL = dal; }
-
 
 	// // @Override
 	public NotificationService getNotificationService() { return notificationService; }
@@ -2607,7 +2554,6 @@ public class WorkflowServiceImpl implements WorkflowService {
         return toReturn;
     }
 
-    private WorkflowJobDAL _workflowJobDAL;
 	private NotificationService notificationService;
 	protected ServicesConfig servicesConfig;
 	protected DeploymentService deploymentService;
