@@ -445,7 +445,8 @@ public class ContentServiceImpl implements ContentService {
         boolean exists = contentExists(site, path);
         if (exists) {
             ObjectMetadata properties = objectMetadataManager.getProperties(site, path);
-            String user = (properties != null && !StringUtils.isEmpty(properties.getSubmittedBy()) ? properties.getSubmittedBy() : approver);
+            String user = (properties != null && !StringUtils.isEmpty(properties.getSubmittedBy()) ? properties
+                .getSubmittedBy() : approver);
             Map<String, String> extraInfo = new HashMap<String, String>();
             if (path.endsWith(DmConstants.XML_PATTERN)) {
                 extraInfo.put(DmConstants.KEY_CONTENT_TYPE, getContentTypeClass(site, path));
@@ -460,28 +461,27 @@ public class ContentServiceImpl implements ContentService {
                 dmContentLifeCycleService.process(site, user, path,
                         contentType, DmContentLifeCycleService.ContentLifeCycleOperation.DELETE, null);
             }
-
         }
     }
 
     @Override
-    public boolean copyContent(String site, String fromPath, String toPath) {
-        boolean toReturn = false;
+    public String copyContent(String site, String fromPath, String toPath) {
+        String toReturn = null;
         String commitId = _contentRepository.copyContent(site, fromPath, toPath);
 
         if (commitId != null) {
             // Update the database with the commitId for the target item
             objectMetadataManager.updateCommitId(site, toPath, commitId);
             siteService.updateLastCommitId(site, commitId);
-            toReturn = true;
+            toReturn = toPath;
         }
 
         return toReturn;
     }
 
     @Override
-    public boolean moveContent(String site, String fromPath, String toPath) {
-        boolean toReturn = false;
+    public String moveContent(String site, String fromPath, String toPath) {
+        String toReturn = null;
         String commitId = _contentRepository.moveContent(site, fromPath, toPath);
         eventService.firePreviewSyncEvent(site);
 
@@ -489,29 +489,11 @@ public class ContentServiceImpl implements ContentService {
             // Update the database with the commitId for the target item
             objectMetadataManager.updateCommitId(site, toPath, commitId);
             siteService.updateLastCommitId(site, commitId);
-            toReturn = true;
+            toReturn = toPath;
         }
 
         return toReturn;
     }
-
-    @Override
-    public boolean moveContent(String site, String fromPath, String toPath, String newName) {
-        boolean toReturn = false;
-
-        String commitId = _contentRepository.moveContent(site, fromPath, toPath, newName);
-        eventService.firePreviewSyncEvent(site);
-
-        if (commitId != null) {
-            // Update the database with the commitId for the target item
-            objectMetadataManager.updateCommitId(site, toPath, commitId);
-            siteService.updateLastCommitId(site, commitId);
-            toReturn = true;
-        }
-
-        return toReturn;
-    }
-
 
     /**
      * internal method copy that handles
@@ -519,11 +501,9 @@ public class ContentServiceImpl implements ContentService {
      */
     protected String copyContent(String site, String fromPath, String toPath, Set<String> processedPaths) {
         String retNewFileName = null;
-        boolean opSuccess = false;
 
         String lifecycleOp = DmContentLifeCycleService.ContentLifeCycleOperation.COPY.toString();
         String user = securityService.getCurrentUser();
-        String sessionTicket = securityProvider.getCurrentToken();
         String copyPath = null;
 
         try {
@@ -545,23 +525,21 @@ public class ContentServiceImpl implements ContentService {
                     Document fromDocument = ContentUtils.convertStreamToXml(fromContent);
                     Map<String, String> fromPageIds = getContentIds(fromDocument);
 
-                    logger.debug("copying file for site {0} from {1} to {2}, new name is {3}", site, fromPath, toPath, copyPath);
+                    logger.debug("copying file for site {0} from {1} to {2}, new name is {3}", site, fromPath,
+                        toPath, copyPath);
 
                     // come up with a new object ID and group ID for the object
                     Map<String,String> copyObjectIds = contentItemIdGenerator.getIds();
 
-                    Map<String, String> copyDependencies = dependencyService.getCopyDependencies(site, fromPath, fromPath);
+                    Map<String, String> copyDependencies = dependencyService.getCopyDependencies(site, fromPath,
+                        fromPath);
                     copyDependencies = getItemSpecificDependencies(fromDocument, copyDependencies);
                     logger.debug("Calculated copy dependencies: {0}, {1}", fromPath, copyDependencies);
 
                     // Duplicate the children
-                    for(String dependecyKey : copyDependencies.keySet()) {
-                        String dependecyPath = copyDependencies.get(dependecyKey);
-                        String copyDepPath = dependecyPath;
-
-                        // Does not seem to work (leaving it here because it's suspposed to do the work below)
-                        //PathMacrosTransaltor.resolvePath(dependecyPath, copyObjectIds);
-                        //copyDepPath = copyDepPath + "/" +  dependecyPath.substring(dependecyPath.lastIndexOf("/")+1);
+                    for(String dependencyKey : copyDependencies.keySet()) {
+                        String dependencyPath = copyDependencies.get(dependencyKey);
+                        String copyDepPath = dependencyPath;
 
                         // try a simple substitution
                         copyDepPath = copyDepPath.replaceAll(
@@ -571,17 +549,19 @@ public class ContentServiceImpl implements ContentService {
                         copyDepPath = copyDepPath.replaceAll(
                                 fromPageIds.get(DmConstants.KEY_PAGE_GROUP_ID),
                                 copyObjectIds.get(DmConstants.KEY_PAGE_GROUP_ID));
-                        logger.debug("TRANSLATED DEP PATH {0} to {1}", dependecyPath, copyDepPath);
+                        logger.debug("Translated dependency path from {0} to {1}", dependencyPath, copyDepPath);
 
-                        copyContent(site, dependecyPath, copyDepPath, processedPaths);
+                        copyContent(site, dependencyPath, copyDepPath, processedPaths);
                     }
 
                     // update the file name / folder values
-                    Document copyDocument = updateContentForCopy(site, fromDocument, copyPathFileName, copyPathFolder, copyObjectIds, copyPathModifier);
+                    Document copyDocument = updateContentOnCopy(fromDocument, copyPathFileName, copyPathFolder,
+                        copyObjectIds, copyPathModifier);
 
-                    InputStream copyContent = ContentUtils.convertDocumentToStream(copyDocument, StudioConstants.CONTENT_ENCODING);
+                    InputStream copyContent = ContentUtils.convertDocumentToStream(copyDocument, StudioConstants
+                        .CONTENT_ENCODING);
 
-                    // This code is very similar to what is in WRTIE CONTENT. Consolidate this code?
+                    // This code is very similar to what is in writeContent. Consolidate this code?
                     Map<String, String> params = new HashMap<String, String>();
                     params.put(DmConstants.KEY_SITE, site);
                     params.put(DmConstants.KEY_PATH, copyPathOnly);
@@ -596,7 +576,6 @@ public class ContentServiceImpl implements ContentService {
                     params.put(DmConstants.CONTENT_LIFECYCLE_OPERATION, lifecycleOp);
 
                     String id = site + ":" + copyPathOnly + ":" + copyFileName + ":" + contentType;
-
 
                     try {
                         generalLockService.lock(id);
@@ -618,8 +597,6 @@ public class ContentServiceImpl implements ContentService {
                         if (objectState == null) {
                             ContentItemTO copyItem = getContentItem(site, copyPath, 0);
                             objectStateService.insertNewEntry(site, copyItem);
-                            objectState = objectStateService.getObjectState(site, copyPath);
-
                             objectStateService.setSystemProcessing(site, copyPath, false);
                         }
 
@@ -640,8 +617,7 @@ public class ContentServiceImpl implements ContentService {
                 catch(DocumentException eParseException) {
                     logger.error("General Error while copying content for site {0} from {1} to {2}, new name is {3}", eParseException, site, fromPath, toPath, copyPath);
                 }
-            }
-            else {
+            } else {
                 // no need to process
                 retNewFileName = copyPath;
             }
@@ -654,28 +630,23 @@ public class ContentServiceImpl implements ContentService {
     }
 /* ===================== */
 
-    protected void updateDatabaseCachePreviewForMove(String site, String fromPath, String movePath, boolean isMoveRoot) {
-        logger.debug("updateDatabaseCachePreviewForMove FROM {0} TO {1}  ", fromPath, movePath);
+    protected void updateDatabaseOnMove(String site, String fromPath, String movePath) {
+        logger.debug("updateDatabaseOnMove FROM {0} TO {1}  ", fromPath, movePath);
 
         String user = securityService.getCurrentUser();
-        String sessionTicket = securityProvider.getCurrentToken();
 
         Map<String, String> params = new HashMap<>();
         params.put(DmConstants.KEY_SOURCE_PATH, fromPath);
         params.put(DmConstants.KEY_TARGET_PATH, movePath);
-        // These do not exist in 3.0, not some extensions may be using it
+        // These do not exist in 3.0, note some extensions may be using it
         //params.put(DmConstants.KEY_SOURCE_FULL_PATH, expandRelativeSitePath(site, fromPath));
         //params.put(DmConstants.KEY_TARGET_FULL_PATH, expandRelativeSitePath(site, movePath));
-
-        // preRenameCleanWorkFlow(site, sourcePath);
 
         ContentItemTO renamedItem = getContentItem(site, movePath, 0);
         String contentType = renamedItem.getContentType();
 
-        dmContentLifeCycleService.process(site, user, movePath, contentType,  DmContentLifeCycleService.ContentLifeCycleOperation.RENAME, params);
-
-        //update nav order
-        //updateContentWithNewNavOrder
+        dmContentLifeCycleService.process(site, user, movePath, contentType, DmContentLifeCycleService
+            .ContentLifeCycleOperation.RENAME, params);
 
         // change the path of this object in the object state database
         objectStateService.updateObjectPath(site, fromPath, movePath);
@@ -704,11 +675,6 @@ public class ContentServiceImpl implements ContentService {
 
         objectMetadataManager.updateObjectPath(site, fromPath, movePath);
 
-        // WHAT IS THIS PROPERTY USED FOR?
-        //objMetadataProps = new HashMap<String, Object>();
-        //objMetadataProps.put(ObjectMetadata.PROP_DELETE_URL, true);
-        //objectMetadataManager.setObjectMetadata(site, movePath, objMetadataProps);
-
         // write activity stream
         activityService.renameContentId(site, fromPath, movePath);
 
@@ -727,16 +693,15 @@ public class ContentServiceImpl implements ContentService {
                 activityInfo);
     }
 
-    protected void updateChildrenForMove(String site, String fromPath, String movePath) {
-        logger.debug("updateChildObjectStateForMove HANDLING {0}, {1}", fromPath, movePath);
-
+    protected void updateChildrenOnMove(String site, String fromPath, String movePath) {
+        logger.debug("updateChildrenOnMove from {0} to {1}", fromPath, movePath);
 
         // get the list of children
         ContentItemTO movedTO = getContentItem(site, movePath, 2);
         List<ContentItemTO> childrenTOs = movedTO.getChildren();
 
         for(ContentItemTO childTO : childrenTOs) {
-            // calculate the childs from path by looking at it's parent's from path and the child new path
+            // calculate the child's from path by looking at it's parent's from path and the child new path
             // (parent move operation has already happened)
             String childToPath = childTO.getUri();
 
@@ -745,13 +710,13 @@ public class ContentServiceImpl implements ContentService {
 
             String childFromPath = childToPath.replace(parentFolderPath, oldParentFolderPath);
 
-            logger.debug("updateChildObjectStateForMove HANDLING CHILD FROM: {0} TO: {1}  ", childFromPath, childToPath);
+            logger.debug("updateChildrenOnMove handling child from: {0} to: {1}  ", childFromPath, childToPath);
 
             // update database, preview, cache etc
-            updateDatabaseCachePreviewForMove(site, childFromPath, childToPath, false);
+            updateDatabaseOnMove(site, childFromPath, childToPath);
 
             // handle this child's children
-            updateChildrenForMove(site, childFromPath, childToPath);
+            updateChildrenOnMove(site, childFromPath, childToPath);
         }
     }
 
@@ -763,23 +728,23 @@ public class ContentServiceImpl implements ContentService {
         String fromPathOnly = fromPath.substring(0, fromPath.lastIndexOf("/"));
         String fromFileNameOnly = fromPath.substring(fromPath.lastIndexOf("/")+1);
         boolean fromFileIsIndex = ("index.xml".equals(fromFileNameOnly));
-        logger.debug("cut/copy name rules FROM: {0}, {1}", fromPathOnly, fromFileNameOnly);
+        logger.debug("Cut/copy name rules from path: '{0}' name: '{1}'", fromPathOnly, fromFileNameOnly);
 
         if(fromFileIsIndex==true) {
             fromFileNameOnly = fromPathOnly.substring(fromPathOnly.lastIndexOf("/")+1);
             fromPathOnly = fromPathOnly.substring(0, fromPathOnly.lastIndexOf("/"));
-            logger.debug("cut/copy name rules INDEX FROM: {0}, {1}", fromPathOnly, fromFileNameOnly);
+            logger.debug("Cut/copy name rules index from path: '{0}' name: '{1}'", fromPathOnly, fromFileNameOnly);
         }
 
         String newPathOnly = (toPath.contains(".xml")) ? toPath.substring(0, toPath.lastIndexOf("/")) : toPath;
         String newFileNameOnly = (toPath.contains(".xml")) ? toPath.substring(toPath.lastIndexOf("/")+1) : fromFileNameOnly;
         boolean newFileIsIndex = ("index.xml".equals(newFileNameOnly));
-        logger.debug("cut/copy name rules TO: {0}, {1}", newPathOnly, newFileNameOnly);
+        logger.debug("Cut/copy name rules to path: '{0}' name: '{1}'", newPathOnly, newFileNameOnly);
 
         if(newFileIsIndex==true) {
             newFileNameOnly = newPathOnly.substring(newPathOnly.lastIndexOf("/")+1);
             newPathOnly = newPathOnly.substring(0, newPathOnly.lastIndexOf("/"));
-            logger.debug("cut/copy name rules INDEX TO: {0}, {1}", newPathOnly, newFileNameOnly);
+            logger.debug("Cut/copy name rules index to path: '{0}' name: '{1}'", newPathOnly, newFileNameOnly);
         }
 
         String proposedDestPath = null;
@@ -787,14 +752,7 @@ public class ContentServiceImpl implements ContentService {
         String proposedDestPath_folder = null;
         boolean targetPathExistsPriorToOp = false;
 
-        try {
-            targetPathExistsPriorToOp = contentExists(site, toPath);
-        }
-        catch(Exception contentExistsErr) {
-            // what can cause this error?
-            // can't talk to the repository?
-            // swallow it for now, the error will come when we try a write
-        }
+        targetPathExistsPriorToOp = contentExists(site, toPath);
 
         if(fromFileIsIndex && newFileIsIndex) {
             // Example MOVE LOCATION, INDEX FILES
@@ -804,8 +762,8 @@ public class ContentServiceImpl implements ContentService {
             //
             // Example RENAME, INDEX FILES
             // fromPath: "/site/website/en/services/index.xml"
-            // toPath:   "site/website/en/services-updated/index.xml"
-            // newPath:  "site/website/en/services-updated/index.xml
+            // toPath:   "/site/website/en/services-updated/index.xml"
+            // newPath:  "/site/website/en/services-updated/index.xml
             if(newPathOnly.equals(fromPathOnly) && !targetPathExistsPriorToOp) {
                 // this is a rename
                 proposedDestPath = newPathOnly + "/" + newFileNameOnly +  "/index.xml";
@@ -868,16 +826,9 @@ public class ContentServiceImpl implements ContentService {
 
         boolean contentExists = false;
 
-        try {
-            if(adjustOnCollide == true) {
-                // if adjustOnCollide is true we need to check, otherwise we dont
-                contentExists = contentExists(site, proposedDestPath);
-            }
-        }
-        catch(Exception contentExistsErr) {
-            // what can cause this error?
-            // can't talk to the repository?
-            // swallow it for now, the error will come when we try a write
+        if(adjustOnCollide == true) {
+            // if adjustOnCollide is true we need to check, otherwise we don't
+            contentExists = contentExists(site, proposedDestPath);
         }
 
         if(adjustOnCollide && contentExists) {
@@ -919,11 +870,13 @@ public class ContentServiceImpl implements ContentService {
             }
         }
 
-        logger.debug("FINAL PROPOSED PATH from {0} to {1} FINAL {2}", fromPath, toPath, proposedDestPath);
+        logger.debug("Final proposed path from : '{0}' to: '{1}' final name '{2}'", fromPath, toPath,
+            proposedDestPath);
         return result;
     }
 
     protected Map<String, String> getItemSpecificDependencies(Document document, Map<String, String> copyDependencies) {
+        // TODO: RD: This should move to the dependency service to be fully computed there
         //update pageId and groupId with the new one
         Element root = document.getRootElement();
 
@@ -950,6 +903,11 @@ public class ContentServiceImpl implements ContentService {
         return copyDependencies;
     }
 
+    /**
+     * Return the values for PageID and GroupID provided a Document
+     * @param document DOM to search
+     * @return Map of IDs
+     */
     protected Map<String, String> getContentIds(Document document) {
         Map<String, String> ids = new HashMap<String, String>();
 
@@ -967,7 +925,8 @@ public class ContentServiceImpl implements ContentService {
         return ids;
     }
 
-    protected Document updateContentForCopy(String site, Document document, String filename, String folder, Map<String, String> params, String modifier)
+    protected Document updateContentOnCopy(Document document, String filename, String folder, Map<String,
+        String> params, String modifier)
             throws ServiceException {
 
         //update pageId and groupId with the new one
@@ -977,44 +936,43 @@ public class ContentServiceImpl implements ContentService {
 
         Node filenameNode = root.selectSingleNode("//" + DmXmlConstants.ELM_FILE_NAME);
         if (filenameNode != null) {
-            ((Element)filenameNode).setText(filename);
+            filenameNode.setText(filename);
         }
 
         Node folderNode = root.selectSingleNode("//" + DmXmlConstants.ELM_FOLDER_NAME);
         if (folderNode != null) {
-            ((Element)folderNode).setText(folder);
+            folderNode.setText(folder);
         }
-
 
         Node pageIdNode = root.selectSingleNode("//" + DmXmlConstants.ELM_PAGE_ID);
         if (pageIdNode != null) {
-            originalPageId = ((Element)pageIdNode).getText();
-            ((Element)pageIdNode).setText(params.get(DmConstants.KEY_PAGE_ID));
+            originalPageId = pageIdNode.getText();
+            pageIdNode.setText(params.get(DmConstants.KEY_PAGE_ID));
         }
 
         if(modifier != null) {
             Node internalNameNode = root.selectSingleNode("//" + DmXmlConstants.ELM_INTERNAL_NAME);
             if (internalNameNode != null) {
-                String internalNameValue = ((Element)internalNameNode).getText();
-                ((Element)internalNameNode).setText(internalNameValue + " " + modifier);
+                String internalNameValue = internalNameNode.getText();
+                internalNameNode.setText(internalNameValue + " " + modifier);
             }
         }
 
         Node groupIdNode = root.selectSingleNode("//" + DmXmlConstants.ELM_GROUP_ID);
         if (groupIdNode != null) {
-            originalGroupId = ((Element)groupIdNode).getText();
-            ((Element)groupIdNode).setText(params.get(DmConstants.KEY_PAGE_GROUP_ID));
+            originalGroupId = groupIdNode.getText();
+            groupIdNode.setText(params.get(DmConstants.KEY_PAGE_GROUP_ID));
         }
 
         List<Node> keys = root.selectNodes("//key");
         if (keys != null) {
             for(Node keyNode : keys) {
-                String keyValue = ((Element)keyNode).getText();
+                String keyValue = keyNode.getText();
                 keyValue = keyValue.replaceAll(originalPageId, params.get(DmConstants.KEY_PAGE_ID));
                 keyValue = keyValue.replaceAll(originalGroupId, params.get(DmConstants.KEY_PAGE_GROUP_ID));
 
                 if(keyValue.contains("/page")) {
-                    ((Element)keyNode).setText(keyValue);
+                    keyNode.setText(keyValue);
                 }
             }
         }
@@ -1022,12 +980,12 @@ public class ContentServiceImpl implements ContentService {
         List<Node> includes = root.selectNodes("//include");
         if (includes != null) {
             for(Node includeNode : includes) {
-                String includeValue = ((Element)includeNode).getText();
+                String includeValue = includeNode.getText();
                 includeValue = includeValue.replaceAll(originalPageId, params.get(DmConstants.KEY_PAGE_ID));
                 includeValue = includeValue.replaceAll(originalGroupId, params.get(DmConstants.KEY_PAGE_GROUP_ID));
 
                 if(includeValue.contains("/page")) {
-                    ((Element)includeNode).setText(includeValue);
+                    includeNode.setText(includeValue);
                 }
             }
         }
