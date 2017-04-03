@@ -131,20 +131,18 @@ public class ImportServiceImpl implements ImportService {
             boolean overWrite = ContentFormatUtils.getBooleanValue(node.valueOf("@over-write"));
             final List<Node> folderNodes = node.selectNodes("folder");
             if (publish) {
-                PublishingChannelGroupConfigTO configTO = siteService.getPublishingChannelGroupConfigs(site).get(publishChannelGroup);
                 String user = securityService.getCurrentUser();
-                List<PublishingChannel> channels = getChannels(site, configTO);
-                logger.debug("[IMPORT] publishing user: " + user + ", publishing channel config: " + configTO.getName());
+                logger.debug("[IMPORT] publishing user: " + user);
 
                 this.nextStop = System.currentTimeMillis() + this.currentDelayInterval;
                 createFolders(site, importedPaths, importedFullPaths, folderNodes, fileRoot, targetRoot, "",
-                        overWrite, channels, user);
+                        overWrite, user);
                 logger.info("Starting Publish of Imported Files (Total " + importedFullPaths.size() + " On chunkSize of " + chunkSize + " )");
                 publish(site, publishChannelGroup, targetRoot, importedFullPaths, chunkSize);
             } else {
                 this.nextStop = System.currentTimeMillis() + this.currentDelayInterval;
                 createFolders(site, importedPaths, importedFullPaths, folderNodes, fileRoot, targetRoot, "",
-                        overWrite, null, null);
+                        overWrite, null);
             }
             inProgress = false;
         } else {
@@ -152,40 +150,6 @@ public class ImportServiceImpl implements ImportService {
         }
     }
 
-    /**
-     * populate channel information
-     *
-     * @param configTO
-     */
-    private List<PublishingChannel> getChannels(String site, PublishingChannelGroupConfigTO configTO) {
-        SiteService siteService = getSiteService();
-        if (configTO.getChannels() != null) {
-            List<PublishingChannel> channels = new ArrayList<PublishingChannel>();
-            for (PublishingChannelConfigTO channelConfig : configTO.getChannels()) {
-                DeploymentEndpointConfigTO endpointConfigTO = siteService.getDeploymentEndpoint(site, channelConfig.getName());
-                if (endpointConfigTO != null) {
-                    PublishingChannel channel = new PublishingChannel();
-                    logger.debug("[IMPORT] populating channel: " + channelConfig.getName() + ", id: " + channel.getId());
-                    channel.setName(channelConfig.getName());
-                    String server = endpointConfigTO.getServerUrl();
-                    channel.setPassword(endpointConfigTO.getPassword());
-                    channel.setTarget(endpointConfigTO.getTarget());
-                    channel.setPublishMetadata(endpointConfigTO.isSendMetadata());
-                    try {
-                        URL channelUrl = new URL(server);
-                        channel.setUrl(channelUrl.toString());
-                    } catch (MalformedURLException e) {
-                        logger.error("[IMPORT] " + channelConfig.getName() + " has an invalid target URL.", e);
-
-                    }
-                    channels.add(channel);
-                }
-            }
-            return channels;
-        }  else {
-            return null;
-        }
-    }
 
     /**
      * create folders
@@ -205,14 +169,13 @@ public class ImportServiceImpl implements ImportService {
      *            the target location to import to
      * @param overWrite
      *            overwrite contents?
-     * @param channels
      * @param user
      *
      */
     @SuppressWarnings("unchecked")
     private void createFolders(String site, Set<String> importedPaths, List<String> importedFullPaths,
                                List<Node> nodes, String fileRoot, String targetRoot, String parentPath,
-                               boolean overWrite, List<PublishingChannel> channels, String user) {
+                               boolean overWrite, String user) {
         logger.info("[IMPORT] createFolders : site[" + site + "] " + "] fileRoot [" + fileRoot + "] targetRoot [ "
                 + targetRoot + "] parentPath [" + parentPath + "] overwrite[" + overWrite + "]");
 
@@ -234,17 +197,17 @@ public class ImportServiceImpl implements ImportService {
                     boolean importAll = ContentFormatUtils.getBooleanValue(node.valueOf("@import-all"));
                     if (importAll) {
                         importRootFileList(site, importedPaths, importedFullPaths, fileRoot + "/" + name,
-                                targetRoot, currentPath, folderOverWrite, channels, user);
+                                targetRoot, currentPath, folderOverWrite, user);
 
                     } else {
                         // create child folders
                         List<Node> childFolders = node.selectNodes("folder");
                         createFolders(site, importedPaths, importedFullPaths, childFolders, currentFilePath,
-                                targetRoot, currentPath, folderOverWrite, channels, user);
+                                targetRoot, currentPath, folderOverWrite, user);
                         // create child fiimportedPathsles
                         List<Node> childFiles = node.selectNodes("file");
                         createFiles(site, importedPaths, importedFullPaths, childFiles, currentFilePath,
-                                targetRoot, currentPath, folderOverWrite, channels, user);
+                                targetRoot, currentPath, folderOverWrite, user);
                     }
                 }
             }
@@ -263,12 +226,10 @@ public class ImportServiceImpl implements ImportService {
      * @param parentPath
      *            the target location to import to
      * @param overWrite
-     * @param channels
      * @param user
      */
     protected void importRootFileList(String site, Set<String> importedPaths, List<String> importedFullPaths,
-                                      String fileRoot, String targetRoot, String parentPath, boolean overWrite,
-                                      List<PublishingChannel> channels, String user) {
+                                      String fileRoot, String targetRoot, String parentPath, boolean overWrite, String user) {
         URL resourceUrl = getResourceUrl(fileRoot);
         if (resourceUrl != null) {
             String resourcePath = resourceUrl.getFile();
@@ -287,11 +248,11 @@ public class ImportServiceImpl implements ImportService {
                             logger.info("[IMPORT] Importing " + parentPath + "/" + childName);
 
                             importFileList(site, importedPaths, importedFullPaths, fileRoot + "/" + childName,
-                                    targetRoot, parentPath + "/" + childName, overWrite, channels, user);
+                                    targetRoot, parentPath + "/" + childName, overWrite, user);
                             logger.info("[IMPORT] Finished Importing " + parentPath + "/" + childName);
                         } else {
                             writeContentInTransaction(site, importedPaths, importedFullPaths, fileRoot,
-                                    targetRoot, parentPath, childName, overWrite, channels, user);
+                                    targetRoot, parentPath, childName, overWrite, user);
                         }
                     }
                 }
@@ -329,12 +290,10 @@ public class ImportServiceImpl implements ImportService {
      * @param parentPath
      *            the target location to import to
      * @param overWrite
-     * @param channels
      * @param user
      */
     protected void importFileList(String site, Set<String> importedPaths, List<String> importedFullPaths,
-                                  String fileRoot, String targetRoot, String parentPath, boolean overWrite,
-                                  List<PublishingChannel> channels, String user) {
+                                  String fileRoot, String targetRoot, String parentPath, boolean overWrite, String user) {
         logger.info("[IMPORT] importFileList: fileRoot [" + fileRoot + "] name [" + targetRoot + "] overwrite["
                 + overWrite + "]");
         URL resourceUrl = getResourceUrl(fileRoot);
@@ -353,10 +312,10 @@ public class ImportServiceImpl implements ImportService {
                                 contentService.createFolder(site, parentPath, childName);
                             }
                             importFileList(site, importedPaths, importedFullPaths, fileRoot + "/" + childName,
-                                    targetRoot, parentPath + "/" + childName, overWrite, channels, user);
+                                    targetRoot, parentPath + "/" + childName, overWrite, user);
                         } else {
                             writeContentInTransaction(site, importedPaths, importedFullPaths, fileRoot,
-                                    targetRoot, parentPath, childName, overWrite, channels, user);
+                                    targetRoot, parentPath, childName, overWrite, user);
                         }
                     }
                 }
@@ -376,13 +335,11 @@ public class ImportServiceImpl implements ImportService {
      * @param parentPath
      * @param name
      * @param overWrite
-     * @param channels
      * @param user
      */
     protected void writeContentInTransaction(final String site, final Set<String> importedPaths,
                                              final List<String> importedFullPaths, final String fileRoot,
-                                             final String targetRoot, final String parentPath, final String name, final boolean overWrite,
-                                             final List<PublishingChannel> channels, final String user) {
+                                             final String targetRoot, final String parentPath, final String name, final boolean overWrite, final String user) {
         long startTimeWrite = System.currentTimeMillis();
         logger.debug("[IMPORT] writing file in transaction: " + parentPath + "/" + name);
         writeContent(site, importedPaths, importedFullPaths, fileRoot, targetRoot, parentPath, name,
@@ -524,12 +481,11 @@ public class ImportServiceImpl implements ImportService {
      * @param parentPath
      *            the target location to import to
      * @param overWrite
-     * @param channels
      * @param user
      */
     protected void createFiles(String site, Set<String> importedPaths, List<String> importedFullPaths,
                                List<Node> nodes, String fileRoot, String targetRoot, String parentPath,
-                               boolean overWrite, List<PublishingChannel> channels, String user) {
+                               boolean overWrite, String user) {
         logger.info("[IMPORT] createFiles: fileRoot [" + fileRoot + "] parentFullPath [" + parentPath
                     + "] overwrite[" + overWrite + "]");
         if (nodes != null) {
@@ -540,7 +496,7 @@ public class ImportServiceImpl implements ImportService {
                         .getBooleanValue(value);
                 if (!StringUtils.isEmpty(name)) {
                     writeContentInTransaction(site, importedPaths, importedFullPaths, fileRoot, targetRoot,
-                            parentPath, name, fileOverwrite, channels, user);
+                            parentPath, name, fileOverwrite, user);
                 }
             }
         }

@@ -36,7 +36,6 @@ public interface StudioConfiguration {
     String REPO_REBUILD_METADATA_BATCH_SIZE = "studio.repo.rebuildMetadata.batchSize";
 
     /** Database */
-    String DB_PLATFORM = "studio.db.platform";
     String DB_DRIVER = "studio.db.driver";
     String DB_URL = "studio.db.url";
     String DB_USERNAME = "studio.db.username";
@@ -47,15 +46,16 @@ public interface StudioConfiguration {
     String DB_POOL_MIN_IDLE_CONNECTIONS = "studio.db.pool.minIdleConnections";
     String DB_POOL_MAX_WAIT_TIME = "studio.db.pool.maxWaitTime";
     String DB_INITIALIZER_ENABLED = "studio.db.initializer.enabled";
+    String DB_INITIALIZER_URL = "studio.db.initializer.url";
+    String DB_INITIALIZER_SCRIPT_LOCATION = "studio.db.initializer.scriptLocation";
     String DB_TEST_ON_BORROW = "studio.db.testOnBorrow";
     String DB_VALIDATION_QUERY = "studio.db.validationQuery";
-    String DB_VALIDATION_QUERY_SQLSERVER = "studio.db.validationQuery.sqlserver";
-    String DB_VALIDATION_QUERY_POSTGRES = "studio.db.validationQuery.postgres";
-    String DB_VALIDATION_QUERY_MYSQL = "studio.db.validationQuery.mysql";
-    String DB_VALIDATION_QUERY_ORACLE = "studio.db.validationQuery.oracle";
-    String DB_VALIDATION_QUERY_DERBY = "studio.db.validationQuery.derby";
-    String DB_VALIDATION_QUERY_DB2 = "studio.db.validationQuery.db2";
     String DB_VALIDATION_INTERVAL = "studio.db.validationInterval";
+    String DB_BASE_PATH = "studio.db.basePath";
+    String DB_DATA_PATH = "studio.db.dataPath";
+    String DB_PORT = "studio.db.port";
+    String DB_SOCKET = "studio.db.socket";
+
 
     /** Configuration */
     String CONFIGURATION_GLOBAL_CONFIG_BASE_PATH = "studio.configuration.global.configBasePath";
@@ -75,6 +75,8 @@ public interface StudioConfiguration {
     String CONFIGURATION_SITE_NOTIFICATIONS_CONFIG_FILE_NAME_V2 = "studio.configuration.site.notificationsConfigFileName.v2";
     String CONFIGURATION_SITE_DEPLOYMENT_CONFIG_FILE_NAME = "studio.configuration.site.deployment.configFileName";
     String CONFIGURATION_SITE_CONTENT_TYPES_CONFIG_FILE_NAME = "studio.configuration.site.contentTypes.configFileName";
+    String CONFIGURATION_SITE_DEFAULT_GROUPS = "studio.configuration.site.defaultGroups";
+    String CONFIGURATION_SITE_DEFAULT_ADMIN_GROUP = "studio.configuration.site.defaultAdminGroup";
 
     /** Import Service */
     String IMPORT_ASSIGNEE = "studio.import.assignee";
@@ -108,6 +110,13 @@ public interface StudioConfiguration {
     String SECURITY_TYPE = "studio.security.type";
     String SECURITY_FILE_CONFIG_LOCATION = "studio.security.file.configLocation";
     String SECURITY_DB_SESSION_TIMEOUT = "studio.security.db.sessionTimeout";
+    String SECURITY_CIPHER_SALT = "studio.security.cipher.salt";
+    String SECURITY_CIPHER_KEY = "studio.security.cipher.key";
+    String SECURITY_CIPHER_TYPE = "studio.security.cipher.type";
+    String SECURITY_CIPHER_ALGORITHM = "studio.security.cipher.algorithm";
+    String SECURITY_FORGOT_PASSWORD_MESSAGE_SUBJECT = "studio.security.forgotPassword.message.subject";
+    String SECURITY_FORGOT_PASSWORD_MESSAGE_TEXT = "studio.security.forgotPassword.message.text";
+    String SECURITY_FORGOT_PASSWORD_TOKEN_TIMEOUT = "studio.security.forgotPassword.token.timeout";
 
     /** Page Navigation Order Service */
     String PAGE_NAVIGATION_ORDER_INCREMENT = "studio.pageNavigationOrder.increment";
@@ -129,8 +138,6 @@ public interface StudioConfiguration {
     String MAIL_DEBUG = "studio.mail.debug";
 
     /** Jobs */
-    String JOB_PASSWORD = "studio.job.password";
-    String JOB_USERNAME = "studio.job.username";
     String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_PROCESSING_CHUNK_SIZE = "studio.job.deployContentToEnvironment.processingChunkSize";
     String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_MANDATORY_DEPENDENCIES_CHECK_ENABLED = "studio.job.deployContentToEnvironment.mandatoryDependenciesCheckEnabled";
     String JOB_DEPLOYMENT_MASTER_PUBLISHING_NODE = "studio.job.deployment.masterPublishingNode";
@@ -144,6 +151,16 @@ public interface StudioConfiguration {
     /** Preview Deployer **/
     String PREVIEW_DEFAULT_PREVIEW_DEPLOYER_URL = "studio.preview.defaultPreviewDeployerUrl";
     String PREVIEW_DEFAULT_CREATE_TARGET_URL = "studio.preview.createTargetUrl";
+    String PREVIEW_DEFAULT_DELETE_TARGET_URL = "studio.preview.deleteTargetUrl";
+    String PREVIEW_REPLACE = "studio.preview.replace";
+    String PREVIEW_DISABLE_DEPLOY_CRON = "studio.preview.disableDeployCron";
+    String PREVIEW_TEMPLATE_NAME = "studio.preview.templateName";
+    String PREVIEW_REPO_URL = "studio.preview.repoUrl";
+    String PREVIEW_ENGINE_URL = "studio.preview.engineUrl";
+
+    /** Preview Search **/
+    String PREVIEW_SEARCH_CREATE_URL = "studio.preview.search.createUrl";
+    String PREVIEW_SEARCH_DELETE_URL = "studio.preview.search.deleteUrl";
 
     /** Publishing Manager */
     String PUBLISHING_MANAGER_INDEX_FILE = "studio.publishingManager.indexFile";

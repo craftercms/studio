@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<page>
+	<content-type>/page/home</content-type>	<display-template>/templates/web/pages/home.ftl</display-template>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<placeInNav>false</placeInNav>
+	<file-name>index.xml</file-name>
+	<internal-name>Home</internal-name>
+	<orderDefault_f>-1</orderDefault_f>
+	<objectGroupId>8d7f</objectGroupId>
+	<objectId>8d7f21fa-5e09-00aa-8340-853b7db302da</objectId>
+	<folder-name/>
+	<createdDate>1/31/2017 16:18:14</createdDate>
+	<createdDate_dt>1/31/2017 16:18:14</createdDate_dt>
+	<lastModifiedDate>3/27/2017 14:3:29</lastModifiedDate>
+	<lastModifiedDate_dt>3/27/2017 14:3:29</lastModifiedDate_dt>
+	<title>Editorial</title>
+	<hero_text>&lt;p&gt;Aenean ornare velit lacus, ac varius enim ullamcorper eu. Proin aliquam facilisis ante interdum congue. Integer mollis, nisl amet convallis, porttitor magna ullamcorper, amet egestas mauris. Ut magna finibus nisi nec lacinia. Nam maximus erat id euismod egestas. Pellentesque sapien ac quam. Lorem ipsum dolor sit nullam.&lt;/p&gt;</hero_text>
+	<hero_title>&lt;h1&gt;&lt;span&gt;Hi, I&amp;rsquo;m Editorial&lt;/span&gt;&lt;/h1&gt;
+&lt;h3&gt;&lt;span style="font-size: 1.5em;"&gt;by HTML5 UP&lt;/span&gt;&lt;/h3&gt;</hero_title>
+	<features>	<item>	<value>Quam lorem ipsum</value>
+	<key>/site/components/features/quam-lorem-ipsum.xml</key>
+	<include>/site/components/features/quam-lorem-ipsum.xml</include>
+	</item>	<item>	<key>/site/components/features/sapien-veroeros.xml</key>
+	<value>Sapien Veroeros</value>
+	<include>/site/components/features/sapien-veroeros.xml</include>
+	<disableFlattening>false</disableFlattening>
+	</item>	<item>	<value>Sed magna finibus</value>
+	<key>/site/components/features/sed-magna-finibus.xml</key>
+	<include>/site/components/features/sed-magna-finibus.xml</include>
+	</item>	<item>	<value>Portitor Ullamcorper</value>
+	<key>/site/components/features/portitor-ullamcorper.xml</key>
+	<include>/site/components/features/portitor-ullamcorper.xml</include>
+	<disableFlattening>false</disableFlattening>
+	</item></features>
+	<header/>
+	<hero_image>/static-assets/images/strawberries.jpg</hero_image>
+	<sidebar>	<item>	<key>/site/components/sidebar-with-latest-articles.xml</key>
+	<value>Sidebar with Latest Articles</value>
+	<include>/site/components/sidebar-with-latest-articles.xml</include>
+	<disableFlattening>false</disableFlattening>
+	</item></sidebar>
+	<features_title>Erat lacinia</features_title>
+</page>

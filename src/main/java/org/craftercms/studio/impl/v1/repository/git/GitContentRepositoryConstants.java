@@ -32,8 +32,12 @@ public interface GitContentRepositoryConstants {
 
     /** Configuration */
     String CONFIG_SECTION_CORE = "core";
+    String CONFIG_SECTION_REMOTE = "remote";
     String CONFIG_PARAMETER_COMPRESSION = "compression";
     int CONFIG_PARAMETER_COMPRESSION_DEFAULT = 0;
     String CONFIG_PARAMETER_BIG_FILE_THRESHOLD = "bigFileThreshold";
     String CONFIG_PARAMETER_BIG_FILE_THRESHOLD_DEFAULT = "20m";
+    String CONFIG_PARAMETER_URL = "url";
+    String CONFIG_PARAMETER_FETCH = "fetch";
+    String CONFIG_PARAMETER_FETCH_DEFAULT = "+refs/heads/*:refs/remotes/origin/*";
 }

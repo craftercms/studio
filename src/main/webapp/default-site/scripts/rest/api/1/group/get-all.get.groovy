@@ -23,28 +23,29 @@ def result = [:]
 
 def start = 0
 if (params.start != null) {
-    params.start.toInteger()
+    start = params.start.toInteger()
 }
-def end = 25
-if (params.end != null) {
-    params.end.toInteger()
+
+// TODO: SJ: These should be constants
+def number = 25
+if (params.number != null) {
+    number = params.number.toInteger()
 }
 
 def context = SecurityServices.createContext(applicationContext, request)
 try {
-    def groupList = SecurityServices.getAllGroups(context, start, end);
-    if (groupList != null && !groupList.isEmpty()) {
-        def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/get-all/get?start=" + start + "&end=" + end
+    def groupList = SecurityServices.getAllGroups(context, start, number)
+    if (groupList != null) {
+        def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/group/get-all.json?start=" + start + "&number=" + number
         response.addHeader("Location", locationHeader)
         result.sites = groupList
-        return result
     } else {
-        response.setStatus(404)
-        result.status = "Group not found"
-        return result;
+        response.setStatus(500)
+        result.message = "Internal server error"
     }
 } catch (Exception e) {
     response.setStatus(500)
-    result.status = "Internal server error"
-    return result;
+    result.message = "Internal server error: \n" + e
 }
+
+return result

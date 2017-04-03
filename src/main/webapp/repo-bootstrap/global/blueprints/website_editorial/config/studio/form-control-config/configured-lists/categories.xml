@@ -1,0 +1,20 @@
+<list>
+	<values>
+		<item>
+			<key>technology</key>
+			<value>Technology</value>
+		</item>
+		<item>
+			<key>entertainment</key>
+			<value>Entertainment</value>
+		</item>
+		<item>
+			<key>health</key>
+			<value>Health</value>
+		</item>
+		<item>
+			<key>style</key>
+			<value>Style</value>
+		</item>
+	</values>
+</list>

@@ -42,9 +42,9 @@ public class ContentAssetInfoTO implements Serializable {
 	/** asset file size in KB **/
 	protected double size;
 	/** the image width if the asset is an image **/
-	protected int _width = -1;
+	protected int width = -1;
 	/** the image height if the asset is an image **/
-	protected int _height = -1;
+	protected int height = -1;
 	
 	protected String sizeUnit = FILE_SIZE_KB;
 
@@ -106,28 +106,28 @@ public class ContentAssetInfoTO implements Serializable {
 	 * @return the width
 	 */
 	public int getWidth() {
-		return _width;
+		return width;
 	}
 
 	/**
 	 * @param width the width to set
 	 */
 	public void setWidth(int width) {
-		this._width = width;
+		this.width = width;
 	}
 
 	/**
 	 * @return the height
 	 */
 	public int getHeight() {
-		return _height;
+		return height;
 	}
 
 	/**
 	 * @param height the height to set
 	 */
 	public void setHeight(int height) {
-		this._height = height;
+		this.height = height;
 	}
 
 }

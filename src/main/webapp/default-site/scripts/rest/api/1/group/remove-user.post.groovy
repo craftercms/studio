@@ -18,6 +18,8 @@
  */
 
 import groovy.json.JsonSlurper
+import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException
 import scripts.api.SecurityServices
 
 def result = [:]
@@ -33,14 +35,19 @@ def username = parsedReq.username
 
 def context = SecurityServices.createContext(applicationContext, request)
 try {
-    SecurityServices.removeUserFromGroup(context, siteId, groupName, username);
-    result.status = "OK"
-    response.setStatus(201)
-    def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/group/get?group_name=" + groupName
+    SecurityServices.removeUserFromGroup(context, siteId, groupName, username)
+    response.setStatus(204)
+    def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/group/get.json?group_name=" + groupName
     response.addHeader("Location", locationHeader)
-    return result
+} catch (UserNotFoundException e) {
+    response.setStatus(404)
+    result.message = "User not found"
+} catch (GroupNotFoundException e) {
+    response.setStatus(404)
+    result.message = "Group not found"
 } catch (Exception e) {
     response.setStatus(500)
-    result.status = "Internal server error"
-    return result
+    result.message = "Internal server error: \n" + e
 }
+
+return result

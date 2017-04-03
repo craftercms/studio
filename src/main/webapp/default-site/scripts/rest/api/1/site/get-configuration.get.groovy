@@ -41,6 +41,7 @@ if (valid)
 }
 else
 {
+    logger.error("Error site " + site + " path " + path)
     status.code = 400;
     status.redirect = true;
 }

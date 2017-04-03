@@ -18,6 +18,8 @@
 
 package org.craftercms.studio.impl.v1.service.security;
 
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.*;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 
@@ -67,7 +69,7 @@ public class MappedSecurityProvider implements SecurityProvider {
     }
 
     /**
-     * default constructor 
+     * default constructor
      */
     public MappedSecurityProvider() {
         providerMap = new HashMap<String, SecurityProvider>();
@@ -75,27 +77,27 @@ public class MappedSecurityProvider implements SecurityProvider {
 
     public Set<String> getUserGroups(String user) {
     	SecurityProvider provider = lookupProvider(getProviderType());
-        return provider.getUserGroups(user); 
+        return provider.getUserGroups(user);
     };
 
     public String getCurrentUser() {
         SecurityProvider provider = lookupProvider(getProviderType());
-        return provider.getCurrentUser(); 
+        return provider.getCurrentUser();
     };
 
     public Map<String, Object> getUserProfile(String user) {
     	SecurityProvider provider = lookupProvider(getProviderType());
-        return provider.getUserProfile(user); 
+        return provider.getUserProfile(user);
     }
 
     public String authenticate(String username, String password) {
         SecurityProvider provider = lookupProvider(getProviderType());
-        return provider.authenticate(username, password); 
+        return provider.authenticate(username, password);
     }
 
     public boolean validateTicket(String ticket){
         SecurityProvider provider = lookupProvider(getProviderType());
-        return provider.validateTicket(ticket); 
+        return provider.validateTicket(ticket);
     }
 
     @Override
@@ -117,7 +119,25 @@ public class MappedSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public boolean addUserToGroup(String siteId, String groupName, String user) {
+    public boolean groupExists(final String siteId, final String groupName) {
+        SecurityProvider provider = lookupProvider(getProviderType());
+        return provider.groupExists(siteId, groupName);
+    }
+
+    @Override
+    public boolean userExists(final String username) {
+        SecurityProvider provider = lookupProvider(getProviderType());
+        return provider.userExists(username);
+    }
+
+    @Override
+    public boolean userExistsInGroup(final String siteId, final String groupName, final String username) {
+        SecurityProvider provider = lookupProvider(getProviderType());
+        return provider.userExistsInGroup(siteId, groupName, username);
+    }
+
+    @Override
+    public boolean addUserToGroup(String siteId, String groupName, String user) throws UserNotFoundException, UserAlreadyExistsException, GroupNotFoundException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.addUserToGroup(siteId, groupName, user);
     }
@@ -141,92 +161,134 @@ public class MappedSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public boolean createUser(String username, String password, String firstName, String lastName, String email) {
+    public boolean createUser(String username, String password, String firstName, String lastName, String email) throws UserAlreadyExistsException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.createUser(username, password, firstName, lastName, email);
     }
 
     @Override
-    public boolean deleteUser(String username) {
+    public boolean deleteUser(String username) throws UserNotFoundException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.deleteUser(username);
     }
 
     @Override
-    public boolean updateUser(String username, String firstName, String lastName, String email) {
+    public boolean updateUser(String username, String firstName, String lastName, String email) throws UserNotFoundException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.updateUser(username, firstName, lastName, email);
     }
 
     @Override
-    public boolean enableUser(String username, boolean enabled) {
+    public boolean enableUser(String username, boolean enabled) throws UserNotFoundException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.enableUser(username, enabled);
     }
 
     @Override
-    public Map<String, Object> getUserStatus(String username) {
+    public Map<String, Object> getUserStatus(String username) throws UserNotFoundException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.getUserStatus(username);
     }
 
     @Override
-    public boolean createGroup(String groupName, String description, String siteId) {
+    public boolean createGroup(String groupName, String description, String siteId) throws GroupAlreadyExistsException, SiteNotFoundException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.createGroup(groupName, description, siteId);
     }
 
     @Override
-    public List<Map<String, Object>> getAllUsers() {
+    public List<Map<String, Object>> getAllUsers(int start, int number) {
         SecurityProvider provider = lookupProvider(getProviderType());
-        return provider.getAllUsers();
+        return provider.getAllUsers(start, number);
     }
 
     @Override
-    public List<Map<String, Object>> getUsersPerSite(String site) {
+    public int getAllUsersTotal() {
         SecurityProvider provider = lookupProvider(getProviderType());
-        return provider.getUsersPerSite(site);
+        return provider.getAllUsersTotal();
     }
 
     @Override
-    public Map<String, Object> getGroup(String site, String group) {
+    public List<Map<String, Object>> getUsersPerSite(String site, int start, int number) throws SiteNotFoundException {
+        SecurityProvider provider = lookupProvider(getProviderType());
+        return provider.getUsersPerSite(site, start, number);
+    }
+
+    @Override
+    public int getUsersPerSiteTotal(String site) throws SiteNotFoundException {
+        SecurityProvider provider = lookupProvider(getProviderType());
+        return provider.getUsersPerSiteTotal(site);
+    }
+
+    @Override
+    public Map<String, Object> getGroup(String site, String group) throws GroupNotFoundException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.getGroup(site, group);
     }
 
     @Override
-    public List<Map<String, Object>> getAllGroups(int start, int end) {
+    public List<Map<String, Object>> getAllGroups(int start, int number) {
         SecurityProvider provider = lookupProvider(getProviderType());
-        return provider.getAllGroups(start, end);
+        return provider.getAllGroups(start, number);
     }
 
     @Override
-    public List<Map<String, Object>> getGroupsPerSite(String site) {
+    public List<Map<String, Object>> getGroupsPerSite(String site, int start, int number) throws SiteNotFoundException {
         SecurityProvider provider = lookupProvider(getProviderType());
-        return provider.getGroupsPerSite(site);
+        return provider.getGroupsPerSite(site, start, number);
     }
 
     @Override
-    public List<Map<String, Object>> getUsersPerGroup(String site, String group, int start, int end) {
+    public int getGroupsPerSiteTotal(String site) throws SiteNotFoundException {
         SecurityProvider provider = lookupProvider(getProviderType());
-        return provider.getUsersPerGroup(site, group, start, end);
+        return provider.getGroupsPerSiteTotal(site);
     }
 
     @Override
-    public boolean updateGroup(String siteId, String groupName, String description) {
+    public List<Map<String, Object>> getUsersPerGroup(String site, String group, int start, int number) throws GroupNotFoundException {
+        SecurityProvider provider = lookupProvider(getProviderType());
+        return provider.getUsersPerGroup(site, group, start, number);
+    }
+
+    @Override
+    public int getUsersPerGroupTotal(String site, String group) throws GroupNotFoundException {
+        SecurityProvider provider = lookupProvider(getProviderType());
+        return provider.getUsersPerGroupTotal(site, group);
+    }
+
+    @Override
+    public boolean updateGroup(String siteId, String groupName, String description) throws GroupNotFoundException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.updateGroup(siteId, groupName, description);
     }
 
     @Override
-    public boolean deleteGroup(String siteId, String groupName) {
+    public boolean deleteGroup(String siteId, String groupName) throws GroupNotFoundException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.deleteGroup(siteId, groupName);
     }
 
     @Override
-    public boolean removeUserFromGroup(String siteId, String groupName, String user) {
+    public boolean removeUserFromGroup(String siteId, String groupName, String user) throws UserNotFoundException, GroupNotFoundException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.removeUserFromGroup(siteId, groupName, user);
+    }
+
+    @Override
+    public boolean changePassword(String username, String current, String newPassword) throws UserNotFoundException, PasswordDoesNotMatchException {
+        SecurityProvider provider = lookupProvider(getProviderType());
+        return provider.changePassword(username, current, newPassword);
+    }
+
+    @Override
+    public boolean setUserPassword(String username, String newPassword) throws UserNotFoundException {
+        SecurityProvider provider = lookupProvider(getProviderType());
+        return provider.setUserPassword(username, newPassword);
+    }
+
+    @Override
+    public boolean isSystemUser(String username) throws UserNotFoundException {
+        SecurityProvider provider = lookupProvider(getProviderType());
+        return provider.isSystemUser(username);
     }
 }

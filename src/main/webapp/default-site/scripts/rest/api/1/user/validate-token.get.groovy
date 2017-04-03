@@ -1,7 +1,6 @@
-
 /*
  * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2016 Crafter Software Corporation.
+ * Copyright (C) 2007-2017 Crafter Software Corporation.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,14 +14,27 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 
 import scripts.api.SecurityServices
 
-def result = [:] 
-def token = null
+def result = [:]
+def token = params.token
 
 def context = SecurityServices.createContext(applicationContext, request)
-result.valid = SecurityServices.validateTicket(context, token)
+try {
+    def success = SecurityServices.validateToken(context, token)
+    if (success) {
+        result.message = "OK"
+        response.setStatus(200)
+    } else {
+        result.message = "Unauthorized"
+        response.setStatus(401)
+    }
+} catch (Exception e) {
+    response.setStatus(500)
+    result.message = "Internal server error: \n" + e
+}
 
 return result

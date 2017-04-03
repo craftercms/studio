@@ -29,7 +29,7 @@ class ContentMonitoring {
 
 	static doMonitoringForAllSites(context, logger) {
 		def results = []
-		def siteService = context.get("cstudioSiteServiceSimple") 
+		def siteService = context.get("cstudioSiteServiceSimple")
 		def sites = siteService.getAllAvailableSites()
 
 		for(int i=0; i<sites.size(); i++) {
@@ -50,13 +50,13 @@ class ContentMonitoring {
 	 * @return a list of notifications that were made
 	 */
 	static doContentMonitoringForSite(context, site, logger) {
-		logger.info("monitoring for expired content for site: " + site)
+		logger.debug("monitoring for expired content for site: " + site)
 
 		def results = [:]
 		def searchService = context.get("crafter.searchService")
-		def notificationService = context.get("cstudioNotificationService") 
-		def siteService = context.get("cstudioSiteServiceSimple") 
-		
+		def notificationService = context.get("cstudioNotificationService")
+		def siteService = context.get("cstudioSiteServiceSimple")
+
 		def config = siteService.getConfiguration(site, "/site-config.xml", false);
 
 		if(config.contentMonitoring != null && config.contentMonitoring.monitor !=null) {
@@ -81,17 +81,17 @@ class ContentMonitoring {
 						def onlyPath = monitor.paths.path
 						monitor.paths.path = []
 						monitor.paths.path[0] = onlyPath
-					}			
+					}
 
 					results.monitors = []
 					def queryStatement = monitor.query
-					 
+
 					def query = searchService.createQuery()
 					query = query.setQuery(queryStatement)
                                         query = query.setRows(10000)
-					 
-					def executedQuery = searchService.search(query)   
-					def itemsFound = executedQuery.response.numFound    
+
+					def executedQuery = searchService.search(query)
+					def itemsFound = executedQuery.response.numFound
 					def items = executedQuery.response.documents
 					logger.info("Content monitor (" + monitor.name + ") found " + itemsFound + " | " + items.size() )
 
@@ -108,7 +108,7 @@ class ContentMonitoring {
 						for(int i=0; i<itemsFound; i++) {
 							// iterate over the items and prepare notifications
 							def item = items.get(i)
-                                                    
+
 	                             if(item != null) {
 	                               def notifyItem = [:]
 	                               notifyItem.id = item.localId
@@ -116,23 +116,23 @@ class ContentMonitoring {
 
 	                               if(item.localId =~ Pattern.compile(path.pattern)) {
 	                                    monitorPathResultItems.add(notifyItem)
-	                                  
+
 	                                    if(notifyItem.id.contains("/site/website")) {
 
 	                                       def uri = notifyItem.id.replace("/site/website", "").replace("/index.xml","").replace(".xml", "")
 
-	                                       monitorPathResult.itemsStr += 
+	                                       monitorPathResult.itemsStr +=
 	                                          "<li class='notifyItem'>" +
 	                                            "<a href='" + authoringBaseUrl + "/preview/#/?page=" + uri + "&site=" + siteId  + "'>" +
-	                                              notifyItem.internalName + 
+	                                              notifyItem.internalName +
 	                                            "</a>" +
 	                                          "</li>"
 	                                    }
 	                                    else {
-	                                       monitorPathResult.itemsStr += 
+	                                       monitorPathResult.itemsStr +=
 	                                          "<li class='notifyItem'>" +
 	                                            "Component: "+
-	                                              notifyItem.internalName + 
+	                                              notifyItem.internalName +
 	                                            "" +
 	                                          "</li>"
 	                                    }
@@ -141,7 +141,7 @@ class ContentMonitoring {
 	                           }
 	                           else {
 	                              logger.info("Content monitor: " + monitor.name + " query ("+queryStatement+")  item " + i + " is null")
-	                           }						
+	                           }
 	                    }
 
 						if(monitorPathResultItems.size() > 0) {
@@ -150,11 +150,11 @@ class ContentMonitoring {
                             // create a list of items to send in the email
 							logger.info("Content monitor: " + monitor.name + " Sending notification ("+path.notificationMessageId+")")
 							notificationService.sendGenericNotification(
-								site, 
-								"/site/website/index.xml",  //PATHS ARE IN PARAMS BUT THIS SERVICE NEEDS SOMETHING 
-								path.notifyEmail, 
-								path.notifyEmail, 
-								path.notificationMessageId, 
+								site,
+								"/site/website/index.xml",  //PATHS ARE IN PARAMS BUT THIS SERVICE NEEDS SOMETHING
+								path.notifyEmail,
+								path.notifyEmail,
+								path.notificationMessageId,
 								monitorPathResult)
 						}
 
@@ -165,9 +165,9 @@ class ContentMonitoring {
 			} // end looping through site monitors
 		}
 		else {
-			logger.info("no expired items to report")
+			logger.debug("no expired items to report")
 		}
 
-		return results 
+		return results
 	}
 }

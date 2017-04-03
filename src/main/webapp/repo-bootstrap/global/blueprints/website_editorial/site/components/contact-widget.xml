@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/contact-widget</content-type>	<display-template>/templates/web/components/contact-widget.ftl</display-template>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>3756</objectGroupId>
+	<objectId>37562d94-04ad-289b-eb35-d76b91b86431</objectId>
+	<file-name>contact-widget.xml</file-name>
+	<folder-name/>
+	<internal-name>Contact Widget</internal-name>
+	<title>Contact Us</title>
+	<email>info@example.com</email>
+	<phone>(999) 999-9999</phone>
+	<text_html>&lt;p&gt;&lt;span&gt;Sed varius enim lorem ullamcorper dolore aliquam aenean ornare velit lacus, ac varius enim lorem ullamcorper dolore. Proin sed aliquam facilisis ante interdum. Sed nulla amet lorem feugiat tempus aliquam.&lt;/span&gt;&lt;/p&gt;</text_html>
+	<address>&lt;p&gt;5321 Somewhere Road #789&lt;br /&gt; Reston, Virginia&lt;/p&gt;</address>
+	<createdDate>3/28/2017 21:12:5</createdDate>
+	<createdDate_dt>3/28/2017 21:12:5</createdDate_dt>
+	<lastModifiedDate>3/28/2017 21:22:31</lastModifiedDate>
+	<lastModifiedDate_dt>3/28/2017 21:22:31</lastModifiedDate_dt>
+	<address_html>&lt;p&gt;5321 Somewhere Road #789&lt;br /&gt;Reston, Virginia&lt;/p&gt;</address_html>
+</component>

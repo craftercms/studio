@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/level-descriptor</content-type>	<display-template/>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>d210</objectGroupId>
+	<objectId>d210349e-3f77-95c1-37b3-cab10816347f</objectId>
+	<file-name>crafter-level-descriptor.level.xml</file-name>
+	<folder-name/>
+	<header/>
+	<sidebar>	<item>	<key>/site/components/sidebar-with-related-articles.xml</key>
+	<value>Sidebar with Related Articles</value>
+	<include>/site/components/sidebar-with-related-articles.xml</include>
+	<disableFlattening>false</disableFlattening>
+	</item></sidebar>
+	<createdDate>3/17/2017 18:56:59</createdDate>
+	<createdDate_dt>3/17/2017 18:56:59</createdDate_dt>
+	<lastModifiedDate>3/17/2017 18:59:50</lastModifiedDate>
+	<lastModifiedDate_dt>3/17/2017 18:59:50</lastModifiedDate_dt>
+</component>

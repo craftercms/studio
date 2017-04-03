@@ -18,29 +18,40 @@
  */
 
 import scripts.api.SecurityServices
+import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException
 
 def result = [:]
 
 def groupName = params.group_name
 def siteId = params.site_id
-def start = params.start.toInteger()
-def end = params.end.toInteger()
-
+def start = 0
+if (params.start != null && params.start != '') {
+    start = params.start.toInteger()
+}
+def number = 10
+if (params.number != null && params.number != '') {
+    number = params.number.toInteger()
+}
 def context = SecurityServices.createContext(applicationContext, request)
 try {
-    def usersPerGroup = SecurityServices.getUsersPerGroup(context, siteId, groupName, start, end);
-    if (usersPerGroup != null && !usersPerGroup.isEmpty()) {
-        def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/group/users?site_id=" + siteId + "&group_name=" + groupName + "&start="+ start + "&end=" + end
+    def total = SecurityServices.getUsersPerGroupTotal(context, siteId, groupName);
+    def usersPerGroup = SecurityServices.getUsersPerGroup(context, siteId, groupName, start, number);
+    if (usersPerGroup != null) {
+        def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/group/users.json?site_id=" + siteId + "&group_name=" + groupName + "&start="+ start + "&number=" + number
         response.addHeader("Location", locationHeader)
+        response.setStatus(200)
         result.users = usersPerGroup
-        return result
+        result.total = total
     } else {
-        response.setStatus(404)
-        result.status = "Group not found"
-        return result;
+        response.setStatus(500)
+        result.message = "Internal server error"
     }
+} catch (GroupNotFoundException e) {
+    response.setStatus(404)
+    result.message = "Group not found"
 } catch (Exception e) {
     response.setStatus(500)
-    result.status = "Internal server error"
-    return result;
+    result.message = "Internal server error: \n" + e
 }
+
+return result

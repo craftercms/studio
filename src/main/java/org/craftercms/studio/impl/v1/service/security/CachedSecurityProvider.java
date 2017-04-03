@@ -18,6 +18,10 @@
 
 package org.craftercms.studio.impl.v1.service.security;
 
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 
@@ -43,7 +47,7 @@ public class CachedSecurityProvider implements SecurityProvider {
 
 
     /**
-     * default constructor 
+     * default constructor
      */
     public CachedSecurityProvider() {
     }
@@ -53,7 +57,7 @@ public class CachedSecurityProvider implements SecurityProvider {
         value = (Set<String>)getCachedObject("getUserGroups-"+user);
 
         if(value == null) {
-            value = provider.getUserGroups(user); 
+            value = provider.getUserGroups(user);
 
             if(value != null) {
                 cacheObject("getUserGroups-"+user, value);
@@ -64,19 +68,19 @@ public class CachedSecurityProvider implements SecurityProvider {
     };
 
     public String getCurrentUser() {
-        return provider.getCurrentUser(); 
+        return provider.getCurrentUser();
     };
 
     public Map<String, Object> getUserProfile(String user) {
-        return provider.getUserProfile(user); 
+        return provider.getUserProfile(user);
     }
 
     public String authenticate(String username, String password) {
-        return provider.authenticate(username, password); 
+        return provider.authenticate(username, password);
     }
 
     public boolean validateTicket(String ticket){
-        return provider.validateTicket(ticket); 
+        return provider.validateTicket(ticket);
     }
 
     @Override
@@ -95,7 +99,22 @@ public class CachedSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public boolean addUserToGroup(String siteId, String groupName, String user) {
+    public boolean groupExists(final String siteId, final String groupName) {
+        return false;
+    }
+
+    @Override
+    public boolean userExists(final String username) {
+        return false;
+    }
+
+    @Override
+    public boolean userExistsInGroup(final String siteId, final String groupName, final String username) {
+        return false;
+    }
+
+    @Override
+    public boolean addUserToGroup(String siteId, String groupName, String user) throws UserNotFoundException, UserAlreadyExistsException, GroupNotFoundException {
         return provider.addUserToGroup(siteId, groupName, user);
     }
 
@@ -110,7 +129,7 @@ public class CachedSecurityProvider implements SecurityProvider {
         HashMap<String, Object> cache = this.getCache();
         cache.put(key, value);
     }
-    
+
     protected Object getCachedObject(String key) {
         Object value = null;
 
@@ -131,11 +150,11 @@ public class CachedSecurityProvider implements SecurityProvider {
         HashMap<String, Object> cache = null;
 
         if(System.currentTimeMillis() - cacheAge > 10000){
-            cacheAge = System.currentTimeMillis(); 
+            cacheAge = System.currentTimeMillis();
             globalCache = new HashMap<String, Object>();
         }
 
-        return globalCache;        
+        return globalCache;
     }
 
     @Override
@@ -185,15 +204,27 @@ public class CachedSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public List<Map<String, Object>> getAllUsers() {
+    public List<Map<String, Object>> getAllUsers(int start, int number) {
         // TODO: DB: Implement this ?
         return null;
     }
 
     @Override
-    public List<Map<String, Object>> getUsersPerSite(String site) {
+    public int getAllUsersTotal() {
+        // TODO: DB: Implement this ?
+        return 0;
+    }
+
+    @Override
+    public List<Map<String, Object>> getUsersPerSite(String site, int start, int number) {
         // TODO: DB: Implement this ?
         return null;
+    }
+
+    @Override
+    public int getUsersPerSiteTotal(String site) throws SiteNotFoundException {
+        // TODO: DB: Implement this ?
+        return 0;
     }
 
     @Override
@@ -203,21 +234,33 @@ public class CachedSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public List<Map<String, Object>> getAllGroups(int start, int end) {
+    public List<Map<String, Object>> getAllGroups(int start, int number) {
         // TODO: DB: Implement this ?
         return null;
     }
 
     @Override
-    public List<Map<String, Object>> getGroupsPerSite(String site) {
+    public List<Map<String, Object>> getGroupsPerSite(String site, int start, int number) {
         // TODO: DB: Implement this ?
         return null;
     }
 
     @Override
-    public List<Map<String, Object>> getUsersPerGroup(String site, String group, int start, int end) {
+    public int getGroupsPerSiteTotal(String site) {
+        // TODO: DB: Implement this ?
+        return 0;
+    }
+
+    @Override
+    public List<Map<String, Object>> getUsersPerGroup(String site, String group, int start, int number) {
         // TODO: DB: Implement this ?
         return null;
+    }
+
+    @Override
+    public int getUsersPerGroupTotal(String site, String group) throws GroupNotFoundException {
+        // TODO: DB: Implement this ?
+        return 0;
     }
 
     @Override
@@ -234,6 +277,24 @@ public class CachedSecurityProvider implements SecurityProvider {
 
     @Override
     public boolean removeUserFromGroup(String siteId, String groupName, String user) {
+        // TODO: DB: Implement this ?
+        return false;
+    }
+
+    @Override
+    public boolean changePassword(String username, String current, String newPassword) {
+        // TODO: DB: Implement this ?
+        return false;
+    }
+
+    @Override
+    public boolean setUserPassword(String username, String newPassword) {
+        // TODO: DB: Implement this ?
+        return false;
+    }
+
+    @Override
+    public boolean isSystemUser(String username) throws UserNotFoundException {
         // TODO: DB: Implement this ?
         return false;
     }

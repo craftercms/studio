@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/sidebar</content-type>	<display-template>/templates/web/components/sidebar.ftl</display-template>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>458a</objectGroupId>
+	<objectId>458af2ea-368d-9167-0233-b1d346f5baaa</objectId>
+	<file-name>sidebar-with-latest-articles.xml</file-name>
+	<folder-name/>
+	<internal-name>Sidebar with Latest Articles</internal-name>
+	<createdDate>3/17/2017 18:23:14</createdDate>
+	<createdDate_dt>3/17/2017 18:23:14</createdDate_dt>
+	<lastModifiedDate>3/28/2017 22:28:53</lastModifiedDate>
+	<lastModifiedDate_dt>3/28/2017 22:28:53</lastModifiedDate_dt>
+	<widgets>	<item>	<key>/site/components/latest-articles-widget.xml</key>
+	<value>Latest Articles Widget</value>
+	<include>/site/components/latest-articles-widget.xml</include>
+	<disableFlattening>false</disableFlattening>
+	</item>	<item>	<key>/site/components/contact-widget.xml</key>
+	<value>Contact Widget</value>
+	<include>/site/components/contact-widget.xml</include>
+	<disableFlattening>false</disableFlattening>
+	</item></widgets>
+</component>

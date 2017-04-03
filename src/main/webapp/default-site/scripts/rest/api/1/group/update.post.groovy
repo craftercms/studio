@@ -19,6 +19,7 @@
 
 import groovy.json.JsonSlurper
 import scripts.api.SecurityServices
+import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException
 
 def result = [:]
 def requestBody = request.reader.text
@@ -32,14 +33,17 @@ def siteId = parsedReq.site_id
 
 def context = SecurityServices.createContext(applicationContext, request)
 try {
-    SecurityServices.updateGroup(context, siteId, groupName, description);
-    result.status = "OK"
+    SecurityServices.updateGroup(context, siteId, groupName, description)
+    result.message = "OK"
     response.setStatus(200)
-    def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/group/get?group_name=" + groupName
+    def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/group/get.json?group_name=" + groupName
     response.addHeader("Location", locationHeader)
-    return result
+} catch (GroupNotFoundException e) {
+    response.setStatus(404)
+    result.message = "Group not found"
 } catch (Exception e) {
     response.setStatus(500)
-    result.status = "Internal server error"
-    return result
+    result.message = "Internal server error: \n" + e
 }
+
+return result

@@ -40,17 +40,39 @@ public interface SecurityMapper {
 
     List<UserProfileResult> getUserDetails(String username);
 
-    List<UserProfileResult> getAllUsers();
+    List<String> getAllUsersQuery(Map params);
 
-    List<UserProfileResult> getUsersPerSite(String site);
+    int getAllUsersQueryTotal(Map params);
+
+    List<UserProfileResult> getAllUsersData(Map params);
+
+    List<String> getUsersPerSiteQuery(Map params);
+
+    int getUsersPerSiteQueryTotal(Map params);
+
+    List<UserProfileResult> getUsersPerSiteData(Map params);
 
     Map<String, Object> getGroup(Map params);
 
-    List<GroupResult> getAllGroups(Map params);
+    List<Long> getAllGroupsQuery(Map params);
 
-    List<GroupPerSiteResult> getGroupsPerSite(Map params);
+    List<GroupResult> getAllGroupsData(Map params);
+
+    List<Long> getGroupsPerSiteQuery(Map params);
+
+    int getGroupsPerSiteQueryTotal(Map<String, Object> params);
+
+    List<GroupPerSiteResult> getGroupsPerSiteData(Map params);
 
     List<User> getUsersPerGroup(Map params);
+
+    int getUsersPerGroupTotal(Map params);
+
+    Integer userExistsInGroup(Map params);
+
+    Integer userExists(Map params);
+
+    Integer groupExists(Map params);
 
     void updateGroup(Map params);
 
@@ -61,4 +83,8 @@ public interface SecurityMapper {
     void addUserToGroup(Map params);
 
     void removeUserFromGroup(Map params);
+
+    void setUserPassword(Map params);
+
+    int isSystemUser(Map params);
 }

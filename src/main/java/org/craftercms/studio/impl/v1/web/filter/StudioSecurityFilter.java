@@ -81,7 +81,7 @@ public class StudioSecurityFilter extends GenericFilterBean {
     }
 
     protected boolean checkSessionTimeout(HttpServletRequest request, HttpServletResponse response) {
-        if (request.getRequestURI().contains("/validate-token.json")) return false;
+        if (request.getRequestURI().contains("/validate-session.json")) return false;
         HttpSession httpSession = request.getSession();
         String sessionToken = (String)httpSession.getAttribute(STUDIO_SESSION_TOKEN_ATRIBUTE);
         String user = securityProvider.getCurrentUser();

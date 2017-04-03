@@ -29,27 +29,36 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
 import javax.servlet.ServletContext;
 
+import org.apache.commons.collections4.iterators.ReverseListIterator;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.constant.RepoOperation;
+import org.craftercms.studio.api.v1.dal.DeploymentSyncHistory;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
+import org.craftercms.studio.api.v1.service.deployment.DeploymentHistoryProvider;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.to.RepoOperationTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.NoHeadException;
+import org.eclipse.jgit.api.errors.RefNotFoundException;
 import org.eclipse.jgit.diff.DiffEntry;
+import org.eclipse.jgit.dircache.DirCache;
+import org.eclipse.jgit.errors.IncorrectObjectTypeException;
+import org.eclipse.jgit.errors.MissingObjectException;
 import org.eclipse.jgit.internal.storage.file.LockFile;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.merge.MergeStrategy;
@@ -57,10 +66,13 @@ import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevSort;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
+import org.eclipse.jgit.revwalk.filter.AndRevFilter;
+import org.eclipse.jgit.revwalk.filter.CommitTimeRevFilter;
 import org.eclipse.jgit.transport.FetchResult;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
+import org.eclipse.jgit.treewalk.filter.TreeFilter;
 import org.springframework.web.context.ServletContextAware;
 
 import static org.craftercms.studio.api.v1.constant.GitRepositories.PUBLISHED;
@@ -73,7 +85,7 @@ import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryC
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.INITIAL_COMMIT;
 
-public class GitContentRepository implements ContentRepository, ServletContextAware {
+public class GitContentRepository implements ContentRepository, ServletContextAware, DeploymentHistoryProvider {
 
     private static final Logger logger = LoggerFactory.getLogger(GitContentRepository.class);
     private GitContentRepositoryHelper helper = null;
@@ -244,14 +256,14 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                  GitRepositories.SANDBOX);
 
             String gitFromPath = helper.getGitPath(fromPath);
-            String gitToPath = helper.getGitPath(toPath + newName);
+            String gitToPath = helper.getGitPath(toPath + File.separator + newName);
 
             try (Git git = new Git(repo)) {
                 // Check if destination is a file, then this is a rename operation
                 // Perform rename and exit
-                Path sourcePath = Paths.get(repo.getDirectory().getParent(), fromPath);
+                Path sourcePath = Paths.get(repo.getDirectory().getParent(), gitFromPath);
                 File sourceFile = sourcePath.toFile();
-                Path targetPath = Paths.get(repo.getDirectory().getParent(), toPath);
+                Path targetPath = Paths.get(repo.getDirectory().getParent(), gitToPath);
                 File targetFile = targetPath.toFile();
                 if (targetFile.isFile()) {
                     if (sourceFile.isFile()) {
@@ -330,6 +342,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         try {
             RevTree tree = helper.getTreeForLastCommit(repo);
             try (TreeWalk tw = TreeWalk.forPath(repo, helper.getGitPath(path), tree)) {
+
                 if (tw != null) {
                     // Loop for all children and gather path of item excluding the item, file/folder name, and
                     // whether or not it's a folder
@@ -359,6 +372,39 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         tw.close();
                     } else {
                         logger.error("Error getChildren invoked for a file for site: " + site + " path: " + path);
+                    }
+                } else {
+                    String gitPath = helper.getGitPath(path);
+                    if (StringUtils.isEmpty(gitPath) || gitPath.equals(".")) {
+                        try (TreeWalk treeWalk = new TreeWalk(repo)) {
+                                treeWalk.addTree(tree);
+
+                                while (treeWalk.next()) {
+
+                                    ObjectLoader loader = repo.open(treeWalk.getObjectId(0));
+
+                                    RepositoryItem item = new RepositoryItem();
+                                    item.name = treeWalk.getNameString();
+
+                                    String visitFolderPath = File.separator + treeWalk.getPathString();
+                                    loader = repo.open(treeWalk.getObjectId(0));
+                                    item.isFolder = loader.getType() == Constants.OBJ_TREE;
+                                    int lastIdx = visitFolderPath.lastIndexOf(File.separator + item.name);
+                                    if (lastIdx > 0) {
+                                        item.path = visitFolderPath.substring(0, lastIdx);
+                                    } else {
+                                        item.path = StringUtils.EMPTY;
+                                    }
+
+                                    if (!ArrayUtils.contains(IGNORE_FILES, item.name)) {
+                                        retItems.add(item);
+                                    }
+                                }
+
+                        } catch (IOException e) {
+                            logger.error("Error while getting children for site: " + site + " path: " + path, e);
+                        }
+
                     }
                 }
             } catch (IOException e) {
@@ -392,7 +438,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         VersionTO versionTO = new VersionTO();
                         versionTO.setVersionNumber(revCommit.getName());
                         versionTO.setLastModifier(revCommit.getAuthorIdent().getName());
-                        versionTO.setLastModifiedDate(new Date(revCommit.getCommitTime() * 1000));
+                        versionTO.setLastModifiedDate(new Date(revCommit.getCommitTime() * 1000l));
                         versionTO.setComment(revCommit.getFullMessage());
                         versionHistory.add(versionTO);
                     }
@@ -431,9 +477,9 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
                 try (Git git = new Git(repo)) {
                     PersonIdent currentUserIdent = helper.getCurrentUserIdent();
-                    DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+                    DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HHmmssX");
                     Calendar cal = Calendar.getInstance();
-                    String versionLabel = dateFormat.format(cal);
+                    String versionLabel = dateFormat.format(cal.getTime());
 
                     TagCommand tagCommand = git.tag()
                         .setName(versionLabel)
@@ -656,24 +702,62 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
         synchronized(helper.getRepository(site, GitRepositories.PUBLISHED)) {
             try (Git git = new Git(repo)) {
-                // fetch "origin/master"
-                FetchResult fetchResult = git.fetch().setRemote(Constants.DEFAULT_REMOTE_NAME).call();
 
                 // checkout environment branch
-                Ref checkoutResult = git.checkout().setCreateBranch(true).setName(environment).call();
+                try {
+                    Ref checkoutResult = git.checkout()
+                            .setName(environment)
+                            .call();
+                } catch (RefNotFoundException e) {
+                    logger.info("Not able to find branch " + environment + " for site " + site + ". Creating new branch");
+                    // checkout environment branch
+                    Ref checkoutResult = git.checkout().setCreateBranch(true).setForce(true).setStartPoint("master")
+                            .setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK)
+                            .setName(environment)
+                            .call();
+                }
+
+                // fetch "origin/master"
+                FetchResult fetchResult = git.fetch().call();
 
                 // cherry pick all commit ids
-                CherryPickCommand cherryPickCommand = git.cherryPick().setStrategy(MergeStrategy.THEIRS);
+                CherryPickCommand cherryPickCommand = git
+                        .cherryPick()
+                        .setNoCommit(false);
                 for (String commitId : commitIds) {
-                    ObjectId objectId = ObjectId.fromString(commitId);
-                    cherryPickCommand.include(objectId);
+                    if (StringUtils.isNotEmpty(commitId)) {
+                        ObjectId objectId = ObjectId.fromString(commitId);
+                        cherryPickCommand.include(objectId);
+                    }
                 }
                 CherryPickResult cherryPickResult = cherryPickCommand.call();
 
-                // tag
-                PersonIdent authorIdent = helper.getAuthorIdent(author);
-                Ref tagResult = git.tag().setTagger(authorIdent).setMessage(comment).call();
+                switch (cherryPickResult.getStatus()) {
+                    case FAILED:
+                        // TODO: DB: what to do if cherry pick failed ?
+                        logger.error("Cherry-pick failed " + cherryPickResult.getFailingPaths());
+                        break;
+
+                    case CONFLICTING:
+                        // TODO: DB: what to do if cherry pick has conflict ?
+                        logger.error("Conflict executing cherry-pick " + cherryPickResult.getFailingPaths());
+                        break;
+
+                    case OK:
+                        long commitTime = 1000l * cherryPickResult.getNewHead().getCommitTime();
+                        // tag
+                        Date tagDate2 = new Date(commitTime);
+                        SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy-MM-dd'T'HHmmssX");
+                        String tagName2 = sdf2.format(tagDate2);
+                        PersonIdent authorIdent2 = helper.getAuthorIdent(author);
+                        Ref tagResult2 = git.tag().setTagger(authorIdent2).setName(tagName2).setMessage(comment).call();
+                        break;
+                }
+
+
             } catch (GitAPIException e) {
+                logger.error("Error when publishing site " + site + " to environment " + environment, e);
+            } catch (Exception e) {
                 logger.error("Error when publishing site " + site + " to environment " + environment, e);
             }
         }
@@ -691,11 +775,39 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 ObjectId objCommitIdFrom = repo.resolve(commitIdFrom);
                 ObjectId objCommitIdTo = repo.resolve(commitIdTo);
 
-                // If the commitIdFrom is the same as commitIdTo, there is nothing to calculate, otherwise, let's do it
-                if (!objCommitIdFrom.equals(objCommitIdTo)) {
-                    // Compare HEAD with commitId we're given
-                    // Get list of commits between commitId and HEAD in chronological order
-                    try (Git git = new Git(repo)) {
+                String firstCommitId = getRepoFirstCommitId(site);
+                ObjectId objFirstCommitId = repo.resolve(firstCommitId);
+                boolean initialEqToCommit = StringUtils.equals(firstCommitId, commitIdTo);
+                boolean initialEqFromCommit = StringUtils.equals(firstCommitId, commitIdFrom);
+
+                try (Git git = new Git(repo)) {
+
+                    if (initialEqFromCommit) {
+                        try (RevWalk walk = new RevWalk(repo)) {
+                            RevCommit firstCommit = walk.parseCommit(objFirstCommitId);
+                            RevTree firstCommitTree = helper.getTreeForCommit(repo, firstCommit.getName());
+                            try (ObjectReader reader = repo.newObjectReader()) {
+                                CanonicalTreeParser firstCommitTreeParser = new CanonicalTreeParser();
+                                firstCommitTreeParser.reset();//reset(reader, firstCommitTree.getId());
+                                // Diff the two commit Ids
+                                List<DiffEntry> diffEntries = git.diff().setOldTree(firstCommitTreeParser).setNewTree(null).call();
+
+
+                                // Now that we have a diff, let's itemize the file changes, pack them into a TO
+                                // and add them to the list of RepoOperations to return to the caller
+                                // also include date/time of commit by taking number of seconds and multiply by 1000 and
+                                // convert to java date before sending over
+                                operations.addAll(processDiffEntry(diffEntries, new Date(firstCommit.getCommitTime() *
+                                        1000l)));
+                            }
+                        }
+                    }
+
+                    // If the commitIdFrom is the same as commitIdTo, there is nothing to calculate, otherwise, let's do it
+                    if (!objCommitIdFrom.equals(objCommitIdTo)) {
+                        // Compare HEAD with commitId we're given
+                        // Get list of commits between commitId and HEAD in chronological order
+
                         // Get the log of all the commits between commitId and head
                         Iterable<RevCommit> commits = git.log().addRange(objCommitIdFrom, objCommitIdTo).call();
 
@@ -703,9 +815,20 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         ObjectId prevCommitId = objCommitIdFrom;
                         ObjectId nextCommitId = objCommitIdFrom;
 
+                        // Reverse orders of commits
+                        // TODO: DB: try to find better algorithm
                         Iterator<RevCommit> iterator = commits.iterator();
+                        List<RevCommit> revCommits = new ArrayList<RevCommit>();
                         while (iterator.hasNext()) {
+
                             RevCommit commit = iterator.next();
+                            revCommits.add(commit);
+                        }
+
+                        ReverseListIterator<RevCommit> reverseIterator = new ReverseListIterator<RevCommit>(revCommits);
+                        while (reverseIterator.hasNext()) {
+
+                            RevCommit commit = reverseIterator.next();
                             nextCommitId = commit.getId();
 
                             RevTree prevTree = helper.getTreeForCommit(repo, prevCommitId.getName());
@@ -726,14 +849,15 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                                 // also include date/time of commit by taking number of seconds and multiply by 1000 and
                                 // convert to java date before sending over
                                 operations.addAll(processDiffEntry(diffEntries, new Date(commit.getCommitTime() *
-                                    1000)));
+                                    1000l)));
                                 prevCommitId = nextCommitId;
                             }
                         }
-                    } catch (GitAPIException e) {
-                        logger.error("Error getting operations for site " + site + " from commit ID: " + commitIdFrom
-                            + " to commit ID: " + commitIdTo, e);
+
                     }
+                } catch (GitAPIException e) {
+                    logger.error("Error getting operations for site " + site + " from commit ID: " + commitIdFrom
+                            + " to commit ID: " + commitIdTo, e);
                 }
             } catch (IOException e) {
                 logger.error("Error getting operations for site " + site + " from commit ID: " + commitIdFrom + " to commit ID: " + commitIdTo, e);
@@ -773,7 +897,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 rw.markStart(root);
                 ObjectId first = rw.next();
                 toReturn = first.getName();
-                logger.error("FIRST COMMIT ID !!!: " + toReturn);
+                logger.debug("getRepoFirstCommitId for site: " + site + " First commit ID: " + toReturn);
             } catch (IOException e) {
                 logger.error("Error getting first commit ID for site " + site, e);
             }
@@ -821,6 +945,41 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             toReturn.add(repoOperation);
         }
         return toReturn;
+    }
+
+    @Override
+    public List<DeploymentSyncHistory> getDeploymentHistory(String site, Date fromDate, Date toDate, String filterType, int numberOfItems) {
+        List<DeploymentSyncHistory> toRet = new ArrayList<DeploymentSyncHistory>();
+        Repository publishedRepo = helper.getRepository(site, PUBLISHED);
+        try (Git git = new Git(publishedRepo)) {
+            // List all environments
+            List<Ref> environments = git.branchList().call();
+            for (Ref env : environments) {
+                String environment = env.getName();
+                Iterable<RevCommit> branchLog = git.log()
+                        .add(env.getObjectId())
+                        .setRevFilter(AndRevFilter.create(CommitTimeRevFilter.after(fromDate), CommitTimeRevFilter.before(toDate)))
+                        .call();
+
+                Iterator<RevCommit> iterator = branchLog.iterator();
+                while (iterator.hasNext()) {
+                    RevCommit revCommit = iterator.next();
+                    List<String> files = helper.getFilesInCommit(publishedRepo, revCommit);
+                    for (String file : files) {
+                        DeploymentSyncHistory dsh = new DeploymentSyncHistory();
+                        dsh.setSite(site);
+                        dsh.setPath(file);
+                        dsh.setSyncDate(new Date(1000l * revCommit.getCommitTime()));
+                        dsh.setUser(revCommit.getAuthorIdent().getName());
+                        dsh.setEnvironment(environment);
+                        toRet.add(dsh);
+                    }
+                }
+            }
+        } catch (IOException | GitAPIException e1) {
+            logger.error("Error while getting deployment history for site " + site, e1);
+        }
+        return toRet;
     }
 
     public void setServletContext(ServletContext ctx) { this.ctx = ctx; }

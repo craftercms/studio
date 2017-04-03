@@ -36,10 +36,7 @@ import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
 import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
-import org.craftercms.studio.api.v1.service.deployment.CopyToEnvironmentItem;
-import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
-import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
-import org.craftercms.studio.api.v1.service.deployment.DmPublishService;
+import org.craftercms.studio.api.v1.service.deployment.*;
 import org.craftercms.studio.api.v1.service.event.EventService;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
@@ -99,6 +96,8 @@ public class DeploymentServiceImpl implements DeploymentService {
         groupedPaths.put(CopyToEnvironment.Action.MOVE, movedPaths);
         groupedPaths.put(CopyToEnvironment.Action.UPDATE, updatedPaths);
 
+        environment = resolveEnvironment(site, environment);
+
         List<CopyToEnvironment> items = createItems(site, environment, groupedPaths, scheduledDate, approver, submissionComment);
         for (CopyToEnvironment item : items) {
             copyToEnvironmentMapper.insertItemForDeployment(item);
@@ -109,7 +108,19 @@ public class DeploymentServiceImpl implements DeploymentService {
         }catch(Exception errNotify) {
             logger.error("Error sending approval notification ",errNotify);
         }
-}
+    }
+
+    private String resolveEnvironment(String site, String environment) {
+        String toRet = environment;
+        List<PublishingTargetTO> publishingTargets = siteService.getPublishingTargetsForSite(site);
+        for (PublishingTargetTO target : publishingTargets) {
+            if (target.getDisplayLabel().equals(environment)) {
+                toRet = target.getRepoBranchName();
+                break;
+            }
+        }
+        return toRet;
+    }
 
     protected void sendContentApprovalEmail(List<CopyToEnvironment> itemList,boolean scheduleDateNow) {
         if(notificationService.isEnabled()) {
@@ -185,12 +196,12 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     protected Set<String> getAllPublishingEnvironments(String site) {
-        Map<String, PublishingChannelGroupConfigTO> groupConfigTOs = siteService.getPublishingChannelGroupConfigs(site);
+        List<PublishingTargetTO> publishingTargets = siteService.getPublishingTargetsForSite(site);
         Set<String> environments = new HashSet<String>();
-        if (groupConfigTOs != null && groupConfigTOs.size() > 0) {
-            for (PublishingChannelGroupConfigTO groupConfigTO : groupConfigTOs.values()) {
-                if (StringUtils.isNotEmpty(groupConfigTO.getName())) {
-                    environments.add(groupConfigTO.getName());
+        if (publishingTargets != null && publishingTargets.size() > 0) {
+            for (PublishingTargetTO target : publishingTargets) {
+                if (StringUtils.isNotEmpty(target.getRepoBranchName())) {
+                    environments.add(target.getRepoBranchName());
                 }
             }
         }
@@ -321,7 +332,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         // get the filtered list of attempts in a specific date range
         Date toDate = new Date();
         Date fromDate = new Date(toDate.getTime() - (1000L * 60L * 60L * 24L * daysFromToday));
-        List<DeploymentSyncHistory> deployReports = getDeploymentHistory(site, fromDate, toDate, filterType, numberOfItems); //findDeploymentReports(site, fromDate, toDate);
+        List<DeploymentSyncHistory> deployReports = deploymentHistoryProvider.getDeploymentHistory(site, fromDate, toDate, filterType, numberOfItems); //findDeploymentReports(site, fromDate, toDate);
         List<DmDeploymentTaskTO> tasks = new ArrayList<DmDeploymentTaskTO>();
 
         if (deployReports != null) {
@@ -357,22 +368,6 @@ public class DeploymentServiceImpl implements DeploymentService {
             }
         }
         return tasks;
-    }
-
-    protected List<DeploymentSyncHistory> getDeploymentHistory(String site, Date fromDate, Date toDate, String filterType, int numberOfItems) {
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put("site", site);
-        params.put("from_date", fromDate);
-        params.put("to_date", toDate);
-        if (numberOfItems <= 0) {
-            params.put("limit", HISTORY_ALL_LIMIT);
-        } else {
-            params.put("limit", numberOfItems);
-        }
-        if (!filterType.equalsIgnoreCase(CONTENT_TYPE_ALL)) {
-            params.put("filter", filterType);
-        }
-        return deploymentSyncHistoryMapper.getDeploymentHistory(params);
     }
 
     /**
@@ -491,11 +486,9 @@ public class DeploymentServiceImpl implements DeploymentService {
      * @param site
      * @param launchDate
      * @param format
-     * @param node
      * @param scheduledItems
      * @param comparator
      * @param subComparator
-     * @param taskId
      * @param displayPatterns
      * @throws ServiceException
      */
@@ -636,27 +629,15 @@ public class DeploymentServiceImpl implements DeploymentService {
 
     protected List<String> getPublishingChannels(String site) {
         List<String> channels = new ArrayList<String>();
-        Map<String, PublishingChannelGroupConfigTO> channelGroupConfigTOs = siteService.getPublishingChannelGroupConfigs(site);
-        List<PublishingChannelGroupConfigTO> channelGroupConfigs = new ArrayList<>(channelGroupConfigTOs.values());
-        Collections.sort(channelGroupConfigs, new Comparator<PublishingChannelGroupConfigTO>() {
+        List<PublishingTargetTO> publishingTargets = siteService.getPublishingTargetsForSite(site);
+        Collections.sort(publishingTargets, new Comparator<PublishingTargetTO>() {
             @Override
-            public int compare(PublishingChannelGroupConfigTO o1, PublishingChannelGroupConfigTO o2) {
+            public int compare(PublishingTargetTO o1, PublishingTargetTO o2) {
                 return o1.getOrder() - o2.getOrder();
             }
         });
-        String user = securityService.getCurrentUser();
-        Set<String> userRoles = new HashSet<>();
-        if (org.apache.commons.lang3.StringUtils.isNotEmpty(user)) {
-            userRoles = securityService.getUserRoles(site, user);
-        }
-        for (PublishingChannelGroupConfigTO configTO : channelGroupConfigs) {
-            if (CollectionUtils.isEmpty(configTO.getRoles())) {
-                channels.add(configTO.getName());
-            } else {
-                if (CollectionUtils.containsAny(configTO.getRoles(), userRoles)) {
-                    channels.add(configTO.getName());
-                }
-            }
+        for (PublishingTargetTO target : publishingTargets) {
+            channels.add(target.getDisplayLabel());
         }
         return channels;
     }
@@ -773,20 +754,11 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     protected Set<String> getEndpontEnvironments(String site, String endpoint) {
-        Map<String, PublishingChannelGroupConfigTO> groupConfigTOs = siteService.getPublishingChannelGroupConfigs(site);
+        List<PublishingTargetTO> publishingTargets = siteService.getPublishingTargetsForSite(site);
         Set<String> environments = new HashSet<String>();
-        Map<String, DeploymentEndpointConfigTO> targetMap = new HashMap<String, DeploymentEndpointConfigTO>();
-        if (groupConfigTOs != null && groupConfigTOs.size() > 0) {
-            for (PublishingChannelGroupConfigTO groupConfigTO : groupConfigTOs.values()) {
-                List<PublishingChannelConfigTO> channelConfigTOs = groupConfigTO.getChannels();
-                if (channelConfigTOs != null && channelConfigTOs.size() > 0) {
-                    for (PublishingChannelConfigTO channelConfigTO : channelConfigTOs) {
-                        DeploymentEndpointConfigTO endpointTO = siteService.getDeploymentEndpoint(site, channelConfigTO.getName());
-                        if (endpointTO != null && StringUtils.equals(endpoint, endpointTO.getName())) {
-                            environments.add(groupConfigTO.getName());
-                        }
-                    }
-                }
+        if (publishingTargets != null && publishingTargets.size() > 0) {
+            for (PublishingTargetTO target : publishingTargets) {
+                environments.add(target.getRepoBranchName());
             }
         }
         return environments;
@@ -830,29 +802,12 @@ public class DeploymentServiceImpl implements DeploymentService {
         }
         jobList.add(copyToEnvStoreJob);
 
-        DeploymentJobTO publishToTargetJob = new DeploymentJobTO();
-        publishToTargetJob.setId(publishContentToDeploymentTargetJob.getClass().getCanonicalName());
-        publishToTargetJob.setName(publishContentToDeploymentTargetJob.getClass().getSimpleName());
-        publishToTargetJob.setEnabled(publishContentToDeploymentTargetJob.isMasterPublishingNode());
-        publishToTargetJob.setRunning(false);
-        try {
-            publishToTargetJob.setHost(InetAddress.getLocalHost().toString());
-        } catch (UnknownHostException e) {
-            logger.debug("Error while getting host information");
-        }
-        jobList.add(publishToTargetJob);
-
         return jobList;
     }
 
     @Override
     public void bulkDelete(String site, String path) {
         dmPublishService.bulkDelete(site, path);
-    }
-
-    @Override
-    public boolean createPreviewTarget(String site) {
-        return eventService.firePreviewCreateTargetEvent(site);
     }
 
     public void setServicesConfig(ServicesConfig servicesConfig) {
@@ -899,16 +854,15 @@ public class DeploymentServiceImpl implements DeploymentService {
     public DeployContentToEnvironmentStore getDeployContentToEnvironmentStoreJob() { return deployContentToEnvironmentStoreJob; }
     public void setDeployContentToEnvironmentStoreJob(DeployContentToEnvironmentStore deployContentToEnvironmentStoreJob) { this.deployContentToEnvironmentStoreJob = deployContentToEnvironmentStoreJob; }
 
-    public PublishContentToDeploymentTarget getPublishContentToDeploymentTargetJob() { return publishContentToDeploymentTargetJob; }
-    public void setPublishContentToDeploymentTargetJob(PublishContentToDeploymentTarget publishContentToDeploymentTargetJob) { this.publishContentToDeploymentTargetJob = publishContentToDeploymentTargetJob; }
-
-
     public void setNotificationService(final NotificationService notificationService) {
         this.notificationService = notificationService;
     }
 
     public EventService getEventService() { return eventService; }
     public void setEventService(EventService eventService) { this.eventService = eventService; }
+
+    public DeploymentHistoryProvider getDeploymentHistoryProvider() { return deploymentHistoryProvider; }
+    public void setDeploymentHistoryProvider(DeploymentHistoryProvider deploymentHistoryProvider) { this.deploymentHistoryProvider = deploymentHistoryProvider; }
 
     protected ServicesConfig servicesConfig;
     protected ContentService contentService;
@@ -924,8 +878,9 @@ public class DeploymentServiceImpl implements DeploymentService {
     protected SecurityService securityService;
     protected EventService eventService;
     protected DeployContentToEnvironmentStore deployContentToEnvironmentStoreJob;
-    protected PublishContentToDeploymentTarget publishContentToDeploymentTargetJob;
     protected NotificationService notificationService;
+    protected DeploymentHistoryProvider deploymentHistoryProvider;
+
     @Autowired
     protected DeploymentSyncHistoryMapper deploymentSyncHistoryMapper;
 

@@ -1,0 +1,305 @@
+##################################################
+##################################################
+##       Studio Core Configuration File         ##
+##################################################
+##################################################
+
+##################################################
+##     Location of Override Config File         ##
+##################################################
+# Load override configuration files (to override what's defined here)
+studio.config.overrideConfig: crafter/studio/extension/studio-config.yaml
+
+##################################################
+##              Content Repository              ##
+##################################################
+# Absolute or relative path to repository base (all actual repositories will be under this)
+studio.repo.basePath: ./data/repos
+# Global repository path (automatically goes under repo-base-path)
+studio.repo.globalRepoPath: global
+# Sites repositories base path (automatically goes under repo-base-path)
+studio.repo.sitesRepoBasePath: sites
+# Sandbox git repository name under every site
+studio.repo.siteSandboxPath: sandbox
+# Published git repository name under every site
+studio.repo.sitePublishedPath: published
+# Blueprints folder name under global
+studio.repo.blueprintsPath: blueprints
+# Bootstrap the repository with fresh content if no repository is detected in the paths specified. Default is true.
+studio.repo.bootstrapRepo: true
+# Defines size of a batch when rebuilding crafter repository metadata stored in database.
+studio.repo.rebuildMetadata.batchSize: 100
+
+############################################################
+##                   Site Configuration                   ##
+############################################################
+# Location where global configuration files are stored.
+studio.configuration.global.configBasePath: /configuration
+# File name where global configuration of user role mappings is stored.
+studio.configuration.global.roleMappingFileName: global-role-mappings-config.xml
+# File name where global configuration of user permissions mappings is stored.
+studio.configuration.global.permissionMappingFileName: global-permission-mappings-config.xml
+# Root location where configuration for all sites is stored inside repository.
+studio.configuration.site.configBasePath: /config/studio
+# Location pattern where environment specific configuration for a site is stored
+studio.configuration.site.environment.configBasePath: /config/studio/environment-overrides
+# Location where deployment configuration is stored for a site.
+studio.configuration.site.deployment.configBasePath: /config/studio/deployment
+# Location where content types are stored for a site.
+studio.configuration.site.contentTypes.configBasePath: /config/studio/content-types
+# Location where content types configuration files are stored for a site.
+studio.configuration.site.contentTypes.configPath: /config/studio/content-types/{content-type}
+# File name where site configuration is stored.
+studio.configuration.site.generalConfigFileName: site-config.xml
+# File name where configuration of user permissions mappings is stored for a site.
+studio.configuration.site.permissionMappingsFileName: permission-mappings-config.xml
+# File name where configuration of user role mappings is stored for a site.
+studio.configuration.site.roleMappingsFileName: role-mappings-config.xml
+# Defines name used for environment specific configuration. It is used for environment overrides in studio. Default value is local.
+studio.configuration.site.environment: local
+# File name where environment specific configuration is stored
+studio.configuration.site.environment.configFileName: environment-config.xml
+# File name where simple notification service configuration is stored.
+studio.configuration.site.notificationsConfigFileName: notification-config.xml
+# File name where custom notification service configuration is stored.
+studio.configuration.site.notificationsConfigFileName.v2: workflow-messaging-config.xml
+# File name where deployment endpoints configuration is stored.
+studio.configuration.site.deployment.configFileName: endpoints-config.xml
+# File name where configuration of content type is stored.
+studio.configuration.site.contentTypes.configFileName: config.xml
+# Default user groups when site is created
+studio.configuration.site.defaultGroups: Author,Publisher,Developer,Reviewer,Admin
+# Default admin group when site is created to add creator as admin
+studio.configuration.site.defaultAdminGroup: Admin
+########################################################
+##                   Import Service                   ##
+########################################################
+# Defines content processor workflow assignee for import process.
+studio.import.assignee: admin
+# Defines content processor chain name used for processing xml content.
+studio.import.xmlChainName: importContent
+# Defines content processor chain name used for processing assets.
+studio.import.assetChainName: assetContent
+
+##############################################################
+##                   Notification Service                   ##
+##############################################################
+# Turn on/off (value true/false) notifications for custom content path patterns.
+studio.notification.customContentPathNotification.enabled: false
+# Defines regular expression to enable notifications for custom content paths.
+studio.notification.customContentPathNotificationPattern:
+# Turn on/off (value true/false) custom notification service.
+studio.notification.v2.enabled: false
+# Set timezone used for custom notification service.
+studio.notification.v2.timezone: UTC
+
+##########################################################
+##                   Workflow Service                   ##
+##########################################################
+# Turn on/off (value true/false) publishing without dependencies.
+# When turned on workflow service does not perform check if deployment package includes all necessary dependencies for content that is being published.
+studio.workflow.publishingWithoutDependencies.enabled: false
+
+##########################################################
+##                   Activity Service                   ##
+##########################################################
+studio.activity.user.name.caseSensitive: false
+
+##############################################################
+##                   Dependencies Service                   ##
+##############################################################
+# Defines paths that will be excluded from dependency rules. Common usage is for files that are not site content themselves, but are system or files packaged with engine.
+# Valid values are regular expressions and for multiple regular expressions, they are separated by comma (,).
+studio.dependencies.ignoreDependenciesRules: /templates/system/common/cstudio-support.*\\.ftl,/templates/web/navigation/.*\\.ftl
+# Turn on (value true) or off (value false) manual approving for dependencies when publishing content.
+# When turned on, dependencies service does not perform check if deployment package includes all necessary dependencies for content that is being published.
+studio.dependencies.manualDependencyApproving.enabled: false
+
+##############################################################
+##                   Object State Service                   ##
+##############################################################
+# Defines size of a batch when executing object state operation on big path packages (bulk operations). Limitation on bulk operations is imposed by jdbc drivers and limits on number of parameters for sql statements.
+studio.objectState.bulkOperationsBatchSize: 500
+
+##########################################################
+##                   Security Service                   ##
+##########################################################
+# HTTP Session timeout for studio.
+studio.security.sessionTimeout: 60
+# Urls to include in restriction for authenticated user only.
+studio.security.urlsToInclude: /api/**
+# Urls to exclude from restriction for authenticated user only.
+studio.security.urlsToExclude: "**,/**"
+# Urls to be treated as exception to the rules.
+studio.security.exceptionUrls: /api/1/services/api/1/user/login.json,/api/1/services/api/1/user/logut.json,/api/1/services/api/1/server/get-available-languages.json,/api/1/services/api/1/server/get-ui-resource-override.json,/api/1/services/api/1/user/reset-password.json,/api/1/services/api/1/user/forgot-password.json,/api/1/services/api/1/user/set-password.json,/api/1/services/api/1/user/validate-token.json
+# Defines security provider for accessing repository. Possible values:
+#   default (basic provider with 3 users - admin, author, approver)
+#   file (users are stored in XML file)
+#   alfrescoext (alfresco users and groups are used for authentication)
+#   db (users are stored in database)
+studio.security.type: db
+# Location of XML file that contains users for demo security provider.
+studio.security.file.configLocation: ${repository.diskImplementation.path}/security-config.xml
+# Session timeout for db security provider
+studio.security.db.sessionTimeout: 15
+# Salt for encrypting
+studio.security.cipher.salt: STUDIO_SALT
+# Key for encrypting
+studio.security.cipher.key: MYSUPERSECRETKEY
+# Cipher type
+studio.security.cipher.type: AES
+# Cipher algorithm
+studio.security.cipher.algorithm: AES/CBC/PKCS5Padding
+# Forgot password email subject
+studio.security.forgotPassword.message.subject: Forgot Password
+# Forgot password email text
+studio.security.forgotPassword.message.text: http://localhost:8080/studio#/reset-password?token={token}
+# Forgot password token time-out period in minutes
+studio.security.forgotPassword.token.timeout: 60
+
+###############################################################
+##               Page Navigation Order Service               ##
+###############################################################
+# Defines base increment for page navigation order when new content is created.
+studio.pageNavigationOrder.increment: 1000
+
+############################################################
+##                   Content Processors                   ##
+############################################################
+# Location where groovy script for content lifecycle processor is stored.
+studio.contentProcessor.contentLifeCycle.scriptLocation: /config/studio/content-types/{content-type}/controller.groovy
+# Path pattern where system assets are stored.
+studio.contentProcessor.assetsSystemPath: /static-assets/system
+
+#######################################################
+##                   Email Service                   ##
+#######################################################
+# Default value for from header when sending emails.
+studio.mail.from.default: admin@example.com
+# SMTP server name to send emails.
+studio.mail.host: localhost
+# SMTP port number to send emails.
+studio.mail.port: 25
+# SMTP username for authenticated access when sending emails.
+studio.mail.username:
+# SMTP password for authenticated access when sending emails.
+studio.mail.password:
+# Turn on/off (value true/false) SMTP authenaticated access protocol.
+studio.mail.smtp.auth: false
+# Enable/disable (value true/false) SMTP TLS protocol when sending emails.
+studio.mail.smtp.starttls.enable: true
+# Enable/disable (value true/false) SMTP EHLO protocol when sending emails.
+studio.mail.smtp.ehlo: true
+# Enable/disable (value true/false) debug mode for email service. Enabling debug mode allows tracking/debugging communication between email service and SMTP server.
+studio.mail.debug: false
+
+#####################################################
+##                   Studio Jobs                   ##
+#####################################################
+# Defines chunk size for big deployment packages. Deployment package is divide and processed in chunks of specified size.
+studio.job.deployContentToEnvironment.processingChunkSize: 1000
+# Turn on/off (value true/false) check if mandatory dependencies of deployed content are included in deployment package.
+studio.job.deployContentToEnvironment.mandatoryDependenciesCheckEnabled: true
+# Defines master publishing node in clustered environment. Value false disables publishing (even in non-clustered environment).
+studio.job.deployment.masterPublishingNode: true
+# Defines maximum number of retries in case of failure when synchronizing deployment target with published content.
+studio.job.syncTargets.maxTolerableRetries: 30
+
+######################################################################
+##                   Content Type Filter Patterns                   ##
+######################################################################
+# Define dashboard filter pattern for pages. Value is regular expression executed against content path.
+studio.contentTypes.filter.pages.includePattern: ^/page/.*
+# Define dashboard filter pattern for components. Value is regular expression executed against content path.
+studio.contentTypes.filter.components.includePattern: ^/component/.*
+# Define dashboard filter pattern for documents. Value is regular expression executed against content path.
+studio.contentTypes.filter.documents.includePattern: ^/document/.*
+
+############################################################
+##                    Preview Deployer                    ##
+############################################################
+# Default preview deployer URL (can be overridden per site)
+studio.preview.defaultPreviewDeployerUrl: http://localhost:9191/api/1/target/deploy/preview/{siteName}
+# Default preview create target URL (can be overridden per site)
+studio.preview.createTargetUrl: http://localhost:9191/api/1/target/create
+# Default preview create target URL (can be overridden per site)
+studio.preview.deleteTargetUrl: http://localhost:9191/api/1/target/delete/{siteEnv}/{siteName}
+# URL to the preview repository (aka Sandbox) where authors save work-in-progress
+studio.preview.repoUrl: data/repos/sites/{siteName}/sandbox
+# URL to the preview Crafter Engine
+studio.preview.engineUrl: http://localhost:8080
+# Name of template to use with the deployer for preview
+studio.preview.templateName: local
+# Replace existing configuration if one exists?
+studio.preview.replace: true
+# Disable deploy cron job for preview target
+studio.preview.disableDeployCron: true
+
+############################################################
+##                   Preview Search                       ##
+############################################################
+studio.preview.search.createUrl: http://localhost:8080/crafter-search/api/2/admin/index/create
+studio.preview.search.deleteUrl: http://localhost:8080/crafter-search/api/2/admin/index/delete/{siteName}
+
+############################################################
+##                   Publishing Manager                   ##
+############################################################
+# Defines file name for index files (page containers). Default value is index.xml
+studio.publishingManager.indexFile: index.xml
+# Turn on/off (value true/false) import mode for deployment engine. When import mode enabled, deployment engine does not create versions for content files.
+studio.publishingManager.importModeEnabled: false
+# Turn on/off (value true/false) publishing without dependencies.
+# When turned on, deployment engine does not check for missing mandatory dependencies of published content.
+studio.publishingManager.publishingWithoutDependencies.enabled: false
+
+##################################################
+##                   Database                   ##
+##################################################
+# Embedded database configuration
+# JDBC driver and Java class used for accessing crafter database
+studio.db.driver: org.mariadb.jdbc.Driver
+# Username used for authentication to access crafter database.
+studio.db.username: crafter
+# Password used for authentication to access crafter database.
+studio.db.password: crafter
+# Connection string used when connecting database with JDBC driver
+# Format:
+# jdbc:DATABASE_PLATFORM;databaseName=DATABASE_NAME;create=true;user=DATABASE_USERNAME;password=DATABASE_USER_PASSWORD
+# Note that a relative path is not suitable for a production deployment
+studio.db.url: jdbc:mariadb://127.0.0.1:33306/crafter?user=crafter&password=crafter
+# Defines initial number of database connections in database connection pool
+studio.db.pool.initialConnections: 10
+# Defines maximum number of active database connections in database connection pool
+studio.db.pool.maxActiveConnections: 100
+# Defines maximum number of idle database connections to retain in database connection pool.
+studio.db.pool.maxIdleConnections: 30
+# Defines minimum number of idle database connections to retain in database connection pool.
+studio.db.pool.minIdleConnections: 10
+# Defines maximum waiting time for a database connection to become available (value is in milliseconds).
+studio.db.pool.maxWaitTime: 10000
+# Turn database initializer on (value true) or off (value false).
+# When initializer is turned off, system will not try to initialize database on startup.
+# When system is starting for the first time initializer must be turned on.
+# When database already exists, initializer can be turned off for faster startup. If database is deleted or dropped
+# for any reason, initializer needs to be turned on.
+studio.db.initializer.enabled: true
+# Connection string used to initialize database
+studio.db.initializer.url: jdbc:mariadb://127.0.0.1:33306?user=root&password=
+# Initialize database SQL script location
+studio.db.initializer.scriptLocation: crafter/studio/database/createDDL.sql
+# Test database connections retrieved from the pool before being used (value true).
+# If value is set to false database connection will not be tested before being used.
+studio.db.testOnBorrow: true
+# The SQL query to validate the connection for database
+studio.db.validationQuery: SELECT 1
+# Defines the amount of time, in seconds, that connection validation will wait for a response from the database when executing a validation query.
+# Use a value less than or equal to 0 for no timeout.
+studio.db.validationInterval: 34000
+# Base folder for the embedded database
+studio.db.basePath: ./data/db
+# Data folder for the embedded database
+studio.db.dataPath: ./data/db/data
+# Port number for the embedded database (note this must match what's in the connection URLs in this config file)
+studio.db.port: 33306
+# Socket path for the embedded database
+studio.db.socket: /tmp/MariaDB4j.33306.sock

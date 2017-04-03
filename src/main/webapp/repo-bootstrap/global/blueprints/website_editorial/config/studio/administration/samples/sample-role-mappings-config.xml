@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<role-mappings>
+    <groups>
+        <group name="global-manager">
+            <role>manager</role>
+            <role>admin</role>
+        </group>
+        <group name="global-author">
+            <role>author</role>
+        </group>
+        <group name="global-dev">
+            <role>dev</role>
+            <role>admin</role>
+        </group>
+        <group name="global-product-manager">
+            <role>productManager</role>
+            <role>admin</role>
+        </group>         
+    </groups>
+</role-mappings>

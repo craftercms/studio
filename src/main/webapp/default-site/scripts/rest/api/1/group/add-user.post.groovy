@@ -18,6 +18,9 @@
  */
 
 import groovy.json.JsonSlurper
+import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException
+import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException
 import scripts.api.SecurityServices
 
 def result = [:]
@@ -33,14 +36,25 @@ def username = parsedReq.username
 
 def context = SecurityServices.createContext(applicationContext, request)
 try {
-    SecurityServices.addUserToGroup(context, siteId, groupName, username);
-    result.status = "OK"
-    response.setStatus(201)
-    def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/group/get?group_name=" + groupName
+    SecurityServices.addUserToGroup(context, siteId, groupName, username)
+    result.message = "OK"
+    response.setStatus(200)
+    def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/group/get.json?group_name=" + groupName
     response.addHeader("Location", locationHeader)
-    return result
+} catch (UserNotFoundException e) {
+    response.setStatus(404)
+    result.message = "User not found"
+} catch (GroupNotFoundException e) {
+    response.setStatus(404)
+    result.message = "Group not found"
+} catch (UserAlreadyExistsException e) {
+    response.setStatus(409)
+    def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/group/get.json?group_name=" + groupName
+    response.addHeader("Location", locationHeader)
+    result.message = "User already in group"
 } catch (Exception e) {
     response.setStatus(500)
-    result.status = "Internal server error"
-    return result
+    result.message = "Internal server error: \n" + e
 }
+
+return result

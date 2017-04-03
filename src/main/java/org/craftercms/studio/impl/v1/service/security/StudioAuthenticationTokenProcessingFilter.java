@@ -19,38 +19,67 @@
 
 package org.craftercms.studio.impl.v1.service.security;
 
+import org.craftercms.studio.api.v1.log.Logger;
+import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.security.UserDetailsManager;
+import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.filter.GenericFilterBean;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
+
+import static org.craftercms.studio.api.v1.service.security.SecurityService.STUDIO_SESSION_TOKEN_ATRIBUTE;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.*;
 
 public class StudioAuthenticationTokenProcessingFilter extends GenericFilterBean {
+
+    private final static Logger crafterLogger = LoggerFactory.getLogger(StudioAuthenticationTokenProcessingFilter.class);
 
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
         HttpServletRequest httpRequest = this.getAsHttpRequest(servletRequest);
+        HttpSession httpSession = httpRequest.getSession();
+        synchronized (httpSession) {
+            String userName = securityService.getCurrentUser();
+            String authToken = securityService.getCurrentToken();
 
-        String userName = securityService.getCurrentUser();
-        String authToken = securityService.getCurrentToken();
+            if (userName != null) {
 
-        if (userName != null) {
+                UserDetails userDetails = this.userDetailsManager.loadUserByUsername(userName);
 
-            UserDetails userDetails = this.userDetailsManager.loadUserByUsername(userName);
+                if (TokenUtils.validateToken(authToken, userDetails)) {
 
-            if (TokenUtils.validateToken(authToken, userDetails)) {
+                    UsernamePasswordAuthenticationToken authentication =
+                            new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
 
-                UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+                    if (httpRequest.getRequestURI().startsWith(httpRequest.getContextPath() + "/api/1") && !httpRequest.getRequestURI().contains("/validate-session.json")) {
+                        int timeout = Integer.parseInt(studioConfiguration.getProperty(SECURITY_SESSION_TIMEOUT));
+                        long ttl = 1000L * 60 * timeout;
+                        String newToken = TokenUtils.createToken(userDetails, ttl);
+                        httpSession.setAttribute(STUDIO_SESSION_TOKEN_ATRIBUTE, newToken);
+                    }
+                }
             }
         }
 
@@ -66,25 +95,18 @@ public class StudioAuthenticationTokenProcessingFilter extends GenericFilterBean
         return (HttpServletRequest) request;
     }
 
-    private String extractAuthTokenFromRequest(HttpServletRequest httpRequest)
-    {
-		/* Get token from header */
-        String authToken = httpRequest.getHeader("X-Auth-Token");
 
-		/* If token not found get it from request parameter */
-        if (authToken == null) {
-            authToken = httpRequest.getParameter("token");
-        }
-
-        return authToken;
-    }
 
     private UserDetailsManager userDetailsManager;
     private SecurityService securityService;
+    private StudioConfiguration studioConfiguration;
 
     public UserDetailsManager getUserDetailsManager() { return userDetailsManager; }
     public void setUserDetailsManager(UserDetailsManager userDetailsManager) { this.userDetailsManager = userDetailsManager; }
 
     public SecurityService getSecurityService() { return securityService; }
     public void setSecurityService(SecurityService securityService) { this.securityService = securityService; }
+
+    public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
 }

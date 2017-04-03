@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<page>
+	<content-type>/page/search-results</content-type>	<display-template>/templates/web/pages/search-results.ftl</display-template>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>864c</objectGroupId>
+	<objectId>864c415c-2c0d-77ad-e42e-50f4f5882cb1</objectId>
+	<file-name>index.xml</file-name>
+	<folder-name>search-results</folder-name>
+	<internal-name>Search Results</internal-name>
+	<title>Search Results</title>
+	<header/>
+	<sidebar>	<item>	<key>/site/components/sidebar-with-latest-articles.xml</key>
+	<value>Sidebar with Latest Articles</value>
+	<include>/site/components/sidebar-with-latest-articles.xml</include>
+	<disableFlattening>false</disableFlattening>
+	</item></sidebar>
+	<createdDate>3/23/2017 23:47:15</createdDate>
+	<createdDate_dt>3/23/2017 23:47:15</createdDate_dt>
+	<lastModifiedDate>3/23/2017 23:47:15</lastModifiedDate>
+	<lastModifiedDate_dt>3/23/2017 23:47:15</lastModifiedDate_dt>
+</page>

@@ -1,0 +1,14 @@
+<config>
+	<category>
+		<label>General</label>
+        <component>
+                <label>Feature</label>
+                <type>/component/feature</type>
+                <path>/site/components/features</path>
+      </component>
+	</category>
+    <browse>
+         <label>Features</label>
+         <path>/site/components/features</path>
+    </browse>
+</config>

@@ -18,6 +18,7 @@
  */
 
 import groovy.json.JsonSlurper
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException
 import scripts.api.SecurityServices
 
 def result = [:]
@@ -26,21 +27,19 @@ def requestBody = request.reader.text
 def slurper = new JsonSlurper()
 def parsedReq = slurper.parseText(requestBody)
 
-def username = parsedReq.username;
+def username = parsedReq.username
 
 def context = SecurityServices.createContext(applicationContext, request)
 try {
     def success = SecurityServices.deleteUser(context, username);
-    if (success) {
-        result.status = "OK"
-        response.setStatus(204)
-    } else {
-        result.status = "User not found"
-        response.setStatus(404)
-    }
-    return result
+    result.message = "OK"
+    response.setStatus(204)
+} catch (UserNotFoundException e) {
+    response.setStatus(404)
+    result.message = "User not found"
 } catch (Exception e) {
-    result.status = "Internal server error"
+    result.message = "Internal server error: \n" + e
     response.setStatus(500)
-    return result
 }
+
+return result

@@ -19,24 +19,25 @@
 package org.craftercms.studio.impl.v1.deployment;
 
 import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.RequestEntity;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.http.entity.ContentType;
+import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.deployment.PreviewDeployer;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
-
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.PREVIEW_DEFAULT_CREATE_TARGET_URL;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.PREVIEW_DEFAULT_PREVIEW_DEPLOYER_URL;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.*;
 
 public class PreviewDeployerImpl implements PreviewDeployer {
 
@@ -63,7 +64,8 @@ public class PreviewDeployerImpl implements PreviewDeployer {
         // TODO: DB: implement deployer agent configuration for preview
         // TODO: SJ: Pseudo code: check if site configuration has a Preview Deployer URL, if so, return it, if not
         // TODO: SJ: return default from studioConfiguration.getProperty(PREVIEW_DEFAULT_PREVIEW_DEPLOYER_URL);
-        String toRet = studioConfiguration.getProperty(PREVIEW_DEFAULT_PREVIEW_DEPLOYER_URL) + "/preview_" + site;
+        String toRet = studioConfiguration.getProperty(PREVIEW_DEFAULT_PREVIEW_DEPLOYER_URL).replaceAll(StudioConstants
+            .CONFIG_SITENAME_VARIABLE, site);
         return toRet;
     }
 
@@ -77,7 +79,8 @@ public class PreviewDeployerImpl implements PreviewDeployer {
         String rqBody = getDeployerCreatePreviewTargetRequestBody(site);
         RequestEntity requestEntity = null;
         try {
-            requestEntity = new StringRequestEntity(rqBody, ContentType.APPLICATION_JSON.toString(), StandardCharsets.UTF_8.displayName());
+            requestEntity = new StringRequestEntity(rqBody, ContentType.APPLICATION_JSON.toString(), StandardCharsets
+                .UTF_8.displayName());
         } catch (UnsupportedEncodingException e) {
             logger.info("Unsupported encoding for request body. Using deprecated method instead.");
         }
@@ -90,7 +93,7 @@ public class PreviewDeployerImpl implements PreviewDeployer {
         HttpClient client = new HttpClient();
         try {
             int status = client.executeMethod(postMethod);
-            if (status != 200) {
+            if (status != HttpStatus.SC_CREATED) {
                 toReturn = false;
             }
         } catch (IOException e) {
@@ -107,14 +110,55 @@ public class PreviewDeployerImpl implements PreviewDeployer {
         // TODO: SJ: Pseudo code: check if site configuration has a Preview Deployer URL, if so, return it, if not
         // TODO: SJ: return default from studioConfiguration.getProperty(PREVIEW_DEFAULT_CREATE_TARGET_URL);
         String toReturn = studioConfiguration.getProperty(PREVIEW_DEFAULT_CREATE_TARGET_URL);
-        toReturn = toReturn.replace("{siteId}", site);
         return toReturn;
     }
 
     private String getDeployerCreatePreviewTargetRequestBody(String site) {
-        Path repoPath = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH), studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH), site, studioConfiguration.getProperty(StudioConfiguration.SANDBOX_PATH));
-        CreateTargetRequestBody requestBody = new CreateTargetRequestBody(site, repoPath.toAbsolutePath().toString());
+        CreateTargetRequestBody requestBody = new CreateTargetRequestBody();
+        requestBody.setEnvironment("preview");
+        requestBody.setSiteName(site);
+        requestBody.setReplace(Boolean.parseBoolean(studioConfiguration.getProperty(PREVIEW_REPLACE)));
+        requestBody.setDisableDeployCron(Boolean.parseBoolean(studioConfiguration.getProperty(PREVIEW_DISABLE_DEPLOY_CRON)));
+        requestBody.setTemplateName(studioConfiguration.getProperty(PREVIEW_TEMPLATE_NAME));
+        String repoUrl = studioConfiguration.getProperty(PREVIEW_REPO_URL).replaceAll(StudioConstants.CONFIG_SITENAME_VARIABLE, site);
+        Path repoUrlPath = Paths.get(repoUrl);
+        repoUrl = repoUrlPath.normalize().toAbsolutePath().toString();
+        requestBody.setRepoUrl(repoUrl);
+        requestBody.setEngineUrl(studioConfiguration.getProperty(PREVIEW_ENGINE_URL));
         return requestBody.toJson();
+    }
+
+    @Override
+    public boolean deleteTarget(String site) {
+        boolean toReturn = true;
+        String requestUrl = getDeployerDeletePreviewTargetUrl(site);
+
+        PostMethod postMethod = new PostMethod(requestUrl);
+        postMethod.getParams().setBooleanParameter(HttpMethodParams.USE_EXPECT_CONTINUE, true);
+
+        HttpClient client = new HttpClient();
+        try {
+            int status = client.executeMethod(postMethod);
+            if (status != 200) {
+                toReturn = false;
+            }
+        } catch (IOException e) {
+            logger.error("Error while sending delete preview target request for site " + site, e);
+            toReturn = false;
+        } finally {
+            postMethod.releaseConnection();
+        }
+        return toReturn;
+    }
+
+    private String getDeployerDeletePreviewTargetUrl(String site) {
+        // TODO: DB: implement deployer agent configuration for preview
+        // TODO: SJ: Pseudo code: check if site configuration has a Preview Deployer URL, if so, return it, if not
+        // TODO: SJ: return default from studioConfiguration.getProperty(PREVIEW_DEFAULT_DELETE_TARGET_URL);
+        String url = new String(studioConfiguration.getProperty(PREVIEW_DEFAULT_DELETE_TARGET_URL));
+        url = url.replaceAll(StudioConstants.CONFIG_SITENAME_VARIABLE, site);
+        url = url.replaceAll(StudioConstants.CONFIG_SITEENV_VARIABLE, "preview");
+        return url;
     }
 
     public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
@@ -124,30 +168,47 @@ public class PreviewDeployerImpl implements PreviewDeployer {
 
     class CreateTargetRequestBody {
 
-        protected String targetId;
-        protected String replace = "true";
-        protected String templateName = "preview";
+        protected String environment;
         protected String siteName;
-        protected String remoteRepoUrl;
-        protected String remoteRepoBranch = "master";
-
-        public CreateTargetRequestBody(String siteName, String repoUrl) {
-            this.targetId = "preview_" + siteName;
-            this.siteName = siteName;
-            this.remoteRepoUrl = repoUrl;
-        }
+        protected boolean replace;
+        protected boolean disableDeployCron;
+        protected String templateName;
+        protected String repoUrl;
+        protected String engineUrl;
 
         public String toJson() {
             StringBuilder sb = new StringBuilder();
             sb.append("{ ");
-            sb.append("\"target_id\":\"").append(this.targetId).append("\", ");
-            sb.append("\"replace\":").append(this.replace).append(", ");
-            sb.append("\"template_name\":\"").append(this.templateName).append("\", ");
+            sb.append("\"env\":\"").append(this.environment).append("\", ");
             sb.append("\"site_name\":\"").append(this.siteName).append("\", ");
-            sb.append("\"remote_repo_url\":\"").append(this.remoteRepoUrl).append("\", ");
-            sb.append("\"remote_repo_branch\":\"").append(this.remoteRepoBranch).append("\"");
+            sb.append("\"replace\":").append(this.replace).append(", ");
+            sb.append("\"disable_deploy_cron\":").append(this.disableDeployCron).append(", ");
+            sb.append("\"template_name\":\"").append(this.templateName).append("\", ");
+            sb.append("\"repo_url\":\"").append(this.repoUrl).append("\", ");
+            sb.append("\"engine_url\":\"").append(this.engineUrl).append("\"");
             sb.append(" }");
             return sb.toString();
         }
+
+        public String getEnvironment() { return environment; }
+        public void setEnvironment(String environment) { this.environment = environment; }
+
+        public String getSiteName() { return siteName; }
+        public void setSiteName(String siteName) { this.siteName = siteName; }
+
+        public boolean isReplace() { return replace; }
+        public void setReplace(boolean replace) { this.replace = replace; }
+
+        public boolean isDisableDeployCron() { return disableDeployCron; }
+        public void setDisableDeployCron(boolean disableDeployCron) { this.disableDeployCron = disableDeployCron; }
+
+        public String getTemplateName() { return templateName; }
+        public void setTemplateName(String templateName) { this.templateName = templateName; }
+
+        public String getRepoUrl() { return repoUrl; }
+        public void setRepoUrl(String repoUrl) { this.repoUrl = repoUrl; }
+
+        public String getEngineUrl() { return engineUrl; }
+        public void setEngineUrl(String engineUrl) { this.engineUrl = engineUrl; }
     }
 }

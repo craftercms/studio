@@ -30,10 +30,10 @@ public class TokenUtils {
     public static final String MAGIC_KEY = "obfuscate";
 
 
-    public static String createToken(UserDetails userDetails)
+    public static String createToken(UserDetails userDetails, long ttl)
     {
 		/* Expires in one hour */
-        long expires = System.currentTimeMillis() + 1000L * 60 * 60;
+        long expires = System.currentTimeMillis() + ttl;
 
         StringBuilder tokenBuilder = new StringBuilder();
         tokenBuilder.append(userDetails.getUsername());
@@ -81,8 +81,8 @@ public class TokenUtils {
 
     public static boolean validateToken(String authToken, UserDetails userDetails)
     {
-        return true;
-        /*
+        //return true;
+
         String[] parts = authToken.split(":");
         long expires = Long.parseLong(parts[1]);
         String signature = parts[2];
@@ -92,6 +92,6 @@ public class TokenUtils {
         }
 
         return signature.equals(TokenUtils.computeSignature(userDetails, expires));
-        */
+
     }
 }

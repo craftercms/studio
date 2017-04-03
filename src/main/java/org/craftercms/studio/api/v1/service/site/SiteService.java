@@ -17,12 +17,16 @@
  ******************************************************************************/
 package org.craftercms.studio.api.v1.service.site;
 
-import net.sf.json.JSON;
-import net.sf.json.JSONObject;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
+import org.craftercms.studio.api.v1.exception.PreviewDeployerUnreachableException;
+import org.craftercms.studio.api.v1.exception.SearchUnreachableException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
+import org.craftercms.studio.api.v1.exception.SiteCreationException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.to.DeploymentEndpointConfigTO;
-import org.craftercms.studio.api.v1.to.PublishingChannelGroupConfigTO;
+import org.craftercms.studio.api.v1.to.PublishingTargetTO;
 import org.dom4j.Document;
 
 import java.util.List;
@@ -85,17 +89,13 @@ public interface SiteService {
 	 */
 	Map<String, Object> getConfiguration(String site, String path, boolean applyEnv);
 
-	List<SiteFeed> getUserSites(String user);
-
     DeploymentEndpointConfigTO getDeploymentEndpoint(String site, String endpoint);
 
-    Map<String, PublishingChannelGroupConfigTO> getPublishingChannelGroupConfigs(String site);
+    List<PublishingTargetTO> getPublishingTargetsForSite(String site);
 
     DeploymentEndpointConfigTO getPreviewDeploymentEndpoint(String site);
 
     Set<String> getAllAvailableSites();
-
-    String getLiveEnvironmentName(String site);
 
     /**
      * Create a new site based on an existing blueprint
@@ -104,7 +104,7 @@ public interface SiteService {
      * @param siteId
      * @param desc
      */
-    boolean createSiteFromBlueprint(String blueprintName, String siteName, String siteId, String desc);
+    void createSiteFromBlueprint(String blueprintName, String siteName, String siteId, String desc) throws SiteAlreadyExistsException, SiteCreationException, PreviewDeployerUnreachableException, SearchUnreachableException;
 
     /**
      * remove a site from the system
@@ -144,7 +144,54 @@ public interface SiteService {
 
     void importSite(String config);
 
-    void rebuildRepositoryMetadata(String site);
+    /**
+     * Synchronize Database with repository
+     *
+     * @param site site id
+     */
+    void syncRepository(String site) throws SiteNotFoundException;
+
+    /**
+     * Rebuild database for site
+     *
+     * @param site site id
+     */
+    void rebuildDatabase(String site);
 
     void updateLastCommitId(String site, String commitId);
+
+    /**
+     * Check if site already exists
+     *
+     * @param site site ID
+     * @return true if site exists, false otherwise
+     */
+    boolean exists(String site);
+
+    /**
+     * Get total number of sites that user is allowed access to for given username
+     *
+     * @param username username
+     * @return number of sites
+     * @throws UserNotFoundException
+     */
+    int getSitesPerUserTotal(String username) throws UserNotFoundException;
+
+    /**
+     * Get sites that user is allowed access to for given username
+     *
+     * @param username username
+     * @param start start position for pagination
+     * @param number number of sites per page
+     * @return number of sites
+     * @throws UserNotFoundException
+     */
+    List<SiteFeed> getSitesPerUser(String username, int start, int number) throws UserNotFoundException;
+
+    /**
+     * Get site details
+     * @param siteId site id
+     * @return
+     */
+    SiteFeed getSite(String siteId) throws SiteNotFoundException;
 }

@@ -18,6 +18,8 @@
  */
 
 import groovy.json.JsonSlurper
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException
+import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException
 import scripts.api.SecurityServices
 
 def result = [:]
@@ -32,14 +34,22 @@ def siteId = parsedReq.site_id
 
 def context = SecurityServices.createContext(applicationContext, request)
 try {
-    SecurityServices.createGroup(context, groupName, description, siteId);
-    result.status = "OK"
+    SecurityServices.createGroup(context, groupName, description, siteId)
+    result.message = "OK"
     response.setStatus(201)
-    def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/group/get?group_name=" + groupName
+    def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/group/get.json?group_name=" + groupName
     response.addHeader("Location", locationHeader)
-    return result
+} catch (SiteNotFoundException e) {
+    response.setStatus(404)
+    result.message = "Site not found"
+} catch (GroupAlreadyExistsException e) {
+    response.setStatus(409)
+    def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/group/get.json?group_name=" + groupName
+    response.addHeader("Location", locationHeader)
+    result.message = "Group already exists"
 } catch (Exception e) {
     response.setStatus(500)
-    result.status = "Internal server error"
-    return result
+    result.message = "Internal server error: \n" + e
 }
+
+return result
