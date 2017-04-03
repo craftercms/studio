@@ -705,20 +705,24 @@ public class SiteServiceImpl implements SiteService {
 	    	logger.debug("\tOperation: " + repoOperation.getOperation().toString() + " " + repoOperation.getPath());
 	    }
 
+	    // Process all operations and track if one or more have failed
 	    for (RepoOperationTO repoOperation: repoOperations) {
 		    switch (repoOperation.getOperation()) {
 			    case CREATE:
 			    case COPY:
 				    ObjectState state = objectStateService.getObjectState(site, repoOperation.getPath(), false);
+
 				    if (state == null) {
 					    objectStateService.insertNewEntry(site, repoOperation.getPath());
 				    } else {
 					    objectStateService.transition(site, repoOperation.getPath(), TransitionEvent.SAVE);
 				    }
+
 				    if (!objectMetadataManager.metadataExist(site, repoOperation.getPath())) {
 					    objectMetadataManager.insertNewObjectMetadata(site, repoOperation.getPath());
 				    }
-				    toReturn = extractDependenciesForItem(site, repoOperation.getPath());
+
+				    toReturn = toReturn && extractDependenciesForItem(site, repoOperation.getPath());
 				    break;
 
 			    case UPDATE:
@@ -727,7 +731,8 @@ public class SiteServiceImpl implements SiteService {
 				    if (!objectMetadataManager.metadataExist(site, repoOperation.getPath())) {
 					    objectMetadataManager.insertNewObjectMetadata(site, repoOperation.getPath());
 				    }
-				    toReturn = extractDependenciesForItem(site, repoOperation.getPath());
+
+				    toReturn = toReturn && extractDependenciesForItem(site, repoOperation.getPath());
 				    break;
 
 			    case DELETE:
@@ -746,6 +751,7 @@ public class SiteServiceImpl implements SiteService {
 
 					    objectStateService.transition(site, repoOperation.getPath(), TransitionEvent.SAVE);
 				    }
+
 				    if (!objectMetadataManager.metadataExist(site, repoOperation.getPath())) {
 					    if (!objectMetadataManager.metadataExist(site, repoOperation.getMoveToPath())) {
 						    objectMetadataManager.insertNewObjectMetadata(site, repoOperation.getMoveToPath());
@@ -784,7 +790,8 @@ public class SiteServiceImpl implements SiteService {
 						    objectMetadataManager.deleteObjectMetadata(site, repoOperation.getPath());
 					    }
 				    }
-				    toReturn = extractDependenciesForItem(site, repoOperation.getPath());
+
+				    toReturn = toReturn && extractDependenciesForItem(site, repoOperation.getPath());
 				    break;
 
 			    default:
@@ -794,28 +801,29 @@ public class SiteServiceImpl implements SiteService {
 		    }
 	    }
 
-	    // If successful so far, update the database
-	    if (toReturn) {
-		    logger.info("Done syncing operations, now syncing database lastCommitId for site: " + site);
+	    // At this point we have attempted to process all operations, some may have failed
+	    // We will update the lastCommitId of the database ignoring errors if any
+	    logger.info("Done syncing operations with a result of: " + toReturn);
+        logger.info("Syncing database lastCommitId for site: " + site);
 
-		    // Update database
-            String lastCommitId = contentRepository.getRepoLastCommitId(site);
-            updateLastCommitId(site, lastCommitId);
-            // Sync all preview deployers
-            try {
-                deploymentService.syncAllContentToPreview(site);
-            } catch (ServiceException e) {
-                logger.error("Error synchronizing preview with repository for site: " + site, e);
-            }
-        } else {
-	        // Failed during sync database from repo, we're aborting
-		    // TODO: SJ: Must log and make some noise here, this is bad
-		    logger.error("Failed to sync database from repository for site " + site);
-	        break;
-	    }
+	    // Update database
+        String lastCommitId = contentRepository.getRepoLastCommitId(site);
+        updateLastCommitId(site, lastCommitId);
+        // Sync all preview deployers
+        try {
+            deploymentService.syncAllContentToPreview(site);
+        } catch (ServiceException e) {
+            logger.error("Error synchronizing preview with repository for site: " + site, e);
+        }
 
 	    logger.info("Done syncing database with repository for site: " + site + " fromCommitId = " + fromCommitId +
 		    " with a final result of: " + toReturn);
+
+        if (!toReturn) {
+	        // Some operations failed during sync database from repo
+	        // Must log and make some noise here, this isn't great
+	        logger.error("Some operations failed to sync to database for site: " + site + " see previous error logs");
+        }
 
 	    return toReturn;
     }

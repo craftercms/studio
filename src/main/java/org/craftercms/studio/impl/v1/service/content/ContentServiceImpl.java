@@ -304,10 +304,6 @@ public class ContentServiceImpl implements ContentService {
     @Override
     public Map<String, Object> writeContentAsset(String site, String path, String assetName, InputStream in,
                                                  String isImage, String allowedWidth, String allowedHeight, String allowLessSize, String draft, String unlock, String systemAsset) throws ServiceException {
-        if(assetName != null) {
-            assetName = assetName.replace(" ","_");
-        }
-
         boolean isSystemAsset = Boolean.valueOf(systemAsset);
 
         Map<String, String> params = new HashMap<String, String>();

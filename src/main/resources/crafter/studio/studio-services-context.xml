@@ -157,11 +157,6 @@
         <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
-       <bean id="cstudioTranslationService" class="org.craftercms.studio.impl.v1.service.translation.TranslationServiceImpl">
-            <property name="translationContentDAL" ref="cstudioTranslationContentDAL" />
-            <property name="translationProvider" ref="demoTranslationProvider" />
-        </bean>
-
     <bean id="cstudioServicesConfig" class="org.craftercms.studio.impl.v1.service.configuration.ServicesConfigImpl" >
         <property name="contentService" ref="cstudioContentService"/>
         <property name="contentTypesConfig" ref="cstudioContentTypesConfig"/>
