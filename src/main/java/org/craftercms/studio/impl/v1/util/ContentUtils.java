@@ -315,15 +315,6 @@ public class ContentUtils {
 		}
 	}*/
 
-	/**
-	 * generate activity type key
-	 * @param activity
-	 * @return
-	 */
-	public static String generateActivityValue(ActivityService.ActivityType activity) {
-		return ActivityService.ACTIVITY_TYPE_KEY_PREFIX + activity.toString().toLowerCase();
-	}
-
 	public static Date getEditedDate(String str) {
 		if (!StringUtils.isEmpty(str)) {
 			try {

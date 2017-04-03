@@ -18,6 +18,7 @@
  */
 
 import groovy.json.JsonSlurper
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException
 import scripts.api.SecurityServices
 
 def result = [:]
@@ -26,26 +27,24 @@ def requestBody = request.reader.text
 def slurper = new JsonSlurper()
 def parsedReq = slurper.parseText(requestBody)
 
-def username = parsedReq.username;
-def firstname = parsedReq.first_name;
-def lastname = parsedReq.last_name;
-def email = parsedReq.email;
+def username = parsedReq.username
+def firstname = parsedReq.first_name
+def lastname = parsedReq.last_name
+def email = parsedReq.email
 
 def context = SecurityServices.createContext(applicationContext, request)
 try {
-    def success = SecurityServices.updateUser(context, username, firstname, lastname, email)
-    if (success) {
-        def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/user/get?username=" + username
-        response.addHeader("Location", locationHeader)
-        result.status = "OK"
-        response.setStatus(200)
-    } else {
-        result.status = "User not found"
-        response.setStatus(404)
-    }
-    return result
+    SecurityServices.updateUser(context, username, firstname, lastname, email)
+    def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/user/get.json?username=" + username
+    response.addHeader("Location", locationHeader)
+    result.message = "OK"
+    response.setStatus(200)
+} catch (UserNotFoundException e) {
+    response.setStatus(404)
+    result.message = "User not found"
 } catch (Exception e) {
-    result.status = "Internal server error"
+    result.message = "Internal server error: \n" + e
     response.setStatus(500)
-    return result
 }
+
+return result

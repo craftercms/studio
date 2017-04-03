@@ -18,15 +18,10 @@
 
 package org.craftercms.studio.impl.v1.util.spring.context;
 
-import org.craftercms.studio.api.v1.ebus.RepositoryEventContext;
-import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_PASSWORD;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_USERNAME;
 
 /**
  * Created by dejanbrkic on 8/18/15.
@@ -34,30 +29,11 @@ import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_USERNAME
 public class SiteConfigurationLoader implements ApplicationListener<ContextRefreshedEvent> {
     @Override
     public void onApplicationEvent(ContextRefreshedEvent event) {
-        String ticket = securityProvider.authenticate(getAdminUser(), getAdminPassword());
-        RepositoryEventContext repositoryEventContext = new RepositoryEventContext(ticket);
-        RepositoryEventContext.setCurrent(repositoryEventContext);
         siteService.reloadSiteConfigurations();
     }
 
     public SiteService getSiteService() { return siteService; }
     public void setSiteService(SiteService siteService) { this.siteService = siteService; }
 
-    public SecurityProvider getSecurityProvider() { return securityProvider; }
-    public void setSecurityProvider(SecurityProvider securityProvider) { this.securityProvider = securityProvider; }
-
-    public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
-    public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
-
-    public String getAdminUser() {
-        return studioConfiguration.getProperty(JOB_USERNAME);
-    }
-
-    public String getAdminPassword() {
-        return studioConfiguration.getProperty(JOB_PASSWORD);
-    }
-
     protected SiteService siteService;
-    protected SecurityProvider securityProvider;
-    protected StudioConfiguration studioConfiguration;
 }

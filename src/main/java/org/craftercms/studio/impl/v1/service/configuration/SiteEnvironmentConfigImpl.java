@@ -109,21 +109,6 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
 		return "";
 	}
 
-	public String getFormServerUrl(String site) {
-		//checkForUpdate(site);
-		EnvironmentConfigTO config = getEnvironmentConfig(site);
-		if (config != null) {
-			return config.getFormServerUrlPattern();
-		}
-		return "";
-	}
-
-	@Override
-	public String getCookieDomain(String site) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 	protected EnvironmentConfigTO loadConfiguration(String key) {
 		String configLocation = getConfigPath().replaceFirst(StudioConstants.PATTERN_SITE, key)
 				.replaceFirst(StudioConstants.PATTERN_ENVIRONMENT, getEnvironment());
@@ -144,52 +129,25 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
 			String openDropdown = root.valueOf("open-site-dropdown");
 			config.setOpenDropdown((openDropdown != null) ? Boolean.valueOf(openDropdown) : false);
 
-			String previewServerUrlPattern = root.valueOf("preview-server-url-pattern");
-			config.setPreviewServerUrlPattern(previewServerUrlPattern);
-
-			String orbeonServerUrlPattern = root.valueOf("form-server-url");
-			config.setFormServerUrlPattern(orbeonServerUrlPattern);
-
 			String authoringServerUrl = root.valueOf("authoring-server-url");
 			config.setAuthoringServerUrl(authoringServerUrl);
-			String authoringServerUrlPattern = root.valueOf("authoring-server-url-pattern");
-			config.setAuthoringServerUrlPattern(authoringServerUrlPattern);
 
 			String liveServerUrl = root.valueOf("live-server-url");
 			config.setLiveServerUrl(liveServerUrl);
 
 			String adminEmailAddress = root.valueOf("admin-email-address");
 			config.setAdminEmailAddress(adminEmailAddress);
-			String cookieDomain = root.valueOf("cookie-domain");
-			config.setCookieDomain(cookieDomain);
 
-            List<Element> channelGroupList = root.selectNodes("publishing-channels/channel-group");
-            for (Element element : channelGroupList) {
-                PublishingChannelGroupConfigTO pcgConfigTo = new PublishingChannelGroupConfigTO();
-                Node node = element.selectSingleNode("label");
-                if (node != null) pcgConfigTo.setName(node.getText());
-                List<Element> channels = element.selectNodes("channels/channel");
-                for (Element channel : channels) {
-                    PublishingChannelConfigTO pcConfigTO = new PublishingChannelConfigTO();
-                    pcConfigTO.setName(channel.getText());
-                    if (!checkEndpointConfigured(key, pcConfigTO.getName())) {
-                        logger.error("Deployment endpoint \"" + pcConfigTO.getName() + "\" is not configured for site " + key);
-                    }
-                    pcgConfigTo.getChannels().add(pcConfigTO);
-                }
-                node = element.selectSingleNode("live-environment");
+            List<Element> publishingTargetsList = root.selectNodes(PUBLISHING_TARGET_XPATH);
+            for (Element element : publishingTargetsList) {
+                PublishingTargetTO targetTO = new PublishingTargetTO();
+                Node node = element.selectSingleNode(XML_TAG_REPO_BRANCH_NAME);
                 if (node != null) {
-                    String isLiveEnvStr = node.getText();
-                    boolean isLiveEnvVal = (StringUtils.isNotEmpty(isLiveEnvStr)) && Boolean.valueOf(isLiveEnvStr);
-                    pcgConfigTo.setLiveEnvironment(isLiveEnvVal);
-                    if (isLiveEnvVal) {
-                        if (config.getLiveEnvironmentPublishingGroup() == null) {
-                            config.setLiveEnvironmentPublishingGroup(pcgConfigTo);
-                        } else {
-                            pcgConfigTo.setLiveEnvironment(false);
-                            logger.warn("Multiple publishing groups assigned as live environment. Only one publishing group can be live environment. " + config.getLiveEnvironmentPublishingGroup().getName() + " is already set as live environment.");
-                        }
-                    }
+                    targetTO.setRepoBranchName(node.getText());
+                }
+                node = element.selectSingleNode(XML_TAG_DISPLAY_LABEL);
+                if (node != null) {
+                    targetTO.setDisplayLabel(node.getText());
                 }
                 node = element.selectSingleNode("order");
                 if (node != null) {
@@ -197,20 +155,14 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
                     if (StringUtils.isNotEmpty(orderStr)) {
                         try {
                             int orderVal = Integer.parseInt(orderStr);
-                            pcgConfigTo.setOrder(orderVal);
+                            targetTO.setOrder(orderVal);
                         } catch (NumberFormatException exc) {
-                            logger.info(String.format("Order not defined for publishing group (%s) config [path: %s]", pcgConfigTo.getName(), configLocation));
-                            logger.info(String.format("Default order value (%d) will be used for publishing group [%s]", pcgConfigTo.getOrder(), pcgConfigTo.getName()));
+                            logger.info(String.format("Order not defined for publishing group (%s) config [path: %s]", targetTO.getDisplayLabel(), configLocation));
+                            logger.info(String.format("Default order value (%d) will be used for publishing group [%s]", targetTO.getOrder(), targetTO.getDisplayLabel()));
                         }
                     }
                 }
-                List<Element> roles = element.selectNodes("roles/role");
-                Set<String> rolesStr = new HashSet<String>();
-                for (Element role : roles) {
-                    rolesStr.add(role.getTextTrim());
-                }
-                pcgConfigTo.setRoles(rolesStr);
-                config.getPublishingChannelGroupConfigs().put(pcgConfigTo.getName(), pcgConfigTo);
+                config.getPublishingTargets().add(targetTO);
             }
 
             String previewDeploymentEndpoint = root.valueOf("preview-deployment-endpoint");
@@ -234,24 +186,6 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
 	}
 
     @Override
-    public Map<String, PublishingChannelGroupConfigTO> getPublishingChannelGroupConfigs(String site) {
-        EnvironmentConfigTO config = getEnvironmentConfig(site);
-        if (config != null) {
-            return config.getPublishingChannelGroupConfigs();
-        }
-        return Collections.emptyMap();
-    }
-
-    @Override
-    public PublishingChannelGroupConfigTO getLiveEnvironmentPublishingGroup(String site) {
-        EnvironmentConfigTO config = getEnvironmentConfig(site);
-        if (config != null) {
-            return config.getLiveEnvironmentPublishingGroup();
-        }
-        return null;
-    }
-
-    @Override
     public boolean exists(String site) {
         EnvironmentConfigTO config = getEnvironmentConfig(site);
         return config != null;
@@ -264,6 +198,17 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
             return config.getPreviewDeploymentEndpoint();
         }
         return null;
+    }
+
+    @Override
+    public List<PublishingTargetTO> getPublishingTargetsForSite(String site) {
+        EnvironmentConfigTO config = getEnvironmentConfig(site);
+        if (config != null) {
+            return config.getPublishingTargets();
+        } else {
+            return new ArrayList<PublishingTargetTO>();
+        }
+
     }
 
     protected boolean checkEndpointConfigured(String site, String endpointName) {

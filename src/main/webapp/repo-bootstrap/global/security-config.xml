@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
   ~ Crafter Studio Web-content authoring solution
-  ~ Copyright (C) 2007-2016 Crafter Software Corporation.
+  ~ Copyright (C) 2007-2017 Crafter Software Corporation.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -21,8 +21,8 @@
     <user>
         <username>admin</username>
         <password>admin</password>
-        <email>evaladmin@example.com</email>
-        <firstName>Joe</firstName>
+        <email>admin@example.com</email>
+        <firstName>Admin</firstName>
         <lastName>Admin</lastName>
         <groups>
             <group>crafter-admin</group>
@@ -32,8 +32,8 @@
     <user>
         <username>author</username>
         <password>author</password>
-        <email>evalauthor@example.com</email>
-        <firstName>Joe</firstName>
+        <email>author@example.com</email>
+        <firstName>Author</firstName>
         <lastName>Author</lastName>
         <groups>
             <group>crafter-author</group>
@@ -42,8 +42,8 @@
     <user>
         <username>approver</username>
         <password>approver</password>
-        <email>evalapprover@example.com</email>
-        <firstName>Joe</firstName>
+        <email>approver@example.com</email>
+        <firstName>Approver</firstName>
         <lastName>Approver</lastName>
         <groups>
             <group>crafter-approver</group>

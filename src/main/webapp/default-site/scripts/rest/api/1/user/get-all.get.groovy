@@ -21,19 +21,34 @@ import scripts.api.SecurityServices
 
 def result = [:]
 
+def start = 0
+if (params.start != null) {
+    start = params.start.toInteger()
+}
+
+// TODO: SJ: These should be constants
+def number = 25
+if (params.number != null) {
+    number = params.number.toInteger()
+}
+
 def context = SecurityServices.createContext(applicationContext, request)
 try {
-    def users = SecurityServices.getAllUsers(context);
-    if (users != null && !users.isEmpty()) {
+    def total = SecurityServices.getAllUsersTotal(context)
+    def users = SecurityServices.getAllUsers(context, start, number)
+    if (users != null) {
+        def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/user/get-all.json?start=" + start + "&number=" + number
+        response.addHeader("Location", locationHeader)
         result.users = users
-        return result;
+        result.total = total
+        response.setStatus(200)
     } else {
-        response.setStatus(404)
-        result.status = "User not found"
-        return result;
+        response.setStatus(500)
+        result.message = "Internal server error"
     }
 } catch (Exception e) {
     response.setStatus(500)
-    result.status = "Internal server error"
-    return result;
+    result.message = "Internal server error: \n" + e
 }
+
+return result

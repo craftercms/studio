@@ -28,7 +28,7 @@
         <phantomjs.version>1.9.8</phantomjs.version>
         <phantomjs.plugin.version>0.5</phantomjs.plugin.version>
         <suiteXmlFile>test/resources/testng.xml</suiteXmlFile>
-
+        <studio.ui.path>target/ui/</studio.ui.path>
     </properties>
 
     <licenses>
@@ -88,12 +88,24 @@
         <dependency>
             <groupId>org.craftercms</groupId>
             <artifactId>crafter-engine</artifactId>
-            <version>2.6.0-SNAPSHOT</version>
+            <version>3.0.0-SNAPSHOT</version>
             <type>war</type>
             <exclusions>
                 <exclusion>
                     <groupId>commons-logging</groupId>
                     <artifactId>commons-logging</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>jcl-over-slf4j</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -101,7 +113,7 @@
         <dependency>
             <groupId>org.craftercms</groupId>
             <artifactId>crafter-engine</artifactId>
-            <version>2.6.0-SNAPSHOT</version>
+            <version>3.0.0-SNAPSHOT</version>
             <classifier>classes</classifier>
             <scope>provided</scope>
         </dependency>
@@ -281,6 +293,12 @@
             <groupId>org.jgroups</groupId>
             <artifactId>jgroups</artifactId>
             <version>3.6.6.Final</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
@@ -362,6 +380,37 @@
                     <groupId>org.codehaus.groovy</groupId>
                 </exclusion>
             </exclusions>
+        </dependency>
+
+        <!-- MariaDB -->
+        <dependency>
+            <groupId>ch.vorburger.mariaDB4j</groupId>
+            <artifactId>mariaDB4j</artifactId>
+            <version>2.2.3</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.mariadb.jdbc</groupId>
+            <artifactId>mariadb-java-client</artifactId>
+            <version>1.5.8</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>jcl-over-slf4j</artifactId>
+            <version>1.7.23</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>1.7.23</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.23</version>
         </dependency>
 
     </dependencies>
@@ -479,6 +528,10 @@
                                 <exclude>WEB-INF/lib/httpcore-4.3.2.jar</exclude>
                                 <exclude>WEB-INF/lib/freemarker-2.3.20.jar</exclude>
                                 <exclude>WEB-INF/lib/commons-logging-1.1.1.jar</exclude>
+                                <exclude>WEB-INF/lib/slf4j-api-1.6.1.jarr</exclude>
+                                <exclude>WEB-INF/lib/slf4j-api-1.7.7.jar</exclude>
+                                <exclude>WEB-INF/lib/slf4j-log4j12-1.7.7.jar</exclude>
+                                <exclude>WEB-INF/lib/jcl-over-slf4j-1.7.7.jar</exclude>
                                 <exclude>WEB-INF/lib/spring-security-core-3.2.3.RELEASE.jar</exclude>
                                 <exclude>WEB-INF/lib/spring-security-web-3.2.3.RELEASE.jar</exclude>
                                 <exclude>>WEB-INF/templates/system/common/versionInfo.ftl</exclude>
@@ -488,30 +541,37 @@
                     <webResources>
                         <!-- static-assets -->
                         <resource>
-                        	<directory>target/ui/static-assets</directory>
+                        	<directory>${studio.ui.path}static-assets</directory>
                         	<filtering>false</filtering>
                         	<targetPath>default-site/static-assets</targetPath>
                         </resource>
 
                         <!-- templates -->
                         <resource>
-                        	<directory>target/ui/templates</directory>
+                        	<directory>${studio.ui.path}templates</directory>
                         	<filtering>true</filtering>
                         	<targetPath>default-site/templates</targetPath>
                         </resource>
 
                         <!-- site -->
                         <resource>
-                        	<directory>target/ui/site</directory>
+                        	<directory>${studio.ui.path}site</directory>
                         	<filtering>false</filtering>
                         	<targetPath>default-site/site</targetPath>
                         </resource>
 
-                        <resource>
-                            <directory>src/main/generated-resources/</directory>
-                            <filtering>true</filtering>
-                            <targetPath>WEB-INF/templates/system/common</targetPath>
-                        </resource>
+
+                                <resource>
+                                    <directory>src/main/generated-resources/ftl</directory>
+                                    <filtering>true</filtering>
+                                    <targetPath>WEB-INF/templates/system/common</targetPath>
+                                </resource>
+
+                            <resource>
+                                <directory>src/main/generated-resources/rest</directory>
+                                <filtering>true</filtering>
+                                <targetPath>default-site/scripts/rest</targetPath>
+                            </resource>
                     </webResources>
                 </configuration>
             </plugin>
@@ -558,6 +618,12 @@
     </build>
 
     <profiles>
+        <profile>
+            <id>cloneUI</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+        </profile>
         <profile>
             <id>JDK8</id>
             <activation>

@@ -45,7 +45,7 @@ public class ContentTypeUpdated extends BaseEBusEvent {
         message.setSite(site);
         message.setContentType(contentType);
         String sessionTicket = securityProvider.getCurrentToken();
-        RepositoryEventContext repositoryEventContext = new RepositoryEventContext(sessionTicket);
+        RepositoryEventContext repositoryEventContext = new RepositoryEventContext(sessionTicket, securityProvider.getCurrentUser());
         message.setRepositoryEventContext(repositoryEventContext);
 
         try {

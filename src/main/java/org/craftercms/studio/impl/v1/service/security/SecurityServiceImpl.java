@@ -18,19 +18,23 @@
 
 package org.craftercms.studio.impl.v1.service.security;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.http.RequestContext;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.StudioXmlConstants;
 import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.*;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
@@ -38,6 +42,7 @@ import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.ContentTypeService;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
+import org.craftercms.studio.api.v1.service.security.UserDetailsManager;
 import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
 import org.craftercms.studio.api.v1.to.PermissionsConfigTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
@@ -46,7 +51,15 @@ import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.Node;
+import org.springframework.mail.MailException;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.security.core.userdetails.UserDetails;
 
+import javax.crypto.*;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.*;
@@ -58,17 +71,16 @@ public class SecurityServiceImpl implements SecurityService {
 
     private static final Logger logger = LoggerFactory.getLogger(SecurityServiceImpl.class);
 
-    private final static String STUDIO_SESSION_TOKEN_ATRIBUTE = "studioSessionToken";
-
     @Override
     public String authenticate(String username, String password) {
         String toRet = securityProvider.authenticate(username, password);
+        /*
         String sessionToken = SessionTokenUtils.createToken(username, getSessionTimeout());
         RequestContext context = RequestContext.getCurrent();
         if (context != null) {
             HttpSession httpSession = context.getRequest().getSession();
             httpSession.setAttribute(STUDIO_SESSION_TOKEN_ATRIBUTE, sessionToken);
-        }
+        }*/
         return toRet;
     }
 
@@ -496,88 +508,341 @@ public class SecurityServiceImpl implements SecurityService {
         if (context != null) {
             HttpSession httpSession = context.getRequest().getSession();
             httpSession.removeAttribute(STUDIO_SESSION_TOKEN_ATRIBUTE);
+            httpSession.invalidate();
         }
         return toRet;
     }
 
     @Override
-    public boolean createUser(String username, String password, String firstName, String lastName, String email) {
+    public boolean createUser(String username, String password, String firstName, String lastName, String email) throws UserAlreadyExistsException {
         return securityProvider.createUser(username, password, firstName, lastName, email);
     }
 
     @Override
-    public boolean deleteUser(String username) {
-        return securityProvider.deleteUser(username);
+    public boolean deleteUser(String username) throws UserNotFoundException, DeleteUserNotAllowedException {
+        if (!isDeleteUserAllowed(username)) {
+            throw new DeleteUserNotAllowedException();
+        } else {
+            return securityProvider.deleteUser(username);
+        }
+    }
+
+    private boolean isDeleteUserAllowed(String username) throws UserNotFoundException {
+        boolean toRet = true;
+
+        // check if it is current user - not allowed to delete current user
+        if (toRet) {
+            toRet = !StringUtils.equals(username, getCurrentUser());
+        }
+
+        // check if it is system user - not allowed to delete system user
+        if (toRet) {
+            toRet = !securityProvider.isSystemUser(username);
+        }
+
+        // check if it is admin - not allowed to delete admin
+        if (toRet) {
+            toRet = !isAdmin(username);
+        }
+
+        return toRet;
     }
 
     @Override
-    public boolean updateUser(String username, String firstName, String lastName, String email) {
+    public boolean updateUser(String username, String firstName, String lastName, String email) throws UserNotFoundException {
         return securityProvider.updateUser(username, firstName, lastName, email);
     }
 
     @Override
-    public boolean enableUser(String username, boolean enabled) {
+    public boolean enableUser(String username, boolean enabled) throws UserNotFoundException {
         return securityProvider.enableUser(username, enabled);
     }
 
     @Override
-    public Map<String, Object> getUserStatus(String username) {
+    public Map<String, Object> getUserStatus(String username) throws UserNotFoundException {
         return securityProvider.getUserStatus(username);
     }
 
     @Override
-    public List<Map<String, Object>> getAllUsers() {
-        return securityProvider.getAllUsers();
+    public List<Map<String, Object>> getAllUsers(int start, int number) {
+        return securityProvider.getAllUsers(start, number);
     }
 
     @Override
-    public List<Map<String, Object>> getUsersPerSite(String site) {
-        return securityProvider.getUsersPerSite(site);
+    public int getAllUsersTotal() {
+        return securityProvider.getAllUsersTotal();
     }
 
     @Override
-    public boolean createGroup(String groupName, String description, String siteId) {
+    public List<Map<String, Object>> getUsersPerSite(String site, int start, int number) throws SiteNotFoundException {
+        return securityProvider.getUsersPerSite(site, start, number);
+    }
+
+    @Override
+    public int getUsersPerSiteTotal(String site) throws SiteNotFoundException {
+        return securityProvider.getUsersPerSiteTotal(site);
+    }
+
+    @Override
+    public boolean createGroup(String groupName, String description, String siteId) throws GroupAlreadyExistsException, SiteNotFoundException {
         return securityProvider.createGroup(groupName, description, siteId);
     }
 
     @Override
-    public Map<String, Object> getGroup(String site, String group) {
+    public Map<String, Object> getGroup(String site, String group) throws GroupNotFoundException {
         return securityProvider.getGroup(site, group);
     }
 
     @Override
-    public List<Map<String, Object>> getAllGroups(int start, int end) {
-        return securityProvider.getAllGroups(start, end);
+    public List<Map<String, Object>> getAllGroups(int start, int number) {
+        return securityProvider.getAllGroups(start, number);
     }
 
     @Override
-    public List<Map<String, Object>> getGroupsPerSite(String site) {
-        return securityProvider.getGroupsPerSite(site);
+    public List<Map<String, Object>> getGroupsPerSite(String site, int start, int number) throws SiteNotFoundException {
+        return securityProvider.getGroupsPerSite(site, start, number);
     }
 
     @Override
-    public List<Map<String, Object>> getUsersPerGroup(String site, String group, int start, int end) {
-        return securityProvider.getUsersPerGroup(site, group, start, end);
+    public int getGroupsPerSiteTotal(String site) throws SiteNotFoundException {
+        return securityProvider.getGroupsPerSiteTotal(site);
     }
 
     @Override
-    public boolean updateGroup(String siteId, String groupName, String description) {
+    public List<Map<String, Object>> getUsersPerGroup(String site, String group, int start, int number) throws
+	    GroupNotFoundException {
+        return securityProvider.getUsersPerGroup(site, group, start, number);
+    }
+
+    @Override
+    public int getUsersPerGroupTotal(String site, String group) throws
+            GroupNotFoundException {
+        return securityProvider.getUsersPerGroupTotal(site, group);
+    }
+
+    @Override
+    public boolean updateGroup(String siteId, String groupName, String description) throws GroupNotFoundException {
         return securityProvider.updateGroup(siteId, groupName, description);
     }
 
     @Override
-    public boolean deleteGroup(String site, String group) {
+    public boolean deleteGroup(String site, String group) throws GroupNotFoundException {
         return securityProvider.deleteGroup(site, group);
     }
 
     @Override
-    public boolean addUserToGroup(String siteId, String groupName, String username) {
+    public boolean addUserToGroup(String siteId, String groupName, String username) throws
+	    UserAlreadyExistsException, UserNotFoundException, GroupNotFoundException {
         return securityProvider.addUserToGroup(siteId, groupName, username);
     }
 
     @Override
-    public boolean removeUserFromGroup(String siteId, String groupName, String username) {
+    public boolean removeUserFromGroup(String siteId, String groupName, String username) throws
+	    UserNotFoundException, GroupNotFoundException {
         return securityProvider.removeUserFromGroup(siteId, groupName, username);
+    }
+
+    @Override
+    public Map<String, Object> forgotPassword(String username) throws ServiceException, UserNotFoundException {
+        logger.debug("Getting user profile for " + username);
+        Map<String, Object> userProfile = securityProvider.getUserProfile(username);
+        boolean success = false;
+        String message = StringUtils.EMPTY;
+        if (userProfile == null || userProfile.isEmpty()) {
+            logger.info("User profile not found for " + username);
+            throw new UserNotFoundException();
+        } else {
+            if (userProfile.get("email") != null) {
+                String email = userProfile.get("email").toString();
+
+                logger.debug("Creating security token for forgot password");
+                long timestamp = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(Long.parseLong(studioConfiguration
+                    .getProperty(SECURITY_FORGOT_PASSWORD_TOKEN_TIMEOUT)));
+                String salt = studioConfiguration.getProperty(SECURITY_CIPHER_SALT);
+
+                String token = username + "|" + timestamp + "|" + salt;
+                String hashedToken = encryptToken(token);
+                logger.debug("Sending forgot password email to " + email);
+                sendForgotPasswordEmail(email, hashedToken);
+                success = true;
+                message = "OK";
+            } else {
+                logger.info("User " + username + " does not have assigned email with account");
+                throw new ServiceException("User " + username + " does not have assigned email with account");
+            }
+        }
+        Map<String, Object> toRet = new HashMap<String, Object>();
+        toRet.put("success", success);
+        toRet.put("message", message);
+        return toRet;
+    }
+
+    @Override
+    public boolean validateToken(String token) {
+        boolean toRet = false;
+        String decryptedToken = decryptToken(token);
+        if (StringUtils.isNotEmpty(decryptedToken)) {
+            StringTokenizer tokenElements = new StringTokenizer(decryptedToken, "|");
+            if (tokenElements.countTokens() == 3) {
+                String username = tokenElements.nextToken();
+                long tokenTimestamp = Long.parseLong(tokenElements.nextToken());
+                if (tokenTimestamp < System.currentTimeMillis()) {
+                    toRet = false;
+                } else {
+                    toRet = true;
+                }
+            }
+        }
+        return toRet;
+    }
+
+    private String encryptToken(String token) {
+        try {
+            SecretKeySpec key = new SecretKeySpec(studioConfiguration.getProperty(SECURITY_CIPHER_KEY).getBytes(), studioConfiguration.getProperty(SECURITY_CIPHER_TYPE));
+            Cipher cipher = Cipher.getInstance(studioConfiguration.getProperty(SECURITY_CIPHER_ALGORITHM));
+            byte[] tokenBytes = token.getBytes(StandardCharsets.UTF_8);
+            cipher.init(Cipher.ENCRYPT_MODE, key, new IvParameterSpec(key.getEncoded()));
+            byte[] encrypted = cipher.doFinal(tokenBytes);
+            return Base64.getEncoder().encodeToString(encrypted);
+        } catch (NoSuchAlgorithmException | InvalidKeyException | NoSuchPaddingException | BadPaddingException | IllegalBlockSizeException | InvalidAlgorithmParameterException e) {
+            logger.error("Error while encrypting forgot password token", e);
+            return null;
+        }
+    }
+
+    private String decryptToken(String token) {
+        try {
+            SecretKeySpec key = new SecretKeySpec(studioConfiguration.getProperty(SECURITY_CIPHER_KEY).getBytes(), studioConfiguration.getProperty(SECURITY_CIPHER_TYPE));
+            Cipher cipher = Cipher.getInstance(studioConfiguration.getProperty(SECURITY_CIPHER_ALGORITHM));
+            byte[] tokenBytes = Base64.getDecoder().decode(token.getBytes(StandardCharsets.UTF_8));
+            cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(key.getEncoded()));
+            byte[] decrypted = cipher.doFinal(tokenBytes);
+            return new String(decrypted, StandardCharsets.UTF_8);
+        } catch (IllegalArgumentException | NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException | BadPaddingException | IllegalBlockSizeException | InvalidAlgorithmParameterException e) {
+            logger.error("Error while decrypting forgot password token", e);
+            return null;
+        }
+    }
+
+    private void sendForgotPasswordEmail(String emailAddress, String token) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom(getDefaultFromAddress());
+        message.setTo(emailAddress);
+        message.setSubject(studioConfiguration.getProperty(SECURITY_FORGOT_PASSWORD_MESSAGE_SUBJECT));
+        try {
+            message.setText(studioConfiguration.getProperty(SECURITY_FORGOT_PASSWORD_MESSAGE_TEXT).replace("{token}",  URLEncoder.encode(token, StandardCharsets.UTF_8.displayName())));
+        } catch (UnsupportedEncodingException e) {
+            message.setText(studioConfiguration.getProperty(SECURITY_FORGOT_PASSWORD_MESSAGE_TEXT).replace("{token}", URLEncoder.encode(token)));
+        }
+        logger.info("Sending password recovery message to " + emailAddress);
+        try {
+            if (isAuthenticatedSMTP()) {
+                emailService.send(message);
+            } else {
+                emailServiceNoAuth.send(message);
+            }
+            logger.info("Password recovery message successfully sent to " + emailAddress);
+        } catch (MailException e) {
+            logger.error("Failed to send password recovery message to " + emailAddress, e);
+            throw e;
+        }
+    }
+
+    @Override
+    public boolean changePassword(String username, String current, String newPassword) throws UserNotFoundException, PasswordDoesNotMatchException {
+        return securityProvider.changePassword(username, current, newPassword);
+    }
+
+    @Override
+    public Map<String, Object> setUserPassword(String token, String newPassword) throws UserNotFoundException {
+        Map<String, Object> toRet = new HashMap<String, Object>();
+        toRet.put("username", StringUtils.EMPTY);
+        toRet.put("success", false);
+        if (validateToken(token)) {
+            String username = getUsernameFromToken(token);
+            if (StringUtils.isNotEmpty(username)) {
+                toRet.put("username", username);
+                Map<String, Object> userStatus = securityProvider.getUserStatus(username);
+                if (userStatus != null && !userStatus.isEmpty()) {
+                    boolean enabled = (Boolean)userStatus.get("enabled");
+                    if (enabled) {
+                        toRet.put("success", securityProvider.setUserPassword(username, newPassword));
+                    }
+                } else {
+                    throw new UserNotFoundException("User not found");
+                }
+            } else {
+                throw new UserNotFoundException("User not found");
+            }
+        }
+        return toRet;
+    }
+
+    private String getUsernameFromToken(String token) {
+        String toRet = StringUtils.EMPTY;
+        String decryptedToken = decryptToken(token);
+        if (StringUtils.isNotEmpty(decryptedToken)) {
+            StringTokenizer tokenElements = new StringTokenizer(decryptedToken, "|");
+            if (tokenElements.countTokens() == 3) {
+                toRet = tokenElements.nextToken();
+            }
+        }
+        return toRet;
+    }
+
+    @Override
+    public boolean resetPassword(String username, String newPassword) throws UserNotFoundException {
+        String currentUser = getCurrentUser();
+        if (isAdmin(currentUser)) {
+            return securityProvider.setUserPassword(username, newPassword);
+        } else {
+            return false;
+        }
+    }
+
+    private boolean isAdmin(String username) {
+        Set<String> userGroups = securityProvider.getUserGroups(username);
+        boolean toRet = false;
+        if (CollectionUtils.isNotEmpty(userGroups)) {
+            for (String group : userGroups) {
+                if (StringUtils.equalsIgnoreCase(group, "crafter-admin")) {
+                    toRet = true;
+                    break;
+                }
+            }
+        }
+        return toRet;
+    }
+
+    @Override
+    public boolean userExists(String username) {
+        return securityProvider.userExists(username);
+    }
+
+    @Override
+    public boolean validateSession(HttpServletRequest request) {
+        HttpSession httpSession = request.getSession();
+        String authToken = (String)httpSession.getAttribute(STUDIO_SESSION_TOKEN_ATRIBUTE);
+        String userName = securityProvider.getCurrentUser();
+
+        if (userName != null) {
+
+            UserDetails userDetails = this.userDetailsManager.loadUserByUsername(userName);
+
+            return (TokenUtils.validateToken(authToken, userDetails));
+
+        }
+        /*
+        if (StringUtils.isEmpty(sessionToken) || StringUtils.isEmpty(user)) {
+            return true;
+        }
+        if (StringUtils.isNotEmpty(sessionToken) && StringUtils.isNotEmpty(user)) {
+            if (SessionTokenUtils.validateToken(sessionToken, user)) {
+                return true;
+            }
+        }
+      */
+        return false;
     }
 
     public String getConfigPath() {
@@ -609,6 +874,15 @@ public class SecurityServiceImpl implements SecurityService {
         return toReturn;
     }
 
+    public boolean isAuthenticatedSMTP() {
+        boolean toReturn = Boolean.parseBoolean(studioConfiguration.getProperty(MAIL_SMTP_AUTH));
+        return toReturn;
+    }
+
+    public String getDefaultFromAddress() {
+        return studioConfiguration.getProperty(MAIL_FROM_DEFAULT);
+    }
+
     public SecurityProvider getSecurityProvider() { return securityProvider; }
     public void setSecurityProvider(SecurityProvider securityProvider) { this.securityProvider = securityProvider; }
 
@@ -624,9 +898,21 @@ public class SecurityServiceImpl implements SecurityService {
     public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
 
+    public JavaMailSender getEmailService() { return emailService; }
+    public void setEmailService(JavaMailSender emailService) { this.emailService = emailService; }
+
+    public JavaMailSender getEmailServiceNoAuth() { return emailServiceNoAuth; }
+    public void setEmailServiceNoAuth(JavaMailSender emailServiceNoAuth) { this.emailServiceNoAuth = emailServiceNoAuth; }
+
+    public UserDetailsManager getUserDetailsManager() { return userDetailsManager; }
+    public void setUserDetailsManager(UserDetailsManager userDetailsManager) { this.userDetailsManager = userDetailsManager; }
+
     protected SecurityProvider securityProvider;
     protected ContentTypeService contentTypeService;
     protected ContentService contentService;
     protected GeneralLockService generalLockService;
     protected StudioConfiguration studioConfiguration;
+    protected JavaMailSender emailService;
+    protected JavaMailSender emailServiceNoAuth;
+    protected UserDetailsManager userDetailsManager;
 }

@@ -48,7 +48,6 @@ import org.craftercms.studio.api.v1.service.objectstate.State;
 import org.craftercms.studio.api.v1.service.objectstate.TransitionEvent;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.api.v1.service.workflow.WorkflowJob;
 import org.craftercms.studio.api.v1.service.workflow.WorkflowService;
 import org.craftercms.studio.api.v1.service.notification.NotificationService;
 import org.craftercms.studio.api.v1.service.workflow.context.GoLiveContext;
@@ -60,7 +59,6 @@ import org.craftercms.studio.api.v1.util.DmContentItemComparator;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 import org.craftercms.studio.api.v2.service.notification.NotificationMessageType;
-import org.craftercms.studio.impl.v1.service.workflow.dal.WorkflowJobDAL;
 import org.craftercms.studio.impl.v1.service.workflow.operation.*;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
@@ -106,54 +104,6 @@ public class WorkflowServiceImpl implements WorkflowService {
     protected String JSON_KEY_USER = "user";
     protected String JSON_KEY_REASON = "reason";
     public static final String COMPLETE_SUBMIT_TO_GO_LIVE_MSG = "submitToGoLive";
-
-
-    public WorkflowJob createJob(String site, List<String> srcPaths,  String processName, Map<String, String> properties) {
-        WorkflowJob job = _workflowJobDAL.createJob(site, srcPaths, processName, properties);
-        job.setCurrentStatus(WorkflowService.STATE_STARTED);
-        job = _workflowJobDAL.updateJob(job);
-
-        return job;
-    }
-
-    public List<WorkflowJob> getActiveJobs() {
-        List<WorkflowJob> allJobs = _workflowJobDAL.getJobsByState(null);
-        // Reverse scan and delete STATE_ENDED jobs from list
-        for (int i = allJobs.size(); i > 0;) {
-            WorkflowJob job = allJobs.get(--i);
-            if (job.getCurrentStatus().equals(WorkflowService.STATE_ENDED))
-                allJobs.remove(i);
-        }
-        return allJobs;
-    }
-
-    public List<WorkflowJob> getJobsInState(Set<String> states) {
-        return _workflowJobDAL.getJobsByState(states);
-    }
-
-    public WorkflowJob getJob(String jobId) {
-        return _workflowJobDAL.getJob(jobId);
-    }
-
-    public WorkflowJob updateJob(WorkflowJob job) {
-        return _workflowJobDAL.updateJob(job);
-    }
-
-    public boolean deleteJob(String jobId) {
-        return _workflowJobDAL.deleteJob(jobId);
-    }
-
-    public boolean startJob(String jobId) {
-        return false;
-    }
-
-    public boolean transitionJobState(String jobId, String state) {
-        return false;
-    }
-
-    public boolean endJob(String jobId) {
-        return false;
-    }
 
     @Override
     public ResultTO submitToGoLive(String site, String username, String request) throws ServiceException {
@@ -221,7 +171,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                 result.setStatus(200);
                 if(notificationService2.isEnabled()){
                     result.setMessage(notificationService2.getNotificationMessage(site, NotificationMessageType
-                        .CompleteMessages,COMPLETE_SUBMIT_TO_GO_LIVE_MSG,Locale.ENGLISH));
+                            .CompleteMessages,COMPLETE_SUBMIT_TO_GO_LIVE_MSG,Locale.ENGLISH));
                 }else {
                     result.setMessage(notificationService.getCompleteMessage(site, NotificationService.COMPLETE_SUBMIT_TO_GO_LIVE));
                 }
@@ -261,7 +211,7 @@ public class WorkflowServiceImpl implements WorkflowService {
             }
         }
         notificationService2.notifyApprovesContentSubmission(site,null,getDeploymentPaths(submittedItems),submittedBy,scheduledDate,
-            submitForDeletion,submissionComment,Locale.ENGLISH);
+                submitForDeletion,submissionComment,Locale.ENGLISH);
         return errors;
     }
 
@@ -328,34 +278,34 @@ public class WorkflowServiceImpl implements WorkflowService {
 
     @Override
     public void submitToGoLive(String site, List<String> paths, Date scheduledDate, boolean sendApprovedNotice, String submitter) {
-        /*
-        // this needs to be gutted an re-written as workflow handlers that rely on services like dependency, state, content repository
-        // that use the appropriate DAL objects.  Now is not the time to pull the thread on that sweater :-/
-        String submissionComment = "";
-        //{"items":[{"asset":false,"assets":[],"browserUri":"/","categoryRoot":"","children":[{"asset":false,"assets":[],"browserUri":"/crafter-level-descriptor.level.xml","categoryRoot":"","children":[],"component":true,"components":[],"container":false,"contentType":"/component/level-descriptor","defaultWebApp":"/wem-projects/test-fr/test-fr/work-area","deleted":false,"deletedItems":[],"directory":false,"disabled":false,"document":false,"documents":[],"endpoint":"","eventDate":"2013-04-13T21:45:05","eventDateAsDate":{"date":13,"day":6,"hours":21,"minutes":45,"month":3,"seconds":5,"time":1365903905242,"timezoneOffset":240,"year":113},"floating":false,"form":"/component/level-descriptor","formPagePath":"simple","height":0,"hideInAuthoring":false,"inFlight":false,"inProgress":true,"internalName":"crafter-level-descriptor.level.xml","lastEditDate":{},"lastEditDateAsString":"","levelDescriptor":true,"levelDescriptors":[],"live":false,"lockOwner":"","mandatoryParent":"/site/website/index.xml","metaDescription":"","name":"crafter-level-descriptor.level.xml","navigation":false,"new":true,"newFile":true,"nodeRef":"workspace://SpacesStore/552af5fc-c93e-4032-9e24-66c4f5609cf9","now":false,"numOfChildren":0,"orders":[],"pages":[],"parentPath":"/","path":"/site/website","previewable":false,"properties":{},"reference":false,"renderingTemplate":false,"renderingTemplates":[],"scheduled":false,"scheduledDate":"","scheduledDateAsDate":{},"submissionComment":"","submitted":false,"submittedByFirstName":"","submittedByLastName":"","submittedForDeletion":false,"timezone":"EST5EDT","title":"","uri":"/site/website/crafter-level-descriptor.level.xml","user":"","userFirstName":"","userLastName":"","width":0,"workflowId":""},{"asset":false,"assets":[],"browserUri":"/about","categoryRoot":"","children":[],"component":false,"components":[],"container":true,"contentType":"/page/entry","defaultWebApp":"/wem-projects/test-fr/test-fr/work-area","deleted":false,"deletedItems":[],"directory":false,"disabled":false,"document":false,"documents":[],"endpoint":"","eventDate":"2013-04-18T22:35:22","eventDateAsDate":{"date":18,"day":4,"hours":22,"minutes":35,"month":3,"seconds":22,"time":1366338922741,"timezoneOffset":240,"year":113},"floating":false,"form":"/page/entry","formPagePath":"simple","height":0,"hideInAuthoring":false,"inFlight":false,"inProgress":true,"internalName":"About","lastEditDate":{},"lastEditDateAsString":"","levelDescriptor":false,"levelDescriptors":[],"live":false,"lockOwner":"","mandatoryParent":"/site/website/index.xml","metaDescription":"","name":"index.xml","navigation":false,"new":true,"newFile":true,"nodeRef":"workspace://SpacesStore/ef1d4242-c03a-4eb0-b294-d90ae7246ec9","now":false,"numOfChildren":1,"orders":[{"disabled":"","id":"default","name":"","order":1000,"placeInNav":""}],"pages":[],"parentPath":"/","path":"/site/website/about","previewable":true,"properties":{},"reference":false,"renderingTemplate":false,"renderingTemplates":[{"asset":false,"assets":[],"browserUri":"/templates/web/entry.ftl","categoryRoot":"","children":[],"component":true,"components":[],"container":false,"contentType":"","defaultWebApp":"/wem-projects/test-fr/test-fr/work-area","deleted":false,"deletedItems":[],"directory":false,"disabled":false,"document":false,"documents":[],"endpoint":"","eventDate":"2013-04-13T21:56:03","eventDateAsDate":{"date":13,"day":6,"hours":21,"minutes":56,"month":3,"seconds":3,"time":1365904563607,"timezoneOffset":240,"year":113},"floating":false,"form":"","formPagePath":"","height":0,"hideInAuthoring":false,"inFlight":false,"inProgress":true,"internalName":"entry.ftl","lastEditDate":{},"lastEditDateAsString":"","levelDescriptor":false,"levelDescriptors":[],"live":false,"lockOwner":"","mandatoryParent":"/site/website/about/index.xml","metaDescription":"","name":"entry.ftl","navigation":false,"new":true,"newFile":true,"nodeRef":"workspace://SpacesStore/5a234a22-8f4e-48d5-9da1-7797886e6776","now":false,"numOfChildren":0,"orders":[],"pages":[],"parentPath":"","path":"/templates/web","previewable":false,"properties":{},"reference":true,"renderingTemplate":false,"renderingTemplates":[],"scheduled":false,"scheduledDate":"","scheduledDateAsDate":{},"submissionComment":"","submitted":false,"submittedByFirstName":"","submittedByLastName":"","submittedForDeletion":false,"timezone":"EST5EDT","title":"","uri":"/templates/web/entry.ftl","user":"","userFirstName":"","userLastName":"","width":0,"workflowId":""}],"scheduled":false,"scheduledDate":"","scheduledDateAsDate":{},"submissionComment":"","submitted":false,"submittedByFirstName":"","submittedByLastName":"","submittedForDeletion":false,"timezone":"EST5EDT","title":"","uri":"/site/website/about/index.xml","user":"author","userFirstName":"author","userLastName":"author","width":0,"workflowId":""},{"asset":false,"assets":[],"browserUri":"/about/crafter-level-descriptor.level.xml","categoryRoot":"","children":[],"component":true,"components":[],"container":false,"contentType":"/component/level-descriptor","defaultWebApp":"/wem-projects/test-fr/test-fr/work-area","deleted":false,"deletedItems":[],"directory":false,"disabled":false,"document":false,"documents":[],"endpoint":"","eventDate":"2013-04-18T01:11:04","eventDateAsDate":{"date":18,"day":4,"hours":1,"minutes":11,"month":3,"seconds":4,"time":1366261864668,"timezoneOffset":240,"year":113},"floating":false,"form":"/component/level-descriptor","formPagePath":"simple","height":0,"hideInAuthoring":false,"inFlight":false,"inProgress":true,"internalName":"crafter-level-descriptor.level.xml","lastEditDate":{},"lastEditDateAsString":"","levelDescriptor":true,"levelDescriptors":[],"live":false,"lockOwner":"","mandatoryParent":"/site/website/about/index.xml","metaDescription":"","name":"crafter-level-descriptor.level.xml","navigation":false,"new":true,"newFile":true,"nodeRef":"workspace://SpacesStore/873a99c8-109d-47ac-a245-7c2194b17fdf","now":false,"numOfChildren":0,"orders":[],"pages":[],"parentPath":"/about","path":"/site/website/about","previewable":false,"properties":{},"reference":false,"renderingTemplate":false,"renderingTemplates":[],"scheduled":false,"scheduledDate":"","scheduledDateAsDate":{},"submissionComment":"","submitted":false,"submittedByFirstName":"","submittedByLastName":"","submittedForDeletion":false,"timezone":"EST5EDT","title":"","uri":"/site/website/about/crafter-level-descriptor.level.xml","user":"","userFirstName":"","userLastName":"","width":0,"workflowId":""}],"component":false,"components":[],"container":true,"contentType":"/page/entry","defaultWebApp":"/wem-projects/test-fr/test-fr/work-area","deleted":false,"deletedItems":[],"directory":false,"disabled":false,"document":false,"documents":[],"endpoint":"","eventDate":"2013-04-18T03:25:40","eventDateAsDate":{"date":18,"day":4,"hours":3,"minutes":25,"month":3,"seconds":40,"time":1366269940177,"timezoneOffset":240,"year":113},"floating":false,"form":"/page/entry","formPagePath":"simple","height":0,"hideInAuthoring":false,"inFlight":false,"inProgress":true,"internalName":"Home","lastEditDate":{},"lastEditDateAsString":"","levelDescriptor":false,"levelDescriptors":[],"live":false,"lockOwner":"","mandatoryParent":"","metaDescription":"","name":"index.xml","navigation":false,"new":true,"newFile":true,"nodeRef":"workspace://SpacesStore/47a6796a-f6d0-46bc-a563-f9d08d941b01","now":true,"numOfChildren":3,"orders":[{"disabled":"","id":"default","name":"","order":-1,"placeInNav":""}],"pages":[],"parentPath":"","path":"/site/website","previewable":true,"properties":{},"reference":false,"renderingTemplate":false,"renderingTemplates":[{"asset":false,"assets":[],"browserUri":"/templates/web/entry.ftl","categoryRoot":"","children":[],"component":true,"components":[],"container":false,"contentType":"","defaultWebApp":"/wem-projects/test-fr/test-fr/work-area","deleted":false,"deletedItems":[],"directory":false,"disabled":false,"document":false,"documents":[],"endpoint":"","eventDate":"2013-04-13T21:56:03","eventDateAsDate":{"date":13,"day":6,"hours":21,"minutes":56,"month":3,"seconds":3,"time":1365904563607,"timezoneOffset":240,"year":113},"floating":false,"form":"","formPagePath":"","height":0,"hideInAuthoring":false,"inFlight":false,"inProgress":true,"internalName":"entry.ftl","lastEditDate":{},"lastEditDateAsString":"","levelDescriptor":false,"levelDescriptors":[],"live":false,"lockOwner":"","mandatoryParent":"/site/website/index.xml","metaDescription":"","name":"entry.ftl","navigation":false,"new":true,"newFile":true,"nodeRef":"workspace://SpacesStore/5a234a22-8f4e-48d5-9da1-7797886e6776","now":false,"numOfChildren":0,"orders":[],"pages":[],"parentPath":"","path":"/templates/web","previewable":false,"properties":{},"reference":true,"renderingTemplate":false,"renderingTemplates":[],"scheduled":false,"scheduledDate":"","scheduledDateAsDate":{},"submissionComment":"","submitted":false,"submittedByFirstName":"","submittedByLastName":"","submittedForDeletion":false,"timezone":"EST5EDT","title":"","uri":"/templates/web/entry.ftl","user":"","userFirstName":"","userLastName":"","width":0,"workflowId":""}],"scheduled":false,"scheduledDate":"","scheduledDateAsDate":{},"submissionComment":"","submitted":false,"submittedByFirstName":"","submittedByLastName":"","submittedForDeletion":false,"timezone":"EST5EDT","title":"","uri":"/site/website/index.xml","user":"admin","userFirstName":"Administrator","userLastName":"","width":0,"workflowId":""}],"submissionComment":"","now":"true","scheduledDate":"2010-02-26T15:00:00","sendEmail":"true"}
+		/*
+		// this needs to be gutted an re-written as workflow handlers that rely on services like dependency, state, content repository
+		// that use the appropriate DAL objects.  Now is not the time to pull the thread on that sweater :-/
+		String submissionComment = "";
+		//{"items":[{"asset":false,"assets":[],"browserUri":"/","categoryRoot":"","children":[{"asset":false,"assets":[],"browserUri":"/crafter-level-descriptor.level.xml","categoryRoot":"","children":[],"component":true,"components":[],"container":false,"contentType":"/component/level-descriptor","defaultWebApp":"/wem-projects/test-fr/test-fr/work-area","deleted":false,"deletedItems":[],"directory":false,"disabled":false,"document":false,"documents":[],"endpoint":"","eventDate":"2013-04-13T21:45:05","eventDateAsDate":{"date":13,"day":6,"hours":21,"minutes":45,"month":3,"seconds":5,"time":1365903905242,"timezoneOffset":240,"year":113},"floating":false,"form":"/component/level-descriptor","formPagePath":"simple","height":0,"hideInAuthoring":false,"inFlight":false,"inProgress":true,"internalName":"crafter-level-descriptor.level.xml","lastEditDate":{},"lastEditDateAsString":"","levelDescriptor":true,"levelDescriptors":[],"live":false,"lockOwner":"","mandatoryParent":"/site/website/index.xml","metaDescription":"","name":"crafter-level-descriptor.level.xml","navigation":false,"new":true,"newFile":true,"nodeRef":"workspace://SpacesStore/552af5fc-c93e-4032-9e24-66c4f5609cf9","now":false,"numOfChildren":0,"orders":[],"pages":[],"parentPath":"/","path":"/site/website","previewable":false,"properties":{},"reference":false,"renderingTemplate":false,"renderingTemplates":[],"scheduled":false,"scheduledDate":"","scheduledDateAsDate":{},"submissionComment":"","submitted":false,"submittedByFirstName":"","submittedByLastName":"","submittedForDeletion":false,"timezone":"EST5EDT","title":"","uri":"/site/website/crafter-level-descriptor.level.xml","user":"","userFirstName":"","userLastName":"","width":0,"workflowId":""},{"asset":false,"assets":[],"browserUri":"/about","categoryRoot":"","children":[],"component":false,"components":[],"container":true,"contentType":"/page/entry","defaultWebApp":"/wem-projects/test-fr/test-fr/work-area","deleted":false,"deletedItems":[],"directory":false,"disabled":false,"document":false,"documents":[],"endpoint":"","eventDate":"2013-04-18T22:35:22","eventDateAsDate":{"date":18,"day":4,"hours":22,"minutes":35,"month":3,"seconds":22,"time":1366338922741,"timezoneOffset":240,"year":113},"floating":false,"form":"/page/entry","formPagePath":"simple","height":0,"hideInAuthoring":false,"inFlight":false,"inProgress":true,"internalName":"About","lastEditDate":{},"lastEditDateAsString":"","levelDescriptor":false,"levelDescriptors":[],"live":false,"lockOwner":"","mandatoryParent":"/site/website/index.xml","metaDescription":"","name":"index.xml","navigation":false,"new":true,"newFile":true,"nodeRef":"workspace://SpacesStore/ef1d4242-c03a-4eb0-b294-d90ae7246ec9","now":false,"numOfChildren":1,"orders":[{"disabled":"","id":"default","name":"","order":1000,"placeInNav":""}],"pages":[],"parentPath":"/","path":"/site/website/about","previewable":true,"properties":{},"reference":false,"renderingTemplate":false,"renderingTemplates":[{"asset":false,"assets":[],"browserUri":"/templates/web/entry.ftl","categoryRoot":"","children":[],"component":true,"components":[],"container":false,"contentType":"","defaultWebApp":"/wem-projects/test-fr/test-fr/work-area","deleted":false,"deletedItems":[],"directory":false,"disabled":false,"document":false,"documents":[],"endpoint":"","eventDate":"2013-04-13T21:56:03","eventDateAsDate":{"date":13,"day":6,"hours":21,"minutes":56,"month":3,"seconds":3,"time":1365904563607,"timezoneOffset":240,"year":113},"floating":false,"form":"","formPagePath":"","height":0,"hideInAuthoring":false,"inFlight":false,"inProgress":true,"internalName":"entry.ftl","lastEditDate":{},"lastEditDateAsString":"","levelDescriptor":false,"levelDescriptors":[],"live":false,"lockOwner":"","mandatoryParent":"/site/website/about/index.xml","metaDescription":"","name":"entry.ftl","navigation":false,"new":true,"newFile":true,"nodeRef":"workspace://SpacesStore/5a234a22-8f4e-48d5-9da1-7797886e6776","now":false,"numOfChildren":0,"orders":[],"pages":[],"parentPath":"","path":"/templates/web","previewable":false,"properties":{},"reference":true,"renderingTemplate":false,"renderingTemplates":[],"scheduled":false,"scheduledDate":"","scheduledDateAsDate":{},"submissionComment":"","submitted":false,"submittedByFirstName":"","submittedByLastName":"","submittedForDeletion":false,"timezone":"EST5EDT","title":"","uri":"/templates/web/entry.ftl","user":"","userFirstName":"","userLastName":"","width":0,"workflowId":""}],"scheduled":false,"scheduledDate":"","scheduledDateAsDate":{},"submissionComment":"","submitted":false,"submittedByFirstName":"","submittedByLastName":"","submittedForDeletion":false,"timezone":"EST5EDT","title":"","uri":"/site/website/about/index.xml","user":"author","userFirstName":"author","userLastName":"author","width":0,"workflowId":""},{"asset":false,"assets":[],"browserUri":"/about/crafter-level-descriptor.level.xml","categoryRoot":"","children":[],"component":true,"components":[],"container":false,"contentType":"/component/level-descriptor","defaultWebApp":"/wem-projects/test-fr/test-fr/work-area","deleted":false,"deletedItems":[],"directory":false,"disabled":false,"document":false,"documents":[],"endpoint":"","eventDate":"2013-04-18T01:11:04","eventDateAsDate":{"date":18,"day":4,"hours":1,"minutes":11,"month":3,"seconds":4,"time":1366261864668,"timezoneOffset":240,"year":113},"floating":false,"form":"/component/level-descriptor","formPagePath":"simple","height":0,"hideInAuthoring":false,"inFlight":false,"inProgress":true,"internalName":"crafter-level-descriptor.level.xml","lastEditDate":{},"lastEditDateAsString":"","levelDescriptor":true,"levelDescriptors":[],"live":false,"lockOwner":"","mandatoryParent":"/site/website/about/index.xml","metaDescription":"","name":"crafter-level-descriptor.level.xml","navigation":false,"new":true,"newFile":true,"nodeRef":"workspace://SpacesStore/873a99c8-109d-47ac-a245-7c2194b17fdf","now":false,"numOfChildren":0,"orders":[],"pages":[],"parentPath":"/about","path":"/site/website/about","previewable":false,"properties":{},"reference":false,"renderingTemplate":false,"renderingTemplates":[],"scheduled":false,"scheduledDate":"","scheduledDateAsDate":{},"submissionComment":"","submitted":false,"submittedByFirstName":"","submittedByLastName":"","submittedForDeletion":false,"timezone":"EST5EDT","title":"","uri":"/site/website/about/crafter-level-descriptor.level.xml","user":"","userFirstName":"","userLastName":"","width":0,"workflowId":""}],"component":false,"components":[],"container":true,"contentType":"/page/entry","defaultWebApp":"/wem-projects/test-fr/test-fr/work-area","deleted":false,"deletedItems":[],"directory":false,"disabled":false,"document":false,"documents":[],"endpoint":"","eventDate":"2013-04-18T03:25:40","eventDateAsDate":{"date":18,"day":4,"hours":3,"minutes":25,"month":3,"seconds":40,"time":1366269940177,"timezoneOffset":240,"year":113},"floating":false,"form":"/page/entry","formPagePath":"simple","height":0,"hideInAuthoring":false,"inFlight":false,"inProgress":true,"internalName":"Home","lastEditDate":{},"lastEditDateAsString":"","levelDescriptor":false,"levelDescriptors":[],"live":false,"lockOwner":"","mandatoryParent":"","metaDescription":"","name":"index.xml","navigation":false,"new":true,"newFile":true,"nodeRef":"workspace://SpacesStore/47a6796a-f6d0-46bc-a563-f9d08d941b01","now":true,"numOfChildren":3,"orders":[{"disabled":"","id":"default","name":"","order":-1,"placeInNav":""}],"pages":[],"parentPath":"","path":"/site/website","previewable":true,"properties":{},"reference":false,"renderingTemplate":false,"renderingTemplates":[{"asset":false,"assets":[],"browserUri":"/templates/web/entry.ftl","categoryRoot":"","children":[],"component":true,"components":[],"container":false,"contentType":"","defaultWebApp":"/wem-projects/test-fr/test-fr/work-area","deleted":false,"deletedItems":[],"directory":false,"disabled":false,"document":false,"documents":[],"endpoint":"","eventDate":"2013-04-13T21:56:03","eventDateAsDate":{"date":13,"day":6,"hours":21,"minutes":56,"month":3,"seconds":3,"time":1365904563607,"timezoneOffset":240,"year":113},"floating":false,"form":"","formPagePath":"","height":0,"hideInAuthoring":false,"inFlight":false,"inProgress":true,"internalName":"entry.ftl","lastEditDate":{},"lastEditDateAsString":"","levelDescriptor":false,"levelDescriptors":[],"live":false,"lockOwner":"","mandatoryParent":"/site/website/index.xml","metaDescription":"","name":"entry.ftl","navigation":false,"new":true,"newFile":true,"nodeRef":"workspace://SpacesStore/5a234a22-8f4e-48d5-9da1-7797886e6776","now":false,"numOfChildren":0,"orders":[],"pages":[],"parentPath":"","path":"/templates/web","previewable":false,"properties":{},"reference":true,"renderingTemplate":false,"renderingTemplates":[],"scheduled":false,"scheduledDate":"","scheduledDateAsDate":{},"submissionComment":"","submitted":false,"submittedByFirstName":"","submittedByLastName":"","submittedForDeletion":false,"timezone":"EST5EDT","title":"","uri":"/templates/web/entry.ftl","user":"","userFirstName":"","userLastName":"","width":0,"workflowId":""}],"scheduled":false,"scheduledDate":"","scheduledDateAsDate":{},"submissionComment":"","submitted":false,"submittedByFirstName":"","submittedByLastName":"","submittedForDeletion":false,"timezone":"EST5EDT","title":"","uri":"/site/website/index.xml","user":"admin","userFirstName":"Administrator","userLastName":"","width":0,"workflowId":""}],"submissionComment":"","now":"true","scheduledDate":"2010-02-26T15:00:00","sendEmail":"true"}
 
-        List<DmDependencyTO> submittedItems = new ArrayList<DmDependencyTO>();
-        RequestContext requestContext = new RequestContext(site, submitter);
+		List<DmDependencyTO> submittedItems = new ArrayList<DmDependencyTO>();
+		RequestContext requestContext = new RequestContext(site, submitter);
 
-        for(String path : paths) {
-            DmDependencyTO depTO = new DmDependencyTO();
-            depTO.setUri(path);
-            submittedItems.add(depTO);
-        }
+		for(String path : paths) {
+			DmDependencyTO depTO = new DmDependencyTO();
+			depTO.setUri(path);
+			submittedItems.add(depTO);
+		}
 
-        try{
-            List<DmError> errors = _dmSimpleWfService.submitToGoLive(
-                    submittedItems,
-                    scheduledDate,
-                    sendApprovedNotice,
-                    false, //submit for delete,
-                    requestContext, //request context,
-                    submissionComment);
-        }
-        catch(Exception err) {
-            logger.error("submitToGoLive", err);
-        }
-        */
+		try{
+			List<DmError> errors = _dmSimpleWfService.submitToGoLive(
+					submittedItems,
+					scheduledDate,
+					sendApprovedNotice,
+					false, //submit for delete,
+					requestContext, //request context,
+					submissionComment);
+		}
+		catch(Exception err) {
+			logger.error("submitToGoLive", err);
+		}
+		*/
     }
 
 
@@ -592,40 +542,40 @@ public class WorkflowServiceImpl implements WorkflowService {
         if (!processedPaths.contains(path)) {
             processedPaths.add(path);
             //if (contentService.contentExists(site, path)) {
-                //removeSubmittedAspect(site, fullPath, null, false, DmConstants.DM_STATUS_IN_PROGRESS);
-                // cancel workflow if anything is pending
-                long startTime = System.currentTimeMillis();
-                if (cancelWorkflow) {
-                    _cancelWorkflow(site, path);
-                }
-                long duration = System.currentTimeMillis() - startTime;
-                logger.debug("_cancelWorkflow Duration 111: {0}", duration);
+            //removeSubmittedAspect(site, fullPath, null, false, DmConstants.DM_STATUS_IN_PROGRESS);
+            // cancel workflow if anything is pending
+            long startTime = System.currentTimeMillis();
+            if (cancelWorkflow) {
+                _cancelWorkflow(site, path);
+            }
+            long duration = System.currentTimeMillis() - startTime;
+            logger.debug("_cancelWorkflow Duration 111: {0}", duration);
 /*
                 startTime = System.currentTimeMillis();
-                DmDependencyTO depItem = dmDependencyService.getDependencies(site, path, false, true);
+				DmDependencyTO depItem = dmDependencyService.getDependencies(site, path, false, true);
             duration = System.currentTimeMillis() - startTime;
             logger.warn("getDependencies Duration 112: {0}", duration);
-                if (depItem != null) {
-                    DependencyRules dependencyRules = new DependencyRules(site);
-                    dependencyRules.setObjectStateService(objectStateService);
-                    dependencyRules.setContentService(contentService);
+				if (depItem != null) {
+					DependencyRules dependencyRules = new DependencyRules(site);
+					dependencyRules.setObjectStateService(objectStateService);
+					dependencyRules.setContentService(contentService);
                     long startTime1 = System.currentTimeMillis();
-                    Set<DmDependencyTO> submittedDeps = dependencyRules.applySubmitRule(depItem);
+					Set<DmDependencyTO> submittedDeps = dependencyRules.applySubmitRule(depItem);
                     duration = System.currentTimeMillis() - startTime1;
                     logger.warn("applySubmitRule Duration 113: {0}", duration);
-                    List<String> transitionNodes = new ArrayList<String>();
-                    for (DmDependencyTO dependencyTO : submittedDeps) {
-                        removeFromWorkflow(site, dependencyTO.getUri(), processedPaths, cancelWorkflow);
-                        ObjectState state = objectStateService.getObjectState(site, dependencyTO.getUri());
-                        if (State.isScheduled(State.valueOf(state.getState())) || State.isSubmitted(State.valueOf(state.getState()))) {
-                            transitionNodes.add(dependencyTO.getUri());
-                        }
-                    }
+					List<String> transitionNodes = new ArrayList<String>();
+					for (DmDependencyTO dependencyTO : submittedDeps) {
+						removeFromWorkflow(site, dependencyTO.getUri(), processedPaths, cancelWorkflow);
+						ObjectState state = objectStateService.getObjectState(site, dependencyTO.getUri());
+						if (State.isScheduled(State.valueOf(state.getState())) || State.isSubmitted(State.valueOf(state.getState()))) {
+							transitionNodes.add(dependencyTO.getUri());
+						}
+					}
 
-                    if (!transitionNodes.isEmpty()) {
-                        objectStateService.transitionBulk(site, transitionNodes, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.SAVE, State.NEW_UNPUBLISHED_UNLOCKED);
-                    }
-                }
+					if (!transitionNodes.isEmpty()) {
+						objectStateService.transitionBulk(site, transitionNodes, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.SAVE, State.NEW_UNPUBLISHED_UNLOCKED);
+					}
+				}
                 duration = System.currentTimeMillis() - startTime;
                 logger.warn("removeFromWorkflow - dependencies Duration 114: {0}", duration);*/
             //}
@@ -696,19 +646,19 @@ public class WorkflowServiceImpl implements WorkflowService {
 
     private void getMandatoryChildren(String site, String path, List<String> affectedPaths) {
         // TODO: check folders and list children
-        /*
-        PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-        String parentPath = fullPath.replace("/" + DmConstants.INDEX_FILE, "");
-        List<FileInfo> children = persistenceManagerService.list(parentPath);
-        for (FileInfo child : children) {
-            NodeRef childRef = child.getNodeRef();
-            String childPath = persistenceManagerService.getNodePath(childRef);
-            DmPathTO dmPathTO = new DmPathTO(childPath);
-            if (!affectedPaths.contains(dmPathTO.getRelativePath())) {
-                affectedPaths.add(dmPathTO.getRelativePath());
-                getMandatoryChildren(childPath, affectedPaths);
-            }
-        }*/
+		/*
+		PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
+		String parentPath = fullPath.replace("/" + DmConstants.INDEX_FILE, "");
+		List<FileInfo> children = persistenceManagerService.list(parentPath);
+		for (FileInfo child : children) {
+			NodeRef childRef = child.getNodeRef();
+			String childPath = persistenceManagerService.getNodePath(childRef);
+			DmPathTO dmPathTO = new DmPathTO(childPath);
+			if (!affectedPaths.contains(dmPathTO.getRelativePath())) {
+				affectedPaths.add(dmPathTO.getRelativePath());
+				getMandatoryChildren(childPath, affectedPaths);
+			}
+		}*/
     }
 
     private List<String> getDependencyCandidates(String site, List<String> affectedPaths) {
@@ -742,15 +692,15 @@ public class WorkflowServiceImpl implements WorkflowService {
     @Override
     public void updateWorkflowSandboxes(String site, String path) {
         // TODO: copy to live repo node
-        /*
-        PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-        NodeRef node = persistenceManagerService.getNodeRef(fullPath);
-        if (node != null) {
-            NodeRef liveRepoNode = persistenceManagerService.getNodeRef(getPathFromLiveRepo(fullPath));
-            if (liveRepoNode != null) {
-                persistenceManagerService.copy(node, liveRepoNode);
-            }
-        }*/
+		/*
+		PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
+		NodeRef node = persistenceManagerService.getNodeRef(fullPath);
+		if (node != null) {
+			NodeRef liveRepoNode = persistenceManagerService.getNodeRef(getPathFromLiveRepo(fullPath));
+			if (liveRepoNode != null) {
+				persistenceManagerService.copy(node, liveRepoNode);
+			}
+		}*/
     }
 
     /**
@@ -806,17 +756,6 @@ public class WorkflowServiceImpl implements WorkflowService {
             String statusMessage = (jsonObjectStatus != null && jsonObjectStatus.containsKey(JSON_KEY_STATUS_MESSAGE)) ? jsonObjectStatus.getString(JSON_KEY_STATUS_MESSAGE) : null;
             String submissionComment = (requestObject != null && requestObject.containsKey(JSON_KEY_SUBMISSION_COMMENT)) ? requestObject.getString(JSON_KEY_SUBMISSION_COMMENT) : "Test Go Live";
             MultiChannelPublishingContext mcpContext = new MultiChannelPublishingContext(publishChannelGroupName, statusMessage, submissionComment);
-            if(operation!=Operation.DELETE && !dmPublishService.hasChannelsConfigure(site, mcpContext)){
-                ResultTO toReturn = new ResultTO();
-                List<PublishingChannelConfigTO> channelsList = siteService.getPublishingChannelGroupConfigs(site).get(mcpContext.getPublishingChannelGroup()).getChannels();
-                String channels = StringUtils.join(channelsList, " ");
-                toReturn.setMessage(" Specified target '"+channels+"' was not found. Please check if an endpoint or channel with name '"+channels+"' exists in site configuration");
-                toReturn.setSuccess(false);
-                toReturn.setInvalidateCache(false);
-                return toReturn;
-            }
-
-
 
             int length = items.size();
             if (length == 0) {
@@ -913,8 +852,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                             renameItems.set(i, renamedItem);
                         }
 
-                        //RD: dmRenameService
-                        renameServiceGoLive(site, renameItems, approver, mcpContext);
+                        goLive(site, renameItems, approver, mcpContext);
                     }
 
                     break;
@@ -935,7 +873,7 @@ public class WorkflowServiceImpl implements WorkflowService {
             result.setStatus(200);
             if(notificationService2.isEnabled()){
                 result.setMessage(notificationService2.getNotificationMessage(site,
-                    NotificationMessageType.CompleteMessages,responseMessageKey,Locale.ENGLISH));
+                        NotificationMessageType.CompleteMessages,responseMessageKey,Locale.ENGLISH));
             }else{
                 result.setMessage(notificationService.getCompleteMessage(site, responseMessageKey));
             }
@@ -950,15 +888,6 @@ public class WorkflowServiceImpl implements WorkflowService {
             result.setMessage(e.getMessage());
         }
         return result;
-    }
-
-    protected boolean isItemRenamed(String site, DmDependencyTO item) {
-        if (item.getUri().endsWith(DmConstants.XML_PATTERN) || !item.getUri().contains(".")) {
-            return objectMetadataManager.isRenamed(site, item.getUri());
-        } else {
-            // if not xml or a folder, skip checking if renamed
-            return false;
-        }
     }
 
     /**
@@ -986,15 +915,6 @@ public class WorkflowServiceImpl implements WorkflowService {
             String statusMessage = (jsonObjectStatus != null && jsonObjectStatus.containsKey(JSON_KEY_STATUS_MESSAGE)) ? jsonObjectStatus.getString(JSON_KEY_STATUS_MESSAGE) : null;
             String submissionComment = (requestObject != null && requestObject.containsKey(JSON_KEY_SUBMISSION_COMMENT)) ? requestObject.getString(JSON_KEY_SUBMISSION_COMMENT) : "Test Go Live";
             MultiChannelPublishingContext mcpContext = new MultiChannelPublishingContext(publishChannelGroupName, statusMessage, submissionComment);
-            if(operation != Operation.DELETE && !dmPublishService.hasChannelsConfigure(site, mcpContext)){
-                ResultTO toReturn = new ResultTO();
-                List<PublishingChannelConfigTO> channelsList = siteService.getPublishingChannelGroupConfigs(site).get(mcpContext.getPublishingChannelGroup()).getChannels();
-                String channels = StringUtils.join(channelsList, " ");
-                toReturn.setMessage(" Specified target '"+channels+"' was not found. Please check if an endpoint or channel with name '"+channels+"' exists in site configuration");
-                toReturn.setSuccess(false);
-                toReturn.setInvalidateCache(false);
-                return toReturn;
-            }
 
             int length = items.size();
             if (length == 0) {
@@ -1095,8 +1015,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                             renameItems.set(i, renamedItem);
                         }
 
-                        //RD: dmRenameService.
-                        renameServiceGoLive(site, renameItems, approver, mcpContext);
+                        goLive(site, renameItems, approver, mcpContext);
                     }
 
                     break;
@@ -1118,7 +1037,7 @@ public class WorkflowServiceImpl implements WorkflowService {
             result.setStatus(200);
             if(notificationService2.isEnabled()) {
                 result.setMessage(notificationService2.getNotificationMessage(site,NotificationMessageType
-                    .CompleteMessages,responseMessageKey,Locale.ENGLISH));
+                        .CompleteMessages,responseMessageKey,Locale.ENGLISH));
             }else {
                 result.setMessage(notificationService.getCompleteMessage(site, responseMessageKey));
             }
@@ -1161,15 +1080,6 @@ public class WorkflowServiceImpl implements WorkflowService {
             String statusMessage = (jsonObjectStatus != null && jsonObjectStatus.containsKey(JSON_KEY_STATUS_MESSAGE)) ? jsonObjectStatus.getString(JSON_KEY_STATUS_MESSAGE) : null;
             String submissionComment = (requestObject != null && requestObject.containsKey(JSON_KEY_SUBMISSION_COMMENT)) ? requestObject.getString(JSON_KEY_SUBMISSION_COMMENT) : "Test Go Live";
             MultiChannelPublishingContext mcpContext = new MultiChannelPublishingContext(publishChannelGroupName, statusMessage, submissionComment);
-            if(operation != Operation.DELETE && !dmPublishService.hasChannelsConfigure(site, mcpContext)){
-                ResultTO toReturn = new ResultTO();
-                List<PublishingChannelConfigTO> channelsList = siteService.getPublishingChannelGroupConfigs(site).get(mcpContext.getPublishingChannelGroup()).getChannels();
-                String channels = StringUtils.join(channelsList, " ");
-                toReturn.setMessage(" Specified target '"+channels+"' was not found. Please check if an endpoint or channel with name '"+channels+"' exists in site configuration");
-                toReturn.setSuccess(false);
-                toReturn.setInvalidateCache(false);
-                return toReturn;
-            }
 
             int length = items.size();
             if (length == 0) {
@@ -1270,8 +1180,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                             renameItems.set(i, renamedItem);
                         }
 
-                        //RD dmRenameService.
-                        renameServiceGoLive(site, renameItems, approver, mcpContext);
+                        goLive(site, renameItems, approver, mcpContext);
                     }
 
                     break;
@@ -2050,7 +1959,7 @@ public class WorkflowServiceImpl implements WorkflowService {
     protected List<String> deleteInTransaction(final String site, final List<String> itemsToDelete, final boolean generateActivity, final String approver) throws ServiceException {
         dmPublishService.unpublish(site, itemsToDelete, approver);
         return null;
-            //return contentService.deleteContents(site, itemsToDelete, generateActivity, approver);
+        //return contentService.deleteContents(site, itemsToDelete, generateActivity, approver);
     }
 
     protected void cleanUrisFromWorkflow(final Set<String> uris, final String site) {
@@ -2119,8 +2028,6 @@ public class WorkflowServiceImpl implements WorkflowService {
             throws ServiceException {
         long start = System.currentTimeMillis();
         // get web project information
-        //final String assignee = getAssignee(site, sub);
-        final String pathPrefix = "/wem-projects/" + site + "/" + site + "/work-area";
         final Date now = new Date();
         if (submittedItems != null) {
             // group submitted items into packages by their scheduled date
@@ -2134,7 +2041,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                     final boolean isNotScheduled = (launchDate == null);
                     // for submit direct, package them together and submit them
                     // together as direct submit
-                    final SubmitPackage submitpackage = new SubmitPackage(pathPrefix);
+                    final SubmitPackage submitpackage = new SubmitPackage("");
                     /*
                         dependencyPackage holds references of page.
                      */
@@ -2160,9 +2067,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                     if (!stringList.isEmpty()) {
                         // get the workflow initiator mapping
                         Map<String, String> submittedBy = new HashMap<String, String>();
-                        for (String longPath : stringList) {
-                            String uri = longPath.substring(pathPrefix.length());
-                            //ContentUtils.addToSubmittedByMapping(getService(PersistenceManagerService.class), dmContentService, site, uri, submittedBy, approver);
+                        for (String uri : stringList) {
                             dmPublishService.cancelScheduledItem(site, uri);
                         }
                         workflowProcessor.addToWorkflow(site, stringList, launchDate, label, operation, approver, mcpContext);
@@ -2316,9 +2221,9 @@ public class WorkflowServiceImpl implements WorkflowService {
     @SuppressWarnings("unchecked")
     protected void addSubmittedAspect(String site, String user, String parentUri, DmDependencyTO submittedItem,
                                       Date scheduledDate, List<String> includedItems) throws ServiceException {
-            ContentItemTO node = contentService.getContentItem(site, submittedItem.getUri());
-            if (node != null) {
-                // add submitted aspect
+        ContentItemTO node = contentService.getContentItem(site, submittedItem.getUri());
+        if (node != null) {
+            // add submitted aspect
                 /* TODO: Submitted aspectreplacement
                 if (!persistenceManagerService.hasAspect(node, CStudioContentModel.ASPECT_WORKFLOW_SUBMITTED)) {
                     // add submitted aspect
@@ -2326,7 +2231,7 @@ public class WorkflowServiceImpl implements WorkflowService {
 
                 }*/
 
-                // set direct child items
+            // set direct child items
                 /* TODO: set properties
                 List<String> childDependencies = getDependencies(site, user, submittedItem.getUri(), submittedItem,
                         scheduledDate, includedItems);
@@ -2347,10 +2252,10 @@ public class WorkflowServiceImpl implements WorkflowService {
                     persistenceManagerService.setProperty(node, CStudioContentModel.PROP_WEB_WF_PARENT_URI, (Serializable) parents);
                 }
                 */
-                includedItems.add(submittedItem.getUri());
-            } else {
-                includedItems.add(submittedItem.getUri());
-            }
+            includedItems.add(submittedItem.getUri());
+        } else {
+            includedItems.add(submittedItem.getUri());
+        }
 
     }
 
@@ -2521,13 +2426,13 @@ public class WorkflowServiceImpl implements WorkflowService {
                 // for some reason ,  submittedItems.get(0).getSubmittedBy() returns empty and
                 // metadata for the same value is also empty , using last modify to blame the rejection.
                 final ObjectMetadata metaData = objectMetadataManager.getProperties(site, submittedItems.get(0).getUri
-                    ());
-                 String whoToBlame = "admin"; //worst case, we need someone to blame.
+                        ());
+                String whoToBlame = "admin"; //worst case, we need someone to blame.
                 if(metaData!=null && StringUtils.isNotBlank(metaData.getModifier())){
                     whoToBlame=metaData.getModifier();
                 }
                 notificationService2.notifyContentRejection(site,whoToBlame
-                    , getDeploymentPaths(submittedItems),reason,approver, Locale.ENGLISH);
+                        , getDeploymentPaths(submittedItems),reason,approver, Locale.ENGLISH);
             }
         }
 
@@ -2583,10 +2488,21 @@ public class WorkflowServiceImpl implements WorkflowService {
         }
     }
 
+
+
     /* ================= */
+    protected boolean isItemRenamed(String site, DmDependencyTO item) {
+        if (item.getUri().endsWith(DmConstants.XML_PATTERN) || !item.getUri().contains(".")) {
+            return objectMetadataManager.isRenamed(site, item.getUri());
+        } else {
+            // if not xml or a folder, skip checking if renamed
+            return false;
+        }
+    }
+
     // Methods from rename service
     protected void renameServiceGoLive(String site, List<DmDependencyTO> submittedItems, String approver, MultiChannelPublishingContext mcpContext) throws ServiceException {
-                long start = System.currentTimeMillis();
+        long start = System.currentTimeMillis();
 
         try {
             Date now = new Date();
@@ -2754,11 +2670,8 @@ public class WorkflowServiceImpl implements WorkflowService {
         return depedencyPaths;
     }
 
-     // End Rename Service Methods
+    // End Rename Service Methods
      /* ================ */
-
-    public void setWorkflowJobDAL(WorkflowJobDAL dal) { _workflowJobDAL = dal; }
-
 
     // // @Override
     public NotificationService getNotificationService() { return notificationService; }
@@ -2821,7 +2734,6 @@ public class WorkflowServiceImpl implements WorkflowService {
         return toReturn;
     }
 
-    private WorkflowJobDAL _workflowJobDAL;
     private NotificationService notificationService;
     protected ServicesConfig servicesConfig;
     protected DeploymentService deploymentService;

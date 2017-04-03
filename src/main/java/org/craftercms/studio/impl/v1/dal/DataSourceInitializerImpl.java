@@ -19,10 +19,10 @@
 
 package org.craftercms.studio.impl.v1.dal;
 
+import ch.vorburger.mariadb4j.DB;
+import ch.vorburger.mariadb4j.MariaDB4jService;
 import org.apache.ibatis.jdbc.RuntimeSqlException;
 import org.apache.ibatis.jdbc.ScriptRunner;
-import org.apache.ibatis.session.SqlSession;
-import org.apache.ibatis.session.SqlSessionFactory;
 import org.craftercms.studio.api.v1.dal.DataSourceInitializer;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -30,11 +30,11 @@ import org.craftercms.studio.api.v1.util.StudioConfiguration;
 
 import java.io.*;
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Map;
 
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_INITIALIZER_ENABLED;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_PLATFORM;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.*;
 
 public class DataSourceInitializerImpl implements DataSourceInitializer {
 
@@ -44,8 +44,15 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
     public void initDataSource() {
         if (isEnabled()) {
             String scriptPath = getScriptPath();
-            SqlSession session = sqlSessionFactory.openSession();
-            Connection conn = session.getConnection();
+
+            DB db = mariaDB4jService.getDB();
+            Connection conn = null;
+            try {
+                Class.forName(studioConfiguration.getProperty(DB_DRIVER));
+                conn = DriverManager.getConnection(studioConfiguration.getProperty(DB_INITIALIZER_URL));
+            } catch (SQLException | ClassNotFoundException e) {
+                logger.error("Error while getting connection to DB", e);
+            }
 
             ScriptRunner sr = new ScriptRunner(conn);
 
@@ -72,20 +79,9 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
     }
 
     private String getScriptPath() {
-        String pathToScript = vendorScriptsMapping.get(getVendor());
-        return pathToScript;
+        return studioConfiguration.getProperty(DB_INITIALIZER_SCRIPT_LOCATION);
     }
 
-    public String getVendor() {
-        return studioConfiguration.getProperty(DB_PLATFORM);
-    }
-
-    public Map<String, String> getVendorScriptsMapping() { return vendorScriptsMapping; }
-    @Override
-    public void setVendorScriptsMapping(Map<String, String> vendorScriptsMapping) { this.vendorScriptsMapping = vendorScriptsMapping; }
-
-    public SqlSessionFactory getSqlSessionFactory() { return sqlSessionFactory; }
-    public void setSqlSessionFactory(SqlSessionFactory sqlSessionFactory) { this.sqlSessionFactory = sqlSessionFactory; }
 
     public String getDelimiter() { return delimiter; }
     public void setDelimiter(String delimiter) { this.delimiter = delimiter; }
@@ -93,8 +89,11 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
     public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
 
-    protected Map<String, String> vendorScriptsMapping;
-    protected SqlSessionFactory sqlSessionFactory;
+    public MariaDB4jService getMariaDB4jService() { return mariaDB4jService; }
+    public void setMariaDB4jService(MariaDB4jService mariaDB4jService) { this.mariaDB4jService = mariaDB4jService; }
+
     protected String delimiter;
     protected StudioConfiguration studioConfiguration;
+
+    protected MariaDB4jService mariaDB4jService;
 }

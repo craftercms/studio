@@ -107,14 +107,24 @@ class SecurityServices {
         return securityServicesImpl.getUserStatus(username)
     }
 
-    static getAllUsers(context) {
+    static getAllUsers(context, start, number) {
         def securityServicesImpl = ServiceFactory.getSecurityServices(context)
-        return securityServicesImpl.getAllUsers()
+        return securityServicesImpl.getAllUsers(start, number)
     }
 
-    static getUsersPerSite(context, site) {
+    static getAllUsersTotal(context) {
         def securityServicesImpl = ServiceFactory.getSecurityServices(context)
-        return securityServicesImpl.getUsersPerSite(site)
+        return securityServicesImpl.getAllUsersTotal()
+    }
+
+    static getUsersPerSite(context, site, start, number) {
+        def securityServicesImpl = ServiceFactory.getSecurityServices(context)
+        return securityServicesImpl.getUsersPerSite(site, start, number)
+    }
+
+    static getUsersPerSiteTotal(context, site) {
+        def securityServicesImpl = ServiceFactory.getSecurityServices(context)
+        return securityServicesImpl.getUsersPerSiteTotal(site)
     }
 
     static createGroup(context, groupName, description, siteId) {
@@ -127,19 +137,29 @@ class SecurityServices {
         return securityServicesImpl.getGroup(siteId, groupName)
     }
 
-    static getAllGroups(context, start, end) {
+    static getAllGroups(context, start, number) {
         def securityServicesImpl = ServiceFactory.getSecurityServices(context)
-        return securityServicesImpl.getAllGroups(start, end)
+        return securityServicesImpl.getAllGroups(start, number)
     }
 
-    static getGroupsPerSite(context, siteId) {
+    static getGroupsPerSite(context, siteId, start, number) {
         def securityServicesImpl = ServiceFactory.getSecurityServices(context)
-        return securityServicesImpl.getGroupsPerSite(siteId)
+        return securityServicesImpl.getGroupsPerSite(siteId, start, number)
     }
 
-    static getUsersPerGroup(context, siteId, groupName, start, end) {
+    static getGroupsPerSiteTotal(context, siteId) {
         def securityServicesImpl = ServiceFactory.getSecurityServices(context)
-        return securityServicesImpl.getUsersPerGroup(siteId, groupName, start, end)
+        return securityServicesImpl.getGroupsPerSiteTotal(siteId)
+    }
+
+    static getUsersPerGroup(context, siteId, groupName, start, number) {
+        def securityServicesImpl = ServiceFactory.getSecurityServices(context)
+        return securityServicesImpl.getUsersPerGroup(siteId, groupName, start, number)
+    }
+
+    static getUsersPerGroupTotal(context, siteId, groupName) {
+        def securityServicesImpl = ServiceFactory.getSecurityServices(context)
+        return securityServicesImpl.getUsersPerGroupTotal(siteId, groupName)
     }
 
     static updateGroup(context, siteId, groupName, description) {
@@ -162,5 +182,33 @@ class SecurityServices {
         return securityServicesImpl.removeUserFromGroup(siteId, groupName, username)
     }
 
+    static forgotPassword(context, username) {
+        def securityServicesImpl = ServiceFactory.getSecurityServices(context)
+        return securityServicesImpl.forgotPassword(username)
+    }
 
+    static changePassword(context, username, current, newPassword) {
+        def securityServicesImpl = ServiceFactory.getSecurityServices(context)
+        return securityServicesImpl.changePassword(username, current, newPassword)
+    }
+
+    static setUserPassword(context, token, newPassword) {
+        def securityServicesImpl = ServiceFactory.getSecurityServices(context)
+        return securityServicesImpl.setUserPassword(token, newPassword)
+    }
+
+    static validateToken(context, token) {
+        def securityServicesImpl = ServiceFactory.getSecurityServices(context)
+        return securityServicesImpl.validateToken(token)
+    }
+
+    static resetPassword(context, username, newPassword) {
+        def securityServicesImpl = ServiceFactory.getSecurityServices(context)
+        return securityServicesImpl.resetPassword(username, newPassword)
+    }
+
+    static validateSession(context, request) {
+        def securityServicesImpl = ServiceFactory.getSecurityServices(context)
+        return securityServicesImpl.validateSession(request)
+    }
 }

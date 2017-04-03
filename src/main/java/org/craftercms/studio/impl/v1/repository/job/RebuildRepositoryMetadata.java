@@ -51,7 +51,7 @@ public class RebuildRepositoryMetadata {
             try {
                 logger.debug("Starting Rebuild Repository Metadata Task.");
                 String ticket = securityService.getCurrentToken();
-                CronJobContext securityContext = new CronJobContext(ticket);
+                CronJobContext securityContext = new CronJobContext(ticket, securityService.getCurrentUser());
                 RebuildRepositoryMetadataTask task = new RebuildRepositoryMetadataTask(securityContext, site);
                 taskExecutor.execute(task);
             } finally {

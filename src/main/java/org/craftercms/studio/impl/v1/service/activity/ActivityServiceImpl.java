@@ -22,18 +22,21 @@ import java.util.*;
 import javolution.util.FastList;
 import net.sf.json.JSONObject;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.ActivityFeed;
 import org.craftercms.studio.api.v1.dal.ActivityFeedMapper;
 import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.AbstractRegistrableService;
 import org.craftercms.studio.api.v1.service.activity.ActivityService;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.objectstate.State;
+import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.util.DebugUtils;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
@@ -98,7 +101,7 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 		String contentType = null;
 		if(extraInfo!=null)
 			contentType = extraInfo.get(DmConstants.KEY_CONTENT_TYPE);
-		postActivity(ContentUtils.generateActivityValue(activity), site, null, activityPost.toString(),contentId,contentType, user);
+		postActivity(activity.toString(), site, null, activityPost.toString(),contentId,contentType, user);
 
 	}
 
@@ -170,7 +173,8 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 			activityPost.setContentType(contentType);
 			//activityFeedMapper.updateActivityFeed(activityPost);
 			try {
-				long postId = postFeedEntry(activityPost);
+                activityPost.setCreationDate(new Date());
+				long postId = insertFeedEntry(activityPost);
 				activityPost.setId(postId);
 				logger.debug("Posted: " + activityPost);
 
@@ -184,20 +188,6 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 			logger.error("Error in posting feed", e);
 		}
 
-	}
-
-	private long postFeedEntry(ActivityFeed activityFeed) {
-		int count=getCountUserContentFeedEntries(activityFeed.getUserId(),activityFeed.getSiteNetwork(),activityFeed.getContentId());
-		if(count==0)
-		{
-			activityFeed.setCreationDate(new Date());
-			return insertFeedEntry(activityFeed);
-		}
-		else
-		{
-			updateFeedEntry(activityFeed);
-			return -1;
-		}
 	}
 
 	private int getCountUserContentFeedEntries(String feedUserId, String siteId,String contentId) {
@@ -370,7 +360,7 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 		HashMap<String,String> params = new HashMap<String,String>();
 		params.put("contentId", path);
 		params.put("siteNetwork", site);
-		String activityType = ContentUtils.generateActivityValue(ActivityType.DELETED);
+		String activityType = ActivityType.DELETED.toString();
 		params.put("activityType", activityType);
 		return activityFeedMapper.getDeletedActivity(params);
 	}
@@ -383,12 +373,41 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 	}
 
     @Override
-    public List<ActivityFeed> getAuditLogForSite(String site, int startPos, int feedSize) {
-        Map<String, Object> params = new HashMap<String,Object>();
-        params.put("site", site);
-        params.put("startPos", startPos);
-        params.put("feedSize", feedSize);
-        return activityFeedMapper.getAuditLogForSite(params);
+    public List<ActivityFeed> getAuditLogForSite(String site, int start, int number, String user, List<String> actions)
+	throws SiteNotFoundException {
+		if (!siteService.exists(site)) {
+			throw new SiteNotFoundException();
+		} else {
+			Map<String, Object> params = new HashMap<String, Object>();
+			params.put("site", site);
+			params.put("start", start);
+			params.put("number", number);
+			if (StringUtils.isNotEmpty(user)) {
+				params.put("user", user);
+			}
+			if (CollectionUtils.isNotEmpty(actions)) {
+				params.put("actions", actions);
+			}
+			return activityFeedMapper.getAuditLogForSite(params);
+		}
+    }
+
+    @Override
+    public long getAuditLogForSiteTotal(String site, String user, List<String> actions)
+            throws SiteNotFoundException {
+        if (!siteService.exists(site)) {
+            throw new SiteNotFoundException();
+        } else {
+            Map<String, Object> params = new HashMap<String, Object>();
+            params.put("site", site);
+            if (StringUtils.isNotEmpty(user)) {
+                params.put("user", user);
+            }
+            if (CollectionUtils.isNotEmpty(actions)) {
+                params.put("actions", actions);
+            }
+            return activityFeedMapper.getAuditLogForSiteTotal(params);
+        }
     }
 
     public boolean getUserNamesAreCaseSensitive() {
@@ -398,7 +417,18 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 
     @Autowired
 	protected ActivityFeedMapper activityFeedMapper;
+
 	protected ContentService contentService;
+
+	public SiteService getSiteService() {
+		return siteService;
+	}
+
+	public void setSiteService(final SiteService siteService) {
+		this.siteService = siteService;
+	}
+
+	protected SiteService siteService;
 
 	public void setContentService(ContentService contentService) {
 		this.contentService = contentService;

@@ -33,12 +33,11 @@ import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import com.google.gdata.util.common.base.StringUtil;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -47,28 +46,24 @@ import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.Status;
-import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.*;
+import org.eclipse.jgit.diff.DiffEntry;
+import org.eclipse.jgit.diff.RawTextComparator;
 import org.eclipse.jgit.dircache.DirCache;
 import org.eclipse.jgit.errors.AmbiguousObjectException;
+import org.eclipse.jgit.errors.CorruptObjectException;
 import org.eclipse.jgit.errors.IncorrectObjectTypeException;
 import org.eclipse.jgit.errors.MissingObjectException;
-import org.eclipse.jgit.lib.Constants;
-import org.eclipse.jgit.lib.ObjectId;
-import org.eclipse.jgit.lib.PersonIdent;
-import org.eclipse.jgit.lib.Repository;
-import org.eclipse.jgit.lib.StoredConfig;
+import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
+import org.eclipse.jgit.treewalk.CanonicalTreeParser;
+import org.eclipse.jgit.treewalk.TreeWalk;
 
-import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_PARAMETER_BIG_FILE_THRESHOLD;
-import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_PARAMETER_BIG_FILE_THRESHOLD_DEFAULT;
-import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_PARAMETER_COMPRESSION;
-import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_PARAMETER_COMPRESSION_DEFAULT;
-import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_SECTION_CORE;
-import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_COMMIT_ALL_ITEMS;
-import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_ROOT;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.*;
+import static org.eclipse.jgit.lib.Constants.DEFAULT_REMOTE_NAME;
 
 /**
  * Created by Sumer Jabri
@@ -118,7 +113,7 @@ public class GitContentRepositoryHelper {
         Repository publishedRepo;
 
         Path siteSandboxRepoPath = buildRepoPath(GitRepositories.SANDBOX, site).resolve(GIT_ROOT);
-        Path sitePublishedRepoPath = buildRepoPath(GitRepositories.SANDBOX, site).resolve(GIT_ROOT);
+        Path sitePublishedRepoPath = buildRepoPath(GitRepositories.PUBLISHED, site).resolve(GIT_ROOT);
 
         try {
             if (Files.exists(siteSandboxRepoPath)) {
@@ -176,7 +171,9 @@ public class GitContentRepositoryHelper {
         if (StringUtils.isEmpty(gitPath.toString())) {
             return ".";
         }
-        return gitPath.toString();
+        String toRet = gitPath.toString();
+        toRet = StringUtils.replace(toRet, File.separator, "/");
+        return toRet;
     }
 
     public Repository createGitRepository(Path path) {
@@ -242,16 +239,10 @@ public class GitContentRepositoryHelper {
         // Create Sandbox
         sandboxRepo = createGitRepository(siteSandboxPath);
 
-        // Create Published
-        if (sandboxRepo != null) {
-            publishedRepo = createGitRepository(sitePublishedPath);
-        }
-
-        toReturn = (sandboxRepo != null) && (publishedRepo != null);
+        toReturn = (sandboxRepo != null);
 
         if (toReturn) {
             sandboxes.put(site, sandboxRepo);
-            published.put(site, publishedRepo);
         }
 
         return toReturn;
@@ -310,16 +301,22 @@ public class GitContentRepositoryHelper {
 
         // Get the Sandbox Path
         Path siteSandboxPath = buildRepoPath(GitRepositories.SANDBOX, site);
-        // Get parent of that (since every site has two repos: Sandbox and Published
+        // Get parent of that (since every site has two repos: Sandbox and Published)
         Path sitePath = siteSandboxPath.getParent();
         // Get a file handle to the parent and delete it
         File siteFolder = sitePath.toFile();
-        toReturn = siteFolder.delete();
 
-        // If delete successful, remove from in-memory cache
-        if (toReturn) {
+        try {
+            FileUtils.deleteDirectory(siteFolder);
             sandboxes.remove(site);
             published.remove(site);
+
+            toReturn = true;
+
+            logger.debug("Deleted site: " + site + " at path: " + sitePath);
+        } catch (IOException e) {
+            logger.error("Failed to delete site: " + site + " at path: " + sitePath + " exception " + e.toString());
+            toReturn = false;
         }
 
         return toReturn;
@@ -399,6 +396,24 @@ public class GitContentRepositoryHelper {
                     .call();
                 // TODO: SJ: Do we need the commit id?
                 // commitId = commit.getName();
+            }
+
+            // Create Published by cloning Sandbox
+
+            // Build a path for the site/sandbox
+            Path siteSandboxPath = buildRepoPath(GitRepositories.SANDBOX, site);
+            // Built a path for the site/published
+            Path sitePublishedPath = buildRepoPath(GitRepositories.PUBLISHED, site);
+            try (Git publishedGit = Git.cloneRepository()
+                    .setURI(siteSandboxPath.normalize().toAbsolutePath().toString())
+                    .setDirectory(sitePublishedPath.normalize().toAbsolutePath().toFile())
+                    .call()) {
+                Repository publishedRepo = publishedGit.getRepository();
+                if (publishedRepo != null) {
+                    published.put(site, publishedRepo);
+                }
+            } catch (GitAPIException e) {
+                logger.error("Error adding origin (sandbox) to published repository", e);
             }
         } catch (GitAPIException err) {
             logger.error("error creating initial commit for site:  " + site, err);
@@ -587,5 +602,47 @@ public class GitContentRepositoryHelper {
                         currentUserProfile.get("email").toString());
 
         return currentUserIdent;
+    }
+
+    public List<String> getFilesInCommit(Repository repository, RevCommit commit) {
+
+        List<String> files = new ArrayList<String>();
+        RevWalk rw = new RevWalk(repository);
+        try (Git git = new Git(repository)) {
+            if (commit.getParentCount() > 0) {
+                RevCommit parent = rw.parseCommit(commit.getParent(0).getId());
+
+                ObjectId commitId = commit.getId();
+                ObjectId parentCommitId = parent.getId();
+
+                RevTree parentTree = getTreeForCommit(repository, parentCommitId.getName());
+                RevTree commitTree = getTreeForCommit(repository, commitId.getName());
+
+                try (ObjectReader reader = repository.newObjectReader()) {
+                    CanonicalTreeParser prevCommitTreeParser = new CanonicalTreeParser();
+                    CanonicalTreeParser nextCommitTreeParser = new CanonicalTreeParser();
+                    prevCommitTreeParser.reset(reader, parentTree.getId());
+                    nextCommitTreeParser.reset(reader, commitTree.getId());
+
+                    // Diff the two commit Ids
+                    List<DiffEntry> diffEntries = git.diff().setOldTree(prevCommitTreeParser).setNewTree(nextCommitTreeParser).call();
+                    for (DiffEntry diffEntry : diffEntries) {
+                        if (diffEntry.getChangeType() == DiffEntry.ChangeType.DELETE) {
+                            files.add(File.separator + diffEntry.getOldPath());
+                        } else {
+                            files.add(File.separator + diffEntry.getNewPath());
+                        }
+                    }
+                } catch (IOException | GitAPIException e) {
+                    logger.error("Error while getting list of files in commit " + commit.getId().getName());
+                }
+            }
+
+        } catch (IOException e) {
+            logger.error("Error while getting list of files in commit " + commit.getId().getName());
+        } finally {
+            rw.dispose();
+        }
+        return files;
     }
 }

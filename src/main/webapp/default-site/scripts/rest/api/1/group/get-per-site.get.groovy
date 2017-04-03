@@ -17,27 +17,43 @@
  *
  */
 
+
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException
 import scripts.api.SecurityServices
 
 def result = [:]
 
 def siteId = params.site_id
+def start = 0
+if (params.start != null) {
+    start = params.start.toInteger()
+}
+
+// TODO: SJ: These should be constants
+def number = 25
+if (params.number != null) {
+    number = params.number.toInteger()
+}
 
 def context = SecurityServices.createContext(applicationContext, request)
 try {
-    def groupMap = SecurityServices.getGroupsPerSite(context, siteId);
-    if (groupMap != null && !groupMap.isEmpty()) {
-        def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/get/get-per-site?site_id=" + siteId
+    def total = SecurityServices.getGroupsPerSiteTotal(context, siteId)
+    def groupMap = SecurityServices.getGroupsPerSite(context, siteId, start, number)
+    if (groupMap != null) {
+        def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/get/get-per-site.json?site_id=" + siteId + "&start=" + start + "&number=" + number
         response.addHeader("Location", locationHeader)
-        result.groups = groupMap;
-        return result;
+        result.groups = groupMap
+        result.total = total
     } else {
-        response.setStatus(404)
-        result.status = "Site not found"
-        return result;
+        response.setStatus(500)
+        result.message = "Internal server error"
     }
+} catch (SiteNotFoundException e) {
+    response.setStatus(404)
+    result.message = "Site not found"
 } catch (Exception e) {
     response.setStatus(500)
-    result.status = "Internal server error"
-    return result;
+    result.message = "Internal server error: \n" + e
 }
+
+return result

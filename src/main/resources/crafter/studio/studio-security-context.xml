@@ -40,13 +40,20 @@
         <security:intercept-url pattern="/api/1/services/api/1/user/login.json" access="permitAll" />
         <security:intercept-url pattern="/api/1/services/api/1/user/logout.json" access="permitAll" />
         <security:intercept-url pattern="/api/1/services/api/1/server/get-available-languages.json" access="permitAll" />
+        <security:intercept-url pattern="/api/1/services/api/1/server/get-ui-resource-override.json" access="permitAll" />
+        <security:intercept-url pattern="/api/1/services/api/1/user/reset-password.json" access="permitAll" />
+        <security:intercept-url pattern="/api/1/services/api/1/user/forgot-password.json" access="permitAll" />
+        <security:intercept-url pattern="/api/1/services/api/1/user/set-password.json" access="permitAll" />
+        <security:intercept-url pattern="/api/1/services/api/1/user/validate-token.json" access="permitAll" />
         <security:intercept-url pattern="/api/**" access="authenticated" />
         <security:intercept-url pattern="/**" access="permitAll" />
+        <!--security:custom-filter ref="studioAuthenticationTokenProcessingFilter" position="PRE_AUTH_FILTER" / -->
     </security:http>
 
     <bean id="studioAuthenticationTokenProcessingFilter" class="org.craftercms.studio.impl.v1.service.security.StudioAuthenticationTokenProcessingFilter">
         <property name="securityService" ref="cstudioSecurityService"/>
         <property name="userDetailsManager" ref="studioUsesDetailsManager"/>
+        <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
     <security:authentication-manager id="studioAuthenticationManager">

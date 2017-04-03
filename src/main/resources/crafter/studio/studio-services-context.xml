@@ -77,6 +77,9 @@
         <property name="generalLockService" ref="cstudioGeneralLockService"/>
         <property name="rebuildRepositoryMetadata" ref="studioRebuildRepositoryMetadata"/>
         <property name="studioConfiguration" ref="studioConfiguration"/>
+        <property name="searchService" ref="searchService" />
+        <property name="eventService" ref="studioEventService"/>
+        <property name="previewDeployer" ref="previewDeployer"/>
     </bean>
 
     <bean id="cstudioImportService" class="org.craftercms.studio.impl.v1.service.content.ImportServiceImpl">
@@ -89,8 +92,11 @@
         <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
+    <bean id="searchService" class="org.craftercms.studio.impl.v1.service.search.SearchServiceImpl">
+        <property name="studioConfiguration" ref="studioConfiguration" />
+    </bean>
+
     <bean id="cstudioWorkflowService" class="org.craftercms.studio.impl.v1.service.workflow.WorkflowServiceImpl">
-        <property name="workflowJobDAL" ref="cstudioWorkflowJobDAL" />
         <property name="notificationService" ref="cstudioNotificationService" />
         <property name="notificationService2" ref="cstudioNotificationServicev2" />
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
@@ -125,9 +131,9 @@
          <property name="deploymentEndpointConfig" ref="cstudioDeploymentConfig"/>
          <property name="securityService" ref="cstudioSecurityService"/>
          <property name="deployContentToEnvironmentStoreJob" ref="cstudioDeployContentToEnvironmentJobs"/>
-         <property name="publishContentToDeploymentTargetJob" ref="cstudioPublishContentToDeploymentTargetJob"/>
          <property name="notificationService" ref="cstudioNotificationServicev2"/>
          <property name="eventService" ref="studioEventService"/>
+         <property name="deploymentHistoryProvider" ref="contentRepository"/>
      </bean>
 
      <bean id="cstudioNotificationService" class="org.craftercms.studio.impl.v1.service.notification.NotificationServiceImpl" >
@@ -183,6 +189,7 @@
         <property name="contentService" ref="cstudioContentService" />
         <property name="securityService" ref="cstudioSecurityService" />
         <property name="studioConfiguration" ref="studioConfiguration" />
+        <property name="siteService" ref="cstudioSiteServiceSimple" />
     </bean>
 
     <bean id="cstudioDmDependencyService" class="org.craftercms.studio.impl.v1.service.dependency.DmDependencyServiceImpl"
@@ -210,6 +217,9 @@
         <property name="securityProvider" ref="securityProvider"/>
         <property name="generalLockService" ref="cstudioGeneralLockService" />
         <property name="studioConfiguration" ref="studioConfiguration" />
+        <property name="emailService" ref="mailSender"/>
+        <property name="emailServiceNoAuth" ref="mailSenderNoAuth"/>
+        <property name="userDetailsManager" ref="studioUsesDetailsManager" />
     </bean>
 
     <bean id="cstudioContentTypeService" class="org.craftercms.studio.impl.v1.service.content.ContentTypeServiceImpl" >
@@ -243,14 +253,6 @@
           parent="cstudioRegistrableService">
         <property name="contentService" ref="cstudioContentService"/>
         <property name="generalLockService" ref="cstudioGeneralLockService"/>
-        <property name="studioConfiguration" ref="studioConfiguration" />
-    </bean>
-
-    <bean id="cstudioDmMetadataService" class="org.craftercms.studio.impl.v1.service.content.DmMetadataServiceImpl"
-          parent="cstudioRegistrableService">
-         <property name="securityService" ref="cstudioSecurityService" />
-        <property name="contentService" ref="cstudioContentService"/>
-        <property name="scriptExecutor" ref="studioGroovyScriptExecutor"/>
         <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
@@ -288,6 +290,7 @@
 
     <bean id="studioEventService" class="org.craftercms.studio.impl.v1.service.event.EventServiceImpl" >
         <property name="previewDeployer" ref="previewDeployer" />
+        <property name="environmentDeployer" ref="environmentDeployer" />
     </bean>
 
     <!-- ////////////////////////////////////// -->
@@ -344,134 +347,21 @@
         </property>
     </bean>
 
-    <!-- ////////////////////////////////////// -->
-    <!--         translation                    -->
-    <!-- ////////////////////////////////////// -->
-
-    <!-- translation vendor interface -->
-    <bean id="smartlingTranslationProvider" class="org.craftercms.studio.impl.v1.service.translation.provider.smartling.SmartlingTranslationProvider">
-    </bean>
-
-    <bean id="demoTranslationProvider" class="org.craftercms.studio.impl.v1.service.translation.provider.demo.DemoTranslationProvider">
-        <property name="translateElements">
-            <list>
-                <value>title</value>
-                <value>body</value>
-                <value>body_html</value>
-            </list>
-        </property>
-    </bean>
-
-    <bean id="cstudioTranslationContentDAL" class="org.craftercms.studio.impl.v1.service.translation.dal.repository.RepositoryTranslationContentDAL">
-        <property name="contentService" ref="cstudioContentService" />
-    </bean>
-
-    <bean id="cstudioWorkflowManager" class="org.craftercms.studio.impl.v1.service.workflow.WorkflowManager">
-        <property name="workflowService" ref="cstudioWorkflowService" />
-        <property name="jobStateHandlers" >
-            <map>
-                <entry key="submit-for-translate">
-                    <map>
-                        <entry key="created">
-                            <bean class="org.craftercms.studio.impl.v1.service.workflow.handler.JobCreatedHandler">
-                            </bean>
-                        </entry>
-                        <entry key="started">
-                            <!-- determine what items for be translated for each child site and submit workflows then end -->
-                            <bean class="org.craftercms.studio.impl.v1.service.translation.workflow.handler.KickoffTranslationWorkflowForWaterfallItemsHandler">
-                                <property name="siteService" ref="cstudioSiteServiceSimple" />
-                                <property name="translationService" ref="cstudioTranslationService" />
-                                <!--property name="dependencyService" ref="cstudioDmDependencyService" /-->
-                            </bean>
-                        </entry>
-                        <entry key="ended">
-                            <bean class="org.craftercms.studio.impl.v1.service.workflow.handler.JobEndedHandler"/>
-                        </entry>
-                    </map>
-                </entry>
-                <entry key="translate">
-                    <map>
-                        <entry key="created">
-                            <bean class="org.craftercms.studio.impl.v1.service.workflow.handler.JobCreatedHandler">
-                            </bean>
-                        </entry>
-                        <entry key="started">
-                            <!-- send item out for translation and start waiting for it to complete -->
-                            <bean class="org.craftercms.studio.impl.v1.service.translation.workflow.handler.SendItemOutForTranslationHandler">
-                                <property name="translationService" ref="cstudioTranslationService" />
-                            </bean>
-                        </entry>
-                        <entry key="WAITING-FOR-TRANSLATION">
-                            <!-- check translation status on item until it's complete -->
-                            <bean class="org.craftercms.studio.impl.v1.service.translation.workflow.handler.UpdateItemTranslationStatusHandler">
-                                <property name="translationService" ref="cstudioTranslationService" />
-                            </bean>
-                        </entry>
-                        <entry key="TRANSLATION-COMPLETE">
-                            <!-- retrieve item from translation provider, add to project and submit for review -->
-                            <bean class="org.craftercms.studio.impl.v1.service.translation.workflow.handler.UpdateProjectWithTranslationHandler">
-                                <property name="translationService" ref="cstudioTranslationService" />
-                            </bean>
-                        </entry>
-                        <entry key="SITE-UPDATED-WITH-TRANSLATED-CONTENT">
-                            <!-- retrieve item from translation provider, add to project and submit for review -->
-                            <bean class="org.craftercms.studio.impl.v1.service.workflow.handler.SubmitContentforApprovalHandler"/>
-                        </entry>
-                        <entry key="ended">
-                            <bean class="org.craftercms.studio.impl.v1.service.workflow.handler.JobEndedHandler"/>
-                        </entry>
-                    </map>
-                </entry>
-            </map>
-        </property>
-    </bean>
 
     <!-- continue refactoring -->
     <!-- Jobs -->
-    <bean id="cstudioRepositoryJob" abstract="true" class="org.craftercms.studio.impl.v1.job.RepositoryJob">
-        <property name="securityService" ref="cstudioSecurityService"/>
-        <property name="studioConfiguration" ref="studioConfiguration" />
-    </bean>
-    <bean id="cstudioProcessInFlightJobs" class="org.craftercms.studio.impl.v1.service.workflow.job.ProcessInFlightJobs">
-        <property name="workflowService" ref="cstudioWorkflowService" />
-        <property name="workflowManager" ref="cstudioWorkflowManager"/>
-        <property name="transactionService" ref="cstudioTransactionServiceSimple" />
-         <property name="securityService" ref="cstudioSecurityService" />
-    </bean>
-
-    <bean id="cstudioDeployContentToEnvironmentJobs" class="org.craftercms.studio.impl.v1.service.deployment.job.DeployContentToEnvironmentStore"
-          parent="cstudioRepositoryJob">
-        <property name="transactionService" ref="cstudioTransactionServiceSimple" />
+    <bean id="cstudioDeployContentToEnvironmentJobs" class="org.craftercms.studio.impl.v1.service.deployment.job.DeployContentToEnvironmentStore">
         <property name="publishingManager" ref="cstudioPublishingManager" />
         <property name="contentRepository" ref="contentRepository" />
         <property name="siteService" ref="cstudioSiteServiceSimple"/>
-        <property name="contentService" ref="cstudioContentService" />
         <property name="notificationService" ref="cstudioNotificationService"/>
         <property name="generalLockService" ref="cstudioGeneralLockService"/>
         <property name="notificationService2" ref="cstudioNotificationServicev2"/>
-        <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
-    </bean>
-
-    <bean id="cstudioPublishContentToDeploymentTargetJob" class="org.craftercms.studio.impl.v1.service.deployment.job.PublishContentToDeploymentTarget"
-            parent="cstudioRepositoryJob">
-        <property name="siteService" ref="cstudioSiteServiceSimple"/>
-        <property name="publishingManager" ref="cstudioPublishingManager" />
-        <property name="notificationService" ref="cstudioNotificationService"/>
-        <property name="notificationService2" ref="cstudioNotificationServicev2"/>
+        <property name="eventService" ref="studioEventService"/>
+        <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
     <!-- scheduled actions -->
-    <bean id="cstudioProcessInFlightJobsScheduled" class="org.springframework.scheduling.quartz.SimpleTriggerFactoryBean">
-        <property name="jobDetail">
-            <bean class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
-              <property name="targetObject" ref="cstudioProcessInFlightJobs"/>
-               <property name="targetMethod" value="execute"/>
-            </bean>
-        </property>
-        <property name="repeatInterval" value="5000" />
-        <property name="startDelay" value="1000" />
-    </bean>
-
     <bean id="cstudioDeployContentToEnvironmentJobsScheduled" class="org.springframework.scheduling.quartz.SimpleTriggerFactoryBean">
         <property name="jobDetail">
             <bean class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
@@ -484,23 +374,10 @@
         <property name="startDelay" value="2000" />
     </bean>
 
-    <bean id="cstudioPublishContentToDeploymentTargetJobSchedule" class="org.springframework.scheduling.quartz.SimpleTriggerFactoryBean">
-        <property name="jobDetail">
-            <bean class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
-                <property name="targetObject" ref="cstudioPublishContentToDeploymentTargetJob"/>
-                <property name="targetMethod" value="execute"/>
-                <property name="concurrent" value="false"/>
-            </bean>
-        </property>
-        <property name="repeatInterval" value="10000" />
-        <property name="startDelay" value="4000" />
-    </bean>
-
     <bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
         <property name="triggers">
             <list>
                 <ref bean="cstudioDeployContentToEnvironmentJobsScheduled" />
-                <ref bean="cstudioPublishContentToDeploymentTargetJobSchedule" />
             </list>
         </property>
     </bean>
@@ -508,10 +385,6 @@
     <!-- ////////////////////////////////////// -->
     <!--         workflow                       -->
     <!-- ////////////////////////////////////// -->
-    <!-- DALs -->
-    <bean id="cstudioWorkflowJobDAL" class="org.craftercms.studio.impl.v1.service.workflow.dal.InMemoryWorkflowJobDAL"/>
-
-
     <bean id="cstudioWorkflowProcessor" class="org.craftercms.studio.impl.v1.service.workflow.WorkflowProcessor">
         <property name="objectStateService" ref="cstudioObjectStateService"/>
          <property name="securityService" ref="cstudioSecurityService" />
@@ -686,7 +559,6 @@
                 <ref bean="cstudioFormDmContentProcessor"></ref>
                 <!--<ref bean="cstudioWcmSnapshotProcessor"></ref>-->
                 <ref bean="cstudioCleanPreviewContentProcessor"></ref>
-                <ref bean="cstudioExtractMetadataProcessor"></ref>
                 <ref bean="cstudioExtractDependencyProcessor"></ref>
                 <ref bean="cstudioDmWorkflowProcessor"></ref>
                 <ref bean="cstudioPostActivityProcessor"></ref>
@@ -712,7 +584,6 @@
                 <ref bean="cstudioFormNavOrderProcessor"></ref>
                 <ref bean="cstudioFileFolderPathProcessor"></ref>
                 <ref bean="cstudioImportContentProcessor"></ref>
-                <ref bean="cstudioExtractMetadataProcessor"></ref>
                 <ref bean="cstudioExtractDependencyProcessor"></ref>
                 <ref bean="cstudioPostActivityProcessor"></ref>
                 <ref bean="cstudioContentLifeCycleProcessor"></ref>
@@ -779,10 +650,6 @@
 
     <bean id="cstudioCleanWorkContentProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.CleanWorkContentProcessor"/>
 
-    <bean id="cstudioExtractMetadataProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.ExtractMetadataProcessor">
-        <property name="dmMetadataService" ref="cstudioDmMetadataService" />
-    </bean>
-
     <bean id="cstudioExtractDependencyProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.ExtractDependencyProcessor">
         <property name="dmDependencyService" ref="cstudioDmDependencyService"/>
     </bean>
@@ -805,6 +672,13 @@
     <!-- ////////////////////////////////////// -->
     <bean id="previewDeployer" class="org.craftercms.studio.impl.v1.deployment.PreviewDeployerImpl">
             <property name="studioConfiguration" ref="studioConfiguration" />
+    </bean>
+
+    <!-- ////////////////////////////////////////// -->
+    <!--          Environment deployer              -->
+    <!-- ////////////////////////////////////////// -->
+    <bean id="environmentDeployer" class="org.craftercms.studio.impl.v1.deployment.EnvironmentDeployer">
+        <property name="contentRepository" ref="contentRepository" />
     </bean>
 
     <!-- ////////////////////////////////////// -->
@@ -863,8 +737,6 @@
     <!-- Application Listeners -->
     <bean class="org.craftercms.studio.impl.v1.util.spring.context.SiteConfigurationLoader">
         <property name="siteService" ref="cstudioSiteServiceSimple"/>
-        <property name="securityProvider" ref="securityProvider"/>
-        <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
     <!-- Utilities -->
@@ -893,7 +765,7 @@
     </bean>
 
     <bean id="studioConfiguration" class="org.craftercms.studio.impl.v1.util.StudioConfigurationImpl" init-method="init" >
-        <property name="configLocation" value="crafter/studio/studio-config.yml"/>
+        <property name="configLocation" value="crafter/studio/studio-config.yaml"/>
     </bean>
 
     <import resource="classpath:crafter/studio/cache/studio-cache-context.xml"/>

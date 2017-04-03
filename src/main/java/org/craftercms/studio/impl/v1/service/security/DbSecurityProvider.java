@@ -25,17 +25,26 @@ import org.craftercms.commons.crypto.CryptoUtils;
 import org.craftercms.commons.http.RequestContext;
 import org.craftercms.studio.api.v1.dal.*;
 import org.craftercms.studio.api.v1.ebus.RepositoryEventContext;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.*;
 import org.craftercms.studio.api.v1.job.CronJobContext;
+import org.craftercms.studio.api.v1.log.Logger;
+import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
 
 import javax.servlet.http.HttpSession;
 import java.util.*;
 
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_DB_SESSION_TIMEOUT;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_SESSION_TIMEOUT;
+import static org.craftercms.studio.impl.v1.service.security.SecurityServiceImpl.STUDIO_SESSION_TOKEN_ATRIBUTE;
 
 public class DbSecurityProvider implements SecurityProvider {
+
+    public final static Logger logger = LoggerFactory.getLogger(DbSecurityProvider.class);
 
     @Override
     public Set<String> getUserGroups(String user) {
@@ -55,6 +64,17 @@ public class DbSecurityProvider implements SecurityProvider {
         if(context != null) {
             HttpSession httpSession = context.getRequest().getSession();
             username = (String)httpSession.getAttribute("studio_user");
+        } else {
+            CronJobContext cronJobContext = CronJobContext.getCurrent();
+
+            if (cronJobContext != null) {
+                username = cronJobContext.getCurrentUser();
+            } else {
+                RepositoryEventContext repositoryEventContext = RepositoryEventContext.getCurrent();
+                if (repositoryEventContext != null) {
+                    username = repositoryEventContext.getCurrentUser();
+                }
+            }
         }
 
         return username;
@@ -72,9 +92,25 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public List<Map<String, Object>> getAllUsers() {
-        List<UserProfileResult> resultSet = securityMapper.getAllUsers();
+    public List<Map<String, Object>> getAllUsers(int start, int number) {
+        List<UserProfileResult> resultSet = new ArrayList<UserProfileResult>();
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("start", start);
+        params.put("number", number);
+        List<String> usernames = securityMapper.getAllUsersQuery(params);
+        if (usernames != null && !usernames.isEmpty()) {
+            params = new HashMap<String, Object>();
+            params.put("usernames", usernames);
+            resultSet = securityMapper.getAllUsersData(params);
+        }
         return parseUserResultSet(resultSet);
+    }
+
+    @Override
+    public int getAllUsersTotal() {
+        List<UserProfileResult> resultSet = new ArrayList<UserProfileResult>();
+        Map<String, Object> params = new HashMap<String, Object>();
+        return securityMapper.getAllUsersQueryTotal(params);
     }
 
     private List<Map<String, Object>> parseUserResultSet(List<UserProfileResult> usersResultSet) {
@@ -107,6 +143,7 @@ public class DbSecurityProvider implements SecurityProvider {
                     sites = new ArrayList<Object>();
                     groups = new ArrayList<Map<String, Object>>();
                     site = null;
+                    lastSite = null;
                 }
                 String siteId = row.getSiteId();
                 if (StringUtils.isNotEmpty(siteId)) {
@@ -142,55 +179,80 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public List<Map<String, Object>> getUsersPerSite(String site) {
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put("siteId", site);
-        SiteFeed s = siteFeedMapper.getSite(params);
-        if (s == null) {
-            return null;
-        }
-        List<UserProfileResult> resultSet = securityMapper.getUsersPerSite(site);
+    public List<Map<String, Object>> getUsersPerSite(String site, int start, int number) throws SiteNotFoundException {
         List<Map<String, Object>> toRet = new ArrayList<Map<String, Object>>();
-        Map<String, Object> userProfile = new HashMap<String, Object>();
-        if (resultSet != null && !resultSet.isEmpty()) {
-            String lastUser = null;
-            List<Object> sites = new ArrayList<Object>();
-            List<Map<String, Object>> groups = null;
-            for (UserProfileResult row : resultSet) {
-                String username = row.getUsername();
-                if (!username.equals(lastUser)) {
-                    if (userProfile != null && !userProfile.isEmpty()) {
-                        if (groups != null) {
-                            userProfile.put("groups", groups);
+        if (!(siteFeedMapper.exists(site) > 0)) {
+            throw new SiteNotFoundException();
+        } else {
+            Map<String, Object> params = new HashMap<String, Object>();
+            params = new HashMap<String, Object>();
+            params.put("siteId", site);
+            params.put("start", start);
+            params.put("number", number);
+            List<String> usernames = securityMapper.getUsersPerSiteQuery(params);
+            if (usernames != null && !usernames.isEmpty()) {
+                params = new HashMap<String, Object>();
+                params.put("siteId", site);
+                params.put("usernames", usernames);
+                List<UserProfileResult> resultSet = securityMapper.getUsersPerSiteData(params);
+                Map<String, Object> userProfile = new HashMap<String, Object>();
+                if (resultSet != null && !resultSet.isEmpty()) {
+                    String lastUser = null;
+                    List<Object> sites = new ArrayList<Object>();
+                    List<Map<String, Object>> groups = null;
+                    for (UserProfileResult row : resultSet) {
+                        String username = row.getUsername();
+                        if (!username.equals(lastUser)) {
+                            if (userProfile != null && !userProfile.isEmpty()) {
+                                if (groups != null) {
+                                    userProfile.put("groups", groups);
+                                }
+                                toRet.add(userProfile);
+                            }
+                            userProfile = new HashMap<String, Object>();
+                            userProfile.put("username", username);
+                            userProfile.put("first_name", row.getFirstName());
+                            userProfile.put("last_name", row.getLastName());
+                            userProfile.put("email", row.getEmail());
+                            groups = new ArrayList<Map<String, Object>>();
                         }
-                        toRet.add(userProfile);
+                        Map<String, Object> group = new HashMap<String, Object>();
+                        group.put("group_name", row.getGroupName());
+                        groups.add(group);
+                        lastUser = username;
                     }
-                    userProfile = new HashMap<String, Object>();
-                    userProfile.put("username", username);
-                    userProfile.put("first_name", row.getFirstName());
-                    userProfile.put("last_name", row.getLastName());
-                    userProfile.put("email", row.getEmail());
-                    groups = new ArrayList<Map<String, Object>>();
+                    if (groups != null) {
+                        userProfile.put("groups", groups);
+                    }
+                    toRet.add(userProfile);
                 }
-                Map<String, Object> group = new HashMap<String, Object>();
-                group.put("group_name", row.getGroupName());
-                groups.add(group);
-                lastUser = username;
             }
-            if (groups != null) {
-                userProfile.put("groups", groups);
-            }
-            toRet.add(userProfile);
         }
         return toRet;
     }
 
     @Override
+    public int getUsersPerSiteTotal(String site) throws SiteNotFoundException {
+        List<Map<String, Object>> toRet = new ArrayList<Map<String, Object>>();
+        if (!(siteFeedMapper.exists(site) > 0)) {
+            throw new SiteNotFoundException();
+        } else {
+            Map<String, Object> params = new HashMap<String, Object>();
+            params = new HashMap<String, Object>();
+            params.put("siteId", site);
+            return securityMapper.getUsersPerSiteQueryTotal(params);
+        }
+    }
+
+    @Override
     public String authenticate(String username, String password) {
         User user = securityMapper.getUser(username);
-        if (user != null && CipherUtils.matchPassword(user.getPassword(), password)) {
-            byte[] randomBytes = CryptoUtils.generateRandomBytes(20);
-            String token = randomBytes.toString();
+        if (user != null && user.isEnabled() && CipherUtils.matchPassword(user.getPassword(), password)) {
+            //byte[] randomBytes = CryptoUtils.generateRandomBytes(20);
+            //String token = randomBytes.toString();
+            int timeout = Integer.parseInt(studioConfiguration.getProperty(SECURITY_SESSION_TIMEOUT));
+            long ttl = 1000L * 60 * timeout;
+            String token = TokenUtils.createToken(user, ttl);
             storeSessionTicket(token);
             storeSessionUsername(username);
             return token;
@@ -204,7 +266,7 @@ public class DbSecurityProvider implements SecurityProvider {
 
         if(context != null) {
             HttpSession httpSession = context.getRequest().getSession();
-            httpSession.setAttribute("studio_ticket", ticket);
+            httpSession.setAttribute(STUDIO_SESSION_TOKEN_ATRIBUTE, ticket);
         }
     }
 
@@ -258,7 +320,7 @@ public class DbSecurityProvider implements SecurityProvider {
 
         if (context != null) {
             HttpSession httpSession = context.getRequest().getSession();
-            ticket = (String)httpSession.getAttribute("studio_ticket");
+            ticket = (String)httpSession.getAttribute(STUDIO_SESSION_TOKEN_ATRIBUTE);
         } else {
             ticket = getJobOrEventTicket();
         }
@@ -287,29 +349,72 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public boolean addUserToGroup(String siteId, String groupName, String user) {
+    public boolean groupExists(String siteId, String groupName) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("groupName", groupName);
         params.put("siteId", siteId);
-        Group group = securityMapper.getGroupObject(params);
-        params = new HashMap<String, Object>();
-        params.put("username", user);
-        params.put("groupId", group.getId());
-        securityMapper.addUserToGroup(params);
-        return true;
+        Integer result = securityMapper.groupExists(params);
+        return (result > 0);
     }
 
     @Override
-    public boolean removeUserFromGroup(String siteId, String groupName, String user) {
+    public boolean userExists(String username) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("username", username);
+        Integer result = securityMapper.userExists(params);
+        return (result > 0);
+    }
+
+    @Override
+    public boolean userExistsInGroup(String siteId, String groupName, String username) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("groupName", groupName);
         params.put("siteId", siteId);
-        Group group = securityMapper.getGroupObject(params);
-        params = new HashMap<String, Object>();
-        params.put("username", user);
-        params.put("groupId", group.getId());
-        securityMapper.removeUserFromGroup(params);
-        return true;
+        params.put("username", username);
+        Integer result = securityMapper.userExistsInGroup(params);
+        return (result > 0);
+    }
+
+    @Override
+    public boolean addUserToGroup(String siteId, String groupName, String user) throws UserAlreadyExistsException,
+        UserNotFoundException, GroupNotFoundException {
+        if (!groupExists(siteId, groupName)) {
+            throw new GroupNotFoundException();
+        } else if (!userExists(user)) {
+            throw new UserNotFoundException();
+        } else if (userExistsInGroup(siteId, groupName, user)) {
+            throw new UserAlreadyExistsException();
+        } else {
+            Map<String, Object> params = new HashMap<String, Object>();
+            params.put("groupName", groupName);
+            params.put("siteId", siteId);
+            Group group = securityMapper.getGroupObject(params);
+            params = new HashMap<String, Object>();
+            params.put("username", user);
+            params.put("groupId", group.getId());
+            securityMapper.addUserToGroup(params);
+            return true;
+        }
+    }
+
+    @Override
+    public boolean removeUserFromGroup(String siteId, String groupName, String user) throws UserNotFoundException,
+        GroupNotFoundException {
+        if (!groupExists(siteId, groupName)) {
+            throw new GroupNotFoundException();
+        } else if (!userExists(user) || !userExistsInGroup(siteId, groupName, user)) {
+            throw new UserNotFoundException();
+        } else {
+            Map<String, Object> params = new HashMap<String, Object>();
+            params.put("groupName", groupName);
+            params.put("siteId", siteId);
+            Group group = securityMapper.getGroupObject(params);
+            params = new HashMap<String, Object>();
+            params.put("username", user);
+            params.put("groupId", group.getId());
+            securityMapper.removeUserFromGroup(params);
+            return true;
+        }
     }
 
     @Override
@@ -334,7 +439,7 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public boolean createUser(String username, String password, String firstName, String lastName, String email) {
+    public boolean createUser(String username, String password, String firstName, String lastName, String email) throws UserAlreadyExistsException {
         String hashedPassword = CipherUtils.hashPassword(password);
         Map<String, String> params = new HashMap<String, String>();
         params.put("username", username);
@@ -342,81 +447,122 @@ public class DbSecurityProvider implements SecurityProvider {
         params.put("firstname", firstName);
         params.put("lastname", lastName);
         params.put("email", email);
+        try {
         securityMapper.createUser(params);
-        return true;
-    }
-
-    @Override
-    public boolean deleteUser(String username) {
-        Map<String, String> params = new HashMap<String, String>();
-        params.put("username", username);
-        securityMapper.deleteUser(params);
-        return true;
-    }
-
-    @Override
-    public boolean updateUser(String username, String firstName, String lastName, String email) {
-        Map<String, String> params = new HashMap<String, String>();
-        params.put("username", username);
-        params.put("firstname", firstName);
-        params.put("lastname", lastName);
-        params.put("email", email);
-        securityMapper.updateUser(params);
-        return true;
-    }
-
-    @Override
-    public boolean enableUser(String username, boolean enabled) {
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put("username", username);
-        params.put("enabled", enabled ? 1 : 0);
-        securityMapper.enableUser(params);
-        return true;
-    }
-
-    @Override
-    public Map<String, Object> getUserStatus(String user) {
-        User u = securityMapper.getUser(user);
-        Map<String, Object> userStatus = new HashMap<String, Object>();
-        if (u != null) {
-            userStatus.put("username", u.getUsername());
-            userStatus.put("enabled", u.isEnabled());
-
+        } catch (DuplicateKeyException e) {
+            logger.error("Error creating user " + username, e);
+            throw new UserAlreadyExistsException("User already exists.", e);
         }
-        return userStatus;
+        return true;
     }
 
     @Override
-    public boolean createGroup(String groupName, String description, String siteId) {
+    public boolean deleteUser(String username) throws UserNotFoundException {
+        if (!userExists(username)) {
+            throw new UserNotFoundException();
+        } else {
+            Map<String, String> params = new HashMap<String, String>();
+            params.put("username", username);
+            securityMapper.deleteUser(params);
+            return true;
+        }
+    }
+
+    @Override
+    public boolean updateUser(String username, String firstName, String lastName, String email) throws UserNotFoundException {
+        if (!userExists(username)) {
+            throw new UserNotFoundException();
+        } else {
+            Map<String, String> params = new HashMap<String, String>();
+            params.put("username", username);
+            params.put("firstname", firstName);
+            params.put("lastname", lastName);
+            params.put("email", email);
+            securityMapper.updateUser(params);
+            return true;
+        }
+    }
+
+    @Override
+    public boolean enableUser(String username, boolean enabled) throws UserNotFoundException {
+        if (!userExists(username)) {
+            throw new UserNotFoundException();
+        } else {
+            Map<String, Object> params = new HashMap<String, Object>();
+            params.put("username", username);
+            params.put("enabled", enabled ? 1 : 0);
+            securityMapper.enableUser(params);
+            return true;
+        }
+    }
+
+    @Override
+    public Map<String, Object> getUserStatus(String user) throws UserNotFoundException {
+        if (!userExists(user)) {
+            throw new UserNotFoundException();
+        } else {
+            User u = securityMapper.getUser(user);
+            Map<String, Object> userStatus = new HashMap<String, Object>();
+            if (u != null) {
+                userStatus.put("username", u.getUsername());
+                userStatus.put("enabled", u.isEnabled());
+
+            }
+            return userStatus;
+        }
+    }
+
+    @Override
+    public boolean createGroup(String groupName, String description, String siteId) throws
+        GroupAlreadyExistsException, SiteNotFoundException {
+
+        // Get the site first
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("siteId", siteId);
         SiteFeed site = siteFeedMapper.getSite(params);
+
+        // If we found the site, use it, otherwise it's a SiteNotFoundException
         if (site != null) {
             params = new HashMap<String, Object>();
             params.put("name", groupName);
             params.put("description", description);
             params.put("siteId", site.getId());
-            securityMapper.createGroup(params);
+            try {
+                securityMapper.createGroup(params);
+            } catch (DuplicateKeyException e) {
+                logger.error("Error creating group " + groupName, e);
+                throw new GroupAlreadyExistsException("Group already exists.", e);
+            }
             return true;
         } else {
-            return false;
+            throw new SiteNotFoundException();
         }
     }
 
     @Override
-    public Map<String, Object> getGroup(String site, String group) {
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put("groupName", group);
-        params.put("site", site);
-        return securityMapper.getGroup(params);
+    public Map<String, Object> getGroup(String site, String group) throws GroupNotFoundException {
+        if (!groupExists(site, group)) {
+            throw new GroupNotFoundException();
+        } else {
+            Map<String, Object> params = new HashMap<String, Object>();
+            params.put("groupName", group);
+            params.put("siteId", site);
+            return securityMapper.getGroup(params);
+        }
     }
 
     @Override
-    public List<Map<String, Object>> getAllGroups(int start, int end) {
+    public List<Map<String, Object>> getAllGroups(int start, int number) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("start", start);
-        params.put("end", end);
-        List<GroupResult> resultSet = securityMapper.getAllGroups(params);
+        params.put("number", number);
+        List<Long> groupIds = securityMapper.getAllGroupsQuery(params);
+        List<GroupResult> resultSet = new ArrayList<GroupResult>();
+        if (groupIds != null && !groupIds.isEmpty()) {
+            params = new HashMap<String, Object>();
+            params.put("groupids", groupIds);
+            resultSet = securityMapper.getAllGroupsData(params);
+        }
         return parseGroupResultSet(resultSet);
     }
 
@@ -441,7 +587,7 @@ public class DbSecurityProvider implements SecurityProvider {
                 }
                 Map<String, Object> group = new HashMap<String, Object>();
                 group.put("group_name", row.getGroupName());
-                group.put("group_description", row.getGroupDescription());
+                group.put("description", row.getGroupDescription());
                 groups.add(group);
                 lastSite = siteId;
             }
@@ -456,11 +602,35 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public List<Map<String, Object>> getGroupsPerSite(String site) {
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put("site", site);
-        List<GroupPerSiteResult> resultSet = securityMapper.getGroupsPerSite(params);
-        return parseGroupsPerSiteResultSet(resultSet);
+    public List<Map<String, Object>> getGroupsPerSite(String site, int start, int number) throws SiteNotFoundException {
+        if (!(siteFeedMapper.exists(site) > 0)) {
+            throw new SiteNotFoundException();
+        } else {
+            Map<String, Object> params = new HashMap<String, Object>();
+            params.put("site", site);
+            params.put("start", start);
+            params.put("number", number);
+            List<Long> groupIds = securityMapper.getGroupsPerSiteQuery(params);
+            List<GroupPerSiteResult> resultSet = new ArrayList<GroupPerSiteResult>();
+            if (groupIds != null && !groupIds.isEmpty()) {
+                params = new HashMap<String, Object>();
+                params.put("site", site);
+                params.put("groupids", groupIds);
+                resultSet = securityMapper.getGroupsPerSiteData(params);
+            }
+            return parseGroupsPerSiteResultSet(resultSet);
+        }
+    }
+
+    @Override
+    public int getGroupsPerSiteTotal(String site) throws SiteNotFoundException {
+        if (!(siteFeedMapper.exists(site) > 0)) {
+            throw new SiteNotFoundException();
+        } else {
+            Map<String, Object> params = new HashMap<String, Object>();
+            params.put("site", site);
+            return securityMapper.getGroupsPerSiteQueryTotal(params);
+        }
     }
 
     private  List<Map<String, Object>> parseGroupsPerSiteResultSet(List<GroupPerSiteResult> resultSet) {
@@ -480,15 +650,17 @@ public class DbSecurityProvider implements SecurityProvider {
                     }
                     group = new HashMap<String, Object>();
                     group.put("group_name", groupName);
-                    group.put("group_description", row.getGroupDescription());
+                    group.put("description", row.getGroupDescription());
                     users = new ArrayList<Map<String, Object>>();
                 }
-                Map<String, Object> user = new HashMap<String, Object>();
-                user.put("username", row.getUsername());
-                user.put("first_name", row.getFirstName());
-                user.put("last_name", row.getLastName());
-                user.put("email", row.getEmail());
-                users.add(user);
+                if (StringUtils.isNotEmpty(row.getUsername())) {
+                    Map<String, Object> user = new HashMap<String, Object>();
+                    user.put("username", row.getUsername());
+                    user.put("first_name", row.getFirstName());
+                    user.put("last_name", row.getLastName());
+                    user.put("email", row.getEmail());
+                    users.add(user);
+                }
                 lastGroup = groupName;
             }
             if (group != null) {
@@ -502,48 +674,115 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public List<Map<String, Object>> getUsersPerGroup(String site, String group, int start, int end) {
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put("siteId", site);
-        params.put("groupName", group);
-        List<User> resultSet = securityMapper.getUsersPerGroup(params);
-        List<Map<String, Object>> toRet = new ArrayList<Map<String, Object>>();
-        if (resultSet != null && !resultSet.isEmpty()) {
-            for (User u : resultSet) {
-                Map<String, Object> userProfile = new HashMap<String, Object>();
-                userProfile.put("username", u.getUsername());
-                userProfile.put("first_name", u.getFirstname());
-                userProfile.put("last_name", u.getLastname());
-                userProfile.put("email", u.getEmail());
-                toRet.add(userProfile);
+    public List<Map<String, Object>> getUsersPerGroup(String site, String group, int start, int number) throws
+        GroupNotFoundException {
+        if (!groupExists(site, group)) {
+            throw new GroupNotFoundException();
+        } else {
+            Map<String, Object> params = new HashMap<String, Object>();
+            params.put("siteId", site);
+            params.put("groupName", group);
+            params.put("start", start);
+            params.put("number", number);
+            List<User> resultSet = securityMapper.getUsersPerGroup(params);
+            List<Map<String, Object>> toRet = new ArrayList<Map<String, Object>>();
+            if (resultSet != null && !resultSet.isEmpty()) {
+                for (User u : resultSet) {
+                    Map<String, Object> userProfile = new HashMap<String, Object>();
+                    userProfile.put("username", u.getUsername());
+                    userProfile.put("first_name", u.getFirstname());
+                    userProfile.put("last_name", u.getLastname());
+                    userProfile.put("email", u.getEmail());
+                    toRet.add(userProfile);
+                }
+            }
+            return toRet;
+        }
+    }
+
+    @Override
+    public int getUsersPerGroupTotal(String site, String group) throws GroupNotFoundException {
+        if (!groupExists(site, group)) {
+            throw new GroupNotFoundException();
+        } else {
+            Map<String, Object> params = new HashMap<String, Object>();
+            params.put("siteId", site);
+            params.put("groupName", group);
+            return securityMapper.getUsersPerGroupTotal(params);
+        }
+    }
+
+    @Override
+    public boolean updateGroup(String siteId, String groupName, String description) throws GroupNotFoundException {
+        if (!groupExists(siteId, groupName)) {
+            throw new GroupNotFoundException();
+        } else {
+            Map<String, Object> params = new HashMap<String, Object>();
+            params.put("siteId", siteId);
+            SiteFeed site = siteFeedMapper.getSite(params);
+            params = new HashMap<String, Object>();
+            params.put("groupName", groupName);
+            params.put("siteId", site.getId());
+            params.put("description", description);
+            securityMapper.updateGroup(params);
+            return true;
+        }
+    }
+
+    @Override
+    public boolean deleteGroup(String siteId, String groupName) throws GroupNotFoundException {
+        if (!groupExists(siteId, groupName)) {
+            throw new GroupNotFoundException();
+        } else {
+            Map<String, Object> params = new HashMap<String, Object>();
+            params.put("siteId", siteId);
+            SiteFeed site = siteFeedMapper.getSite(params);
+            params = new HashMap<String, Object>();
+            params.put("groupName", groupName);
+            params.put("siteId", site.getId());
+            securityMapper.deleteGroup(params);
+            return true;
+        }
+    }
+
+    @Override
+    public boolean changePassword(String username, String current, String newPassword) throws UserNotFoundException, PasswordDoesNotMatchException {
+        if (!userExists(username)) {
+            throw new UserNotFoundException();
+        } else {
+            User user = securityMapper.getUser(username);
+            if (CipherUtils.matchPassword(user.getPassword(), current)) {
+                return setUserPassword(username, newPassword);
+            } else {
+                throw new PasswordDoesNotMatchException();
             }
         }
-        return toRet;
     }
 
     @Override
-    public boolean updateGroup(String siteId, String groupName, String description) {
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put("siteId", siteId);
-        SiteFeed site = siteFeedMapper.getSite(params);
-        params = new HashMap<String, Object>();
-        params.put("groupName", groupName);
-        params.put("siteId", site.getId());
-        params.put("description", description);
-        securityMapper.updateGroup(params);
-        return true;
+    public boolean setUserPassword(String username, String newPassword) throws UserNotFoundException {
+        if (!userExists(username)) {
+            throw new UserNotFoundException();
+        } else {
+            String hashedPassword = CipherUtils.hashPassword(newPassword);
+            Map<String, String> params = new HashMap<String, String>();
+            params.put("username", username);
+            params.put("password", hashedPassword);
+            securityMapper.setUserPassword(params);
+            return true;
+        }
     }
 
     @Override
-    public boolean deleteGroup(String siteId, String groupName) {
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put("siteId", siteId);
-        SiteFeed site = siteFeedMapper.getSite(params);
-        params = new HashMap<String, Object>();
-        params.put("groupName", groupName);
-        params.put("siteId", site.getId());
-        securityMapper.deleteGroup(params);
-        return true;
+    public boolean isSystemUser(String username) throws UserNotFoundException {
+        if (!userExists(username)) {
+            throw new UserNotFoundException();
+        } else {
+            Map<String, String> params = new HashMap<String, String>();
+            params.put("username", username);
+            int result = securityMapper.isSystemUser(params);
+            return result > 0;
+        }
     }
 
     protected StudioConfiguration studioConfiguration;

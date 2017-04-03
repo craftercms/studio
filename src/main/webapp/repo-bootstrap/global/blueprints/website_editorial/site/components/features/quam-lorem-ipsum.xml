@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/feature</content-type>	<display-template>/templates/web/components/feature.ftl</display-template>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>036c</objectGroupId>
+	<objectId>036cd26c-48e9-7b34-ae54-757183317d38</objectId>
+	<icon>fa-users</icon>
+	<internal-name>Quam lorem ipsum</internal-name>
+	<title>Quam lorem ipsum</title>
+	<file-name>quam-lorem-ipsum.xml</file-name>
+	<folder-name/>
+	<body_html>&lt;p&gt;&lt;span&gt;Aenean ornare velit lacus, ac varius enim lorem ullamcorper dolore. Proin aliquam facilisis ante interdum. Sed nulla amet lorem feugiat tempus aliquam.&lt;/span&gt;&lt;/p&gt;</body_html>
+	<createdDate>3/27/2017 14:9:16</createdDate>
+	<createdDate_dt>3/27/2017 14:9:16</createdDate_dt>
+	<lastModifiedDate>3/27/2017 14:9:16</lastModifiedDate>
+	<lastModifiedDate_dt>3/27/2017 14:9:16</lastModifiedDate_dt>
+</component>

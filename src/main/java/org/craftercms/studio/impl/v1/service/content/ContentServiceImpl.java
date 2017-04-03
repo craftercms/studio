@@ -26,7 +26,6 @@ import java.util.regex.Pattern;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.DmXmlConstants;
-import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.dal.ObjectMetadata;
 import org.craftercms.studio.api.v1.dal.ObjectState;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
@@ -87,7 +86,7 @@ public class ContentServiceImpl implements ContentService {
     @Override
     public InputStream getContent(String site, String path) throws ContentNotFoundException {
         // TODO: SJ: Refactor in 2.7.x as this already exists in Crafter Core (which is part of the new Studio)
-       return this._contentRepository.getContent(site, path);
+        return this._contentRepository.getContent(site, path);
     }
 
     @Override
@@ -107,7 +106,7 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     public Document getContentAsDocument(String site, String path)
-    throws DocumentException {
+            throws DocumentException {
         // TODO: SJ: Refactor in 2.7.x as this already exists in Crafter Core (which is part of the new Studio)
         Document retDocument = null;
         InputStream is = null;
@@ -179,17 +178,17 @@ public class ContentServiceImpl implements ContentService {
                     if (objectState.getSystemProcessing() != 0) {
                         // TODO: SJ: Review and refactor/redo
                         logger.error("Error Content {0} is being processed (Object State is system "
-                            + "processing);", fileName);
+                                + "processing);", fileName);
                         throw new ServiceException("Content " + fileName + " is in system processing, we can't write "
-                            + "it");
+                                + "it");
                     }
 
                     objectStateService.setSystemProcessing(site, path, true);
                 }
                 else {
                     logger.error("the object state is still null even after attempting to create it for site {0} "
-                        + "path {1} fileName {2} contentType {3}"
-                        + ".", site, path, fileName, contentType);
+                            + "path {1} fileName {2} contentType {3}"
+                            + ".", site, path, fileName, contentType);
                 }
             }
 
@@ -259,14 +258,14 @@ public class ContentServiceImpl implements ContentService {
     public void writeContentAndRename(final String site, final String path, final String targetPath, final String fileName, final String contentType, final InputStream input,
                                       final String createFolders, final  String edit, final String unlock, final boolean createFolder) throws ServiceException {
         // TODO: SJ: The parameters need to be properly typed. Can't have Strings that actually mean boolean. Fix in
-        // TODO: SJ: 3.x
+        // TODO: SJ: 2.7.x
         String id = site + ":" + path + ":" + fileName + ":" + contentType;
 
         // TODO: SJ: FIXME: Remove the log below after testing
         logger.debug("Write and rename for site '{}' path '{}' targetPath '{}' "
-            + "fileName '{}' content type '{}'", site, path, targetPath, fileName, contentType);
+                + "fileName '{}' content type '{}'", site, path, targetPath, fileName, contentType);
 
-        // TODO: SJ: The block below seems to be there to fix a stuck lock, refactor and remove in 3.x
+        // TODO: SJ: The block below seems to be there to fix a stuck lock, refactor and remove in 2.7.x
         if (!generalLockService.tryLock(id)) {
             generalLockService.lock(id);
             generalLockService.unlock(id);
@@ -275,10 +274,12 @@ public class ContentServiceImpl implements ContentService {
 
         try {
             writeContent(site, path, fileName, contentType, input, createFolders, edit, unlock);
-            moveContent(site, path, targetPath);
+            // RDTMP_COPYPASTE
+            // GET RID OF DM RENAME SERVIE
+            // dmWorkflowService.rename(site, path, targetPath, createFolder);
         } catch (ServiceException | RuntimeException e) {
             logger.error("Error while executing write and rename for site '{}' path '{}' targetPath '{}' "
-                + "fileName '{}' content type '{}'", e, site, path, targetPath, fileName, contentType);
+                    + "fileName '{}' content type '{}'", e, site, path, targetPath, fileName, contentType);
         } finally {
             generalLockService.unlock(id);
         }
@@ -305,10 +306,6 @@ public class ContentServiceImpl implements ContentService {
     @Override
     public Map<String, Object> writeContentAsset(String site, String path, String assetName, InputStream in,
                                                  String isImage, String allowedWidth, String allowedHeight, String allowLessSize, String draft, String unlock, String systemAsset) throws ServiceException {
-        if(assetName != null) {
-            assetName = assetName.replace(" ","_");
-        }
-
         boolean isSystemAsset = Boolean.valueOf(systemAsset);
 
         Map<String, String> params = new HashMap<String, String>();
@@ -343,11 +340,13 @@ public class ContentServiceImpl implements ContentService {
                 }
             }
             ResultTO result = processContent(id, in, false, params, DmConstants.CONTENT_CHAIN_ASSET);
+            ContentAssetInfoTO assetInfoTO = (ContentAssetInfoTO)result.getItem();
             if (isSystemAsset) {
-                ContentAssetInfoTO assetInfoTO = (ContentAssetInfoTO)result.getItem();
                 path = path.replace(assetName, assetInfoTO.getFileName());
             }
             item = getContentItem(site, path);
+            item.setSize(assetInfoTO.getSize());
+            item.setSizeUnit(assetInfoTO.getSizeUnit());
             if (item != null) {
                 objectStateService.transition(site, item, TransitionEvent.SAVE);
             }
@@ -383,6 +382,9 @@ public class ContentServiceImpl implements ContentService {
 
         if (result) {
             // Update database with commitId
+            if (!objectMetadataManager.metadataExist(site, path)) {
+                objectMetadataManager.insertNewObjectMetadata(site, path);
+            }
             objectMetadataManager.updateCommitId(site, path, commitId);
             siteService.updateLastCommitId(site, commitId);
         }
@@ -463,23 +465,18 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public String copyContent(String site, String fromPath, String toPath) {
-        String resultPath = fromPath; // return old path on failure       // TODO: SJ: Add exceptions and kill this
+    public boolean copyContent(String site, String fromPath, String toPath) {
+        boolean toReturn = false;
+        String commitId = _contentRepository.copyContent(site, fromPath, toPath);
 
-        if (fromPath.contains(StudioConstants.DESCRIPTOR_ROOT_PATH) && toPath.contains(StudioConstants
-            .DESCRIPTOR_ROOT_PATH)) {
-            resultPath = copyDescriptor(site, fromPath, toPath, new HashSet<String>());
-        } else {
-            String commitId = _contentRepository.copyContent(site, fromPath, toPath);
-            if (commitId != null) {
-                // Update the database with the commitId for the target item
-                objectMetadataManager.updateCommitId(site, toPath, commitId);
-                siteService.updateLastCommitId(site, commitId);
-                resultPath = toPath;
-            }
+        if (commitId != null) {
+            // Update the database with the commitId for the target item
+            objectMetadataManager.updateCommitId(site, toPath, commitId);
+            siteService.updateLastCommitId(site, commitId);
+            toReturn = true;
         }
 
-        return resultPath;
+        return toReturn;
     }
 
     @Override
@@ -554,7 +551,7 @@ public class ContentServiceImpl implements ContentService {
     }
 
     protected ContentItemTO populateContentDrivenProperties(String site, ContentItemTO item)
-    throws Exception {
+            throws Exception {
         // This method load an XML content item and populates properties in the TO from the XML
         // TODO: SJ: Two problems here that need to be fixed in 3.1+
         // TODO: SJ: Use Crafter Core for some/all of this work
@@ -580,7 +577,7 @@ public class ContentServiceImpl implements ContentService {
         item.browserUri = contentPath;
 
         if(item.page) {
-            // TODO: SJ: This is hokey, fix in 2.7.x
+            // TODO: SJ: This is hokey, fix in 4.x
             item.browserUri = contentPath.replace("/site/website", "").replace("/index.xml", "");
         }
 
@@ -616,7 +613,7 @@ public class ContentServiceImpl implements ContentService {
             }
         }
         else {
-             logger.error("no xml document could be loaded for site '{}' path '{}'", site, contentPath);
+            logger.error("no xml document could be loaded for site '{}' path '{}'", site, contentPath);
         }
 
         return item;
@@ -674,7 +671,7 @@ public class ContentServiceImpl implements ContentService {
         item.numOfChildren = 0;
 
         if(contentPath.indexOf("/index.xml") != -1
-        || contentPath.indexOf(".") == -1 ) { // item.isFolder?
+                || contentPath.indexOf(".") == -1 ) { // item.isFolder?
 
             if (contentPath.indexOf("/index.xml") != -1) {
                 contentPath = contentPath.replace("/index.xml", "");
@@ -732,9 +729,9 @@ public class ContentServiceImpl implements ContentService {
                 }
 
                 // ORDER THE CHILDREN
-                    // level descriptors first
-                    // nav pages by order
-                    // floating pages via Alpha
+                // level descriptors first
+                // nav pages by order
+                // floating pages via Alpha
                 Comparator<ContentItemTO> comparator = new ContentItemOrderComparator("default", true, true, true);
                 Collections.sort(children, comparator);
                 item.children = children;
@@ -847,7 +844,7 @@ public class ContentServiceImpl implements ContentService {
             String mimeType = mimeTypesMap.getContentType(item.getName());
             if (mimeType != null && !StringUtils.isEmpty(mimeType)) {
                 item.setPreviewable(ContentUtils.matchesPatterns(mimeType, servicesConfig
-                    .getPreviewableMimetypesPaterns(site)));
+                        .getPreviewableMimetypesPaterns(site)));
                 item.isPreviewable = item.previewable;
             }
         }
@@ -965,7 +962,7 @@ public class ContentServiceImpl implements ContentService {
 
         long executionTime = System.currentTimeMillis() - startTime;
         logger.debug("Content item tree ['{}':'{}' depth '{}'] retrieved in '{}' milli-seconds", site, path, depth,
-            executionTime);
+                executionTime);
 
         return root;
     }
@@ -996,15 +993,15 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
- 	public InputStream getContentVersion(String site, String path, String version)
- 	throws ContentNotFoundException {
- 		return _contentRepository.getContentVersion(site, path, version);
- 	}
+    public InputStream getContentVersion(String site, String path, String version)
+            throws ContentNotFoundException {
+        return _contentRepository.getContentVersion(site, path, version);
+    }
 
- 	@Override
- 	public String getContentVersionAsString(String site, String path, String version)
-	throws ContentNotFoundException {
- 		String content = null;
+    @Override
+    public String getContentVersionAsString(String site, String path, String version)
+            throws ContentNotFoundException {
+        String content = null;
 
         try {
             content = IOUtils.toString(getContentVersion(site, path, version));
@@ -1015,9 +1012,9 @@ public class ContentServiceImpl implements ContentService {
         }
 
         return content;
- 	}
+    }
 
- 	@Override
+    @Override
     public ContentItemTO createDummyDmContentItemForDeletedNode(String site, String relativePath) {
         // TODO: SJ: Think of another way to do this in 3.1+
 
@@ -1122,7 +1119,7 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     public ResultTO processContent(String id, InputStream input, boolean isXml, Map<String, String> params, String contentChainForm) throws ServiceException {
- 	    // TODO: SJ: Pipeline Processor is not defined right, we need to refactor in 3.1+
+        // TODO: SJ: Pipeline Processor is not defined right, we need to refactor in 3.1+
         // TODO: SJ: Pipeline should take input, and give you back output
         // TODO: SJ: Presently, this takes action and performs the action as a side effect of the processor chain
         // TODO: SJ: Furthermore, we have redundancy in the code of the processors
@@ -1242,328 +1239,13 @@ public class ContentServiceImpl implements ContentService {
         objectMetadataManager.unLockContent(site, path);
     }
 
-    protected Map<String, String> constructNewPathforCutCopy(String site, String fromPath, String toPath, boolean adjustOnCollide)
-        throws ServiceException {
-        Map<String, String> result = new HashMap<String, String>();
-
-        // The following rules apply to content under the site folder
-        String fromPathOnly = fromPath.substring(0, fromPath.lastIndexOf("/"));
-        String fromFileNameOnly = fromPath.substring(fromPath.lastIndexOf("/")+1);
-        boolean fromFileIsIndex = ("index.xml".equals(fromFileNameOnly));
-        logger.debug("cut/copy name rules FROM: {0}, {1}", fromPathOnly, fromFileNameOnly);
-
-        if(fromFileIsIndex==true) {
-            fromFileNameOnly = fromPathOnly.substring(fromPathOnly.lastIndexOf("/")+1);
-            fromPathOnly = fromPathOnly.substring(0, fromPathOnly.lastIndexOf("/"));
-            logger.debug("cut/copy name rules INDEX FROM: {0}, {1}", fromPathOnly, fromFileNameOnly);
+    @Override
+    public List<DmOrderTO> getItemOrders(String site, String path) throws ContentNotFoundException {
+        List<DmOrderTO> dmOrderTOs = getOrders(site, path, "default", false);
+        for (DmOrderTO dmOrderTO : dmOrderTOs) {
+            dmOrderTO.setName(StringUtils.escape(dmOrderTO.getName()));
         }
-
-        String newPathOnly = (toPath.contains(".xml")) ? toPath.substring(0, toPath.lastIndexOf("/")) : toPath;
-        String newFileNameOnly = (toPath.contains(".xml")) ? toPath.substring(toPath.lastIndexOf("/")+1) : fromFileNameOnly;
-        boolean newFileIsIndex = ("index.xml".equals(newFileNameOnly));
-        logger.debug("cut/copy name rules TO: {0}, {1}", newPathOnly, newFileNameOnly);
-
-        if(newFileIsIndex==true) {
-            newFileNameOnly = newPathOnly.substring(newPathOnly.lastIndexOf("/")+1);
-            newPathOnly = newPathOnly.substring(0, newPathOnly.lastIndexOf("/"));
-            logger.debug("cut/copy name rules INDEX TO: {0}, {1}", newPathOnly, newFileNameOnly);
-        }
-
-        String proposedDestPath = null;
-        String proposedDestPath_filename = null;
-        String proposedDestPath_folder = null;
-        boolean targetPathExistsPriorToOp = false;
-
-        try {
-            targetPathExistsPriorToOp = contentExists(site, toPath);
-        }
-        catch(Exception contentExistsErr) {
-            // what can cause this error?
-            // can't talk to the repository?
-            // swallow it for now, the error will come when we try a write
-        }
-
-        if(fromFileIsIndex && newFileIsIndex) {
-            // Example MOVE LOCATION, INDEX FILES
-            // fromPath: "/site/website/search/index.xml"
-            // toPath:   "/site/website/products/index.xml"
-            // newPath:  "/site/website/products/search/index.xml"
-            //
-            // Example RENAME, INDEX FILES
-            // fromPath: "/site/website/en/services/index.xml"
-            // toPath:   "site/website/en/services-updated/index.xml"
-            // newPath:  "site/website/en/services-updated/index.xml
-            if(newPathOnly.equals(fromPathOnly) && !targetPathExistsPriorToOp) {
-                // this is a rename
-                proposedDestPath = newPathOnly + "/" + newFileNameOnly +  "/index.xml";
-                proposedDestPath_filename = "index.xml";
-                proposedDestPath_folder = newFileNameOnly;
-            }
-            else {
-                // this is a location move
-                proposedDestPath = newPathOnly + "/" + newFileNameOnly + "/" + fromFileNameOnly +  "/index.xml";
-                proposedDestPath_filename = "index.xml";
-                proposedDestPath_folder = fromFileNameOnly;
-            }
-        }
-        else if(fromFileIsIndex && !newFileIsIndex) {
-            // Example MOVE LOCATION, INDEX TO FOLDER
-            // fromPath: "/site/website/search/index.xml"
-            // toPath:   "/site/website/a-folder"
-            // newPath:  "/site/website/a-folder/search/index.xml"
-            proposedDestPath = newPathOnly + "/" + fromFileNameOnly +  "/index.xml";
-            proposedDestPath_filename = "index.xml";
-            proposedDestPath_folder = fromFileNameOnly;
-        }
-        else if(!fromFileIsIndex && newFileIsIndex) {
-            proposedDestPath = newPathOnly + "/" + newFileNameOnly + "/" + fromFileNameOnly;
-            proposedDestPath_filename = fromFileNameOnly;
-            proposedDestPath_folder = newFileNameOnly;
-        }
-        else{
-            // Example NON INDEX FILES MOVE TO FOLDER
-            // fromPath: "/site/website/search.xml"
-            // toPath:   "/site/website/a-folder"
-            // newPath:  "/site/website/products/a-folder/search.xml"
-            //
-            // Example  INDEX FILES MOVE to FOLDER
-            // fromPath: "/site/website/search.xml"
-            // toPath:   "/site/website/products/search.xml"
-            // newPath:  "/site/website/products/search.xml"
-            if(fromFileNameOnly.equals(newFileNameOnly)) {
-                // Move location
-                proposedDestPath = newPathOnly + "/" + fromFileNameOnly;
-                proposedDestPath_filename = fromFileNameOnly;
-                proposedDestPath_folder = newPathOnly.substring(0, newPathOnly.lastIndexOf("/"));
-            }
-            else {
-                // rename
-                proposedDestPath = newPathOnly + "/" + newFileNameOnly;
-                proposedDestPath_filename = newFileNameOnly;
-                proposedDestPath_folder = newPathOnly.substring(0, newPathOnly.lastIndexOf("/"));
-            }
-
-        }
-
-        logger.debug("Initial Proposed Path: {0} ", proposedDestPath);
-
-        result.put("FILE_PATH", proposedDestPath);
-        result.put("FILE_NAME", proposedDestPath_filename);
-        result.put("FILE_FOLDER", proposedDestPath_folder);
-        result.put("MODIFIER", "");
-        result.put("ALT_NAME", "false");
-
-        boolean contentExists = false;
-
-        try {
-            if(adjustOnCollide == true) {
-                // if adjustOnCollide is true we need to check, otherwise we dont
-                contentExists = contentExists(site, proposedDestPath);
-            }
-        }
-        catch(Exception contentExistsErr) {
-            // what can cause this error?
-            // can't talk to the repository?
-            // swallow it for now, the error will come when we try a write
-        }
-
-        if(adjustOnCollide && contentExists) {
-            logger.debug("File already found at path {0}, creating new name", proposedDestPath);
-            try {
-                Map<String,String> ids = contentItemIdGenerator.getIds();
-                String id = ids.get(DmConstants.KEY_PAGE_GROUP_ID);
-
-                //proposedDestPath = getNextAvailableName(site, proposedDestPath);
-
-                if(proposedDestPath.indexOf("/index.xml") == -1) {
-                    proposedDestPath =
-                        proposedDestPath.substring(0, proposedDestPath.lastIndexOf(".")) + "-" + id +
-                            proposedDestPath.substring(proposedDestPath.lastIndexOf("."));
-
-                    // a regex would be better
-                    proposedDestPath_filename = proposedDestPath.substring(proposedDestPath.lastIndexOf("/")+1);
-                    proposedDestPath_folder = proposedDestPath.substring(0, proposedDestPath.lastIndexOf("/"));
-                    proposedDestPath_folder = proposedDestPath_folder.substring(proposedDestPath_folder.lastIndexOf("/")+1);
-                }
-                else {
-                    proposedDestPath =
-                        proposedDestPath.substring(0, proposedDestPath.indexOf("/index.xml")) + "-" + id +
-                            proposedDestPath.substring(proposedDestPath.lastIndexOf("/index.xml"));
-
-                    proposedDestPath_filename = "index.xml";
-                    proposedDestPath_folder = proposedDestPath.replace("/index.xml","");
-                    proposedDestPath_folder = proposedDestPath_folder.substring(proposedDestPath_folder.lastIndexOf("/")+1);
-                }
-
-                result.put("FILE_PATH", proposedDestPath);
-                result.put("FILE_NAME", proposedDestPath_filename);
-                result.put("FILE_FOLDER", proposedDestPath_folder);
-                result.put("MODIFIER", id);
-                result.put("ALT_NAME", "true");
-            }
-            catch(Exception altPathGenErr) {
-                throw new ServiceException("Unable to generate an alternative path for name collision: " + proposedDestPath, altPathGenErr);
-            }
-        }
-
-        logger.debug("FINAL PROPOSED PATH from {0} to {1} FINAL {2}", fromPath, toPath, proposedDestPath);
-        return result;
-    }
-
-    protected Map<String, String> getContentIds(Document document) {
-        Map<String, String> ids = new HashMap<String, String>();
-
-        Element root = document.getRootElement();
-        Node pageIdNode = root.selectSingleNode("//" + DmXmlConstants.ELM_PAGE_ID);
-        if (pageIdNode != null) {
-            ids.put(DmConstants.KEY_PAGE_ID, ((Element)pageIdNode).getText());
-        }
-
-        Node groupIdNode = root.selectSingleNode("//" + DmXmlConstants.ELM_GROUP_ID);
-        if (groupIdNode != null) {
-            ids.put(DmConstants.KEY_PAGE_GROUP_ID, ((Element)groupIdNode).getText());
-        }
-
-        return ids;
-    }
-
-    /**
-     * Internal method copy that handles content updates and "recursively" copies calculated dependencies.
-     * This method never actually calls the COPY method.  Instead it uses the same pipeline that calls
-     * the WRITE like a new file.
-     *
-     * The reason being: The content of copied files under /site which needs to be modified by business rules
-     * -- a normal copy won't work for these objects.
-     */
-    protected String copyDescriptor(String site, String fromPath, String toPath, Set<String> processedPaths) {
-        String lifecycleOp = DmContentLifeCycleService.ContentLifeCycleOperation.COPY.toString();
-        String user = securityService.getCurrentUser();
-        String copyPath = null;
-
-        try {
-            Map<String, String> copyPathMap = constructNewPathforCutCopy(site, fromPath, toPath, true);
-            copyPath = copyPathMap.get("FILE_PATH");
-            String copyPathModifier = copyPathMap.get("MODIFIER");
-            String copyPathFileName = copyPathMap.get("FILE_NAME");
-            String copyPathFolder = copyPathMap.get("FILE_FOLDER");
-
-            String copyPathOnly = copyPath.substring(0, copyPath.lastIndexOf("/"));
-            String copyFileName = copyPath.substring(copyPath.lastIndexOf("/")+1);
-
-            if (!processedPaths.contains(copyPath)) {
-
-                try {
-                    ContentItemTO fromItem = getContentItem(site, fromPath, 0);
-                    String contentType = fromItem.getContentType();
-
-                    InputStream fromContent = getContent(site, fromPath);
-                    Document fromDocument = ContentUtils.convertStreamToXml(fromContent);
-                    Map<String, String> fromPageIds = getContentIds(fromDocument);
-
-                    logger.debug("Copying file for site {0} from {1} to {2}, new name is {3}", site, fromPath, toPath, copyPath);
-
-                    // come up with a new object ID and group ID for the object
-                    Map<String,String> copyObjectIds = contentItemIdGenerator.getIds();
-
-                    Map<String, String> copyDependencies = dependencyService.getCopyDependencies(site, fromPath, fromPath);
-                    copyDependencies = getItemSpecificDependencies(fromDocument, copyDependencies);
-                    logger.debug("Copy dependencies: {0}, {1}", fromPath, copyDependencies);
-
-                    // Duplicate the children
-                    for(String dependecyKey : copyDependencies.keySet()) {
-                        String dependecyPath = copyDependencies.get(dependecyKey);
-                        String copyDepPath = dependecyPath;
-
-                        // Does not seem to work (leaving it here because it's supposed to do the work below)
-                        //PathMacrosTransaltor.resolvePath(dependecyPath, copyObjectIds);
-                        //copyDepPath = copyDepPath + "/" +  dependecyPath.substring(dependecyPath.lastIndexOf("/")+1);
-
-                        // try a simple substitution
-                        copyDepPath = copyDepPath.replaceAll(
-                            fromPageIds.get(DmConstants.KEY_PAGE_ID),
-                            copyObjectIds.get(DmConstants.KEY_PAGE_ID));
-
-                        copyDepPath = copyDepPath.replaceAll(
-                            fromPageIds.get(DmConstants.KEY_PAGE_GROUP_ID),
-                            copyObjectIds.get(DmConstants.KEY_PAGE_GROUP_ID));
-
-                        copySiteContent(site, dependecyPath, copyDepPath, processedPaths);
-                    }
-
-                    // update the file name / folder values
-                    Document copyDocument = updateContentForCopy(site, fromDocument, copyPathFileName, copyPathFolder, copyObjectIds, copyPathModifier);
-
-                    InputStream copyContent = ContentUtils.convertDocumentToStream(copyDocument, StudioConstants.CONTENT_ENCODING);
-
-                    // Calls the write content method indirectly
-                    // This code is very similar to what is in WRITE CONTENT method. Consolidate this code?
-                    Map<String, String> params = new HashMap<String, String>();
-                    params.put(DmConstants.KEY_SITE, site);
-                    params.put(DmConstants.KEY_PATH, copyPathOnly);
-                    params.put(DmConstants.KEY_FILE_NAME, copyFileName);
-                    params.put(DmConstants.KEY_USER, user);
-                    params.put(DmConstants.KEY_CONTENT_TYPE, contentType);
-                    params.put(DmConstants.KEY_CREATE_FOLDERS, "true");
-                    params.put(DmConstants.KEY_EDIT, "true");
-                    params.put(DmConstants.KEY_ACTIVITY_TYPE, "false");
-                    params.put(DmConstants.KEY_SKIP_CLEAN_PREVIEW, "true");
-                    params.put(DmConstants.KEY_COPIED_CONTENT, "true");
-                    params.put(DmConstants.CONTENT_LIFECYCLE_OPERATION, lifecycleOp);
-
-                    String id = site + ":" + copyPathOnly + ":" + copyFileName + ":" + contentType;
-
-
-                    try {
-                        generalLockService.lock(id);
-
-                        // processContent will close the input stream
-                        if (!StringUtils.isEmpty(contentType)) {
-                            processContent(id, copyContent, true, params, DmConstants.CONTENT_CHAIN_FORM);
-                        } else {
-                            if (copyFileName.endsWith(DmConstants.XML_PATTERN)) {
-                                // when do you get here?
-                                processContent(id, copyContent, true, params, DmConstants.CONTENT_CHAIN_FORM);
-                            }
-                            else {
-                                processContent(id, fromContent, false, params, DmConstants.CONTENT_CHAIN_ASSET);
-                            }
-                        }
-
-                        // I THINK this will always return null
-                        ObjectState objectState = objectStateService.getObjectState(site, copyPath);
-
-                        if (objectState == null) {
-                            ContentItemTO copyItem = getContentItem(site, copyPath, 0);
-                            objectStateService.insertNewEntry(site, copyItem);
-                            objectState = objectStateService.getObjectState(site, copyPath);
-
-                            // Do I need to do this?
-                            objectStateService.setSystemProcessing(site, copyPath, false);
-                        }
-
-                        // Fire update events and preview sync
-                        eventService.firePreviewSyncEvent(site);
-
-                        // track that we already copied so we don't follow a circular dependency
-                        processedPaths.add(copyPath);
-                    }
-                    finally {
-                        generalLockService.unlock(id);
-                    }
-                }
-                catch(ContentNotFoundException eContentNotFound) {
-                    logger.error("Content not found while copying content for site {0} from {1} to {2}, new name is {3}", eContentNotFound, site, fromPath, toPath, copyPath);
-                }
-                catch(DocumentException eParseException) {
-                    logger.error("General Error while copying content for site {0} from {1} to {2}, new name is {3}", eParseException, site, fromPath, toPath, copyPath);
-                }
-            }
-        }
-        catch(ServiceException eServiceException) {
-            logger.error("General Error while copying content for site {0} from {1} to {2}, new name is {3}", eServiceException, site, fromPath, toPath, copyPath);
-        }
-
-        return copyPath;
+        return dmOrderTOs;
     }
 
     private List<DmOrderTO> getOrders(String site, String relativePath, String orderName, boolean includeFloating) {
@@ -1621,6 +1303,50 @@ public class ContentServiceImpl implements ContentService {
         return null;
     }
 
+    @Override
+    public double reorderItems(String site, String relativePath, String before, String after, String orderName) throws ServiceException {
+        Double beforeOrder = null;
+        Double afterOrder = null;
+        DmOrderTO beforeOrderTO = null;
+        DmOrderTO afterOrderTO = null;
+        // get the order of the content before
+        // if the path is not provided, the order is 0
+        if (!StringUtils.isEmpty(before)) {
+            ContentItemTO beforeItem = getContentItem(site, before, 0);
+            beforeOrder = beforeItem.getOrder(orderName);
+            beforeOrderTO = new DmOrderTO();
+            beforeOrderTO.setId(before);
+            if (beforeOrder != null && beforeOrder > 0) {
+                beforeOrderTO.setOrder(beforeOrder);
+            }
+        }
+        // get the order of the content after
+        // if the path is not provided, the order is the order of before +
+        // ORDER_INCREMENT
+        if (!StringUtils.isEmpty(after)) {
+            ContentItemTO afterItem = getContentItem(site, after, 0);
+            afterOrder = afterItem.getOrder(orderName);
+            afterOrderTO = new DmOrderTO();
+            afterOrderTO.setId(after);
+            if (afterOrder != null && afterOrder > 0) {
+                afterOrderTO.setOrder(afterOrder);
+            }
+        }
+
+        // if no after and before provided, the initial value is ORDER_INCREMENT
+        if (afterOrder == null && beforeOrder == null) {
+            return dmPageNavigationOrderService.getNewNavOrder(site, ContentUtils.getParentUrl(relativePath.replace("/" + DmConstants.INDEX_FILE, "")));
+        } else if (beforeOrder == null) {
+            return (0 + afterOrder) / 2;
+        } else if (afterOrder == null) {
+            logger.info("afterOrder == null");
+            return dmPageNavigationOrderService.getNewNavOrder(site, ContentUtils.getParentUrl(relativePath.replace("/" + DmConstants.INDEX_FILE, "")));
+        } else {
+            //return (beforeOrder + afterOrder) / 2;
+            return computeReorder(site, relativePath, beforeOrderTO, afterOrderTO, orderName);
+        }
+    }
+
     /**
      * Will need to include the floating pages as well for orderValue computation
      * Since the beforeOrder and afterOrder in the UI does not include floating pages will need to do special processing
@@ -1646,7 +1372,6 @@ public class ContentServiceImpl implements ContentService {
     protected ObjectStateService objectStateService;
     protected DmDependencyService dependencyService;
     protected ProcessContentExecutor contentProcessor;
-    protected DmRenameService dmRenameService;
     protected ObjectMetadataManager objectMetadataManager;
     protected SecurityService securityService;
     protected DmPageNavigationOrderService dmPageNavigationOrderService;
@@ -1673,9 +1398,6 @@ public class ContentServiceImpl implements ContentService {
 
     public ProcessContentExecutor getContentProcessor() { return contentProcessor; }
     public void setContentProcessor(ProcessContentExecutor contentProcessor) { this.contentProcessor = contentProcessor; }
-
-    public DmRenameService getDmRenameService() { return dmRenameService; }
-    public void setDmRenameService(DmRenameService dmRenameService) { this.dmRenameService = dmRenameService; }
 
     public ObjectMetadataManager getObjectMetadataManager() { return objectMetadataManager; }
     public void setObjectMetadataManager(ObjectMetadataManager objectMetadataManager) { this.objectMetadataManager = objectMetadataManager; }

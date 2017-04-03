@@ -107,10 +107,16 @@ implements ClipboardService {
                 boolean cut = op.isCut;
 
                 if(cut==true) {
-                    newPath = contentService.moveContent(site, op.path, destinationPath);
+                    // RDTMP_COPYPASTE
+                    // CopyContent inteface is able to send status and new path yet
+                    // newPath = contentService.moveContent(site, op.path, destinationPath);
+                    newPath = "RDTMP_COPYPASTE Interface Needs Update " + contentService.moveContent(site, op.path, destinationPath);
                 }
                 else {
-                    newPath = contentService.copyContent(site, op.path, destinationPath);
+                    // RDTMP_COPYPASTE
+                    // CopyContent inteface is able to send status and new path yet
+                    // newPath = contentService.copyContent(site, op.path, destinationPath);
+                    newPath = "RDTMP_COPYPASTE Interface Needs Update " + contentService.copyContent(site, op.path, destinationPath);
 
                     // recurse on copied children
                     pasteItems(site, newPath, op.children, pastedItems);

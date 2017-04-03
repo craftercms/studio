@@ -57,11 +57,6 @@ class SiteServices {
         return siteServicesImpl.getConfiguration(site, path, applyEnvironment)
     }
 
-    static getUserSites(context, user) {
-        def siteServicesImpl = ServiceFactory.getSiteServices(context)
-        return siteServicesImpl.getUserSites(user)
-    }
-
     static getAllAvailableSites(context) {
         def siteServicesImpl = ServiceFactory.getSiteServices(context)
         return siteServicesImpl.getAllAvailableSites()
@@ -96,13 +91,33 @@ class SiteServices {
         return siteServicesImpl.importSite(config)
     }
 
-    static rebuildRepositoryMetadata(context, site) {
-        def siteServicesImpl = ServiceFactory.getSiteServices(context)
-        return siteServicesImpl.rebuildRepositoryMetadata(site)
-    }
-
     static syncRepository(context, site) {
         def siteServicesImpl = ServiceFactory.getSiteServices(context)
         return siteServicesImpl.syncRepository(site)
+    }
+
+    static rebuildDatabase(context, site) {
+        def siteServicesImpl = ServiceFactory.getSiteServices(context)
+        return siteServicesImpl.rebuildDatabase(site)
+    }
+
+    static exists(context, site) {
+        def siteServicesImpl = ServiceFactory.getSiteServices(context)
+        return siteServicesImpl.exists(site)
+    }
+
+    static getSitesPerUserTotal(context, username) {
+        def siteServicesImpl = ServiceFactory.getSiteServices(context)
+        return siteServicesImpl.getSitesPerUserTotal(username)
+    }
+
+    static getSitesPerUser(context, username, start, number) {
+        def siteServicesImpl = ServiceFactory.getSiteServices(context)
+        return siteServicesImpl.getSitesPerUser(username, start, number)
+    }
+
+    static getSite(context, siteId) {
+        def siteServicesImpl = ServiceFactory.getSiteServices(context)
+        return siteServicesImpl.getSite(siteId)
     }
 }

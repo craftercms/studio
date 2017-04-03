@@ -21,9 +21,10 @@ package org.craftercms.studio.impl.v1.service.security;
 import java.util.*;
 
 import org.craftercms.commons.http.RequestContext;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
-
-import javax.servlet.http.HttpSession;
 
 /**
  */
@@ -48,7 +49,7 @@ public class TestSecurityProvider implements SecurityProvider {
         adminProfile.put("email", "evaladmin@example.com");
         adminProfile.put("firstName", "Joe");
         adminProfile.put("lastName", "Admin");
-        
+
         Map<String, Object> authorProfile = new HashMap<String, Object>();
         authorProfile.put("username", "author");
         authorProfile.put("email", "evalauthor@example.com");
@@ -85,26 +86,26 @@ public class TestSecurityProvider implements SecurityProvider {
         String username = null;
 
         if(context!=null) {
-            username = activeUser.get("username"); 
+            username = activeUser.get("username");
             //HttpSession httpSession = context.getRequest().getSession();
             //(String)httpSession.getValue("username");
         }
         else {
-             username = activeProcess.get("username"); 
+             username = activeProcess.get("username");
         }
 
         return username;
     }
 
     public Map<String, Object> getUserProfile(String user) {
-       
+
         return USER_PROFILES.get(user);
     }
 
     public boolean validateTicket(String ticket) {
         String theTicket = ticket;
         RequestContext context = RequestContext.getCurrent();
-       
+
         if(theTicket == null) {
             if(context != null) {
                 theTicket = activeUser.get("ticket");
@@ -115,7 +116,7 @@ public class TestSecurityProvider implements SecurityProvider {
                 //}
             }
             else {
-                theTicket = activeProcess.get("ticket");    
+                theTicket = activeProcess.get("ticket");
             }
         }
 
@@ -125,7 +126,7 @@ public class TestSecurityProvider implements SecurityProvider {
     public String authenticate(String username, String password) {
         RequestContext context = RequestContext.getCurrent();
         String ticket = null;
-        
+
         if(getUserProfile(username) != null) {
             ticket = username + "_FAKETICKET";
 
@@ -137,7 +138,7 @@ public class TestSecurityProvider implements SecurityProvider {
                 //     }
                 activeUser.put("username", username);
                 activeUser.put("ticket", ticket);
-       
+
              }
              else {
                 activeProcess.put("username", username);
@@ -167,6 +168,21 @@ public class TestSecurityProvider implements SecurityProvider {
     @Override
     public String getCurrentToken() {
         return activeProcess.get("ticket");
+    }
+
+    @Override
+    public boolean groupExists(final String siteId, final String groupName) {
+        return false;
+    }
+
+    @Override
+    public boolean userExists(final String username) {
+        return false;
+    }
+
+    @Override
+    public boolean userExistsInGroup(final String siteId, final String groupName, final String username) {
+        return false;
     }
 
     @Override
@@ -223,15 +239,27 @@ public class TestSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public List<Map<String, Object>> getAllUsers() {
+    public List<Map<String, Object>> getAllUsers(int start, int number) {
         // TODO: DB: Implement this ?
         return null;
     }
 
     @Override
-    public List<Map<String, Object>> getUsersPerSite(String site) {
+    public int getAllUsersTotal() {
+        // TODO: DB: Implement this ?
+        return 0;
+    }
+
+    @Override
+    public List<Map<String, Object>> getUsersPerSite(String site, int start, int number) {
         // TODO: DB: Implement this ?
         return null;
+    }
+
+    @Override
+    public int getUsersPerSiteTotal(String site) throws SiteNotFoundException {
+        // TODO: DB: Implement this ?
+        return 0;
     }
 
     @Override
@@ -241,21 +269,33 @@ public class TestSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public List<Map<String, Object>> getAllGroups(int start, int end) {
+    public List<Map<String, Object>> getAllGroups(int start, int number) {
         // TODO: DB: Implement this ?
         return null;
     }
 
     @Override
-    public List<Map<String, Object>> getGroupsPerSite(String site) {
+    public List<Map<String, Object>> getGroupsPerSite(String site, int start, int number) {
         // TODO: DB: Implement this ?
         return null;
     }
 
     @Override
-    public List<Map<String, Object>> getUsersPerGroup(String site, String group, int start, int end) {
+    public int getGroupsPerSiteTotal(String site) {
+        // TODO: DB: Implement this ?
+        return 0;
+    }
+
+    @Override
+    public List<Map<String, Object>> getUsersPerGroup(String site, String group, int start, int number) {
         // TODO: DB: Implement this ?
         return null;
+    }
+
+    @Override
+    public int getUsersPerGroupTotal(String site, String group) throws GroupNotFoundException {
+        // TODO: DB: Implement this ?
+        return 0;
     }
 
     @Override
@@ -272,6 +312,24 @@ public class TestSecurityProvider implements SecurityProvider {
 
     @Override
     public boolean removeUserFromGroup(String siteId, String groupName, String user) {
+        // TODO: DB: Implement this ?
+        return false;
+    }
+
+    @Override
+    public boolean changePassword(String username, String current, String newPassword) {
+        // TODO: DB: Implement this ?
+        return false;
+    }
+
+    @Override
+    public boolean setUserPassword(String username, String newPassword) {
+        // TODO: DB: Implement this ?
+        return false;
+    }
+
+    @Override
+    public boolean isSystemUser(String username) throws UserNotFoundException {
         // TODO: DB: Implement this ?
         return false;
     }

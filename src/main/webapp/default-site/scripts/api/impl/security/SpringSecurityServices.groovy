@@ -96,14 +96,24 @@ class SpringSecurityServices {
         return springBackedService.getUserStatus(username)
     }
 
-    def getAllUsers() {
+    def getAllUsers(start, number) {
         def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
-        return springBackedService.getAllUsers()
+        return springBackedService.getAllUsers(start, number)
     }
 
-    def getUsersPerSite(site) {
+    def getAllUsersTotal() {
         def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
-        return springBackedService.getUsersPerSite(site)
+        return springBackedService.getAllUsersTotal()
+    }
+
+    def getUsersPerSite(site, start, number) {
+        def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
+        return springBackedService.getUsersPerSite(site, start, number)
+    }
+
+    def getUsersPerSiteTotal(site) {
+        def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
+        return springBackedService.getUsersPerSiteTotal(site)
     }
 
     def createGroup(groupName, description, siteId) {
@@ -116,19 +126,29 @@ class SpringSecurityServices {
         return springBackedService.getGroup(siteId, groupName)
     }
 
-    def getAllGroups(start, end) {
+    def getAllGroups(start, number) {
         def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
-        return springBackedService.getAllGroups(start, end)
+        return springBackedService.getAllGroups(start, number)
     }
 
-    def getGroupsPerSite(siteId) {
+    def getGroupsPerSite(siteId, start, number) {
         def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
-        return springBackedService.getGroupsPerSite(siteId)
+        return springBackedService.getGroupsPerSite(siteId, start, number)
     }
 
-    def getUsersPerGroup(siteId, groupName, start, end) {
+    def getGroupsPerSiteTotal(siteId) {
         def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
-        return springBackedService.getUsersPerGroup(siteId, groupName, start, end)
+        return springBackedService.getGroupsPerSiteTotal(siteId)
+    }
+
+    def getUsersPerGroup(siteId, groupName, start, number) {
+        def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
+        return springBackedService.getUsersPerGroup(siteId, groupName, start, number)
+    }
+
+    def getUsersPerGroupTotal(siteId, groupName) {
+        def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
+        return springBackedService.getUsersPerGroupTotal(siteId, groupName)
     }
 
     def updateGroup(siteId, groupName, description) {
@@ -149,5 +169,35 @@ class SpringSecurityServices {
     def removeUserFromGroup(siteId, groupName, username) {
         def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
         return springBackedService.removeUserFromGroup(siteId, groupName, username)
+    }
+
+    def forgotPassword(username) {
+        def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
+        return springBackedService.forgotPassword(username)
+    }
+
+    def changePassword(username, current, newPassword) {
+        def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
+        return springBackedService.changePassword(username, current, newPassword)
+    }
+
+    def setUserPassword(token, newPassword) {
+        def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
+        return springBackedService.setUserPassword(token, newPassword)
+    }
+
+    def validateToken(token) {
+        def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
+        return springBackedService.validateToken(token)
+    }
+
+    def resetPassword(username, newPassword) {
+        def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
+        return springBackedService.resetPassword(username, newPassword)
+    }
+
+    def validateSession(request) {
+        def springBackedService = this.context.applicationContext.get("cstudioSecurityService")
+        return springBackedService.validateSession(request)
     }
 }

@@ -51,4 +51,6 @@ public interface ObjectStateMapper {
     void deleteObjectStateForSiteAndPath(Map params);
 
     int isFolderLive(Map<String, Object> params);
+
+    void setStateForSiteContent(Map params);
 }
