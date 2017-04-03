@@ -40,7 +40,6 @@
         <property name="dmContentLifeCycleService" ref="cstudioContentLifeCycleService"/>
         <property name="eventService" ref="studioEventService"/>
         <property name="siteService" ref="cstudioSiteServiceSimple" />
-        <property name="contentItemIdGenerator" ref="cstudioContentIdGenerator"/>
     </bean>
 
     <!-- all of these beans below need to move off contentRepository and on to content service.  Repository is a very NARROW interface -->
@@ -109,7 +108,6 @@
         <property name="generalLockService" ref="cstudioGeneralLockService"/>
         <property name="securityService" ref="cstudioSecurityService"/>
         <property name="siteService" ref="cstudioSiteServiceSimple" />
-        <property name="dmRenameService" ref="cstudioRenameService"/>
         <property name="workflowProcessor" ref="cstudioWorkflowProcessor"/>
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
         <property name="deploymentDependencyRule" ref="studioDeplymentDependencyRule"/>
@@ -266,21 +264,6 @@
     <bean id="cstudioClipboardService" class="org.craftercms.studio.impl.v1.service.clipboard.ClipboardServiceImpl"
             parent="cstudioRegistrableService">
         <property name="contentService" ref="cstudioContentService"/>
-    </bean>
-
-    <bean id="cstudioRenameService" class="org.craftercms.studio.impl.v1.service.content.DmRenameServiceImpl"
-            parent="cstudioRegistrableService">
-        <property name="activityService" ref="cstudioActivityService"/>
-        <property name="contentService" ref="cstudioContentService"/>
-        <property name="dmContentLifeCycleService" ref="cstudioContentLifeCycleService"/>
-        <property name="objectStateService" ref="cstudioObjectStateService"/>
-        <property name="securityService" ref="cstudioSecurityService"/>
-        <property name="workflowService" ref="cstudioWorkflowService"/>
-        <property name="dmPublishService" ref="cstudioDmPublishService" />
-        <property name="workflowProcessor" ref="cstudioWorkflowProcessor" />
-        <property name="dmDependencyService" ref="cstudioDmDependencyService"/>
-        <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
-        <property name="generalLockService" ref="cstudioGeneralLockService"/>
     </bean>
 
     <bean id="studioEventService" class="org.craftercms.studio.impl.v1.service.event.EventServiceImpl" >
