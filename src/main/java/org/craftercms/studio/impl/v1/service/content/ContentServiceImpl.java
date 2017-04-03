@@ -24,6 +24,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang.StringUtils;
+import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.DmXmlConstants;
 import org.craftercms.studio.api.v1.dal.ObjectMetadata;
@@ -51,6 +52,7 @@ import org.craftercms.studio.api.v1.util.DebugUtils;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentItemOrderComparator;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
+
 import org.dom4j.Node;
 import org.dom4j.io.SAXReader;
 import org.dom4j.Document;
@@ -274,9 +276,7 @@ public class ContentServiceImpl implements ContentService {
 
         try {
             writeContent(site, path, fileName, contentType, input, createFolders, edit, unlock);
-            // RDTMP_COPYPASTE
-            // GET RID OF DM RENAME SERVIE
-            // dmWorkflowService.rename(site, path, targetPath, createFolder);
+            moveContent(site, path, targetPath);
         } catch (ServiceException | RuntimeException e) {
             logger.error("Error while executing write and rename for site '{}' path '{}' targetPath '{}' "
                     + "fileName '{}' content type '{}'", e, site, path, targetPath, fileName, contentType);
@@ -511,6 +511,531 @@ public class ContentServiceImpl implements ContentService {
 
         return toReturn;
     }
+
+
+    /**
+     * internal method copy that handles
+     * Get dependencies is already recursive
+     */
+    protected String copyContent(String site, String fromPath, String toPath, Set<String> processedPaths) {
+        String retNewFileName = null;
+        boolean opSuccess = false;
+
+        String lifecycleOp = DmContentLifeCycleService.ContentLifeCycleOperation.COPY.toString();
+        String user = securityService.getCurrentUser();
+        String sessionTicket = securityProvider.getCurrentToken();
+        String copyPath = null;
+
+        try {
+            Map<String, String> copyPathMap = constructNewPathforCutCopy(site, fromPath, toPath, true);
+            copyPath = copyPathMap.get("FILE_PATH");
+            String copyPathModifier = copyPathMap.get("MODIFIER");
+            String copyPathFileName = copyPathMap.get("FILE_NAME");
+            String copyPathFolder = copyPathMap.get("FILE_FOLDER");
+
+            String copyPathOnly = copyPath.substring(0, copyPath.lastIndexOf("/"));
+            String copyFileName = copyPath.substring(copyPath.lastIndexOf("/")+1);
+
+            if(!processedPaths.contains(copyPath)) {
+
+                try {
+                    ContentItemTO fromItem = getContentItem(site, fromPath, 0);
+                    String contentType = fromItem.getContentType();
+                    InputStream fromContent = getContent(site, fromPath);
+                    Document fromDocument = ContentUtils.convertStreamToXml(fromContent);
+                    Map<String, String> fromPageIds = getContentIds(fromDocument);
+
+                    logger.debug("copying file for site {0} from {1} to {2}, new name is {3}", site, fromPath, toPath, copyPath);
+
+                    // come up with a new object ID and group ID for the object
+                    Map<String,String> copyObjectIds = contentItemIdGenerator.getIds();
+
+                    Map<String, String> copyDependencies = dependencyService.getCopyDependencies(site, fromPath, fromPath);
+                    copyDependencies = getItemSpecificDependencies(fromDocument, copyDependencies);
+                    logger.debug("Calculated copy dependencies: {0}, {1}", fromPath, copyDependencies);
+
+                    // Duplicate the children
+                    for(String dependecyKey : copyDependencies.keySet()) {
+                        String dependecyPath = copyDependencies.get(dependecyKey);
+                        String copyDepPath = dependecyPath;
+
+                        // Does not seem to work (leaving it here because it's suspposed to do the work below)
+                        //PathMacrosTransaltor.resolvePath(dependecyPath, copyObjectIds);
+                        //copyDepPath = copyDepPath + "/" +  dependecyPath.substring(dependecyPath.lastIndexOf("/")+1);
+
+                        // try a simple substitution
+                        copyDepPath = copyDepPath.replaceAll(
+                                fromPageIds.get(DmConstants.KEY_PAGE_ID),
+                                copyObjectIds.get(DmConstants.KEY_PAGE_ID));
+
+                        copyDepPath = copyDepPath.replaceAll(
+                                fromPageIds.get(DmConstants.KEY_PAGE_GROUP_ID),
+                                copyObjectIds.get(DmConstants.KEY_PAGE_GROUP_ID));
+                        logger.debug("TRANSLATED DEP PATH {0} to {1}", dependecyPath, copyDepPath);
+
+                        copyContent(site, dependecyPath, copyDepPath, processedPaths);
+                    }
+
+                    // update the file name / folder values
+                    Document copyDocument = updateContentForCopy(site, fromDocument, copyPathFileName, copyPathFolder, copyObjectIds, copyPathModifier);
+
+                    InputStream copyContent = ContentUtils.convertDocumentToStream(copyDocument, StudioConstants.CONTENT_ENCODING);
+
+                    // This code is very similar to what is in WRTIE CONTENT. Consolidate this code?
+                    Map<String, String> params = new HashMap<String, String>();
+                    params.put(DmConstants.KEY_SITE, site);
+                    params.put(DmConstants.KEY_PATH, copyPathOnly);
+                    params.put(DmConstants.KEY_FILE_NAME, copyFileName);
+                    params.put(DmConstants.KEY_USER, user);
+                    params.put(DmConstants.KEY_CONTENT_TYPE, contentType);
+                    params.put(DmConstants.KEY_CREATE_FOLDERS, "true");
+                    params.put(DmConstants.KEY_EDIT, "true");
+                    params.put(DmConstants.KEY_ACTIVITY_TYPE, "false");
+                    params.put(DmConstants.KEY_SKIP_CLEAN_PREVIEW, "true");
+                    params.put(DmConstants.KEY_COPIED_CONTENT, "true");
+                    params.put(DmConstants.CONTENT_LIFECYCLE_OPERATION, lifecycleOp);
+
+                    String id = site + ":" + copyPathOnly + ":" + copyFileName + ":" + contentType;
+
+
+                    try {
+                        generalLockService.lock(id);
+
+                        // processContent will close the input stream
+                        if (!StringUtils.isEmpty(contentType)) {
+                            processContent(id, copyContent, true, params, DmConstants.CONTENT_CHAIN_FORM);
+                        } else {
+                            if (copyFileName.endsWith(DmConstants.XML_PATTERN)) {
+                                processContent(id, copyContent, true, params, DmConstants.CONTENT_CHAIN_FORM);
+                            }
+                            else {
+                                processContent(id, fromContent, false, params, DmConstants.CONTENT_CHAIN_ASSET);
+                            }
+                        }
+
+                        ObjectState objectState = objectStateService.getObjectState(site, copyPath);
+
+                        if (objectState == null) {
+                            ContentItemTO copyItem = getContentItem(site, copyPath, 0);
+                            objectStateService.insertNewEntry(site, copyItem);
+                            objectState = objectStateService.getObjectState(site, copyPath);
+
+                            objectStateService.setSystemProcessing(site, copyPath, false);
+                        }
+
+                        // copy was successful, return the new name
+                        retNewFileName = copyPath;
+
+                        // track that we already copied so we don't follow a circular dependency
+                        processedPaths.add(copyPath);
+
+                    }
+                    finally {
+                        generalLockService.unlock(id);
+                    }
+                }
+                catch(ContentNotFoundException eContentNotFound) {
+                    logger.error("Content not found while copying content for site {0} from {1} to {2}, new name is {3}", eContentNotFound, site, fromPath, toPath, copyPath);
+                }
+                catch(DocumentException eParseException) {
+                    logger.error("General Error while copying content for site {0} from {1} to {2}, new name is {3}", eParseException, site, fromPath, toPath, copyPath);
+                }
+            }
+            else {
+                // no need to process
+                retNewFileName = copyPath;
+            }
+        }
+        catch(ServiceException eServiceException) {
+            logger.error("General Error while copying content for site {0} from {1} to {2}, new name is {3}", eServiceException, site, fromPath, toPath, copyPath);
+        }
+
+        return retNewFileName;
+    }
+/* ===================== */
+
+    protected void updateDatabaseCachePreviewForMove(String site, String fromPath, String movePath, boolean isMoveRoot) {
+        logger.debug("updateDatabaseCachePreviewForMove FROM {0} TO {1}  ", fromPath, movePath);
+
+        String user = securityService.getCurrentUser();
+        String sessionTicket = securityProvider.getCurrentToken();
+
+        Map<String, String> params = new HashMap<>();
+        params.put(DmConstants.KEY_SOURCE_PATH, fromPath);
+        params.put(DmConstants.KEY_TARGET_PATH, movePath);
+        // These do not exist in 3.0, not some extensions may be using it
+        //params.put(DmConstants.KEY_SOURCE_FULL_PATH, expandRelativeSitePath(site, fromPath));
+        //params.put(DmConstants.KEY_TARGET_FULL_PATH, expandRelativeSitePath(site, movePath));
+
+        // preRenameCleanWorkFlow(site, sourcePath);
+
+        ContentItemTO renamedItem = getContentItem(site, movePath, 0);
+        String contentType = renamedItem.getContentType();
+
+        dmContentLifeCycleService.process(site, user, movePath, contentType,  DmContentLifeCycleService.ContentLifeCycleOperation.RENAME, params);
+
+        //update nav order
+        //updateContentWithNewNavOrder
+
+        // change the path of this object in the object state database
+        objectStateService.updateObjectPath(site, fromPath, movePath);
+        ContentItemTO movedTO = getContentItem(site, movePath, 0);
+        objectStateService.transition(site, movedTO, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.SAVE);
+
+        // update metadata
+        if (!objectMetadataManager.isRenamed(site, fromPath)) {
+            // if an item was previously moved, we do not track intermediate moves because it will
+            // ultimately orphan deployed content.  Old Path is always the OLDEST DEPLOYED PATH
+            ObjectMetadata metadata = objectMetadataManager.getProperties(site, fromPath);
+            if(metadata == null) {
+                objectMetadataManager.insertNewObjectMetadata(site, fromPath);
+                metadata = objectMetadataManager.getProperties(site, fromPath);
+            }
+
+            if (!movedTO.isNew()) {
+                // if the item is not new, we need to track the old URL for deployment
+                logger.debug("item is not new, and has not previously been moved. Track the old URL {0}", fromPath);
+                Map<String, Object> objMetadataProps = new HashMap<String, Object>();
+                objMetadataProps.put(ObjectMetadata.PROP_RENAMED, 1);
+                objMetadataProps.put(ObjectMetadata.PROP_OLD_URL, fromPath);
+                objectMetadataManager.setObjectMetadata(site, fromPath, objMetadataProps);
+            }
+        }
+
+        objectMetadataManager.updateObjectPath(site, fromPath, movePath);
+
+        // WHAT IS THIS PROPERTY USED FOR?
+        //objMetadataProps = new HashMap<String, Object>();
+        //objMetadataProps.put(ObjectMetadata.PROP_DELETE_URL, true);
+        //objectMetadataManager.setObjectMetadata(site, movePath, objMetadataProps);
+
+        // write activity stream
+        activityService.renameContentId(site, fromPath, movePath);
+
+        Map<String, String> activityInfo = new HashMap<String, String>();
+        String contentClass = getContentTypeClass(site, movePath);
+
+        if(movePath.endsWith(DmConstants.XML_PATTERN)) {
+            activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
+        }
+
+        activityService.postActivity(
+                site,
+                user,
+                movePath,
+                ActivityService.ActivityType.UPDATED,
+                activityInfo);
+    }
+
+    protected void updateChildrenForMove(String site, String fromPath, String movePath) {
+        logger.debug("updateChildObjectStateForMove HANDLING {0}, {1}", fromPath, movePath);
+
+
+        // get the list of children
+        ContentItemTO movedTO = getContentItem(site, movePath, 2);
+        List<ContentItemTO> childrenTOs = movedTO.getChildren();
+
+        for(ContentItemTO childTO : childrenTOs) {
+            // calculate the childs from path by looking at it's parent's from path and the child new path
+            // (parent move operation has already happened)
+            String childToPath = childTO.getUri();
+
+            String oldParentFolderPath = fromPath.replace("/index.xml", "");
+            String parentFolderPath = movePath.replace("/index.xml", "");
+
+            String childFromPath = childToPath.replace(parentFolderPath, oldParentFolderPath);
+
+            logger.debug("updateChildObjectStateForMove HANDLING CHILD FROM: {0} TO: {1}  ", childFromPath, childToPath);
+
+            // update database, preview, cache etc
+            updateDatabaseCachePreviewForMove(site, childFromPath, childToPath, false);
+
+            // handle this child's children
+            updateChildrenForMove(site, childFromPath, childToPath);
+        }
+    }
+
+    protected Map<String, String> constructNewPathforCutCopy(String site, String fromPath, String toPath, boolean adjustOnCollide)
+            throws ServiceException {
+        Map<String, String> result = new HashMap<String, String>();
+
+        // The following rules apply to content under the site folder
+        String fromPathOnly = fromPath.substring(0, fromPath.lastIndexOf("/"));
+        String fromFileNameOnly = fromPath.substring(fromPath.lastIndexOf("/")+1);
+        boolean fromFileIsIndex = ("index.xml".equals(fromFileNameOnly));
+        logger.debug("cut/copy name rules FROM: {0}, {1}", fromPathOnly, fromFileNameOnly);
+
+        if(fromFileIsIndex==true) {
+            fromFileNameOnly = fromPathOnly.substring(fromPathOnly.lastIndexOf("/")+1);
+            fromPathOnly = fromPathOnly.substring(0, fromPathOnly.lastIndexOf("/"));
+            logger.debug("cut/copy name rules INDEX FROM: {0}, {1}", fromPathOnly, fromFileNameOnly);
+        }
+
+        String newPathOnly = (toPath.contains(".xml")) ? toPath.substring(0, toPath.lastIndexOf("/")) : toPath;
+        String newFileNameOnly = (toPath.contains(".xml")) ? toPath.substring(toPath.lastIndexOf("/")+1) : fromFileNameOnly;
+        boolean newFileIsIndex = ("index.xml".equals(newFileNameOnly));
+        logger.debug("cut/copy name rules TO: {0}, {1}", newPathOnly, newFileNameOnly);
+
+        if(newFileIsIndex==true) {
+            newFileNameOnly = newPathOnly.substring(newPathOnly.lastIndexOf("/")+1);
+            newPathOnly = newPathOnly.substring(0, newPathOnly.lastIndexOf("/"));
+            logger.debug("cut/copy name rules INDEX TO: {0}, {1}", newPathOnly, newFileNameOnly);
+        }
+
+        String proposedDestPath = null;
+        String proposedDestPath_filename = null;
+        String proposedDestPath_folder = null;
+        boolean targetPathExistsPriorToOp = false;
+
+        try {
+            targetPathExistsPriorToOp = contentExists(site, toPath);
+        }
+        catch(Exception contentExistsErr) {
+            // what can cause this error?
+            // can't talk to the repository?
+            // swallow it for now, the error will come when we try a write
+        }
+
+        if(fromFileIsIndex && newFileIsIndex) {
+            // Example MOVE LOCATION, INDEX FILES
+            // fromPath: "/site/website/search/index.xml"
+            // toPath:   "/site/website/products/index.xml"
+            // newPath:  "/site/website/products/search/index.xml"
+            //
+            // Example RENAME, INDEX FILES
+            // fromPath: "/site/website/en/services/index.xml"
+            // toPath:   "site/website/en/services-updated/index.xml"
+            // newPath:  "site/website/en/services-updated/index.xml
+            if(newPathOnly.equals(fromPathOnly) && !targetPathExistsPriorToOp) {
+                // this is a rename
+                proposedDestPath = newPathOnly + "/" + newFileNameOnly +  "/index.xml";
+                proposedDestPath_filename = "index.xml";
+                proposedDestPath_folder = newFileNameOnly;
+            }
+            else {
+                // this is a location move
+                proposedDestPath = newPathOnly + "/" + newFileNameOnly + "/" + fromFileNameOnly +  "/index.xml";
+                proposedDestPath_filename = "index.xml";
+                proposedDestPath_folder = fromFileNameOnly;
+            }
+        }
+        else if(fromFileIsIndex && !newFileIsIndex) {
+            // Example MOVE LOCATION, INDEX TO FOLDER
+            // fromPath: "/site/website/search/index.xml"
+            // toPath:   "/site/website/a-folder"
+            // newPath:  "/site/website/a-folder/search/index.xml"
+            proposedDestPath = newPathOnly + "/" + fromFileNameOnly +  "/index.xml";
+            proposedDestPath_filename = "index.xml";
+            proposedDestPath_folder = fromFileNameOnly;
+        }
+        else if(!fromFileIsIndex && newFileIsIndex) {
+            proposedDestPath = newPathOnly + "/" + newFileNameOnly + "/" + fromFileNameOnly;
+            proposedDestPath_filename = fromFileNameOnly;
+            proposedDestPath_folder = newFileNameOnly;
+        }
+        else{
+            // Example NON INDEX FILES MOVE TO FOLDER
+            // fromPath: "/site/website/search.xml"
+            // toPath:   "/site/website/a-folder"
+            // newPath:  "/site/website/products/a-folder/search.xml"
+            //
+            // Example  INDEX FILES MOVE to FOLDER
+            // fromPath: "/site/website/search.xml"
+            // toPath:   "/site/website/products/search.xml"
+            // newPath:  "/site/website/products/search.xml"
+            if(fromFileNameOnly.equals(newFileNameOnly)) {
+                // Move location
+                proposedDestPath = newPathOnly + "/" + fromFileNameOnly;
+                proposedDestPath_filename = fromFileNameOnly;
+                proposedDestPath_folder = newPathOnly.substring(0, newPathOnly.lastIndexOf("/"));
+            }
+            else {
+                // rename
+                proposedDestPath = newPathOnly + "/" + newFileNameOnly;
+                proposedDestPath_filename = newFileNameOnly;
+                proposedDestPath_folder = newPathOnly.substring(0, newPathOnly.lastIndexOf("/"));
+            }
+
+        }
+
+        logger.debug("Initial Proposed Path: {0} ", proposedDestPath);
+
+        result.put("FILE_PATH", proposedDestPath);
+        result.put("FILE_NAME", proposedDestPath_filename);
+        result.put("FILE_FOLDER", proposedDestPath_folder);
+        result.put("MODIFIER", "");
+        result.put("ALT_NAME", "false");
+
+        boolean contentExists = false;
+
+        try {
+            if(adjustOnCollide == true) {
+                // if adjustOnCollide is true we need to check, otherwise we dont
+                contentExists = contentExists(site, proposedDestPath);
+            }
+        }
+        catch(Exception contentExistsErr) {
+            // what can cause this error?
+            // can't talk to the repository?
+            // swallow it for now, the error will come when we try a write
+        }
+
+        if(adjustOnCollide && contentExists) {
+            logger.debug("File already found at path {0}, creating new name", proposedDestPath);
+            try {
+                Map<String,String> ids = contentItemIdGenerator.getIds();
+                String id = ids.get(DmConstants.KEY_PAGE_GROUP_ID);
+
+                //proposedDestPath = getNextAvailableName(site, proposedDestPath);
+
+                if(proposedDestPath.indexOf("/index.xml") == -1) {
+                    proposedDestPath =
+                            proposedDestPath.substring(0, proposedDestPath.lastIndexOf(".")) + "-" + id +
+                                    proposedDestPath.substring(proposedDestPath.lastIndexOf("."));
+
+                    // a regex would be better
+                    proposedDestPath_filename = proposedDestPath.substring(proposedDestPath.lastIndexOf("/")+1);
+                    proposedDestPath_folder = proposedDestPath.substring(0, proposedDestPath.lastIndexOf("/"));
+                    proposedDestPath_folder = proposedDestPath_folder.substring(proposedDestPath_folder.lastIndexOf("/")+1);
+                }
+                else {
+                    proposedDestPath =
+                            proposedDestPath.substring(0, proposedDestPath.indexOf("/index.xml")) + "-" + id +
+                                    proposedDestPath.substring(proposedDestPath.lastIndexOf("/index.xml"));
+
+                    proposedDestPath_filename = "index.xml";
+                    proposedDestPath_folder = proposedDestPath.replace("/index.xml","");
+                    proposedDestPath_folder = proposedDestPath_folder.substring(proposedDestPath_folder.lastIndexOf("/")+1);
+                }
+
+                result.put("FILE_PATH", proposedDestPath);
+                result.put("FILE_NAME", proposedDestPath_filename);
+                result.put("FILE_FOLDER", proposedDestPath_folder);
+                result.put("MODIFIER", id);
+                result.put("ALT_NAME", "true");
+            }
+            catch(Exception altPathGenErr) {
+                throw new ServiceException("Unable to generate an alternative path for name collision: " + proposedDestPath, altPathGenErr);
+            }
+        }
+
+        logger.debug("FINAL PROPOSED PATH from {0} to {1} FINAL {2}", fromPath, toPath, proposedDestPath);
+        return result;
+    }
+
+    protected Map<String, String> getItemSpecificDependencies(Document document, Map<String, String> copyDependencies) {
+        //update pageId and groupId with the new one
+        Element root = document.getRootElement();
+
+        List<Node> keys = root.selectNodes("//key");
+        if (keys != null) {
+            for(Node keyNode : keys) {
+                String keyValue = ((Element)keyNode).getText();
+                if(keyValue.contains("/page")) {
+                    copyDependencies.put(keyValue, keyValue);
+                }
+            }
+        }
+
+        List<Node> includes = root.selectNodes("//include");
+        if (includes != null) {
+            for(Node includeNode : includes) {
+                String includeValue = ((Element)includeNode).getText();
+                if(includeValue.contains("/page")) {
+                    copyDependencies.put(includeValue, includeValue);
+                }
+            }
+        }
+
+        return copyDependencies;
+    }
+
+    protected Map<String, String> getContentIds(Document document) {
+        Map<String, String> ids = new HashMap<String, String>();
+
+        Element root = document.getRootElement();
+        Node pageIdNode = root.selectSingleNode("//" + DmXmlConstants.ELM_PAGE_ID);
+        if (pageIdNode != null) {
+            ids.put(DmConstants.KEY_PAGE_ID, ((Element)pageIdNode).getText());
+        }
+
+        Node groupIdNode = root.selectSingleNode("//" + DmXmlConstants.ELM_GROUP_ID);
+        if (groupIdNode != null) {
+            ids.put(DmConstants.KEY_PAGE_GROUP_ID, ((Element)groupIdNode).getText());
+        }
+
+        return ids;
+    }
+
+    protected Document updateContentForCopy(String site, Document document, String filename, String folder, Map<String, String> params, String modifier)
+            throws ServiceException {
+
+        //update pageId and groupId with the new one
+        Element root = document.getRootElement();
+        String originalPageId = null;
+        String originalGroupId = null;
+
+        Node filenameNode = root.selectSingleNode("//" + DmXmlConstants.ELM_FILE_NAME);
+        if (filenameNode != null) {
+            ((Element)filenameNode).setText(filename);
+        }
+
+        Node folderNode = root.selectSingleNode("//" + DmXmlConstants.ELM_FOLDER_NAME);
+        if (folderNode != null) {
+            ((Element)folderNode).setText(folder);
+        }
+
+
+        Node pageIdNode = root.selectSingleNode("//" + DmXmlConstants.ELM_PAGE_ID);
+        if (pageIdNode != null) {
+            originalPageId = ((Element)pageIdNode).getText();
+            ((Element)pageIdNode).setText(params.get(DmConstants.KEY_PAGE_ID));
+        }
+
+        if(modifier != null) {
+            Node internalNameNode = root.selectSingleNode("//" + DmXmlConstants.ELM_INTERNAL_NAME);
+            if (internalNameNode != null) {
+                String internalNameValue = ((Element)internalNameNode).getText();
+                ((Element)internalNameNode).setText(internalNameValue + " " + modifier);
+            }
+        }
+
+        Node groupIdNode = root.selectSingleNode("//" + DmXmlConstants.ELM_GROUP_ID);
+        if (groupIdNode != null) {
+            originalGroupId = ((Element)groupIdNode).getText();
+            ((Element)groupIdNode).setText(params.get(DmConstants.KEY_PAGE_GROUP_ID));
+        }
+
+        List<Node> keys = root.selectNodes("//key");
+        if (keys != null) {
+            for(Node keyNode : keys) {
+                String keyValue = ((Element)keyNode).getText();
+                keyValue = keyValue.replaceAll(originalPageId, params.get(DmConstants.KEY_PAGE_ID));
+                keyValue = keyValue.replaceAll(originalGroupId, params.get(DmConstants.KEY_PAGE_GROUP_ID));
+
+                if(keyValue.contains("/page")) {
+                    ((Element)keyNode).setText(keyValue);
+                }
+            }
+        }
+
+        List<Node> includes = root.selectNodes("//include");
+        if (includes != null) {
+            for(Node includeNode : includes) {
+                String includeValue = ((Element)includeNode).getText();
+                includeValue = includeValue.replaceAll(originalPageId, params.get(DmConstants.KEY_PAGE_ID));
+                includeValue = includeValue.replaceAll(originalGroupId, params.get(DmConstants.KEY_PAGE_GROUP_ID));
+
+                if(includeValue.contains("/page")) {
+                    ((Element)includeNode).setText(includeValue);
+                }
+            }
+        }
+
+        return document;
+    }
+
+ /* ======================== */
 
     protected ContentItemTO createNewContentItemTO(String site, String contentPath) {
         ContentItemTO item = new ContentItemTO();
@@ -1380,6 +1905,7 @@ public class ContentServiceImpl implements ContentService {
     protected DmContentLifeCycleService dmContentLifeCycleService;
     protected EventService eventService;
     protected SiteService siteService;
+    protected ContentItemIdGenerator contentItemIdGenerator;
 
     public ContentRepository getContentRepository() { return _contentRepository; }
     public void setContentRepository(ContentRepository contentRepository) { this._contentRepository = contentRepository; }
@@ -1422,4 +1948,7 @@ public class ContentServiceImpl implements ContentService {
 
     public SiteService getSiteService() { return siteService; }
     public void setSiteService(SiteService siteService) { this.siteService = siteService; }
+
+    public ContentItemIdGenerator getContentItemIdGenerator() { return contentItemIdGenerator; }
+    public void setContentItemIdGenerator(ContentItemIdGenerator contentItemIdGenerator) { this.contentItemIdGenerator = contentItemIdGenerator; }
 }

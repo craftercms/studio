@@ -40,6 +40,7 @@
         <property name="dmContentLifeCycleService" ref="cstudioContentLifeCycleService"/>
         <property name="eventService" ref="studioEventService"/>
         <property name="siteService" ref="cstudioSiteServiceSimple" />
+        <property name="contentItemIdGenerator" ref="cstudioContentIdGenerator" />
     </bean>
 
     <!-- all of these beans below need to move off contentRepository and on to content service.  Repository is a very NARROW interface -->
