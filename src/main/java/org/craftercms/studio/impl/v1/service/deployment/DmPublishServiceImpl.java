@@ -158,14 +158,18 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
         ContentItemTO item = contentService.getContentItem(site, path, 2);
         logger.debug("Traversing subtree for site " + site + " and root path " + path);
         if (item != null) {
-            if (!item.isFolder()) {
-                childrenPaths.add(item.getUri());
-            }
-            if (item.getUri().endsWith("/" + DmConstants.INDEX_FILE) && objectMetadataManager.isRenamed(site, item.getUri())) {
+            if (path.equals("/")) {
                 getAllMandatoryChildren(site, item, childrenPaths);
             } else {
-                if (item.isFolder() || item.isContainer()) {
+                if (!item.isFolder()) {
+                    childrenPaths.add(item.getUri());
+                }
+                if (item.getUri().endsWith("/" + DmConstants.INDEX_FILE) && objectMetadataManager.isRenamed(site, item.getUri())) {
                     getAllMandatoryChildren(site, item, childrenPaths);
+                } else {
+                    if (item.isFolder() || item.isContainer()) {
+                        getAllMandatoryChildren(site, item, childrenPaths);
+                    }
                 }
             }
         }

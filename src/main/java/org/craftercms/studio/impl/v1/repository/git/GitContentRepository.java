@@ -106,6 +106,11 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 if (tw != null && tw.getObjectId(0) != null) {
                     toReturn = true;
                     tw.close();
+                } else if (tw == null) {
+                    String gitPath = helper.getGitPath(path);
+                    if (StringUtils.isEmpty(gitPath) || gitPath.equals(".")) {
+                        toReturn = true;
+                    }
                 }
             } catch (IOException e) {
                 logger.info("Content not found for site: " + site + " path: " + path, e);
@@ -726,8 +731,11 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         .setNoCommit(false);
                 for (String commitId : commitIds) {
                     if (StringUtils.isNotEmpty(commitId)) {
-                        ObjectId objectId = ObjectId.fromString(commitId);
-                        cherryPickCommand.include(objectId);
+                        String initialCommit = getRepoFirstCommitId(site);
+                        if (!StringUtils.equals(initialCommit, commitId)) {
+                            ObjectId objectId = ObjectId.fromString(commitId);
+                            cherryPickCommand.include(objectId);
+                        }
                     }
                 }
                 CherryPickResult cherryPickResult = cherryPickCommand.call();
@@ -747,8 +755,9 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         long commitTime = 1000l * cherryPickResult.getNewHead().getCommitTime();
                         // tag
                         Date tagDate2 = new Date(commitTime);
-                        SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy-MM-dd'T'HHmmssX");
-                        String tagName2 = sdf2.format(tagDate2);
+                        Date publishDate = new Date();
+                        SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy-MM-dd'T'HHmmssSSSX");
+                        String tagName2 = sdf2.format(tagDate2) + "_published_on_" + sdf2.format(publishDate);
                         PersonIdent authorIdent2 = helper.getAuthorIdent(author);
                         Ref tagResult2 = git.tag().setTagger(authorIdent2).setName(tagName2).setMessage(comment).call();
                         break;
@@ -797,7 +806,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                                 // and add them to the list of RepoOperations to return to the caller
                                 // also include date/time of commit by taking number of seconds and multiply by 1000 and
                                 // convert to java date before sending over
-                                operations.addAll(processDiffEntry(diffEntries, new Date(firstCommit.getCommitTime() *
+                                operations.addAll(processDiffEntry(diffEntries, objFirstCommitId, new Date(firstCommit.getCommitTime() *
                                         1000l)));
                             }
                         }
@@ -848,7 +857,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                                 // and add them to the list of RepoOperations to return to the caller
                                 // also include date/time of commit by taking number of seconds and multiply by 1000 and
                                 // convert to java date before sending over
-                                operations.addAll(processDiffEntry(diffEntries, new Date(commit.getCommitTime() *
+                                operations.addAll(processDiffEntry(diffEntries, nextCommitId, new Date(commit.getCommitTime() *
                                     1000l)));
                                 prevCommitId = nextCommitId;
                             }
@@ -906,7 +915,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         return toReturn;
     }
 
-    private List<RepoOperationTO> processDiffEntry(List<DiffEntry> diffEntries, Date commitTime) {
+    private List<RepoOperationTO> processDiffEntry(List<DiffEntry> diffEntries, ObjectId commitId, Date commitTime) {
         List<RepoOperationTO> toReturn = new ArrayList<RepoOperationTO>();
 
         for (DiffEntry diffEntry : diffEntries) {
@@ -919,23 +928,23 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             switch (diffEntry.getChangeType()) {
                 case ADD:
                     repoOperation = new RepoOperationTO(RepoOperation.CREATE, pathNew,
-                        commitTime, null);
+                        commitTime, null, commitId.getName());
                     break;
                 case MODIFY:
                     repoOperation = new RepoOperationTO(RepoOperation.UPDATE, pathNew,
-                        commitTime, null);
+                        commitTime, null, commitId.getName());
                     break;
                 case DELETE:
                     repoOperation = new RepoOperationTO(RepoOperation.DELETE, pathOld,
-                        commitTime, null);
+                        commitTime, null, commitId.getName());
                     break;
                 case RENAME:
                     repoOperation = new RepoOperationTO(RepoOperation.MOVE, pathOld,
-                        commitTime, pathNew);
+                        commitTime, pathNew, commitId.getName());
                     break;
                 case COPY:
                     repoOperation = new RepoOperationTO(RepoOperation.COPY, pathNew,
-                        commitTime, null);
+                        commitTime, null, commitId.getName());
                     break;
                 default:
                     logger.error("Error: Unknown git operation " + diffEntry.getChangeType());

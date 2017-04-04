@@ -18,11 +18,12 @@ public class RepoOperationTO {
 	protected String commitId;
 
 	public RepoOperationTO(final RepoOperation operation, final String path, final Date dateTime, final String
-		moveToPath) {
+		moveToPath, String commitId) {
 		this.operation = operation;
 		this.path = path;
 		this.dateTime = dateTime;
 		this.moveToPath = moveToPath;
+		this.commitId = commitId;
 	}
 
 	public String getPath() {
@@ -56,4 +57,36 @@ public class RepoOperationTO {
 	public void setMoveToPath(final String moveToPath) {
 		this.moveToPath = moveToPath;
 	}
+
+    public String getAuthor() {
+        return author;
+    }
+
+    public void setAuthor(String author) {
+        this.author = author;
+    }
+
+    public String getPublisher() {
+        return publisher;
+    }
+
+    public void setPublisher(String publisher) {
+        this.publisher = publisher;
+    }
+
+    public String getComment() {
+        return comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
+
+    public String getCommitId() {
+        return commitId;
+    }
+
+    public void setCommitId(String commitId) {
+        this.commitId = commitId;
+    }
 }
