@@ -31,6 +31,7 @@
 								<section>
 									<header class="main">
 										<h1>Search Results</h1>
+										<h3>Refine by</h3>
 									</header>
                   <form id="categories">
                   	<div class="row uniform">
