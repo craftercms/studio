@@ -791,27 +791,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
                 try (Git git = new Git(repo)) {
 
-                    if (initialEqFromCommit) {
-                        try (RevWalk walk = new RevWalk(repo)) {
-                            RevCommit firstCommit = walk.parseCommit(objFirstCommitId);
-                            RevTree firstCommitTree = helper.getTreeForCommit(repo, firstCommit.getName());
-                            try (ObjectReader reader = repo.newObjectReader()) {
-                                CanonicalTreeParser firstCommitTreeParser = new CanonicalTreeParser();
-                                firstCommitTreeParser.reset();//reset(reader, firstCommitTree.getId());
-                                // Diff the two commit Ids
-                                List<DiffEntry> diffEntries = git.diff().setOldTree(firstCommitTreeParser).setNewTree(null).call();
-
-
-                                // Now that we have a diff, let's itemize the file changes, pack them into a TO
-                                // and add them to the list of RepoOperations to return to the caller
-                                // also include date/time of commit by taking number of seconds and multiply by 1000 and
-                                // convert to java date before sending over
-                                operations.addAll(processDiffEntry(diffEntries, objFirstCommitId, new Date(firstCommit.getCommitTime() *
-                                        1000l)));
-                            }
-                        }
-                    }
-
                     // If the commitIdFrom is the same as commitIdTo, there is nothing to calculate, otherwise, let's do it
                     if (!objCommitIdFrom.equals(objCommitIdTo)) {
                         // Compare HEAD with commitId we're given
