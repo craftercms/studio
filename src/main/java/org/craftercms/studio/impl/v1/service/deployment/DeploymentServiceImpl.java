@@ -595,7 +595,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         }
     }
 
-
+    @Override
     public Map<String, List<PublishingChannelTO>> getAvailablePublishingChannelGroups(String site, String path) {
         List<PublishingChannelTO> channelsTO = getAvailablePublishingChannelGroupsForSite(site, path);
         List<PublishingChannelTO> publishChannels = new ArrayList<PublishingChannelTO>();
