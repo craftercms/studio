@@ -465,6 +465,7 @@ public class SiteServiceImpl implements SiteService {
                 createObjectMetadataNewSiteObjectFolder(site, child.path + "/" + child.name, lastCommitId);
             } else {
                 objectMetadataManager.insertNewObjectMetadata(site, child.path + "/" + child.name);
+                objectMetadataManager.updateCommitId(site, child.path + "/" + child.name, lastCommitId);
             }
         }
     }
@@ -721,7 +722,7 @@ public class SiteServiceImpl implements SiteService {
 				    if (!objectMetadataManager.metadataExist(site, repoOperation.getPath())) {
 					    objectMetadataManager.insertNewObjectMetadata(site, repoOperation.getPath());
 				    }
-
+                    objectMetadataManager.updateCommitId(site,repoOperation.getPath(), repoOperation.getCommitId());
 				    toReturn = toReturn && extractDependenciesForItem(site, repoOperation.getPath());
 				    break;
 
@@ -731,7 +732,7 @@ public class SiteServiceImpl implements SiteService {
 				    if (!objectMetadataManager.metadataExist(site, repoOperation.getPath())) {
 					    objectMetadataManager.insertNewObjectMetadata(site, repoOperation.getPath());
 				    }
-
+                    objectMetadataManager.updateCommitId(site, repoOperation.getPath(), repoOperation.getCommitId());
 				    toReturn = toReturn && extractDependenciesForItem(site, repoOperation.getPath());
 				    break;
 
@@ -763,6 +764,7 @@ public class SiteServiceImpl implements SiteService {
 							    properties.put(ObjectMetadata.PROP_PATH, repoOperation.getMoveToPath());
 							    properties.put(ObjectMetadata.PROP_RENAMED, 1);
 							    properties.put(ObjectMetadata.PROP_OLD_URL, repoOperation.getPath());
+                                properties.put(ObjectMetadata.PROP_COMMIT_ID, repoOperation.getCommitId());
 							    objectMetadataManager.setObjectMetadata(site, repoOperation.getMoveToPath(), properties);
 						    }
 					    }
@@ -775,6 +777,7 @@ public class SiteServiceImpl implements SiteService {
 						    properties.put(ObjectMetadata.PROP_PATH, repoOperation.getMoveToPath());
 						    properties.put(ObjectMetadata.PROP_RENAMED, 1);
 						    properties.put(ObjectMetadata.PROP_OLD_URL, repoOperation.getPath());
+						    properties.put(ObjectMetadata.PROP_COMMIT_ID, repoOperation.getCommitId());
 						    objectMetadataManager.setObjectMetadata(site, repoOperation.getMoveToPath(), properties);
 					    } else {
 						    // if not already renamed set renamed and old url
@@ -785,6 +788,7 @@ public class SiteServiceImpl implements SiteService {
 							    properties.put(ObjectMetadata.PROP_PATH, repoOperation.getMoveToPath());
 							    properties.put(ObjectMetadata.PROP_RENAMED, 1);
 							    properties.put(ObjectMetadata.PROP_OLD_URL, repoOperation.getPath());
+                                properties.put(ObjectMetadata.PROP_COMMIT_ID, repoOperation.getCommitId());
 							    objectMetadataManager.setObjectMetadata(site, repoOperation.getMoveToPath(), properties);
 						    }
 						    objectMetadataManager.deleteObjectMetadata(site, repoOperation.getPath());
