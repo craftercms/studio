@@ -343,26 +343,28 @@ public class DeploymentServiceImpl implements DeploymentService {
             for (int index = 0; index < deployReports.size() && count < numberOfItems; index++) {
                 DeploymentSyncHistory entry = deployReports.get(index);
                 ContentItemTO deployedItem = getDeployedItem(entry.getSite(), entry.getPath());
-                if (deployedItem != null) {
-                    Set<String> permissions = securityService.getUserPermissions(site, deployedItem.getUri(), securityService.getCurrentUser(), Collections.<String>emptyList());
-                    if (permissions.contains(StudioConstants.PERMISSION_VALUE_PUBLISH)) {
-                        deployedItem.eventDate = entry.getSyncDate();
-                        deployedItem.endpoint = entry.getTarget();
-                        String deployedLabel = ContentFormatUtils.formatDate(deployedFormat, entry.getSyncDate(), timezone);
-                        if (tasks.size() > 0) {
-                            DmDeploymentTaskTO lastTask = tasks.get(tasks.size() - 1);
-                            String lastDeployedLabel = lastTask.getInternalName();
-                            if (lastDeployedLabel.equals(deployedLabel)) {
-                                // add to the last task if it is deployed on the same day
-                                lastTask.setNumOfChildren(lastTask.getNumOfChildren() + 1);
-                                lastTask.getChildren().add(deployedItem);
+                if (dmFilterWrapper.accept(site, deployedItem, filterType)) {
+                    if (deployedItem != null) {
+                        Set<String> permissions = securityService.getUserPermissions(site, deployedItem.getUri(), securityService.getCurrentUser(), Collections.<String>emptyList());
+                        if (permissions.contains(StudioConstants.PERMISSION_VALUE_PUBLISH)) {
+                            deployedItem.eventDate = entry.getSyncDate();
+                            deployedItem.endpoint = entry.getTarget();
+                            String deployedLabel = ContentFormatUtils.formatDate(deployedFormat, entry.getSyncDate(), timezone);
+                            if (tasks.size() > 0) {
+                                DmDeploymentTaskTO lastTask = tasks.get(tasks.size() - 1);
+                                String lastDeployedLabel = lastTask.getInternalName();
+                                if (lastDeployedLabel.equals(deployedLabel)) {
+                                    // add to the last task if it is deployed on the same day
+                                    lastTask.setNumOfChildren(lastTask.getNumOfChildren() + 1);
+                                    lastTask.getChildren().add(deployedItem);
+                                } else {
+                                    tasks.add(createDeploymentTask(deployedLabel, deployedItem));
+                                }
                             } else {
                                 tasks.add(createDeploymentTask(deployedLabel, deployedItem));
                             }
-                        } else {
-                            tasks.add(createDeploymentTask(deployedLabel, deployedItem));
+                            count++;
                         }
-                        count++;
                     }
                 }
             }
@@ -808,6 +810,11 @@ public class DeploymentServiceImpl implements DeploymentService {
     @Override
     public void bulkDelete(String site, String path) {
         dmPublishService.bulkDelete(site, path);
+    }
+
+    @Override
+    public Date getLastDeploymentDate(String site, String path) {
+        return deploymentHistoryProvider.getLastDeploymentDate(site, path);
     }
 
     public void setServicesConfig(ServicesConfig servicesConfig) {
