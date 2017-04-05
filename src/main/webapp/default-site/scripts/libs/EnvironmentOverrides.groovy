@@ -33,35 +33,37 @@ class EnvironmentOverrides {
    			}
 			result.language = language
 
-            try{
-                def roles = SecurityServices.getUserRoles(context, result.site, result.user)
+			if(result.user == null){
+				response.sendRedirect("/studio/#/login")
+			}else{
+				try{
+	                def roles = SecurityServices.getUserRoles(context, result.site, result.user)
 
-                if(roles!=null && roles.size() > 0) {
-                    if (roles.contains("admin")) {
-                        result.role = "admin"
-                    } else {
-                        result.role = roles[0]
-                    }
-                }
-                else {
-                    response.sendRedirect("/studio/#/sites?siteValidation="+result.site)
-                }
-            }catch(error){
-                response.sendRedirect("/studio/#/sites?siteValidation="+result.site)
-            }
+	                if(roles!=null && roles.size() > 0) {
+	                    if (roles.contains("admin")) {
+	                        result.role = "admin"
+	                    } else {
+	                        result.role = roles[0]
+	                    }
+	                }
+	                else {
+	                    response.sendRedirect("/studio/#/sites?siteValidation="+result.site)
+	                }
+	            }catch(error){
+	                response.sendRedirect("/studio/#/sites?siteValidation="+result.site)
+	            }
+	            def sites = SiteServices.getSitesPerUser(context, result.user, 0, 25)
 
-    		def sites = SiteServices.getSitesPerUser(context, result.user, 0, 25)
+				result.siteTitle = result.site +sites.size;
 
-			result.siteTitle = result.site +sites.size;
-
- 
-			 for(int j = 0; j < sites.size; j++) {
-		        def site = sites[j];
-		        if(site.siteId == result.site) {
-		     		result.siteTitle = site.name;
-		     		break;
-		     	}
-		     }
+				for(int j = 0; j < sites.size; j++) {
+			        def site = sites[j];
+			        if(site.siteId == result.site) {
+			     		result.siteTitle = site.name;
+			     		break;
+			     	}
+			    }
+			}            
 
 //		      result.previewServerUrl = config["preview-server-url"];
 //		      result.authoringServerUrl = config["authoring-server-url"]
