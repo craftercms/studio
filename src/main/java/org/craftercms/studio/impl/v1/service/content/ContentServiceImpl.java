@@ -87,20 +87,20 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     public InputStream getContent(String site, String path) throws ContentNotFoundException {
-        // TODO: SJ: Refactor in 2.7.x as this already exists in Crafter Core (which is part of the new Studio)
+        // TODO: SJ: Refactor in 4.x as this already exists in Crafter Core (which is part of the new Studio)
         return this._contentRepository.getContent(site, path);
     }
 
     @Override
     public String getContentAsString(String site, String path)  {
-        // TODO: SJ: Refactor in 2.7.x as this already exists in Crafter Core (which is part of the new Studio)
+        // TODO: SJ: Refactor in 4.x as this already exists in Crafter Core (which is part of the new Studio)
         String content = null;
 
         try {
             content = IOUtils.toString(_contentRepository.getContent(site, path));
         }
         catch(Exception err) {
-            logger.error("Failed to get content as string for path {0}", err, path);
+            logger.debug("Failed to get content as string for path {0}", err, path);
         }
 
         return content;
@@ -109,13 +109,13 @@ public class ContentServiceImpl implements ContentService {
     @Override
     public Document getContentAsDocument(String site, String path)
             throws DocumentException {
-        // TODO: SJ: Refactor in 2.7.x as this already exists in Crafter Core (which is part of the new Studio)
+        // TODO: SJ: Refactor in 4.x as this already exists in Crafter Core (which is part of the new Studio)
         Document retDocument = null;
         InputStream is = null;
         try {
             is = this.getContent(site, path);
         } catch (ContentNotFoundException e) {
-            logger.error("Content not found for path {0}", e, path);
+            logger.debug("Content not found for path {0}", e, path);
         }
 
         if(is != null) {
@@ -130,7 +130,7 @@ public class ContentServiceImpl implements ContentService {
                     }
                 }
                 catch (IOException err) {
-                    logger.error("Error closing stream for path {0}", err, path);
+                    logger.debug("Error closing stream for path {0}", err, path);
                 }
             }
         }
@@ -612,7 +612,7 @@ public class ContentServiceImpl implements ContentService {
                     }
                 }
                 catch(ContentNotFoundException eContentNotFound) {
-                    logger.error("Content not found while copying content for site {0} from {1} to {2}, new name is {3}", eContentNotFound, site, fromPath, toPath, copyPath);
+                    logger.debug("Content not found while copying content for site {0} from {1} to {2}, new name is {3}", eContentNotFound, site, fromPath, toPath, copyPath);
                 }
                 catch(DocumentException eParseException) {
                     logger.error("General Error while copying content for site {0} from {1} to {2}, new name is {3}", eParseException, site, fromPath, toPath, copyPath);
@@ -623,7 +623,7 @@ public class ContentServiceImpl implements ContentService {
             }
         }
         catch(ServiceException eServiceException) {
-            logger.error("General Error while copying content for site {0} from {1} to {2}, new name is {3}", eServiceException, site, fromPath, toPath, copyPath);
+            logger.info("General Error while copying content for site {0} from {1} to {2}, new name is {3}", eServiceException, site, fromPath, toPath, copyPath);
         }
 
         return retNewFileName;
@@ -1096,7 +1096,7 @@ public class ContentServiceImpl implements ContentService {
             }
         }
         else {
-            logger.error("no xml document could be loaded for site '{}' path '{}'", site, contentPath);
+            logger.debug("no xml document could be loaded for site '{}' path '{}'", site, contentPath);
         }
 
         return item;
@@ -1274,7 +1274,7 @@ public class ContentServiceImpl implements ContentService {
             }
         }
         catch(Exception err) {
-            logger.error("error constructing item for object at site '{}' path '{}'", err, site, path);
+            logger.debug("error constructing item for object at site '{}' path '{}'", err, site, path);
         }
 
         long executionTime = System.currentTimeMillis() - startTime;
@@ -1291,7 +1291,7 @@ public class ContentServiceImpl implements ContentService {
             try {
                 item = populateContentDrivenProperties(site, item);
             } catch (Exception err) {
-                logger.error("error constructing item for object at site '{}' path '{}'", err, site, path);
+                logger.debug("error constructing item for object at site '{}' path '{}'", err, site, path);
             }
         } else {
             item.setLevelDescriptor(item.name.equals(servicesConfig.getLevelDescriptorName(site)));
@@ -1490,8 +1490,7 @@ public class ContentServiceImpl implements ContentService {
             content = IOUtils.toString(getContentVersion(site, path, version));
         }
         catch(Exception err) {
-            logger.error("Failed to get content as string for path {0}", path);
-            logger.debug("Failed to get content as string for path {0}", err, path);
+            logger.debug("Failed to get content as string for path {0}, exception {1}", path, err);
         }
 
         return content;

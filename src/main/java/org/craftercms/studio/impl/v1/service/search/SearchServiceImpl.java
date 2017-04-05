@@ -30,7 +30,7 @@ public class SearchServiceImpl implements SearchService {
 
 	@Override
 	public void createIndex(final String siteId) throws ServiceException {
-		logger.error("Creating search index for site:" + siteId);
+		logger.info("Creating search index for site:" + siteId);
 		String requestUrl = studioConfiguration.getProperty(PREVIEW_SEARCH_CREATE_URL);
 
 		PostMethod postMethod = new PostMethod(requestUrl);
@@ -105,7 +105,7 @@ public class SearchServiceImpl implements SearchService {
 					+ postMethod.getResponseBodyAsString());
 			}
 
-			logger.error("Deleted search index for site:" + siteId + ". HTTP Status Code: " + status);
+			logger.info("Deleted search index for site:" + siteId + ". HTTP Status Code: " + status);
 		} catch (IOException e) {
 			logger.error("Error while deleting search index for site " + siteId, e);
 			throw new ServiceException("Error while deleting search index for site " + siteId, e);
