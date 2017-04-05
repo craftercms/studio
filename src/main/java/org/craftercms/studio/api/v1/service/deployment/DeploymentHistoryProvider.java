@@ -25,5 +25,24 @@ import java.util.List;
 
 public interface DeploymentHistoryProvider {
 
+    /**
+     * Get deployment history for given site
+     *
+     * @param site site id
+     * @param fromDate date from
+     * @param toDate date to
+     * @param filterType filter items by type
+     * @param numberOfItems number of items in result set
+     * @return
+     */
     List<DeploymentSyncHistory> getDeploymentHistory(String site, Date fromDate, Date toDate, String filterType, int numberOfItems);
+
+    /**
+     * Get last deployment date time for given site and path
+     *
+     * @param site site id
+     * @param path path
+     * @return last deployment date or null if never deployed
+     */
+    Date getLastDeploymentDate(String site, String path);
 }

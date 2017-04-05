@@ -85,4 +85,13 @@ public interface DeploymentService {
     void bulkDelete(String site, String path);
 
     List<DeploymentJobTO> getDeploymentJobs();
+
+    /**
+     * Get last deployment date time for given site and path
+     *
+     * @param site site id
+     * @param path path
+     * @return last deployment date or null if never deployed
+     */
+    Date getLastDeploymentDate(String site, String path);
 }
