@@ -24,13 +24,6 @@
 	<value>Sapien Veroeros</value>
 	<include>/site/components/features/sapien-veroeros.xml</include>
 	<disableFlattening>false</disableFlattening>
-	</item>	<item>	<value>Sed magna finibus</value>
-	<key>/site/components/features/sed-magna-finibus.xml</key>
-	<include>/site/components/features/sed-magna-finibus.xml</include>
-	</item>	<item>	<value>Portitor Ullamcorper</value>
-	<key>/site/components/features/portitor-ullamcorper.xml</key>
-	<include>/site/components/features/portitor-ullamcorper.xml</include>
-	<disableFlattening>false</disableFlattening>
 	</item></features>
 	<header/>
 	<hero_image>/static-assets/images/strawberries.jpg</hero_image>
