@@ -20,13 +20,11 @@ package org.craftercms.studio.api.v1.service.deployment;
 import org.craftercms.studio.api.v1.dal.CopyToEnvironment;
 import org.craftercms.studio.api.v1.dal.PublishToTarget;
 import org.craftercms.studio.api.v1.exception.ServiceException;
-import org.craftercms.studio.api.v1.to.ContentItemTO;
-import org.craftercms.studio.api.v1.to.DeploymentEndpointConfigTO;
-import org.craftercms.studio.api.v1.to.DeploymentJobTO;
-import org.craftercms.studio.api.v1.to.DmDeploymentTaskTO;
+import org.craftercms.studio.api.v1.to.*;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 	// document
@@ -63,6 +61,8 @@ public interface DeploymentService {
             String filterType);
 
     List<ContentItemTO> getScheduledItems(String site, String sort, boolean ascending, String subSort, boolean subAscending, String filterType) throws ServiceException;
+
+    Map<String, List<PublishingChannelTO>> getAvailablePublishingChannelGroups(String site, String path);
 
     void setupItemsForPublishingSync(String site, String environment, List<CopyToEnvironment> itemsToDeploy) throws DeploymentException;
 
