@@ -47,7 +47,7 @@ public class StudioCacheContext implements Context {
 
     @Override
     public boolean isMergingOn() {
-        return false;   // TODO: SJ: Validate with Dejan and Alfonso
+        return DEFAULT_MERGING_ON;
     }
 
     @Override
