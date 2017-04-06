@@ -274,11 +274,11 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 				JSONObject feedObject = JSONObject.fromObject(activityFeedEntries.get(index));
 				String id = (feedObject.containsKey(ACTIVITY_PROP_CONTENTID)) ? feedObject.getString(ACTIVITY_PROP_CONTENTID) : "";
 				ContentItemTO item = createActivityItem(site, feedObject, id);
-				item.scheduled = true;
-				item.setScheduled(true);
+				item.published = true;
+				item.setPublished(true);
 				Date pubDate = deploymentService.getLastDeploymentDate(site, id);
-				item.scheduledDate = pubDate;
-				item.setScheduledDate(pubDate);
+				item.publishedDate = pubDate;
+				item.setPublishedDate(pubDate);
 				contentItems.add(item);
 				remainingItem--;
 			}
