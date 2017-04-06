@@ -35,6 +35,7 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.AbstractRegistrableService;
 import org.craftercms.studio.api.v1.service.activity.ActivityService;
 import org.craftercms.studio.api.v1.service.content.ContentService;
+import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.objectstate.State;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
@@ -273,6 +274,11 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 				JSONObject feedObject = JSONObject.fromObject(activityFeedEntries.get(index));
 				String id = (feedObject.containsKey(ACTIVITY_PROP_CONTENTID)) ? feedObject.getString(ACTIVITY_PROP_CONTENTID) : "";
 				ContentItemTO item = createActivityItem(site, feedObject, id);
+				item.scheduled = true;
+				item.setScheduled(true);
+				Date pubDate = deploymentService.getLastDeploymentDate(site, id);
+				item.scheduledDate = pubDate;
+				item.setScheduledDate(pubDate);
 				contentItems.add(item);
 				remainingItem--;
 			}
@@ -442,4 +448,8 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 
     public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
+
+    protected DeploymentService deploymentService;
+    public DeploymentService getDeploymentService() { return deploymentService; }
+    public void setDeploymentService(DeploymentService deploymentService) { this.deploymentService = deploymentService; }
 }

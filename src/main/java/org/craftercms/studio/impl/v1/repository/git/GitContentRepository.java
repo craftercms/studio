@@ -970,6 +970,27 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         return toRet;
     }
 
+    @Override
+    public Date getLastDeploymentDate(String site, String path) {
+        Date toRet = null;
+        Repository publishedRepo = helper.getRepository(site, PUBLISHED);
+        try (Git git = new Git(publishedRepo)) {
+            Iterable<RevCommit> log = git.log()
+                    .all()
+                    .addPath(helper.getGitPath(path))
+                    .setMaxCount(1)
+                    .call();
+            Iterator<RevCommit> iter = log.iterator();
+            if (iter.hasNext()) {
+                RevCommit commit = iter.next();
+                toRet = new Date(1000l * commit.getCommitTime());
+            }
+        } catch (IOException | GitAPIException e) {
+            logger.error("Error while getting last deployment date for site " + site + ", path " + path, e);
+        }
+        return toRet;
+    }
+
     public void setServletContext(ServletContext ctx) { this.ctx = ctx; }
 
     public SecurityProvider getSecurityProvider() {
