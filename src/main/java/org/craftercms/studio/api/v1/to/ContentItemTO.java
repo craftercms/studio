@@ -73,6 +73,7 @@ public class ContentItemTO implements Serializable {
 	public boolean submitted;
 	public boolean submittedForDeletion;
 	public boolean scheduled;
+    public boolean published;
 	public boolean deleted;
 	public boolean inProgress;
 	public boolean live;
@@ -85,6 +86,7 @@ public class ContentItemTO implements Serializable {
     public boolean isLive;
     public boolean isSubmittedForDeletion;
     public boolean isScheduled;
+    public boolean isPublished;
     public boolean isNavigation;
     public boolean isDeleted;
     public boolean isNew;
@@ -103,6 +105,7 @@ public class ContentItemTO implements Serializable {
 	public String timezone;
 	public int numOfChildren;
 	public Date scheduledDate;
+    public Date publishedDate;
 	public String mandatoryParent;
 	public boolean isLevelDescriptor = false;
 	public String categoryRoot;
@@ -163,6 +166,8 @@ public class ContentItemTO implements Serializable {
         this.submitted = item.submitted;
         this.submittedForDeletion = item.submittedForDeletion;
         this.scheduled = item.scheduled;
+        this.published = item.published;
+
         this.deleted = item.deleted;
         this.inProgress = item.inProgress;
         this.live = item.live;
@@ -173,6 +178,7 @@ public class ContentItemTO implements Serializable {
         this.isLive = item.isLive;
         this.isSubmittedForDeletion = item.isSubmittedForDeletion;
         this.isScheduled = item.isScheduled;
+        this.isPublished = item.isPublished;
         this.isNavigation = item.isNavigation;
         this.isDeleted = item.isDeleted;
         this.isNew = item.isNew;
@@ -189,6 +195,7 @@ public class ContentItemTO implements Serializable {
         this.timezone = item.timezone;
         this.numOfChildren = item.numOfChildren;
         this.scheduledDate = item.scheduledDate;
+        this.publishedDate = item.publishedDate;
         this.mandatoryParent = item.mandatoryParent;
         this.isLevelDescriptor = item.isLevelDescriptor;
         this.categoryRoot = item.categoryRoot;
@@ -293,6 +300,9 @@ public class ContentItemTO implements Serializable {
 	public Date getScheduledDate() { return scheduledDate; }
 	public void setScheduledDate(Date scheduledDate) { this.scheduledDate = scheduledDate; }
 
+    public Date getPublishedDate() { return publishedDate; }
+    public void setPublishedDate(Date publishedDate) { this.publishedDate = publishedDate; }
+
 	public String getMandatoryParent() { return mandatoryParent; }
 	public void setMandatoryParent(String mandatoryParent) { this.mandatoryParent = mandatoryParent; }
 
@@ -316,6 +326,9 @@ public class ContentItemTO implements Serializable {
 
 	public boolean isScheduled() { return scheduled; }
 	public void setScheduled(boolean scheduled) { this.scheduled = scheduled; }
+
+    public boolean isPublished() { return published; }
+    public void setPublished(boolean published) { this.published = published; }
 
 	public boolean isDeleted() { return deleted; }
 	public void setDeleted(boolean deleted) { this.deleted = deleted; }
