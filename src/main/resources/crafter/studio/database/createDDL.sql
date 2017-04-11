@@ -103,48 +103,6 @@ CREATE TABLE IF NOT EXISTS `cstudio_copytoenvironment` (
   DEFAULT CHARSET =utf8
   ROW_FORMAT=DYNAMIC ;
 
-CREATE TABLE IF NOT EXISTS `cstudio_publishtotarget` (
-  `id`               BIGINT       NOT NULL AUTO_INCREMENT,
-  `site`             VARCHAR(50)  NOT NULL,
-  `environment`      VARCHAR(20)  NOT NULL,
-  `path`             TEXT         NOT NULL,
-  `oldpath`          TEXT         NULL,
-  `username`         VARCHAR(255) NOT NULL,
-  `version`          BIGINT       NOT NULL,
-  `action`           VARCHAR(20)  NOT NULL,
-  `contenttypeclass` VARCHAR(20)  NULL,
-  PRIMARY KEY (`id`),
-  INDEX `cstudio_ptt_site_idx` (`site` ASC),
-  INDEX `cstudio_ptt_environment_idx` (`environment` ASC),
-  INDEX `cstudio_ptt_path` (`path`(1000) ASC),
-  INDEX `cstudio_ptt_sitepath_idx` (`site` ASC, `path`(900) ASC)
-)
-  ENGINE =InnoDB
-  DEFAULT CHARSET =utf8
-  ROW_FORMAT=DYNAMIC ;
-
-CREATE TABLE IF NOT EXISTS `cstudio_deploymentsynchistory` (
-  `id`               BIGINT       NOT NULL AUTO_INCREMENT,
-  `syncdate`         DATETIME     NOT NULL,
-  `site`             VARCHAR(50)  NOT NULL,
-  `environment`      VARCHAR(20)  NOT NULL,
-  `path`             TEXT         NOT NULL,
-  `target`           VARCHAR(50)  NOT NULL,
-  `username`         VARCHAR(255) NOT NULL,
-  `contenttypeclass` VARCHAR(25)  NULL,
-  PRIMARY KEY (`id`),
-  INDEX `cs_depsynchist_site_idx` (`site` ASC),
-  INDEX `cs_depsynchist_env_idx` (`environment` ASC),
-  INDEX `cs_depsynchist_path_idx` (`path`(1000) ASC),
-  INDEX `cs_depsynchist_sitepath_idx` (`site` ASC, `path`(900) ASC),
-  INDEX `cs_depsynchist_target_idx` (`target` ASC),
-  INDEX `cs_depsynchist_user_idx` (`username` ASC),
-  INDEX `cs_depsynchist_ctc_idx` (`contenttypeclass` ASC)
-)
-  ENGINE =InnoDB
-  DEFAULT CHARSET =utf8
-  ROW_FORMAT=DYNAMIC ;
-
 CREATE TABLE IF NOT EXISTS `cstudio_site` (
   `id` BIGINT(20) NOT NULL AUTO_INCREMENT,
   `site_id` VARCHAR(255) NOT NULL,

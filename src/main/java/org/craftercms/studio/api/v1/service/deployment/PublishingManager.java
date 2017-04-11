@@ -18,11 +18,9 @@
 package org.craftercms.studio.api.v1.service.deployment;
 
 import org.craftercms.studio.api.v1.dal.CopyToEnvironment;
-import org.craftercms.studio.api.v1.dal.PublishToTarget;
 import org.craftercms.studio.api.v1.ebus.DeploymentItem;
 import org.craftercms.studio.api.v1.to.DeploymentEndpointConfigTO;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -31,23 +29,9 @@ import java.util.Set;
  */
 public interface PublishingManager {
 
-    boolean checkConnection(DeploymentEndpointConfigTO target);
-
-    long getTargetVersion(DeploymentEndpointConfigTO target, String site);
-
-    List<PublishToTarget> getItemsToSync(String site, long targetVersion, List<String> environments);
-
-    void deployItemsToTarget(String site, List<PublishToTarget> filteredItems, DeploymentEndpointConfigTO target) throws ContentNotFoundForPublishingException, UploadFailedException;
-
-    long setTargetVersion(DeploymentEndpointConfigTO target, long newVersion, String site);
-
     List<CopyToEnvironment> getItemsReadyForDeployment(String site, String environment);
 
     DeploymentItem processItem(CopyToEnvironment item) throws DeploymentException;
-
-    void setupItemsForPublishingSync(String site, String environment, List<CopyToEnvironment> itemsToDeploy) throws DeploymentException;
-
-    void insertDeploymentHistory(DeploymentEndpointConfigTO target, List<PublishToTarget> filteredItems, Date date) throws DeploymentException;
 
     void markItemsCompleted(String site, String environment, List<CopyToEnvironment> processedItems) throws DeploymentException;
 

@@ -1822,7 +1822,7 @@ public class ContentServiceImpl implements ContentService {
             return (0 + afterOrder) / 2;
         } else if (afterOrder == null) {
             logger.info("afterOrder == null");
-            return dmPageNavigationOrderService.getNewNavOrder(site, ContentUtils.getParentUrl(relativePath.replace("/" + DmConstants.INDEX_FILE, "")));
+            return dmPageNavigationOrderService.getNewNavOrder(site, ContentUtils.getParentUrl(relativePath.replace("/" + DmConstants.INDEX_FILE, "")), beforeOrder);
         } else {
             //return (beforeOrder + afterOrder) / 2;
             return computeReorder(site, relativePath, beforeOrderTO, afterOrderTO, orderName);

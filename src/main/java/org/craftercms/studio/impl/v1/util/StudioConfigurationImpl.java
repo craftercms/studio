@@ -63,9 +63,11 @@ public class StudioConfigurationImpl implements StudioConfiguration {
                 Yaml yaml = new Yaml();
 
                 overrideProperties = yaml.loadAs(in, overrideProperties.getClass());
-                logger.debug("Loaded additional configuration from location: " + baseProperties.get
-                    (STUDIO_CONFIG_OVERRIDE_CONFIG) + "\n" +
-                    overrideProperties.toString());
+                if (overrideProperties != null) {
+                    logger.debug("Loaded additional configuration from location: " + baseProperties.get
+                            (STUDIO_CONFIG_OVERRIDE_CONFIG) + "\n" +
+                            overrideProperties.toString());
+                }
             } catch (IOException e) {
                 logger.error("Failed to load studio configuration from: " + baseProperties.get(STUDIO_CONFIG_OVERRIDE_CONFIG));
             }
@@ -75,8 +77,10 @@ public class StudioConfigurationImpl implements StudioConfiguration {
         for (Map.Entry<String, Object> entry: baseProperties.entrySet()) {
             properties.put(entry.getKey(), String.valueOf(entry.getValue()));
         }
-        for (Map.Entry<String, Object> entry: overrideProperties.entrySet()) {
-            properties.put(entry.getKey(), String.valueOf(entry.getValue()));
+        if (overrideProperties != null) {
+            for (Map.Entry<String, Object> entry : overrideProperties.entrySet()) {
+                properties.put(entry.getKey(), String.valueOf(entry.getValue()));
+            }
         }
     }
 

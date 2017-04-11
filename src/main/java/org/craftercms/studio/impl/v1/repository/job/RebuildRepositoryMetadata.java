@@ -20,7 +20,6 @@
 package org.craftercms.studio.impl.v1.repository.job;
 
 import org.craftercms.studio.api.v1.dal.CopyToEnvironmentMapper;
-import org.craftercms.studio.api.v1.dal.PublishToTargetMapper;
 import org.craftercms.studio.api.v1.job.CronJobContext;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -103,13 +102,6 @@ public class RebuildRepositoryMetadata {
         } catch (Exception error) {
             logger.error("Failed to delete deployment queue for site " + site);
         }
-        try {
-            // Delete target sync queue
-            logger.debug("Deleting target sync queue for site " + site);
-            publishToTargetMapper.deleteDeploymentDataForSite(params);
-        } catch (Exception error) {
-            logger.error("Failed to delete target sync queue for site " + site);
-        }
 
         try {
             // Delete content metadata
@@ -144,9 +136,6 @@ public class RebuildRepositoryMetadata {
 
     @Autowired
     protected CopyToEnvironmentMapper copyToEnvironmentMapper;
-
-    @Autowired
-    protected PublishToTargetMapper publishToTargetMapper;
 
     protected ObjectMetadataManager objectMetadataManager;
     protected ObjectStateService objectStateService;

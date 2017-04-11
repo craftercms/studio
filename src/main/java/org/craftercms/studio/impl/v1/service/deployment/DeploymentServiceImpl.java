@@ -18,7 +18,6 @@
 package org.craftercms.studio.impl.v1.service.deployment;
 
 import net.sf.json.JSONObject;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.FastArrayList;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
@@ -46,7 +45,6 @@ import org.craftercms.studio.api.v1.util.DmContentItemComparator;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.impl.v1.service.deployment.job.DeployContentToEnvironmentStore;
-import org.craftercms.studio.impl.v1.service.deployment.job.PublishContentToDeploymentTarget;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -284,21 +282,17 @@ public class DeploymentServiceImpl implements DeploymentService {
         Map<String, String> params = new HashMap<String, String>();
         params.put("site", site);
         copyToEnvironmentMapper.deleteDeploymentDataForSite(params);
-        publishToTargetMapper.deleteDeploymentDataForSite(params);
-        deploymentSyncHistoryMapper.deleteDeploymentDataForSite(params);
         signalWorkersToContinue();
     }
 
 
     private void signalWorkersToContinue() {
         DeployContentToEnvironmentStore.signalToStop(false);
-        PublishContentToDeploymentTarget.signalToStop(false);
     }
 
     private void signalWorkersToStop() {
         DeployContentToEnvironmentStore.signalToStop(true);
-        PublishContentToDeploymentTarget.signalToStop(true);
-        while (DeployContentToEnvironmentStore.isRunning() && PublishContentToDeploymentTarget.isRunning()) {
+        while (DeployContentToEnvironmentStore.isRunning()) {
             try {
                 wait(1000);
             } catch (InterruptedException e) {
@@ -462,7 +456,6 @@ public class DeploymentServiceImpl implements DeploymentService {
      *
      * @param site
      * @param launchDate
-     * @param node
      * @param scheduledItems
      * @param comparator
      * @param displayPatterns
@@ -645,79 +638,6 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     @Override
-    public void setupItemsForPublishingSync(String site, String environment, List<CopyToEnvironment> itemsToDeploy) throws DeploymentException {
-        List<PublishToTarget> items = createItems(site, environment, itemsToDeploy);
-        for (PublishToTarget item : items) {
-            publishToTargetMapper.insertItemForTargetSync(item);
-        }
-    }
-
-    private List<PublishToTarget> createItems(String site, String environment, List<CopyToEnvironment> itemsToDeploy) {
-        Calendar cal = Calendar.getInstance();
-        long currentTimestamp = cal.getTimeInMillis();
-        List<PublishToTarget> newItems = new ArrayList<PublishToTarget>(itemsToDeploy.size());
-        for (CopyToEnvironment itemToDeploy : itemsToDeploy) {
-            PublishToTarget item = new PublishToTarget();
-            item.setId(++PSD_AUTOINCREMENT);
-            item.setSite(site);
-            item.setEnvironment(itemToDeploy.getEnvironment());
-            item.setPath(itemToDeploy.getPath());
-            item.setUsername(itemToDeploy.getUser());
-            item.setVersion(currentTimestamp);
-            if (StringUtils.equals(itemToDeploy.getAction(), CopyToEnvironment.Action.NEW)) {
-                item.setAction(PublishToTarget.Action.NEW);
-            } else if (StringUtils.equals(itemToDeploy.getAction(), CopyToEnvironment.Action.MOVE)) {
-                item.setAction(PublishToTarget.Action.MOVE);
-                item.setOldPath(itemToDeploy.getOldPath());
-            } else if (StringUtils.equals(itemToDeploy.getAction(), CopyToEnvironment.Action.DELETE)) {
-                item.setAction(PublishToTarget.Action.DELETE);
-                item.setOldPath(itemToDeploy.getOldPath());
-            } else {
-                item.setAction(PublishToTarget.Action.UPDATE);
-            }
-            item.setContentTypeClass(itemToDeploy.getContentTypeClass());
-            newItems.add(item);
-        }
-        return newItems;
-    }
-
-    @Override
-    public List<PublishToTarget> getItemsToSync(String site, long targetVersion, List<String> environments) {
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put("site", site);
-        params.put("version", targetVersion);
-        params.put("environments", environments);
-        List<PublishToTarget> queue = publishToTargetMapper.getItemsReadyForTargetSync(params);
-        return queue;
-    }
-
-    @Override
-    public void insertDeploymentHistory(DeploymentEndpointConfigTO target, List<PublishToTarget> publishedItems, Date publishingDate) {
-        List<DeploymentSyncHistory> items = createItems(target, publishedItems, publishingDate);
-        for (DeploymentSyncHistory item : items) {
-            deploymentSyncHistoryMapper.insertDeploymentSyncHistoryItem(item);
-        }
-    }
-
-    private List<DeploymentSyncHistory> createItems(DeploymentEndpointConfigTO target, List<PublishToTarget> publishedItems, Date publishingDate) {
-        List<DeploymentSyncHistory> items = new ArrayList<DeploymentSyncHistory>(publishedItems.size());
-
-        for (PublishToTarget item : publishedItems) {
-            DeploymentSyncHistory historyItem = new DeploymentSyncHistory();
-            historyItem.setSite(item.getSite());
-            historyItem.setPath(item.getPath());
-            historyItem.setEnvironment(item.getEnvironment());
-            historyItem.setSyncDate(publishingDate);
-            historyItem.setTarget(target.getName());
-            historyItem.setUser(item.getUsername());
-            historyItem.setContentTypeClass(item.getContentTypeClass());
-            items.add(historyItem);
-        }
-
-        return items;
-    }
-
-    @Override
     public void syncAllContentToPreview(String site) throws ServiceException {
         eventService.firePreviewSyncEvent(site);
     }
@@ -744,15 +664,6 @@ public class DeploymentServiceImpl implements DeploymentService {
         params.put("states", states);
         params.put("now", new Date());
         return copyToEnvironmentMapper.getItemsBySiteAndStates(params);
-    }
-
-    @Override
-    public List<PublishToTarget> getSyncTargetQueue(String site, String endpoint, long targetVersion) {
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put("site", site);
-        params.put("version", targetVersion);
-        params.put("environments", getEndpontEnvironments(site, endpoint));
-        return publishToTargetMapper.getItemsReadyForTargetSync(params);
     }
 
     protected Set<String> getEndpontEnvironments(String site, String endpoint) {
@@ -889,11 +800,6 @@ public class DeploymentServiceImpl implements DeploymentService {
     protected DeploymentHistoryProvider deploymentHistoryProvider;
 
     @Autowired
-    protected DeploymentSyncHistoryMapper deploymentSyncHistoryMapper;
-
-    @Autowired
     protected CopyToEnvironmentMapper copyToEnvironmentMapper;
 
-    @Autowired
-    protected PublishToTargetMapper publishToTargetMapper;
 }

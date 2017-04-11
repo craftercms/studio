@@ -33,11 +33,11 @@ public class PageNavigationOrder implements Serializable {
     public String getPath() { return path; }
     public void setPath(String path) { this.path = path; }
 
-    public float getMaxCount() { return maxCount; }
-    public void setMaxCount(float maxCount) { this.maxCount = maxCount; }
+    public double getMaxCount() { return maxCount; }
+    public void setMaxCount(double maxCount) { this.maxCount = maxCount; }
 
     protected String folderId;
     protected String site;
     protected String path;
-    protected float maxCount;
+    protected double maxCount;
 }

@@ -51,11 +51,16 @@ public class DmPageNavigationOrderServiceImpl extends AbstractRegistrableService
     }
 
     @Override
-    public float getNewNavOrder(String site, String path) {
+    public double getNewNavOrder(String site, String path) {
+        return getNewNavOrder(site, path, -1);
+    }
+
+    @Override
+    public double getNewNavOrder(String site, String path, double currentMaxNavOrder) {
 
         String lockId = site + ":" + path;
         generalLockService.lock(lockId);
-        float lastNavOrder = 1000F;
+        double lastNavOrder = 1000D;
         try {
             Map<String, String> params = new HashMap<String, String>();
             params.put("site", site);
@@ -74,11 +79,17 @@ public class DmPageNavigationOrderServiceImpl extends AbstractRegistrableService
                     } else {
                         pageNavigationOrder.setFolderId(itemTreeTO.getNodeRef());
                     }
-                    pageNavigationOrder.setMaxCount(1000F * itemTreeTO.getNumOfChildren());
+                    if (currentMaxNavOrder < 0) {
+                        pageNavigationOrder.setMaxCount(1000F * itemTreeTO.getNumOfChildren());
+                    } else {
+                        double newMaxCount = currentMaxNavOrder + getPageNavigationOrderIncrement();
+                        pageNavigationOrder.setMaxCount(newMaxCount);
+                    }
+
                 }
                 pageNavigationOrderMapper.insert(pageNavigationOrder);
             } else {
-                float newMaxCount = pageNavigationOrder.getMaxCount() + getPageNavigationOrderIncrement();
+                double newMaxCount = pageNavigationOrder.getMaxCount() + getPageNavigationOrderIncrement();
                 pageNavigationOrder.setMaxCount(newMaxCount);
                 pageNavigationOrderMapper.update(pageNavigationOrder);
             }
@@ -138,6 +149,7 @@ public class DmPageNavigationOrderServiceImpl extends AbstractRegistrableService
         pageNavigationOrderMapper.deleteSequencesForSite(params);
     }
 
+    @Override
     public int getPageNavigationOrderIncrement() {
         int toReturn = Integer.parseInt(studioConfiguration.getProperty(PAGE_NAVIGATION_ORDER_INCREMENT));
         return toReturn;
