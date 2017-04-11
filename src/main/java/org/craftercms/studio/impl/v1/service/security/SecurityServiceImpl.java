@@ -515,7 +515,7 @@ public class SecurityServiceImpl implements SecurityService {
 
     @Override
     public boolean createUser(String username, String password, String firstName, String lastName, String email) throws UserAlreadyExistsException {
-        return securityProvider.createUser(username, password, firstName, lastName, email);
+        return securityProvider.createUser(username, password, firstName, lastName, email, false);
     }
 
     @Override
@@ -549,12 +549,12 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
-    public boolean updateUser(String username, String firstName, String lastName, String email) throws UserNotFoundException {
+    public boolean updateUser(String username, String firstName, String lastName, String email) throws UserNotFoundException, UserExternallyManagedException {
         return securityProvider.updateUser(username, firstName, lastName, email);
     }
 
     @Override
-    public boolean enableUser(String username, boolean enabled) throws UserNotFoundException {
+    public boolean enableUser(String username, boolean enabled) throws UserNotFoundException, UserExternallyManagedException {
         return securityProvider.enableUser(username, enabled);
     }
 
@@ -643,7 +643,7 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
-    public Map<String, Object> forgotPassword(String username) throws ServiceException, UserNotFoundException {
+    public Map<String, Object> forgotPassword(String username) throws ServiceException, UserNotFoundException, UserExternallyManagedException {
         logger.debug("Getting user profile for " + username);
         Map<String, Object> userProfile = securityProvider.getUserProfile(username);
         boolean success = false;
@@ -652,23 +652,27 @@ public class SecurityServiceImpl implements SecurityService {
             logger.info("User profile not found for " + username);
             throw new UserNotFoundException();
         } else {
-            if (userProfile.get("email") != null) {
-                String email = userProfile.get("email").toString();
-
-                logger.debug("Creating security token for forgot password");
-                long timestamp = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(Long.parseLong(studioConfiguration
-                    .getProperty(SECURITY_FORGOT_PASSWORD_TOKEN_TIMEOUT)));
-                String salt = studioConfiguration.getProperty(SECURITY_CIPHER_SALT);
-
-                String token = username + "|" + timestamp + "|" + salt;
-                String hashedToken = encryptToken(token);
-                logger.debug("Sending forgot password email to " + email);
-                sendForgotPasswordEmail(email, hashedToken);
-                success = true;
-                message = "OK";
+            if (Boolean.parseBoolean(userProfile.get("externally_managed").toString())) {
+                throw new UserExternallyManagedException();
             } else {
-                logger.info("User " + username + " does not have assigned email with account");
-                throw new ServiceException("User " + username + " does not have assigned email with account");
+                if (userProfile.get("email") != null) {
+                    String email = userProfile.get("email").toString();
+
+                    logger.debug("Creating security token for forgot password");
+                    long timestamp = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(Long.parseLong(studioConfiguration
+                            .getProperty(SECURITY_FORGOT_PASSWORD_TOKEN_TIMEOUT)));
+                    String salt = studioConfiguration.getProperty(SECURITY_CIPHER_SALT);
+
+                    String token = username + "|" + timestamp + "|" + salt;
+                    String hashedToken = encryptToken(token);
+                    logger.debug("Sending forgot password email to " + email);
+                    sendForgotPasswordEmail(email, hashedToken);
+                    success = true;
+                    message = "OK";
+                } else {
+                    logger.info("User " + username + " does not have assigned email with account");
+                    throw new ServiceException("User " + username + " does not have assigned email with account");
+                }
             }
         }
         Map<String, Object> toRet = new HashMap<String, Object>();
@@ -678,18 +682,28 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
-    public boolean validateToken(String token) {
+    public boolean validateToken(String token) throws UserNotFoundException, UserExternallyManagedException {
         boolean toRet = false;
         String decryptedToken = decryptToken(token);
         if (StringUtils.isNotEmpty(decryptedToken)) {
             StringTokenizer tokenElements = new StringTokenizer(decryptedToken, "|");
             if (tokenElements.countTokens() == 3) {
                 String username = tokenElements.nextToken();
-                long tokenTimestamp = Long.parseLong(tokenElements.nextToken());
-                if (tokenTimestamp < System.currentTimeMillis()) {
-                    toRet = false;
+                Map<String, Object> userProfile = securityProvider.getUserProfile(username);
+                if (userProfile == null || userProfile.isEmpty()) {
+                    logger.info("User profile not found for " + username);
+                    throw new UserNotFoundException();
                 } else {
-                    toRet = true;
+                    if (Boolean.parseBoolean(userProfile.get("externally_managed").toString())) {
+                        throw new UserExternallyManagedException();
+                    } else {
+                        long tokenTimestamp = Long.parseLong(tokenElements.nextToken());
+                        if (tokenTimestamp < System.currentTimeMillis()) {
+                            toRet = false;
+                        } else {
+                            toRet = true;
+                        }
+                    }
                 }
             }
         }
@@ -749,12 +763,12 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
-    public boolean changePassword(String username, String current, String newPassword) throws UserNotFoundException, PasswordDoesNotMatchException {
+    public boolean changePassword(String username, String current, String newPassword) throws UserNotFoundException, PasswordDoesNotMatchException, UserExternallyManagedException {
         return securityProvider.changePassword(username, current, newPassword);
     }
 
     @Override
-    public Map<String, Object> setUserPassword(String token, String newPassword) throws UserNotFoundException {
+    public Map<String, Object> setUserPassword(String token, String newPassword) throws UserNotFoundException, UserExternallyManagedException {
         Map<String, Object> toRet = new HashMap<String, Object>();
         toRet.put("username", StringUtils.EMPTY);
         toRet.put("success", false);
@@ -791,7 +805,7 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
-    public boolean resetPassword(String username, String newPassword) throws UserNotFoundException {
+    public boolean resetPassword(String username, String newPassword) throws UserNotFoundException, UserExternallyManagedException {
         String currentUser = getCurrentUser();
         if (isAdmin(currentUser)) {
             return securityProvider.setUserPassword(username, newPassword);

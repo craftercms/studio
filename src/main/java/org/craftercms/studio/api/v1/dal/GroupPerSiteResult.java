@@ -27,6 +27,7 @@ public class GroupPerSiteResult {
     protected String firstName;
     protected String lastName;
     protected String email;
+    protected int externallyManaged;
 
     public String getGroupName() { return groupName; }
     public void setGroupName(String groupName) { this.groupName = groupName; }
@@ -45,4 +46,7 @@ public class GroupPerSiteResult {
 
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
+
+    public int getExternallyManaged() { return externallyManaged; }
+    public void setExternallyManaged(int externallyManaged) { this.externallyManaged = externallyManaged; }
 }

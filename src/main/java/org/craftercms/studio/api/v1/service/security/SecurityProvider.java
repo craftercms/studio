@@ -95,9 +95,10 @@ public interface SecurityProvider {
      * @param firstName User's first name
      * @param lastName User's last name
      * @param email User's email address
+     * @param externallyManaged true if externally managed, otherwise false
      * @return true if success, otherwise false
      */
-    boolean createUser(String username, String password, String firstName, String lastName, String email) throws UserAlreadyExistsException;
+    boolean createUser(String username, String password, String firstName, String lastName, String email, boolean externallyManaged) throws UserAlreadyExistsException;
 
     /**
      * Delete user with given username
@@ -116,7 +117,7 @@ public interface SecurityProvider {
      * @param email
      * @return
      */
-    boolean updateUser(String username, String firstName, String lastName, String email) throws UserNotFoundException;
+    boolean updateUser(String username, String firstName, String lastName, String email) throws UserNotFoundException, UserExternallyManagedException;
 
     /**
      * Enable/disable user with given username
@@ -125,7 +126,7 @@ public interface SecurityProvider {
      * @param enabled true: enable user; false: disable user
      * @return
      */
-    boolean enableUser(String username, boolean enabled) throws UserNotFoundException;
+    boolean enableUser(String username, boolean enabled) throws UserNotFoundException, UserExternallyManagedException;
 
     /**
      * Get status for given user
@@ -268,7 +269,7 @@ public interface SecurityProvider {
      * @param newPassword new password
      * @return
      */
-    boolean changePassword(String username, String current, String newPassword) throws UserNotFoundException, PasswordDoesNotMatchException;
+    boolean changePassword(String username, String current, String newPassword) throws UserNotFoundException, PasswordDoesNotMatchException, UserExternallyManagedException;
 
     /**
      * Set user password
@@ -276,7 +277,7 @@ public interface SecurityProvider {
      * @param newPassword new password
      * @return
      */
-    boolean setUserPassword(String username, String newPassword) throws UserNotFoundException;
+    boolean setUserPassword(String username, String newPassword) throws UserNotFoundException, UserExternallyManagedException;
 
     /**
      * Check if given user is a system user

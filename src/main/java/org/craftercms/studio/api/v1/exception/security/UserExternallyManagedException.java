@@ -14,32 +14,29 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
+package org.craftercms.studio.api.v1.exception.security;
 
-import org.craftercms.studio.api.v1.exception.security.UserExternallyManagedException
-import scripts.api.SecurityServices
+public class UserExternallyManagedException extends Exception {
+    private static final long serialVersionUID = -316775558996268318L;
 
-def result = [:]
-def token = params.token
-
-def context = SecurityServices.createContext(applicationContext, request)
-try {
-    def success = SecurityServices.validateToken(context, token)
-    if (success) {
-        result.message = "OK"
-        response.setStatus(200)
-    } else {
-        result.message = "Unauthorized"
-        response.setStatus(401)
+    public UserExternallyManagedException() {
     }
-} catch (UserExternallyManagedException e) {
-    response.setStatus(403)
-    result.message = "Externally managed user"
-} catch (Exception e) {
-    response.setStatus(500)
-    result.message = "Internal server error: \n" + e
-}
 
-return result
+    public UserExternallyManagedException(String message) {
+        super(message);
+    }
+
+    public UserExternallyManagedException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public UserExternallyManagedException(Throwable cause) {
+        super(cause);
+    }
+
+    public UserExternallyManagedException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+        super(message, cause, enableSuppression, writableStackTrace);
+    }
+}

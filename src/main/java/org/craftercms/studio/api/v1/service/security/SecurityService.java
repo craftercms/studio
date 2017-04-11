@@ -103,7 +103,7 @@ public interface SecurityService {
      * @param email
      * @return
      */
-    boolean updateUser(String username, String firstName, String lastName, String email) throws UserNotFoundException;
+    boolean updateUser(String username, String firstName, String lastName, String email) throws UserNotFoundException, UserExternallyManagedException;
 
     /**
      * Enable/disable user with given username
@@ -112,7 +112,7 @@ public interface SecurityService {
      * @param enabled true: enable user; false: disable user
      * @return
      */
-    boolean enableUser(String username, boolean enabled) throws UserNotFoundException;
+    boolean enableUser(String username, boolean enabled) throws UserNotFoundException, UserExternallyManagedException;
 
     /**
      * Create group with given parameters
@@ -268,7 +268,7 @@ public interface SecurityService {
      * @param username username
      * @return
      */
-    Map<String, Object> forgotPassword(String username) throws ServiceException, UserNotFoundException;
+    Map<String, Object> forgotPassword(String username) throws ServiceException, UserNotFoundException, UserExternallyManagedException;
 
     /**
      * Forgot password token to validate
@@ -276,7 +276,7 @@ public interface SecurityService {
      * @param username token
      * @return
      */
-    boolean validateToken(String token);
+    boolean validateToken(String token) throws UserNotFoundException, UserExternallyManagedException;
 
     /**
      * Change password
@@ -286,7 +286,7 @@ public interface SecurityService {
      * @param newPassword new password
      * @return
      */
-    boolean changePassword(String username, String current, String newPassword) throws UserNotFoundException, PasswordDoesNotMatchException;
+    boolean changePassword(String username, String current, String newPassword) throws UserNotFoundException, PasswordDoesNotMatchException, UserExternallyManagedException;
 
     /**
      * Set user password - forgot password token
@@ -295,7 +295,7 @@ public interface SecurityService {
      * @param newPassword new password
      * @return
      */
-    Map<String, Object> setUserPassword(String token, String newPassword) throws UserNotFoundException;
+    Map<String, Object> setUserPassword(String token, String newPassword) throws UserNotFoundException, UserExternallyManagedException;
 
     /**
      * Reset user password
@@ -304,7 +304,7 @@ public interface SecurityService {
      * @param newPassword new password
      * @return
      */
-    boolean resetPassword(String username, String newPassword) throws UserNotFoundException;
+    boolean resetPassword(String username, String newPassword) throws UserNotFoundException, UserExternallyManagedException;
 
     /**
      * Validate user's active session

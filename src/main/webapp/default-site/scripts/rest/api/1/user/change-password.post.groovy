@@ -19,6 +19,7 @@
 
 import groovy.json.JsonSlurper
 import org.craftercms.studio.api.v1.exception.security.PasswordDoesNotMatchException
+import org.craftercms.studio.api.v1.exception.security.UserExternallyManagedException
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException
 import scripts.api.SecurityServices
 
@@ -47,6 +48,9 @@ try {
 } catch (PasswordDoesNotMatchException e) {
     response.setStatus(401)
     result.message = "Unauthorized"
+} catch (UserExternallyManagedException e) {
+    response.setStatus(403)
+    result.message = "Externally managed user"
 } catch (UserNotFoundException e) {
     response.setStatus(404)
     result.message = "User not found"

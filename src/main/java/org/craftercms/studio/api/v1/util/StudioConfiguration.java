@@ -118,6 +118,16 @@ public interface StudioConfiguration {
     String SECURITY_FORGOT_PASSWORD_MESSAGE_TEXT = "studio.security.forgotPassword.message.text";
     String SECURITY_FORGOT_PASSWORD_TOKEN_TIMEOUT = "studio.security.forgotPassword.token.timeout";
 
+    /** LDAP */
+    String SECURITY_LDAP_SERVER_URL = "studio.security.ldap.serverUrl";
+    String SECURITY_LDAP_BIND_DN = "studio.security.ldap.bindDN";
+    String SECURITY_LDAP_BIND_PASSWORD = "studio.security.ldap.bindPassword";
+    String SECURITY_LDAP_BASE_CONTEXT = "studio.security.ldap.baseContext";
+    String SECURITY_LDAP_USER_ATTRIBUTE_USERNAME = "studio.security.ldap.userAttribute.username";
+    String SECURITY_LDAP_USER_ATTRIBUTE_FIRST_NAME = "studio.security.ldap.userAttribute.firstName";
+    String SECURITY_LDAP_USER_ATTRIBUTE_LAST_NAME = "studio.security.ldap.userAttribute.lastName";
+    String SECURITY_LDAP_USER_ATTRIBUTE_EMAIL = "studio.security.ldap.userAttribute.email";
+
     /** Page Navigation Order Service */
     String PAGE_NAVIGATION_ORDER_INCREMENT = "studio.pageNavigationOrder.increment";
 

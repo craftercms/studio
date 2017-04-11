@@ -28,6 +28,7 @@ public class UserProfileResult {
     protected String groupName;
     protected String siteId;
     protected String siteName;
+    protected int externallyManaged;
 
     public String getUsername() { return username; }
     public void setUsername(String username) { this.username = username; }
@@ -49,4 +50,7 @@ public class UserProfileResult {
 
     public String getSiteName() { return siteName; }
     public void setSiteName(String siteName) { this.siteName = siteName; }
+
+    public int getExternallyManaged() { return externallyManaged; }
+    public void setExternallyManaged(int externallyManaged) { this.externallyManaged = externallyManaged; }
 }

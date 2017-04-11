@@ -214,7 +214,7 @@
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="emailService" ref="mailSender"/>
         <property name="emailServiceNoAuth" ref="mailSenderNoAuth"/>
-        <property name="userDetailsManager" ref="studioUsesDetailsManager" />
+        <property name="userDetailsManager" ref="studioUserDetailsManager" />
     </bean>
 
     <bean id="cstudioContentTypeService" class="org.craftercms.studio.impl.v1.service.content.ContentTypeServiceImpl" >

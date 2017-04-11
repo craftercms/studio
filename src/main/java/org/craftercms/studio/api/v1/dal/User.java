@@ -36,6 +36,7 @@ public class User implements UserDetails {
     private String lastname;
     private String email;
     private int active;
+    private int externallyManaged;
 
     private List<Long> groupIds;
     private List<Group> groups;
@@ -94,4 +95,7 @@ public class User implements UserDetails {
 
     public List<Group> getGroups() { return groups; }
     public void setGroups(List<Group> groups) { this.groups = groups; }
+
+    public int getExternallyManaged() { return externallyManaged; }
+    public void setExternallyManaged(int externallyManaged) { this.externallyManaged = externallyManaged; }
 }

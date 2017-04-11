@@ -161,9 +161,9 @@ public class MappedSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public boolean createUser(String username, String password, String firstName, String lastName, String email) throws UserAlreadyExistsException {
+    public boolean createUser(String username, String password, String firstName, String lastName, String email, boolean externallyManaged) throws UserAlreadyExistsException {
         SecurityProvider provider = lookupProvider(getProviderType());
-        return provider.createUser(username, password, firstName, lastName, email);
+        return provider.createUser(username, password, firstName, lastName, email, externallyManaged);
     }
 
     @Override
@@ -173,13 +173,13 @@ public class MappedSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public boolean updateUser(String username, String firstName, String lastName, String email) throws UserNotFoundException {
+    public boolean updateUser(String username, String firstName, String lastName, String email) throws UserNotFoundException, UserExternallyManagedException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.updateUser(username, firstName, lastName, email);
     }
 
     @Override
-    public boolean enableUser(String username, boolean enabled) throws UserNotFoundException {
+    public boolean enableUser(String username, boolean enabled) throws UserNotFoundException, UserExternallyManagedException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.enableUser(username, enabled);
     }
@@ -275,13 +275,13 @@ public class MappedSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public boolean changePassword(String username, String current, String newPassword) throws UserNotFoundException, PasswordDoesNotMatchException {
+    public boolean changePassword(String username, String current, String newPassword) throws UserNotFoundException, PasswordDoesNotMatchException, UserExternallyManagedException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.changePassword(username, current, newPassword);
     }
 
     @Override
-    public boolean setUserPassword(String username, String newPassword) throws UserNotFoundException {
+    public boolean setUserPassword(String username, String newPassword) throws UserNotFoundException, UserExternallyManagedException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.setUserPassword(username, newPassword);
     }

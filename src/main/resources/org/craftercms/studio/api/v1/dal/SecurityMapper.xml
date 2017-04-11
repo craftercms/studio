@@ -30,6 +30,7 @@
         <result property="lastname" column="lastname" />
         <result property="email" column="email" />
         <result property="active" column="enabled" />
+        <result property="externallyManaged" column="externally_managed" />
     </resultMap>
 
     <resultMap id="GroupMap" type="org.craftercms.studio.api.v1.dal.Group">
@@ -44,6 +45,7 @@
         <result property="firstName" column="firstname"/>
         <result property="lastName" column="lastname" />
         <result property="email" column="email" />
+        <result property="externallyManaged" column="externally_managed" />
         <result property="groupName" column="groupname" />
         <result property="siteId" column="siteid"/>
         <result property="siteName" column="siteName" />
@@ -63,6 +65,7 @@
         <result property="firstName" column="first_name"/>
         <result property="lastName" column="last_name"/>
         <result property="email" column="email"/>
+        <result property="externallyManaged" column="externally_managed" />
     </resultMap>
 
     <select id="getUser" resultMap="UserMap">
@@ -70,7 +73,7 @@
     </select>
 
     <select id="getUserDetails" resultMap="UserProfileResultMap">
-        SELECT cu.username AS username, cu.firstname AS firstname, cu.lastname AS lastname, cu.email AS email, cg.name AS groupname, cs.site_id AS siteid, cs.name AS sitename
+        SELECT cu.username AS username, cu.firstname AS firstname, cu.lastname AS lastname, cu.email AS email, cu.externally_managed AS externally_managed, cg.name AS groupname, cs.site_id AS siteid, cs.name AS sitename
         FROM cstudio_user cu LEFT JOIN cstudio_usergroup cug ON cu.username = cug.username
           LEFT JOIN cstudio_group cg ON cug.groupId = cg.id
           LEFT JOIN cstudio_site cs ON cg.site_id=cs.id
@@ -94,7 +97,7 @@
 
 
     <select id="getAllUsersData" resultMap="UserProfileResultMap" parameterType="java.util.Map">
-        SELECT cu.username AS username, cu.firstname AS firstname, cu.lastname AS lastname, cu.email AS email, cg.name AS groupname, cs.site_id AS siteid, cs.name AS sitename
+        SELECT cu.username AS username, cu.firstname AS firstname, cu.lastname AS lastname, cu.email AS email, cu.externally_managed AS externally_managed, cg.name AS groupname, cs.site_id AS siteid, cs.name AS sitename
         FROM cstudio_user cu LEFT JOIN cstudio_usergroup cug ON cu.username = cug.username
         LEFT JOIN cstudio_group cg ON cug.groupId = cg.id
         LEFT JOIN cstudio_site cs ON cg.site_id=cs.id
@@ -107,7 +110,7 @@
     </select>
 
     <select id="getUsersPerSiteData" resultMap="UserProfileResultMap" parameterType="java.util.Map">
-        SELECT cu.username AS username, cu.firstname AS firstname, cu.lastname AS lastname, cu.email AS email, cg.name AS groupname, cs.site_id AS siteid, cs.name AS sitename
+        SELECT cu.username AS username, cu.firstname AS firstname, cu.lastname AS lastname, cu.email AS email, cu.externally_managed AS externally_managed, cg.name AS groupname, cs.site_id AS siteid, cs.name AS sitename
         FROM cstudio_user cu INNER JOIN cstudio_usergroup cug ON cu.username = cug.username
         INNER JOIN cstudio_group cg ON cug.groupId = cg.id
         INNER JOIN cstudio_site cs ON cg.site_id=cs.id
@@ -146,8 +149,8 @@
     </select>
 
     <insert id="createUser" parameterType="java.util.Map">
-        INSERT INTO cstudio_user (username, password, firstname, lastname, email, enabled)
-        VALUES (#{username}, #{password}, #{firstname}, #{lastname}, #{email}, 1)
+        INSERT INTO cstudio_user (username, password, firstname, lastname, email, enabled, externally_managed)
+        VALUES (#{username}, #{password}, #{firstname}, #{lastname}, #{email}, 1, #{externallyManaged})
     </insert>
 
     <delete id="deleteUser" parameterType="java.util.Map">
@@ -233,6 +236,7 @@
         cu.username AS username,
         cu.firstname AS first_name,
         cu.lastname AS last_name,
+        cu.externally_managed AS externally_managed,
         cu.email AS email
         FROM cstudio_group cg INNER JOIN cstudio_site cs ON cg.site_id = cs.id
         LEFT JOIN cstudio_usergroup cug ON cg.id = cug.groupid
