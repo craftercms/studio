@@ -203,14 +203,15 @@ CREATE TABLE IF NOT EXISTS `cstudio_user`
   `lastname` VARCHAR(255) NOT NULL,
   `email` VARCHAR(255) NOT NULL,
   `enabled` INT NOT NULL,
+  `externally_managed` INT NOT NULL DEFAULT 0,
   PRIMARY KEY (`username`)
 )
   ENGINE =InnoDB
   DEFAULT CHARSET =utf8
   ROW_FORMAT=DYNAMIC ;
 
-INSERT INTO cstudio_user (username, password, firstname, lastname, email, enabled)
-VALUES ('admin', 'vTwNOJ8GJdyrP7rrvQnpwsd2hCV1xRrJdTX2sb51i+w=|R68ms0Od3AngQMdEeKY6lA==', 'admin', 'admin', 'evaladmin@example.com', 1) ;
+INSERT INTO cstudio_user (username, password, firstname, lastname, email, enabled, externally_managed)
+VALUES ('admin', 'vTwNOJ8GJdyrP7rrvQnpwsd2hCV1xRrJdTX2sb51i+w=|R68ms0Od3AngQMdEeKY6lA==', 'admin', 'admin', 'evaladmin@example.com', 1, 0) ;
 
 CREATE TABLE cstudio_group
 (

@@ -19,6 +19,7 @@
 
 
 import groovy.json.JsonSlurper
+import org.craftercms.studio.api.v1.exception.security.UserExternallyManagedException
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException
 import scripts.api.SecurityServices
 
@@ -37,6 +38,9 @@ try {
     response.addHeader("Location", locationHeader)
     response.setStatus(200)
     result.message = "OK"
+} catch (UserExternallyManagedException e) {
+    response.setStatus(403)
+    result.message = "Externally managed user"
 } catch (UserNotFoundException e) {
     response.setStatus(404)
     result.message = "User not found"

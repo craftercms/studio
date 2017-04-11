@@ -203,7 +203,7 @@ public class TestSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public boolean createUser(String username, String password, String firstName, String lastName, String email) {
+    public boolean createUser(String username, String password, String firstName, String lastName, String email, boolean externallyManaged) {
         // TODO: DB: Implement this ?
         return false;
     }

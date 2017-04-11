@@ -20,11 +20,14 @@
 
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:security="http://www.springframework.org/schema/security"
+       xmlns:ldap="http://www.springframework.org/schema/ldap"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans
 		http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/security
-		http://www.springframework.org/schema/security/spring-security.xsd">
+		http://www.springframework.org/schema/security/spring-security.xsd
+        http://www.springframework.org/schema/ldap
+        http://www.springframework.org/schema/ldap/spring-ldap.xsd">
 
     <security:http
             entry-point-ref="studioAuthenticationEntryPoint"
@@ -52,7 +55,7 @@
 
     <bean id="studioAuthenticationTokenProcessingFilter" class="org.craftercms.studio.impl.v1.service.security.StudioAuthenticationTokenProcessingFilter">
         <property name="securityService" ref="cstudioSecurityService"/>
-        <property name="userDetailsManager" ref="studioUsesDetailsManager"/>
+        <property name="userDetailsManager" ref="studioUserDetailsManager"/>
         <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
@@ -66,8 +69,27 @@
         <property name="securityService" ref="cstudioSecurityService"/>
     </bean>
 
-    <bean id="studioUsesDetailsManager" class="org.craftercms.studio.impl.v1.service.security.UserDetailsManagerImpl"/>
+    <bean id="studioUserDetailsManager" class="org.craftercms.studio.impl.v1.service.security.UserDetailsManagerImpl"/>
 
     <bean id="studioAuthenticationSuccessHandler" class="org.craftercms.studio.impl.v1.service.security.StudioAuthenticationSuccessHandler" />
+
+    <ldap:context-source id="ldapContextSource"
+                         url="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).SECURITY_LDAP_SERVER_URL)}"
+                         password="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).SECURITY_LDAP_BIND_PASSWORD)}"
+                         username="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).SECURITY_LDAP_BIND_DN)}"
+                         base="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).SECURITY_LDAP_BASE_CONTEXT)}" />
+
+    <ldap:ldap-template id="ldapTemplate" context-source-ref="ldapContextSource" />
+
+    <bean id="cstudioLdapSecurityProvider" class="org.craftercms.studio.impl.v1.service.security.DbWithLdapExtensionSecurityProvider">
+        <property name="studioConfiguration" ref="studioConfiguration" />
+        <property name="ldapTemplate" ref="ldapTemplate" />
+    </bean>
+
+    <bean id="cstudioLdapSecurityProviderRegistration"
+          parent="cstudioSecurityProviderRegistration">
+        <property name="securityProvider" ref="cstudioLdapSecurityProvider"/>
+        <property name="providerType" value="ldap"/>
+    </bean>
 
 </beans>

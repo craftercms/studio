@@ -44,7 +44,7 @@ import static org.craftercms.studio.impl.v1.service.security.SecurityServiceImpl
 
 public class DbSecurityProvider implements SecurityProvider {
 
-    public final static Logger logger = LoggerFactory.getLogger(DbSecurityProvider.class);
+    public static Logger logger = LoggerFactory.getLogger(DbSecurityProvider.class);
 
     @Override
     public Set<String> getUserGroups(String user) {
@@ -140,6 +140,7 @@ public class DbSecurityProvider implements SecurityProvider {
                     userProfile.put("first_name", row.getFirstName());
                     userProfile.put("last_name", row.getLastName());
                     userProfile.put("email", row.getEmail());
+                    userProfile.put("externally_managed", row.getExternallyManaged() > 0);
                     sites = new ArrayList<Object>();
                     groups = new ArrayList<Map<String, Object>>();
                     site = null;
@@ -214,6 +215,7 @@ public class DbSecurityProvider implements SecurityProvider {
                             userProfile.put("first_name", row.getFirstName());
                             userProfile.put("last_name", row.getLastName());
                             userProfile.put("email", row.getEmail());
+                            userProfile.put("externally_managed", row.getExternallyManaged() > 0);
                             groups = new ArrayList<Map<String, Object>>();
                         }
                         Map<String, Object> group = new HashMap<String, Object>();
@@ -250,15 +252,20 @@ public class DbSecurityProvider implements SecurityProvider {
         if (user != null && user.isEnabled() && CipherUtils.matchPassword(user.getPassword(), password)) {
             //byte[] randomBytes = CryptoUtils.generateRandomBytes(20);
             //String token = randomBytes.toString();
-            int timeout = Integer.parseInt(studioConfiguration.getProperty(SECURITY_SESSION_TIMEOUT));
-            long ttl = 1000L * 60 * timeout;
-            String token = TokenUtils.createToken(user, ttl);
+            String token = createToken(user);
             storeSessionTicket(token);
             storeSessionUsername(username);
             return token;
         } else {
             return null;
         }
+    }
+
+    protected String createToken(User user) {
+        int timeout = Integer.parseInt(studioConfiguration.getProperty(SECURITY_SESSION_TIMEOUT));
+        long ttl = 1000L * 60 * timeout;
+        String token = TokenUtils.createToken(user, ttl);
+        return token;
     }
 
     protected void storeSessionTicket(String ticket) {
@@ -439,14 +446,15 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public boolean createUser(String username, String password, String firstName, String lastName, String email) throws UserAlreadyExistsException {
+    public boolean createUser(String username, String password, String firstName, String lastName, String email, boolean externallyManaged) throws UserAlreadyExistsException {
         String hashedPassword = CipherUtils.hashPassword(password);
-        Map<String, String> params = new HashMap<String, String>();
+        Map<String, Object> params = new HashMap<String, Object>();
         params.put("username", username);
         params.put("password", hashedPassword);
         params.put("firstname", firstName);
         params.put("lastname", lastName);
         params.put("email", email);
+        params.put("externallyManaged", externallyManaged ? 1 : 0);
         try {
         securityMapper.createUser(params);
         } catch (DuplicateKeyException e) {
@@ -469,30 +477,40 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public boolean updateUser(String username, String firstName, String lastName, String email) throws UserNotFoundException {
+    public boolean updateUser(String username, String firstName, String lastName, String email) throws UserNotFoundException, UserExternallyManagedException {
         if (!userExists(username)) {
             throw new UserNotFoundException();
         } else {
-            Map<String, String> params = new HashMap<String, String>();
-            params.put("username", username);
-            params.put("firstname", firstName);
-            params.put("lastname", lastName);
-            params.put("email", email);
-            securityMapper.updateUser(params);
-            return true;
+            User user = securityMapper.getUser(username);
+            if (user.getExternallyManaged() > 0) {
+                throw new UserExternallyManagedException();
+            } else {
+                Map<String, String> params = new HashMap<String, String>();
+                params.put("username", username);
+                params.put("firstname", firstName);
+                params.put("lastname", lastName);
+                params.put("email", email);
+                securityMapper.updateUser(params);
+                return true;
+            }
         }
     }
 
     @Override
-    public boolean enableUser(String username, boolean enabled) throws UserNotFoundException {
+    public boolean enableUser(String username, boolean enabled) throws UserNotFoundException, UserExternallyManagedException {
         if (!userExists(username)) {
             throw new UserNotFoundException();
         } else {
-            Map<String, Object> params = new HashMap<String, Object>();
-            params.put("username", username);
-            params.put("enabled", enabled ? 1 : 0);
-            securityMapper.enableUser(params);
-            return true;
+            User user = securityMapper.getUser(username);
+            if (user.getExternallyManaged() > 0) {
+                throw new UserExternallyManagedException();
+            } else {
+                Map<String, Object> params = new HashMap<String, Object>();
+                params.put("username", username);
+                params.put("enabled", enabled ? 1 : 0);
+                securityMapper.enableUser(params);
+                return true;
+            }
         }
     }
 
@@ -659,6 +677,7 @@ public class DbSecurityProvider implements SecurityProvider {
                     user.put("first_name", row.getFirstName());
                     user.put("last_name", row.getLastName());
                     user.put("email", row.getEmail());
+                    user.put("externally_managed", row.getExternallyManaged() > 0);
                     users.add(user);
                 }
                 lastGroup = groupName;
@@ -693,6 +712,7 @@ public class DbSecurityProvider implements SecurityProvider {
                     userProfile.put("first_name", u.getFirstname());
                     userProfile.put("last_name", u.getLastname());
                     userProfile.put("email", u.getEmail());
+                    userProfile.put("externally_managed", u.getExternallyManaged() > 0);
                     toRet.add(userProfile);
                 }
             }
@@ -746,30 +766,39 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public boolean changePassword(String username, String current, String newPassword) throws UserNotFoundException, PasswordDoesNotMatchException {
+    public boolean changePassword(String username, String current, String newPassword) throws UserNotFoundException, PasswordDoesNotMatchException, UserExternallyManagedException {
         if (!userExists(username)) {
             throw new UserNotFoundException();
         } else {
             User user = securityMapper.getUser(username);
-            if (CipherUtils.matchPassword(user.getPassword(), current)) {
-                return setUserPassword(username, newPassword);
+            if (user.getExternallyManaged() > 0) {
+                throw new UserExternallyManagedException();
             } else {
-                throw new PasswordDoesNotMatchException();
+                if (CipherUtils.matchPassword(user.getPassword(), current)) {
+                    return setUserPassword(username, newPassword);
+                } else {
+                    throw new PasswordDoesNotMatchException();
+                }
             }
         }
     }
 
     @Override
-    public boolean setUserPassword(String username, String newPassword) throws UserNotFoundException {
+    public boolean setUserPassword(String username, String newPassword) throws UserNotFoundException, UserExternallyManagedException {
         if (!userExists(username)) {
             throw new UserNotFoundException();
         } else {
-            String hashedPassword = CipherUtils.hashPassword(newPassword);
-            Map<String, String> params = new HashMap<String, String>();
-            params.put("username", username);
-            params.put("password", hashedPassword);
-            securityMapper.setUserPassword(params);
-            return true;
+            User user = securityMapper.getUser(username);
+            if (user.getExternallyManaged() > 0) {
+                throw new UserExternallyManagedException();
+            } else {
+                String hashedPassword = CipherUtils.hashPassword(newPassword);
+                Map<String, String> params = new HashMap<String, String>();
+                params.put("username", username);
+                params.put("password", hashedPassword);
+                securityMapper.setUserPassword(params);
+                return true;
+            }
         }
     }
 

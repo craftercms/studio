@@ -156,6 +156,22 @@ studio.security.forgotPassword.message.subject: Forgot Password
 studio.security.forgotPassword.message.text: http://localhost:8080/studio#/reset-password?token={token}
 # Forgot password token time-out period in minutes
 studio.security.forgotPassword.token.timeout: 60
+# LDAP Server url
+studio.security.ldap.serverUrl: ldap://localhost:389
+# LDAP bind DN (user)
+studio.security.ldap.bindDN: cn=Manager,dc=my-domain,dc=com
+# LDAP bind password
+studio.security.ldap.bindPassword: secret
+# LDAP base context (directory root)
+studio.security.ldap.baseContext: dc=my-domain,dc=com
+# LDAP username attribute
+studio.security.ldap.userAttribute.username: uid
+# LDAP first name attribute
+studio.security.ldap.userAttribute.firstName: cn
+# LDAP last name attribute
+studio.security.ldap.userAttribute.lastName: sn
+# LDAP email attribute
+studio.security.ldap.userAttribute.email: mail
 
 ###############################################################
 ##               Page Navigation Order Service               ##
