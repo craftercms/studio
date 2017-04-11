@@ -18,7 +18,6 @@
 package org.craftercms.studio.api.v1.service.deployment;
 
 import org.craftercms.studio.api.v1.dal.CopyToEnvironment;
-import org.craftercms.studio.api.v1.dal.PublishToTarget;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.to.*;
 
@@ -64,17 +63,9 @@ public interface DeploymentService {
 
     Map<String, List<PublishingChannelTO>> getAvailablePublishingChannelGroups(String site, String path);
 
-    void setupItemsForPublishingSync(String site, String environment, List<CopyToEnvironment> itemsToDeploy) throws DeploymentException;
-
-    List<PublishToTarget> getItemsToSync(String site, long targetVersion, List<String> environments);
-
-    void insertDeploymentHistory(DeploymentEndpointConfigTO target, List<PublishToTarget> publishedItems, Date publishingDate);
-
     void syncAllContentToPreview(String site) throws ServiceException;
 
     List<CopyToEnvironment> getDeploymentQueue(String site) throws ServiceException;
-
-    List<PublishToTarget> getSyncTargetQueue(String site, String endpoint, long targetVersion);
 
     List<DeploymentEndpointConfigTO> getDeploymentEndpoints(String site);
 
