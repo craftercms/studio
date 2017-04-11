@@ -33,8 +33,10 @@ public interface DmPageNavigationOrderService {
     /**
      * Return new navigation order
      */
-    float getNewNavOrder(String site, String path);
+    double getNewNavOrder(String site, String path);
 
+
+    double getNewNavOrder(String site, String path, double currentMaxNavOrder);
 
     /**
      * Always adds/overwrites the Document element with new unique nav order
@@ -53,4 +55,6 @@ public interface DmPageNavigationOrderService {
     boolean updateNavOrder(String site, String path, Document document);
 
     void deleteSequencesForSite(String site);
+
+    int getPageNavigationOrderIncrement();
 }
