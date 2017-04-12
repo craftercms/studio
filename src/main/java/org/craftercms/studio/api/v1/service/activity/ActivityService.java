@@ -34,14 +34,16 @@ import java.util.Map;
  */
 public interface ActivityService {
 
-	/** a prefix to attach to all activities **/
-	public static final String ACTIVITY_TYPE_KEY_PREFIX = "org.craftercms.cstudio.";
-
 	enum ActivityType {
 		CREATED,
 		UPDATED,
 		DELETED
 	}
+
+	enum ActivitySource {
+	    UI,
+        REPOSITORY
+    }
 
 	/**
 	 * post an activity
@@ -52,7 +54,7 @@ public interface ActivityService {
 	 * 			identifies the content that this activity is related to
 	 * @param activity
 	 */
-	void postActivity(String site, String user, String key, ActivityType activity, Map<String, String> extraInfo);
+	void postActivity(String site, String user, String key, ActivityType activity, ActivitySource source, Map<String, String> extraInfo);
 
 	void renameContentId(String site, String oldUrl, String newUrl);
 

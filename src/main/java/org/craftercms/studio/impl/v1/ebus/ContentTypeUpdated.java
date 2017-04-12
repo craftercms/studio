@@ -64,7 +64,7 @@ public class ContentTypeUpdated extends BaseEBusEvent {
         String user = securityProvider.getCurrentUser();
         Map<String,String> extraInfo = new HashMap<String,String>();
         extraInfo.put(DmConstants.KEY_CONTENT_TYPE, DmConstants.CONTENT_TYPE_FORM_DEFINITION);
-        activityService.postActivity(site, user, contentType, ActivityService.ActivityType.UPDATED,extraInfo);
+        activityService.postActivity(site, user, contentType, ActivityService.ActivityType.UPDATED, ActivityService.ActivitySource.UI, extraInfo);
     }
 
     public SecurityProvider getSecurityProvider() { return securityProvider; }

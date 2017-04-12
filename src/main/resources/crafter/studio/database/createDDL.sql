@@ -31,6 +31,7 @@ CREATE TABLE IF NOT EXISTS `cstudio_activity` (
   `activity_type`  VARCHAR(255) NOT NULL,
   `content_type`   VARCHAR(255) NOT NULL,
   `post_user_id`   VARCHAR(255) NOT NULL,
+  `source`         VARCHAR(255) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `cstudio_activity_user_idx` (`post_user_id`),
   KEY `cstudio_activity_site_idx` (`site_network`),

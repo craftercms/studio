@@ -14,6 +14,7 @@
         <result property="type" column="activity_type"/>
         <result property="contentType" column="content_type"/>
         <result property="userId" column="post_user_id"/>
+        <result property="source" column="source" />
     </resultMap>
 
     <cache/>
@@ -67,9 +68,9 @@
 
     <insert id="insertActivityFeed" parameterType="org.craftercms.studio.api.v1.dal.ActivityFeed" flushCache="true">
         insert into cstudio_activity (activity_type, summary, summary_format, post_user_id, creation_date,
-        modified_date, site_network,content_id,content_type)
+        modified_date, site_network,content_id,content_type, source)
         values (#{type}, #{summary}, #{summaryFormat}, #{userId}, #{creationDate}, #{modifiedDate},
-        #{siteNetwork},#{contentId},#{contentType})
+        #{siteNetwork},#{contentId},#{contentType},#{source})
     </insert>
 
     <update id="updateActivityFeed" parameterType="org.craftercms.studio.api.v1.dal.ActivityFeed" flushCache="true">
