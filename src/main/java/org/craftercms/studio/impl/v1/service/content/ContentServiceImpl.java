@@ -453,7 +453,7 @@ public class ContentServiceImpl implements ContentService {
             }
             logger.debug("[DELETE] posting delete activity on " + path + " by " + user + " in " + site);
 
-            activityService.postActivity(site, user, path, ActivityService.ActivityType.DELETED, extraInfo);
+            activityService.postActivity(site, user, path, ActivityService.ActivityType.DELETED, ActivityService.ActivitySource.UI, extraInfo);
             // process content life cycle
             if (path.endsWith(DmConstants.XML_PATTERN)) {
                 ContentItemTO item = getContentItem(site, path, 0);
@@ -685,12 +685,7 @@ public class ContentServiceImpl implements ContentService {
             activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
         }
 
-        activityService.postActivity(
-                site,
-                user,
-                movePath,
-                ActivityService.ActivityType.UPDATED,
-                activityInfo);
+        activityService.postActivity(site, user, movePath, ActivityService.ActivityType.UPDATED, ActivityService.ActivitySource.UI, activityInfo);
     }
 
     protected void updateChildrenOnMove(String site, String fromPath, String movePath) {

@@ -20,6 +20,7 @@ public class ActivityFeed implements Serializable {
     protected String type;
     protected String userId;
     protected String siteNetwork;
+    protected String source;
 
     public long getId() { return id; }
     public void setId(long id) { this.id = id; }
@@ -51,6 +52,9 @@ public class ActivityFeed implements Serializable {
     public String getSiteNetwork() { return siteNetwork; }
     public void setSiteNetwork(String siteNetwork) { this.siteNetwork = siteNetwork; }
 
+    public String getSource() { return source; }
+    public void setSource(String source) { this.source = source; }
+
     public String getJSONString() throws JSONException {
         JSONObject jo = new JSONObject();
 
@@ -67,6 +71,7 @@ public class ActivityFeed implements Serializable {
         jo.put("activitySummary", summary);
         jo.put("activitySummaryFormat", summaryFormat);
         jo.put("contentId", contentId);
+        jo.put("source", source);
 
         return jo.toString();
     }

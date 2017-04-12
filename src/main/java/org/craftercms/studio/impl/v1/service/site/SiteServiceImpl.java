@@ -20,7 +20,7 @@ package org.craftercms.studio.impl.v1.service.site;
 import net.sf.json.JSON;
 import net.sf.json.JSONObject;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.ObjectMetadata;
@@ -719,6 +719,8 @@ public class SiteServiceImpl implements SiteService {
 
 	    // Process all operations and track if one or more have failed
 	    for (RepoOperationTO repoOperation: repoOperations) {
+            Map<String, String> activityInfo = new HashMap<String, String>();
+            String contentClass = StringUtils.EMPTY;
 		    switch (repoOperation.getOperation()) {
 			    case CREATE:
 			    case COPY:
@@ -735,6 +737,12 @@ public class SiteServiceImpl implements SiteService {
 				    }
                     objectMetadataManager.updateCommitId(site,repoOperation.getPath(), repoOperation.getCommitId());
 				    toReturn = toReturn && extractDependenciesForItem(site, repoOperation.getPath());
+                    contentClass = contentService.getContentTypeClass(site, repoOperation.getPath());
+                    if( repoOperation.getPath().endsWith(DmConstants.XML_PATTERN)) {
+                        activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
+                    }
+				    activityService.postActivity(site, repoOperation.getAuthor(), repoOperation.getPath(),
+                            ActivityService.ActivityType.CREATED, ActivityService.ActivitySource.REPOSITORY, activityInfo);
 				    break;
 
 			    case UPDATE:
@@ -745,12 +753,24 @@ public class SiteServiceImpl implements SiteService {
 				    }
                     objectMetadataManager.updateCommitId(site, repoOperation.getPath(), repoOperation.getCommitId());
 				    toReturn = toReturn && extractDependenciesForItem(site, repoOperation.getPath());
+                    contentClass = contentService.getContentTypeClass(site, repoOperation.getPath());
+                    if( repoOperation.getPath().endsWith(DmConstants.XML_PATTERN)) {
+                        activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
+                    }
+                    activityService.postActivity(site, repoOperation.getAuthor(), repoOperation.getPath(),
+                            ActivityService.ActivityType.UPDATED, ActivityService.ActivitySource.REPOSITORY, activityInfo);
 				    break;
 
 			    case DELETE:
 				    objectStateService.deleteObjectStateForPath(site, repoOperation.getPath());
 				    objectMetadataManager.deleteObjectMetadata(site, repoOperation.getPath());
 				    dmDependencyService.deleteDependenciesForSiteAndPath(site, repoOperation.getPath());
+                    contentClass = contentService.getContentTypeClass(site, repoOperation.getPath());
+                    if( repoOperation.getPath().endsWith(DmConstants.XML_PATTERN)) {
+                        activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
+                    }
+                    activityService.postActivity(site, repoOperation.getAuthor(), repoOperation.getPath(),
+                            ActivityService.ActivityType.DELETED, ActivityService.ActivitySource.REPOSITORY, activityInfo);
 				    break;
 
 			    case MOVE:
@@ -760,8 +780,7 @@ public class SiteServiceImpl implements SiteService {
 					    objectStateService.transition(site, repoOperation.getPath(), TransitionEvent.SAVE);
 				    } else {
 					    objectStateService.updateObjectPath(site, repoOperation.getPath(), repoOperation.getMoveToPath());
-
-					    objectStateService.transition(site, repoOperation.getPath(), TransitionEvent.SAVE);
+					    objectStateService.transition(site, repoOperation.getMoveToPath(), TransitionEvent.SAVE);
 				    }
 
 				    if (!objectMetadataManager.metadataExist(site, repoOperation.getPath())) {
@@ -806,7 +825,13 @@ public class SiteServiceImpl implements SiteService {
 					    }
 				    }
 
-				    toReturn = toReturn && extractDependenciesForItem(site, repoOperation.getPath());
+				    toReturn = toReturn && extractDependenciesForItem(site, repoOperation.getMoveToPath());
+                    contentClass = contentService.getContentTypeClass(site, repoOperation.getMoveToPath());
+                    if( repoOperation.getMoveToPath().endsWith(DmConstants.XML_PATTERN)) {
+                        activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
+                    }
+                    activityService.postActivity(site, repoOperation.getAuthor(), repoOperation.getMoveToPath(),
+                            ActivityService.ActivityType.UPDATED, ActivityService.ActivitySource.REPOSITORY, activityInfo);
 				    break;
 
 			    default:

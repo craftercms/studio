@@ -91,22 +91,23 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
         getServicesManager().registerService(ActivityService.class, this);
     }
 
-	public void postActivity(String site, String user, String contentId, ActivityType activity, Map<String,String> extraInfo) {
+	public void postActivity(String site, String user, String contentId, ActivityType activity, ActivitySource source, Map<String,String> extraInfo) {
 
 		JSONObject activityPost = new JSONObject();
 		activityPost.put(ACTIVITY_PROP_USER, user);
 		activityPost.put(ACTIVITY_PROP_ID, contentId);
-        if(extraInfo != null)
+        if (extraInfo != null) {
             activityPost.putAll(extraInfo);
-		//AuthenticationUtil.setFullyAuthenticatedUser(user);
+        }
 		String contentType = null;
-		if(extraInfo!=null)
-			contentType = extraInfo.get(DmConstants.KEY_CONTENT_TYPE);
-		postActivity(activity.toString(), site, null, activityPost.toString(),contentId,contentType, user);
+		if (extraInfo != null) {
+            contentType = extraInfo.get(DmConstants.KEY_CONTENT_TYPE);
+        }
+		postActivity(activity.toString(), source.toString(), site, null, activityPost.toString(),contentId,contentType, user);
 
 	}
 
-	private void postActivity(String activityType, String siteNetwork, String appTool, String activityData,
+	private void postActivity(String activityType, String activitySource, String siteNetwork, String appTool, String activityData,
 							 String contentId, String contentType, String approver) {
 		String currentUser = (StringUtils.isEmpty(approver)) ? securityService.getCurrentUser() : approver;
 		try {
@@ -146,7 +147,7 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 				throw new ServiceException("Invalid user - user is empty");
 			} else if (currentUser.length() > MAX_LEN_USER_ID) {
 				throw new ServiceException("Invalid user - exceeds " + MAX_LEN_USER_ID + " chars: " + currentUser);
-			} else { //if ((!currentUser.equals(securityService.getAdministratorUser())) && (!userNamesAreCaseSensitive)) {
+			} else {
 				// user names are not case-sensitive
 				currentUser = currentUser.toLowerCase();
 			}
@@ -172,7 +173,7 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 			activityPost.setSummaryFormat("json");
 			activityPost.setContentId(contentId);
 			activityPost.setContentType(contentType);
-			//activityFeedMapper.updateActivityFeed(activityPost);
+			activityPost.setSource(activitySource);
 			try {
                 activityPost.setCreationDate(new Date());
 				long postId = insertFeedEntry(activityPost);
