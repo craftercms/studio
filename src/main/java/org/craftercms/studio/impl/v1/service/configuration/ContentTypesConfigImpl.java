@@ -47,19 +47,6 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
 
     private static final Logger logger = LoggerFactory.getLogger(ContentTypesConfigImpl.class);
 
-    /**
-     * create configuration key using the site and the content type given
-     * : or / in content type name will be replace with -
-     *
-     * @param site
-     * @param contentType
-     * @return
-     */
-    protected String createKey(String site, String contentType) {
-        //contentType = ContentUtils.getContentTypeKey(contentType);
-        return site + "," + contentType;
-    }
-
     @Override
     public ContentTypeConfigTO getContentTypeConfig(final String site, final String contentType) {
         if (StringUtils.isNotEmpty(contentType)) {
@@ -107,13 +94,9 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
             contentTypeConfig.setPathIncludes(pathIncludes);
             List<String> pathExcludes = getPaths(root, "paths/excludes/pattern");
             contentTypeConfig.setPathExcludes(pathExcludes);
-            //(contentTypeConfig, root.selectNodes("allowed-roles/role"));
             loadRoles(contentTypeConfig, root.selectNodes("allowed-roles/role"));
             loadDeleteDependencies(contentTypeConfig, root.selectNodes("delete-dependencies/delete-dependency"));
             loadCopyDependencyPatterns(contentTypeConfig, root.selectNodes("copy-dependencies/copy-dependency"));
-            //contentTypeConfig.setNoThumbnail(ContentFormatUtils.getBooleanValue(root.valueOf("noThumbnail")));
-            //SearchConfigTO searchConfig = loadSearchConfig(root.selectSingleNode("search"));
-            //contentTypeConfig.setSearchConfig(searchConfig);
             contentTypeConfig.setLastUpdated(new Date());
             contentTypeConfig.setType(getContentTypeTypeByName(name));
             return contentTypeConfig;
@@ -217,76 +200,6 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
     }
 
     /**
-     * add a content type to the mapping
-     *
-     * @param site
-     * @param contentType
-     * @param contentTypeConfig
-     */
-    protected void addContentType(String site, String contentType, ContentTypeConfigTO contentTypeConfig) {
-        if (!StringUtils.isEmpty(site) && !StringUtils.isEmpty(contentType) && contentTypeConfig != null) {
-            addToPathMapping(site, contentType, contentTypeConfig);
-        }
-    }
-
-    /**
-     * add configuration to path mapping
-     *
-     * @param site
-     * @param contentType
-     * @param configToAdd
-     */
-    protected void addToPathMapping(String site, String contentType, ContentTypeConfigTO configToAdd) {
-        String key = createKey(site, contentType);
-        SiteContentTypePathsTO paths = this.pathMapping.get(site);
-        if (paths != null) {
-            boolean added = false;
-            // find a matching path configuration and add
-            for (String pathInclude : configToAdd.getPathIncludes()) {
-                for (ContentTypePathTO pathTO : paths.getConfigs()) {
-                    if (pathTO.getPathInclude().equalsIgnoreCase(pathInclude)) {
-                        logger.debug("Adding " + key + " to " + pathInclude);
-                        pathTO.addToAllowedContentTypes(key);
-                        added = true;
-                    }
-                }
-                // if no same pathInclude found, create a new one
-                if (!added) {
-                    logger.debug("Creating a new include for " + key + " with " + pathInclude);
-                    ContentTypePathTO pathTO = createNewPathConfig(pathInclude, key, configToAdd);
-                    paths.getConfigs().add(pathTO);
-                }
-            }
-            paths.setLastUpdated(new Date());
-        } else {
-            logger.debug("No configuration exists. adding a new record.");
-            // add new content type path mapping
-            SiteContentTypePathsTO newPaths = new SiteContentTypePathsTO();
-            List<String> pathIncludes = configToAdd.getPathIncludes();
-            List<ContentTypePathTO> configs = new ArrayList<ContentTypePathTO>();
-            for (String pathInclude : pathIncludes) {
-                ContentTypePathTO pathTO = createNewPathConfig(pathInclude, key, configToAdd);
-                configs.add(pathTO);
-            }
-            newPaths.setConfigs(configs);
-            newPaths.setLastUpdated(new Date());
-            this.pathMapping.put(site, newPaths);
-        }
-    }
-
-    protected void removeFromPathMapping(String site, String contentType) {
-        String key = createKey(site, contentType);
-        SiteContentTypePathsTO paths = this.pathMapping.get(site);
-        if (paths != null) {
-            // find a matching path configuration and add
-            for (ContentTypePathTO pathTO : paths.getConfigs()) {
-                pathTO.removeAllowedContentTypes(key);
-            }
-            paths.setLastUpdated(new Date());
-        }
-    }
-
-    /**
      * create a new path configuration
      *
      * @param pathInclude
@@ -334,15 +247,8 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
         StudioCacheContext cacheContext = new StudioCacheContext(site, true);
         String siteConfigPath = getConfigPath().replaceAll(StudioConstants.PATTERN_SITE, site)
                 .replaceAll(StudioConstants.PATTERN_CONTENT_TYPE, contentType);
-        removeFromPathMapping(site, contentType);
         ContentTypeConfigTO config = loadConfiguration(site, contentType);
-        this.addContentType(site, contentType, config);
         return config;
-    }
-
-    @Override
-    public SiteContentTypePathsTO getPathMapping(String site) {
-        return pathMapping.get(site);
     }
 
     public String getConfigPath() {
@@ -353,9 +259,6 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
         return studioConfiguration.getProperty(CONFIGURATION_SITE_CONTENT_TYPES_CONFIG_FILE_NAME);
     }
 
-    public Map<String, SiteContentTypePathsTO> getPathMapping() { return pathMapping; }
-    public void setPathMapping(Map<String, SiteContentTypePathsTO> pathMapping) { this.pathMapping = pathMapping; }
-
     public ContentService getContentService() { return contentService; }
     public void setContentService(ContentService contentService) { this.contentService = contentService; }
 
@@ -365,7 +268,6 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
     public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
 
-    protected Map<String, SiteContentTypePathsTO> pathMapping = new HashMap<String, SiteContentTypePathsTO>();
     protected ContentService contentService;
     protected GeneralLockService generalLockService;
     protected StudioConfiguration studioConfiguration;
