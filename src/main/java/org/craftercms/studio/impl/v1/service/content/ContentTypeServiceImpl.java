@@ -18,7 +18,7 @@
 
 package org.craftercms.studio.impl.v1.service.content;
 
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
@@ -116,92 +116,38 @@ public class ContentTypeServiceImpl implements ContentTypeService {
         return getAllContentTypes(site);
     }
 
-    protected List<ContentTypeConfigTO> getAllContentTypes(String site) {
-        SiteContentTypePathsTO pathsConfig = contentTypesConfig.getPathMapping(site);
-        if (pathsConfig == null) {
-            reloadConfiguration(site);
-            pathsConfig = contentTypesConfig.getPathMapping(site);
-        }
-
-        if (pathsConfig != null && pathsConfig.getConfigs() != null) {
-            List<ContentTypeConfigTO> contentTypes = new ArrayList<ContentTypeConfigTO>();
-            for (ContentTypePathTO pathConfig : pathsConfig.getConfigs()) {
-                Set<String> allowedContentTypes = pathConfig.getAllowedContentTypes();
-                if (CollectionUtils.isNotEmpty(allowedContentTypes)) {
-                    for (String key : allowedContentTypes) {
-                        logger.debug("Checking an allowed content type: " + key);
-                        if (StringUtils.isNotEmpty(key)) {
-                            String[] tokens = key.split(",");
-                            if (tokens.length == 2) {
-                                ContentTypeConfigTO typeConfig = contentTypesConfig.getContentTypeConfig(tokens[0], tokens[1]);
-                                if (typeConfig != null) {
-                                    // if a match is found, populate the content type information
-                                    logger.debug("adding " + key + " to content types.");
-                                    contentTypes.add(typeConfig);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            return contentTypes;
-        } else {
-            logger.error("No content type path configuration is found for site: " + site);
-            return null;
-        }
-    }
-
-
-
     @Override
     public List<ContentTypeConfigTO> getAllowedContentTypesForPath(String site, String relativePath) throws ServiceException {
         String user = securityService.getCurrentUser();
         Set<String> userRoles = securityService.getUserRoles(site, user);
-        SiteContentTypePathsTO pathsConfig = contentTypesConfig.getPathMapping(site);
+        List<ContentTypeConfigTO> allContentTypes = getAllContentTypes(site);
 
-        if (pathsConfig != null && pathsConfig.getConfigs() != null) {
+        if (CollectionUtils.isNotEmpty(allContentTypes)) {
             List<ContentTypeConfigTO> contentTypes = new ArrayList<ContentTypeConfigTO>();
-            Set<String> contentKeys = new HashSet<String>();
-            for (ContentTypePathTO pathConfig : pathsConfig.getConfigs()) {
+            for (ContentTypeConfigTO contentTypeConfig : allContentTypes) {
                 // check if the path matches one of includes paths
-                if (relativePath.matches(pathConfig.getPathInclude())) {
-                    logger.debug(relativePath + " matches " + pathConfig.getPathInclude());
-                    Set<String> allowedContentTypes = pathConfig.getAllowedContentTypes();
-                    if (CollectionUtils.isNotEmpty(allowedContentTypes)) {
-                        for (String key : allowedContentTypes) {
-                            if (!contentKeys.contains(key)) {
-                                logger.debug("Checking an allowed content type: " + key);
-                                if (StringUtils.isNotEmpty(key)) {
-                                    String[] tokens = key.split(",");
-                                    if (tokens.length == 2) {
-                                        ContentTypeConfigTO typeConfig = contentTypesConfig.getContentTypeConfig(tokens[0], tokens[1]);
-                                        if (typeConfig != null) {
-                                            boolean isMatch = true;
-                                            if (typeConfig.getPathExcludes() != null) {
-                                                for (String excludePath : typeConfig.getPathExcludes()) {
-                                                    if (relativePath.matches(excludePath)) {
-                                                        logger.debug(relativePath + " matches an exclude path: " + excludePath);
-                                                        isMatch = false;
-                                                        break;
-                                                    }
-                                                }
-                                            }
-                                            if (isMatch) {
-                                                // if a match is found, populate the content type information
-                                                logger.debug("adding " + key + " to content types.");
-                                                addContentTypes(site, userRoles, typeConfig, contentTypes);
-                                            }
-                                        } else {
-                                            logger.warn("no configuration found for " + key);
-                                        }
-                                        contentKeys.add(key);
+                if (CollectionUtils.isNotEmpty(contentTypeConfig.getPathIncludes())){
+                    for (String pathIncludes : contentTypeConfig.getPathIncludes()) {
+                        if (relativePath.matches(pathIncludes)) {
+                            logger.debug(relativePath + " matches " + pathIncludes);
+                            boolean isMatch = true;
+                            if (contentTypeConfig.getPathExcludes() != null) {
+                                for (String excludePath : contentTypeConfig.getPathExcludes()) {
+                                    if (relativePath.matches(excludePath)) {
+                                        logger.debug(relativePath + " matches an exclude path: " + excludePath);
+                                        isMatch = false;
+                                        break;
                                     }
                                 }
-                            } else {
-                                logger.debug(key + " is already added. skipping the content type.");
+                            }
+                            if (isMatch) {
+                                // if a match is found, populate the content type information
+                                addContentTypes(site, userRoles, contentTypeConfig, contentTypes);
                             }
                         }
                     }
+                } else if (CollectionUtils.isEmpty(contentTypeConfig.getPathExcludes())) {
+                    addContentTypes(site, userRoles, contentTypeConfig, contentTypes);
                 }
             }
             return contentTypes;
@@ -239,6 +185,19 @@ public class ContentTypeServiceImpl implements ContentTypeService {
         } else {
             throw new ContentNotFoundException(path + " is not a valid content path.");
         }
+    }
+
+    protected List<ContentTypeConfigTO> getAllContentTypes(String site) {
+        String contentTypesRootPath = getConfigPath().replaceAll(StudioConstants.PATTERN_SITE, site);
+        RepositoryItem[] folders = contentRepository.getContentChildren(site, contentTypesRootPath);
+        List<ContentTypeConfigTO> contentTypes = new ArrayList<>();
+
+        if (folders != null) {
+            for (int i = 0; i < folders.length; i++) {
+                reloadContentTypeConfigForChildren(site, folders[i], contentTypes);
+            }
+        }
+        return contentTypes;
     }
 
     @Override

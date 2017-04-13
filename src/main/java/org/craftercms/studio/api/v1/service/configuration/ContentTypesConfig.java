@@ -58,12 +58,4 @@ public interface ContentTypesConfig {
 
     ContentTypeConfigTO reloadConfiguration(String site, String contentType);
 
-    /**
-	 * get path to content types mapping
-	 * 
-	 * @param site
-	 * @return
-	 */
-	SiteContentTypePathsTO getPathMapping(String site);
-
 }
