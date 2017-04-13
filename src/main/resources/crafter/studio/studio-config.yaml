@@ -39,6 +39,8 @@ studio.configuration.global.configBasePath: /configuration
 studio.configuration.global.roleMappingFileName: global-role-mappings-config.xml
 # File name where global configuration of user permissions mappings is stored.
 studio.configuration.global.permissionMappingFileName: global-permission-mappings-config.xml
+# UI Resource override path
+studio.configuration.global.ui.resource.override.path: crafter/studio/ui
 # Root location where configuration for all sites is stored inside repository.
 studio.configuration.site.configBasePath: /config/studio
 # Location pattern where environment specific configuration for a site is stored
