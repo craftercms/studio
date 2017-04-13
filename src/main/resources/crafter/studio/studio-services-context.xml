@@ -215,6 +215,7 @@
         <property name="emailService" ref="mailSender"/>
         <property name="emailServiceNoAuth" ref="mailSenderNoAuth"/>
         <property name="userDetailsManager" ref="studioUserDetailsManager" />
+        <property name="freeMarkerConfig" ref="crafter.freeMarkerConfigFactory"/>
     </bean>
 
     <bean id="cstudioContentTypeService" class="org.craftercms.studio.impl.v1.service.content.ContentTypeServiceImpl" >

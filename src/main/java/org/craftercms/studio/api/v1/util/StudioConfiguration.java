@@ -115,8 +115,9 @@ public interface StudioConfiguration {
     String SECURITY_CIPHER_TYPE = "studio.security.cipher.type";
     String SECURITY_CIPHER_ALGORITHM = "studio.security.cipher.algorithm";
     String SECURITY_FORGOT_PASSWORD_MESSAGE_SUBJECT = "studio.security.forgotPassword.message.subject";
-    String SECURITY_FORGOT_PASSWORD_MESSAGE_TEXT = "studio.security.forgotPassword.message.text";
+    String SECURITY_FORGOT_PASSWORD_EMAIL_TEMPLATE = "studio.security.forgotPassword.email.template";
     String SECURITY_FORGOT_PASSWORD_TOKEN_TIMEOUT = "studio.security.forgotPassword.token.timeout";
+    String SECURITY_RESET_PASSWORD_SERVICE_URL = "studio.security.resetPassword.serviceUrl";
 
     /** LDAP */
     String SECURITY_LDAP_SERVER_URL = "studio.security.ldap.serverUrl";

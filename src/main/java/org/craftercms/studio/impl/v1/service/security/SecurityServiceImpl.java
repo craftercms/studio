@@ -18,7 +18,10 @@
 
 package org.craftercms.studio.impl.v1.service.security;
 
+import java.io.IOException;
+import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
+import java.io.Writer;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
@@ -27,6 +30,12 @@ import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+import freemarker.cache.WebappTemplateLoader;
+import freemarker.core.ParseException;
+import freemarker.template.MalformedTemplateNameException;
+import freemarker.template.Template;
+import freemarker.template.TemplateException;
+import freemarker.template.TemplateNotFoundException;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.http.RequestContext;
@@ -51,14 +60,20 @@ import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.Node;
+import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMailMessage;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.servlet.view.freemarker.FreeMarkerConfig;
 
 import javax.crypto.*;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+import javax.mail.MessagingException;
+import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
@@ -666,7 +681,11 @@ public class SecurityServiceImpl implements SecurityService {
                     String token = username + "|" + timestamp + "|" + salt;
                     String hashedToken = encryptToken(token);
                     logger.debug("Sending forgot password email to " + email);
-                    sendForgotPasswordEmail(email, hashedToken);
+                    try {
+                        sendForgotPasswordEmail(email, hashedToken);
+                    } catch (MessagingException | IOException | TemplateException e) {
+                        throw new ServiceException("Error while sending forgot password email", e);
+                    }
                     success = true;
                     message = "OK";
                 } else {
@@ -738,25 +757,38 @@ public class SecurityServiceImpl implements SecurityService {
         }
     }
 
-    private void sendForgotPasswordEmail(String emailAddress, String token) {
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom(getDefaultFromAddress());
-        message.setTo(emailAddress);
-        message.setSubject(studioConfiguration.getProperty(SECURITY_FORGOT_PASSWORD_MESSAGE_SUBJECT));
+    private void sendForgotPasswordEmail(String emailAddress, String token) throws MessagingException, IOException, TemplateException {
         try {
-            message.setText(studioConfiguration.getProperty(SECURITY_FORGOT_PASSWORD_MESSAGE_TEXT).replace("{token}",  URLEncoder.encode(token, StandardCharsets.UTF_8.displayName())));
-        } catch (UnsupportedEncodingException e) {
-            message.setText(studioConfiguration.getProperty(SECURITY_FORGOT_PASSWORD_MESSAGE_TEXT).replace("{token}", URLEncoder.encode(token)));
-        }
-        logger.info("Sending password recovery message to " + emailAddress);
-        try {
+            Template emailTemplate = freeMarkerConfig.getObject().getConfiguration().getTemplate(studioConfiguration.getProperty(SECURITY_FORGOT_PASSWORD_EMAIL_TEMPLATE));
+
+            Writer out = new StringWriter();
+            Map<String, Object> model = new HashMap<String, Object>();
+            RequestContext context = RequestContext.getCurrent();
+            HttpServletRequest request = context.getRequest();
+            String authoringUrl = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "");
+            String serviceUrl = studioConfiguration.getProperty(SECURITY_RESET_PASSWORD_SERVICE_URL);
+            model.put("authoringUrl", authoringUrl);
+            model.put("serviceUrl", serviceUrl);
+            model.put("token", token);
+            if (emailTemplate != null) {
+                emailTemplate.process(model, out);
+            }
+
+            MimeMessage mimeMessage = emailService.createMimeMessage();
+            MimeMessageHelper messageHelper = new MimeMessageHelper(mimeMessage);
+
+            messageHelper.setFrom(getDefaultFromAddress());
+            messageHelper.setTo(emailAddress);
+            messageHelper.setSubject(studioConfiguration.getProperty(SECURITY_FORGOT_PASSWORD_MESSAGE_SUBJECT));
+            messageHelper.setText(out.toString(), true);
+            logger.info("Sending password recovery message to " + emailAddress);
             if (isAuthenticatedSMTP()) {
-                emailService.send(message);
+                emailService.send(mimeMessage);
             } else {
-                emailServiceNoAuth.send(message);
+                emailServiceNoAuth.send(mimeMessage);
             }
             logger.info("Password recovery message successfully sent to " + emailAddress);
-        } catch (MailException e) {
+        } catch (MessagingException | IOException | TemplateException e) {
             logger.error("Failed to send password recovery message to " + emailAddress, e);
             throw e;
         }
@@ -921,6 +953,9 @@ public class SecurityServiceImpl implements SecurityService {
     public UserDetailsManager getUserDetailsManager() { return userDetailsManager; }
     public void setUserDetailsManager(UserDetailsManager userDetailsManager) { this.userDetailsManager = userDetailsManager; }
 
+    public ObjectFactory<FreeMarkerConfig> getFreeMarkerConfig() { return freeMarkerConfig; }
+    public void setFreeMarkerConfig(ObjectFactory<FreeMarkerConfig> freeMarkerConfig) { this.freeMarkerConfig = freeMarkerConfig; }
+
     protected SecurityProvider securityProvider;
     protected ContentTypeService contentTypeService;
     protected ContentService contentService;
@@ -929,4 +964,5 @@ public class SecurityServiceImpl implements SecurityService {
     protected JavaMailSender emailService;
     protected JavaMailSender emailServiceNoAuth;
     protected UserDetailsManager userDetailsManager;
+    protected ObjectFactory<FreeMarkerConfig> freeMarkerConfig;
 }

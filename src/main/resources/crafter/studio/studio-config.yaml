@@ -152,10 +152,12 @@ studio.security.cipher.type: AES
 studio.security.cipher.algorithm: AES/CBC/PKCS5Padding
 # Forgot password email subject
 studio.security.forgotPassword.message.subject: Forgot Password
-# Forgot password email text
-studio.security.forgotPassword.message.text: http://localhost:8080/studio#/reset-password?token={token}
+# Forgot password email template
+studio.security.forgotPassword.email.template: /templates/system/email/forgotPassword.ftl
 # Forgot password token time-out period in minutes
 studio.security.forgotPassword.token.timeout: 60
+# Reset password service url
+studio.security.resetPassword.serviceUrl: "#/reset-password"
 # LDAP Server url
 studio.security.ldap.serverUrl: ldap://localhost:389
 # LDAP bind DN (user)
