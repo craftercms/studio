@@ -24,6 +24,7 @@ import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.*;
 import org.craftercms.studio.api.v1.deployment.Deployer;
+import org.craftercms.studio.api.v1.ebus.PreviewEventContext;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -52,6 +53,8 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+
+import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC;
 
 /**
  */
@@ -639,7 +642,9 @@ public class DeploymentServiceImpl implements DeploymentService {
 
     @Override
     public void syncAllContentToPreview(String site) throws ServiceException {
-        eventService.firePreviewSyncEvent(site);
+        PreviewEventContext context = new PreviewEventContext();
+        context.setSite(site);
+        eventService.publish(EVENT_PREVIEW_SYNC, context);
     }
 
     protected void syncFolder(String site, String path, Deployer deployer) {

@@ -19,48 +19,12 @@
 package org.craftercms.studio.api.v1.ebus;
 
 public final class EBusConstants {
-  
-    /**
-     * Repository reactor bean name.
-     */
-    public static final String REPOSITORY_REACTOR = "@repositoryReactor";
 
-    /**
-     * Repository create event name.
-     */
-    public static final String REPOSITORY_CREATE_EVENT = "repository.create";
+    public final static String EVENT_PREVIEW_SYNC = "studio.event.previewSync";
 
-    /**
-     * Repository update event name.
-     */
-    public static final String REPOSITORY_UPDATE_EVENT = "repository.update";
+    public final static String EVENT_PUBLISH_TO_ENVIRONMENT = "studio.event.publishToEnvironment";
 
-    /**
-     * Repository delete event name.
-     */
-    public static final String REPOSITORY_DELETE_EVENT = "repository.delete";
-
-    /**
-     * Repositroy delete site event name.
-     */
-    public static final String REPOSITORY_DELETE_SITE_EVENT = "repository.deleteSite";
-
-    /**
-     * Repository preview sync event name.
-     */
-    public static final String REPOSITORY_PREVIEW_SYNC_EVENT = "repository.previewSync";
-
-    /**
-     * Repository delete event name.
-     */
-    public static final String REPOSITORY_MOVE_EVENT = "repository.move";
-
-    /**
-     * Cluster clear cache event name.
-     */
-    public static final String CLUSTER_CLEAR_CACHE_EVENT = "cluster.clearCache";
-
-    public static final String DISTRIBUTED_REACTOR = "@distributedReactor";
+    public final static String EVENT_DEPLOYMENT_ENGINE_DEPLOY = "studio.event.deploymentEngineDeploy";
 
     private EBusConstants() {}
 }

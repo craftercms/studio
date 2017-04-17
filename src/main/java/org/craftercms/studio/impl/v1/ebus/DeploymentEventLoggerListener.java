@@ -19,22 +19,23 @@
 
 package org.craftercms.studio.impl.v1.ebus;
 
-import org.craftercms.studio.api.v1.ebus.DeploymentEventItem;
-import org.craftercms.studio.api.v1.ebus.DeploymentEventListener;
-import org.craftercms.studio.api.v1.ebus.DeploymentEventMessage;
-import org.craftercms.studio.api.v1.ebus.DeploymentEventService;
+import org.craftercms.studio.api.v1.ebus.*;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.service.event.EventService;
 
+import java.lang.reflect.Method;
 import java.util.List;
 
-public class DeploymentEventLoggerListener implements DeploymentEventListener{
+import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_DEPLOYMENT_ENGINE_DEPLOY;
+
+public class DeploymentEventLoggerListener {
 
     private final static Logger logger = LoggerFactory.getLogger(DeploymentEventLoggerListener.class);
 
-    public final static String EVENT_DEPLOYMENT_ENGINE_DEPLOY = "Deployment Engine Deploy";
+    private final static String METHOD_DEPLOYMENT_ENGINE_DEPLOY = "onDeploymentEvent";
 
-    @Override
+    @EventListener(EVENT_DEPLOYMENT_ENGINE_DEPLOY)
     public void onDeploymentEvent(DeploymentEventMessage message) {
         String endpoint = message.getEndpoint();
         String site = message.getSite();
@@ -58,13 +59,21 @@ public class DeploymentEventLoggerListener implements DeploymentEventListener{
         logger.info(String.format("Items: %s", sbItems.toString()));
     }
 
-    @Override
-    public void subscribe() {
-        deploymentEventService.subscribe(this);
+    public void subscribeToDeploymentEngineDeployEvents() {
+        try {
+            Method subscribeMethod = DeploymentEventLoggerListener.class.getMethod(METHOD_DEPLOYMENT_ENGINE_DEPLOY, DeploymentEventMessage.class);
+            this.eventService.subscribe(EBusConstants.EVENT_DEPLOYMENT_ENGINE_DEPLOY, beanName, subscribeMethod);
+        } catch (NoSuchMethodException e) {
+            logger.error("Could not subscribe to deloyment engine deploy events", e);
+        }
     }
 
-    protected DeploymentEventService deploymentEventService;
+    protected EventService eventService;
+    protected String beanName;
 
-    public DeploymentEventService getDeploymentEventService() { return deploymentEventService; }
-    public void setDeploymentEventService(DeploymentEventService deploymentEventService) { this.deploymentEventService = deploymentEventService; }
+    public EventService getEventService() { return eventService; }
+    public void setEventService(EventService eventService) { this.eventService = eventService; }
+
+    public String getBeanName() { return beanName; }
+    public void setBeanName(String beanName) { this.beanName = beanName; }
 }

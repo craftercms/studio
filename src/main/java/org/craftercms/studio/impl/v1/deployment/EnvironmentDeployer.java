@@ -21,13 +21,26 @@ package org.craftercms.studio.impl.v1.deployment;
 
 import org.craftercms.studio.api.v1.ebus.DeploymentEventContext;
 import org.craftercms.studio.api.v1.ebus.DeploymentItem;
+import org.craftercms.studio.api.v1.ebus.EBusConstants;
+import org.craftercms.studio.api.v1.ebus.EventListener;
+import org.craftercms.studio.api.v1.log.Logger;
+import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
+import org.craftercms.studio.api.v1.service.event.EventService;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PUBLISH_TO_ENVIRONMENT;
+
 public class EnvironmentDeployer {
 
+    private final static Logger logger = LoggerFactory.getLogger(EnvironmentDeployer.class);
+
+    private final static String METHOD_PUBLISH_TO_ENVIRONMENT_LISTENER = "onEnvironmentDeploymentEvent";
+
+    @EventListener(EVENT_PUBLISH_TO_ENVIRONMENT)
     public void onEnvironmentDeploymentEvent(DeploymentEventContext context) {
         List<DeploymentItem> items = context.getItems();
         List<String> commitIds = new ArrayList<String>(items.size());
@@ -37,8 +50,25 @@ public class EnvironmentDeployer {
         contentRepository.publish(context.getSite(), commitIds, context.getEnvironment(), context.getAuthor(), context.getComment());
     }
 
+    public void subscribeToPublishToEnvironmentEvents() {
+        try {
+            Method subscribeMethod = EnvironmentDeployer.class.getMethod(METHOD_PUBLISH_TO_ENVIRONMENT_LISTENER, DeploymentEventContext.class);
+            this.eventService.subscribe(EBusConstants.EVENT_PUBLISH_TO_ENVIRONMENT, beanName, subscribeMethod);
+        } catch (NoSuchMethodException e) {
+            logger.error("Could not subscribe to publish to environment events", e);
+        }
+    }
+
     public ContentRepository getContentRepository() { return contentRepository; }
     public void setContentRepository(ContentRepository contentRepository) { this.contentRepository = contentRepository; }
 
-    ContentRepository contentRepository;
+    public EventService getEventService() { return eventService; }
+    public void setEventService(EventService eventService) { this.eventService = eventService; }
+
+    public String getBeanName() { return beanName; }
+    public void setBeanName(String beanName) { this.beanName = beanName; }
+
+    protected ContentRepository contentRepository;
+    protected EventService eventService;
+    protected String beanName;
 }

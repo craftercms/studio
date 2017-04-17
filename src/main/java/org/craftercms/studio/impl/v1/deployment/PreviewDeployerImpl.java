@@ -27,23 +27,42 @@ import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.http.entity.ContentType;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.deployment.PreviewDeployer;
+import org.craftercms.studio.api.v1.ebus.EBusConstants;
+import org.craftercms.studio.api.v1.ebus.EventListener;
+import org.craftercms.studio.api.v1.ebus.PreviewEventContext;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.service.event.EventService;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.*;
 
 public class PreviewDeployerImpl implements PreviewDeployer {
 
     private final static Logger logger = LoggerFactory.getLogger(PreviewDeployerImpl.class);
 
-    public void onEvent(String site) {
+    private final static String METHOD_PREVIEW_SYNC_LISTENER = "onPreviewSync";
+
+    public void subscribeToPreviewSyncEvents() {
+        try {
+            Method subscribeMethod = PreviewDeployerImpl.class.getMethod(METHOD_PREVIEW_SYNC_LISTENER, PreviewEventContext.class);
+            this.eventService.subscribe(EBusConstants.EVENT_PREVIEW_SYNC, beanName, subscribeMethod);
+        } catch (NoSuchMethodException e) {
+            logger.error("Could not subscribe to preview sync events", e);
+        }
+    }
+
+    @EventListener(EVENT_PREVIEW_SYNC)
+    public void onPreviewSync(PreviewEventContext context) {
+        String site = context.getSite();
         String requestUrl = getDeployerPreviewSyncUrl(site);
         PostMethod postMethod = new PostMethod(requestUrl);
         postMethod.getParams().setBooleanParameter(HttpMethodParams.USE_EXPECT_CONTINUE, true);
@@ -164,7 +183,15 @@ public class PreviewDeployerImpl implements PreviewDeployer {
     public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
 
+    public EventService getEventService() { return eventService; }
+    public void setEventService(EventService eventService) { this.eventService = eventService; }
+
+    public String getBeanName() { return beanName; }
+    public void setBeanName(String beanName) { this.beanName = beanName; }
+
     protected StudioConfiguration studioConfiguration;
+    protected EventService eventService;
+    protected String beanName;
 
     class CreateTargetRequestBody {
 

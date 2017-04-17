@@ -269,10 +269,7 @@
         <property name="contentService" ref="cstudioContentService"/>
     </bean>
 
-    <bean id="studioEventService" class="org.craftercms.studio.impl.v1.service.event.EventServiceImpl" >
-        <property name="previewDeployer" ref="previewDeployer" />
-        <property name="environmentDeployer" ref="environmentDeployer" />
-    </bean>
+    <bean id="studioEventService" class="org.craftercms.studio.impl.v1.service.event.EventServiceImpl" />
 
     <!-- ////////////////////////////////////// -->
     <!--      Managers                          -->
@@ -651,15 +648,19 @@
     <!-- ////////////////////////////////////// -->
     <!--          preview deployer              -->
     <!-- ////////////////////////////////////// -->
-    <bean id="previewDeployer" class="org.craftercms.studio.impl.v1.deployment.PreviewDeployerImpl">
-            <property name="studioConfiguration" ref="studioConfiguration" />
+    <bean id="previewDeployer" class="org.craftercms.studio.impl.v1.deployment.PreviewDeployerImpl" init-method="subscribeToPreviewSyncEvents">
+        <property name="studioConfiguration" ref="studioConfiguration" />
+        <property name="eventService" ref="studioEventService"/>
+        <property name="beanName" value="previewDeployer"/>
     </bean>
 
     <!-- ////////////////////////////////////////// -->
     <!--          Environment deployer              -->
     <!-- ////////////////////////////////////////// -->
-    <bean id="environmentDeployer" class="org.craftercms.studio.impl.v1.deployment.EnvironmentDeployer">
+    <bean id="environmentDeployer" class="org.craftercms.studio.impl.v1.deployment.EnvironmentDeployer" init-method="subscribeToPublishToEnvironmentEvents">
         <property name="contentRepository" ref="contentRepository" />
+        <property name="eventService" ref="studioEventService" />
+        <property name="beanName" value="environmentDeployer" />
     </bean>
 
     <!-- ////////////////////////////////////// -->
@@ -676,19 +677,13 @@
         <property name="notificationService" ref="cstudioNotificationService"/>
         <property name="notificationService2" ref="cstudioNotificationServicev2"/>
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
-        <property name="deploymentEventService" ref="cstudioDeploymentEventService"/>
         <property name="securityProvider" ref="securityProvider" />
         <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
-    <!-- //////////////// -->
-    <!-- Deployment Event -->
-    <!-- //////////////// -->
-    <bean id="cstudioDeploymentEventService" class="org.craftercms.studio.impl.v1.ebus.DeploymentEventServiceImpl">
-    </bean>
-
-    <bean id="cstudioDeploymentEventLoggerListener" class="org.craftercms.studio.impl.v1.ebus.DeploymentEventLoggerListener" init-method="subscribe">
-        <property name="deploymentEventService" ref="cstudioDeploymentEventService"/>
+    <bean id="cstudioDeploymentEventLoggerListener" class="org.craftercms.studio.impl.v1.ebus.DeploymentEventLoggerListener" init-method="subscribeToDeploymentEngineDeployEvents">
+        <property name="eventService" ref="studioEventService"/>
+        <property name="beanName" value="cstudioDeploymentEventLoggerListener" />
     </bean>
 
     <!-- Dependency Rules -->

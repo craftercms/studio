@@ -22,32 +22,14 @@ import org.craftercms.studio.api.v1.ebus.DeploymentEventContext;
 import org.craftercms.studio.api.v1.ebus.DeploymentItem;
 import org.craftercms.studio.api.v1.ebus.PreviewEventContext;
 
+import java.lang.reflect.Method;
 import java.util.List;
 
 public interface EventService {
-    String CLUSTER_NAME = "StudioCluster";
 
-    /** Preview Sync Event listener method */
-    String PREVIEW_SYNC_LISTENER_METHOD = "onPreviewSyncEvent";
-    String PREVIEW_CREATE_TARGET_LISTENER_METHOD = "onCreateTargetEvent";
-    String PREVIEW_DELETE_TARGET_LISTENER_METHOD = "onDeleteTargetEvent";
+    void publish(String event, Object... args);
 
-    /** Publish to environment Event listener method  */
-    String PUBLISH_TO_ENVIRONMENT_LISTENER_METHOD = "onEnvironmentDeploymentEvent";
+    void subscribe(String event, String listener, Method method);
 
-    void firePreviewSyncEvent(String site);
-
-    void onPreviewSyncEvent(PreviewEventContext context);
-
-    boolean firePreviewCreateTargetEvent(String site);
-
-    void onDeleteTargetEvent(PreviewEventContext context);
-
-    boolean firePreviewDeleteTargetEvent(String site);
-
-    void onCreateTargetEvent(PreviewEventContext context);
-
-    void firePublishToEnvironmentEvent(String site, List<DeploymentItem> items, String environment, String author, String comment);
-
-    void onEnvironmentDeploymentEvent(DeploymentEventContext context);
+    void unSubscribe(String event, String listener);
 }
