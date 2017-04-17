@@ -382,8 +382,6 @@ public class PublishingManagerImpl implements PublishingManager {
         this.notificationService2 = notificationService2;
     }
 
-    public DeploymentEventService getDeploymentEventService() { return deploymentEventService; }
-    public void setDeploymentEventService(DeploymentEventService deploymentEventService) { this.deploymentEventService = deploymentEventService; }
 
     public SecurityProvider getSecurityProvider() { return securityProvider; }
     public void setSecurityProvider(SecurityProvider securityProvider) { this.securityProvider = securityProvider; }
@@ -401,7 +399,6 @@ public class PublishingManagerImpl implements PublishingManager {
     protected NotificationService notificationService;
     protected ServicesConfig servicesConfig;
     protected org.craftercms.studio.api.v2.service.notification.NotificationService notificationService2;
-    protected DeploymentEventService deploymentEventService;
     protected SecurityProvider securityProvider;
     protected StudioConfiguration studioConfiguration;
 

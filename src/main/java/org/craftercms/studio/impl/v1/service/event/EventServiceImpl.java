@@ -19,142 +19,71 @@
 
 package org.craftercms.studio.impl.v1.service.event;
 
-import org.craftercms.studio.api.v1.deployment.PreviewDeployer;
-import org.craftercms.studio.api.v1.ebus.DeploymentEventContext;
-import org.craftercms.studio.api.v1.ebus.DeploymentItem;
-import org.craftercms.studio.api.v1.ebus.PreviewEventContext;
+import org.craftercms.studio.api.v1.ebus.*;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.event.EventService;
-import org.craftercms.studio.impl.v1.deployment.EnvironmentDeployer;
-import org.jgroups.JChannel;
-import org.jgroups.blocks.MethodCall;
-import org.jgroups.blocks.RequestOptions;
-import org.jgroups.blocks.RpcDispatcher;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-public class EventServiceImpl implements EventService {
+public class EventServiceImpl implements EventService, ApplicationContextAware {
 
     private static final Logger logger = LoggerFactory.getLogger(EventServiceImpl.class);
 
-    public EventServiceImpl() throws Exception {
-        JChannel channel = new JChannel();
-        rpcDispatcher = new RpcDispatcher(channel, this);
-        channel.connect(CLUSTER_NAME);
-    }
+    protected ApplicationContext applicationContext;
+
+    private Map<String, List<EventSubscriber>> eventListeners = new HashMap<String, List<EventSubscriber>>();
+
 
     @Override
-    protected void finalize() throws Throwable {
-        if (rpcDispatcher != null) {
-            rpcDispatcher.close();
-            rpcDispatcher = null;
-        }
-        super.finalize();
-    }
+    public void publish(String event, Object... args) {
+        logger.debug(String.format("Publishing %s", event));
 
-    @Override
-    public void firePreviewSyncEvent(String site) {
-        try {
-            PreviewEventContext context = new PreviewEventContext();
-            context.setSite(site);
-            MethodCall call = new MethodCall(getClass().getMethod(PREVIEW_SYNC_LISTENER_METHOD, PreviewEventContext.class));
-            call.setArgs(context);
-            rpcDispatcher.callRemoteMethods(null, call, RequestOptions.ASYNC());
-        } catch (NoSuchMethodException e) {
-            logger.error("Could not find listener method for event, site: " + site, e);
-        } catch (Exception e) {
-            logger.error("Error invoking preview sync event for site" + site, e);
+        List<EventSubscriber> listenersForEvent = getListenersForEvent(event, false);
+        if (listenersForEvent != null) {
+            for (EventSubscriber listener : listenersForEvent) {
+                Object bean = applicationContext.getBean(listener.getBeanName());
+                Method method = listener.getMethod();
+                try {
+                    method.invoke(bean, args);
+                } catch (Throwable e) {
+                    throw new RuntimeException(e);
+                }
+            }
         }
     }
 
-    @Override
-    public void onPreviewSyncEvent(PreviewEventContext context) {
-        previewDeployer.onEvent(context.getSite());
-    }
-
-    @Override
-    public boolean firePreviewCreateTargetEvent(String site) {
-        boolean toReturn = true;
-        try {
-            PreviewEventContext context = new PreviewEventContext();
-            context.setSite(site);
-            MethodCall call = new MethodCall(getClass().getMethod(PREVIEW_CREATE_TARGET_LISTENER_METHOD, PreviewEventContext.class));
-            call.setArgs(context);
-            rpcDispatcher.callRemoteMethods(null, call, RequestOptions.ASYNC());
-        } catch (NoSuchMethodException e) {
-            logger.error("Could not find listener method for event, site: " + site, e);
-            toReturn = false;
-        } catch (Exception e) {
-            logger.error("Error invoking preview sync event for site" + site, e);
-            toReturn = false;
+    protected List<EventSubscriber> getListenersForEvent(String event, boolean create) {
+        List<EventSubscriber> listeners = eventListeners.get(event);
+        if (listeners == null && create) {
+            listeners = new ArrayList<EventSubscriber>();
+            eventListeners.put(event, listeners);
         }
-        return toReturn;
+        return listeners;
     }
 
     @Override
-    public void onDeleteTargetEvent(PreviewEventContext context) {
-        String site = context.getSite();
-        previewDeployer.deleteTarget(site);
+    public void subscribe(String event, String listener, Method method) {
+        logger.info(String.format("Subscribing %s to %s", listener, event));
+        EventSubscriber subscriber = new EventSubscriber(listener, method);
+        getListenersForEvent(event, true).add(subscriber);
     }
 
     @Override
-    public boolean firePreviewDeleteTargetEvent(String site) {
-        boolean toReturn = true;
-        try {
-            PreviewEventContext context = new PreviewEventContext();
-            context.setSite(site);
-            MethodCall call = new MethodCall(getClass().getMethod(PREVIEW_DELETE_TARGET_LISTENER_METHOD, PreviewEventContext.class));
-            call.setArgs(context);
-            rpcDispatcher.callRemoteMethods(null, call, RequestOptions.ASYNC());
-        } catch (NoSuchMethodException e) {
-            logger.error("Could not find listener method for event, site: " + site, e);
-            toReturn = false;
-        } catch (Exception e) {
-            logger.error("Error invoking delete preview target event for site" + site, e);
-            toReturn = false;
-        }
-        return toReturn;
+    public void unSubscribe(String event, String listener) {
+        logger.debug(String.format("UnSubscribing %s to %s", listener, event));
+        getListenersForEvent(event, false).remove(listener);
     }
 
     @Override
-    public void onCreateTargetEvent(PreviewEventContext context) {
-        String site = context.getSite();
-        previewDeployer.createTarget(site);
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
     }
-
-    @Override
-    public void firePublishToEnvironmentEvent(String site, List<DeploymentItem> items, String environment, String author, String comment) {
-        try {
-            DeploymentEventContext context = new DeploymentEventContext();
-            context.setSite(site);
-            context.setItems(items);
-            context.setEnvironment(environment);
-            context.setAuthor(author);
-            context.setComment(comment);
-            MethodCall call = new MethodCall(getClass().getMethod(PUBLISH_TO_ENVIRONMENT_LISTENER_METHOD, DeploymentEventContext.class));
-            call.setArgs(context);
-            rpcDispatcher.callRemoteMethods(null, call, RequestOptions.ASYNC());
-        } catch (NoSuchMethodException e) {
-            logger.error("Could not find listener method for event, site: " + site, e);
-        } catch (Exception e) {
-            logger.error("Error invoking preview sync event for site" + site, e);
-        }
-    }
-
-    @Override
-    public void onEnvironmentDeploymentEvent(DeploymentEventContext context) {
-        environmentDeployer.onEnvironmentDeploymentEvent(context);
-    }
-
-    public PreviewDeployer getPreviewDeployer() { return previewDeployer; }
-    public void setPreviewDeployer(PreviewDeployer previewDeployer) { this.previewDeployer = previewDeployer; }
-
-    public EnvironmentDeployer getEnvironmentDeployer() { return environmentDeployer; }
-    public void setEnvironmentDeployer(EnvironmentDeployer environmentDeployer) { this.environmentDeployer = environmentDeployer; }
-
-    protected PreviewDeployer previewDeployer;
-    protected EnvironmentDeployer environmentDeployer;
-
-    protected RpcDispatcher rpcDispatcher;
 }

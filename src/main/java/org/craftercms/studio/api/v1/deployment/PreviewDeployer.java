@@ -19,9 +19,11 @@
 
 package org.craftercms.studio.api.v1.deployment;
 
+import org.craftercms.studio.api.v1.ebus.PreviewEventContext;
+
 public interface PreviewDeployer {
 
-    void onEvent(String site);
+    void onPreviewSync(PreviewEventContext context);
 
     boolean createTarget(String site);
 

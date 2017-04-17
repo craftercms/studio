@@ -20,6 +20,7 @@ package org.craftercms.studio.impl.v1.service.deployment.job;
 
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.studio.api.v1.dal.CopyToEnvironment;
+import org.craftercms.studio.api.v1.ebus.DeploymentEventContext;
 import org.craftercms.studio.api.v1.ebus.DeploymentItem;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -38,6 +39,7 @@ import org.craftercms.studio.impl.v1.job.RepositoryJob;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
 
+import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PUBLISH_TO_ENVIRONMENT;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_DEPLOYMENT_MASTER_PUBLISHING_NODE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_MANDATORY_DEPENDENCIES_CHECK_ENABLED;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_PROCESSING_CHUNK_SIZE;
@@ -141,10 +143,22 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
                                         List<DeploymentItem> mergedList = new ArrayList<DeploymentItem>(deploymentItemList);
                                         mergedList.addAll(missingDependencies);
                                         // TODO: DB: figure out author and comment
-                                        eventService.firePublishToEnvironmentEvent(site, mergedList, environment, "admin", "TODO: DB: comment");
+                                        DeploymentEventContext context = new DeploymentEventContext();
+                                        context.setSite(site);
+                                        context.setItems(mergedList);
+                                        context.setEnvironment(environment);
+                                        context.setAuthor("admin");
+                                        context.setComment("TODO: DB: comment");
+                                        eventService.publish(EVENT_PUBLISH_TO_ENVIRONMENT, context);
                                     } else {
                                         // TODO: DB: figure out author and comment
-                                        eventService.firePublishToEnvironmentEvent(site, deploymentItemList, environment, "admin", "TODO: DB: comment");
+                                        DeploymentEventContext context = new DeploymentEventContext();
+                                        context.setSite(site);
+                                        context.setItems(deploymentItemList);
+                                        context.setEnvironment(environment);
+                                        context.setAuthor("admin");
+                                        context.setComment("TODO: DB: comment");
+                                        eventService.publish(EVENT_PUBLISH_TO_ENVIRONMENT, context);
                                     }
 
                                     logger.debug("Mark deployment completed for processed items for site \"{0}\"", site);

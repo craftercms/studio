@@ -29,6 +29,7 @@ import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.DmXmlConstants;
 import org.craftercms.studio.api.v1.dal.ObjectMetadata;
 import org.craftercms.studio.api.v1.dal.ObjectState;
+import org.craftercms.studio.api.v1.ebus.PreviewEventContext;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.executor.ProcessContentExecutor;
@@ -62,6 +63,8 @@ import org.dom4j.DocumentException;
 import org.apache.commons.io.IOUtils;
 
 import javax.activation.MimetypesFileTypeMap;
+
+import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC;
 
 /**
  * Content Services that other services may use
@@ -243,7 +246,9 @@ public class ContentServiceImpl implements ContentService {
             }
 
             // Sync preview
-            eventService.firePreviewSyncEvent(site);
+            PreviewEventContext context = new PreviewEventContext();
+            context.setSite(site);
+            eventService.publish(EVENT_PREVIEW_SYNC, context);
         }  catch (RuntimeException e) {
             logger.error("error writing content", e);
 
@@ -351,7 +356,9 @@ public class ContentServiceImpl implements ContentService {
                 objectStateService.transition(site, item, TransitionEvent.SAVE);
             }
 
-            eventService.firePreviewSyncEvent(site);
+            PreviewEventContext context = new PreviewEventContext();
+            context.setSite(site);
+            eventService.publish(EVENT_PREVIEW_SYNC, context);
 
             Map<String, Object> toRet = new HashMap<String, Object>();
             toRet.put("success", true);
@@ -424,7 +431,10 @@ public class ContentServiceImpl implements ContentService {
         objectMetadataManager.deleteObjectMetadata(site, path);
         dependencyService.deleteDependenciesForSiteAndPath(site, path);
 
-        eventService.firePreviewSyncEvent(site);
+        PreviewEventContext context = new PreviewEventContext();
+        context.setSite(site);
+        eventService.publish(EVENT_PREVIEW_SYNC, context);
+
 
         // TODO: SJ: Add commitId to database for this item in version 2.7.x
 
@@ -483,7 +493,10 @@ public class ContentServiceImpl implements ContentService {
     public String moveContent(String site, String fromPath, String toPath) {
         String toReturn = null;
         String commitId = _contentRepository.moveContent(site, fromPath, toPath);
-        eventService.firePreviewSyncEvent(site);
+
+        PreviewEventContext context = new PreviewEventContext();
+        context.setSite(site);
+        eventService.publish(EVENT_PREVIEW_SYNC, context);
 
         if (commitId != null) {
             // Update the database with the commitId for the target item
@@ -1464,7 +1477,9 @@ public class ContentServiceImpl implements ContentService {
         }
 
         if (toReturn) {
-            eventService.firePreviewSyncEvent(site);
+            PreviewEventContext context = new PreviewEventContext();
+            context.setSite(site);
+            eventService.publish(EVENT_PREVIEW_SYNC, context);
         }
 
         return toReturn;
