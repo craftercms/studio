@@ -19,6 +19,7 @@
 package org.craftercms.studio.api.v1.service.deployment;
 
 import org.craftercms.studio.api.v1.dal.DeploymentSyncHistory;
+import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 
 import java.util.Date;
 import java.util.List;
@@ -31,11 +32,11 @@ public interface DeploymentHistoryProvider {
      * @param site site id
      * @param fromDate date from
      * @param toDate date to
-     * @param filterType filter items by type
-     * @param numberOfItems number of items in result set
-     * @return
+     * @param dmFilterWrapper
+     *@param filterType filter items by type
+     * @param numberOfItems number of items in result set   @return
      */
-    List<DeploymentSyncHistory> getDeploymentHistory(String site, Date fromDate, Date toDate, String filterType, int numberOfItems);
+    List<DeploymentSyncHistory> getDeploymentHistory(String site, Date fromDate, Date toDate, DmFilterWrapper dmFilterWrapper, String filterType, int numberOfItems);
 
     /**
      * Get last deployment date time for given site and path
