@@ -29,7 +29,7 @@
         <phantomjs.plugin.version>0.5</phantomjs.plugin.version>
         <suiteXmlFile>test/resources/testng.xml</suiteXmlFile>
         <studio.ui.path>target/ui/</studio.ui.path>
-        <studio.ui.version>master</studio.ui.version>
+        <studio.ui.version>3.0.0pre2</studio.ui.version>
     </properties>
 
     <licenses>
