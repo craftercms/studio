@@ -28,7 +28,7 @@
 					<iceId></iceId>
 					<title>File Name</title>
 					<description></description>
-					<defaultValue></defaultValue>
+					<defaultValue>crafter-level-descriptor.level</defaultValue>
 					<help></help>
 					<properties>
 						<property>
@@ -43,7 +43,7 @@
 						</property>
 						<property>
 							<name>readonly</name>
-							<value></value>
+							<value>true</value>
 							<type>boolean</type>
 						</property>
 					</properties>
