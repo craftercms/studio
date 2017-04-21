@@ -851,7 +851,7 @@ public class SecurityServiceImpl implements SecurityService {
         boolean toRet = false;
         if (CollectionUtils.isNotEmpty(userGroups)) {
             for (String group : userGroups) {
-                if (StringUtils.equalsIgnoreCase(group, "crafter-admin")) {
+                if (StringUtils.equalsIgnoreCase(group, studioConfiguration.getProperty(SECURITY_GLOBAL_ADMIN_GROUP))) {
                     toRet = true;
                     break;
                 }
