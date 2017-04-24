@@ -30,6 +30,8 @@
         <suiteXmlFile>test/resources/testng.xml</suiteXmlFile>
         <studio.ui.path>target/ui/</studio.ui.path>
         <studio.ui.version>master</studio.ui.version>
+        <spring.version>4.3.7.RELEASE</spring.version>
+        <spring.security.version>4.2.2.RELEASE</spring.security.version>
     </properties>
 
     <licenses>
@@ -174,12 +176,12 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-jdbc</artifactId>
-            <version>4.0.3.RELEASE</version>
+            <version>${spring.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-core</artifactId>
-            <version>4.0.3.RELEASE</version>
+            <version>${spring.security.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.springframework</groupId>
@@ -187,18 +189,18 @@
                 </exclusion>
                 <exclusion>
                     <groupId>org.springframework</groupId>
-                    <artifactId>spring-context</artifactId>
+                    <artifactId>spring-expression</artifactId>
                 </exclusion>
                 <exclusion>
                     <groupId>org.springframework</groupId>
-                    <artifactId>spring-expression</artifactId>
+                    <artifactId>spring-context</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-config</artifactId>
-            <version>4.0.3.RELEASE</version>
+            <version>${spring.security.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.springframework</groupId>
@@ -213,19 +215,11 @@
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-web</artifactId>
-            <version>4.0.3.RELEASE</version>
+            <version>${spring.security.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.springframework</groupId>
                     <artifactId>spring-web</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-expression</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-context</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -311,18 +305,6 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.github.detro</groupId>
-            <artifactId>phantomjsdriver</artifactId>
-            <version>${ghostdriver.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.seleniumhq.selenium</groupId>
-            <artifactId>selenium-server</artifactId>
-            <version>2.45.0</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
             <version>2.4</version>
@@ -342,7 +324,7 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-test</artifactId>
-            <version>4.0.3.RELEASE</version>
+            <version>${spring.version}</version>
             <scope>test</scope>
         </dependency>
 
@@ -400,15 +382,8 @@
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-ldap</artifactId>
-            <version>4.0.3.RELEASE</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-context</artifactId>
-                </exclusion>
-            </exclusions>
+            <version>${spring.security.version}</version>
         </dependency>
-
     </dependencies>
 
     <build>
@@ -520,18 +495,13 @@
                             <groupId>org.craftercms</groupId>
                             <artifactId>crafter-engine</artifactId>
                             <excludes>
-                                <!-- when udpdating ROOT base check here to see if these need to be updated -->
+                                <!--&lt;!&ndash; when udpdating ROOT base check here to see if these need to be updated &ndash;&gt;-->
                                 <exclude>WEB-INF/lib/xml-apis-1.0.b2.jar</exclude>
                                 <exclude>WEB-INF/lib/httpclient-4.3.3.jar</exclude>
                                 <exclude>WEB-INF/lib/httpcore-4.3.2.jar</exclude>
-                                <exclude>WEB-INF/lib/freemarker-2.3.20.jar</exclude>
                                 <exclude>WEB-INF/lib/commons-logging-1.1.1.jar</exclude>
-                                <exclude>WEB-INF/lib/slf4j-api-1.6.1.jarr</exclude>
                                 <exclude>WEB-INF/lib/slf4j-api-1.7.7.jar</exclude>
                                 <exclude>WEB-INF/lib/slf4j-log4j12-1.7.7.jar</exclude>
-                                <exclude>WEB-INF/lib/jcl-over-slf4j-1.7.7.jar</exclude>
-                                <exclude>WEB-INF/lib/spring-security-core-3.2.3.RELEASE.jar</exclude>
-                                <exclude>WEB-INF/lib/spring-security-web-3.2.3.RELEASE.jar</exclude>
                                 <exclude>>WEB-INF/templates/system/common/versionInfo.ftl</exclude>
                             </excludes>
                         </overlay>
