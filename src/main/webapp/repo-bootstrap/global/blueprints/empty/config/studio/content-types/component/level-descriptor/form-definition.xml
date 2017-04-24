@@ -1,5 +1,5 @@
 <form>
-	<title>Level Descriptor</title>
+	<title>Section Defaults</title>
 	<description></description>
 	<objectType>component</objectType>
 	<content-type>/component/level-descriptor</content-type>
@@ -17,7 +17,7 @@
 		</property>
 	</properties>
 	<sections>		<section>
-			<title>Level Descriptor Properties</title>
+			<title>Section Defaults Properties</title>
 			<description></description>
 			<defaultOpen>true</defaultOpen>
 			<fields>
