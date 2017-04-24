@@ -50,6 +50,7 @@ import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.to.RepoOperationTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
+import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.RefNotFoundException;
@@ -929,13 +930,15 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     @Override
-    public List<DeploymentSyncHistory> getDeploymentHistory(String site, Date fromDate, Date toDate, String filterType, int numberOfItems) {
+    public List<DeploymentSyncHistory> getDeploymentHistory(String site, Date fromDate, Date toDate, DmFilterWrapper dmFilterWrapper, String filterType, int numberOfItems) {
         List<DeploymentSyncHistory> toRet = new ArrayList<DeploymentSyncHistory>();
         Repository publishedRepo = helper.getRepository(site, PUBLISHED);
+        int counter = 0;
         try (Git git = new Git(publishedRepo)) {
             // List all environments
             List<Ref> environments = git.branchList().call();
-            for (Ref env : environments) {
+            for (int i = 0; i < environments.size() && counter < numberOfItems; i++) {
+                Ref env = environments.get(i);
                 String environment = env.getName();
                 Iterable<RevCommit> branchLog = git.log()
                         .add(env.getObjectId())
@@ -943,17 +946,21 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         .call();
 
                 Iterator<RevCommit> iterator = branchLog.iterator();
-                while (iterator.hasNext()) {
+                while (iterator.hasNext() && counter < numberOfItems) {
                     RevCommit revCommit = iterator.next();
                     List<String> files = helper.getFilesInCommit(publishedRepo, revCommit);
-                    for (String file : files) {
-                        DeploymentSyncHistory dsh = new DeploymentSyncHistory();
-                        dsh.setSite(site);
-                        dsh.setPath(file);
-                        dsh.setSyncDate(new Date(1000l * revCommit.getCommitTime()));
-                        dsh.setUser(revCommit.getAuthorIdent().getName());
-                        dsh.setEnvironment(environment);
-                        toRet.add(dsh);
+                    for (int j = 0; j < files.size() && counter < numberOfItems; j++) {
+                        String file = files.get(j);
+                        if (dmFilterWrapper.accept(site, file, filterType)) {
+                            DeploymentSyncHistory dsh = new DeploymentSyncHistory();
+                            dsh.setSite(site);
+                            dsh.setPath(file);
+                            dsh.setSyncDate(new Date(1000l * revCommit.getCommitTime()));
+                            dsh.setUser(revCommit.getAuthorIdent().getName());
+                            dsh.setEnvironment(environment);
+                            toRet.add(dsh);
+                            counter++;
+                        }
                     }
                 }
             }

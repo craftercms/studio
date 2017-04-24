@@ -176,6 +176,8 @@ studio.security.ldap.userAttribute.firstName: cn
 studio.security.ldap.userAttribute.lastName: sn
 # LDAP email attribute
 studio.security.ldap.userAttribute.email: mail
+# Global admin group
+studio.security.global.adminGroup: crafter-admin
 
 ###############################################################
 ##               Page Navigation Order Service               ##

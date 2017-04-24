@@ -119,6 +119,7 @@ public interface StudioConfiguration {
     String SECURITY_FORGOT_PASSWORD_EMAIL_TEMPLATE = "studio.security.forgotPassword.email.template";
     String SECURITY_FORGOT_PASSWORD_TOKEN_TIMEOUT = "studio.security.forgotPassword.token.timeout";
     String SECURITY_RESET_PASSWORD_SERVICE_URL = "studio.security.resetPassword.serviceUrl";
+    String SECURITY_GLOBAL_ADMIN_GROUP = "studio.security.global.adminGroup";
 
     /** LDAP */
     String SECURITY_LDAP_SERVER_URL = "studio.security.ldap.serverUrl";
