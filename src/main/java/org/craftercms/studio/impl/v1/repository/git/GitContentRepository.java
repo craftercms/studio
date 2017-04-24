@@ -35,6 +35,9 @@ import javax.servlet.ServletContext;
 
 import org.apache.commons.collections4.iterators.ReverseListIterator;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.DirectoryFileFilter;
+import org.apache.commons.io.filefilter.FileFileFilter;
+import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
@@ -255,7 +258,12 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                  GitRepositories.SANDBOX);
 
             String gitFromPath = helper.getGitPath(fromPath);
-            String gitToPath = helper.getGitPath(toPath + File.separator + newName);
+            String gitToPath;
+            if (StringUtils.isEmpty(newName)) {
+                gitToPath = helper.getGitPath(toPath);
+            } else {
+                gitToPath = helper.getGitPath(toPath + File.separator + newName);
+            }
 
             try (Git git = new Git(repo)) {
                 // Check if destination is a file, then this is a rename operation
@@ -273,6 +281,16 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     }
                 } else if (sourceFile.isDirectory()) {
                     // Check if we're moving a single file or whole subtree
+                    //FileUtils.moveToDirectory(sourceFile, targetFile, true);
+                    File[] dirList = sourceFile.listFiles();
+                    //Collection<File> dirList = FileUtils.listFilesAndDirs(sourceFile, FileFileFilter.FILE, DirectoryFileFilter.INSTANCE);
+                    for (File child : dirList) {
+                        if (!child.equals(sourceFile)) {
+                            FileUtils.moveToDirectory(child, targetFile, true);
+                        }
+                    }
+                    FileUtils.deleteDirectory(sourceFile);
+                } else {
                     FileUtils.moveToDirectory(sourceFile, targetFile, true);
                 }
 
