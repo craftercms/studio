@@ -441,7 +441,7 @@
     <build>
         <finalName>studio</finalName>
         <plugins>
-        <plugin>
+            <plugin>
                 <artifactId>maven-clean-plugin</artifactId>
                 <version>3.0.0</version>
                     <configuration>
@@ -534,7 +534,7 @@
                 <artifactId>maven-war-plugin</artifactId>
                 <version>2.4</version>
                 <configuration>
-                   <attachClasses>true</attachClasses>
+                    <attachClasses>true</attachClasses>
                     <warSourceExcludes>**/crafterTemplateRepository/</warSourceExcludes>
                     <workDirectory>target/overlay-war-folder</workDirectory>
                     <archive>
@@ -567,37 +567,37 @@
                     <webResources>
                         <!-- static-assets -->
                         <resource>
-                        	<directory>${studio.ui.path}static-assets</directory>
-                        	<filtering>false</filtering>
-                        	<targetPath>default-site/static-assets</targetPath>
+                            <directory>${studio.ui.path}static-assets</directory>
+                            <filtering>false</filtering>
+                            <targetPath>default-site/static-assets</targetPath>
                         </resource>
 
                         <!-- templates -->
                         <resource>
-                        	<directory>${studio.ui.path}templates</directory>
-                        	<filtering>true</filtering>
-                        	<targetPath>default-site/templates</targetPath>
+                            <directory>${studio.ui.path}templates</directory>
+                            <filtering>true</filtering>
+                            <targetPath>default-site/templates</targetPath>
                         </resource>
 
                         <!-- site -->
                         <resource>
-                        	<directory>${studio.ui.path}site</directory>
-                        	<filtering>false</filtering>
-                        	<targetPath>default-site/site</targetPath>
+                            <directory>${studio.ui.path}site</directory>
+                            <filtering>false</filtering>
+                            <targetPath>default-site/site</targetPath>
                         </resource>
 
 
-                                <resource>
-                                    <directory>src/main/generated-resources/ftl</directory>
-                                    <filtering>true</filtering>
-                                    <targetPath>WEB-INF/templates/system/common</targetPath>
-                                </resource>
+                        <resource>
+                            <directory>src/main/generated-resources/ftl</directory>
+                            <filtering>true</filtering>
+                            <targetPath>WEB-INF/templates/system/common</targetPath>
+                        </resource>
 
-                            <resource>
-                                <directory>src/main/generated-resources/rest</directory>
-                                <filtering>true</filtering>
-                                <targetPath>default-site/scripts/rest</targetPath>
-                            </resource>
+                        <resource>
+                            <directory>src/main/generated-resources/rest</directory>
+                            <filtering>true</filtering>
+                            <targetPath>default-site/scripts/rest</targetPath>
+                        </resource>
                     </webResources>
                 </configuration>
             </plugin>
@@ -827,14 +827,16 @@
         </profile>
     </profiles>
     <distributionManagement>
-<snapshotRepository>
-<id>sonatype-nexus-snapshots</id>
-<url>https://oss.sonatype.org/content/repositories/snapshots</url>
-</snapshotRepository>
-<repository>
-<id>sonatype-nexus-staging</id>
-<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-</repository>
-</distributionManagement>
+        <snapshotRepository>
+            <id>sonatype-nexus-snapshots</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+            <id>sonatype-nexus-staging</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
 
 </project>
+
+
