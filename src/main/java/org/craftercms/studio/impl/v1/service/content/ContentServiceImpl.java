@@ -50,6 +50,7 @@ import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.*;
 import org.craftercms.studio.api.v1.util.DebugUtils;
+import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentItemOrderComparator;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
@@ -476,19 +477,9 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     public String copyContent(String site, String fromPath, String toPath) {
-        String toReturn = null;
-        String commitId = _contentRepository.copyContent(site, fromPath, toPath);
-
-        if (commitId != null) {
-            // Update the database with the commitId for the target item
-            objectMetadataManager.updateCommitId(site, toPath, commitId);
-            siteService.updateLastCommitId(site, commitId);
-            toReturn = toPath;
-        }
-
-        return toReturn;
+        return copyContent(site, fromPath, toPath, new HashSet<String>());
     }
-
+/*
     @Override
     public String moveContent(String site, String fromPath, String toPath) {
         String toReturn = null;
@@ -507,7 +498,7 @@ public class ContentServiceImpl implements ContentService {
 
         return toReturn;
     }
-
+*/
     /**
      * internal method copy that handles
      * Get dependencies is already recursive
@@ -530,7 +521,7 @@ public class ContentServiceImpl implements ContentService {
             String copyFileName = copyPath.substring(copyPath.lastIndexOf("/")+1);
 
             if(!processedPaths.contains(copyPath)) {
-
+                InputStream copyContent = null;
                 try {
                     ContentItemTO fromItem = getContentItem(site, fromPath, 0);
                     String contentType = fromItem.getContentType();
@@ -571,7 +562,7 @@ public class ContentServiceImpl implements ContentService {
                     Document copyDocument = updateContentOnCopy(fromDocument, copyPathFileName, copyPathFolder,
                         copyObjectIds, copyPathModifier);
 
-                    InputStream copyContent = ContentUtils.convertDocumentToStream(copyDocument, StudioConstants
+                    copyContent = ContentUtils.convertDocumentToStream(copyDocument, StudioConstants
                         .CONTENT_ENCODING);
 
                     // This code is very similar to what is in writeContent. Consolidate this code?
@@ -629,6 +620,8 @@ public class ContentServiceImpl implements ContentService {
                 }
                 catch(DocumentException eParseException) {
                     logger.error("General Error while copying content for site {0} from {1} to {2}, new name is {3}", eParseException, site, fromPath, toPath, copyPath);
+                } finally {
+                    IOUtils.closeQuietly(copyContent);
                 }
             } else {
                 // no need to process
@@ -642,6 +635,62 @@ public class ContentServiceImpl implements ContentService {
         return retNewFileName;
     }
 /* ===================== */
+
+    @Override
+    public String moveContent(String site, String fromPath, String toPath) {
+        String retNewFileName = null;
+        boolean opSuccess = false;
+        String movePath = null;
+
+        try {
+            String sourcePath = (fromPath.indexOf("" + File.separator + DmConstants.INDEX_FILE) != -1) ? fromPath.substring(0, fromPath.lastIndexOf("/")) : fromPath;
+            String sourcePathOnly = fromPath.substring(0, fromPath.lastIndexOf("/"));
+
+            Map<String, String> movePathMap = constructNewPathforCutCopy(site, fromPath, toPath, true);
+            movePath = movePathMap.get("FILE_PATH");
+            String moveFileName = movePathMap.get("FILE_NAME");
+            String movePathOnly = movePath.substring(0, movePath.lastIndexOf("/"));
+            boolean moveAltFileName = "true".equals(movePathMap.get("ALT_NAME"));
+            boolean targetIsIndex = DmConstants.INDEX_FILE.equals(moveFileName);
+            boolean sourceIsIndex = DmConstants.INDEX_FILE.equals(fromPath);
+
+            String targetPath = movePathOnly;
+            if(movePathOnly.equals(sourcePathOnly)
+                    || (moveAltFileName == true && !targetIsIndex)
+                    ||  (!sourceIsIndex && !targetIsIndex)) {
+                // we never send index.xml to the repo, we move folders (and the folder has the rename)
+                // SO otherwise, this is a rename and we need to forward the full path
+                targetPath = movePath;
+            }
+
+            logger.debug("Move file for site {0} from {1} to {2}, sourcePath {3} to target path {4}", site, fromPath, toPath, sourcePath, targetPath);
+
+            // NOTE: IN WRITE SCENARIOS the repository OP IS PART of this PIPELINE, for some reason, historically with MOVE it is not
+            String commitId = _contentRepository.moveContent(site, sourcePath, targetPath);
+
+            if (commitId != null) {
+                // Update the database with the commitId for the target item
+                objectMetadataManager.updateCommitId(site, toPath, commitId);
+                siteService.updateLastCommitId(site, commitId);
+                updateDatabaseOnMove(site, fromPath, movePath);
+
+                updateChildrenOnMove(site, fromPath, movePath);
+            }
+            else {
+                logger.error("Repository move failed site {0} from {1} to {2}", site, sourcePath, targetPath);
+                movePath = fromPath;
+            }
+
+            PreviewEventContext context = new PreviewEventContext();
+            context.setSite(site);
+            eventService.publish(EVENT_PREVIEW_SYNC, context);
+        }
+        catch(ServiceException eMoveErr) {
+            logger.error("Content not found while moving content for site {0} from {1} to {2}, new name is {3}", eMoveErr, site, fromPath, toPath, movePath);
+        }
+
+        return movePath;
+    }
 
     protected void updateDatabaseOnMove(String site, String fromPath, String movePath) {
         logger.debug("updateDatabaseOnMove FROM {0} TO {1}  ", fromPath, movePath);
@@ -1873,6 +1922,7 @@ public class ContentServiceImpl implements ContentService {
     protected EventService eventService;
     protected SiteService siteService;
     protected ContentItemIdGenerator contentItemIdGenerator;
+    protected StudioConfiguration studioConfiguration;
 
     public ContentRepository getContentRepository() { return _contentRepository; }
     public void setContentRepository(ContentRepository contentRepository) { this._contentRepository = contentRepository; }
@@ -1918,4 +1968,7 @@ public class ContentServiceImpl implements ContentService {
 
     public ContentItemIdGenerator getContentItemIdGenerator() { return contentItemIdGenerator; }
     public void setContentItemIdGenerator(ContentItemIdGenerator contentItemIdGenerator) { this.contentItemIdGenerator = contentItemIdGenerator; }
+
+    public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
 }
