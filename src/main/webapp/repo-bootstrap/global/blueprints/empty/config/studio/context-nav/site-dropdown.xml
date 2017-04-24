@@ -82,22 +82,6 @@
 										</roles>
 									</params>
 								</modulehook>
-								<modulehook>
-									<name>previewsync</name>
-									<params>
-										<roles>
-											<role>admin</role>
-										</roles>
-									</params>
-								</modulehook>
-								<modulehook>
-									<name>syncrepo</name>
-									<params>
-										<roles>
-											<role>admin</role>
-										</roles>
-									</params>
-								</modulehook>
 							</modulehooks>
 
 						</menuItem>

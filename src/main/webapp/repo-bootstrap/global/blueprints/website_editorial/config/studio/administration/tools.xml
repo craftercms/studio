@@ -77,5 +77,7 @@
 		<tool><name>workflow-states</name><label>Workflow States</label></tool>
 		<tool><name>logging</name><label>Logging Levels</label></tool>
 		<tool><name>log-view</name><label>Log Console</label></tool>
+        <tool><name>preview-sync</name><label>Preview Sync</label></tool>
+        <tool><name>sync-from-repository</name><label>Sync From Repository</label></tool>
 	</tools>
 </config>
