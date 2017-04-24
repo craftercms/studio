@@ -479,26 +479,7 @@ public class ContentServiceImpl implements ContentService {
     public String copyContent(String site, String fromPath, String toPath) {
         return copyContent(site, fromPath, toPath, new HashSet<String>());
     }
-/*
-    @Override
-    public String moveContent(String site, String fromPath, String toPath) {
-        String toReturn = null;
-        String commitId = _contentRepository.moveContent(site, fromPath, toPath);
 
-        PreviewEventContext context = new PreviewEventContext();
-        context.setSite(site);
-        eventService.publish(EVENT_PREVIEW_SYNC, context);
-
-        if (commitId != null) {
-            // Update the database with the commitId for the target item
-            objectMetadataManager.updateCommitId(site, toPath, commitId);
-            siteService.updateLastCommitId(site, commitId);
-            toReturn = toPath;
-        }
-
-        return toReturn;
-    }
-*/
     /**
      * internal method copy that handles
      * Get dependencies is already recursive
@@ -634,7 +615,6 @@ public class ContentServiceImpl implements ContentService {
 
         return retNewFileName;
     }
-/* ===================== */
 
     @Override
     public String moveContent(String site, String fromPath, String toPath) {
