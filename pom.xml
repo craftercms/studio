@@ -408,6 +408,10 @@
                                             <directory>data/</directory>
                                             <followSymlinks>false</followSymlinks>
                                     </fileset>
+                                <fileset>
+                                    <directory>overlays/</directory>
+                                    <followSymlinks>false</followSymlinks>
+                                </fileset>
                               </filesets>
                         </configuration>
               </plugin>
