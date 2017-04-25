@@ -21,7 +21,6 @@ package org.craftercms.studio.impl.v1.service.security;
 
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CipherUtils;
-import org.craftercms.commons.crypto.CryptoUtils;
 import org.craftercms.commons.http.RequestContext;
 import org.craftercms.studio.api.v1.dal.*;
 import org.craftercms.studio.api.v1.ebus.RepositoryEventContext;
@@ -32,6 +31,7 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
+import org.craftercms.studio.impl.v1.util.TokenUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 
