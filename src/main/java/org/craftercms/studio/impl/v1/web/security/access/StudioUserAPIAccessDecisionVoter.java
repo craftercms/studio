@@ -21,8 +21,6 @@ package org.craftercms.studio.impl.v1.web.security.access;
 import org.craftercms.studio.api.v1.dal.User;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v1.service.security.SecurityService;
-import org.springframework.security.access.AccessDecisionVoter;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.FilterInvocation;
@@ -62,10 +60,11 @@ public class StudioUserAPIAccessDecisionVoter extends StudioAbstractAccessDecisi
     @Override
     public int vote(Authentication authentication, Object o, Collection collection) {
         int toRet = ACCESS_ABSTAIN;
+        String requestUri = "";
         if (o instanceof FilterInvocation) {
             FilterInvocation filterInvocation = (FilterInvocation)o;
             HttpServletRequest  request = filterInvocation.getRequest();
-            String requestUri = request.getRequestURI().replace(request.getContextPath(), "");
+            requestUri = request.getRequestURI().replace(request.getContextPath(), "");
             String requsetUrl = filterInvocation.getRequestUrl();
             String userParam = request.getParameter("username");
             User currentUser = null;
@@ -74,7 +73,7 @@ public class StudioUserAPIAccessDecisionVoter extends StudioAbstractAccessDecisi
             } catch (ClassCastException e) {
                 // anonymous user
                 if (!authentication.getPrincipal().toString().equals("anonymousUser")) {
-                    logger.error("Error getting current user", e);
+                    logger.info("Error getting current user", e);
                     return ACCESS_ABSTAIN;
                 }
             }
@@ -132,6 +131,7 @@ public class StudioUserAPIAccessDecisionVoter extends StudioAbstractAccessDecisi
                     break;
             }
         }
+        logger.debug("Request: " + requestUri + " - Access: " + toRet);
         return toRet;
     }
 

@@ -50,10 +50,11 @@ public class StudioGroupAPIAccessDecisionVoter extends StudioAbstractAccessDecis
     @Override
     public int vote(Authentication authentication, Object o, Collection collection) {
         int toRet = ACCESS_ABSTAIN;
+        String requestUri = "";
         if (o instanceof FilterInvocation) {
             FilterInvocation filterInvocation = (FilterInvocation)o;
             HttpServletRequest request = filterInvocation.getRequest();
-            String requestUri = request.getRequestURI().replace(request.getContextPath(), "");
+            requestUri = request.getRequestURI().replace(request.getContextPath(), "");
             String requsetUrl = filterInvocation.getRequestUrl();
             String userParam = request.getParameter("username");
             String siteParam = request.getParameter("site_id");
@@ -94,6 +95,7 @@ public class StudioGroupAPIAccessDecisionVoter extends StudioAbstractAccessDecis
                     break;
             }
         }
+        logger.debug("Request: " + requestUri + " - Access: " + toRet);
         return toRet;
     }
 
