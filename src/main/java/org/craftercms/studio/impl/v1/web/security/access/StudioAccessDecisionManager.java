@@ -38,7 +38,6 @@ public class StudioAccessDecisionManager extends AbstractAccessDecisionManager {
 
     @Override
     public void decide(Authentication authentication, Object object, Collection<ConfigAttribute> configAttributes) throws AccessDeniedException, InsufficientAuthenticationException {
-        loggerCrafter.info("Decide method invoked: ");
         int granted = 0;
 
         for (AccessDecisionVoter voter : getDecisionVoters()) {
