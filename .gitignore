@@ -18,5 +18,6 @@ inputFiles.lst
 
 deploy/*
 data/*
-derby.log
 repos/*
+dbms/*
+derby.log
