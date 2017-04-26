@@ -16,6 +16,7 @@ import org.outerj.daisy.diff.html.HtmlSaxDiffOutput
 import org.outerj.daisy.diff.html.TextNodeComparator
 import org.outerj.daisy.diff.html.dom.DomTreeBuilder
 import org.xml.sax.InputSource
+import org.apache.commons.lang.StringEscapeUtils
 
 class HTMLCompareTools {
 		static CONTENT_XML_TO_HTML_XSL =
@@ -62,6 +63,28 @@ class HTMLCompareTools {
 		catch (Throwable e) {
 			throw new RuntimeException(e)
 		}
+	}
+
+	static String xmlEscapedFormatted(String xml){
+		def formattedXml = ''	
+		def spacesCount = 0
+
+		for(String s : xml.split("(?=<)|(?<=>)")){
+			def spaces = ''
+			def i = 0
+
+			for(i; i < spacesCount; i++){
+				spaces += '&nbsp;'
+			} 
+
+	    	if(s.trim().length() > 0){
+	    		formattedXml += spaces + StringEscapeUtils.escapeXml(s) +  '<br/>'
+	 	  	}else{
+	 	  		spacesCount = s.length();
+	 	  	}
+		}
+
+		return formattedXml
 	}
 
 	static String diff(String html1, String html2) {
