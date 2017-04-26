@@ -106,7 +106,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
         Set<ContentItemTO> dependents = new HashSet<>();
         List<String> rawDependentItems = getDependantPaths(site, path);
         for (String dependentItem : rawDependentItems) {
-            dependents.add(contentService.getContentItem(dependentItem));
+            dependents.add(contentService.getContentItem(site,dependentItem));
         }
         // Make sure its a read only list.
         return Collections.unmodifiableSet(dependents);
@@ -116,7 +116,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
         Set<ContentItemTO> dependents = new HashSet<>();
         List<String> rawDependentItems = getDependencyPaths(site, path);
         for (String dependentItem : rawDependentItems) {
-            dependents.add(contentService.getContentItem(dependentItem));
+            dependents.add(contentService.getContentItem(site,dependentItem));
         }
         // Make sure its a read only list.
         return Collections.unmodifiableSet(dependents);
