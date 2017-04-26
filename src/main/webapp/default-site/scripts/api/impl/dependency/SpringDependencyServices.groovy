@@ -34,4 +34,14 @@ class SpringDependencyServices {
         def springBackendService = this.context.applicationContext.get(DEPENDENCY_SERVICES_BEAN);
         return springBackendService.getDependencies(site, requestBody, deleteDependencies);
     }
+
+    def getDependantItems(site, path) {
+        def springBackendService = this.context.applicationContext.get(DEPENDENCY_SERVICES_BEAN);
+        return springBackendService.getDependantItems(site, path);
+    }
+
+    def getDependenciesItems(site, path) {
+        def springBackendService = this.context.applicationContext.get(DEPENDENCY_SERVICES_BEAN);
+        return springBackendService.getDependenciesItems(site, path);
+    }
 }

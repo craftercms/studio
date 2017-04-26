@@ -102,6 +102,25 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
         return items;
     }
 
+    public Set<ContentItemTO> getDependantItems(String site, String path){
+        Set<ContentItemTO> dependents = new HashSet<>();
+        List<String> rawDependentItems = getDependantPaths(site, path);
+        for (String dependentItem : rawDependentItems) {
+            dependents.add(contentService.getContentItem(dependentItem));
+        }
+        // Make sure its a read only list.
+        return Collections.unmodifiableSet(dependents);
+    }
+
+    public Set<ContentItemTO> getDependenciesItems(String site, String path){
+        Set<ContentItemTO> dependents = new HashSet<>();
+        List<String> rawDependentItems = getDependencyPaths(site, path);
+        for (String dependentItem : rawDependentItems) {
+            dependents.add(contentService.getContentItem(dependentItem));
+        }
+        // Make sure its a read only list.
+        return Collections.unmodifiableSet(dependents);
+    }
 
     @Override
     public Map<String, Object> getDependencies(String site, String request, Boolean deleteDependencies) throws ServiceException {
@@ -1247,15 +1266,29 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
     }
 
     @Override
-    public void deleteDependenciesForSite(String site) {
+    public List<String> getDependantPaths(String site, String path) {
+        List<String> toRet = new ArrayList<>();
         Map<String, String> params = new HashMap<String, String>();
+        params.put("site", site);
+        params.put("targetPath", getCleanPath(path));
+        List<DependencyEntity> deps = dependencyMapper.getDependant(params);
+        for (DependencyEntity dep : deps) {
+            toRet.add(dep.getSourcePath());
+        }
+        return toRet;
+    }
+
+
+    @Override
+    public void deleteDependenciesForSite(String site) {
+        Map<String, String> params = new HashMap<>();
         params.put("site", site);
         dependencyMapper.deleteDependenciesForSite(params);
     }
 
     @Override
     public void deleteDependenciesForSiteAndPath(String site, String path) {
-        Map<String, String> params = new HashMap<String, String>();
+        Map<String, String> params = new HashMap<>();
         params.put("site", site);
         params.put("path", path);
         dependencyMapper.deleteDependenciesForSiteAndPath(params);
