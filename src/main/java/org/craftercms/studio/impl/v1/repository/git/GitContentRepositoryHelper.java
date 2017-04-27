@@ -188,7 +188,9 @@ public class GitContentRepositoryHelper {
             // Set compression level (core.compression)
             config.setInt(CONFIG_SECTION_CORE, null, CONFIG_PARAMETER_COMPRESSION, CONFIG_PARAMETER_COMPRESSION_DEFAULT);
             // Set big file threshold (core.bigFileThreshold)
-            config.setString(CONFIG_SECTION_CORE,null,CONFIG_PARAMETER_BIG_FILE_THRESHOLD, CONFIG_PARAMETER_BIG_FILE_THRESHOLD_DEFAULT);
+            config.setString(CONFIG_SECTION_CORE, null, CONFIG_PARAMETER_BIG_FILE_THRESHOLD, CONFIG_PARAMETER_BIG_FILE_THRESHOLD_DEFAULT);
+            // Set fileMode
+            config.setBoolean(CONFIG_SECTION_CORE, null, CONFIG_PARAMETER_FILE_MODE, CONFIG_PARAMETER_FILE_MODE_DEFAULT);
             // Save configuration changes
             config.save();
         } catch (IOException e) {
