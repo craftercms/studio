@@ -4,7 +4,6 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
     <import resource="classpath:crafter/studio/database-context.xml"/>
-    <import resource="classpath:crafter/studio/studio-ebus-context.xml"/>
 
 
       <!-- ////////////////////////////////////// -->
@@ -291,7 +290,7 @@
     <bean id="cstudioEmailMessageQueue" class="org.craftercms.studio.api.v1.to.EmailMessageQueueTo">
     </bean>
 
-    <bean id="cstudioEmailMessageSender" class="org.craftercms.studio.impl.v1.job.EmailMessageSender" init-method="initThread">
+    <bean id="cstudioEmailMessageSender" class="org.craftercms.studio.impl.v1.job.EmailMessageSender" init-method="initThread" destroy-method="shutdown">
         <property name="emailMessages" ref="cstudioEmailMessageQueue" />
         <property name="emailService" ref="mailSender" />
         <property name="emailServiceNoAuth" ref="mailSenderNoAuth" />
@@ -341,9 +340,9 @@
     </bean>
 
     <!-- scheduled actions -->
-    <bean id="cstudioDeployContentToEnvironmentJobsScheduled" class="org.springframework.scheduling.quartz.SimpleTriggerFactoryBean">
+    <bean id="cstudioDeployContentToEnvironmentJobsScheduled" class="org.springframework.scheduling.quartz.SimpleTriggerFactoryBean" >
         <property name="jobDetail">
-            <bean class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+            <bean class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean" >
                 <property name="targetObject" ref="cstudioDeployContentToEnvironmentJobs"/>
                 <property name="targetMethod" value="execute"/>
                 <property name="concurrent" value="false"/>
@@ -353,12 +352,13 @@
         <property name="startDelay" value="2000" />
     </bean>
 
-    <bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+    <bean id="studioSchedulerFactoryBean" name="studioSchedulerFactoryBean" class="org.craftercms.studio.impl.v1.util.spring.context.StudioSchedulerFactoryBean" destroy-method="destroy">
         <property name="triggers">
             <list>
                 <ref bean="cstudioDeployContentToEnvironmentJobsScheduled" />
             </list>
         </property>
+        <property name="waitForJobsToCompleteOnShutdown" value="false" />
     </bean>
 
     <!-- ////////////////////////////////////// -->
@@ -711,11 +711,6 @@
         </property>
     </bean>
 
-    <!-- Application Listeners -->
-    <bean class="org.craftercms.studio.impl.v1.util.spring.context.SiteConfigurationLoader">
-        <property name="siteService" ref="cstudioSiteServiceSimple"/>
-    </bean>
-
     <!-- Utilities -->
     <bean id="studioApplicationContextProvider" class="org.craftercms.studio.impl.v1.util.spring.context.ApplicationContextProvider"></bean>
 
@@ -731,13 +726,14 @@
         <property name="contentRepository" ref="contentRepository" />
     </bean>
 
-    <bean id="studioTaskExecutor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor">
+    <bean id="studioTaskExecutor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor" destroy-method="shutdown">
         <property name="corePoolSize" value="5"/>
         <property name="maxPoolSize" value="10"/>
         <property name="queueCapacity" value="25"/>
+        <property name="waitForTasksToCompleteOnShutdown" value="false" />
     </bean>
 
-    <bean id="studioGroovyScriptExecutor" class="org.craftercms.studio.impl.v1.script.GroovyScriptExecutor">
+    <bean id="studioGroovyScriptExecutor" class="org.craftercms.studio.impl.v1.script.GroovyScriptExecutor" >
         <property name="scriptsClassPath" value="#{'${crafter.studio.scripts.groovy.classpath}'.split(',')}"/>
     </bean>
 
@@ -746,6 +742,5 @@
     </bean>
 
     <import resource="classpath:crafter/studio/cache/studio-cache-context.xml"/>
-    <import resource="classpath:crafter/studio/studio-ebus-config.xml"/>
     <import resource="classpath:crafter/studio/studio-security-context.xml"/>
 </beans>

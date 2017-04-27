@@ -17,12 +17,12 @@
  */
 package org.craftercms.studio.impl.v1.service;
 
-import javolution.util.FastMap;
 import org.craftercms.studio.api.v1.service.AbstractRegistrableService;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -30,7 +30,7 @@ public class GeneralLockServiceImpl extends AbstractRegistrableService implement
 
     private static final Logger logger = LoggerFactory.getLogger(GeneralLockServiceImpl.class);
 
-    protected Map<String, ReentrantLock> nodeLocks = new FastMap<String, ReentrantLock>();
+    protected Map<String, ReentrantLock> nodeLocks = new HashMap<String, ReentrantLock>();
 
     @Override
     public void register() {

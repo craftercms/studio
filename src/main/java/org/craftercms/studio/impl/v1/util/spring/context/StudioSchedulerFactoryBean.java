@@ -1,6 +1,6 @@
 /*
  * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2016 Crafter Software Corporation.
+ * Copyright (C) 2007-2017 Crafter Software Corporation.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,22 +18,18 @@
 
 package org.craftercms.studio.impl.v1.util.spring.context;
 
-import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.springframework.context.ApplicationListener;
-import org.springframework.context.event.ContextRefreshedEvent;
+import org.quartz.SchedulerException;
+import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 
+public class StudioSchedulerFactoryBean extends SchedulerFactoryBean {
 
-/**
- * Created by dejanbrkic on 8/18/15.
- */
-public class SiteConfigurationLoader implements ApplicationListener<ContextRefreshedEvent> {
     @Override
-    public void onApplicationEvent(ContextRefreshedEvent event) {
-        siteService.reloadSiteConfigurations();
+    public void destroy() throws SchedulerException {
+        super.destroy();
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
-
-    public SiteService getSiteService() { return siteService; }
-    public void setSiteService(SiteService siteService) { this.siteService = siteService; }
-
-    protected SiteService siteService;
 }

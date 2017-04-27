@@ -86,26 +86,6 @@ public class ContentItemOrderComparator extends ContentComparatorBase<ContentIte
     }
 
     @Override
-    public int hashCodeOf(ContentItemTO item) {
-        if (item != null) {
-            return item.hashCode();
-        } else {
-            return 0;
-        }
-    }
-
-    @Override
-    public boolean areEqual(ContentItemTO item1, ContentItemTO item2) {
-        if (item1 == null && item2 == null) {
-            return true;
-        } else if (item1 == null || item2 == null) {
-            return false;
-        } else {
-            return item1.equals(item2);
-        }
-    }
-
-    @Override
     public int compare(ContentItemTO item1, ContentItemTO item2) {
 
         // check for level descriptors

@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import javolution.util.FastList;
 
 /**
  * contains the dependent file names of the content specified by the URI
@@ -348,7 +347,7 @@ public class DmDependencyTO implements Serializable {
      */
     
 	public List<DmDependencyTO> getDirectDependencies() {
-		List<DmDependencyTO> dependencyTO = new FastList<DmDependencyTO>();
+		List<DmDependencyTO> dependencyTO = new ArrayList<DmDependencyTO>();
     	if(_components!=null)
             dependencyTO.addAll(_components);
     	if(_documents!=null)

@@ -19,15 +19,9 @@ package org.craftercms.studio.api.v1.to;
 
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import javolution.util.FastList;
-import javolution.util.FastMap;
-import javolution.util.FastTable;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.studio.api.v1.util.DmContentItemComparator;
 
@@ -217,7 +211,7 @@ public class ContentItemTO implements Serializable {
 
 		if (cloneChildren) {
 			if (item.children != null) {
-				this.children = new FastTable<ContentItemTO>(item.children.size());
+				this.children = new ArrayList<ContentItemTO>(item.children.size());
 				for (ContentItemTO child : item.children) {
 					this.children.add(new ContentItemTO(child));
 				}
@@ -416,7 +410,7 @@ public class ContentItemTO implements Serializable {
 		}
 
 		if (children == null) {
-			children = new FastList<ContentItemTO>();
+			children = new ArrayList<ContentItemTO>();
 		}
 		children.add(itemToAdd);
 		numOfChildren++;
@@ -449,7 +443,7 @@ public class ContentItemTO implements Serializable {
 			// position to add the item
 			int pos = 0;
 			// list to hold any child items found to be add to the itemToAdd
-			List<Integer> childPositions = new FastList<Integer>(children.size());
+			List<Integer> childPositions = new ArrayList<Integer>(children.size());
 			for (int index = 0; index < children.size(); index++) {
 				ContentItemTO child = children.get(index);
 				String childUri = StringUtils.isEmpty(child.browserUri) ? child.uri : child.browserUri;
@@ -528,7 +522,7 @@ public class ContentItemTO implements Serializable {
 				}
 			}
 		} else {
-			children = new FastList<ContentItemTO>();
+			children = new ArrayList<ContentItemTO>();
 			children.add(itemToAdd);
 		}
 		// increase the number of children by 1
@@ -639,7 +633,7 @@ public class ContentItemTO implements Serializable {
 				}
 			}
 		} else {
-			children = new FastTable<ContentItemTO>();
+			children = new ArrayList<ContentItemTO>();
 			if (childFilter.accept(itemToAdd)) {
 				children.add(itemToAdd);
 			}

@@ -17,8 +17,6 @@
  ******************************************************************************/
 package org.craftercms.studio.impl.v1.service.configuration;
 
-
-import javolution.util.FastList;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
@@ -289,12 +287,12 @@ public class ServicesConfigImpl implements ServicesConfig {
 	protected List<String> getStringList(List<Node> nodes) {
 		List<String> items = null;
 		if (nodes != null && nodes.size() > 0) {
-			items = new FastList<String>(nodes.size());
+			items = new ArrayList<String>(nodes.size());
 			for (Node node : nodes) {
 				items.add(node.getText());
 			}
 		} else {
-			items = new FastList<String>(0);
+			items = new ArrayList<String>(0);
 		}
 		return items;
 	}
@@ -314,7 +312,7 @@ public class ServicesConfigImpl implements ServicesConfig {
                 if (!StringUtils.isEmpty(patternKey)) {
                     List<Node> patternNodes = node.selectNodes(ELM_PATTERN);
                     if (patternNodes != null) {
-                        List<String> patterns = new FastList<String>(patternNodes.size());
+                        List<String> patterns = new ArrayList<String>(patternNodes.size());
                         for (Node patternNode : patternNodes) {
                             String pattern = patternNode.getText();
                             if (!StringUtils.isEmpty(pattern)) {
@@ -356,7 +354,7 @@ public class ServicesConfigImpl implements ServicesConfig {
      */
     protected void loadFolderConfiguration(SiteConfigTO site, RepositoryConfigTO repo, List<Node> folderNodes) {
         if (folderNodes != null) {
-            List<DmFolderConfigTO> folders = new FastList<DmFolderConfigTO>(folderNodes.size());
+            List<DmFolderConfigTO> folders = new ArrayList<DmFolderConfigTO>(folderNodes.size());
             for (Node folderNode : folderNodes) {
                 DmFolderConfigTO folderConfig = new DmFolderConfigTO();
                 folderConfig.setName(folderNode.valueOf(ATTR_NAME));

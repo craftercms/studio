@@ -18,9 +18,8 @@
 package org.craftercms.studio.api.v1.to;
 
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.Set;
-
-import javolution.util.FastSet;
 
 public class ContentTypePathTO implements Serializable {
 
@@ -67,7 +66,7 @@ public class ContentTypePathTO implements Serializable {
 	 */
 	public void addToAllowedContentTypes(String key) {
 		if (this.allowedContentTypes == null) {
-			this.allowedContentTypes = new FastSet<String>();
+			this.allowedContentTypes = new HashSet<String>();
 		}
 		this.allowedContentTypes.add(key);
 	}
