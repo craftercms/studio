@@ -1,15 +1,22 @@
 import scripts.libs.EnvironmentOverrides
 import scripts.libs.HTMLCompareTools
 import scripts.api.ContentServices
+import org.apache.commons.lang.StringEscapeUtils
+
 
 def result = [:]
 def site = params.site
 def path = params.path
 def version = params.version
+def escaped = params.escaped
 
 def context = ContentServices.createContext(applicationContext, request)
 String original = "UNSET"
 String revised = "UNSET"
+
+model.version = version
+
+model.xsl = HTMLCompareTools.CONTENT_XML_TO_HTML_XSL
 
 if([Collection, Object[]].any { it.isAssignableFrom(version.getClass()) } == false) {
 	original = ContentServices.getContent(site, path, false, context)
@@ -20,14 +27,18 @@ else {
 	revised = ContentServices.getContentVersionAtPath(site, path, version[1], context)
 }
 
-model.version = version
-
-model.xsl = HTMLCompareTools.CONTENT_XML_TO_HTML_XSL
-
-model.variantA = HTMLCompareTools.xmlAsStringToHtml(revised)
-model.variantB = HTMLCompareTools.xmlAsStringToHtml(original)
+if(!escaped){
+	model.variantA = HTMLCompareTools.xmlAsStringToHtml(revised)
+	model.variantB = HTMLCompareTools.xmlAsStringToHtml(original)
+}else{
+	model.revisedEscaped = HTMLCompareTools.xmlEscapedFormatted(revised)
+	model.variantA = '<?xml version="1.0" encoding="UTF-8"?><html><body>' + model.revisedEscaped + '</body></html>'
+	model.originalEscaped = HTMLCompareTools.xmlEscapedFormatted(original)
+	model.variantB = '<?xml version="1.0" encoding="UTF-8"?><html><body>' + model.originalEscaped + '</body></html>'
+}
 
 model.diff = HTMLCompareTools.diff(model.variantA, model.variantB)
+
 model.dir = path
 
 model.envConfig = EnvironmentOverrides.getValuesForSite(applicationContext, request, response)  

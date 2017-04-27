@@ -1,3 +1,4 @@
+import org.apache.commons.lang3.StringUtils
 /*
  * Crafter Studio Web-content authoring solution
  * Copyright (C) 2007-2016 Crafter Software Corporation.
@@ -15,30 +16,17 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+import scripts.api.DependencyServices;
 
-package org.craftercms.studio.api.v1.dal;
+def result = [:];
+def site = params.site;
+def path = params.path;
 
-import java.util.List;
-import java.util.Map;
-
-/**
- * @author Dejan Brkic
- */
-public interface DependencyMapper {
-
-    List<DependencyEntity> getDependencies(Map params);
-
-    List<DependencyEntity> getDependant(Map params);
-
-    void deleteAllSourceDependencies(Map params);
-
-    void insertList(Map params);
-
-    List<DependencyEntity> getDependenciesByType(Map params);
-
-    void deleteDependenciesForSite(Map params);
-
-    void deleteDependenciesForSiteAndPath(Map params);
-
-
+if(StringUtils.isBlank(site) || StringUtils.isBlank(path)){
+    response.setStatus(400);
+    return ["message":"Site and path must be provided."]
+}else {
+    def context = DependencyServices.createContext(applicationContext, request)
+    result = DependencyServices.getDependantItems(context, site, path);
+    return result;
 }
