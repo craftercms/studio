@@ -76,7 +76,7 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
         try {
             user = ldapTemplate.authenticate(ldapQuery, password, mapper);
         } catch (EmptyResultDataAccessException e) {
-            loggerr.error("User " + username + " not found with external security provider. Trying to authenticate against studio database", e);
+            loggerr.error("User " + username + " not found with external security provider. Trying to authenticate against studio database");
             // When user not found try to authenticate against studio database
             return super.authenticate(username, password);
         } catch (AuthenticationException e) {
