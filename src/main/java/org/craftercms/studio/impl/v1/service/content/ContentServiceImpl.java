@@ -328,6 +328,9 @@ public class ContentServiceImpl implements ContentService {
         params.put(DmConstants.KEY_UNLOCK, unlock);
         params.put(DmConstants.KEY_SYSTEM_ASSET, String.valueOf(isSystemAsset));
 
+        boolean exists = contentExists(site, path+ File.separator + assetName);
+        params.put(DmConstants.KEY_ACTIVITY_TYPE, (exists ? ActivityService.ActivityType.UPDATED.toString() : ActivityService.ActivityType.CREATED.toString()));
+
         String id = site + ":" + path + ":" + assetName + ":" + "";
         // processContent will close the input stream
         ContentItemTO item = null;
