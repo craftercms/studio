@@ -17,8 +17,7 @@
  ******************************************************************************/
 package org.craftercms.studio.impl.v1.util;
 
-import javolution.util.FastComparator;
-
+import java.util.Comparator;
 import java.util.Date;
 
 
@@ -28,7 +27,7 @@ import java.util.Date;
  * @author hyanghee
  *
  */
-public abstract class ContentComparatorBase<T> extends FastComparator<T> {
+public abstract class ContentComparatorBase<T> implements Comparator<T> {
 
 	/**
 	 * 

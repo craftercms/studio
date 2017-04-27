@@ -30,7 +30,7 @@
 
     <!-- EhCache library setup -->
     <bean id="ehcache"
-          class="org.springframework.cache.ehcache.EhCacheManagerFactoryBean">
+          class="org.springframework.cache.ehcache.EhCacheManagerFactoryBean" destroy-method="destroy">
         <property name="configLocation" value="classpath:crafter/studio/cache/studio-ehcache-config.xml"/>
     </bean>
 </beans>

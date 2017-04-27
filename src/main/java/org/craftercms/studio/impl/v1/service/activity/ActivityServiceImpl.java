@@ -19,7 +19,6 @@ package org.craftercms.studio.impl.v1.service.activity;
 
 import java.util.*;
 
-import javolution.util.FastList;
 import net.sf.json.JSONObject;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -231,7 +230,7 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 	@Override
 	public List<ContentItemTO> getActivities(String site, String user, int num, String sort, boolean ascending, boolean excludeLive, String filterType) throws ServiceException {
 		int startPos = 0;
-		List<ContentItemTO> contentItems = new FastList<ContentItemTO>();
+		List<ContentItemTO> contentItems = new ArrayList<ContentItemTO>();
 		boolean hasMoreItems = true;
 		while(contentItems.size() < num && hasMoreItems){
 			int remainingItems = num - contentItems.size();

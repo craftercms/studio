@@ -2,26 +2,8 @@
 <beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:jdbc="http://www.springframework.org/schema/jdbc" xmlns="http://www.springframework.org/schema/beans"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc.xsd">
-<!--
-    <bean id="vendorProperties" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
-        <property name="properties">
-            <props>
-                <prop key="SQL Server">sqlserver</prop>
-                <prop key="DB2">db2</prop>
-                <prop key="Oracle">oracle</prop>
-                <prop key="MySQL">mysql</prop>
-                <prop key="MariaDB">mariadb</prop>
-                <prop key="PostgreSQL">postgres</prop>
-                <prop key="Derby">derby</prop>
-            </props>
-        </property>
-    </bean>
 
-    <bean id="databaseIdProvider" class="org.apache.ibatis.mapping.VendorDatabaseIdProvider" depends-on="databaseInitializer">
-        <property name="properties" ref="vendorProperties"/>
-    </bean>
--->
-    <bean id="dataSource" class="org.apache.commons.dbcp2.BasicDataSource" depends-on="studioConfiguration,databaseInitializer">
+    <bean id="dataSource" class="org.apache.commons.dbcp2.BasicDataSource" depends-on="studioConfiguration,databaseInitializer" destroy-method="close">
         <property name="driverClassName" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_DRIVER)}" />
         <property name="url" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_URL)}" />
         <property name="username" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_USERNAME)}" />
@@ -35,12 +17,12 @@
         <property name="validationQuery"
                   value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_VALIDATION_QUERY)}" />
         <property name="validationQueryTimeout" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_VALIDATION_INTERVAL)}"/>
+
     </bean>
 
     <!-- define the SqlSessionFactory -->
-    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean" depends-on="databaseInitializer">
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean" depends-on="databaseInitializer" >
         <property name="dataSource" ref="dataSource"/>
-        <!--<property name="databaseIdProvider" ref="databaseIdProvider"/>-->
         <property name="typeAliasesPackage" value="org.craftercms.studio.api.domain"/>
         <property name="configLocation" value="classpath:crafter/studio/database/mybatis-config.xml"/>
     </bean>

@@ -41,20 +41,22 @@ public class EmailMessageSender implements Runnable {
     protected JavaMailSender emailServiceNoAuth;
 	protected EmailMessageQueueTo emailMessages;
     protected StudioConfiguration studioConfiguration;
-
+    private Thread thread;
+    private boolean running;
 
 	public String getDefaultFromAddress() {
 		return studioConfiguration.getProperty(MAIL_FROM_DEFAULT);
 	}
 
 	public void initThread() {
-		Thread thread = new Thread(this);
+		thread = new Thread(this);
+		running = true;
 		thread.start();
 	}
 
 	@Override
 	public void run() {
-		while(true)
+		while (running)
 		{
 			try
 			{
@@ -84,15 +86,15 @@ public class EmailMessageSender implements Runnable {
 					}
 				}
 				int secs= 30;
-				Thread.sleep(secs*1000);
+				try {
+                    Thread.sleep(secs*1000);
+                } catch (InterruptedException e) { }
 			}
 			catch(Exception e)
 			{
 				e.printStackTrace();
 			}
 		}
-		// TODO Auto-generated method stub
-
 	}
 
 	protected boolean sendEmail(final String subject,final String content,final String userEmailAddress,final String replyTo,final String personalFromName)
@@ -136,6 +138,13 @@ public class EmailMessageSender implements Runnable {
 
 		return success;
 	}
+
+	public void shutdown() {
+        if (thread != null) {
+            running = false;
+            thread.interrupt();
+        }
+    }
 
     public boolean isAuthenticatedSMTP() {
 	    boolean toReturn = Boolean.parseBoolean(studioConfiguration.getProperty(MAIL_SMTP_AUTH));

@@ -19,14 +19,8 @@ package org.craftercms.studio.api.v1.to;
 
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-import javolution.util.FastList;
-
-import javolution.util.FastMap;
-import javolution.util.FastTable;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 
@@ -220,7 +214,7 @@ public class DmContentItemTO implements Serializable {
     protected boolean _skipDependencies = false;
 
 	/** additional properties map **/
-	protected Map<String, String> _properties = new FastMap<String, String>();
+	protected Map<String, String> _properties = new HashMap<String, String>();
 
     /**
 	 * default constructor
@@ -298,62 +292,62 @@ public class DmContentItemTO implements Serializable {
         // copy all collections
         if (cloneChildren) {
             if (item._children != null) {
-                this._children = new FastTable<DmContentItemTO>(item._children.size());
+                this._children = new ArrayList<DmContentItemTO>(item._children.size());
                 for (DmContentItemTO child : item._children) {
                     this._children.add(new DmContentItemTO(child));
                 }
             }
         }
         if (item._components != null) {
-			this._components = new FastTable<DmContentItemTO>(item._components.size());
+			this._components = new ArrayList<DmContentItemTO>(item._components.size());
 			for (DmContentItemTO component : item._components) {
 				this._components.add(new DmContentItemTO(component));
 			}
 		}
 		if (item._assets != null) {
-			this._assets = new FastTable<DmContentItemTO>(item._assets.size());
+			this._assets = new ArrayList<DmContentItemTO>(item._assets.size());
 			for (DmContentItemTO asset : item._assets) {
 				this._assets.add(new DmContentItemTO(asset));
 			}
 		}
 		if (item._documents != null) {
-			this._documents = new FastTable<DmContentItemTO>(item._documents.size());
+			this._documents = new ArrayList<DmContentItemTO>(item._documents.size());
 			for (DmContentItemTO document : item._documents) {
 				this._documents.add(new DmContentItemTO(document));
 			}
 		}
 		if (item._deletedItems != null) {
-			this._deletedItems = new FastTable<DmContentItemTO>(item._deletedItems.size());
+			this._deletedItems = new ArrayList<DmContentItemTO>(item._deletedItems.size());
 			for (DmContentItemTO deletedItem : item._deletedItems) {
 				this._deletedItems.add(new DmContentItemTO(deletedItem));
 			}
 		}
 		if (item._pages != null) {
-			this._pages = new FastTable<DmContentItemTO>(item._pages.size());
+			this._pages = new ArrayList<DmContentItemTO>(item._pages.size());
 			for (DmContentItemTO page : item._pages) {
 				this._pages.add(new DmContentItemTO(page));
 			}
 		}
         if (item._renderingTemplates != null) {
-            this._renderingTemplates = new FastTable<DmContentItemTO>(item._renderingTemplates.size());
+            this._renderingTemplates = new ArrayList<DmContentItemTO>(item._renderingTemplates.size());
             for (DmContentItemTO template : item._renderingTemplates) {
                 this._renderingTemplates.add(new DmContentItemTO(template));
             }
         }
 		if (item._levelDescriptors != null) {
-			this._levelDescriptors = new FastTable<DmContentItemTO>(item._levelDescriptors.size());
+			this._levelDescriptors = new ArrayList<DmContentItemTO>(item._levelDescriptors.size());
 			for (DmContentItemTO levelDescriptor : item._levelDescriptors) {
 				this._levelDescriptors.add(new DmContentItemTO(levelDescriptor));
 			}
 		}
 		if (item._orders != null) {
-			this._orders = new FastList<DmOrderTO>(item._orders.size());
+			this._orders = new ArrayList<DmOrderTO>(item._orders.size());
 			for (DmOrderTO order : item._orders) {
 				this._orders.add(new DmOrderTO(order));
 			}
 		}
 		if (item._properties != null) {
-			this._properties = new FastMap<String, String>();
+			this._properties = new HashMap<String, String>();
 			for (String key : item._properties.keySet()) {
 				this._properties.put(key, item._properties.get(key));
 			}
@@ -611,7 +605,7 @@ public class DmContentItemTO implements Serializable {
 		}
 
 		if (_children == null) {
-			_children = new FastTable<DmContentItemTO>();
+			_children = new ArrayList<DmContentItemTO>();
 		}
 		_children.add(itemToAdd);
 		_numOfChildren++;
@@ -1172,7 +1166,7 @@ public class DmContentItemTO implements Serializable {
 	 */
 	public DmContentItemTO filterOutFiles() {
 		if (_children != null) {
-			List<DmContentItemTO> newchildren = new FastTable<DmContentItemTO>(_children.size());
+			List<DmContentItemTO> newchildren = new ArrayList<DmContentItemTO>(_children.size());
 
 			for (DmContentItemTO item : _children) {
 				if (item.isContainer()) {
@@ -1229,7 +1223,7 @@ public class DmContentItemTO implements Serializable {
 			//
 		} else {
 			if (_children != null) {
-				List<DmContentItemTO> newchildren = new FastTable<DmContentItemTO>(_children.size());
+				List<DmContentItemTO> newchildren = new ArrayList<DmContentItemTO>(_children.size());
 				for (DmContentItemTO item : _children) {
 					item = item.filterOutHidden();
 					if (item != null)
@@ -1239,7 +1233,7 @@ public class DmContentItemTO implements Serializable {
 				_numOfChildren = newchildren.size();
 			}
 			if (_documents != null) {
-				List<DmContentItemTO> newdocuments = new FastTable<DmContentItemTO>(_documents.size());
+				List<DmContentItemTO> newdocuments = new ArrayList<DmContentItemTO>(_documents.size());
 				for (DmContentItemTO item : _documents) {
 					item = item.filterOutHidden();
 					if (item != null)
@@ -1249,7 +1243,7 @@ public class DmContentItemTO implements Serializable {
 			}
 
 			if (_assets != null) {
-				List<DmContentItemTO> newassets = new FastTable<DmContentItemTO>(_assets.size());
+				List<DmContentItemTO> newassets = new ArrayList<DmContentItemTO>(_assets.size());
 				for (DmContentItemTO item : _assets) {
 					item = item.filterOutHidden();
 					if (item != null)
@@ -1259,7 +1253,7 @@ public class DmContentItemTO implements Serializable {
 			}
 
 			if (_pages != null) {
-				List<DmContentItemTO> newpages = new FastTable<DmContentItemTO>(_pages.size());
+				List<DmContentItemTO> newpages = new ArrayList<DmContentItemTO>(_pages.size());
 				for (DmContentItemTO item : _pages) {
 					item = item.filterOutHidden();
 					if (item != null)
@@ -1269,7 +1263,7 @@ public class DmContentItemTO implements Serializable {
 			}
 
 			if (_deletedItems != null) {
-				List<DmContentItemTO> newdeleteditems = new FastTable<DmContentItemTO>(_deletedItems.size());
+				List<DmContentItemTO> newdeleteditems = new ArrayList<DmContentItemTO>(_deletedItems.size());
 				for (DmContentItemTO item : _deletedItems) {
 					item = item.filterOutHidden();
 					if (item != null)
@@ -1278,7 +1272,7 @@ public class DmContentItemTO implements Serializable {
 				this._deletedItems = newdeleteditems;
 			}
 			if (_levelDescriptors != null) {
-				List<DmContentItemTO> newleveldescriptors = new FastTable<DmContentItemTO>(_levelDescriptors.size());
+				List<DmContentItemTO> newleveldescriptors = new ArrayList<DmContentItemTO>(_levelDescriptors.size());
 				for (DmContentItemTO item : _levelDescriptors) {
 					item = item.filterOutHidden();
 					if (item != null)

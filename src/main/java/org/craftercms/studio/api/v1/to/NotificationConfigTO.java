@@ -24,8 +24,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javolution.util.FastMap;
-
 /**
  * site notification configuration
  * 
@@ -180,7 +178,7 @@ public class NotificationConfigTO implements TimeStamped, Serializable {
 	 */
 	public Map<String, Boolean> getSendNoticeMapping() {
 		if (this._sendNoticeMapping == null) {
-			this._sendNoticeMapping = new FastMap<String, Boolean>(); 
+			this._sendNoticeMapping = new HashMap<String, Boolean>();
 		}
 		return _sendNoticeMapping;
 	}

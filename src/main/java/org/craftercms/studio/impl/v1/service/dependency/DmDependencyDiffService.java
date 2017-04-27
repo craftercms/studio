@@ -17,9 +17,9 @@
  ******************************************************************************/
 package org.craftercms.studio.impl.v1.service.dependency;
 
+import java.util.ArrayList;
 import java.util.List;
 
-import javolution.util.FastList;
 
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
@@ -60,9 +60,9 @@ public class DmDependencyDiffService extends AbstractRegistrableService {
 			destPath = sourcePath;
 		}
 		
-		List<String> sourceDependencies = new FastList<String>();
+		List<String> sourceDependencies = new ArrayList<String>();
         sourceDependencies = findDependencies(site,diffRequest.getSourceSandbox(),sourcePath, recursive, sourceDependencies);
-		List<String> destDependencies =  new FastList<String>();
+		List<String> destDependencies =  new ArrayList<String>();
         destDependencies = findDependencies(site,diffRequest.getDestSandbox(),destPath, recursive, destDependencies);
 
 		//Removed dependenices
@@ -105,7 +105,7 @@ public class DmDependencyDiffService extends AbstractRegistrableService {
 	 * 
 	 */
 	protected List<String> convertDependencyTO(List<DmDependencyTO> dependency){
-		List<String> dependencyUris = new FastList<String>();
+		List<String> dependencyUris = new ArrayList<String>();
 		for(DmDependencyTO to : dependency){
 			dependencyUris.add(to.getUri());
 		}
@@ -120,9 +120,9 @@ public class DmDependencyDiffService extends AbstractRegistrableService {
 	 */
 	public static class DiffResponse{
 		
-		protected List<String> addedDependencies = new FastList<String>();
+		protected List<String> addedDependencies = new ArrayList<String>();
 		
-		protected List<String> removedDependenices = new FastList<String>();
+		protected List<String> removedDependenices = new ArrayList<String>();
 		
 		
 		public List<String> getAddedDependencies() {

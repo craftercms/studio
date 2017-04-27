@@ -19,6 +19,7 @@
 
 package org.craftercms.studio.impl.v1.dal;
 
+import ch.vorburger.exec.ManagedProcessException;
 import ch.vorburger.mariadb4j.DB;
 import ch.vorburger.mariadb4j.MariaDB4jService;
 import org.apache.ibatis.jdbc.RuntimeSqlException;
@@ -27,16 +28,19 @@ import org.craftercms.studio.api.v1.dal.DataSourceInitializer;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
+import org.springframework.beans.factory.DisposableBean;
 
 import java.io.*;
 import java.sql.Connection;
+import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Enumeration;
 import java.util.Map;
 
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.*;
 
-public class DataSourceInitializerImpl implements DataSourceInitializer {
+public class DataSourceInitializerImpl implements DataSourceInitializer, DisposableBean {
 
     private final static Logger logger = LoggerFactory.getLogger(DataSourceInitializerImpl.class);
 
@@ -78,6 +82,38 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
         return toReturn;
     }
 
+    public void shutdown() {
+        if (mariaDB4jService != null) {
+            DB db = mariaDB4jService.getDB();
+            if (db != null) {
+                try {
+                    db.stop();
+                } catch (ManagedProcessException e) {
+                    logger.error("Failed to stop database", e);
+                }
+            }
+            try {
+                mariaDB4jService.stop();
+            } catch (ManagedProcessException e) {
+                logger.error("Failed to stop database", e);
+            }
+        }
+        Enumeration<Driver> drivers = DriverManager.getDrivers();
+        while (drivers.hasMoreElements()) {
+            Driver driver = drivers.nextElement();
+            try {
+                DriverManager.deregisterDriver(driver);
+            } catch (SQLException e) {
+                logger.error("Failed to unregister driver " + driver.getClass().getCanonicalName() + " on shutdown", e);
+            }
+        }
+    }
+
+    @Override
+    public void destroy() throws Exception {
+        shutdown();
+    }
+
     private String getScriptPath() {
         return studioConfiguration.getProperty(DB_INITIALIZER_SCRIPT_LOCATION);
     }
@@ -96,4 +132,6 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
     protected StudioConfiguration studioConfiguration;
 
     protected MariaDB4jService mariaDB4jService;
+
+
 }
