@@ -60,6 +60,7 @@ import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.*;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.impl.v1.repository.job.RebuildRepositoryMetadata;
+import org.craftercms.studio.impl.v1.repository.job.SyncDatabaseWithRepository;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.dom4j.*;
 import org.dom4j.io.SAXReader;
@@ -683,7 +684,7 @@ public class SiteServiceImpl implements SiteService {
 			params.put("siteId", site);
 			String lastDbCommitId = siteFeedMapper.getLastCommitId(params);
 			if (lastDbCommitId != null) {
-				syncDatabaseWithRepo(site, lastDbCommitId);
+                syncDatabaseWithRepository.execute(site, lastDbCommitId);
 			} else {
 				rebuildDatabase(site);
 			}
@@ -1042,6 +1043,9 @@ public class SiteServiceImpl implements SiteService {
     public RebuildRepositoryMetadata getRebuildRepositoryMetadata() { return rebuildRepositoryMetadata; }
     public void setRebuildRepositoryMetadata(RebuildRepositoryMetadata rebuildRepositoryMetadata) { this.rebuildRepositoryMetadata = rebuildRepositoryMetadata; }
 
+    public SyncDatabaseWithRepository getSyncDatabaseWithRepository() { return syncDatabaseWithRepository; }
+    public void setSyncDatabaseWithRepository(SyncDatabaseWithRepository syncDatabaseWithRepository) { this.syncDatabaseWithRepository = syncDatabaseWithRepository; }
+
     public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
 
@@ -1079,6 +1083,7 @@ public class SiteServiceImpl implements SiteService {
 	protected org.craftercms.studio.api.v2.service.notification.NotificationService notificationService2;
     protected GeneralLockService generalLockService;
     protected RebuildRepositoryMetadata rebuildRepositoryMetadata;
+    protected SyncDatabaseWithRepository syncDatabaseWithRepository;
     protected EventService eventService;
 
     protected StudioConfiguration studioConfiguration;

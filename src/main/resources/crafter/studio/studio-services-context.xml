@@ -76,6 +76,7 @@
         <property name="importService" ref="cstudioImportService"/>
         <property name="generalLockService" ref="cstudioGeneralLockService"/>
         <property name="rebuildRepositoryMetadata" ref="studioRebuildRepositoryMetadata"/>
+        <property name="syncDatabaseWithRepository" ref="studioSyncDatabaseWithRepository" />
         <property name="studioConfiguration" ref="studioConfiguration"/>
         <property name="searchService" ref="searchService" />
         <property name="eventService" ref="studioEventService"/>
@@ -724,6 +725,12 @@
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="contentRepository" ref="contentRepository" />
+    </bean>
+
+    <bean id="studioSyncDatabaseWithRepository" class="org.craftercms.studio.impl.v1.repository.job.SyncDatabaseWithRepository">
+        <property name="siteService" ref="cstudioSiteServiceSimple"/>
+        <property name="securityService" ref="cstudioSecurityService" />
+        <property name="taskExecutor" ref="studioTaskExecutor" />
     </bean>
 
     <bean id="studioTaskExecutor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor" destroy-method="shutdown">

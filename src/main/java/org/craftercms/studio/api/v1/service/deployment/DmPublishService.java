@@ -33,12 +33,7 @@ public interface DmPublishService {
 
     public void cancelScheduledItem(String site, String path);
 
-    //public List<PublishingChannelTO> getAvailablePublishingChannelGroups(String site, String path);
-
     boolean hasChannelsConfigure(String site, MultiChannelPublishingContext mcpContext);
 
     void bulkGoLive(String site, String environment, String path);
-
-    void bulkDelete(String site, String path);
-
 }

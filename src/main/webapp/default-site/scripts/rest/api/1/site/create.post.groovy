@@ -17,6 +17,7 @@
  */
 
 
+import org.apache.commons.lang3.StringUtils
 import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException
 import scripts.api.SiteServices;
 import groovy.json.JsonSlurper
@@ -29,6 +30,13 @@ def parsedReq = slurper.parseText(requestJson)
 def blueprint = parsedReq.blueprint
 def siteId = parsedReq.site_id
 def description = parsedReq.description
+
+/** Check Parameters */
+if (StringUtils.isEmpty(siteId) || StringUtils.length(siteId) > 50) {
+    result.message = "Invalid parameter(s)"
+    response.setStatus(400)
+    return result;
+}
 
 def context = SiteServices.createContext(applicationContext, request)
 try {

@@ -718,11 +718,6 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     @Override
-    public void bulkDelete(String site, String path) {
-        dmPublishService.bulkDelete(site, path);
-    }
-
-    @Override
     public Date getLastDeploymentDate(String site, String path) {
         return deploymentHistoryProvider.getLastDeploymentDate(site, path);
     }
