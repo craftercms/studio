@@ -814,6 +814,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         // Loop through through the commits and diff one from the next util head
                         ObjectId prevCommitId = objCommitIdFrom;
                         ObjectId nextCommitId = objCommitIdFrom;
+                        String author = StringUtils.EMPTY;
 
                         // Reverse orders of commits
                         // TODO: DB: try to find better algorithm
@@ -830,6 +831,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
                             RevCommit commit = reverseIterator.next();
                             nextCommitId = commit.getId();
+                            author = commit.getCommitterIdent().getName();
 
                             RevTree prevTree = helper.getTreeForCommit(repo, prevCommitId.getName());
                             RevTree nextTree = helper.getTreeForCommit(repo, nextCommitId.getName());
@@ -848,7 +850,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                                 // and add them to the list of RepoOperations to return to the caller
                                 // also include date/time of commit by taking number of seconds and multiply by 1000 and
                                 // convert to java date before sending over
-                                operations.addAll(processDiffEntry(diffEntries, nextCommitId, new Date(commit.getCommitTime() *
+                                operations.addAll(processDiffEntry(diffEntries, nextCommitId, author, new Date(commit.getCommitTime() *
                                     1000l)));
                                 prevCommitId = nextCommitId;
                             }
@@ -906,7 +908,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         return toReturn;
     }
 
-    private List<RepoOperationTO> processDiffEntry(List<DiffEntry> diffEntries, ObjectId commitId, Date commitTime) {
+    private List<RepoOperationTO> processDiffEntry(List<DiffEntry> diffEntries, ObjectId commitId, String author, Date commitTime) {
         List<RepoOperationTO> toReturn = new ArrayList<RepoOperationTO>();
 
         for (DiffEntry diffEntry : diffEntries) {
@@ -941,7 +943,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     logger.error("Error: Unknown git operation " + diffEntry.getChangeType());
                     break;
             }
-
+            repoOperation.setAuthor(StringUtils.isEmpty(author) ? "N/A" :author);
             toReturn.add(repoOperation);
         }
         return toReturn;
