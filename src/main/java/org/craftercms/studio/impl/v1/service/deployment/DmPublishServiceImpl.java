@@ -98,39 +98,11 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
     public void cancelScheduledItem(String site, String path) {
         try {
             deploymentService.cancelWorkflow(site, path);
-            /* TODO: remove property
-            String fullPath = servicesConfig.getRepositoryRootPath(site) + path;
-            NodeRef nodeRef = persistenceManagerService.getNodeRef(fullPath);
-            persistenceManagerService.removeProperty(nodeRef, WCMWorkflowModel.PROP_LAUNCH_DATE);
-            */
         } catch (DeploymentException e) {
             logger.error(String.format("Error while canceling workflow for content at %s, site %s", path, site), e);
         }
     }
-/*
-    @Override
-    public List<PublishingChannelTO> getAvailablePublishingChannelGroups(String site, String path) {
-        List<PublishingChannelTO> channelTOs = new FastList<PublishingChannelTO>();
-        List<String> channels = getPublishingChannels(site);
-        for (String ch : channels) {
-            PublishingChannelTO chTO = new PublishingChannelTO();
-            chTO.setName(ch);
-            chTO.setPublish(true);
-            chTO.setUpdateStatus(false);
-            channelTOs.add(chTO);
-        }
-        return channelTOs;
-    }
 
-    protected List<String> getPublishingChannels(String site) {
-        SiteService siteService = getService(SiteService.class);
-        List<String> channels = new FastList<String>();
-        Map<String, PublishingChannelGroupConfigTO> channelGroupConfigTOs = siteService.getPublishingChannelGroupConfigs(site);
-        for (PublishingChannelGroupConfigTO configTO : channelGroupConfigTOs.values()) {
-            channels.add(configTO.getName());
-        }
-        return channels;
-    }
     
     /**
      * Checks if there are any publishing channels configure
@@ -234,37 +206,6 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
                     getAllMandatoryChildren(site, child, pathsToPublish);
                 }
             }
-        }
-    }
-
-    @Override
-    public void bulkDelete(String site, String path) {
-        logger.debug("Starting Bulk Delete for path " + path + " site " + site);
-        List<String> childrenPaths = new ArrayList<String>();
-        childrenPaths.add(path);
-        ContentItemTO item = contentService.getContentItem(site, path, 2);
-        if (item != null) {
-            if (!item.isFolder()) {
-                childrenPaths.add(path);
-            }
-            if (path.endsWith("/" + DmConstants.INDEX_FILE) && objectMetadataManager.isRenamed(site, path)) {
-                getAllMandatoryChildren(site, item, childrenPaths);
-            } else {
-                if (item.isFolder() || item.isContainer()) {
-                    getAllMandatoryChildren(site, item, childrenPaths);
-                }
-            }
-        }
-        Date launchDate = new Date();
-        String approver = securityService.getCurrentUser();
-        logger.debug("Deleting " + childrenPaths.size() + " items");
-
-        try {
-            deploymentService.delete(site, childrenPaths, approver, launchDate);
-        } catch (DeploymentException e) {
-            logger.error("Error while running bulk Delete operation", e);
-        } finally {
-            logger.debug("Finished Bulk Delete for path " + path + " site " + site);
         }
     }
 

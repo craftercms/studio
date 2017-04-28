@@ -255,9 +255,4 @@ class SpringContentServices {
         def springBackendService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN);
         return springBackendService.reorderItems(site, path, before, after, "default");
     }
-
-    def bulkRename(site, srcPath, targetPath, createFolder) {
-        def springBackendService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN);
-        return springBackendService.bulkRename(site, srcPath, targetPath, createFolder);
-    }
 }

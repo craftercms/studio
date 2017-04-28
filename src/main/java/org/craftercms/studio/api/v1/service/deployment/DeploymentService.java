@@ -73,8 +73,6 @@ public interface DeploymentService {
 
     void bulkGoLive(String site, String environment, String path);
 
-    void bulkDelete(String site, String path);
-
     List<DeploymentJobTO> getDeploymentJobs();
 
     /**
