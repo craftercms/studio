@@ -44,7 +44,7 @@ import static org.craftercms.studio.impl.v1.service.security.SecurityServiceImpl
 
 public class DbSecurityProvider implements SecurityProvider {
 
-    public static Logger logger = LoggerFactory.getLogger(DbSecurityProvider.class);
+    private static Logger logger = LoggerFactory.getLogger(DbSecurityProvider.class);
 
     @Override
     public Set<String> getUserGroups(String user) {

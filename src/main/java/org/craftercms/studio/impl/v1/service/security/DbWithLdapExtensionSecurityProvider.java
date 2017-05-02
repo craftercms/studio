@@ -23,7 +23,6 @@ import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsExceptio
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.ldap.AuthenticationException;
 import org.springframework.ldap.core.AuthenticatedLdapEntryContextMapper;
@@ -33,6 +32,7 @@ import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.ldap.query.LdapQuery;
 
 import javax.naming.NamingException;
+import javax.naming.directory.Attribute;
 import javax.naming.directory.Attributes;
 import javax.naming.directory.DirContext;
 
@@ -43,7 +43,8 @@ import static org.craftercms.studio.api.v1.util.StudioConfiguration.*;
 import static org.springframework.ldap.query.LdapQueryBuilder.query;
 
 public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
-    private final static Logger loggerr = LoggerFactory.getLogger(DbWithLdapExtensionSecurityProvider.class);
+
+    private final static Logger logger = LoggerFactory.getLogger(DbWithLdapExtensionSecurityProvider.class);
 
     @Override
     public String authenticate(String username, String password) {
@@ -52,21 +53,45 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
         AuthenticatedLdapEntryContextMapper<User> mapper = new AuthenticatedLdapEntryContextMapper<User>() {
             @Override
             public User mapWithContext(DirContext dirContext, LdapEntryIdentification ldapEntryIdentification) {
-                User user = new User();
                 try {
                     // User entry - extract attributes
                     DirContextOperations dirContextOperations = (DirContextOperations)dirContext.lookup(ldapEntryIdentification.getRelativeName());
                     Attributes attributes = dirContextOperations.getAttributes();
+                    String emailAttribName = studioConfiguration.getProperty(SECURITY_LDAP_USER_ATTRIBUTE_EMAIL);
+                    String firstNameAttribName = studioConfiguration.getProperty(SECURITY_LDAP_USER_ATTRIBUTE_FIRST_NAME);
+                    String lastNameAttribName = studioConfiguration.getProperty(SECURITY_LDAP_USER_ATTRIBUTE_LAST_NAME);
+                    Attribute emailAttrib = attributes.get(emailAttribName);
+                    Attribute firstNameAttrib = attributes.get(firstNameAttribName);
+                    Attribute lastNameAttrib = attributes.get(lastNameAttribName);
+
+                    User user = new User();
                     user.setActive(1);
-                    user.setEmail(attributes.get(studioConfiguration.getProperty(SECURITY_LDAP_USER_ATTRIBUTE_EMAIL)).get().toString());
-                    user.setFirstname(attributes.get(studioConfiguration.getProperty(SECURITY_LDAP_USER_ATTRIBUTE_FIRST_NAME)).get().toString());
-                    user.setLastname(attributes.get(studioConfiguration.getProperty(SECURITY_LDAP_USER_ATTRIBUTE_LAST_NAME)).get().toString());
                     user.setUsername(username);
+
+                    if (emailAttrib != null && emailAttrib.get() != null) {
+                        user.setEmail(emailAttrib.get().toString());
+                    } else {
+                        logger.error("No LDAP attribute " + emailAttribName + " found for username " + username + ". User will " +
+                                     "not be imported into DB.");
+                        return null;
+                    }
+                    if (firstNameAttrib != null && firstNameAttrib.get() != null) {
+                        user.setFirstname(firstNameAttrib.get().toString());
+                    } else {
+                        logger.warn("No LDAP attribute " + firstNameAttribName + " found for username " + username);
+                    }
+                    if (lastNameAttrib != null && lastNameAttrib.get() != null) {
+                        user.setLastname(lastNameAttrib.get().toString());
+                    } else {
+                        logger.warn("No LDAP attribute " + lastNameAttribName + " found for username " + username);
+                    }
+
+                    return user;
                 } catch (NamingException e) {
-                    loggerr.error("Error getting details from LDAP for username " + username, e);
-                    user = null;
+                    logger.error("Error getting details from LDAP for username " + username, e);
+
+                    return null;
                 }
-                return user;
             }
         };
 
@@ -76,11 +101,11 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
         try {
             user = ldapTemplate.authenticate(ldapQuery, password, mapper);
         } catch (EmptyResultDataAccessException e) {
-            loggerr.error("User " + username + " not found with external security provider. Trying to authenticate against studio database");
+            logger.error("User " + username + " not found with external security provider. Trying to authenticate against studio database");
             // When user not found try to authenticate against studio database
             return super.authenticate(username, password);
-        } catch (AuthenticationException e) {
-            loggerr.error("Authentication failed: ", e);
+        } catch (Exception e) {
+            logger.error("LDAP authentication failed: ", e);
         }
         if (user != null) {
             // When user authenticated against LDAP, upsert user data into studio database
@@ -89,20 +114,22 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
                 try {
                     updateUserInternal(user.getUsername(), user.getFirstname(), user.getLastname(), user.getEmail());
                 } catch (UserNotFoundException e) {
-                    loggerr.error("Error updating user " + username + " with data from external authentication provider", e);
+                    logger.error("Error updating user " + username + " with data from external authentication provider", e);
                 }
             } else {
                 try {
                     createUser(user.getUsername(), password, user.getFirstname(), user.getLastname(), user.getEmail(), true);
                 } catch (UserAlreadyExistsException e) {
-                    loggerr.error("Error adding user " + username + " from external authentication provider", e);
+                    logger.error("Error adding user " + username + " from external authentication provider", e);
                 }
             }
+
             String token = createToken(user);
             storeSessionTicket(token);
             storeSessionUsername(username);
             return token;
         }
+
         return null;
     }
 
