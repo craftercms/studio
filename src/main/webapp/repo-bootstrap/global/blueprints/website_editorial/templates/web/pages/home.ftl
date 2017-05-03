@@ -81,8 +81,8 @@
 						</div>
 					</div>
 
-				<!-- Sidebar -->
-				<@renderComponent component=contentModel.sidebar.item />
+				<!-- Left Rail -->
+				<@renderComponent component=contentModel.left\-rail.item />
 
 			</div>
 

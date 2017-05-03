@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component>
-	<content-type>/component/sidebar</content-type>	<display-template>/templates/web/components/sidebar.ftl</display-template>
+	<content-type>/component/left-rail</content-type>	<display-template>/templates/web/components/left-rail.ftl</display-template>
 	<merge-strategy>inherit-levels</merge-strategy>
 	<objectGroupId>9ed4</objectGroupId>
 	<objectId>9ed49b50-6681-92e4-1221-9d067df058d0</objectId>
-	<file-name>sidebar-with-related-articles.xml</file-name>
+	<file-name>left-rail-with-related-articles.xml</file-name>
 	<folder-name/>
-	<internal-name>Sidebar with Related Articles</internal-name>
+	<internal-name>Left Rail with Related Articles</internal-name>
 	<createdDate>3/17/2017 18:23:52</createdDate>
 	<createdDate_dt>3/17/2017 18:23:52</createdDate_dt>
 	<lastModifiedDate>3/28/2017 22:29:32</lastModifiedDate>

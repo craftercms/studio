@@ -1,13 +1,13 @@
 <form>
-	<title>Component - Sidebar</title>
+	<title>Component - Left Rail</title>
 	<description></description>
 	<objectType>component</objectType>
-	<content-type>/component/sidebar</content-type>
+	<content-type>/component/left-rail</content-type>
 	<imageThumbnail>undefined</imageThumbnail>
 	<properties>		<property>
 			<name>display-template</name>
 			<label>Display Template</label>
-			<value>/templates/web/components/sidebar.ftl</value>
+			<value>/templates/web/components/left-rail.ftl</value>
 			<type>template</type>
 		</property>
 		<property>
@@ -18,7 +18,7 @@
 		</property>
 	</properties>
 	<sections>		<section>
-			<title>Component - Sidebar Properties</title>
+			<title>Component - Left Rail Properties</title>
 			<description></description>
 			<defaultOpen>true</defaultOpen>
 			<fields>
