@@ -100,9 +100,9 @@
 				</field>
 				<field>
 					<type>node-selector</type>
-					<id>sidebar</id>
+					<id>left-rail</id>
 					<iceId></iceId>
-					<title>Sidebar</title>
+					<title>Left Rail</title>
 					<description></description>
 					<defaultValue></defaultValue>
 					<help></help>

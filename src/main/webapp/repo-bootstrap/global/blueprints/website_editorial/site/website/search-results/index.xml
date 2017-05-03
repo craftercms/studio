@@ -9,11 +9,11 @@
 	<internal-name>Search Results</internal-name>
 	<title>Search Results</title>
 	<header/>
-	<sidebar>	<item>	<key>/site/components/sidebar-with-latest-articles.xml</key>
-	<value>Sidebar with Latest Articles</value>
-	<include>/site/components/sidebar-with-latest-articles.xml</include>
+	<left-rail>	<item>	<key>/site/components/left-rail-with-latest-articles.xml</key>
+	<value>Left Rail with Latest Articles</value>
+	<include>/site/components/left-rail-with-latest-articles.xml</include>
 	<disableFlattening>false</disableFlattening>
-	</item></sidebar>
+	</item></left-rail>
 	<createdDate>3/23/2017 23:47:15</createdDate>
 	<createdDate_dt>3/23/2017 23:47:15</createdDate_dt>
 	<lastModifiedDate>3/23/2017 23:47:15</lastModifiedDate>

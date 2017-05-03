@@ -7,11 +7,11 @@
 	<file-name>crafter-level-descriptor.level.xml</file-name>
 	<folder-name/>
 	<header/>
-	<sidebar>	<item>	<key>/site/components/sidebar-with-related-articles.xml</key>
-	<value>Sidebar with Related Articles</value>
-	<include>/site/components/sidebar-with-related-articles.xml</include>
+	<left-rail>	<item>	<key>/site/components/left-rail-with-related-articles.xml</key>
+	<value>Left Rail with Related Articles</value>
+	<include>/site/components/left-rail-with-related-articles.xml</include>
 	<disableFlattening>false</disableFlattening>
-	</item></sidebar>
+	</item></left-rail>
 	<createdDate>3/17/2017 18:56:59</createdDate>
 	<createdDate_dt>3/17/2017 18:56:59</createdDate_dt>
 	<lastModifiedDate>3/17/2017 18:59:50</lastModifiedDate>
