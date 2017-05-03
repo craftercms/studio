@@ -1,6 +1,6 @@
-<content-type name="/component/sidebar" is-wcm-type="true">
-	<label>Component - Sidebar</label>
-	<form>/component/sidebar</form>
+<content-type name="/component/left-rail" is-wcm-type="true">
+	<label>Component - Left Rail</label>
+	<form>/component/left-rail</form>
 	<form-path>simple</form-path>
 	<model-instance-path>NOT-USED-BY-SIMPLE-FORM-ENGINE</model-instance-path>
 	<file-extension>xml</file-extension>

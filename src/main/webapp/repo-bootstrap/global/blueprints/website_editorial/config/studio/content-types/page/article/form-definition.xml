@@ -181,10 +181,10 @@
 				</field>
 				<field>
 					<type>node-selector</type>
-					<id>sidebar</id>
+					<id>left-rail</id>
 					<iceId></iceId>
-					<title>Sidebar</title>
-					<description>Default sidebar is inherited from Section Defaults. Specify a new sidebar to overwrite it.</description>
+					<title>Left Rail</title>
+					<description>Default left-rail is inherited from Section Defaults. Specify a new left-rail to overwrite it.</description>
 					<defaultValue></defaultValue>
 					<help></help>
 					<properties>

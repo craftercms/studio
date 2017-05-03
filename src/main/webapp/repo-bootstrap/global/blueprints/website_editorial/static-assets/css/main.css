@@ -3534,7 +3534,7 @@
 
 		}
 
-/* Sidebar */
+/* Left Rail */
 
 	#search form {
 		text-decoration: none;
@@ -3574,7 +3574,7 @@
 			padding-right: 2.75em;
 		}
 
-	#sidebar {
+	#left-rail {
 		-moz-flex-grow: 0;
 		-webkit-flex-grow: 0;
 		-ms-flex-grow: 0;
@@ -3593,33 +3593,33 @@
 		width: 26em;
 	}
 
-		#sidebar h2 {
+		#left-rail h2 {
 			font-size: 1.38889em;
 		}
 
-		#sidebar > .inner {
+		#left-rail > .inner {
 			padding: 2.22222em 2.22222em 2.44444em 2.22222em ;
 			position: relative;
 			width: 26em;
 		}
 
-			#sidebar > .inner > * {
+			#left-rail > .inner > * {
 				border-bottom: solid 2px rgba(210, 215, 217, 0.75);
 				margin: 0 0 3.5em 0;
 				padding: 0 0 3.5em 0;
 			}
 
-				#sidebar > .inner > * > :last-child {
+				#left-rail > .inner > * > :last-child {
 					margin-bottom: 0;
 				}
 
-				#sidebar > .inner > *:last-child {
+				#left-rail > .inner > *:last-child {
 					border-bottom: 0;
 					margin-bottom: 0;
 					padding-bottom: 0;
 				}
 
-			#sidebar > .inner > .alt {
+			#left-rail > .inner > .alt {
 				background-color: #eff1f2;
 				border-bottom: 0;
 				margin: -2.22222em 0 4.44444em -2.22222em;
@@ -3627,7 +3627,7 @@
 				width: calc(100% + 4.44444em);
 			}
 
-		#sidebar .toggle {
+		#left-rail .toggle {
 			text-decoration: none;
 			-moz-transition: left 0.5s ease;
 			-webkit-transition: left 0.5s ease;
@@ -3649,7 +3649,7 @@
 			z-index: 10000;
 		}
 
-			#sidebar .toggle:before {
+			#left-rail .toggle:before {
 				-moz-osx-font-smoothing: grayscale;
 				-webkit-font-smoothing: antialiased;
 				font-family: FontAwesome;
@@ -3658,7 +3658,7 @@
 				text-transform: none !important;
 			}
 
-			#sidebar .toggle:before {
+			#left-rail .toggle:before {
 				content: '\f0c9';
 				font-size: 2rem;
 				height: inherit;
@@ -3670,28 +3670,28 @@
 				width: inherit;
 			}
 
-		#sidebar.inactive {
+		#left-rail.inactive {
 			margin-left: -26em;
 		}
 
 		@media screen and (max-width: 1680px) {
 
-			#sidebar {
+			#left-rail {
 				width: 24em;
 			}
 
-				#sidebar > .inner {
+				#left-rail > .inner {
 					padding: 1.66667em 1.66667em 1.33333em 1.66667em ;
 					width: 24em;
 				}
 
-					#sidebar > .inner > .alt {
+					#left-rail > .inner > .alt {
 						margin: -1.66667em 0 3.33333em -1.66667em;
 						padding: 1.66667em;
 						width: calc(100% + 3.33333em);
 					}
 
-				#sidebar .toggle {
+				#left-rail .toggle {
 					height: 6.25em;
 					left: 24em;
 					line-height: 6.25em;
@@ -3699,11 +3699,11 @@
 					width: 5em;
 				}
 
-					#sidebar .toggle:before {
+					#left-rail .toggle:before {
 						font-size: 1.5rem;
 					}
 
-				#sidebar.inactive {
+				#left-rail.inactive {
 					margin-left: -24em;
 				}
 
@@ -3711,7 +3711,7 @@
 
 		@media screen and (max-width: 1280px) {
 
-			#sidebar {
+			#left-rail {
 				box-shadow: 0 0 5em 0 rgba(0, 0, 0, 0.175);
 				height: 100%;
 				left: 0;
@@ -3720,11 +3720,11 @@
 				z-index: 10000;
 			}
 
-				#sidebar.inactive {
+				#left-rail.inactive {
 					box-shadow: none;
 				}
 
-				#sidebar > .inner {
+				#left-rail > .inner {
 					-webkit-overflow-scrolling: touch;
 					height: 100%;
 					left: 0;
@@ -3734,24 +3734,24 @@
 					top: 0;
 				}
 
-					#sidebar > .inner:after {
+					#left-rail > .inner:after {
 						content: '';
 						display: block;
 						height: 4em;
 						width: 100%;
 					}
 
-				#sidebar .toggle {
+				#left-rail .toggle {
 					text-indent: 6em;
 					width: 6em;
 				}
 
-					#sidebar .toggle:before {
+					#left-rail .toggle:before {
 						font-size: 1.5rem;
 						margin-left: -0.4375em;
 					}
 
-				body.is-loading #sidebar {
+				body.is-loading #left-rail {
 					display: none;
 				}
 
@@ -3759,12 +3759,12 @@
 
 		@media screen and (max-width: 736px) {
 
-			#sidebar .toggle {
+			#left-rail .toggle {
 				text-indent: 7.25em;
 				width: 7.25em;
 			}
 
-				#sidebar .toggle:before {
+				#left-rail .toggle:before {
 					color: #7f888f;
 					margin-left: -0.0625em;
 					margin-top: -0.25em;
@@ -3772,7 +3772,7 @@
 					z-index: 1;
 				}
 
-				#sidebar .toggle:after {
+				#left-rail .toggle:after {
 					background: rgba(222, 225, 226, 0.75);
 					border-radius: 0.375em;
 					content: '';

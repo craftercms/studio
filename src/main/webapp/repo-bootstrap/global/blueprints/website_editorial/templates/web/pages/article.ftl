@@ -54,8 +54,8 @@
 					<#assign articlePath = contentModel.storeUrl />
 					<#assign additionalModel = {"articleCategories": articleCategories, "articlePath": articlePath }/>
 
-					<!-- Sidebar -->
-					<@renderComponent component = contentModel.sidebar.item additionalModel = additionalModel />
+					<!-- Left Rail -->
+					<@renderComponent component = contentModel.left\-rail.item additionalModel = additionalModel />
 
 			</div>
 
