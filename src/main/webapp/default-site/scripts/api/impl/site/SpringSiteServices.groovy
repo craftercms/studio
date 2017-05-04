@@ -86,7 +86,7 @@ class SpringSiteServices {
 
     def getCannedMessage(site,messageKey,locale="us"){
                 def newNotificationSystem=this.context.applicationContext.get("cstudioNotificationServicev2")
-        if(newNotificationSystem.enable){
+        if(newNotificationSystem.enabled){
             return  newNotificationSystem.getNotificationMessage(site,NotificationMessageType.CannedMessages,messageKey,Locale
                     .forLanguageTag(locale))
         }else{
