@@ -38,10 +38,14 @@
         <allowed-permissions>
           <permission>Read</permission>
           <permission>Write</permission>
-          <permission>Delete</permission>
           <permission>Create Content</permission>
           <permission>Create Folder</permission>
           <permission>Publish</permission>
+        </allowed-permissions>
+      </rule>
+      <rule regex="^/site/(?!website/index\.xml)(.*)">
+        <allowed-permissions>
+          <permission>Delete</permission>
         </allowed-permissions>
       </rule>
       <rule regex="/static-assets/.*">
@@ -68,11 +72,15 @@
         <allowed-permissions>
           <permission>Read</permission>
           <permission>Write</permission>
-          <permission>Delete</permission>
           <permission>Publish</permission>
           <permission>Create Folder</permission>
           <permission>Create Content</permission>
           <permission>Change Content Type</permission>
+        </allowed-permissions>
+      </rule>
+      <rule regex="^/(?!site/website/index\.xml)(.*)">
+        <allowed-permissions>
+          <permission>Delete</permission>
         </allowed-permissions>
       </rule>
       <rule regex="~DASHBOARD~">
@@ -89,11 +97,15 @@
         <allowed-permissions>
           <permission>Read</permission>
           <permission>Write</permission>
-          <permission>Delete</permission>
           <permission>Publish</permission>
           <permission>Create Folder</permission>
           <permission>Create Content</permission>
           <permission>Change Content Type</permission>
+        </allowed-permissions>
+      </rule>
+      <rule regex="^/(?!site/website/index\.xml)(.*)">
+        <allowed-permissions>
+          <permission>Delete</permission>
         </allowed-permissions>
       </rule>
       <rule regex="~DASHBOARD~">
