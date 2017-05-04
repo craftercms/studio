@@ -90,7 +90,7 @@ public class MappedSecurityProvider implements SecurityProvider {
         return provider.getUserProfile(user);
     }
 
-    public String authenticate(String username, String password) {
+    public String authenticate(String username, String password) throws BadCredentialsException, AuthenticationSystemException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.authenticate(username, password);
     }

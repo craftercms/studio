@@ -19,6 +19,8 @@
 package org.craftercms.studio.impl.v1.service.security;
 
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationSystemException;
+import org.craftercms.studio.api.v1.exception.security.BadCredentialsException;
 import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
@@ -75,7 +77,7 @@ public class CachedSecurityProvider implements SecurityProvider {
         return provider.getUserProfile(user);
     }
 
-    public String authenticate(String username, String password) {
+    public String authenticate(String username, String password) throws BadCredentialsException, AuthenticationSystemException {
         return provider.authenticate(username, password);
     }
 

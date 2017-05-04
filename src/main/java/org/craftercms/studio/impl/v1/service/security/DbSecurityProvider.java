@@ -247,7 +247,7 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public String authenticate(String username, String password) {
+    public String authenticate(String username, String password) throws BadCredentialsException, AuthenticationSystemException {
         User user = securityMapper.getUser(username);
         if (user != null && user.isEnabled() && CipherUtils.matchPassword(user.getPassword(), password)) {
             //byte[] randomBytes = CryptoUtils.generateRandomBytes(20);
@@ -257,7 +257,7 @@ public class DbSecurityProvider implements SecurityProvider {
             storeSessionUsername(username);
             return token;
         } else {
-            return null;
+            throw new BadCredentialsException();
         }
     }
 

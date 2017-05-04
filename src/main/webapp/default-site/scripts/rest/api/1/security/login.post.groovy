@@ -1,6 +1,6 @@
 /*
  * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2016 Crafter Software Corporation.
+ * Copyright (C) 2007-2017 Crafter Software Corporation.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,26 +15,36 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+import groovy.json.JsonSlurper
+import org.craftercms.studio.api.v1.exception.security.BadCredentialsException
 
 import scripts.api.SecurityServices
 
 def result = [:]
+def requestBody = request.reader.text
+
+def slurper = new JsonSlurper()
+def body = slurper.parseText(requestBody)
+def username = body.username
+def password = body.password
 
 try {
     def context = SecurityServices.createContext(applicationContext, request)
-    result.success = SecurityServices.logout(context)
+    def ticket = SecurityServices.authenticate(context, username, password)
 
-    result.user = null
-
-    if (result.success) {
-        result.type = "success"
-        result.message = "Logout successful"
+    if(ticket != null) {
+        response.setStatus(200)
+        result.message = "OK"
     } else {
-        result.type = "failure"
-        result.message = "Logout failed"
+        response.setStatus(500)
+        result.message = "Internal server error"
     }
-} catch(err) {
-    result.exception = err
-    result.type = "error"
-    result.message = "Error while logging out"
+} catch (BadCredentialsException e) {
+    response.setStatus(401)
+    result.message = "Bad credentials"
+} catch (Exception e) {
+    response.setStatus(500)
+    result.message = "Internal server error: \n" + e
 }
+
+return result

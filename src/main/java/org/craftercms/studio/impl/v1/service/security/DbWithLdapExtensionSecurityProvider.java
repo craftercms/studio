@@ -19,6 +19,8 @@
 package org.craftercms.studio.impl.v1.service.security;
 
 import org.craftercms.studio.api.v1.dal.User;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationSystemException;
+import org.craftercms.studio.api.v1.exception.security.BadCredentialsException;
 import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -47,7 +49,7 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
     private final static Logger logger = LoggerFactory.getLogger(DbWithLdapExtensionSecurityProvider.class);
 
     @Override
-    public String authenticate(String username, String password) {
+    public String authenticate(String username, String password) throws BadCredentialsException, AuthenticationSystemException {
 
         // Mapper for user data if user is successfully authenticated
         AuthenticatedLdapEntryContextMapper<User> mapper = new AuthenticatedLdapEntryContextMapper<User>() {
@@ -104,9 +106,16 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
             logger.error("User " + username + " not found with external security provider. Trying to authenticate against studio database");
             // When user not found try to authenticate against studio database
             return super.authenticate(username, password);
+        } catch (AuthenticationException e) {
+            logger.error("Authentication failed with the LDAP system", e);
+
+            throw new BadCredentialsException();
         } catch (Exception e) {
-            logger.error("LDAP authentication failed: ", e);
+            logger.error("Authentication failed with the LDAP system", e);
+
+            throw new AuthenticationSystemException("Authentication failed with the LDAP system", e);
         }
+
         if (user != null) {
             // When user authenticated against LDAP, upsert user data into studio database
             boolean toRet = true;
@@ -115,22 +124,30 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
                     updateUserInternal(user.getUsername(), user.getFirstname(), user.getLastname(), user.getEmail());
                 } catch (UserNotFoundException e) {
                     logger.error("Error updating user " + username + " with data from external authentication provider", e);
+
+                    throw new AuthenticationSystemException("Error updating user " + username +
+                                                            " with data from external authentication provider", e);
                 }
             } else {
                 try {
                     createUser(user.getUsername(), password, user.getFirstname(), user.getLastname(), user.getEmail(), true);
                 } catch (UserAlreadyExistsException e) {
                     logger.error("Error adding user " + username + " from external authentication provider", e);
+
+                    throw new AuthenticationSystemException("Error adding user " + username + " from external authentication provider", e);
                 }
             }
 
             String token = createToken(user);
             storeSessionTicket(token);
             storeSessionUsername(username);
-            return token;
-        }
 
-        return null;
+            return token;
+        } else {
+            logger.error("Failed to retrieve LDAP user details");
+
+            throw new AuthenticationSystemException("Failed to retrieve LDAP user details");
+        }
     }
 
     private boolean updateUserInternal(String username, String firstName, String lastName, String email) throws UserNotFoundException {
