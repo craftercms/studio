@@ -27,10 +27,10 @@
 	</item></features>
 	<header/>
 	<hero_image>/static-assets/images/strawberries.jpg</hero_image>
-	<sidebar>	<item>	<key>/site/components/sidebar-with-latest-articles.xml</key>
-	<value>Sidebar with Latest Articles</value>
-	<include>/site/components/sidebar-with-latest-articles.xml</include>
+	<left-rail>	<item>	<key>/site/components/left-rail-with-latest-articles.xml</key>
+	<value>Left Rail with Latest Articles</value>
+	<include>/site/components/left-rail-with-latest-articles.xml</include>
 	<disableFlattening>false</disableFlattening>
-	</item></sidebar>
+	</item></left-rail>
 	<features_title>Erat lacinia</features_title>
 </page>

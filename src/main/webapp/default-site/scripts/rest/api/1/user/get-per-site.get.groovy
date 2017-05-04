@@ -18,6 +18,7 @@
  */
 
 
+import org.apache.commons.lang3.StringUtils
 import scripts.api.SecurityServices
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException
 
@@ -25,37 +26,74 @@ def result = [:]
 
 def site = params.site_id
 
-def start = 0
-if (params.start != null) {
-    start = params.start.toInteger()
-}
+/** Validate Parameters */
+def invalidParams = false;
+def paramsList = []
 
-// TODO: SJ: These should be constants
-def number = 25
-if (params.number != null) {
-    number = params.number.toInteger()
-}
-
-def context = SecurityServices.createContext(applicationContext, request)
+// site_id
 try {
-    def total = SecurityServices.getUsersPerSiteTotal(context, site);
-    def users = SecurityServices.getUsersPerSite(context, site, start, number);
-    if (users != null) {
-        def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/user/get-per-site.json?site_id=" + site + "&start=" + start + "&number=" + number
-        response.addHeader("Location", locationHeader)
-        result.users = users
-        result.total = total
-        response.setStatus(200)
-    } else {
-        response.setStatus(500)
-        result.message = "Internal server error"
+    if (StringUtils.isEmpty(site)) {
+        invalidParams = true
+        paramsList.add("site_id")
     }
-} catch (SiteNotFoundException e) {
-    response.setStatus(404)
-    result.message = "Site not found"
-} catch (Exception e) {
-    response.setStatus(500)
-    result.message = "Internal server error: \n" + e
+} catch (Exception exc) {
+    invalidParams = true
+    paramsList.add("site_id")
+}
+
+// start
+try {
+    if (StringUtils.isNotEmpty(params.start)) {
+        start = params.start.toInteger()
+        if (start < 0) {
+            invalidParams = true
+            paramsList.add("start")
+        }
+    }
+} catch (Exception exc) {
+    invalidParams = true
+    paramsList.add("start")
+}
+
+// number
+try {
+    if (StringUtils.isNotEmpty(params.number)) {
+        number = params.number.toInteger()
+        if (number < 0) {
+            invalidParams = true
+            paramsList.add("number")
+        }
+    }
+} catch (Exception exc) {
+    invalidParams = true
+    paramsList.add("number")
+}
+
+if (invalidParams) {
+    response.setStatus(400)
+    result.message = "Invalid parameter(s): " + paramsList
+} else {
+    def context = SecurityServices.createContext(applicationContext, request)
+    try {
+        def total = SecurityServices.getUsersPerSiteTotal(context, site);
+        def users = SecurityServices.getUsersPerSite(context, site, start, number);
+        if (users != null) {
+            def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/user/get-per-site.json?site_id=" + site + "&start=" + start + "&number=" + number
+            response.addHeader("Location", locationHeader)
+            result.users = users
+            result.total = total
+            response.setStatus(200)
+        } else {
+            response.setStatus(500)
+            result.message = "Internal server error"
+        }
+    } catch (SiteNotFoundException e) {
+        response.setStatus(404)
+        result.message = "Site not found"
+    } catch (Exception e) {
+        response.setStatus(500)
+        result.message = "Internal server error: \n" + e
+    }
 }
 
 return result
