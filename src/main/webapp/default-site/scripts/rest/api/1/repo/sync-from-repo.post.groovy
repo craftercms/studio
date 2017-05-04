@@ -18,6 +18,7 @@
  */
 
 import groovy.json.JsonSlurper
+import org.apache.commons.lang3.StringUtils
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException
 import scripts.api.SiteServices
 
@@ -29,18 +30,34 @@ def parsedReq = slurper.parseText(requestBody)
 
 def siteId = parsedReq.site_id
 
-def context = SiteServices.createContext(applicationContext, request)
+/** Validate Parameters */
+def invalidParams = false;
 
+// site_id
 try {
-    SiteServices.syncRepository(context, siteId)
-    response.setStatus(200)
-    result.message = "OK"
-} catch (SiteNotFoundException e) {
-    response.setStatus(404)
-    result.message = "Site not found"
-} catch (Exception e) {
-    response.setStatus(500)
-    result.message = "Internal server error: \n" + e
+    if (StringUtils.isEmpty(siteId)) {
+        invalidParams = true
+    }
+} catch (Exception exc) {
+    invalidParams = true
 }
 
+if (invalidParams) {
+    response.setStatus(400)
+    result.message = "Invalid parameter: site_id"
+} else {
+    def context = SiteServices.createContext(applicationContext, request)
+
+    try {
+        SiteServices.syncRepository(context, siteId)
+        response.setStatus(200)
+        result.message = "OK"
+    } catch (SiteNotFoundException e) {
+        response.setStatus(404)
+        result.message = "Site not found"
+    } catch (Exception e) {
+        response.setStatus(500)
+        result.message = "Internal server error: \n" + e
+    }
+}
 return result

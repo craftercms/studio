@@ -18,6 +18,7 @@
  */
 
 import groovy.json.JsonSlurper
+import org.apache.commons.lang3.StringUtils
 import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException
 import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException
@@ -33,28 +34,68 @@ def siteId = parsedReq.site_id
 def groupName = parsedReq.group_name
 def username = parsedReq.username
 
+/** Validate Parameters */
+def invalidParams = false;
+def paramsList = []
 
-def context = SecurityServices.createContext(applicationContext, request)
+// group_name
 try {
-    SecurityServices.addUserToGroup(context, siteId, groupName, username)
-    result.message = "OK"
-    response.setStatus(200)
-    def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/group/get.json?group_name=" + groupName
-    response.addHeader("Location", locationHeader)
-} catch (UserNotFoundException e) {
-    response.setStatus(404)
-    result.message = "User not found"
-} catch (GroupNotFoundException e) {
-    response.setStatus(404)
-    result.message = "Group not found"
-} catch (UserAlreadyExistsException e) {
-    response.setStatus(409)
-    def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/group/get.json?group_name=" + groupName
-    response.addHeader("Location", locationHeader)
-    result.message = "User already in group"
-} catch (Exception e) {
-    response.setStatus(500)
-    result.message = "Internal server error: \n" + e
+    if (StringUtils.isEmpty(groupName)) {
+        invalidParams = true
+        paramsList.add("group_name")
+    }
+} catch (Exception exc) {
+    invalidParams = true
+    paramsList.add("group_name")
 }
 
+// site_id
+try {
+    if (StringUtils.isEmpty(siteId)) {
+        invalidParams = true
+        paramsList.add("site_id")
+    }
+} catch (Exception exc) {
+    invalidParams = true
+    paramsList.add("site_id")
+}
+
+// username
+try {
+    if (StringUtils.isEmpty(username)) {
+        invalidParams = true
+        paramsList.add("username")
+    }
+} catch (Exception exc) {
+    invalidParams = true
+    paramsList.add("username")
+}
+
+if (invalidParams) {
+    response.setStatus(400)
+    result.message = "Invalid parameter(s): " + paramsList
+} else {
+    def context = SecurityServices.createContext(applicationContext, request)
+    try {
+        SecurityServices.addUserToGroup(context, siteId, groupName, username)
+        result.message = "OK"
+        response.setStatus(200)
+        def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/group/get.json?group_name=" + groupName
+        response.addHeader("Location", locationHeader)
+    } catch (UserNotFoundException e) {
+        response.setStatus(404)
+        result.message = "User not found"
+    } catch (GroupNotFoundException e) {
+        response.setStatus(404)
+        result.message = "Group not found"
+    } catch (UserAlreadyExistsException e) {
+        response.setStatus(409)
+        def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/group/get.json?group_name=" + groupName
+        response.addHeader("Location", locationHeader)
+        result.message = "User already in group"
+    } catch (Exception e) {
+        response.setStatus(500)
+        result.message = "Internal server error: \n" + e
+    }
+}
 return result

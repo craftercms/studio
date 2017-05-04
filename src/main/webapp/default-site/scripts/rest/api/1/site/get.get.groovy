@@ -17,29 +17,47 @@
  */
 
 
+import org.apache.commons.lang3.StringUtils
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException
 import scripts.api.SiteServices;
 
 def result = [:]
 def siteId = params.site_id
 
-def context = SiteServices.createContext(applicationContext, request)
+/** Validate Parameters */
+def invalidParams = false;
+
+// site_id
 try {
-    def site = SiteServices.getSite(context, siteId)
-    if (site != null) {
-        def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/site/get.json?site_id=" + siteId
-        response.addHeader("Location", locationHeader)
-        response.setStatus(200)
-        result = site
-    } else {
-        response.setStatus(500)
-        result.message = "Internal server error"
+    if (StringUtils.isEmpty(siteId)) {
+        invalidParams = true
     }
-} catch (SiteNotFoundException e) {
-    response.setStatus(404)
-    result.message = "Site not found"
-} catch (Exception e) {
-    response.setStatus(500)
-    result.message = "Internal server error: \n" + e
+} catch (Exception exc) {
+    invalidParams = true
+}
+
+if (invalidParams) {
+    response.setStatus(400)
+    result.message = "Invalid parameter: site_id"
+} else {
+    def context = SiteServices.createContext(applicationContext, request)
+    try {
+        def site = SiteServices.getSite(context, siteId)
+        if (site != null) {
+            def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/site/get.json?site_id=" + siteId
+            response.addHeader("Location", locationHeader)
+            response.setStatus(200)
+            result = site
+        } else {
+            response.setStatus(500)
+            result.message = "Internal server error"
+        }
+    } catch (SiteNotFoundException e) {
+        response.setStatus(404)
+        result.message = "Site not found"
+    } catch (Exception e) {
+        response.setStatus(500)
+        result.message = "Internal server error: \n" + e
+    }
 }
 return result

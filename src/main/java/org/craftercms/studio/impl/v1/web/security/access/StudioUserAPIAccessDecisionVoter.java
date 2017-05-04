@@ -18,6 +18,7 @@
 
 package org.craftercms.studio.impl.v1.web.security.access;
 
+import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -80,12 +81,14 @@ public class StudioUserAPIAccessDecisionVoter extends StudioAbstractAccessDecisi
                     InputStream is = request.getInputStream();
                     is.mark(0);
                     String jsonString = IOUtils.toString(is);
-                    JSONObject jsonObject = JSONObject.fromObject(jsonString);
-                    if (jsonObject.has("username")) {
-                        userParam = jsonObject.getString("username");
+                    if (StringUtils.isNoneEmpty(jsonString)) {
+                        JSONObject jsonObject = JSONObject.fromObject(jsonString);
+                        if (jsonObject.has("username")) {
+                            userParam = jsonObject.getString("username");
+                        }
                     }
                     is.reset();
-                } catch (IOException e) {
+                } catch (IOException | JSONException e) {
                     // TODO: ??
                     logger.debug("Failed to extract username from POST request");
                 }
