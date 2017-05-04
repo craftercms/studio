@@ -741,7 +741,7 @@
     </bean>
 
     <bean id="studioGroovyScriptExecutor" class="org.craftercms.studio.impl.v1.script.GroovyScriptExecutor" >
-        <property name="scriptsClassPath" value="#{'${crafter.studio.scripts.groovy.classpath}'.split(',')}"/>
+        <property name="scriptsClassPath" value="#{'${crafter-studio}/default-site'.split(',')}"/>
     </bean>
 
     <bean id="studioConfiguration" class="org.craftercms.studio.impl.v1.util.StudioConfigurationImpl" init-method="init" >

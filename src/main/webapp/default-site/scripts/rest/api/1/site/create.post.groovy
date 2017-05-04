@@ -31,27 +31,51 @@ def blueprint = parsedReq.blueprint
 def siteId = parsedReq.site_id
 def description = parsedReq.description
 
-/** Check Parameters */
-if (StringUtils.isEmpty(siteId) || StringUtils.length(siteId) > 50) {
-    result.message = "Invalid parameter(s)"
-    response.setStatus(400)
-    return result;
+/** Validate Parameters */
+def invalidParams = false;
+def paramsList = []
+
+// blueprint
+try {
+    if (StringUtils.isEmpty(blueprint)) {
+        invalidParams = true
+        paramsList.add("blueprint")
+    }
+} catch (Exception exc) {
+    invalidParams = true
+    paramsList.add("blueprint")
 }
 
-def context = SiteServices.createContext(applicationContext, request)
+// site_id
 try {
-    SiteServices.createSiteFromBlueprint(context, blueprint, siteId, siteId, description)
-    result.message = "OK"
-    def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/site/get.json?site_id=" + siteId
-    response.addHeader("Location", locationHeader)
-    response.setStatus(201)
-} catch (SiteAlreadyExistsException e) {
-    response.setStatus(409)
-    def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/site/get.json?site_id=" + siteId
-    response.addHeader("Location", locationHeader)
-    result.message = "Site already exists"
-} catch (Exception e) {
-    response.setStatus(500)
-    result.message = "Internal server error: \n" + e
+    if (StringUtils.isEmpty(siteId) || StringUtils.length(siteId) > 50) {
+        invalidParams = true
+        paramsList.add("site_id")
+    }
+} catch (Exception exc) {
+    invalidParams = true
+    paramsList.add("site_id")
+}
+
+if (invalidParams) {
+    response.setStatus(400)
+    result.message = "Invalid parameter(s): " + paramsList
+} else {
+    def context = SiteServices.createContext(applicationContext, request)
+    try {
+        SiteServices.createSiteFromBlueprint(context, blueprint, siteId, siteId, description)
+        result.message = "OK"
+        def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/site/get.json?site_id=" + siteId
+        response.addHeader("Location", locationHeader)
+        response.setStatus(201)
+    } catch (SiteAlreadyExistsException e) {
+        response.setStatus(409)
+        def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/site/get.json?site_id=" + siteId
+        response.addHeader("Location", locationHeader)
+        result.message = "Site already exists"
+    } catch (Exception e) {
+        response.setStatus(500)
+        result.message = "Internal server error: \n" + e
+    }
 }
 return result

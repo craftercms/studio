@@ -22,19 +22,12 @@
  */
 
 import groovy.json.JsonSlurper
+import org.apache.commons.lang3.StringUtils
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException
 import scripts.api.ActivityServices
 
 def result = [:]
 def site = params.site_id
-def start = 0
-if (params.start != null && params.start != '') {
-    start = params.start.toInteger()
-}
-def number = 10
-if (params.number != null && params.number != '') {
-    number = params.number.toInteger()
-}
 def user = ''
 if (params.user != null && params.user != '') {
     user = params.user
@@ -45,19 +38,69 @@ if (params.actions != null && params.actions != '') {
     actions = slurper.parseText(params.actions)
 }
 
-def context = ActivityServices.createContext(applicationContext, request)
+def start = 0
+def number = 10
+
+/** Validate Parameters */
+def invalidParams = false;
+def paramsList = []
+
+// site_id
 try {
-    result.total = ActivityServices.getAuditLogTotal(context, site, user, actions)
-    def activities = ActivityServices.getAuditLog(context, site, start, number, user, actions)
-    result.message = "OK"
-    response.setStatus(200)
-    result.items = activities
-} catch (SiteNotFoundException e) {
-    response.setStatus(404)
-    result.message = "Site not found"
-} catch (Exception e) {
-    response.setStatus(500)
-    result.message = "Internal server error: \n" + e
+    if (StringUtils.isEmpty(site)) {
+        invalidParams = true
+        paramsList.add("site_id")
+    }
+} catch (Exception exc) {
+    invalidParams = true
+    paramsList.add("site_id")
 }
 
+// start
+try {
+    if (StringUtils.isNotEmpty(params.start)) {
+        start = params.start.toInteger()
+        if (start < 0) {
+            invalidParams = true
+            paramsList.add("start")
+        }
+    }
+} catch (Exception exc) {
+    invalidParams = true
+    paramsList.add("start")
+}
+
+// number
+try {
+    if (StringUtils.isNotEmpty(params.number)) {
+        number = params.number.toInteger()
+        if (number < 0) {
+            invalidParams = true
+            paramsList.add("number")
+        }
+    }
+} catch (Exception exc) {
+    invalidParams = true
+    paramsList.add("number")
+}
+
+if (invalidParams) {
+    response.setStatus(400)
+    result.message = "Invalid parameter(s): " + paramsList
+} else {
+    def context = ActivityServices.createContext(applicationContext, request)
+    try {
+        result.total = ActivityServices.getAuditLogTotal(context, site, user, actions)
+        def activities = ActivityServices.getAuditLog(context, site, start, number, user, actions)
+        result.message = "OK"
+        response.setStatus(200)
+        result.items = activities
+    } catch (SiteNotFoundException e) {
+        response.setStatus(404)
+        result.message = "Site not found"
+    } catch (Exception e) {
+        response.setStatus(500)
+        result.message = "Internal server error: \n" + e
+    }
+}
 return result
