@@ -28,18 +28,18 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 
 public class MultiReadHttpServletRequestWrapper extends HttpServletRequestWrapper {
-    private final byte[] body;
+    private byte[] body = null;
 
     public MultiReadHttpServletRequestWrapper ( HttpServletRequest request ) throws IOException {
         super(request);
-        if (request.getContentType() != null && request.getContentType().contains(MediaType.APPLICATION_JSON.toString())) {
+        //if (request.getContentType() != null && request.getContentType().contains(MediaType.APPLICATION_JSON.toString())) {
             InputStream inputStream = request.getInputStream();
             if (inputStream != null) {
                 body = IOUtils.toByteArray(inputStream);
                 return;
             }
-        }
-        body = null;
+        //}
+        //body = null;
     }
 
     @Override
