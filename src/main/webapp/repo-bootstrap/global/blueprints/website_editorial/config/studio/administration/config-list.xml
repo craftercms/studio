@@ -8,8 +8,8 @@
         </file>
         <file>
             <path>/administration/tools.xml</path>
-            <title>confTabAdminTools</title>
-            <description>confTabAdminToolsDesc</description>
+            <title>confTabSiteConf</title>
+            <description>confTabSiteConfDesc</description>
             <samplePath>/administration/samples/sample-tools.xml</samplePath>
         </file>
         <file>
@@ -86,8 +86,8 @@
         </file>
         <file>
             <path>/site-config.xml</path>
-            <title>confTabSiteConf</title>
-            <description>confTabSiteConfDesc</description>
+            <title>confTabSiteConfiguration</title>
+            <description>confTabSiteConfigurationDesc</description>
             <samplePath>/administration/samples/sample-site-config.xml</samplePath>
         </file>
     </files>
