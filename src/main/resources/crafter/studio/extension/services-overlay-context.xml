@@ -20,9 +20,6 @@
                 <value>classpath:crafter/engine/server-config.properties</value>
                 <value>${crafter.engine.extension.base}/overlay-config.properties</value>
                 <value>${crafter.engine.extension.base}/server-config.properties</value>
-                <value>classpath:crafter/studio/studio-server-config.properties</value>
-                <value>classpath*:crafter/engine/extension/studio-server-config.properties</value>
-                <value>classpath*:crafter/cstudio/extension/server-config.properties</value>
             </list>
         </property>
         <property name="ignoreUnresolvablePlaceholders" value="true"/>
@@ -96,9 +93,7 @@
     <bean name="studio.crafter.properties" class="java.util.HashMap">
         <constructor-arg>
             <map key-type="java.lang.String" value-type="java.lang.String">
-                <entry key="cookieDomain" value="${cookieDomain}"/>
-                <entry key="alfrescoUrl" value="${alfrescoUrl}"/>
-                <entry key="environment" value="${environment}"/>
+                <entry key="environment" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).CONFIGURATION_SITE_ENVIRONMENT)}}"/>
                 <entry key="previewUrl" value="${previewUrl}"/>
 
             </map>
@@ -106,11 +101,6 @@
     </bean>
 
     <bean id="crafter.httpProxyRegistry" class="org.craftercms.engine.http.HttpProxyRegistry"/>
-
-    <bean id="crafter.proxy.alfresco" class="org.craftercms.engine.http.impl.AlfrescoHttpProxy">
-        <property name="alfrescoTicketCookieName" value="alf_ticket"/>
-        <property name="baseServiceUrl" value="${alfrescoUrl}/service"/>
-    </bean>
 
     <bean id="crafter.analyticsService" class="org.craftercms.studio.impl.v1.GoogleAnalyticsServiceImpl" >
     </bean>
