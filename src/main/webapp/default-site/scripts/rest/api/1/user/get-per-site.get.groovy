@@ -25,6 +25,8 @@ import org.craftercms.studio.api.v1.exception.SiteNotFoundException
 def result = [:]
 
 def site = params.site_id
+def start = 0
+def number = 25
 
 /** Validate Parameters */
 def invalidParams = false;
