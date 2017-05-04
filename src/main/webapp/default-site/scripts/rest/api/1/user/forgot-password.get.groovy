@@ -18,6 +18,7 @@
  */
 
 
+import org.apache.commons.lang3.StringUtils
 import org.craftercms.studio.api.v1.exception.security.UserExternallyManagedException
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException
 import scripts.api.SecurityServices
@@ -26,27 +27,43 @@ def result = [:]
 
 def username = params.username
 
-def context = SecurityServices.createContext(applicationContext, request)
+/** Validate Parameters */
+def invalidParams = false;
+
+// username
 try {
-    def res = SecurityServices.forgotPassword(context, username)
-    if (res.success) {
-        def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/user/get.json?username=" + username
-        response.addHeader("Location", locationHeader)
-        result.message = res.message
-        response.setStatus(200)
-    } else {
-        response.setStatus(500)
-        result.message = "Internal server error"
+    if (StringUtils.isEmpty(username)) {
+        invalidParams = true
     }
-} catch (UserExternallyManagedException e) {
-    response.setStatus(403)
-    result.message = "Externally managed user"
-} catch (UserNotFoundException e) {
-    response.setStatus(404)
-    result.message = "User not found"
-} catch (Exception e) {
-    response.setStatus(500)
-    result.message = "Internal server error: \n" + e
+} catch (Exception exc) {
+    invalidParams = true
 }
 
+if (invalidParams) {
+    response.setStatus(400)
+    result.message = "Invalid parameter: username"
+} else {
+    def context = SecurityServices.createContext(applicationContext, request)
+    try {
+        def res = SecurityServices.forgotPassword(context, username)
+        if (res.success) {
+            def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/user/get.json?username=" + username
+            response.addHeader("Location", locationHeader)
+            result.message = res.message
+            response.setStatus(200)
+        } else {
+            response.setStatus(500)
+            result.message = "Internal server error"
+        }
+    } catch (UserExternallyManagedException e) {
+        response.setStatus(403)
+        result.message = "Externally managed user"
+    } catch (UserNotFoundException e) {
+        response.setStatus(404)
+        result.message = "User not found"
+    } catch (Exception e) {
+        response.setStatus(500)
+        result.message = "Internal server error: \n" + e
+    }
+}
 return result
