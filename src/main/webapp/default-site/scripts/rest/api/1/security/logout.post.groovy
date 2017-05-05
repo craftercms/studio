@@ -1,6 +1,6 @@
 /*
  * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2016 Crafter Software Corporation.
+ * Copyright (C) 2007-2017 Crafter Software Corporation.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,19 +22,19 @@ def result = [:]
 
 try {
     def context = SecurityServices.createContext(applicationContext, request)
+
     result.success = SecurityServices.logout(context)
 
-    result.user = null
-
     if (result.success) {
-        result.type = "success"
-        result.message = "Logout successful"
+        response.setStatus(200)
+        result.message = "OK"
     } else {
-        result.type = "failure"
-        result.message = "Logout failed"
+        response.setStatus(500)
+        result.message = "Internal server error"
     }
-} catch(err) {
-    result.exception = err
-    result.type = "error"
-    result.message = "Error while logging out"
+} catch(e) {
+    response.setStatus(500)
+    result.message = "Internal server error: \n" + e
 }
+
+return result

@@ -78,7 +78,7 @@ public class SecurityServiceImpl implements SecurityService {
     private static final Logger logger = LoggerFactory.getLogger(SecurityServiceImpl.class);
 
     @Override
-    public String authenticate(String username, String password) {
+    public String authenticate(String username, String password) throws BadCredentialsException, AuthenticationSystemException {
         String toRet = securityProvider.authenticate(username, password);
         /*
         String sessionToken = SessionTokenUtils.createToken(username, getSessionTimeout());

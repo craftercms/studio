@@ -39,7 +39,7 @@ public interface SecurityService {
 	 * @param username
 	 * @param password
 	 */
-	String authenticate(String username, String password);
+	String authenticate(String username, String password) throws BadCredentialsException, AuthenticationSystemException;
 
 	/**
 	 * Returns the username of the current user OR NULL if no user is authenticated

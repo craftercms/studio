@@ -20,6 +20,8 @@ package org.craftercms.studio.api.v1.service.security;
 
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.*;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationSystemException;
+import org.craftercms.studio.api.v1.exception.security.BadCredentialsException;
 
 import java.util.List;
 import java.util.Set;
@@ -36,9 +38,11 @@ public interface SecurityProvider {
 
     Map<String, Object> getUserProfile(String user);
 
-    String authenticate(String username, String password);
+    String authenticate(String username, String password) throws BadCredentialsException, AuthenticationSystemException;
 
     boolean validateTicket(String ticket);
+
+    boolean logout();
 
     void addUserGroup(String groupName);
 
@@ -79,9 +83,8 @@ public interface SecurityProvider {
      * @param groupName group name
      * @param user username
      */
-    boolean addUserToGroup(String siteId, String groupName, String user) throws UserAlreadyExistsException, UserNotFoundException, GroupNotFoundException;
-
-    boolean logout();
+    boolean addUserToGroup(String siteId, String groupName,
+                           String user) throws UserAlreadyExistsException, UserNotFoundException, GroupNotFoundException;
 
     void addContentWritePermission(String path, String group);
 
@@ -98,7 +101,8 @@ public interface SecurityProvider {
      * @param externallyManaged true if externally managed, otherwise false
      * @return true if success, otherwise false
      */
-    boolean createUser(String username, String password, String firstName, String lastName, String email, boolean externallyManaged) throws UserAlreadyExistsException;
+    boolean createUser(String username, String password, String firstName, String lastName, String email,
+                       boolean externallyManaged) throws UserAlreadyExistsException;
 
     /**
      * Delete user with given username
@@ -117,7 +121,8 @@ public interface SecurityProvider {
      * @param email
      * @return
      */
-    boolean updateUser(String username, String firstName, String lastName, String email) throws UserNotFoundException, UserExternallyManagedException;
+    boolean updateUser(String username, String firstName, String lastName,
+                       String email) throws UserNotFoundException, UserExternallyManagedException;
 
     /**
      * Enable/disable user with given username
@@ -144,8 +149,7 @@ public interface SecurityProvider {
      * @param siteId
      * @return
      */
-    boolean createGroup(String groupName, String description, String siteId) throws GroupAlreadyExistsException,
-	    SiteNotFoundException;
+    boolean createGroup(String groupName, String description, String siteId) throws GroupAlreadyExistsException, SiteNotFoundException;
 
     /**
      * Get all users
@@ -221,8 +225,7 @@ public interface SecurityProvider {
      * @param number number of records to retrieve in the result set
      * @return
      */
-    List<Map<String, Object>> getUsersPerGroup(String site, String group, int start, int number) throws
-	    GroupNotFoundException;
+    List<Map<String, Object>> getUsersPerGroup(String site, String group, int start, int number) throws GroupNotFoundException;
 
     /**
      * Get number of all users for given site and group
@@ -259,8 +262,7 @@ public interface SecurityProvider {
      * @param groupName group name
      * @param user username
      */
-    boolean removeUserFromGroup(String siteId, String groupName, String user) throws UserNotFoundException,
-	    GroupNotFoundException;
+    boolean removeUserFromGroup(String siteId, String groupName, String user) throws UserNotFoundException, GroupNotFoundException;
 
     /**
      * Change password
@@ -269,7 +271,8 @@ public interface SecurityProvider {
      * @param newPassword new password
      * @return
      */
-    boolean changePassword(String username, String current, String newPassword) throws UserNotFoundException, PasswordDoesNotMatchException, UserExternallyManagedException;
+    boolean changePassword(String username, String current,
+                           String newPassword) throws UserNotFoundException, PasswordDoesNotMatchException, UserExternallyManagedException;
 
     /**
      * Set user password
