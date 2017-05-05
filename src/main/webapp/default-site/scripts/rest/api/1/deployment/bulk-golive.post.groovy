@@ -17,9 +17,9 @@
  */
 import scripts.api.DeploymentServices;
 
-def site = params.site;
-def path = params.path;
-def environment = params.environment;
+def site = request.getParameter("site")
+def path = request.getParameter("path")
+def environment = request.getParameter("environment")
 def result =[:]
 /*if (site == undefined || site == "") {
     status.code = 400;

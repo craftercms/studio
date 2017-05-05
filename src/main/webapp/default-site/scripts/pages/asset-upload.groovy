@@ -61,15 +61,15 @@ if(ServletFileUpload.isMultipartContent(request)) {
     result = ContentServices.writeContentAsset(context, site, path, fileName, content,
             isImage, allowedWidth, allowedHeight, allowLessSize, draft, unlock, systemAsset)
 } else {
-    site = params.site
-    path = params.path
-    oldPath = params.oldContentPath
-    fileName = (params.fileName) ? params.fileName : params.filename
-    contentType = params.contentType
-    createFolders = params.createFolders
-    edit = params.edit
-    draft = params.draft
-    unlock = params.unlock
+    site = request.getParameter("site")
+    path = request.getParameter("path")
+    oldPath = request.getParameter("oldContentPath")
+    fileName = (request.getParameter("fileName")) ? request.getParameter("fileName") : request.getParameter("filename")
+    contentType = request.getParameter("contentType")
+    createFolders = request.getParameter("createFolders")
+    edit = request.getParameter("edit")
+    draft = request.getParameter("draft")
+    unlock = request.getParameter("unlock")
     content = request.getInputStream()
 
     if (!site || site == '') {

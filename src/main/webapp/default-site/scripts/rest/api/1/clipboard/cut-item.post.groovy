@@ -2,7 +2,7 @@ import scripts.api.ClipboardServices
 import groovy.json.JsonSlurper
 
 def result = [:]
-def site = params.site
+def site = request.getParameter("site")
 def requestBody = request.reader.text
 
 def slurper = new JsonSlurper()
