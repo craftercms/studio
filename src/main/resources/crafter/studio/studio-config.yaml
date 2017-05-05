@@ -344,3 +344,8 @@ studio.db.dataPath: ./data/db
 studio.db.port: 33306
 # Socket path for the embedded database
 studio.db.socket: /tmp/MariaDB4j.33306.sock
+#######################################
+# Studio Groovy Scripts configuration #
+#######################################
+# Classpath to be used for studio's scripting engine.
+studio.scripts.groovy.classpath: ${crafter-studio}/default-site

@@ -18,14 +18,23 @@
 
 package org.craftercms.studio.impl.v1.web.security.access;
 
+import net.sf.json.JSONException;
+import net.sf.json.JSONObject;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.dal.User;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.FilterInvocation;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringReader;
 import java.util.Collection;
 
 /**
@@ -67,6 +76,23 @@ public class StudioUserAPIAccessDecisionVoter extends StudioAbstractAccessDecisi
             requestUri = request.getRequestURI().replace(request.getContextPath(), "");
             String requsetUrl = filterInvocation.getRequestUrl();
             String userParam = request.getParameter("username");
+            if (StringUtils.isEmpty(userParam) && StringUtils.equalsIgnoreCase(request.getMethod(), HttpMethod.POST.name())) {
+                try {
+                    InputStream is = request.getInputStream();
+                    is.mark(0);
+                    String jsonString = IOUtils.toString(is);
+                    if (StringUtils.isNoneEmpty(jsonString)) {
+                        JSONObject jsonObject = JSONObject.fromObject(jsonString);
+                        if (jsonObject.has("username")) {
+                            userParam = jsonObject.getString("username");
+                        }
+                    }
+                    is.reset();
+                } catch (IOException | JSONException e) {
+                    // TODO: ??
+                    logger.debug("Failed to extract username from POST request");
+                }
+            }
             User currentUser = null;
             try {
                 currentUser = (User)authentication.getPrincipal();

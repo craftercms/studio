@@ -1,6 +1,6 @@
 /*
  * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2016 Crafter Software Corporation.
+ * Copyright (C) 2007-2017 Crafter Software Corporation.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,15 +16,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+package org.craftercms.studio.impl.v1.web.filter;
 
-import scripts.api.DeploymentServices;
 
-def result = [:]
-def site = request.getParameter("site")
-def path = request.getParameter("path")
-def deploymentId = request.getParameter("deploymentId").toLong();
+import org.craftercms.studio.impl.v1.web.http.MultiReadHttpServletRequestWrapper;
 
-def context = DeploymentServices.createContext(applicationContext, request)
-result = DeploymentServices.cancelDeployment(context, site, path, deploymentId)
+import javax.servlet.*;
+import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 
-return result
+public class MultiReadHttpServletRequestWrapperFilter implements Filter {
+    public void init ( FilterConfig fc ) throws ServletException { }
+
+    public void doFilter (ServletRequest request, ServletResponse response, FilterChain chain ) throws IOException,	ServletException {
+        chain.doFilter(new MultiReadHttpServletRequestWrapper((HttpServletRequest) request), response);
+    }
+
+    public void destroy () { }
+}

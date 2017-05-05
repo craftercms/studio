@@ -19,9 +19,9 @@
 import scripts.api.ContentTypeServices;
 
 def result = [:]
-def site = params.site
-def path = params.path
-def type = params.contentType
+def site = request.getParameter("site")
+def path = request.getParameter("path")
+def type = request.getParameter("contentType")
 
 def context = ContentTypeServices.createContext(applicationContext, request)
 

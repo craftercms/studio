@@ -5,10 +5,10 @@ import org.apache.commons.lang.StringEscapeUtils
 
 
 def result = [:]
-def site = params.site
-def path = params.path
-def version = params.version
-def escaped = params.escaped
+def site = request.getParameter("site")
+def path = request.getParameter("path")
+def version = request.getParameter("version")
+def escaped = request.getParameter("escaped")
 
 def context = ContentServices.createContext(applicationContext, request)
 String original = "UNSET"

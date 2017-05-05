@@ -18,6 +18,7 @@
  */
 
 import groovy.json.JsonSlurper
+import org.apache.commons.lang3.StringUtils
 import org.craftercms.studio.api.v1.exception.security.UserExternallyManagedException
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException
 import scripts.api.SecurityServices
@@ -33,22 +34,39 @@ def firstname = parsedReq.first_name
 def lastname = parsedReq.last_name
 def email = parsedReq.email
 
-def context = SecurityServices.createContext(applicationContext, request)
+/** Validate Parameters */
+def invalidParams = false;
+
+// username
 try {
-    SecurityServices.updateUser(context, username, firstname, lastname, email)
-    def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/user/get.json?username=" + username
-    response.addHeader("Location", locationHeader)
-    result.message = "OK"
-    response.setStatus(200)
-} catch (UserExternallyManagedException e) {
-    response.setStatus(403)
-    result.message = "Externally managed user"
-} catch (UserNotFoundException e) {
-    response.setStatus(404)
-    result.message = "User not found"
-} catch (Exception e) {
-    result.message = "Internal server error: \n" + e
-    response.setStatus(500)
+    if (StringUtils.isEmpty(username)) {
+        invalidParams = true
+    }
+} catch (Exception exc) {
+    invalidParams = true
 }
 
+if (invalidParams) {
+    response.setStatus(400)
+    result.message = "Invalid parameter: username"
+} else {
+
+    def context = SecurityServices.createContext(applicationContext, request)
+    try {
+        SecurityServices.updateUser(context, username, firstname, lastname, email)
+        def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/user/get.json?username=" + username
+        response.addHeader("Location", locationHeader)
+        result.message = "OK"
+        response.setStatus(200)
+    } catch (UserExternallyManagedException e) {
+        response.setStatus(403)
+        result.message = "Externally managed user"
+    } catch (UserNotFoundException e) {
+        response.setStatus(404)
+        result.message = "User not found"
+    } catch (Exception e) {
+        result.message = "Internal server error: \n" + e
+        response.setStatus(500)
+    }
+}
 return result

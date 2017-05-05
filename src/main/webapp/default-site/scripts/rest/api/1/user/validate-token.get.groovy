@@ -18,28 +18,45 @@
  */
 
 
+import org.apache.commons.lang3.StringUtils
 import org.craftercms.studio.api.v1.exception.security.UserExternallyManagedException
 import scripts.api.SecurityServices
 
 def result = [:]
 def token = params.token
 
-def context = SecurityServices.createContext(applicationContext, request)
+/** Validate Parameters */
+def invalidParams = false;
+
+// token
 try {
-    def success = SecurityServices.validateToken(context, token)
-    if (success) {
-        result.message = "OK"
-        response.setStatus(200)
-    } else {
-        result.message = "Unauthorized"
-        response.setStatus(401)
+    if (StringUtils.isEmpty(token)) {
+        invalidParams = true
     }
-} catch (UserExternallyManagedException e) {
-    response.setStatus(403)
-    result.message = "Externally managed user"
-} catch (Exception e) {
-    response.setStatus(500)
-    result.message = "Internal server error: \n" + e
+} catch (Exception exc) {
+    invalidParams = true
 }
 
+if (invalidParams) {
+    response.setStatus(400)
+    result.message = "Invalid parameter: token"
+} else {
+    def context = SecurityServices.createContext(applicationContext, request)
+    try {
+        def success = SecurityServices.validateToken(context, token)
+        if (success) {
+            result.message = "OK"
+            response.setStatus(200)
+        } else {
+            result.message = "Unauthorized"
+            response.setStatus(401)
+        }
+    } catch (UserExternallyManagedException e) {
+        response.setStatus(403)
+        result.message = "Externally managed user"
+    } catch (Exception e) {
+        response.setStatus(500)
+        result.message = "Internal server error: \n" + e
+    }
+}
 return result

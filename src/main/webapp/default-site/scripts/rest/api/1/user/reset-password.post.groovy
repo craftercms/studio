@@ -18,6 +18,7 @@
  */
 
 import groovy.json.JsonSlurper
+import org.apache.commons.lang3.StringUtils
 import org.craftercms.studio.api.v1.exception.security.UserExternallyManagedException
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException
 import scripts.api.SecurityServices
@@ -31,27 +32,57 @@ def parsedReq = slurper.parseText(requestBody)
 def username = parsedReq.username
 def newPassword = parsedReq.new
 
-def context = SecurityServices.createContext(applicationContext, request)
+/** Validate Parameters */
+def invalidParams = false;
+def paramsList = []
+
+// token
 try {
-    def success = SecurityServices.resetPassword(context, username, newPassword)
-    if (success) {
-        def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/user/get.json?username=" + username
-        response.addHeader("Location", locationHeader)
-        result.message = "OK"
-        response.setStatus(200)
-    } else {
-        response.setStatus(401)
-        result.message = "Unauthorized"
+    if (StringUtils.isEmpty(username)) {
+        invalidParams = true
+        paramsList.add("username")
     }
-} catch (UserExternallyManagedException e) {
-    response.setStatus(403)
-    result.message = "Externally managed user"
-} catch (UserNotFoundException e) {
-    response.setStatus(404)
-    result.message = "User not found"
-} catch (Exception e) {
-    response.setStatus(500)
-    result.message = "Internal server error: \n" + e
+} catch (Exception exc) {
+    invalidParams = true
+    paramsList.add("username")
 }
 
+// new password
+try {
+    if (StringUtils.isEmpty(newPassword)) {
+        invalidParams = true
+        paramsList.add("new")
+    }
+} catch (Exception exc) {
+    invalidParams = true
+    paramsList.add("new")
+}
+
+if (invalidParams) {
+    response.setStatus(400)
+    result.message = "Invalid parameter(s): " + paramsList
+} else {
+    def context = SecurityServices.createContext(applicationContext, request)
+    try {
+        def success = SecurityServices.resetPassword(context, username, newPassword)
+        if (success) {
+            def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/user/get.json?username=" + username
+            response.addHeader("Location", locationHeader)
+            result.message = "OK"
+            response.setStatus(200)
+        } else {
+            response.setStatus(401)
+            result.message = "Unauthorized"
+        }
+    } catch (UserExternallyManagedException e) {
+        response.setStatus(403)
+        result.message = "Externally managed user"
+    } catch (UserNotFoundException e) {
+        response.setStatus(404)
+        result.message = "User not found"
+    } catch (Exception e) {
+        response.setStatus(500)
+        result.message = "Internal server error: \n" + e
+    }
+}
 return result

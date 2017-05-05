@@ -180,6 +180,9 @@ public interface StudioConfiguration {
     String PUBLISHING_MANAGER_IMPORT_MODE_ENABLED  = "studio.publishingManager.importModeEnabled";
     String PUBLISHING_MANAGER_PUBLISHING_WITHOUT_DEPENDENCIES_ENABLED = "studio.publishingManager.publishingWithoutDependencies.enabled";
 
+    /** Studio Groovy Scripts **/
+    String SCRIPTS_GROOVY_CLASSPATH = "studio.scripts.groovy.classpath";
+
     void loadConfig();
 
     String getProperty(String key);
