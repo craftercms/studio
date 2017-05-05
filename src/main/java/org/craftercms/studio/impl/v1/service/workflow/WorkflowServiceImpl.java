@@ -84,8 +84,6 @@ import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.impl.v1.util.GoLiveQueueOrganizer;
 
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.NOTIFICATION_CUSTOM_CONTENT_PATH_NOTIFICATION_ENABLED;
-
 /**
  * workflow service implementation
  */
@@ -235,8 +233,12 @@ public class WorkflowServiceImpl implements WorkflowService {
         return paths;
     }
 
-    protected void submitThisAndReferredComponents(DmDependencyTO submittedItem, String site, Date scheduledDate, boolean sendEmail, boolean submitForDeletion, String submittedBy, DependencyRules rule, String submissionComment) throws ServiceException {
-        doSubmit(site, submittedItem, scheduledDate, sendEmail, submitForDeletion, submittedBy, true, submissionComment);
+    protected void submitThisAndReferredComponents(DmDependencyTO submittedItem, String site, Date scheduledDate,
+                                                   boolean sendEmail, boolean submitForDeletion, String submittedBy,
+                                                   DependencyRules rule, String submissionComment) throws
+                                                   ServiceException {
+        doSubmit(site, submittedItem, scheduledDate, sendEmail, submitForDeletion, submittedBy, true,
+            submissionComment);
         Set<DmDependencyTO> stringSet;
 
         if (submitForDeletion) {
@@ -244,11 +246,13 @@ public class WorkflowServiceImpl implements WorkflowService {
         } else {
             stringSet = rule.applySubmitRule(submittedItem);
         }
+
         for (DmDependencyTO s : stringSet) {
             ContentItemTO contentItem = contentService.getContentItem(site, s.getUri());
             boolean lsendEmail = true;
             boolean lnotifyAdmin = true;
-            lsendEmail = sendEmail && ((!contentItem.isDocument() && !contentItem.isComponent() && !contentItem.isAsset()) || isCustomContentTypeNotification());
+            lsendEmail = sendEmail && ((!contentItem.isDocument() && !contentItem.isComponent() && !contentItem
+                .isAsset()));
             lnotifyAdmin = (!contentItem.isDocument() && !contentItem.isComponent() && !contentItem.isAsset());
             // notify admin will always be true, unless for dependent document/banner/other-files
             doSubmit(site, s, scheduledDate, lsendEmail, submitForDeletion, submittedBy, lnotifyAdmin, submissionComment);
@@ -2292,8 +2296,6 @@ public class WorkflowServiceImpl implements WorkflowService {
                         rejectThisAndReferences(site, child, rule, approver, reason);
                     }
                 }
-
-
             }
             if(!submittedItems.isEmpty()) {
                 // for some reason ,  submittedItems.get(0).getSubmittedBy() returns empty and
@@ -2402,11 +2404,6 @@ public class WorkflowServiceImpl implements WorkflowService {
 
     public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
-
-    public boolean isCustomContentTypeNotification() {
-        boolean toReturn = Boolean.parseBoolean(studioConfiguration.getProperty(NOTIFICATION_CUSTOM_CONTENT_PATH_NOTIFICATION_ENABLED));
-        return toReturn;
-    }
 
     protected ServicesConfig servicesConfig;
     protected DeploymentService deploymentService;

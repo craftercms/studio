@@ -82,18 +82,10 @@ studio.import.assetChainName: assetContent
 ##############################################################
 ##                   Notification Service                   ##
 ##############################################################
+# Path where the notification configuration is located
 studio.notification.configurationFile: /config/studio/notification.xml
+# Timezone for the email template engine (which determines how FreeMarker interprets `now` etc.)
 studio.notification.timezone: UTC
-
-######################################
-# Notification Service configuration #
-######################################
-# Set timezone used for custom notification service.
-notificationService.v2.timezone=UTC
-# Turn on/off (value true/false) notifications for custom content path patterns.
-notificationService.customContentPathNotification=false
-# Defines regular expression to enable notifications for custom content paths.
-notificationService.customContentPathNotificationPattern=
 
 ##########################################################
 ##                   Activity Service                   ##
