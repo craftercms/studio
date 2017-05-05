@@ -43,7 +43,7 @@ try {
     }
 } catch (BadCredentialsException e) {
     response.setStatus(401)
-    result.message = "Bad credentials"
+    result.message = "Unauthorized"
 } catch (Exception e) {
     response.setStatus(500)
     result.message = "Internal server error: \n" + e
