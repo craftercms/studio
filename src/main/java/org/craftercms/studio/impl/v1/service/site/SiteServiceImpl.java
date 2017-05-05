@@ -17,12 +17,26 @@
  ******************************************************************************/
 package org.craftercms.studio.impl.v1.service.site;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import com.google.gdata.util.common.base.StringUtil;
 import net.sf.json.JSON;
 import net.sf.json.JSONObject;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
+import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.dal.ObjectMetadata;
 import org.craftercms.studio.api.v1.dal.ObjectState;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
@@ -39,16 +53,21 @@ import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsExcepti
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.repository.ContentRepository;
+import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.activity.ActivityService;
 import org.craftercms.studio.api.v1.service.configuration.DeploymentEndpointConfig;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.configuration.SiteEnvironmentConfig;
-import org.craftercms.studio.api.v1.service.content.*;
+import org.craftercms.studio.api.v1.service.content.ContentService;
+import org.craftercms.studio.api.v1.service.content.ContentTypeService;
+import org.craftercms.studio.api.v1.service.content.DmPageNavigationOrderService;
+import org.craftercms.studio.api.v1.service.content.ImportService;
+import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
 import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.event.EventService;
-import org.craftercms.studio.api.v1.service.notification.NotificationService;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.api.v1.service.objectstate.State;
 import org.craftercms.studio.api.v1.service.objectstate.TransitionEvent;
@@ -57,28 +76,34 @@ import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteConfigNotFoundException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.api.v1.to.*;
+import org.craftercms.studio.api.v1.to.DeploymentConfigTO;
+import org.craftercms.studio.api.v1.to.DeploymentEndpointConfigTO;
+import org.craftercms.studio.api.v1.to.EnvironmentConfigTO;
+import org.craftercms.studio.api.v1.to.PublishingTargetTO;
+import org.craftercms.studio.api.v1.to.RepoOperationTO;
+import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
+import org.craftercms.studio.api.v1.to.SiteTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
+import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.impl.v1.repository.job.RebuildRepositoryMetadata;
 import org.craftercms.studio.impl.v1.repository.job.SyncDatabaseWithRepository;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
-import org.dom4j.*;
+import org.dom4j.Document;
+import org.dom4j.DocumentException;
+import org.dom4j.DocumentHelper;
+import org.dom4j.Element;
+import org.dom4j.Node;
 import org.dom4j.io.SAXReader;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.craftercms.studio.api.v1.repository.ContentRepository;
-import org.craftercms.studio.api.v1.repository.RepositoryItem;
-
-import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_DEFAULT_GROUPS_DESCRIPTION;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.*;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.BLUE_PRINTS_PATH;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_GLOBAL_CONFIG_BASE_PATH;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_DEFAULT_ADMIN_GROUP;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_DEFAULT_GROUPS;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_ENVIRONMENT;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_ENVIRONMENT_CONFIG_BASE_PATH;
 
 /**
  * Note: consider renaming
@@ -135,7 +160,7 @@ public class SiteServiceImpl implements SiteService {
 
 	@Override
 	public Map<String, Object> getConfiguration(String site, String path, boolean applyEnv) {
-		String configPath = "";
+		String configPath = StringUtil.EMPTY_STRING;
 		if (StringUtils.isEmpty(site)) {
 			configPath = getGlobalConfigRoot() + path;
 		} else {
@@ -659,8 +684,7 @@ public class SiteServiceImpl implements SiteService {
         loadSiteEnvironmentConfig(site, siteConfig);
         deploymentEndpointConfig.reloadConfiguration(site);
         loadSiteDeploymentConfig(site, siteConfig);
-        notificationService.reloadConfiguration(site);
-		notificationService2.reloadConfiguration(site);
+		notificationService.reloadConfiguration(site);
         securityService.reloadConfiguration(site);
         contentTypeService.reloadConfiguration(site);
     }
@@ -869,12 +893,6 @@ public class SiteServiceImpl implements SiteService {
 	    return toReturn;
     }
 
-    protected String getLastCommitId(String site) {
-	    Map<String, Object> params = new HashMap<String, Object>();
-	    params.put("siteId", site);
-	    return siteFeedMapper.getLastCommitId(params);
-    }
-
     protected boolean extractDependenciesForItem(String site, String path) {
 		boolean toReturn = true;
 
@@ -1020,9 +1038,6 @@ public class SiteServiceImpl implements SiteService {
     public DmPageNavigationOrderService getDmPageNavigationOrderService() { return dmPageNavigationOrderService; }
     public void setDmPageNavigationOrderService(DmPageNavigationOrderService dmPageNavigationOrderService) { this.dmPageNavigationOrderService = dmPageNavigationOrderService; }
 
-    public NotificationService getNotificationService() { return notificationService; }
-    public void setNotificationService(NotificationService notificationService) { this.notificationService = notificationService; }
-
     public ContentTypeService getContentTypeService() { return contentTypeService; }
     public void setContentTypeService(ContentTypeService contentTypeService) { this.contentTypeService = contentTypeService; }
 
@@ -1032,9 +1047,8 @@ public class SiteServiceImpl implements SiteService {
     public ImportService getImportService() { return importService; }
     public void setImportService(ImportService importService) { this.importService = importService; }
 
-	public void setNotificationService2(final org.craftercms.studio.api.v2.service.notification.NotificationService
-											notificationService2) {
-		this.notificationService2 = notificationService2;
+	public void setNotificationService(final NotificationService notificationService) {
+		this.notificationService = notificationService;
 	}
 
     public GeneralLockService getGeneralLockService() { return generalLockService; }
@@ -1076,11 +1090,10 @@ public class SiteServiceImpl implements SiteService {
 	protected DeploymentService deploymentService;
     protected ObjectMetadataManager objectMetadataManager;
     protected DmPageNavigationOrderService dmPageNavigationOrderService;
-    protected NotificationService notificationService;
     protected ContentTypeService contentTypeService;
     protected SecurityProvider securityProvider;
     protected ImportService importService;
-	protected org.craftercms.studio.api.v2.service.notification.NotificationService notificationService2;
+	protected NotificationService notificationService;
     protected GeneralLockService generalLockService;
     protected RebuildRepositoryMetadata rebuildRepositoryMetadata;
     protected SyncDatabaseWithRepository syncDatabaseWithRepository;
@@ -1092,10 +1105,4 @@ public class SiteServiceImpl implements SiteService {
 	protected SiteFeedMapper siteFeedMapper;
 
 	protected SearchService searchService;
-
-	/**
-	 * a map of site key and site information
-	 */
-
-	protected SitesConfigTO sitesConfig = null;
 }

@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
 
+import com.google.gdata.util.common.base.StringUtil;
 import freemarker.template.Configuration;
 import freemarker.template.DefaultObjectWrapperBuilder;
 import freemarker.template.Template;
@@ -68,7 +69,6 @@ public class NotificationServiceImpl implements NotificationService {
         notificationConfiguration = new HashMap<>();
     }
 
-
     public void init() {
         configuration = new Configuration(Configuration.VERSION_2_3_23);
         configuration.setTimeZone(TimeZone.getTimeZone(getTemplateTimezone()));
@@ -79,20 +79,16 @@ public class NotificationServiceImpl implements NotificationService {
     public void notifyDeploymentError(final String site, final Throwable throwable, final List<String>
         filesUnableToPublish, final Locale locale) {
         try {
-            if (isEnabled()) {
-                final NotificationConfigTO notificationConfig = getNotificationConfig(site, locale);
-                final Map<String, Object> templateModel = new HashMap<>();
-                templateModel.put("deploymentError", throwable);
-                templateModel.put("files", convertPathsToContent(site, filesUnableToPublish));
-                notify(site, notificationConfig.getDeploymentFailureNotifications(), DEPLOYMENT_ERROR_MSG_KEY,
-                    locale, templateModel);
-
-            }
+            final NotificationConfigTO notificationConfig = getNotificationConfig(locale);
+            final Map<String, Object> templateModel = new HashMap<>();
+            templateModel.put("deploymentError", throwable);
+            templateModel.put("files", convertPathsToContent(site, filesUnableToPublish));
+            notify(site, notificationConfig.getDeploymentFailureNotifications(), DEPLOYMENT_ERROR_MSG_KEY,
+                locale, templateModel);
         } catch (Throwable ex) {
             logger.error("Unable to Notify Error", ex);
         }
     }
-
 
     @Override
     public void notifyDeploymentError(final String name, final Throwable throwable) {
@@ -100,23 +96,16 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public void notifyDeploymentError(final String name) {
-        notifyDeploymentError(name, null);
-    }
-
-    @Override
     public void notifyContentApproval(final String site, final String submitter, final List<String> itemsSubmitted,
                                       final String approver, final Date scheduleDate, final Locale locale) {
         try {
-            if (isEnabled()) {
-                final Map<String, Object> submitterUser = securityService.getUserProfile(submitter);
-                Map<String, Object> templateModel = new HashMap<>();
-                templateModel.put("files", convertPathsToContent(site, itemsSubmitted));
-                templateModel.put("submitterUser", submitter);
-                templateModel.put("approver", securityService.getUserProfile(approver));
-                templateModel.put("scheduleDate", scheduleDate);
-                notify(site, Arrays.asList(submitterUser.get("email").toString()), NOTIFY_CONTENT_APPROVAL, locale, templateModel);
-            }
+            final Map<String, Object> submitterUser = securityService.getUserProfile(submitter);
+            Map<String, Object> templateModel = new HashMap<>();
+            templateModel.put("files", convertPathsToContent(site, itemsSubmitted));
+            templateModel.put("submitterUser", submitter);
+            templateModel.put("approver", securityService.getUserProfile(approver));
+            templateModel.put("scheduleDate", scheduleDate);
+            notify(site, Arrays.asList(submitterUser.get("email").toString()), NOTIFY_CONTENT_APPROVAL, locale, templateModel);
         }
         catch(Throwable ex) {
             logger.error("Unable to Notify Content Approval", ex);
@@ -127,39 +116,39 @@ public class NotificationServiceImpl implements NotificationService {
     public String getNotificationMessage(final String site, final NotificationMessageType type, final String key,
                                          final Locale locale, final Pair<String, Object>... params) {
         try {
-            if (isEnabled()) {
-                final NotificationConfigTO notificationConfig = getNotificationConfig(site, locale);
-                String message = null;
-                switch (type) {
-                    default:
-                    case GeneralMessages:
-                        message = notificationConfig.getMessages().get(key);
-                        break;
-                    case EmailMessage:
-                        message = notificationConfig.getEmailMessageTemplates().get(key).getMessage();
-                        break;
-                    case CompleteMessages:
-                        message = notificationConfig.getCompleteMessages().get(key);
-                        break;
-                    case CannedMessages:
-                        message = getCannedMessage(notificationConfig.getCannedMessages(),key);
-                        break;
-                }
-                if (message != null) {
-                    Map<String, Object> model = new HashMap<>();
-                    for (Pair<String, Object> param : params) {
-                        model.put(param.getKey(), param.getValue());
-                    }
-                    model.put("siteName", site);
-                    return processMessage(key, message, model);
-                }
+            final NotificationConfigTO notificationConfig = getNotificationConfig(locale);
+            String message = null;
+            switch (type) {
+                case GeneralMessages:
+                    message = notificationConfig.getMessages().get(key);
+                    break;
+                case EmailMessage:
+                    message = notificationConfig.getEmailMessageTemplates().get(key).getMessage();
+                    break;
+                case CompleteMessages:
+                    message = notificationConfig.getCompleteMessages().get(key);
+                    break;
+                case CannedMessages:
+                    message = getCannedMessage(notificationConfig.getCannedMessages(),key);
+                    break;
+                default:
+                    logger.error("Requested notification message bundle not recognized: site: {0}, type: {1},"
+                        + "key: {2}, locale {3}.", site, type.toString(), key, locale);
+                    break;
             }
-
+            if (message != null) {
+                Map<String, Object> model = new HashMap<>();
+                for (Pair<String, Object> param : params) {
+                    model.put(param.getKey(), param.getValue());
+                }
+                model.put("siteName", site);
+                return processMessage(key, message, model);
+            }
         } catch (Throwable ex) {
             logger.error("Unable to Get Message", ex);
-            return "";
+            return StringUtil.EMPTY_STRING;
         }
-        return "";
+        return StringUtil.EMPTY_STRING;
     }
 
     private String getCannedMessage(final Map<String, List<MessageTO>> cannedMessages, final String key) {
@@ -177,23 +166,20 @@ public class NotificationServiceImpl implements NotificationService {
     List<String> itemsSubmitted, final String submitter, final Date scheduleDate, final boolean isADelete, final
     String submissionComments, final Locale locale) {
         try {
-            if (isEnabled()) {
-                final NotificationConfigTO notificationConfig = getNotificationConfig(site, locale);
-                final Map<String, Object> submitterUser = securityService.getUserProfile(submitter);
-                Map<String, Object> templateModel = new HashMap<>();
-                templateModel.put("files", convertPathsToContent(site, itemsSubmitted));
-                templateModel.put("submitter", submitterUser);
-                templateModel.put("scheduleDate", scheduleDate);
-                templateModel.put("isDeleted", isADelete);
-                templateModel.put("submissionComments", submissionComments);
-                if (usersToNotify == null) {
-                    notify(site, notificationConfig.getApproverEmails(), NOTIFY_CONTENT_SUBMIT_FOR_APPROVAL, locale,
-                        templateModel);
-                } else {
-                    notify(site, usersToNotify, NOTIFY_CONTENT_SUBMIT_FOR_APPROVAL, locale, templateModel);
-                }
+            final NotificationConfigTO notificationConfig = getNotificationConfig(locale);
+            final Map<String, Object> submitterUser = securityService.getUserProfile(submitter);
+            Map<String, Object> templateModel = new HashMap<>();
+            templateModel.put("files", convertPathsToContent(site, itemsSubmitted));
+            templateModel.put("submitter", submitterUser);
+            templateModel.put("scheduleDate", scheduleDate);
+            templateModel.put("isDeleted", isADelete);
+            templateModel.put("submissionComments", submissionComments);
+            if (usersToNotify == null) {
+                notify(site, notificationConfig.getApproverEmails(), NOTIFY_CONTENT_SUBMIT_FOR_APPROVAL, locale,
+                    templateModel);
+            } else {
+                notify(site, usersToNotify, NOTIFY_CONTENT_SUBMIT_FOR_APPROVAL, locale, templateModel);
             }
-
         } catch (Throwable ex) {
             logger.error("Unable to notify content submission", ex);
         }
@@ -203,24 +189,22 @@ public class NotificationServiceImpl implements NotificationService {
     public void notify(final String site, final List<String> toUsers, final String key, final Locale locale, final
     Pair<String, Object>... params) {
         try {
-            if (isEnabled()) {
-                final NotificationConfigTO notificationConfig = getNotificationConfig(site, locale);
-                final EmailMessageTemplateTO emailTemplate = notificationConfig.getEmailMessageTemplates().get(key);
-                if (emailTemplate != null) {
-                    Map<String, Object> templateModel = new HashMap<>();
-                    templateModel.put("siteName", site);
-                    templateModel.put("liveUrl", siteService.getLiveServerUrl(site));
-                    templateModel.put("previewUrl", siteService.getPreviewServerUrl(site));
-                    templateModel.put("authoringUrl", siteService.getAuthoringServerUrl(site));
-                    for (Pair<String, Object> param : params) {
-                        templateModel.put(param.getKey(), param.getValue());
-                    }
-                    final String messageBody = processMessage(key, emailTemplate.getMessage(), templateModel);
-                    final String subject = processMessage(key, emailTemplate.getSubject(), templateModel);
-                    sendEmail(messageBody, subject, toUsers);
-                } else {
-                    logger.error("Unable to find " + key + " for language " + locale.getLanguage());
+            final NotificationConfigTO notificationConfig = getNotificationConfig(locale);
+            final EmailMessageTemplateTO emailTemplate = notificationConfig.getEmailMessageTemplates().get(key);
+            if (emailTemplate != null) {
+                Map<String, Object> templateModel = new HashMap<>();
+                templateModel.put("siteName", site);
+                templateModel.put("liveUrl", siteService.getLiveServerUrl(site));
+                templateModel.put("previewUrl", siteService.getPreviewServerUrl(site));
+                templateModel.put("authoringUrl", siteService.getAuthoringServerUrl(site));
+                for (Pair<String, Object> param : params) {
+                    templateModel.put(param.getKey(), param.getValue());
                 }
+                final String messageBody = processMessage(key, emailTemplate.getMessage(), templateModel);
+                final String subject = processMessage(key, emailTemplate.getSubject(), templateModel);
+                sendEmail(messageBody, subject, toUsers);
+            } else {
+                logger.error("Unable to find " + key + " for language " + locale.getLanguage());
             }
         } catch (Throwable ex) {
             logger.error("Unable to notify ", ex);
@@ -245,65 +229,60 @@ public class NotificationServiceImpl implements NotificationService {
                                        final String rejectionReason, final String userThatRejects, final Locale
                                                locale) {
         try {
-            if (isEnabled()) {
-                final Map<String, Object> submitterUser = securityService.getUserProfile(submittedBy);
-                Map<String, Object> templateModel = new HashMap<>();
-                templateModel.put("files", convertPathsToContent(site, rejectedItems));
-                templateModel.put("submitter", submitterUser);
-                templateModel.put("rejectionReason", rejectionReason);
-                templateModel.put("userThatRejects", securityService.getUserProfile(userThatRejects));
-                notify(site, Arrays.asList(submitterUser.get("email").toString()), NOTIFY_CONTENT_REJECTED, locale, templateModel);
-            }
+            final Map<String, Object> submitterUser = securityService.getUserProfile(submittedBy);
+            Map<String, Object> templateModel = new HashMap<>();
+            templateModel.put("files", convertPathsToContent(site, rejectedItems));
+            templateModel.put("submitter", submitterUser);
+            templateModel.put("rejectionReason", rejectionReason);
+            templateModel.put("userThatRejects", securityService.getUserProfile(userThatRejects));
+            notify(site, Arrays.asList(submitterUser.get("email").toString()), NOTIFY_CONTENT_REJECTED, locale, templateModel);
         } catch (Throwable ex) {
             logger.error("Unable to notify content rejection", ex);
         }
     }
 
-    protected Map<String, NotificationConfigTO> loadConfig(final String site) {
+    protected void loadConfig(final String site) {
         notificationConfiguration = new HashMap<>();
-        if (isEnabled()) {
-            String configFullPath = getConfigPath().replaceFirst(StudioConstants.PATTERN_SITE, site);
-            configFullPath = configFullPath + "/" + getConfigFileName();
-            try {
-                Document document = contentService.getContentAsDocument(site, configFullPath);
-                if (document != null) {
-                    Element root = document.getRootElement();
-                    final List<Element> languages = root.selectNodes("//lang");
-                    if (languages.isEmpty()) {
-                        throw new ConfigurationException("Notification Configuration is a invalid xml file, missing "
-                            + "at " + "least one lang");
+        String configFullPath = getConfigPath().replaceFirst(StudioConstants.PATTERN_SITE, site);
+        configFullPath = configFullPath + "/" + getConfigFileName();
+        try {
+            Document document = contentService.getContentAsDocument(site, configFullPath);
+            if (document != null) {
+                Element root = document.getRootElement();
+                final List<Element> languages = root.selectNodes("//lang");
+                if (languages.isEmpty()) {
+                    throw new ConfigurationException("Notification Configuration is a invalid xml file, missing "
+                        + "at " + "least one lang");
 
-                    }
-                    for (Element language : languages) {
-                        String messagesLang = language.attributeValue("name");
-                        if (StringUtils.isNotBlank(messagesLang)) {
-                            if (!notificationConfiguration.containsKey(messagesLang)) {
-                                notificationConfiguration.put(messagesLang, new NotificationConfigTO(site));
-                            }
-                            NotificationConfigTO configForLang = notificationConfiguration.get(messagesLang);
-                            loadGenericMessage((Element)language.selectSingleNode("//generalMessages"), configForLang
-                                .getMessages());
-                            loadGenericMessage((Element)language.selectSingleNode("//completeMessages"),
-                                configForLang.getCompleteMessages());
-                            loadEmailTemplates((Element)language.selectSingleNode("//emailTemplates"), configForLang
-                                .getEmailMessageTemplates());
-                            loadCannedMessages((Element)language.selectSingleNode("//cannedMessages"), configForLang
-                                .getCannedMessages());
-                            loadEmailList(site, (Element)language.selectSingleNode("//deploymentFailureNotification")
-                                , configForLang.getDeploymentFailureNotifications());
-                            loadEmailList(site, (Element)language.selectSingleNode("//approverEmails"), configForLang
-                                .getApproverEmails());
-                        } else {
-                            logger.error("A lang section does not have the 'name' attribute, ignoring");
+                }
+                for (Element language : languages) {
+                    String messagesLang = language.attributeValue("name");
+                    if (StringUtils.isNotBlank(messagesLang)) {
+                        if (!notificationConfiguration.containsKey(messagesLang)) {
+                            notificationConfiguration.put(messagesLang, new NotificationConfigTO(site));
                         }
+                        NotificationConfigTO configForLang = notificationConfiguration.get(messagesLang);
+                        loadGenericMessage((Element)language.selectSingleNode("//generalMessages"), configForLang
+                            .getMessages());
+                        loadGenericMessage((Element)language.selectSingleNode("//completeMessages"),
+                            configForLang.getCompleteMessages());
+                        loadEmailTemplates((Element)language.selectSingleNode("//emailTemplates"), configForLang
+                            .getEmailMessageTemplates());
+                        loadCannedMessages((Element)language.selectSingleNode("//cannedMessages"), configForLang
+                            .getCannedMessages());
+                        loadEmailList(site, (Element)language.selectSingleNode("//deploymentFailureNotification")
+                            , configForLang.getDeploymentFailureNotifications());
+                        loadEmailList(site, (Element)language.selectSingleNode("//approverEmails"), configForLang
+                            .getApproverEmails());
+                    } else {
+                        logger.error("A lang section does not have the 'name' attribute, ignoring");
                     }
                 }
-            } catch (Exception ex) {
-                logger.error("Unable to read or load notification '" + configFullPath + "' configuration for " +
-                    site, ex);
             }
+        } catch (Exception ex) {
+            logger.error("Unable to read or load notification '" + configFullPath + "' configuration for " +
+                site, ex);
         }
-        return notificationConfiguration;
     }
 
     private void loadEmailList(final String site, final Element emailList, final List<String>
@@ -393,24 +372,15 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public void reloadConfiguration(final String site) {
-        if (isEnabled()) {
-            Map<String, NotificationConfigTO> config = loadConfig(site);
-        }
+        loadConfig(site);
     }
 
-    @Override
-    public boolean isEnabled() {
-        boolean toReturn = Boolean.parseBoolean(studioConfiguration.getProperty(NOTIFICATION_V2_ENABLED));
-        return toReturn;
-    }
-
-    protected NotificationConfigTO getNotificationConfig(final String site, final Locale locale) {
-        Map<String, NotificationConfigTO> config = loadConfig(site);
+    protected NotificationConfigTO getNotificationConfig(final Locale locale) {
         Locale realLocale = locale;
         if (locale == null) {
             realLocale = Locale.ENGLISH;
         }
-        return config.get(realLocale.getLanguage());
+        return notificationConfiguration.get(realLocale.getLanguage());
     }
 
 
