@@ -34,7 +34,7 @@ try {
 
     if(ticket != null) {
         response.setStatus(200)
-        result.message = "OK"
+        result = ["username": username, "first_name": profile.firstName, "last_name": profile.lastName, "email": profile.email]
     } else {
         response.setStatus(500)
         result.message = "Internal server error"
