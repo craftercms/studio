@@ -2,8 +2,8 @@ import scripts.libs.Cookies
 import scripts.api.SecurityServices
 
 def result = [:]
-def username = params.username
-def password = params.password
+def username = request.getParameter("username")
+def password = request.getParameter("password")
 
 def invalidpw = false
 

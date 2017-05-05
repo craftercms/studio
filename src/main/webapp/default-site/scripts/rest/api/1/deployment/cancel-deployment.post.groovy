@@ -20,9 +20,9 @@
 import scripts.api.DeploymentServices;
 
 def result = [:]
-def site = params.site;
-def path = params.path;
-def deploymentId = params.deploymentId.toLong();
+def site = request.getParameter("site")
+def path = request.getParameter("path")
+def deploymentId = request.getParameter("deploymentId").toLong();
 
 def context = DeploymentServices.createContext(applicationContext, request)
 result = DeploymentServices.cancelDeployment(context, site, path, deploymentId)

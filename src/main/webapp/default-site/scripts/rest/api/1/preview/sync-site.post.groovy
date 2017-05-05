@@ -18,7 +18,7 @@
 
 import scripts.api.PreviewServices;
 
-def site = params.site;
+def site = request.getParameter("site")
 def result = [:]
 
 if (site) {

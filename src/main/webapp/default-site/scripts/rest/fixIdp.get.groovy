@@ -2,7 +2,7 @@ import groovy.xml.XmlUtil
 
 println("Getting All IDP's")
 def contentService = applicationContext.getApplicationContext().getBean("cstudioContentService")//get("cstudioContentService");
-def siteItem = contentService.getContentItemTree(params.site, "/site/website", 5)
+def siteItem = contentService.getContentItemTree(request.getParameter("site"), "/site/website", 5)
 
 class Maker {
     static checkFiles(contentService, item, site) {
@@ -34,5 +34,5 @@ class Maker {
     }
 }
 
-    Maker.checkFiles ( contentService, siteItem, params.site )
+    Maker.checkFiles ( contentService, siteItem, request.getParameter("site") )
     return null;

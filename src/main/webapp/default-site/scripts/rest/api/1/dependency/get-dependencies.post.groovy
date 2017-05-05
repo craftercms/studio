@@ -19,8 +19,8 @@
 import scripts.api.DependencyServices;
 
 def result = [:];
-def site = params.site;
-def deletedep = params.deletedep;
+def site = request.getParameter("site")
+def deletedep = request.getParameter("deletedep")
 def requestbody = request.reader.text;
 /*
 if (site == undefined || site == '')

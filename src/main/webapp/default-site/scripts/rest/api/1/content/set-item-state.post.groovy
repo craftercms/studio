@@ -2,10 +2,10 @@ import scripts.api.ObjectStateServices;
 
 def result = [:]
 
-def site = params.site;
-def path = params.path;
-def state = params.state;
-def systemprocessing = params.systemprocessing;
+def site = request.getParameter("site")
+def path = request.getParameter("path")
+def state = request.getParameter("state")
+def systemprocessing = request.getParameter("systemprocessing")
 
 /*
 if (site == undefined) {

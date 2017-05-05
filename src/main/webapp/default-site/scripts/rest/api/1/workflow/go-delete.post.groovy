@@ -20,9 +20,9 @@ import scripts.api.WorkflowServices;
 
 // extract parameters
 def result = [:];
-def site = params.site;
+def site = request.getParameter("site")
 def requestBody = request.reader.text
-def user = params.user;
+def user = request.getParameter("user")
 /*
 if (site == undefined || site == "")
 {

@@ -19,8 +19,8 @@ import org.apache.commons.lang3.StringUtils
 import scripts.api.DependencyServices;
 
 def result = [:];
-def site = params.site;
-def path = params.path;
+def site = request.getParameter("site")
+def path = request.getParameter("path")
 
 if(StringUtils.isBlank(site) || StringUtils.isBlank(path)){
     response.setStatus(400);
