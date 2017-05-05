@@ -49,10 +49,10 @@
             <samplePath>/administration/samples/sample-personas-config.xml</samplePath>
         </file>
         <file>
-            <path>/notification-config.xml</path>
+            <path>/notification.xml</path>
             <title>confTabNotificationConf</title>
             <description>confTabNotificationConfDesc</description>
-            <samplePath>/administration/samples/sample-notification-config.xml</samplePath>
+            <samplePath>/administration/samples/sample-notification.xml</samplePath>
         </file>
         <file>
             <path>/permission-mappings-config.xml</path>
