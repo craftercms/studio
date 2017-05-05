@@ -61,10 +61,6 @@ studio.configuration.site.roleMappingsFileName: role-mappings-config.xml
 studio.configuration.site.environment: local
 # File name where environment specific configuration is stored
 studio.configuration.site.environment.configFileName: environment-config.xml
-# File name where simple notification service configuration is stored.
-studio.configuration.site.notificationsConfigFileName: notification-config.xml
-# File name where custom notification service configuration is stored.
-studio.configuration.site.notificationsConfigFileName.v2: workflow-messaging-config.xml
 # File name where deployment endpoints configuration is stored.
 studio.configuration.site.deployment.configFileName: endpoints-config.xml
 # File name where configuration of content type is stored.
@@ -86,40 +82,18 @@ studio.import.assetChainName: assetContent
 ##############################################################
 ##                   Notification Service                   ##
 ##############################################################
-# Turn on/off (value true/false) notifications for custom content path patterns.
-studio.notification.customContentPathNotification.enabled: false
-# Defines regular expression to enable notifications for custom content paths.
-studio.notification.customContentPathNotificationPattern:
-# Turn on/off (value true/false) custom notification service.
-studio.notification.v2.enabled: false
-# Set timezone used for custom notification service.
-studio.notification.v2.timezone: UTC
-
+studio.notification.configurationFile: /config/studio/notification.xml
+studio.notification.timezone: UTC
 
 ######################################
 # Notification Service configuration #
 ######################################
-# Location where notification service configuration is stored for a site.
-notificationService.configPath=/cstudio/config/sites/{site}
-# File name where simple notification service configuration is stored.
-notificationService.configFileName=notification-config.xml
-# File name where custom notification service configuration is stored.
-notificationService.v2.configFileName=workflow-messaging-config.xml
-# Turn on/off (value true/false) custom notification service.
-notificationService.v2.enable=false
 # Set timezone used for custom notification service.
 notificationService.v2.timezone=UTC
 # Turn on/off (value true/false) notifications for custom content path patterns.
 notificationService.customContentPathNotification=false
 # Defines regular expression to enable notifications for custom content paths.
 notificationService.customContentPathNotificationPattern=
-
-##########################################################
-##                   Workflow Service                   ##
-##########################################################
-# Turn on/off (value true/false) publishing without dependencies.
-# When turned on workflow service does not perform check if deployment package includes all necessary dependencies for content that is being published.
-studio.workflow.publishingWithoutDependencies.enabled: false
 
 ##########################################################
 ##                   Activity Service                   ##
@@ -154,10 +128,7 @@ studio.security.urlsToExclude: "**,/**"
 # Urls to be treated as exception to the rules.
 studio.security.exceptionUrls: /api/1/services/api/1/user/login.json,/api/1/services/api/1/user/logut.json,/api/1/services/api/1/server/get-available-languages.json,/api/1/services/api/1/server/get-ui-resource-override.json,/api/1/services/api/1/user/reset-password.json,/api/1/services/api/1/user/forgot-password.json,/api/1/services/api/1/user/set-password.json,/api/1/services/api/1/user/validate-token.json
 # Defines security provider for accessing repository. Possible values:
-#   default (basic provider with 3 users - admin, author, approver)
-#   file (users are stored in XML file)
-#   alfrescoext (alfresco users and groups are used for authentication)
-#   db (users are stored in database)
+# db (users are stored in database) -- this is the only option at this time
 studio.security.type: db
 # Location of XML file that contains users for demo security provider.
 studio.security.file.configLocation: ${repository.diskImplementation.path}/security-config.xml

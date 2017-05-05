@@ -244,7 +244,6 @@ public class NotificationServiceImpl implements NotificationService {
     protected void loadConfig(final String site) {
         notificationConfiguration = new HashMap<>();
         String configFullPath = getConfigPath().replaceFirst(StudioConstants.PATTERN_SITE, site);
-        configFullPath = configFullPath + "/" + getConfigFileName();
         try {
             Document document = contentService.getContentAsDocument(site, configFullPath);
             if (document != null) {
@@ -411,15 +410,11 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     public String getConfigPath() {
-        return studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH);
-    }
-
-    public String getConfigFileName() {
-        return studioConfiguration.getProperty(CONFIGURATION_SITE_NOTIFICATIONS_CONFIG_FILE_NAME_V2);
+        return studioConfiguration.getProperty(NOTIFICATION_CONFIGURATION_FILE);
     }
 
     public String getTemplateTimezone() {
-        return studioConfiguration.getProperty(NOTIFICATION_V2_TIMEZONE);
+        return studioConfiguration.getProperty(NOTIFICATION_TIMEZONE);
     }
 
     public void setContentService(final ContentService contentService) {
