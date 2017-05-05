@@ -18,6 +18,12 @@
 package org.craftercms.studio.impl.v1.service.deployment.job;
 
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.locks.ReentrantLock;
+
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.studio.api.v1.dal.CopyToEnvironment;
 import org.craftercms.studio.api.v1.ebus.DeploymentEventContext;
@@ -29,15 +35,11 @@ import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.PublishingManager;
 import org.craftercms.studio.api.v1.service.event.EventService;
-import org.craftercms.studio.api.v1.service.notification.NotificationService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.api.v1.to.PublishingChannelGroupConfigTO;
 import org.craftercms.studio.api.v1.to.PublishingTargetTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
+import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.impl.v1.job.RepositoryJob;
-
-import java.util.*;
-import java.util.concurrent.locks.ReentrantLock;
 
 import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PUBLISH_TO_ENVIRONMENT;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_DEPLOYMENT_MASTER_PUBLISHING_NODE;
@@ -47,8 +49,6 @@ import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_DEPLOY_C
 public class DeployContentToEnvironmentStore extends RepositoryJob {
 
     private static final Logger logger = LoggerFactory.getLogger(DeployContentToEnvironmentStore.class);
-
-    private static final String LIVE_ENVIRONMENT = "live";
 
     protected static final ReentrantLock singleWorkerLock = new ReentrantLock();
 
@@ -118,25 +118,27 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
                                         generalLockService.lock(lockKey);
                                         contentRepository.lockItem(item.getSite(), item.getPath());
                                         try {
-                                            logger.debug("Processing [{0}] content item for site \"{1}\"", item.getPath(), site);
+                                            logger.debug("Processing [{0}] content item for site \"{1}\"", item
+                                                .getPath(), site);
                                             DeploymentItem deploymentItem = publishingManager.processItem(item);
                                             deploymentItemList.add(deploymentItem);
-                                            logger.debug("Processing COMPLETE [{0}] content item for site \"{1}\"", item.getPath(), site);
+                                            logger.debug("Processing COMPLETE [{0}] content item for site \"{1}\"",
+                                                item.getPath(), site);
 
                                             if (isMandatoryDependenciesCheckEnabled()) {
-                                                logger.debug("Processing Mandatory Deps [{0}] content item for site \"{1}\"", item.getPath(), site);
-                                                missingDependencies.addAll(publishingManager.processMandatoryDependencies(item, pathsToDeploy, missingDependenciesPaths));
-                                                logger.debug("Processing Mandatory Deps COMPLETE [{0}] content item for site \"{1}\"", item.getPath(), site);
-
+                                                logger.debug("Processing Mandatory Deps [{0}] content item for site "
+                                                    + "\"{1}\"", item.getPath(), site);
+                                                missingDependencies.addAll(publishingManager
+                                                    .processMandatoryDependencies(item, pathsToDeploy, missingDependenciesPaths));
+                                                logger.debug("Processing Mandatory Dependencies COMPLETE [{0}]"
+                                                    + " content item for site \"{1}\"", item.getPath(), site);
                                             }
-
                                         }
                                         finally {
                                             generalLockService.unlock(lockKey);
                                             contentRepository.unLockItem(item.getSite(), item.getPath());
                                         }
                                     }
-
 
                                     logger.debug("Setting up items for publishing synchronization for site \"{0}\"", site);
                                     if (isMandatoryDependenciesCheckEnabled() && missingDependencies.size() > 0) {
@@ -160,24 +162,18 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
                                         context.setComment("TODO: DB: comment");
                                         eventService.publish(EVENT_PUBLISH_TO_ENVIRONMENT, context);
                                     }
-
                                     logger.debug("Mark deployment completed for processed items for site \"{0}\"", site);
                                     publishingManager.markItemsCompleted(site, environment, itemsToDeploy);
-
-
-                                }
-                                catch (DeploymentException err) {
+                                } catch (DeploymentException err) {
                                     logger.error("Error while executing deployment to environment store for site \"{0}\", number of items \"{1}\"", err, site, itemsToDeploy.size());
                                     publishingManager.markItemsReady(site, environment, itemsToDeploy);
                                     throw err;
-                                }
-                                catch (Exception err) {
+                                } catch (Exception err) {
                                     logger.error("Unexpected error while executing deployment to environment " +
                                             "store for site \"{0}\", number of items \"{1}\"", err, site, itemsToDeploy.size());
                                     publishingManager.markItemsReady(site, environment, itemsToDeploy);
                                     throw err;
-                                }
-                                finally {
+                                } finally {
                                     for (CopyToEnvironment item : itemsToDeploy) {
                                         String itemSite = item.getSite();
                                         String itemPath = item.getPath();
@@ -188,7 +184,7 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
                                             contentRepository.unLockItem(itemSite, itemPath);
                                         }
                                         catch(Exception eUnlockError) {
-                                            logger.error("Unble to unlock item after deploy site:{0} path:{1} error:{2}", itemSite, itemPath,""+eUnlockError);
+                                            logger.error("Unable to unlock item after deploy site:{0} path:{1} error:{2}", itemSite, itemPath,""+eUnlockError);
                                         }
                                     }
                                 }
@@ -196,15 +192,14 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
                         }
                     } catch (Exception err) {
                         logger.error("Error while executing deployment to environment store for site: " + site, err);
-                        notificationService.sendDeploymentFailureNotification(site, err);
-                        notificationService2.notifyDeploymentError(site,err);
+                        notificationService.notifyDeploymentError(site, err);
                         logger.info("Continue executing deployment for other sites.");
                     }
                 }
             }
         } catch (Exception err) {
             logger.error("Error while executing deployment to environment store", err);
-            notificationService.sendDeploymentFailureNotification("UNKNOWN", err);
+            notificationService.notifyDeploymentError("UNKNOWN", err);
         }
     }
 
@@ -255,16 +250,12 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
     public SiteService getSiteService() { return siteService; }
     public void setSiteService(SiteService siteService) { this.siteService = siteService; }
 
-    public NotificationService getNotificationService() { return notificationService; }
-    public void setNotificationService(NotificationService notificationService) { this.notificationService = notificationService; }
-
     public GeneralLockService getGeneralLockService() { return generalLockService; }
     public void setGeneralLockService(GeneralLockService generalLockService) { this.generalLockService = generalLockService; }
 
 
-    public void setNotificationService2(final org.craftercms.studio.api.v2.service.notification.NotificationService
-                                            notificationService2) {
-        this.notificationService2 = notificationService2;
+    public void setNotificationService(final NotificationService notificationService) {
+        this.notificationService = notificationService;
     }
 
     public EventService getEventService() { return eventService; }
@@ -277,7 +268,6 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
     protected ContentRepository contentRepository;
     protected SiteService siteService;
     protected NotificationService notificationService;
-    protected org.craftercms.studio.api.v2.service.notification.NotificationService notificationService2;
     protected GeneralLockService generalLockService;
     protected EventService eventService;
     protected StudioConfiguration studioConfiguration;

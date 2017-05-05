@@ -62,11 +62,7 @@ public class DeploymentServiceImpl implements DeploymentService {
 
     private static final Logger logger = LoggerFactory.getLogger(DeploymentServiceImpl.class);
 
-    private static final int HISTORY_ALL_LIMIT = 9999999;
-    private final static String CONTENT_TYPE_ALL= "all";
-
     private static int CTED_AUTOINCREMENT = 0;
-    private static int PSD_AUTOINCREMENT = 0;
 
     public void deploy(String site, String environment, List<String> paths, Date scheduledDate, String approver, String submissionComment, final boolean scheduleDateNow) throws DeploymentException {
 
@@ -106,8 +102,8 @@ public class DeploymentServiceImpl implements DeploymentService {
         // We need to pick up this on Inserting , not on execution!
         try {
             sendContentApprovalEmail(items, scheduleDateNow);
-        }catch(Exception errNotify) {
-            logger.error("Error sending approval notification ",errNotify);
+        } catch(Exception errNotify) {
+            logger.error("Error sending approval notification ", errNotify);
         }
     }
 
@@ -123,23 +119,21 @@ public class DeploymentServiceImpl implements DeploymentService {
         return toRet;
     }
 
-    protected void sendContentApprovalEmail(List<CopyToEnvironment> itemList,boolean scheduleDateNow) {
-        if(notificationService.isEnabled()) {
-            for (CopyToEnvironment listItem : itemList) {
-                ObjectMetadata objectMetadata = objectMetadataManager.getProperties(listItem.getSite(), listItem.getPath());
-                if (objectMetadata != null) {
-                    if (objectMetadata.getSendEmail() == 1) {
-                        // found the first item that needs to be sent
-                        notificationService.notifyContentApproval(listItem.getSite(),
-                            objectMetadata.getSubmittedBy(),
-                            getPathRelativeToSite(itemList),
-                            listItem.getUser(),
-                            // Null == now, anything else is scheduled
-                            scheduleDateNow?null:listItem.getScheduledDate(),
-                            Locale.ENGLISH);
-                        // no point in looking further, quit looping
-                        break;
-                    }
+    protected void sendContentApprovalEmail(List<CopyToEnvironment> itemList, boolean scheduleDateNow) {
+        for (CopyToEnvironment listItem : itemList) {
+            ObjectMetadata objectMetadata = objectMetadataManager.getProperties(listItem.getSite(), listItem.getPath());
+            if (objectMetadata != null) {
+                if (objectMetadata.getSendEmail() == 1) {
+                    // found the first item that needs to be sent
+                    notificationService.notifyContentApproval(listItem.getSite(),
+                        objectMetadata.getSubmittedBy(),
+                        getPathRelativeToSite(itemList),
+                        listItem.getUser(),
+                        // Null == now, anything else is scheduled
+                        scheduleDateNow?null:listItem.getScheduledDate(),
+                        Locale.ENGLISH);
+                    // no point in looking further, quit looping
+                    break;
                 }
             }
         }

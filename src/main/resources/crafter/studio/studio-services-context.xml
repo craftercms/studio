@@ -70,7 +70,6 @@
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
         <property name="dmPageNavigationOrderService" ref="cstudioPageNavOrderService"/>
         <property name="notificationService" ref="cstudioNotificationService"/>
-        <property name="notificationService2" ref="cstudioNotificationServicev2"/>
         <property name="contentTypeService" ref="cstudioContentTypeService"/>
         <property name="securityProvider" ref="securityProvider" />
         <property name="importService" ref="cstudioImportService"/>
@@ -99,7 +98,6 @@
 
     <bean id="cstudioWorkflowService" class="org.craftercms.studio.impl.v1.service.workflow.WorkflowServiceImpl">
         <property name="notificationService" ref="cstudioNotificationService" />
-        <property name="notificationService2" ref="cstudioNotificationServicev2" />
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
         <property name="contentService" ref="cstudioContentService"/>
         <property name="deploymentService" ref="cstudioDeploymentService"/>
@@ -131,22 +129,12 @@
          <property name="deploymentEndpointConfig" ref="cstudioDeploymentConfig"/>
          <property name="securityService" ref="cstudioSecurityService"/>
          <property name="deployContentToEnvironmentStoreJob" ref="cstudioDeployContentToEnvironmentJobs"/>
-         <property name="notificationService" ref="cstudioNotificationServicev2"/>
+         <property name="notificationService" ref="cstudioNotificationService"/>
          <property name="eventService" ref="studioEventService"/>
          <property name="deploymentHistoryProvider" ref="contentRepository"/>
      </bean>
 
-     <bean id="cstudioNotificationService" class="org.craftercms.studio.impl.v1.service.notification.NotificationServiceImpl" >
-        <property name="emailMessages" ref="cstudioEmailMessageQueue" />
-         <property name="servicesConfig" ref="cstudioServicesConfig"/>
-         <property name="siteService" ref="cstudioSiteServiceSimple"/>
-         <property name="securityService" ref="cstudioSecurityService"/>
-         <property name="contentService" ref="cstudioContentService"/>
-         <property name="generalLockService" ref="cstudioGeneralLockService"/>
-         <property name="studioConfiguration" ref="studioConfiguration" />
-     </bean>
-
-    <bean id="cstudioNotificationServicev2"
+    <bean id="cstudioNotificationService"
           class="org.craftercms.studio.impl.v2.service.notification.NotificationServiceImpl"  init-method="init">
         <property name="emailMessages" ref="cstudioEmailMessageQueue" />
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
@@ -333,9 +321,8 @@
         <property name="publishingManager" ref="cstudioPublishingManager" />
         <property name="contentRepository" ref="contentRepository" />
         <property name="siteService" ref="cstudioSiteServiceSimple"/>
-        <property name="notificationService" ref="cstudioNotificationService"/>
         <property name="generalLockService" ref="cstudioGeneralLockService"/>
-        <property name="notificationService2" ref="cstudioNotificationServicev2"/>
+        <property name="notificationService" ref="cstudioNotificationService"/>
         <property name="eventService" ref="studioEventService"/>
         <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
@@ -676,8 +663,6 @@
         <property name="deploymentService" ref="cstudioDeploymentService"/>
         <property name="contentRepository" ref="contentRepository"/>
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
-        <property name="notificationService" ref="cstudioNotificationService"/>
-        <property name="notificationService2" ref="cstudioNotificationServicev2"/>
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
         <property name="securityProvider" ref="securityProvider" />
         <property name="studioConfiguration" ref="studioConfiguration" />
