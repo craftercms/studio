@@ -18,8 +18,6 @@
             <list>
                 <value>classpath:crafter/core/core.properties</value>
                 <value>classpath:crafter/engine/server-config.properties</value>
-                <value>classpath:crafter/studio/studio-server-config_del.properties</value>
-                <value>classpath*:crafter/engine/extension/studio-server-config.properties</value>
             </list>
         </property>
         <property name="ignoreUnresolvablePlaceholders" value="true" />

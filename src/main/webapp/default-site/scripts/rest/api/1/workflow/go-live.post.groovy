@@ -21,7 +21,7 @@ import scripts.api.WorkflowServices;
 
 // extract parameters
 def result = [:];
-def site = params.site;
+def site = request.getParameter("site")
 def body = request.reader.text;
 
 /*

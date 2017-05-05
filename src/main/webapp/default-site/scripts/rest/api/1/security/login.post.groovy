@@ -33,6 +33,8 @@ try {
     def ticket = SecurityServices.authenticate(context, username, password)
 
     if(ticket != null) {
+        def profile = SecurityServices.getUserProfile(context, username)
+
         response.setStatus(200)
         result = ["username": username, "first_name": profile.firstName, "last_name": profile.lastName, "email": profile.email]
     } else {

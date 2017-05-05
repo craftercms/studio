@@ -21,11 +21,11 @@ import org.craftercms.studio.api.v1.service.activity.ActivityService
 import scripts.api.ActivityServices;
 
 def result = [:]
-def site = params.site;
-def user = params.user;
-def path = params.path;
-def activity = params.activity;
-def contentTypeClass = params.contentTypeClass
+def site = request.getParameter("site")
+def user = request.getParameter("user")
+def path = request.getParameter("path")
+def activity = request.getParameter("activity")
+def contentTypeClass = request.getParameter("contentTypeClass")
 def activityType = ActivityService.ActivityType.valueOf(activity.toUpperCase());
 def extraInfo = [:]
 extraInfo.contentType = contentTypeClass;
