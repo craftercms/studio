@@ -18,16 +18,19 @@
 package org.craftercms.studio.impl.v1.service.deployment;
 
 
-import org.apache.commons.httpclient.*;
-import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.httpclient.methods.PostMethod;
-import org.apache.commons.io.IOUtils;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.studio.api.v1.dal.CopyToEnvironment;
 import org.craftercms.studio.api.v1.dal.CopyToEnvironmentMapper;
 import org.craftercms.studio.api.v1.dal.ObjectMetadata;
 import org.craftercms.studio.api.v1.deployment.Deployer;
-import org.craftercms.studio.api.v1.ebus.*;
+import org.craftercms.studio.api.v1.ebus.DeploymentItem;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
@@ -36,22 +39,17 @@ import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
 import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
-import org.craftercms.studio.api.v1.service.deployment.*;
-import org.craftercms.studio.api.v1.service.notification.NotificationService;
+import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
+import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
+import org.craftercms.studio.api.v1.service.deployment.PublishingManager;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.api.v1.service.objectstate.TransitionEvent;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
-import org.craftercms.studio.api.v1.to.DeploymentEndpointConfigTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.*;
 
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.PUBLISHING_MANAGER_IMPORT_MODE_ENABLED;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.PUBLISHING_MANAGER_INDEX_FILE;
@@ -77,9 +75,10 @@ public class PublishingManagerImpl implements PublishingManager {
     @Override
     public DeploymentItem processItem(CopyToEnvironment item) throws DeploymentException {
 
-        if(item == null) {
-            throw new DeploymentException("Cannot processItem. Item is null");
+        if (item == null) {
+            throw new DeploymentException("Cannot process item, item is null.");
         }
+
         DeploymentItem deploymentItem = new DeploymentItem();
         deploymentItem.setSite(item.getSite());
         deploymentItem.setPath(item.getPath());
@@ -96,8 +95,6 @@ public class PublishingManagerImpl implements PublishingManager {
         String environment = item.getEnvironment();
         String action = item.getAction();
         String user = item.getUser();
-        String submissionComment = item.getSubmissionComment();
-
 
         String liveEnvironment = LIVE_ENVIRONMENT;
         boolean isLive = false;
@@ -139,32 +136,10 @@ public class PublishingManagerImpl implements PublishingManager {
 
             ObjectMetadata objectMetadata = objectMetadataManager.getProperties(site, path);
 
-
             if (objectMetadata == null) {
                 LOGGER.debug("No object state found for {0}:{1}, create it", site, path);
                 objectMetadataManager.insertNewObjectMetadata(site, path);
                 objectMetadata = objectMetadataManager.getProperties(site, path);
-            }
-
-
-            if(objectMetadata != null) {
-                boolean sendEmail = objectMetadata.getSendEmail() == 1 ? true : false;
-
-                if (sendEmail) {
-                    String submittedByValue = objectMetadata.getSubmittedBy();
-
-                    try {
-                        LOGGER.debug("Sending approval notification for item site:{0} path:{1} user:{2}", site, path, user);
-                        notificationService.sendApprovalNotification(site, submittedByValue, path, user);
-                        LOGGER.debug("Sending approval notification SENT site:{0} path:{1} user:{2}", site, path, user);
-                    }
-                    catch(Exception eNotifyError) {
-                        LOGGER.debug("Error sending approval notification site:{0} path:{1} user:{2}", site, path, user);
-                    }
-                }
-            }
-            else {
-                LOGGER.error("Unable to get item metadata for {0}:{1}, can't notify", site, path);
             }
 
             if (isLive) {
@@ -371,17 +346,8 @@ public class PublishingManagerImpl implements PublishingManager {
     public ObjectMetadataManager getObjectMetadataManager() { return objectMetadataManager; }
     public void setObjectMetadataManager(ObjectMetadataManager objectMetadataManager) { this.objectMetadataManager = objectMetadataManager; }
 
-    public NotificationService getNotificationService() { return notificationService; }
-    public void setNotificationService(NotificationService notificationService) { this.notificationService = notificationService; }
-
     public ServicesConfig getServicesConfig() { return servicesConfig; }
     public void setServicesConfig(ServicesConfig servicesConfig) { this.servicesConfig = servicesConfig; }
-
-    public void setNotificationService2(final org.craftercms.studio.api.v2.service.notification.NotificationService
-                                            notificationService2) {
-        this.notificationService2 = notificationService2;
-    }
-
 
     public SecurityProvider getSecurityProvider() { return securityProvider; }
     public void setSecurityProvider(SecurityProvider securityProvider) { this.securityProvider = securityProvider; }
@@ -396,9 +362,7 @@ public class PublishingManagerImpl implements PublishingManager {
     protected DeploymentService deploymentService;
     protected ContentRepository contentRepository;
     protected ObjectMetadataManager objectMetadataManager;
-    protected NotificationService notificationService;
     protected ServicesConfig servicesConfig;
-    protected org.craftercms.studio.api.v2.service.notification.NotificationService notificationService2;
     protected SecurityProvider securityProvider;
     protected StudioConfiguration studioConfiguration;
 

@@ -47,7 +47,7 @@
             <title>Feature Icons Configured List</title>
             <description>List of feature icons</description>
             <samplePath>/administration/samples/sample-configured-list.xml</samplePath>
-        </file>        
+        </file>
         <file>
             <path>/preview-tools/components-config.xml</path>
             <title>confTabPreviewComponentsConf</title>
@@ -67,10 +67,10 @@
             <samplePath>/administration/samples/sample-personas-config.xml</samplePath>
         </file>
         <file>
-            <path>/notification-config.xml</path>
+            <path>/notification.xml</path>
             <title>confTabNotificationConf</title>
             <description>confTabNotificationConfDesc</description>
-            <samplePath>/administration/samples/sample-notification-config.xml</samplePath>
+            <samplePath>/administration/samples/sample-notification.xml</samplePath>
         </file>
         <file>
             <path>/permission-mappings-config.xml</path>

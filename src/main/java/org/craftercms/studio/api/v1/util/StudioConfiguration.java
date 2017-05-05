@@ -72,8 +72,6 @@ public interface StudioConfiguration {
     String CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME = "studio.configuration.site.roleMappingsFileName";
     String CONFIGURATION_SITE_ENVIRONMENT = "studio.configuration.site.environment";
     String CONFIGURATION_SITE_ENVIRONMENT_CONFIG_FILE_NAME = "studio.configuration.site.environment.configFileName";
-    String CONFIGURATION_SITE_NOTIFICATIONS_CONFIG_FILE_NAME = "studio.configuration.site.notificationsConfigFileName";
-    String CONFIGURATION_SITE_NOTIFICATIONS_CONFIG_FILE_NAME_V2 = "studio.configuration.site.notificationsConfigFileName.v2";
     String CONFIGURATION_SITE_DEPLOYMENT_CONFIG_FILE_NAME = "studio.configuration.site.deployment.configFileName";
     String CONFIGURATION_SITE_CONTENT_TYPES_CONFIG_FILE_NAME = "studio.configuration.site.contentTypes.configFileName";
     String CONFIGURATION_SITE_DEFAULT_GROUPS = "studio.configuration.site.defaultGroups";
@@ -85,13 +83,8 @@ public interface StudioConfiguration {
     String IMPORT_ASSET_CHAIN_NAME = "studio.import.assetChainName";
 
     /** Notification Service */
-    String NOTIFICATION_CUSTOM_CONTENT_PATH_NOTIFICATION_ENABLED = "studio.notification.customContentPathNotification.enabled";
-    String NOTIFICATION_CUSTOM_CONTENT_PATH_NOTIFICATION_PATTERN = "studio.notification.customContentPathNotificationPattern";
-    String NOTIFICATION_V2_ENABLED = "studio.notification.v2.enabled";
-    String NOTIFICATION_V2_TIMEZONE = "studio.notification.v2.timezone";
-
-    /** Workflow Service */
-    String WORKFLOW_PUBLISHING_WITHOUT_DEPENDENCIES_ENABLED = "studio.workflow.publishingWithoutDependencies.enabled";
+    String NOTIFICATION_CONFIGURATION_FILE = "studio.notification.configurationFile";
+    String NOTIFICATION_TIMEZONE = "studio.notification.timezone";
 
     /** Activity Service */
     String ACTIVITY_USERNAME_CASE_SENSITIVE = "studio.activity.user.name.caseSensitive";
@@ -135,7 +128,6 @@ public interface StudioConfiguration {
     String PAGE_NAVIGATION_ORDER_INCREMENT = "studio.pageNavigationOrder.increment";
 
     /** Content Processors */
-    String CONTENT_PROCESSOR_EXTRACT_METADATA_SCRIPT_LOCATION = "studio.contentProcessor.extractMetadata.scriptLocation";
     String CONTENT_PROCESSOR_CONTENT_LIFE_CYCLE_SCRIPT_LOCATION = "studio.contentProcessor.contentLifeCycle.scriptLocation";
     String CONTENT_PROCESSOR_ASSETS_SYSTEM_PATH = "studio.contentProcessor.assetsSystemPath";
 

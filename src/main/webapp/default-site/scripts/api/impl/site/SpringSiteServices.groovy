@@ -36,7 +36,7 @@ class SpringSiteServices {
 
     def writeConfiguration(path, content){
         def springBackedService = this.context.applicationContext.get("cstudioSiteServiceSimple")
-        return springBackedService.writeConfiguration(path, content);       
+        return springBackedService.writeConfiguration(path, content);
     }
 
     def writeConfiguration(site, path, content){
@@ -84,21 +84,10 @@ class SpringSiteServices {
         return springBackedService.importSite(config)
     }
 
-    def getCannedMessage(site,messageKey,locale="us"){
-                def newNotificationSystem=this.context.applicationContext.get("cstudioNotificationServicev2")
-        if(newNotificationSystem.enabled){
-            return  newNotificationSystem.getNotificationMessage(site,NotificationMessageType.CannedMessages,messageKey,Locale
-                    .forLanguageTag(locale))
-        }else{
-            def finalResult="";
-            def notificationSystem=this.context.applicationContext.get("cstudioNotificationService")
-            notificationSystem.getCannedRejectionReasons(site).each {t->
-                if(t.key.equalsIgnoreCase(messageKey)){
-                    finalResult= t._body;
-                }
-            }
-            return finalResult;
-        }
+    def getCannedMessage(site,messageKey,locale="us") {
+                def newNotificationSystem=this.context.applicationContext.get("cstudioNotificationService")
+        return  newNotificationSystem.getNotificationMessage(site, NotificationMessageType.CannedMessages,
+                messageKey, Locale.forLanguageTag(locale))
     }
 
     def syncRepository(site) {

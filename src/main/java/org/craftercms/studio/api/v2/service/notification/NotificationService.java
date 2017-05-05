@@ -12,6 +12,14 @@ import org.apache.commons.lang3.tuple.Pair;
  */
 public interface NotificationService {
 
+    /** Notification Message Keys **/
+    /** Action Completed Message Keys **/
+    String COMPLETE_GO_LIVE = "go-live";
+    String COMPLETE_REJECT = "reject";
+    String COMPLETE_SCHEDULE_GO_LIVE = "schedule-to-go-live";
+    String COMPLETE_SUBMIT_TO_GO_LIVE = "submit-to-go-live";
+    String COMPLETE_DELETE = "delete";
+
     /**
      * <p>Sends a email to configure emails when a deployment had fail</p>
      * @param site Name of the site which the deployment fail.
@@ -42,12 +50,6 @@ public interface NotificationService {
      */
     void notify(final String site , final List<String> toUsers ,final String key, final Locale
         locale, final Pair<String,Object>...params);
-
-    /**
-     * <p>Sends a email to configure emails when a deployment had fail</p>
-     * @param name Name of the site which the deployment fail.
-     */
-    void notifyDeploymentError(final String name);
 
     /**
      * Reloads the current configuration of the notification Service.
@@ -104,10 +106,4 @@ public interface NotificationService {
      */
     void notifyContentRejection(final String site,final String submittedBy,final List<String> rejectedItems,final
                                 String rejectionReason, final String userThatRejects,final Locale locale);
-
-    /**
-     * Checks if Notification Services 2 is enable for the given site
-     * @return True if is enable, false otherwise.
-     */
-    boolean isEnabled();
 }
