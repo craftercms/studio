@@ -93,5 +93,15 @@ public interface WorkflowService {
 
     void preSchedule(Set<String> uris, Date date, GoLiveContext context,Set<String> rescheduledUris);
 
+    /**
+     * approve workflows and schedule them as specified in the request
+     *
+     * @param site
+     * @param request
+     * @return call result
+     * @throws ServiceException
+     */
+    ResultTO goLive(final String site, final String request) throws ServiceException;
+
     ResultTO reject(final String site, final String user, final String request) throws ServiceException;
 }
