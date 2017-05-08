@@ -19,7 +19,7 @@
          </link>
      </rteStylesheets>
 	 
-    <toolbarItems1>formatselect,|,bold,italic,underline,strikethrough,|,sub,sup,|,outdent,indent,blockquote,|,justifyleft,justifycenter,justifyright,justifyfull,|,bullist,numlist,|,managedImage,link,unlink,anchor,|,code,|,undo,redo</toolbarItems1>
+    <toolbarItems1>formatselect,|,bold,italic,underline,strikethrough,|,sub,sup,charmap,|,outdent,indent,blockquote,|,justifyleft,justifycenter,justifyright,justifyfull,|,bullist,numlist,|,managedImage,link,unlink,anchor,|,code,|,undo,redo</toolbarItems1>
 	<toolbarItems2></toolbarItems2>
 	<toolbarItems3></toolbarItems3>
 	<toolbarItems4></toolbarItems4>
