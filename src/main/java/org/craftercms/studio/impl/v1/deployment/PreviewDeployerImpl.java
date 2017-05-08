@@ -18,6 +18,7 @@
 
 package org.craftercms.studio.impl.v1.deployment;
 
+import net.sf.json.JSONObject;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.PostMethod;
@@ -204,17 +205,15 @@ public class PreviewDeployerImpl implements PreviewDeployer {
         protected String engineUrl;
 
         public String toJson() {
-            StringBuilder sb = new StringBuilder();
-            sb.append("{ ");
-            sb.append("\"env\":\"").append(this.environment).append("\", ");
-            sb.append("\"site_name\":\"").append(this.siteName).append("\", ");
-            sb.append("\"replace\":").append(this.replace).append(", ");
-            sb.append("\"disable_deploy_cron\":").append(this.disableDeployCron).append(", ");
-            sb.append("\"template_name\":\"").append(this.templateName).append("\", ");
-            sb.append("\"repo_url\":\"").append(this.repoUrl).append("\", ");
-            sb.append("\"engine_url\":\"").append(this.engineUrl).append("\"");
-            sb.append(" }");
-            return sb.toString();
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("env", this.environment);
+            jsonObject.put("site_name", this.siteName);
+            jsonObject.put("replace", this.replace);
+            jsonObject.put("disable_deploy_cron", this.disableDeployCron);
+            jsonObject.put("template_name", this.templateName);
+            jsonObject.put("repo_url", this.repoUrl);
+            jsonObject.put("engine_url", this.engineUrl);
+            return  jsonObject.toString();
         }
 
         public String getEnvironment() { return environment; }
