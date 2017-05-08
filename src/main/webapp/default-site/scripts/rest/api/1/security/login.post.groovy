@@ -36,7 +36,7 @@ try {
         def profile = SecurityServices.getUserProfile(context, username)
 
         response.setStatus(200)
-        result = ["username": username, "first_name": profile.firstName, "last_name": profile.lastName, "email": profile.email]
+        result = ["username": username, "first_name": profile.first_name, "last_name": profile.last_name, "email": profile.email]
     } else {
         response.setStatus(500)
         result.message = "Internal server error"
