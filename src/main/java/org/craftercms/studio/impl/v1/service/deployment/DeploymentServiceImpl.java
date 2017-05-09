@@ -20,7 +20,7 @@ package org.craftercms.studio.impl.v1.service.deployment;
 import net.sf.json.JSONObject;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.FastArrayList;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.CStudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.*;
@@ -641,19 +641,26 @@ public class DeploymentServiceImpl implements DeploymentService {
 
     protected List<PublishingChannelTO> getAvailablePublishingChannelGroupsForSite(String site, String path) {
         List<PublishingChannelTO> channelTOs = new ArrayList<PublishingChannelTO>();
-        List<String> channels = getPublishingChannels(site);
-        for (String ch : channels) {
+        List<PublishingChannelGroupConfigTO> channels = getPublishingChannels(site);
+        for (PublishingChannelGroupConfigTO ch : channels) {
             PublishingChannelTO chTO = new PublishingChannelTO();
-            chTO.setName(ch);
+            chTO.setName(ch.getName());
             chTO.setPublish(true);
             chTO.setUpdateStatus(false);
+            chTO.setOrder(ch.getOrder());
             channelTOs.add(chTO);
         }
+        Collections.sort(channelTOs, new Comparator<PublishingChannelTO>() {
+            @Override
+            public int compare(PublishingChannelTO o1, PublishingChannelTO o2) {
+                return o1.getOrder() - o2.getOrder();
+            }
+        });
         return channelTOs;
     }
 
-    protected List<String> getPublishingChannels(String site) {
-        List<String> channels = new ArrayList<String>();
+    protected List<PublishingChannelGroupConfigTO> getPublishingChannels(String site) {
+        List<PublishingChannelGroupConfigTO> channels = new ArrayList<PublishingChannelGroupConfigTO>();
         Map<String, PublishingChannelGroupConfigTO> channelGroupConfigTOs = siteService.getPublishingChannelGroupConfigs(site);
         List<PublishingChannelGroupConfigTO> channelGroupConfigs = new ArrayList<>(channelGroupConfigTOs.values());
         Collections.sort(channelGroupConfigs, new Comparator<PublishingChannelGroupConfigTO>() {
@@ -664,15 +671,15 @@ public class DeploymentServiceImpl implements DeploymentService {
         });
         String user = securityService.getCurrentUser();
         Set<String> userRoles = new HashSet<>();
-        if (org.apache.commons.lang3.StringUtils.isNotEmpty(user)) {
+        if (StringUtils.isNotEmpty(user)) {
             userRoles = securityService.getUserRoles(site, user);
         }
         for (PublishingChannelGroupConfigTO configTO : channelGroupConfigs) {
             if (CollectionUtils.isEmpty(configTO.getRoles())) {
-                channels.add(configTO.getName());
+                channels.add(configTO);
             } else {
                 if (CollectionUtils.containsAny(configTO.getRoles(), userRoles)) {
-                    channels.add(configTO.getName());
+                    channels.add(configTO);
                 }
             }
         }
