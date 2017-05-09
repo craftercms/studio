@@ -260,6 +260,6 @@ class SpringContentServices {
 
     def bulkRename(site, srcPath, targetPath, createFolder) {
         def springBackendService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN);
-        return springBackendService.bulkRename(site, srcPath, targetPath, createFolder);
+        return springBackendService.renameBulk(site, srcPath, targetPath, createFolder);
     }
 }
