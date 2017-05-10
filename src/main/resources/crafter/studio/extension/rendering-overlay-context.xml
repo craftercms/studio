@@ -6,30 +6,11 @@
        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
        http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
 
-    <!-- ////////////////////////////////// -->
-    <!--								 	-->
-    <!--			Properties				-->
-    <!--									-->
-    <!-- ////////////////////////////////// -->
+    <!-- STUDIO CHANGES -->
 
-    <bean name="crafter.properties" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
-        <property name="order" value="0"/>
-        <property name="locations">
-            <list>
-                <value>classpath:crafter/core/core.properties</value>
-                <value>classpath:crafter/engine/server-config.properties</value>
-            </list>
-        </property>
-        <property name="ignoreUnresolvablePlaceholders" value="true" />
-    </bean>
-
-<!-- STUDIO CHANGES -->
-
-    <!--import resource="classpath*:crafter/engine/extension/rendering-context.xml"/-->
     <bean id="crafter.httpProxyRequestHandler" class="org.craftercms.engine.controller.HttpProxyRequestHandler">
         <property name="proxyRegistry" ref="crafter.httpProxyRegistry" />
     </bean>
-
 
      <util:map id="crafter.urlMappings">
         <entry key="/api/1/services/**" value-ref="crafter.restScriptsController"/>
