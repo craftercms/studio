@@ -12,6 +12,7 @@ import scripts.api.impl.security.SpringSecurityServices
 import scripts.api.impl.site.SpringSiteServices
 import scripts.api.impl.dependency.SpringDependencyServices
 import scripts.api.impl.objectstate.SpringObjectStateServices
+import scripts.api.impl.monitor.SpringMonitorServices
 
 /**
  * Class is a factory used by the API wrappers to find their implementation
@@ -139,4 +140,14 @@ class ServiceFactory {
 	static getPageNavigationOrderServices(context) {
 		return new SpringPageNavigationOrderServices(context)
 	}
+
+    /**
+     * return the implementation for mointor services
+     *
+     * @param context site context
+     * @return Monitor Services
+     */
+    static getMonitorServices(context) {
+        return new SpringMonitorServices(context)
+    }
 }

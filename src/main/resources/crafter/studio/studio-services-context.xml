@@ -260,6 +260,8 @@
 
     <bean id="studioEventService" class="org.craftercms.studio.impl.v1.service.event.EventServiceImpl" />
 
+    <bean id="studioMonitorService" class="org.craftercms.studio.impl.v1.service.monitor.MonitorServiceImpl"/>
+
     <!-- ////////////////////////////////////// -->
     <!--      Managers                          -->
     <!-- ////////////////////////////////////// -->
