@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/author</content-type>	<display-template/>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>6da4</objectGroupId>
+	<objectId>6da4e193-6109-0b9f-91b6-d439fc64c5dc</objectId>
+	<file-name>6da4e193-6109-0b9f-91b6-d439fc64c5dc.xml</file-name>
+	<internal-name>Jane Doe (Intern)</internal-name>
+	<createdDate>5/9/2017 23:13:7</createdDate>
+	<createdDate_dt>5/9/2017 23:13:7</createdDate_dt>
+	<lastModifiedDate>5/10/2017 21:32:18</lastModifiedDate>
+	<lastModifiedDate_dt>5/10/2017 21:32:18</lastModifiedDate_dt>
+	<disabled>false</disabled>
+	<name_s>Jane Doe</name_s>
+	<website_s>http://www.janedoe.org</website_s>
+	<photo_s>/static-assets/images/avatars/gal.png</photo_s>
+	<biography_html>&lt;p&gt;Sed posuere consectetur est at lobortis. Integer posuere erat a ante venenatis dapibus posuere velit aliquet. Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis vestibulum. Maecenas faucibus mollis interdum. Etiam porta sem malesuada magna mollis euismod.&lt;/p&gt;</biography_html>
+</component>

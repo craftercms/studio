@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/tags</content-type>	<display-template/>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>c2ce</objectGroupId>
+	<objectId>c2ce41c5-14f3-5d36-3a61-be7b635d78f2</objectId>
+	<file-name>global-tags.xml</file-name>
+	<folder-name/>
+	<internal-name>Global Tags</internal-name>
+	<items>	<item>	<key>travel</key>
+	<value>Travel</value>
+	</item>	<item>	<key>news</key>
+	<value>News</value>
+	</item>	<item>	<key>gadgets</key>
+	<value>Gadgets</value>
+	</item>	<item>	<key>games</key>
+	<value>Games</value>
+	</item>	<item>	<key>dessert</key>
+	<value>Dessert</value>
+	</item></items>
+	<createdDate>5/9/2017 22:1:15</createdDate>
+	<createdDate_dt>5/9/2017 22:1:15</createdDate_dt>
+	<lastModifiedDate>5/11/2017 15:2:36</lastModifiedDate>
+	<lastModifiedDate_dt>5/11/2017 15:2:36</lastModifiedDate_dt>
+</component>

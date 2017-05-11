@@ -1,0 +1,26 @@
+<environment-config>
+    <preview-server-url>http://localhost:8080</preview-server-url>
+    <authoring-server-url>http://localhost:8080/studio</authoring-server-url>
+    <form-server-url>http://localhost:8080/form-server</form-server-url>
+    <live-server-url>http://{siteName}</live-server-url>
+    <publishing-channels>
+        <channel-group>
+            <label>Production</label>
+            <channels>
+                <channel>sample</channel>
+            </channels>
+            <live-environment>true</live-environment>
+        </channel-group>
+        <!--
+        <channel-group>
+            <label>Test</label>
+            <channels>
+                <channel>sample</channel>
+            </channels>
+            <live-environment>false</live-environment>
+        </channel-group>
+        -->
+    </publishing-channels>
+    <cookie-domain>localhost</cookie-domain>
+    <open-site-dropdown>false</open-site-dropdown>
+</environment-config>

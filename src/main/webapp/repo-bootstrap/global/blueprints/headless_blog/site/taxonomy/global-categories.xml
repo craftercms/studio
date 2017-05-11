@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/categories</content-type>	<display-template/>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>782f</objectGroupId>
+	<objectId>782fad87-8ac5-be9d-c1a0-c227f2994bf0</objectId>
+	<file-name>global-categories.xml</file-name>
+	<folder-name/>
+	<internal-name>Global Categories</internal-name>
+	<items>	<item>	<key>updates</key>
+	<value>Updates</value>
+	</item>	<item>	<key>events</key>
+	<value>Events</value>
+	</item>	<item>	<key>recipes</key>
+	<value>Recipe</value>
+	</item>	<item>	<key>technology</key>
+	<value>Technology</value>
+	</item></items>
+	<createdDate>5/9/2017 21:8:58</createdDate>
+	<createdDate_dt>5/9/2017 21:8:58</createdDate_dt>
+	<lastModifiedDate>5/11/2017 15:1:27</lastModifiedDate>
+	<lastModifiedDate_dt>5/11/2017 15:1:27</lastModifiedDate_dt>
+</component>
