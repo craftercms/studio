@@ -30,7 +30,7 @@ class SolrSearch {
 
 		// can't support filters for images at this time because images are not indexed
 		//[Object { qname="cm:content.mimetype", value="image/*", useWildCard="true"}]
-		for(int f=0; f<searchParams.filters.size; f++){
+		for(int f = 0; f < searchParams.filters.size; f++){
 			def filter = searchParams.filters[f]
 			queryStatement    += " AND " + filter.qname + ":"+ filter.value + " "
 		}
@@ -65,7 +65,8 @@ class SolrSearch {
         }
 
 		try {
- 			def executedQuery = searchService.search(query)   
+			// Site name will be the index ID
+ 			def executedQuery = searchService.search(site, query)
 			def queryResults = executedQuery.response.documents
 
 			results.resultCount = executedQuery.response.numFound   
