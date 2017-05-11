@@ -527,16 +527,17 @@ public class GitContentRepositoryHelper {
 
             if (result) {
                 // Write the bits
-                FileChannel outChannel = new FileOutputStream(file.getPath()).getChannel();
-                logger.debug("created the file output channel");
-                ReadableByteChannel inChannel = Channels.newChannel(content);
-                logger.debug("created the file input channel");
-                long amount = 1024*1024; // 1MB at a time
-                long count;
-                long offset = 0;
-                while ((count = outChannel.transferFrom(inChannel, offset, amount)) > 0) {
-                    logger.debug("writing the bits: offset = " + offset + " count: " + count);
-                    offset += count;
+                try (FileChannel outChannel = new FileOutputStream(file.getPath()).getChannel()) {
+                    logger.debug("created the file output channel");
+                    ReadableByteChannel inChannel = Channels.newChannel(content);
+                    logger.debug("created the file input channel");
+                    long amount = 1024 * 1024; // 1MB at a time
+                    long count;
+                    long offset = 0;
+                    while ((count = outChannel.transferFrom(inChannel, offset, amount)) > 0) {
+                        logger.debug("writing the bits: offset = " + offset + " count: " + count);
+                        offset += count;
+                    }
                 }
 
                 // Add the file to git
