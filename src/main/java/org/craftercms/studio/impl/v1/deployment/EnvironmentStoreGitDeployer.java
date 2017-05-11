@@ -141,15 +141,16 @@ public class EnvironmentStoreGitDeployer implements Deployer {
         try {
             Files.deleteIfExists(siteEnvironmentStoreRepoPath);
             siteEnvironmentStoreRepoPath = Paths.get(environmentsStoreRootPath, site, environment, ".git");
-            Repository repository = FileRepositoryBuilder.create(siteEnvironmentStoreRepoPath.toFile());
-            repository.create();
+            try (Repository repository = FileRepositoryBuilder.create(siteEnvironmentStoreRepoPath.toFile())) {
+                repository.create();
 
-            Git git = new Git(repository);
-            git.add().addFilepattern(".").call();
-            RevCommit commit = git.commit()
-                    .setMessage("initial content")
-                    .setAllowEmpty(true)
-                    .call();
+                Git git = new Git(repository);
+                git.add().addFilepattern(".").call();
+                RevCommit commit = git.commit()
+                        .setMessage("initial content")
+                        .setAllowEmpty(true)
+                        .call();
+            }
         } catch (IOException | GitAPIException e) {
             logger.error("Error while creating repository for site " + site, e);
             success = false;
