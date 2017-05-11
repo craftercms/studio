@@ -756,7 +756,7 @@ public class SecurityServiceImpl implements SecurityService {
             Map<String, Object> model = new HashMap<String, Object>();
             RequestContext context = RequestContext.getCurrent();
             HttpServletRequest request = context.getRequest();
-            String authoringUrl = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "");
+            String authoringUrl = request.getRequestURL().toString().replace(request.getPathInfo(), "");
             String serviceUrl = studioConfiguration.getProperty(SECURITY_RESET_PASSWORD_SERVICE_URL);
             model.put("authoringUrl", authoringUrl);
             model.put("serviceUrl", serviceUrl);

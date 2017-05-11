@@ -17,17 +17,19 @@
  ******************************************************************************/
 package org.craftercms.studio.impl.v1.job;
 
+import org.craftercms.studio.api.v1.log.Logger;
+import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.to.EmailMessageQueueTo;
 import org.craftercms.studio.api.v1.to.EmailMessageTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.springframework.mail.javamail.JavaMailSender;
+
 import javax.mail.Message;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
+
 import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.MimeMessagePreparator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
@@ -36,110 +38,96 @@ import static org.craftercms.studio.api.v1.util.StudioConfiguration.MAIL_SMTP_AU
 
 public class EmailMessageSender implements Runnable {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(EmailMessageSender.class);
-	protected JavaMailSender emailService;
+    private static final Logger logger = LoggerFactory.getLogger(EmailMessageSender.class);
+    protected JavaMailSender emailService;
     protected JavaMailSender emailServiceNoAuth;
-	protected EmailMessageQueueTo emailMessages;
+    protected EmailMessageQueueTo emailMessages;
     protected StudioConfiguration studioConfiguration;
     private Thread thread;
     private boolean running;
 
-	public String getDefaultFromAddress() {
-		return studioConfiguration.getProperty(MAIL_FROM_DEFAULT);
-	}
+    public String getDefaultFromAddress() {
+        return studioConfiguration.getProperty(MAIL_FROM_DEFAULT);
+    }
 
-	public void initThread() {
-		thread = new Thread(this);
-		running = true;
-		thread.start();
-	}
+    public void initThread() {
+        thread = new Thread(this);
+        running = true;
+        thread.start();
+    }
 
-	@Override
-	public void run() {
-		while (running)
-		{
-			try
-			{
-				if(emailMessages.size()>0)
-				{
-					List<EmailMessageTO> list=emailMessages.getAll();
-					int size= list.size();
-					for(int counter=0;counter<size;counter++)
-					{
-						EmailMessageTO emailMessage=list.get(counter);
-						emailMessage.preprocessEmail();
-						String userEmailAddress=emailMessage.getTo();
-						String content= emailMessage.getContent();
-						String subject = emailMessage.getSubject();
-						String replyTo = emailMessage.getReplyTo();
-						String personalFromName=emailMessage.getPersonalFromName();
-						boolean success=sendEmail(subject,content,userEmailAddress,replyTo,personalFromName);
-						if(success) {
-							if (LOGGER.isDebugEnabled()) {
-								LOGGER.debug("Successfully sent email to:"+userEmailAddress);
-							}
-						}
-						else {
-							LOGGER.error("Could not send email to:"+userEmailAddress);
-						}
-						emailMessage=null;
-					}
-				}
-				int secs= 30;
-				try {
-                    Thread.sleep(secs*1000);
-                } catch (InterruptedException e) { }
-			}
-			catch(Exception e)
-			{
-				e.printStackTrace();
-			}
-		}
-	}
+    @Override
+    public void run() {
+        while (running) {
+            try {
+                if (emailMessages.size() > 0) {
+                    List<EmailMessageTO> list = emailMessages.getAll();
+                    int size = list.size();
+                    for (int counter = 0; counter < size; counter++) {
+                        EmailMessageTO emailMessage = list.get(counter);
+                        emailMessage.preprocessEmail();
+                        String userEmailAddress = emailMessage.getTo();
+                        String content = emailMessage.getContent();
+                        String subject = emailMessage.getSubject();
+                        String replyTo = emailMessage.getReplyTo();
+                        String personalFromName = emailMessage.getPersonalFromName();
+                        boolean success = sendEmail(subject, content, userEmailAddress, replyTo, personalFromName);
+                        if (success) {
+                            logger.debug("Successfully sent email to:" + userEmailAddress);
+                        } else {
+                            logger.error("Could not send email to:" + userEmailAddress);
+                        }
+                        emailMessage = null;
+                    }
+                }
+                int secs = 30;
+                Thread.sleep(secs * 1000L);
 
-	protected boolean sendEmail(final String subject,final String content,final String userEmailAddress,final String replyTo,final String personalFromName)
-	{
-		boolean success=true;
-		MimeMessagePreparator preparator = new MimeMessagePreparator() {
+            } catch (InterruptedException e) {
+                logger.warn("Interrupted while Thread.sleep()", e);
+                Thread.currentThread().interrupt();
+            }
+        }
+    }
 
-			public void prepare(MimeMessage mimeMessage) throws Exception {
+    protected boolean sendEmail(final String subject, final String content, final String userEmailAddress, final String replyTo, final String personalFromName) {
+        boolean success = true;
+        MimeMessagePreparator preparator = new MimeMessagePreparator() {
 
-				mimeMessage.addRecipients(Message.RecipientType.TO,InternetAddress.parse(userEmailAddress));
-				InternetAddress[] replyTos= new InternetAddress[1];
-				if( (replyTo != null) && (!"".equals(replyTo)) )
-				{
-					replyTos[0]= new InternetAddress(replyTo);
-					mimeMessage.setReplyTo(replyTos);
-				}
-				InternetAddress fromAddress= new InternetAddress(getDefaultFromAddress());
-				if(personalFromName != null)
-					fromAddress.setPersonal(personalFromName);
-				mimeMessage.setFrom(fromAddress);
-				mimeMessage.setContent(content, "text/html; charset=utf-8");
-				mimeMessage.setSubject(subject);
-				if (LOGGER.isDebugEnabled()) {
-					LOGGER.debug("sending email to ["+userEmailAddress+"]subject subject :["+subject+"]");
-				}
-			}
-		};
-		try {
+            public void prepare(MimeMessage mimeMessage) throws Exception {
+
+                mimeMessage.addRecipients(Message.RecipientType.TO, InternetAddress.parse(userEmailAddress));
+                InternetAddress[] replyTos = new InternetAddress[1];
+                if ((replyTo != null) && (!"".equals(replyTo))) {
+                    replyTos[0] = new InternetAddress(replyTo);
+                    mimeMessage.setReplyTo(replyTos);
+                }
+                InternetAddress fromAddress = new InternetAddress(getDefaultFromAddress());
+                if (personalFromName != null)
+                    fromAddress.setPersonal(personalFromName);
+                mimeMessage.setFrom(fromAddress);
+                mimeMessage.setContent(content, "text/html; charset=utf-8");
+                mimeMessage.setSubject(subject);
+                logger.debug("sending email to [" + userEmailAddress + "]subject subject :[" + subject + "]");
+            }
+        };
+        try {
             if (isAuthenticatedSMTP()) {
                 emailService.send(preparator);
             } else {
                 emailServiceNoAuth.send(preparator);
             }
-		}
-		catch (MailException ex) {
-			// simply log it and go on...
-			LOGGER.error("Error sending email notification to:"+userEmailAddress,ex);
+        } catch (MailException ex) {
+            // simply log it and go on...
+            logger.error("Error sending email notification to:" + userEmailAddress, ex);
 
-			success=false;
-		}
+            success = false;
+        }
 
-		return success;
-	}
+        return success;
+    }
 
-	public void shutdown() {
+    public void shutdown() {
         if (thread != null) {
             running = false;
             thread.interrupt();
@@ -147,25 +135,35 @@ public class EmailMessageSender implements Runnable {
     }
 
     public boolean isAuthenticatedSMTP() {
-	    boolean toReturn = Boolean.parseBoolean(studioConfiguration.getProperty(MAIL_SMTP_AUTH));
-	    return toReturn;
-	}
+        boolean toReturn = Boolean.parseBoolean(studioConfiguration.getProperty(MAIL_SMTP_AUTH));
+        return toReturn;
+    }
 
-	public JavaMailSender getEmailService() {
-		return emailService;
-	}
-	public void setEmailService(JavaMailSender emailService) {
-		this.emailService = emailService;
-	}
+    public JavaMailSender getEmailService() {
+        return emailService;
+    }
 
-	public void setEmailMessages(EmailMessageQueueTo emailMessages)
-	{
-		this.emailMessages=emailMessages;
-	}
+    public void setEmailService(JavaMailSender emailService) {
+        this.emailService = emailService;
+    }
 
-    public JavaMailSender getEmailServiceNoAuth() { return emailServiceNoAuth; }
-    public void setEmailServiceNoAuth(JavaMailSender emailServiceNoAuth) { this.emailServiceNoAuth = emailServiceNoAuth; }
+    public void setEmailMessages(EmailMessageQueueTo emailMessages) {
+        this.emailMessages = emailMessages;
+    }
 
-    public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
-    public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
+    public JavaMailSender getEmailServiceNoAuth() {
+        return emailServiceNoAuth;
+    }
+
+    public void setEmailServiceNoAuth(JavaMailSender emailServiceNoAuth) {
+        this.emailServiceNoAuth = emailServiceNoAuth;
+    }
+
+    public StudioConfiguration getStudioConfiguration() {
+        return studioConfiguration;
+    }
+
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+        this.studioConfiguration = studioConfiguration;
+    }
 }
