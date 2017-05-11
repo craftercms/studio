@@ -94,7 +94,6 @@ public class PublishingManagerImpl implements PublishingManager {
         String oldPath = item.getOldPath();
         String environment = item.getEnvironment();
         String action = item.getAction();
-        String user = item.getUser();
 
         String liveEnvironment = LIVE_ENVIRONMENT;
         boolean isLive = false;
