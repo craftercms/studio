@@ -74,7 +74,6 @@ public class StudioUserAPIAccessDecisionVoter extends StudioAbstractAccessDecisi
             FilterInvocation filterInvocation = (FilterInvocation)o;
             HttpServletRequest  request = filterInvocation.getRequest();
             requestUri = request.getRequestURI().replace(request.getContextPath(), "");
-            String requsetUrl = filterInvocation.getRequestUrl();
             String userParam = request.getParameter("username");
             if (StringUtils.isEmpty(userParam) && StringUtils.equalsIgnoreCase(request.getMethod(), HttpMethod.POST.name())) {
                 try {

@@ -114,31 +114,40 @@ public class VersionTO implements Comparable<VersionTO>, Serializable {
 
     @Override
     public int compareTo(VersionTO version) {
+        int toRet = 0;
         if (version == null) {
-            return 1;
-        }
+            toRet = 1;
+        } else {
 
-        Scanner scanner1 = new Scanner(this.getVersionNumber());
-        scanner1.useDelimiter("\\.");
+            Scanner scanner1 = new Scanner(this.getVersionNumber());
+            scanner1.useDelimiter("\\.");
 
-        Scanner scanner2 = new Scanner(version.getVersionNumber());
-        scanner2.useDelimiter("\\.");
+            Scanner scanner2 = new Scanner(version.getVersionNumber());
+            scanner2.useDelimiter("\\.");
 
-        while(scanner1.hasNextInt() && scanner2.hasNextInt()) {
-            int v1 = scanner1.nextInt();
-            int v2 = scanner2.nextInt();
-            if (v1 < v2) {
-                return -1;
-            } else if (v1 > v2) {
-                return 1;
+            boolean found = false;
+            while (scanner1.hasNextInt() && scanner2.hasNextInt()) {
+                int v1 = scanner1.nextInt();
+                int v2 = scanner2.nextInt();
+                if (v1 < v2) {
+                    toRet = -1;
+                    found = true;
+                    break;
+                } else if (v1 > v2) {
+                    toRet = 1;
+                    found = true;
+                    break;
+                }
             }
-        }
 
-        if (scanner1.hasNextInt()) {
-            return 1; //str1 has an additional lower-level version number
-        } else if (scanner2.hasNextInt()) {
-            return -1;
+            if (!found && scanner1.hasNextInt()) {
+                toRet = 1; //str1 has an additional lower-level version number
+            } else if (!found && scanner2.hasNextInt()) {
+                toRet = -1;
+            }
+            scanner1.close();
+            scanner2.close();
         }
-        return 0;
+        return toRet;
     }
 }

@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.dal.CopyToEnvironment;
 import org.craftercms.studio.api.v1.dal.CopyToEnvironmentMapper;
 import org.craftercms.studio.api.v1.dal.ObjectMetadata;
@@ -59,8 +59,8 @@ public class PublishingManagerImpl implements PublishingManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PublishingManagerImpl.class);
 
-    private final static String LIVE_ENVIRONMENT = "live";
-    private final static String PRODUCTION_ENVIRONMENT = "Production";
+    private static final String LIVE_ENVIRONMENT = "live";
+    private static final String PRODUCTION_ENVIRONMENT = "Production";
 
     @Override
     public List<CopyToEnvironment> getItemsReadyForDeployment(String site, String environment) {
@@ -94,7 +94,6 @@ public class PublishingManagerImpl implements PublishingManager {
         String oldPath = item.getOldPath();
         String environment = item.getEnvironment();
         String action = item.getAction();
-        String user = item.getUser();
 
         String liveEnvironment = LIVE_ENVIRONMENT;
         boolean isLive = false;
@@ -104,7 +103,7 @@ public class PublishingManagerImpl implements PublishingManager {
                 isLive = true;
             }
         }
-        else if (LIVE_ENVIRONMENT.equalsIgnoreCase(item.getEnvironment()) || PRODUCTION_ENVIRONMENT.equalsIgnoreCase(environment)) {
+        else if (StringUtils.equalsIgnoreCase(LIVE_ENVIRONMENT, item.getEnvironment()) || StringUtils.equalsIgnoreCase(PRODUCTION_ENVIRONMENT, environment)) {
             isLive = true;
         }
 

@@ -27,9 +27,10 @@ public class StudioSchedulerFactoryBean extends SchedulerFactoryBean {
     public void destroy() throws SchedulerException {
         super.destroy();
         try {
-            Thread.sleep(1000);
+            Thread.sleep(1000L);
         } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            logger.warn("Interrupted while Thread.sleep()", e);
+            Thread.currentThread().interrupt();
         }
     }
 }

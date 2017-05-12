@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/taxonomy</content-type>	<display-template/>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>8686</objectGroupId>
+	<objectId>868672ef-1b5e-7846-5c25-ac2929d2ff6e</objectId>
+	<items>	<item>	<key>guy</key>
+	<value>Guy</value>
+	</item>	<item>	<key>gal</key>
+	<value>Gal</value>
+	</item></items>
+	<file-name>segments.xml</file-name>
+	<folder-name/>
+	<internal-name>Segments</internal-name>
+	<createdDate>5/12/2017 4:59:10</createdDate>
+	<createdDate_dt>5/12/2017 4:59:10</createdDate_dt>
+	<lastModifiedDate>5/12/2017 4:59:10</lastModifiedDate>
+	<lastModifiedDate_dt>5/12/2017 4:59:10</lastModifiedDate_dt>
+</component>

@@ -55,8 +55,6 @@ public class StudioGroupAPIAccessDecisionVoter extends StudioAbstractAccessDecis
             FilterInvocation filterInvocation = (FilterInvocation)o;
             HttpServletRequest request = filterInvocation.getRequest();
             requestUri = request.getRequestURI().replace(request.getContextPath(), "");
-            String requsetUrl = filterInvocation.getRequestUrl();
-            String userParam = request.getParameter("username");
             String siteParam = request.getParameter("site_id");
             User currentUser = null;
             try {
