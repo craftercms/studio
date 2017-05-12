@@ -1,0 +1,16 @@
+<content-type name="/page/item-explorer" is-wcm-type="true">
+	<label>Page: Item Explorer</label>
+	<form>/page/item-explorer</form>
+	<form-path>simple</form-path>
+	<model-instance-path>not-used</model-instance-path>
+	<file-extension>xml</file-extension>
+	<content-as-folder>true</content-as-folder>
+	<previewable>true</previewable>
+	<noThumbnail>true</noThumbnail>
+	<image-thumbnail></image-thumbnail>
+	<paths>
+		<includes>
+			<pattern>/site/website/.*</pattern>
+		</includes>
+	</paths>
+</content-type>

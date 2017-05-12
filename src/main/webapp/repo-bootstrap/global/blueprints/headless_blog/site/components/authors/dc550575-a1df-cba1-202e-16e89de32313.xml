@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/author</content-type>	<display-template/>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>dc55</objectGroupId>
+	<objectId>dc550575-a1df-cba1-202e-16e89de32313</objectId>
+	<file-name>dc550575-a1df-cba1-202e-16e89de32313.xml</file-name>
+	<internal-name>John Doe (Owner)</internal-name>
+	<createdDate>5/9/2017 21:42:38</createdDate>
+	<createdDate_dt>5/9/2017 21:42:38</createdDate_dt>
+	<lastModifiedDate>5/10/2017 21:36:46</lastModifiedDate>
+	<lastModifiedDate_dt>5/10/2017 21:36:46</lastModifiedDate_dt>
+	<disabled>false</disabled>
+	<name_s>John Doe</name_s>
+	<website_s>http://www.johndoe.com</website_s>
+	<photo_s>/static-assets/images/avatars/guy.png</photo_s>
+	<biography_html>&lt;p&gt;Donec ullamcorper nulla non metus auctor fringilla. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Integer posuere erat a ante venenatis dapibus posuere velit aliquet. Etiam porta sem malesuada magna mollis euismod.&lt;/p&gt;</biography_html>
+</component>

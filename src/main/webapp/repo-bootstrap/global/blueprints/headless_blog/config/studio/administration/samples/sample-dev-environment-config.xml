@@ -1,0 +1,27 @@
+<environment-config>
+	<preview-server-url>http://dev.craftersoftware.com</preview-server-url>
+	<authoring-server-url>http://dev.craftersoftware.com/share</authoring-server-url>
+	<form-server-url>http://dev.craftersoftware.com/form-server</form-server-url>
+	<live-server-url>http://{siteName}</live-server-url>
+    <publishing-channels>
+        <channel-group>
+            <label>Dev Group</label>
+            <channels>
+                <channel>devnode1</channel>
+                <channel>devnode2</channel>
+            </channels>
+            <live-environment>true</live-environment>
+        </channel-group>
+        <!--
+        <channel-group>
+            <label>Test</label>
+            <channels>
+                <channel>sample</channel>
+            </channels>
+            <live-environment>false</live-environment>
+        </channel-group>
+        -->
+    </publishing-channels>
+	<cookie-domain>dev.craftersoftware.com</cookie-domain>
+	<open-site-dropdown>false</open-site-dropdown>
+</environment-config>
