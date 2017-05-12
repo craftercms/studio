@@ -12,7 +12,6 @@ class SearchHelper {
 	def SearchHelper(searchService) {
 		this.searchService = searchService
 		query = searchService.createQuery()
-		init()
 	}
 	
 	def query(String q) {
@@ -59,10 +58,6 @@ class SearchHelper {
 	def processItem(document) {
 		// Returns all fields by default.
 		document
-	}
-	
-	def init() {
-		// Empty by default for generic queries.
 	}
 	
 	def getTaxonomyValues(doc, field) {

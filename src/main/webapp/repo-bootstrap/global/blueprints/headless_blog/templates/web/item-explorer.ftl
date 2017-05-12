@@ -86,12 +86,12 @@
 						{
 							label: 'Authors',
 							labelField: 'name',
-							listUrl: '/api/1/services/api/1/list-authors.json'
+							listUrl: '/api/1/services/api/1/author/list.json'
 						},
 						{
 							label: 'Posts',
 							labelField: 'title',
-							listUrl: '/api/1/services/api/1/list-posts.json'
+							listUrl: '/api/1/services/api/1/post/list.json'
 						}
 					],
 					selectedType: null,

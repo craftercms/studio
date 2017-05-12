@@ -185,7 +185,7 @@
 						</property>
 						<property>
 							<name>itemManager</name>
-							<value>authorSelector</value>
+							<value>author_components</value>
 							<type>datasource:item</type>
 						</property>
 						<property>
@@ -245,7 +245,7 @@
 					<constraints>
 						<constraint>
 							<name>required</name>
-							<value><![CDATA[]]></value>
+							<value><![CDATA[true]]></value>
 							<type>boolean</type>
 						</constraint>
 						<constraint>
@@ -286,7 +286,7 @@
 						</property>
 						<property>
 							<name>imageManager</name>
-							<value>uploadImage,browseImage</value>
+							<value>uploadImage,browseImage,upload_images,existing_images</value>
 							<type>datasource:image</type>
 						</property>
 						<property>
@@ -387,7 +387,7 @@
 					<properties>
 						<property>
 							<name>datasource</name>
-							<value>categoriesTaxonomy</value>
+							<value>categories</value>
 							<type>datasource:item</type>
 						</property>
 						<property>
@@ -420,7 +420,7 @@
 					<properties>
 						<property>
 							<name>datasource</name>
-							<value>tagsTaxonomy</value>
+							<value>tags</value>
 							<type>datasource:item</type>
 						</property>
 						<property>
@@ -447,8 +447,8 @@
 	</sections>
 	<datasources>				<datasource>
 					<type>site-component</type>
-					<id>categoriesTaxonomy</id>
-					<title>Categories Taxonomy</title>
+					<id>categories</id>
+					<title>Categories</title>
 					<interface>item</interface>
 					<properties>
 						<property>
@@ -458,15 +458,15 @@
 						</property>
 						<property>
 							<name>componentPath</name>
-							<value>/site/taxonomy/global-categories.xml</value>
+							<value>/site/taxonomy/categories.xml</value>
 								<type>undefined</type>
 						</property>
 					</properties>
 				</datasource>
 				<datasource>
 					<type>child-content</type>
-					<id>authorSelector</id>
-					<title>Author Selector</title>
+					<id>author_components</id>
+					<title>Author Components</title>
 					<interface>item</interface>
 					<properties>
 						<property>
@@ -488,8 +488,8 @@
 				</datasource>
 				<datasource>
 					<type>site-component</type>
-					<id>tagsTaxonomy</id>
-					<title>Tags Taxonomy</title>
+					<id>tags</id>
+					<title>Tags</title>
 					<interface>item</interface>
 					<properties>
 						<property>
@@ -499,15 +499,15 @@
 						</property>
 						<property>
 							<name>componentPath</name>
-							<value>/site/taxonomy/global-tags.xml</value>
+							<value>/site/taxonomy/tags.xml</value>
 								<type>undefined</type>
 						</property>
 					</properties>
 				</datasource>
 				<datasource>
 					<type>img-desktop-upload</type>
-					<id>uploadImage</id>
-					<title>Upload Image</title>
+					<id>upload_images</id>
+					<title>Upload Images</title>
 					<interface>image</interface>
 					<properties>
 						<property>
@@ -519,8 +519,8 @@
 				</datasource>
 				<datasource>
 					<type>img-repository-upload</type>
-					<id>browseImage</id>
-					<title>Browse Image</title>
+					<id>existing_images</id>
+					<title>Existing Images</title>
 					<interface>image</interface>
 					<properties>
 						<property>

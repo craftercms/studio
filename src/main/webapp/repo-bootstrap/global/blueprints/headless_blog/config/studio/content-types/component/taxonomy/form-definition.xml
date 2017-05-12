@@ -1,8 +1,8 @@
 <form>
-	<title>Taxonomy: Categories</title>
+	<title>Taxonomy</title>
 	<description></description>
 	<objectType>component</objectType>
-	<content-type>/component/categories</content-type>
+	<content-type>/component/taxonomy</content-type>
 	<imageThumbnail>undefined</imageThumbnail>
 	<properties>		<property>
 			<name>display-template</name>
@@ -18,7 +18,7 @@
 		</property>
 	</properties>
 	<sections>		<section>
-			<title>Taxonomy: Categories Properties</title>
+			<title>Taxonomy Properties</title>
 			<description></description>
 			<defaultOpen>true</defaultOpen>
 			<fields>
@@ -69,16 +69,6 @@
 							<value>50</value>
 							<type>int</type>
 						</property>
-						<property>
-							<name>readonly</name>
-							<value></value>
-							<type>boolean</type>
-						</property>
-						<property>
-							<name>tokenize</name>
-							<value>false</value>
-							<type>boolean</type>
-						</property>
 					</properties>
 					<constraints>
 						<constraint>
@@ -94,12 +84,12 @@
 					<iceId></iceId>
 					<title>Items</title>
 					<description></description>
-					<minOccurs>0</minOccurs>
+					<minOccurs>1</minOccurs>
 					<maxOccurs>*</maxOccurs>
 					<properties>
 						<property>
 							<name>minOccurs</name>
-							<value>0</value>
+							<value>1</value>
 							<type>string</type>
 						</property>
 						<property>
@@ -142,7 +132,7 @@
 					<constraints>
 						<constraint>
 							<name>required</name>
-							<value><![CDATA[]]></value>
+							<value><![CDATA[true]]></value>
 							<type>boolean</type>
 						</constraint>
 						<constraint>
@@ -185,7 +175,7 @@
 					<constraints>
 						<constraint>
 							<name>required</name>
-							<value><![CDATA[]]></value>
+							<value><![CDATA[true]]></value>
 							<type>boolean</type>
 						</constraint>
 						<constraint>

@@ -1,6 +1,6 @@
-<content-type name="/component/tags" is-wcm-type="true">
-	<label>Taxonomy: Tags</label>
-	<form>/component/tags</form>
+<content-type name="/component/taxonomy" is-wcm-type="true">
+	<label>Taxonomy</label>
+	<form>/component/taxonomy</form>
 	<form-path>simple</form-path>
 	<model-instance-path>NOT-USED-BY-SIMPLE-FORM-ENGINE</model-instance-path>
 	<file-extension>xml</file-extension>

@@ -308,8 +308,8 @@
 	</sections>
 	<datasources>				<datasource>
 					<type>img-desktop-upload</type>
-					<id>uploadImage</id>
-					<title>Upload Image</title>
+					<id>upload_images</id>
+					<title>Upload Images</title>
 					<interface>image</interface>
 					<properties>
 						<property>
@@ -321,8 +321,8 @@
 				</datasource>
 				<datasource>
 					<type>img-repository-upload</type>
-					<id>browseImage</id>
-					<title>Browse Image</title>
+					<id>existing_images</id>
+					<title>Existing Images</title>
 					<interface>image</interface>
 					<properties>
 						<property>

@@ -3,14 +3,12 @@ package org.craftercms.blueprints.headless
 import groovy.util.logging.Slf4j
 
 @Slf4j
-class CategorySearchHelper extends SearchHelper {
+class TaxonomySearchHelper extends SearchHelper {
 	
-	def CategorySearchHelper(searchService) {
+	def TaxonomySearchHelper(String name, searchService) {
 		super(searchService)
-	}
-	
-	def init() {
-		filter("content-type:\"/component/categories\"")
+		filter("file-name: \"${name}.xml\"")
+		filter("content-type:\"/component/taxonomy\"")
 	}
 	
 	def processItem(doc) {
