@@ -724,7 +724,7 @@
 					</properties>
 				</datasource>
 				<datasource>
-					<type>configured-list</type>
+					<type>site-component</type>
 					<id>categories</id>
 					<title>Categories</title>
 					<interface>item</interface>
@@ -735,19 +735,14 @@
 								<type>undefined</type>
 						</property>
 						<property>
-							<name>listName</name>
-							<value>categories</value>
-								<type>undefined</type>
-						</property>
-						<property>
-							<name>sort</name>
-							<value>[{&quot;label&quot;:&quot;None&quot;,&quot;selected&quot;:true},{&quot;label&quot;:&quot;ascending&quot;,&quot;selected&quot;:false},{&quot;label&quot;:&quot;descending&quot;,&quot;selected&quot;:false}]</value>
+							<name>componentPath</name>
+							<value>/site/taxonomy/categories.xml</value>
 								<type>undefined</type>
 						</property>
 					</properties>
 				</datasource>
 				<datasource>
-					<type>configured-list</type>
+					<type>site-component</type>
 					<id>segments</id>
 					<title>Segments</title>
 					<interface>item</interface>
@@ -758,13 +753,8 @@
 								<type>undefined</type>
 						</property>
 						<property>
-							<name>listName</name>
-							<value>segments</value>
-								<type>undefined</type>
-						</property>
-						<property>
-							<name>sort</name>
-							<value>[{&quot;label&quot;:&quot;None&quot;,&quot;selected&quot;:true},{&quot;label&quot;:&quot;ascending&quot;,&quot;selected&quot;:false},{&quot;label&quot;:&quot;descending&quot;,&quot;selected&quot;:false}]</value>
+							<name>componentPath</name>
+							<value>/site/taxonomy/segments.xml</value>
 								<type>undefined</type>
 						</property>
 					</properties>

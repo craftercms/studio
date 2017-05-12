@@ -1,13 +1,13 @@
 <form>
-	<title>Component - Feature</title>
+	<title>Taxonomy</title>
 	<description></description>
 	<objectType>component</objectType>
-	<content-type>/component/feature</content-type>
+	<content-type>/component/taxonomy</content-type>
 	<imageThumbnail>undefined</imageThumbnail>
 	<properties>		<property>
 			<name>display-template</name>
 			<label>Display Template</label>
-			<value>/templates/web/components/feature.ftl</value>
+			<value></value>
 			<type>template</type>
 		</property>
 		<property>
@@ -18,7 +18,7 @@
 		</property>
 	</properties>
 	<sections>		<section>
-			<title>Component - Feature Properties</title>
+			<title>Taxonomy Properties</title>
 			<description></description>
 			<defaultOpen>true</defaultOpen>
 			<fields>
@@ -78,51 +78,32 @@
 						</constraint>
 					</constraints>
 				</field>
-			</fields>
-		</section>
-		<section>
-			<title>Content</title>
-			<description></description>
-			<defaultOpen>true</defaultOpen>
-			<fields>
 				<field>
-					<type>dropdown</type>
-					<id>icon</id>
+					<type>repeat</type>
+					<id>items</id>
 					<iceId></iceId>
-					<title>Icon</title>
+					<title>Items</title>
 					<description></description>
-					<defaultValue></defaultValue>
-					<help></help>
+					<minOccurs>1</minOccurs>
+					<maxOccurs>*</maxOccurs>
 					<properties>
 						<property>
-							<name>datasource</name>
-							<value>featureicons,featureicons,featureicons,featureIcons</value>
-							<type>datasource:item</type>
+							<name>minOccurs</name>
+							<value>1</value>
+							<type>string</type>
 						</property>
 						<property>
-							<name>emptyvalue</name>
-							<value></value>
-							<type>boolean</type>
-						</property>
-						<property>
-							<name>readonly</name>
-							<value></value>
-							<type>boolean</type>
+							<name>maxOccurs</name>
+							<value>*</value>
+							<type>string</type>
 						</property>
 					</properties>
-					<constraints>
-						<constraint>
-							<name>required</name>
-							<value><![CDATA[true]]></value>
-							<type>boolean</type>
-						</constraint>
-					</constraints>
-				</field>
+					<fields>
 				<field>
 					<type>input</type>
-					<id>title</id>
+					<id>key</id>
 					<iceId></iceId>
-					<title>Title</title>
+					<title>Key</title>
 					<description></description>
 					<defaultValue></defaultValue>
 					<help></help>
@@ -162,68 +143,33 @@
 					</constraints>
 				</field>
 				<field>
-					<type>rte</type>
-					<id>body_html</id>
+					<type>input</type>
+					<id>value</id>
 					<iceId></iceId>
-					<title>Body</title>
+					<title>Value</title>
 					<description></description>
 					<defaultValue></defaultValue>
 					<help></help>
 					<properties>
 						<property>
-							<name>width</name>
-							<value></value>
-							<type>int</type>
-						</property>
-						<property>
-							<name>height</name>
-							<value></value>
+							<name>size</name>
+							<value>50</value>
 							<type>int</type>
 						</property>
 						<property>
 							<name>maxlength</name>
-							<value></value>
+							<value>50</value>
 							<type>int</type>
 						</property>
 						<property>
-							<name>allowResize</name>
+							<name>readonly</name>
 							<value></value>
 							<type>boolean</type>
 						</property>
 						<property>
-							<name>forceRootBlockPTag</name>
-							<value>true</value>
-							<type>boolean</type>
-						</property>
-						<property>
-							<name>forcePTags</name>
-							<value>true</value>
-							<type>boolean</type>
-						</property>
-						<property>
-							<name>forceBRTags</name>
+							<name>tokenize</name>
 							<value>false</value>
 							<type>boolean</type>
-						</property>
-						<property>
-							<name>forceImageAlts</name>
-							<value>false</value>
-							<type>boolean</type>
-						</property>
-						<property>
-							<name>supportedChannels</name>
-							<value></value>
-							<type>supportedChannels</type>
-						</property>
-						<property>
-							<name>rteConfiguration</name>
-							<value>generic</value>
-							<type>string</type>
-						</property>
-						<property>
-							<name>imageManager</name>
-							<value></value>
-							<type>datasource:image</type>
 						</property>
 					</properties>
 					<constraints>
@@ -232,28 +178,17 @@
 							<value><![CDATA[true]]></value>
 							<type>boolean</type>
 						</constraint>
+						<constraint>
+							<name>pattern</name>
+							<value><![CDATA[]]></value>
+							<type>string</type>
+						</constraint>
 					</constraints>
+				</field>
+					</fields>
 				</field>
 			</fields>
 		</section>
 	</sections>
-	<datasources>				<datasource>
-					<type>site-component</type>
-					<id>feature_icons</id>
-					<title>Feature Icons</title>
-					<interface>item</interface>
-					<properties>
-						<property>
-							<name>dataType</name>
-							<value>[{&quot;value&quot;:&quot;value&quot;,&quot;label&quot;:&quot;&quot;,&quot;selected&quot;:false},{&quot;value&quot;:&quot;value_s&quot;,&quot;label&quot;:&quot;String&quot;,&quot;selected&quot;:true},{&quot;value&quot;:&quot;value_i&quot;,&quot;label&quot;:&quot;Integer&quot;,&quot;selected&quot;:false},{&quot;value&quot;:&quot;value_f&quot;,&quot;label&quot;:&quot;Float&quot;,&quot;selected&quot;:false},{&quot;value&quot;:&quot;value_dt&quot;,&quot;label&quot;:&quot;Date&quot;,&quot;selected&quot;:false},{&quot;value&quot;:&quot;value_html&quot;,&quot;label&quot;:&quot;HTML&quot;,&quot;selected&quot;:false}]</value>
-								<type>undefined</type>
-						</property>
-						<property>
-							<name>componentPath</name>
-							<value>/site/taxonomy/feature-icons.xml</value>
-								<type>undefined</type>
-						</property>
-					</properties>
-				</datasource>
-	</datasources>
+	<datasources>	</datasources>
 </form>
