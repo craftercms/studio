@@ -8,4 +8,9 @@
 	<previewable>false</previewable>
 	<noThumbnail>true</noThumbnail>
 	<image-thumbnail></image-thumbnail>
+	<paths>
+		<includes>
+			<pattern>/site/components/posts/.*</pattern>
+		</includes>
+	</paths>
 </content-type>

@@ -8,4 +8,9 @@
 	<previewable>false</previewable>
 	<noThumbnail>true</noThumbnail>
 	<image-thumbnail></image-thumbnail>
+	<paths>
+		<includes>
+			<pattern>/site/components/authors/.*</pattern>
+		</includes>
+	</paths>
 </content-type>
