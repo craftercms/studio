@@ -33,6 +33,17 @@
 									</params>
 								</modulehook>
 
+								<!-- TAXONOMY -->
+								<modulehook>
+									<name>wcm-root-folder</name>
+									<showDivider>true</showDivider>
+									<params>
+										<label>Taxonomy</label>
+										<path>/site/taxonomy</path>
+										<showRootItem>true</showRootItem>
+									</params>
+								</modulehook>
+
 								<modulehook>
 									<name>wcm-assets-folder</name>
 									<showDivider>true</showDivider>
