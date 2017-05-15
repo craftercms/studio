@@ -1,0 +1,76 @@
+<config>
+	<tools>
+		<tool>
+			<name>content-types</name>
+			<label>Content Types</label>
+			<controls>
+				<control>input</control>
+				<control>textarea</control>
+				<control>rte</control>
+				<control>dropdown</control>
+				<control>date-time</control>
+				<control>checkbox</control>
+				<control>checkbox-group</control>
+				<control>node-selector</control>
+				<control>image-picker</control>
+				<control>video-picker</control>
+				<control>label</control>
+				<control>page-nav-order</control>
+				<control>file-name</control>
+				<control>auto-filename</control>
+			</controls>
+			<datasources>
+				<datasource>child-content</datasource>
+				<datasource>img-desktop-upload</datasource>
+				<datasource>img-repository-upload</datasource>
+				<datasource>img-flickr-upload</datasource>
+				<datasource>file-desktop-upload</datasource>
+				<datasource>flash-desktop-upload</datasource>
+				<datasource>video-desktop-upload</datasource>
+				<datasource>key-value-list</datasource>
+                <datasource>configured-list</datasource>
+			</datasources>
+			<objectTypes>
+				<type>
+					<label>Page</label>
+					<name>page</name>
+					<properties>
+						<property>
+							<name>display-template</name>
+							<label>Display Template</label>
+							<value></value>
+							<type>template</type>
+						</property>
+						<property>
+							<name>merge-strategy</name>
+							<label>Merge Strategy</label>
+							<value>inherit-levels</value>
+							<type>string</type>
+						</property>
+					</properties>
+				</type>
+				<type>
+					<label>Component</label>
+					<name>component</name>
+					<properties>
+						<property>
+							<name>display-template</name>
+							<label>Display Template</label>
+							<value></value>
+							<type>template</type>
+						</property>
+						<property>
+							<name>merge-strategy</name>
+							<label>Merge Strategy</label>
+							<value>inherit-levels</value>
+							<type>string</type>
+						</property>
+					</properties>
+				</type>
+
+			</objectTypes>
+		</tool>
+		<tool><name>workflow-states</name><label>Workflow States</label></tool>
+		<tool><name>logging</name><label>Logging Levels</label></tool>
+	</tools>
+</config>

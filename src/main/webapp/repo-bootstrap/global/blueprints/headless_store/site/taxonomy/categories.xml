@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/taxonomy</content-type>	<display-template/>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>4df5</objectGroupId>
+	<objectId>4df54761-efac-2326-16b9-871124aaac23</objectId>
+	<internal-name>Categories</internal-name>
+	<file-name>categories.xml</file-name>
+	<folder-name/>
+	<items>	<item>	<key>cars</key>
+	<value>Cars</value>
+	</item>	<item>	<key>dolls</key>
+	<value>Dolls</value>
+	</item>	<item>	<key>board</key>
+	<value>Board</value>
+	</item></items>
+	<createdDate>5/11/2017 17:33:19</createdDate>
+	<createdDate_dt>5/11/2017 17:33:19</createdDate_dt>
+	<lastModifiedDate>5/15/2017 16:34:22</lastModifiedDate>
+	<lastModifiedDate_dt>5/15/2017 16:34:22</lastModifiedDate_dt>
+</component>

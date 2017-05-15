@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/product</content-type>	<display-template/>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>9cab</objectGroupId>
+	<objectId>9cab74a4-0198-6cf9-2798-93ad67aada05</objectId>
+	<file-name>9cab74a4-0198-6cf9-2798-93ad67aada05.xml</file-name>
+	<internal-name>Duck</internal-name>
+	<name_s>Duck</name_s>
+	<price_d>15</price_d>
+	<image_s>/static-assets/images/products/duck.jpeg</image_s>
+	<categories>	<item>	<key>dolls</key>
+	<value_smv>Dolls</value_smv>
+	</item></categories>
+	<tags/>
+	<company>	<item>	<key>/site/components/companies/8b868a29-3b70-a461-efa1-7b4555bdc60c.xml</key>
+	<value>Company 1</value>
+	<include>/site/components/companies/8b868a29-3b70-a461-efa1-7b4555bdc60c.xml</include>
+	<disableFlattening>false</disableFlattening>
+	</item></company>
+	<description_html>&lt;p&gt;Small rubber duck.&lt;/p&gt;</description_html>
+	<createdDate>5/12/2017 16:26:10</createdDate>
+	<createdDate_dt>5/12/2017 16:26:10</createdDate_dt>
+	<lastModifiedDate>5/12/2017 16:26:10</lastModifiedDate>
+	<lastModifiedDate_dt>5/12/2017 16:26:10</lastModifiedDate_dt>
+</component>

@@ -1,0 +1,20 @@
+<config>
+	<values>
+		<value>
+			<key>Anonymous</key>
+			<value>Anonymous</value>
+		</value>
+		<value>
+			<key>All</key>
+			<value>All</value>
+		</value>
+		<value>
+			<key>Customer</key>
+			<value>Customer</value>
+		</value>
+		<value>
+			<key>Partner</key>
+			<value>Partner</value>
+		</value>
+	</values>
+</config>
