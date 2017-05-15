@@ -291,7 +291,11 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     }
                     FileUtils.deleteDirectory(sourceFile);
                 } else {
-                    FileUtils.moveToDirectory(sourceFile, targetFile, true);
+                    if (sourceFile.isFile()) {
+                        FileUtils.moveFile(sourceFile, targetFile);
+                    } else {
+                        FileUtils.moveToDirectory(sourceFile, targetFile, true);
+                    }
                 }
 
                 // The operation is done on disk, now it's time to commit
