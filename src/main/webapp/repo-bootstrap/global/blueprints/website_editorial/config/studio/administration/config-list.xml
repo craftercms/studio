@@ -19,10 +19,10 @@
             <samplePath>/administration/samples/sample-contextual-nav.xml</samplePath>
         </file>
         <file>
-            <path>/context-nav/site-dropdown.xml</path>
-            <title>confTabSiteDropdownConf</title>
-            <description>confTabSiteDropdownConfDesc</description>
-            <samplePath>/administration/samples/sample-site-dropdown.xml</samplePath>
+            <path>/context-nav/sidebar.xml</path>
+            <title>confTabSidebarConf</title>
+            <description>confTabSidebarConfDesc</description>
+            <samplePath>/administration/samples/sample-sidebar.xml</samplePath>
         </file>
         <file>
             <path>/form-control-config/rte/rte-setup.xml</path>

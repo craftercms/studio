@@ -37,10 +37,10 @@
 			<samplePath>/administration/samples/sample-context-nav-config.xml</samplePath>
 		</file>
 		<file>
-			<path>/context-nav/site-dropdown.xml</path>
-			<title>Site Dropdown Configuration</title>
-			<description>Defines modules on the site dropdown bar</description>
-			<samplePath>/administration/samples/sample-site-dropdown.xml</samplePath>
+			<path>/context-nav/sidebar.xml</path>
+			<title>Sidebar Configuration</title>
+			<description>Defines modules on the sidebar</description>
+			<samplePath>/administration/samples/sample-sidebar.xml</samplePath>
 		</file>
 		<file>
 			<path>/deployment/endpoints-config.xml</path>

@@ -126,7 +126,7 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
 			String previewServerUrl = root.valueOf("preview-server-url");
 			config.setPreviewServerUrl(previewServerUrl);
 
-			String openDropdown = root.valueOf("open-site-dropdown");
+			String openDropdown = root.valueOf("open-sidebar");
 			config.setOpenDropdown((openDropdown != null) ? Boolean.valueOf(openDropdown) : false);
 
 			String authoringServerUrl = root.valueOf("authoring-server-url");
