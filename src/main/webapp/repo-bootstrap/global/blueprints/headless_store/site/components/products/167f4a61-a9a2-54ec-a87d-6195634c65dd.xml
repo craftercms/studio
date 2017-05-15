@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/product</content-type>	<display-template/>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>167f</objectGroupId>
+	<objectId>167f4a61-a9a2-54ec-a87d-6195634c65dd</objectId>
+	<file-name>167f4a61-a9a2-54ec-a87d-6195634c65dd.xml</file-name>
+	<internal-name>Rubik's</internal-name>
+	<name_s>Rubik's</name_s>
+	<price_d>15</price_d>
+	<categories>	<item>	<key>board</key>
+	<value_smv>Board</value_smv>
+	</item></categories>
+	<tags>	<item>	<key>learning</key>
+	<value_smv>Learning</value_smv>
+	</item></tags>
+	<image_s>/static-assets/images/products/cube.jpg</image_s>
+	<company>	<item>	<key>/site/components/companies/9ea03b5c-e199-5e07-aa60-1997dcefbd4c.xml</key>
+	<value>Company 2</value>
+	<include>/site/components/companies/9ea03b5c-e199-5e07-aa60-1997dcefbd4c.xml</include>
+	<disableFlattening>false</disableFlattening>
+	</item></company>
+	<description_html>&lt;p&gt;Classic Rubik&amp;#39;s Cube&lt;/p&gt;</description_html>
+	<createdDate>5/12/2017 16:43:17</createdDate>
+	<createdDate_dt>5/12/2017 16:43:17</createdDate_dt>
+	<lastModifiedDate>5/12/2017 16:50:30</lastModifiedDate>
+	<lastModifiedDate_dt>5/12/2017 16:50:30</lastModifiedDate_dt>
+</component>

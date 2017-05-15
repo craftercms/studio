@@ -1,0 +1,12 @@
+<environment-config>
+    <preview-server-url>http://localhost:8080</preview-server-url>
+    <authoring-server-url>http://localhost:8080/studio</authoring-server-url>
+    <live-server-url>http://{siteName}</live-server-url>
+    <open-sidebar>false</open-sidebar>
+    <publishing-targets>
+        <target>
+            <repo-branch-name>live</repo-branch-name>
+            <display-label>Live</display-label>
+        </target>
+    </publishing-targets>
+</environment-config>

@@ -1,0 +1,26 @@
+<environment-config>
+	<preview-server-url>http://head.studio.dev.craftercms.org</preview-server-url>
+	<authoring-server-url>http://head.studio.dev.craftercms.org/studio</authoring-server-url>
+	<form-server-url>http://head.studio.dev.craftercms.org/form-server</form-server-url>
+	<live-server-url>http://{siteName}.com</live-server-url>
+    <publishing-channels>
+        <channel-group>
+            <label>Production</label>
+            <channels>
+                <channel>sample</channel>
+            </channels>
+            <live-environment>true</live-environment>
+        </channel-group>
+        <!--
+        <channel-group>
+            <label>Test</label>
+            <channels>
+                <channel>sample</channel>
+            </channels>
+            <live-environment>false</live-environment>
+        </channel-group>
+        -->
+    </publishing-channels>
+	<cookie-domain>craftercms.org</cookie-domain>
+	<open-sidebar>false</open-sidebar>
+</environment-config>
