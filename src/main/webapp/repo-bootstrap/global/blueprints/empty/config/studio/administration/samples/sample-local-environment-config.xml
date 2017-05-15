@@ -22,5 +22,5 @@
         -->
     </publishing-channels>
     <cookie-domain>localhost</cookie-domain>
-    <open-site-dropdown>false</open-site-dropdown>
+    <open-sidebar>false</open-sidebar>
 </environment-config>
