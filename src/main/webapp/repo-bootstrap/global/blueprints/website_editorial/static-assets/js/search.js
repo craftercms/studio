@@ -1,7 +1,7 @@
 (function($) {
 
    $(function() {
-     var queryParam = $.urlParam('q');
+     var queryParam = decodeURI($.urlParam('q')).trim();
      if (queryParam) {
        $('#query').val(queryParam);
      }
