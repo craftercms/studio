@@ -23,6 +23,9 @@ class SearchHelper {
     def q = "${ARTICLE_CONTENT_TYPE_QUERY}"
 
     if (userTerm) {
+      if(!userTerm.contains(" ")) {
+        userTerm = "${userTerm}~1 OR *${userTerm}*"
+      }
       def userTermQuery = "(subject:(${userTerm}) OR sections.item.section_html:(${userTerm}))"
 
       q = "${q} AND ${userTermQuery}"
