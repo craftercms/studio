@@ -24,15 +24,17 @@ import org.craftercms.commons.monitoring.VersionMonitor;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.jar.Manifest;
 
 public interface MonitorService {
 
     /**
      * Get Studio version manifest.
-     *
+     * @param manifest Manifest file to get the information.
+     *                 on Webcontext manifest has to be loaded by the ServeltContext or a jar manifest will be loaded.
      * @return Version manifest
      */
-    VersionMonitor getVersion() throws IOException;
+    VersionMonitor getVersion(Manifest manifest) throws IOException;
 
     /**
      * Get Studio status.

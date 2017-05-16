@@ -31,9 +31,9 @@ class SpringMonitorServices {
         this.context = context
     }
 
-    def getVersion() {
+    def getVersion(manifestToRead) {
         def springBackedService = this.context.applicationContext.get("studioMonitorService")
-        return springBackedService.getVersion()
+        return springBackedService.getVersion(manifestToRead)
     }
 
     def getStatus() {
