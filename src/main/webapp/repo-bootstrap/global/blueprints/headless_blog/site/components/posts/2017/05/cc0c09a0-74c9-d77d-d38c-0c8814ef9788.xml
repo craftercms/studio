@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/post</content-type>	<display-template/>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>cc0c</objectGroupId>
+	<objectId>cc0c09a0-74c9-d77d-d38c-0c8814ef9788</objectId>
+	<file-name>cc0c09a0-74c9-d77d-d38c-0c8814ef9788.xml</file-name>
+	<internal-name>We are moving (Not ready yet)</internal-name>
+	<title_s>Great news!</title_s>
+	<disabled>true</disabled>
+	<authors>	<item>	<key>/site/components/authors/dc550575-a1df-cba1-202e-16e89de32313.xml</key>
+	<value>John Doe (Owner)</value>
+	<include>/site/components/authors/dc550575-a1df-cba1-202e-16e89de32313.xml</include>
+	<disableFlattening>false</disableFlattening>
+	</item></authors>
+	<featuredImage_s/>
+	<categories>	<item>	<key>updates</key>
+	<value_smv>Updates</value_smv>
+	</item></categories>
+	<tags>	<item>	<key>travel</key>
+	<value_smv>Travel</value_smv>
+	</item>	<item>	<key>news</key>
+	<value_smv>News</value_smv>
+	</item></tags>
+	<body_html>&lt;p&gt;Curabitur blandit tempus porttitor.&lt;/p&gt;</body_html>
+	<createdDate>5/11/2017 17:1:29</createdDate>
+	<createdDate_dt>5/11/2017 17:1:29</createdDate_dt>
+	<lastModifiedDate>5/11/2017 17:1:29</lastModifiedDate>
+	<lastModifiedDate_dt>5/11/2017 17:1:29</lastModifiedDate_dt>
+	<expired_dt/>
+</component>

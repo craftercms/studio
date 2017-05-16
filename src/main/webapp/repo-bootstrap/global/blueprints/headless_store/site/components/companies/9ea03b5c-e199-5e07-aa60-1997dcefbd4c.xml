@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/company</content-type>	<display-template/>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>9ea0</objectGroupId>
+	<objectId>9ea03b5c-e199-5e07-aa60-1997dcefbd4c</objectId>
+	<file-name>9ea03b5c-e199-5e07-aa60-1997dcefbd4c.xml</file-name>
+	<internal-name>Company 2</internal-name>
+	<name_s>Company 2</name_s>
+	<website_s>www.company2.com</website_s>
+	<email_s>info@company2.com</email_s>
+	<phone_s>+1 123 123 1234</phone_s>
+	<logo_s/>
+	<description_html>&lt;p&gt;Makes all kind of toys.&lt;/p&gt;</description_html>
+	<createdDate>5/12/2017 16:19:19</createdDate>
+	<createdDate_dt>5/12/2017 16:19:19</createdDate_dt>
+	<lastModifiedDate>5/12/2017 16:19:19</lastModifiedDate>
+	<lastModifiedDate_dt>5/12/2017 16:19:19</lastModifiedDate_dt>
+</component>

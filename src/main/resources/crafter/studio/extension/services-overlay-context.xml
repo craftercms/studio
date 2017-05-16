@@ -1,69 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xmlns:task="http://www.springframework.org/schema/task"
-       xsi:schemaLocation="
-       http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-       http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd">
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-    <!-- ////////////////////////////////// -->
-    <!--								 	-->
-    <!--			Properties				-->
-    <!--									-->
-    <!-- ////////////////////////////////// -->
+    <!-- STUDIO CHANGES -->
 
-    <bean name="crafter.properties" class="org.springframework.context.support.PropertySourcesPlaceholderConfigurer">
-        <property name="order" value="0"/>
-        <property name="locations">
-            <list>
-                <value>classpath:crafter/core/core.properties</value>
-                <value>classpath:crafter/engine/server-config.properties</value>
-                <value>${crafter.engine.extension.base}/overlay-config.properties</value>
-                <value>${crafter.engine.extension.base}/server-config.properties</value>
-            </list>
-        </property>
-        <property name="ignoreUnresolvablePlaceholders" value="true"/>
-    </bean>
-
-    <bean id="crafter.propertyResolver" class="org.springframework.core.env.PropertySourcesPropertyResolver">
+    <bean name="studio.crafter.properties" class="java.util.HashMap">
         <constructor-arg>
-            <bean factory-bean="crafter.properties" factory-method="getAppliedPropertySources"/>
+            <map key-type="java.lang.String" value-type="java.lang.String">
+                <entry key="environment" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).CONFIGURATION_SITE_ENVIRONMENT)}}"/>
+                <entry key="previewUrl" value="${previewUrl}"/>
+
+            </map>
         </constructor-arg>
     </bean>
-
-    <!-- ////////////////////////////////// -->
-    <!--								 	-->
-    <!--		      Bootstrap 			-->
-    <!--									-->
-    <!-- ////////////////////////////////// -->
-
-
-    <bean id="crafter.servletContextAttributesBootstrap"
-          class="org.craftercms.engine.util.servlet.ServletContextAttributesBootstrap">
-        <property name="attributes">
-            <map>
-                <entry key="modePreview" value="#{T(java.lang.Boolean).valueOf(${crafter.engine.preview})}"/>
-                <entry key="environment" value="${crafter.engine.environment}"/>
-            </map>
-        </property>
-    </bean>
-
-    <!-- ////////////////////////////////// -->
-    <!--								 	-->
-    <!--			 Scheduling				-->
-    <!--									-->
-    <!-- ////////////////////////////////// -->
-<!--
-    <task:annotation-driven scheduler="crafter.scheduler"/>
-    <task:scheduler id="crafter.scheduler" pool-size="${crafter.engine.scheduler.threads.pool.size}"/>
--->
-
-    <!-- ////////////////////////////////// -->
-    <!--								 	-->
-    <!--			 Macros 				-->
-    <!--									-->
-    <!-- ////////////////////////////////// -->
-
 
     <bean id="crafter.modePreviewContextAttributeMacro" class="org.craftercms.engine.macro.impl.ScopeAttributeMacro">
         <property name="attributeName" value="modePreview"/>
@@ -73,31 +23,6 @@
     <bean id="crafter.environmentContextAttributeMacro" class="org.craftercms.engine.macro.impl.ScopeAttributeMacro">
         <property name="attributeName" value="environment"/>
         <property name="scope" value="SERVLET_CONTEXT"/>
-    </bean>
-
-    <bean id="crafter.macroResolver" class="org.craftercms.engine.macro.impl.MacroResolverImpl">
-        <property name="macros">
-            <list>
-                <ref bean="crafter.webAppPathMacro"/>
-                <ref bean="crafter.webAppContextPathMacro"/>
-                <ref bean="crafter.requestUriMacro"/>
-                <ref bean="crafter.modePreviewContextAttributeMacro"/>
-                <ref bean="crafter.environmentContextAttributeMacro"/>
-                <ref bean="crafter.siteNameRequestAttributeMacro"/>
-            </list>
-        </property>
-    </bean>
-
-
-    <!-- STUDIO CHANGES -->
-    <bean name="studio.crafter.properties" class="java.util.HashMap">
-        <constructor-arg>
-            <map key-type="java.lang.String" value-type="java.lang.String">
-                <entry key="environment" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).CONFIGURATION_SITE_ENVIRONMENT)}}"/>
-                <entry key="previewUrl" value="${previewUrl}"/>
-
-            </map>
-        </constructor-arg>
     </bean>
 
     <bean id="crafter.httpProxyRegistry" class="org.craftercms.engine.http.HttpProxyRegistry"/>

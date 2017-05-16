@@ -447,19 +447,24 @@ public class DbSecurityProvider implements SecurityProvider {
 
     @Override
     public boolean createUser(String username, String password, String firstName, String lastName, String email, boolean externallyManaged) throws UserAlreadyExistsException {
-        String hashedPassword = CipherUtils.hashPassword(password);
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put("username", username);
-        params.put("password", hashedPassword);
-        params.put("firstname", firstName);
-        params.put("lastname", lastName);
-        params.put("email", email);
-        params.put("externallyManaged", externallyManaged ? 1 : 0);
-        try {
-        securityMapper.createUser(params);
-        } catch (DuplicateKeyException e) {
-            logger.error("Error creating user " + username, e);
-            throw new UserAlreadyExistsException("User already exists.", e);
+        if (userExists(username)) {
+            logger.error("Not able to create user " + username + ", already exists.");
+            throw new UserAlreadyExistsException("User already exists.");
+        } else {
+            String hashedPassword = CipherUtils.hashPassword(password);
+            Map<String, Object> params = new HashMap<String, Object>();
+            params.put("username", username);
+            params.put("password", hashedPassword);
+            params.put("firstname", firstName);
+            params.put("lastname", lastName);
+            params.put("email", email);
+            params.put("externallyManaged", externallyManaged ? 1 : 0);
+            try {
+                securityMapper.createUser(params);
+            } catch (DuplicateKeyException e) {
+                logger.error("Error creating user " + username, e);
+                throw new UserAlreadyExistsException("User already exists.", e);
+            }
         }
         return true;
     }

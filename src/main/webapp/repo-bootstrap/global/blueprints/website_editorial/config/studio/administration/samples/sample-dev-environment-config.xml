@@ -23,5 +23,5 @@
         -->
     </publishing-channels>
 	<cookie-domain>dev.craftersoftware.com</cookie-domain>
-	<open-site-dropdown>false</open-site-dropdown>
+	<open-sidebar>false</open-sidebar>
 </environment-config>

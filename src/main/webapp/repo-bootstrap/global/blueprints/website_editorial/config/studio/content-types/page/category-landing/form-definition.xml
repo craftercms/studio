@@ -380,29 +380,6 @@
 		</section>
 	</sections>
 	<datasources>				<datasource>
-					<type>configured-list</type>
-					<id>categories</id>
-					<title>Categories</title>
-					<interface>item</interface>
-					<properties>
-						<property>
-							<name>dataType</name>
-							<value>[{&quot;value&quot;:&quot;value&quot;,&quot;label&quot;:&quot;&quot;,&quot;selected&quot;:false},{&quot;value&quot;:&quot;value_s&quot;,&quot;label&quot;:&quot;String&quot;,&quot;selected&quot;:true},{&quot;value&quot;:&quot;value_i&quot;,&quot;label&quot;:&quot;Integer&quot;,&quot;selected&quot;:false},{&quot;value&quot;:&quot;value_f&quot;,&quot;label&quot;:&quot;Float&quot;,&quot;selected&quot;:false},{&quot;value&quot;:&quot;value_dt&quot;,&quot;label&quot;:&quot;Date&quot;,&quot;selected&quot;:false},{&quot;value&quot;:&quot;value_html&quot;,&quot;label&quot;:&quot;HTML&quot;,&quot;selected&quot;:false}]</value>
-								<type>undefined</type>
-						</property>
-						<property>
-							<name>listName</name>
-							<value>categories</value>
-								<type>undefined</type>
-						</property>
-						<property>
-							<name>sort</name>
-							<value>[{&quot;label&quot;:&quot;None&quot;,&quot;selected&quot;:true},{&quot;label&quot;:&quot;ascending&quot;,&quot;selected&quot;:false},{&quot;label&quot;:&quot;descending&quot;,&quot;selected&quot;:false}]</value>
-								<type>undefined</type>
-						</property>
-					</properties>
-				</datasource>
-				<datasource>
 					<type>child-content</type>
 					<id>components</id>
 					<title>Components</title>
@@ -421,6 +398,24 @@
 						<property>
 							<name>type</name>
 							<value></value>
+								<type>undefined</type>
+						</property>
+					</properties>
+				</datasource>
+				<datasource>
+					<type>site-component</type>
+					<id>categories</id>
+					<title>Categories</title>
+					<interface>item</interface>
+					<properties>
+						<property>
+							<name>dataType</name>
+							<value>[{&quot;value&quot;:&quot;value&quot;,&quot;label&quot;:&quot;&quot;,&quot;selected&quot;:false},{&quot;value&quot;:&quot;value_s&quot;,&quot;label&quot;:&quot;String&quot;,&quot;selected&quot;:true},{&quot;value&quot;:&quot;value_i&quot;,&quot;label&quot;:&quot;Integer&quot;,&quot;selected&quot;:false},{&quot;value&quot;:&quot;value_f&quot;,&quot;label&quot;:&quot;Float&quot;,&quot;selected&quot;:false},{&quot;value&quot;:&quot;value_dt&quot;,&quot;label&quot;:&quot;Date&quot;,&quot;selected&quot;:false},{&quot;value&quot;:&quot;value_html&quot;,&quot;label&quot;:&quot;HTML&quot;,&quot;selected&quot;:false}]</value>
+								<type>undefined</type>
+						</property>
+						<property>
+							<name>componentPath</name>
+							<value>/site/taxonomy/categories.xml</value>
 								<type>undefined</type>
 						</property>
 					</properties>

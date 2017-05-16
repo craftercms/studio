@@ -1,0 +1,46 @@
+<panel>
+   <modules>
+      <module>
+          <moduleName>ice-tools-panel</moduleName>
+          <title>inContextEditing</title>
+      </module>
+     
+      <module>
+          <moduleName>component-panel</moduleName>
+          <title>pageComponents</title>
+      </module>
+     
+      <module>
+            <moduleName>medium-panel</moduleName>
+            <title>publishingChannel</title>
+            <config>
+                <channels>
+                    <channel>
+                        <title>web</title>
+                        <value>browser</value>
+                        <width></width>
+                        <height></height>
+                    </channel>
+                    <channel>
+                        <title>iphone</title>
+                        <value>iphone</value>
+                        <width>320</width>
+                        <height>568</height>
+                    </channel>
+                    <channel>
+                        <title>iPad</title>
+                        <value>ipad</value>
+                        <width>768</width>
+                        <height>1024</height>
+                    </channel>
+                </channels>
+            </config>
+      </module>
+     
+      <module>
+         <moduleName>targeting-panel</moduleName>
+         <title>targeting</title>
+      </module>
+    
+   </modules>
+</panel>

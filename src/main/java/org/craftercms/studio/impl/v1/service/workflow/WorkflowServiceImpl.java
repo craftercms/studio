@@ -84,6 +84,8 @@ import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.impl.v1.util.GoLiveQueueOrganizer;
 
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.WORKFLOW_PUBLISHING_WITHOUT_DEPENDENCIES_ENABLED;
+
 /**
  * workflow service implementation
  */
@@ -1942,6 +1944,36 @@ public class WorkflowServiceImpl implements WorkflowService {
         }
     }
 
+    /**
+     * approve workflows and schedule them as specified in the request
+     *
+     * @param site
+     * @param request
+     * @return call result
+     * @throws ServiceException
+     */
+    @Override
+    public ResultTO goLive(final String site, final String request) throws ServiceException {
+        String lockKey = DmConstants.PUBLISHING_LOCK_KEY.replace("{SITE}", site.toUpperCase());
+        generalLockService.lock(lockKey);
+        try {
+            try {
+                if (isEnablePublishingWithoutDependencies()) {
+                    return approveWithoutDependencies(site, request, Operation.GO_LIVE);
+                } else {
+                    return approve_new(site, request, Operation.GO_LIVE);
+                }
+            } catch (RuntimeException e) {
+                logger.error("error making go live", e);
+                throw e;
+            }
+        } catch (RuntimeException e) {
+            throw e;
+        } finally {
+            generalLockService.unlock(lockKey);
+        }
+    }
+
     public boolean cleanWorkflow(final String url, final String site, final Set<DmDependencyTO> dependents) {
         _cancelWorkflow(site, url);
         return true;
@@ -2404,6 +2436,11 @@ public class WorkflowServiceImpl implements WorkflowService {
 
     public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
+
+    public boolean isEnablePublishingWithoutDependencies() {
+        boolean toReturn = Boolean.parseBoolean(studioConfiguration.getProperty(WORKFLOW_PUBLISHING_WITHOUT_DEPENDENCIES_ENABLED));
+        return toReturn;
+    }
 
     protected ServicesConfig servicesConfig;
     protected DeploymentService deploymentService;

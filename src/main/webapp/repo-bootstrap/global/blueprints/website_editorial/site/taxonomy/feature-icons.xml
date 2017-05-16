@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/taxonomy</content-type>	<display-template/>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>ff91</objectGroupId>
+	<objectId>ff915902-c3c7-d3d1-b828-17f9828f919f</objectId>
+	<items>	<item>	<key>fa-diamond</key>
+	<value>Diamond</value>
+	</item>	<item>	<key>fa-paper-plane</key>
+	<value>Paper Plane</value>
+	</item>	<item>	<key>fa-rocket</key>
+	<value>Rocket</value>
+	</item>	<item>	<key>fa-signal</key>
+	<value>Signal</value>
+	</item>	<item>	<key>fa-gavel</key>
+	<value>Gavel</value>
+	</item>	<item>	<key>fa-tachometer</key>
+	<value>Tachometer</value>
+	</item>	<item>	<key>fa-sliders</key>
+	<value>Sliders</value>
+	</item>	<item>	<key>fa-lightbulb-o</key>
+	<value>Lightbulb</value>
+	</item>	<item>	<key>fa-cloud</key>
+	<value>Cloud</value>
+	</item>	<item>	<key>fa-users</key>
+	<value>Users</value>
+	</item>	<item>	<key>fa-briefcase</key>
+	<value>Briefcase</value>
+	</item>	<item>	<key>fa-database</key>
+	<value>Database</value>
+	</item>	<item>	<key>fa-flask</key>
+	<value>Flask</value>
+	</item></items>
+	<file-name>feature-icons.xml</file-name>
+	<folder-name/>
+	<internal-name>Feature Icons</internal-name>
+	<createdDate>5/12/2017 5:6:42</createdDate>
+	<createdDate_dt>5/12/2017 5:6:42</createdDate_dt>
+	<lastModifiedDate>5/12/2017 5:6:42</lastModifiedDate>
+	<lastModifiedDate_dt>5/12/2017 5:6:42</lastModifiedDate_dt>
+</component>

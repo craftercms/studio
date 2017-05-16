@@ -15,7 +15,7 @@
 									<name>wcm-root-folder</name>
 									<showDivider>true</showDivider>
 									<params>
-										<label>Pages</label>
+										<label>Store</label>
 										<path>/site/website</path>
 										<showRootItem>true</showRootItem>
 										<onClick>preview</onClick>
@@ -27,9 +27,20 @@
 									<name>wcm-root-folder</name>
 									<showDivider>true</showDivider>
 									<params>
-										<label>Components</label>
+										<label>Items</label>
 										<path>/site/components</path>
-										<showRootItem>true</showRootItem>
+										<showRootItem>false</showRootItem>
+									</params>
+								</modulehook>
+
+								<!-- TAXONOMY -->
+								<modulehook>
+									<name>wcm-root-folder</name>
+									<showDivider>true</showDivider>
+									<params>
+										<label>Taxonomy</label>
+										<path>/site/taxonomy</path>
+										<showRootItem>false</showRootItem>
 									</params>
 								</modulehook>
 
@@ -69,7 +80,6 @@
 									<params>
 										<roles>
 											<role>admin</role>
-											<!--role>developer</role-->
 										</roles>
 									</params>
 								</modulehook>

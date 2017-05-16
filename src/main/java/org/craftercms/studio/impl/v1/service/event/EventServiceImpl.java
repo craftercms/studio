@@ -19,6 +19,7 @@
 
 package org.craftercms.studio.impl.v1.service.event;
 
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.ebus.*;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -27,6 +28,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -53,8 +55,8 @@ public class EventServiceImpl implements EventService, ApplicationContextAware {
                 Method method = listener.getMethod();
                 try {
                     method.invoke(bean, args);
-                } catch (Throwable e) {
-                    throw new RuntimeException(e);
+                } catch (IllegalAccessException | InvocationTargetException e) {
+                    logger.error("Error invoking listeners method for Publishing event: " + listener.getBeanName() + " - " + listener.getMethod());
                 }
             }
         }
@@ -79,7 +81,12 @@ public class EventServiceImpl implements EventService, ApplicationContextAware {
     @Override
     public void unSubscribe(String event, String listener) {
         logger.debug(String.format("UnSubscribing %s to %s", listener, event));
-        getListenersForEvent(event, false).remove(listener);
+        List<EventSubscriber> listeners = getListenersForEvent(event, false);
+        for (EventSubscriber subscriber : listeners) {
+            if (StringUtils.equals(subscriber.getBeanName(), listener)) {
+                listeners.remove(subscriber);
+            }
+        }
     }
 
     @Override

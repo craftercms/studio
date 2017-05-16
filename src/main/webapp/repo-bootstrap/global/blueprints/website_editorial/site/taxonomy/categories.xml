@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/taxonomy</content-type>	<display-template/>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>6497</objectGroupId>
+	<objectId>6497af67-bd6b-b1e2-5b3d-2d2559524fc0</objectId>
+	<items>	<item>	<key>style</key>
+	<value>Style</value>
+	</item>	<item>	<key>health</key>
+	<value>Health</value>
+	</item>	<item>	<key>entertainment</key>
+	<value>Entertainment</value>
+	</item>	<item>	<key>technology</key>
+	<value>Technology</value>
+	</item></items>
+	<file-name>categories.xml</file-name>
+	<folder-name/>
+	<internal-name>Categories</internal-name>
+	<createdDate>5/12/2017 4:56:54</createdDate>
+	<createdDate_dt>5/12/2017 4:56:54</createdDate_dt>
+	<lastModifiedDate>5/12/2017 4:56:54</lastModifiedDate>
+	<lastModifiedDate_dt>5/12/2017 4:56:54</lastModifiedDate_dt>
+</component>

@@ -291,7 +291,11 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     }
                     FileUtils.deleteDirectory(sourceFile);
                 } else {
-                    FileUtils.moveToDirectory(sourceFile, targetFile, true);
+                    if (sourceFile.isFile()) {
+                        FileUtils.moveFile(sourceFile, targetFile);
+                    } else {
+                        FileUtils.moveToDirectory(sourceFile, targetFile, true);
+                    }
                 }
 
                 // The operation is done on disk, now it's time to commit
@@ -943,8 +947,10 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     logger.error("Error: Unknown git operation " + diffEntry.getChangeType());
                     break;
             }
-            repoOperation.setAuthor(StringUtils.isEmpty(author) ? "N/A" :author);
-            toReturn.add(repoOperation);
+            if (repoOperation != null) {
+                repoOperation.setAuthor(StringUtils.isEmpty(author) ? "N/A" : author);
+                toReturn.add(repoOperation);
+            }
         }
         return toReturn;
     }

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+	<content-type>/component/company</content-type>	<display-template/>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<objectGroupId>8b86</objectGroupId>
+	<objectId>8b868a29-3b70-a461-efa1-7b4555bdc60c</objectId>
+	<file-name>8b868a29-3b70-a461-efa1-7b4555bdc60c.xml</file-name>
+	<internal-name>Company 1</internal-name>
+	<name_s>Company 1</name_s>
+	<website_s>www.company1.com</website_s>
+	<email_s>info@company1.com</email_s>
+	<phone_s>+1-123-123-123</phone_s>
+	<logo_s/>
+	<description_html>&lt;p&gt;Makes board games.&lt;/p&gt;</description_html>
+	<createdDate>5/11/2017 17:32:31</createdDate>
+	<createdDate_dt>5/11/2017 17:32:31</createdDate_dt>
+	<lastModifiedDate>5/12/2017 16:20:6</lastModifiedDate>
+	<lastModifiedDate_dt>5/12/2017 16:20:6</lastModifiedDate_dt>
+</component>

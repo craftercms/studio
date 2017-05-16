@@ -160,7 +160,7 @@ public class SiteServiceImpl implements SiteService {
 
 	@Override
 	public Map<String, Object> getConfiguration(String site, String path, boolean applyEnv) {
-		String configPath = StringUtil.EMPTY_STRING;
+		String configPath;
 		if (StringUtils.isEmpty(site)) {
 			configPath = getGlobalConfigRoot() + path;
 		} else {
@@ -745,7 +745,7 @@ public class SiteServiceImpl implements SiteService {
 	    // Process all operations and track if one or more have failed
 	    for (RepoOperationTO repoOperation: repoOperations) {
             Map<String, String> activityInfo = new HashMap<String, String>();
-            String contentClass = StringUtils.EMPTY;
+            String contentClass;
 		    switch (repoOperation.getOperation()) {
 			    case CREATE:
 			    case COPY:

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<permissions>
+    <site id="{siteName}">
+        <role name="manager">
+            <rule regex="/.*">
+                <allowed-permissions>
+                    <permission>Read</permission>
+                    <permission>Write</permission>
+                    <permission>Delete</permission>
+                    <permission>Create Folder</permission>
+  				    <permission>Publish</permission>
+                </allowed-permissions>
+            </rule>
+        </role>
+        <role name="dev">
+            <rule regex="/static-assets/.*">
+                <allowed-permissions>
+                    <permission>Read</permission>
+                    <permission>Write</permission>
+                    <permission>Delete</permission>
+                    <permission>Create Folder</permission>
+  				    <permission>Publish</permission>
+                </allowed-permissions>
+            </rule>
+        </role>    
+        <role name="productManager">
+            <rule regex="/site/website/products/.*">
+                <allowed-permissions>
+                    <permission>Read</permission>
+                    <permission>Write</permission>
+                    <permission>Delete</permission>
+  				    <permission>Publish</permission>
+                </allowed-permissions>
+            </rule>
+        </role>    
+        <role name="author">
+            <rule regex="/.*">
+                <allowed-permissions>
+                    <permission>Read</permission>
+                    <permission>Write</permission>
+                </allowed-permissions>
+            </rule>
+        </role>    
+        <role name="admin">
+            <rule regex="/">
+                <allowed-permissions>
+  				    <permission>Publish</permission>
+                </allowed-permissions>
+            </rule>
+        </role>    
+        <role name="*">
+            <rule regex="/.*">
+                <allowed-permissions>
+                    <permission>Read</permission>
+                </allowed-permissions>
+            </rule>
+        </role>
+    </site>
+</permissions>

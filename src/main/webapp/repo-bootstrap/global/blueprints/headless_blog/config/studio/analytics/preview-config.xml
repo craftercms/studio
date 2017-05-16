@@ -1,0 +1,8 @@
+<config>
+  <credentials>
+    <username>USERNAME</username>
+    <password>PASSWORD</password>
+  </credentials>
+  <sites>
+  </sites>
+</config>

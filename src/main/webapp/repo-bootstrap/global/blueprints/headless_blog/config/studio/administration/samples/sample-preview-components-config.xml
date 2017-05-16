@@ -1,0 +1,10 @@
+<config>
+   <category>
+      <label>General</label>
+      <component>
+                <label>Web Canvas</label>
+                <type>/component/quote</type>
+                <path>/site/components</path>
+      </component>
+   </category>
+</config>

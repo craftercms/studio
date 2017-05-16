@@ -96,7 +96,7 @@
 					<properties>
 						<property>
 							<name>datasource</name>
-							<value>featureicons,featureicons,feature_icons</value>
+							<value>featureicons,featureicons,featureicons,featureIcons</value>
 							<type>datasource:item</type>
 						</property>
 						<property>
@@ -238,7 +238,7 @@
 		</section>
 	</sections>
 	<datasources>				<datasource>
-					<type>configured-list</type>
+					<type>site-component</type>
 					<id>feature_icons</id>
 					<title>Feature Icons</title>
 					<interface>item</interface>
@@ -249,13 +249,8 @@
 								<type>undefined</type>
 						</property>
 						<property>
-							<name>listName</name>
-							<value>feature-icons</value>
-								<type>undefined</type>
-						</property>
-						<property>
-							<name>sort</name>
-							<value>[{&quot;label&quot;:&quot;None&quot;,&quot;selected&quot;:true},{&quot;label&quot;:&quot;ascending&quot;,&quot;selected&quot;:false},{&quot;label&quot;:&quot;descending&quot;,&quot;selected&quot;:false}]</value>
+							<name>componentPath</name>
+							<value>/site/taxonomy/feature-icons.xml</value>
 								<type>undefined</type>
 						</property>
 					</properties>
