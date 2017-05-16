@@ -25,12 +25,13 @@ import org.craftercms.studio.api.v1.service.monitor.MonitorService;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.jar.Manifest;
 
 public class MonitorServiceImpl implements MonitorService {
 
     @Override
-    public VersionMonitor getVersion() throws IOException {
-        return VersionMonitor.getVersion(this.getClass());
+    public VersionMonitor getVersion(Manifest manifest) throws IOException {
+        return VersionMonitor.getVersion(manifest);
     }
 
     @Override

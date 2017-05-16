@@ -36,7 +36,9 @@ class MonitorServices {
 
     static getVersion(context) {
         def monitorServiceImpl = ServiceFactory.getMonitorServices(context);
-        return monitorServiceImpl.getVersion();
+        def manifestToRead=new java.util.jar.Manifest(
+                context.applicationContext.servletContext.getResourceAsStream("/META-INF/MANIFEST.MF"))
+        return monitorServiceImpl.getVersion(manifestToRead)
     }
 
     static getStatus(context) {
