@@ -2,7 +2,7 @@
 	<title>Item Explorer</title>
 	<description></description>
 	<objectType>page</objectType>
-	<content-type>/page/entry</content-type>
+	<content-type>/page/item-explorer</content-type>
 	<imageThumbnail>undefined</imageThumbnail>
 	<properties>		<property>
 			<name>placeInNav</name>
@@ -13,7 +13,7 @@
 		<property>
 			<name>display-template</name>
 			<label>Display Template</label>
-			<value>/templates/web/entry.ftl</value>
+			<value>/templates/web/item-explorer.ftl</value>
 			<type>template</type>
 		</property>
 		<property>
