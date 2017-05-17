@@ -3,7 +3,7 @@
 	<description></description>
 	<objectType>page</objectType>
 	<content-type>/page/home</content-type>
-	<imageThumbnail>undefined</imageThumbnail>
+	<imageThumbnail>page-home.png</imageThumbnail>
 	<properties>		<property>
 			<name>display-template</name>
 			<label>Display Template</label>

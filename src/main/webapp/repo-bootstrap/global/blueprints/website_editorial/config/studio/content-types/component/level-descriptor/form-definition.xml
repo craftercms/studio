@@ -3,7 +3,7 @@
 	<description></description>
 	<objectType>component</objectType>
 	<content-type>/component/level-descriptor</content-type>
-	<imageThumbnail>undefined</imageThumbnail>
+	<imageThumbnail>section-defaults.png</imageThumbnail>
 	<properties>		<property>
 			<name>display-template</name>
 			<label>Display Template</label>

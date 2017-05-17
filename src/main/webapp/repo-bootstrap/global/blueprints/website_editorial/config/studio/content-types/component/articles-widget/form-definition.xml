@@ -3,7 +3,7 @@
 	<description></description>
 	<objectType>component</objectType>
 	<content-type>/component/articles-widget</content-type>
-	<imageThumbnail>undefined</imageThumbnail>
+	<imageThumbnail>component-articles-widget.png</imageThumbnail>
 	<properties>		<property>
 			<name>display-template</name>
 			<label>Display Template</label>

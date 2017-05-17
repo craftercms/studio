@@ -6,6 +6,6 @@
 	<file-extension>xml</file-extension>
 	<content-as-folder>true</content-as-folder>
 	<previewable>true</previewable>
-	<noThumbnail>true</noThumbnail>
-	<image-thumbnail></image-thumbnail>
+	<noThumbnail>false</noThumbnail>
+	<image-thumbnail>page-search-results.png</image-thumbnail>
 </content-type>

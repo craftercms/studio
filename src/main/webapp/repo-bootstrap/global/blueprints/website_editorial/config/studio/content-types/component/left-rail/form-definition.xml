@@ -3,7 +3,7 @@
 	<description></description>
 	<objectType>component</objectType>
 	<content-type>/component/left-rail</content-type>
-	<imageThumbnail>undefined</imageThumbnail>
+	<imageThumbnail>component-left-rail.png</imageThumbnail>
 	<properties>		<property>
 			<name>display-template</name>
 			<label>Display Template</label>
