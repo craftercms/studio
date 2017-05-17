@@ -3,7 +3,7 @@
 	<description></description>
 	<objectType>component</objectType>
 	<content-type>/component/header</content-type>
-	<imageThumbnail>undefined</imageThumbnail>
+	<imageThumbnail>component-header.png</imageThumbnail>
 	<properties>		<property>
 			<name>display-template</name>
 			<label>Display Template</label>

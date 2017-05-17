@@ -7,5 +7,5 @@
 	<content-as-folder>true</content-as-folder>
 	<previewable>true</previewable>
 	<noThumbnail>false</noThumbnail>
-	<image-thumbnail>undefined</image-thumbnail>
+	<image-thumbnail>page-article.png</image-thumbnail>
 </content-type>

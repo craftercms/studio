@@ -7,5 +7,5 @@
 	<content-as-folder>false</content-as-folder>
 	<previewable>false</previewable>
 	<noThumbnail>false</noThumbnail>
-	<image-thumbnail>undefined</image-thumbnail>
+	<image-thumbnail>component-left-rail.png</image-thumbnail>
 </content-type>

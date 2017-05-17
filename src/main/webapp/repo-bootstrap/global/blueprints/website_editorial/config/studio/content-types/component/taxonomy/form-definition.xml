@@ -3,7 +3,7 @@
 	<description></description>
 	<objectType>component</objectType>
 	<content-type>/component/taxonomy</content-type>
-	<imageThumbnail>undefined</imageThumbnail>
+	<imageThumbnail>taxonomy.png</imageThumbnail>
 	<properties>		<property>
 			<name>display-template</name>
 			<label>Display Template</label>

@@ -6,6 +6,6 @@
 	<file-extension>xml</file-extension>
 	<content-as-folder>false</content-as-folder>
 	<previewable>false</previewable>
-	<noThumbnail>true</noThumbnail>
-	<image-thumbnail></image-thumbnail>
+	<noThumbnail>false</noThumbnail>
+	<image-thumbnail>component-header.png</image-thumbnail>
 </content-type>
