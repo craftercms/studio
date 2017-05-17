@@ -1,10 +1,6 @@
 import org.craftercms.blueprints.headless.CompanySearchHelper
 
-def id = params.id
-
-if(!id) {
-	throw new Exception("Missing id parameter")
-}
+def id = pathVars.id
 
 def companies = new CompanySearchHelper(searchService)
 						.filter("objectId: $id")

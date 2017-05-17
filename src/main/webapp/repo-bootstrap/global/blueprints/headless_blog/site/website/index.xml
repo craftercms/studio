@@ -9,27 +9,27 @@
 	<orderDefault_f>-1</orderDefault_f>
 	<body>&lt;p&gt;This sample site allows you to manage a blog using multiple authors, categories and tags for the posts.&lt;/p&gt;
 &lt;p&gt;All content is exposed by a flexible REST API:&lt;/p&gt;
-&lt;p&gt;get-* endpoints expect an &amp;#39;id&amp;#39; as parameter&lt;/p&gt;
+&lt;p&gt;get endpoint using an id:&lt;/p&gt;
 &lt;ul&gt;
-&lt;li&gt;/api/1/get-post.json&lt;/li&gt;
-&lt;li&gt;/api/1/get-author.json&lt;/li&gt;
+&lt;li&gt;/api/1/author/{id}.json&lt;/li&gt;
+&lt;li&gt;/api/1/post/{id}.json&lt;/li&gt;
 &lt;/ul&gt;
-&lt;p&gt;list-* endpoints support &amp;#39;start&amp;#39; and &amp;#39;rows&amp;#39; paramaeters for pagination&lt;/p&gt;
+&lt;p&gt;list endpoints support &amp;#39;start&amp;#39; and &amp;#39;rows&amp;#39; parameters for pagination:&lt;/p&gt;
 &lt;ul&gt;
-&lt;li&gt;/api/1/list-authors.json&lt;/li&gt;
-&lt;li&gt;/api/1/list-categories.json&lt;/li&gt;
-&lt;li&gt;/api/1/list-tags.json&lt;/li&gt;
+&lt;li&gt;/api/1/author/list.json&lt;/li&gt;
+&lt;li&gt;/api/1/category/list.json&lt;/li&gt;
+&lt;li&gt;/api/1/tag/list.json&lt;/li&gt;
 &lt;/ul&gt;
-&lt;p&gt;list-posts also supports &amp;#39;author&amp;#39;, &amp;#39;categories&amp;#39;, &amp;#39;tags&amp;#39; parameters. A special &amp;#39;q&amp;#39; parameter supports text search in the body of the posts.&lt;/p&gt;
+&lt;p&gt;list posts endpoint also supports &amp;#39;author&amp;#39;, &amp;#39;categories&amp;#39;, &amp;#39;tags&amp;#39; parameters. A special &amp;#39;q&amp;#39; parameter supports text search in the body of the posts:&lt;/p&gt;
 &lt;ul&gt;
-&lt;li&gt;/api/1/list-posts.json&lt;/li&gt;
+&lt;li&gt;/api/1/post/list.json&lt;/li&gt;
 &lt;/ul&gt;</body>
 	<objectGroupId>8d7f</objectGroupId>
 	<objectId>8d7f21fa-5e09-00aa-8340-853b7db302da</objectId>
 	<folder-name/>
 	<createdDate>1/31/2017 16:18:14</createdDate>
 	<createdDate_dt>1/31/2017 16:18:14</createdDate_dt>
-	<lastModifiedDate>5/11/2017 14:44:15</lastModifiedDate>
-	<lastModifiedDate_dt>5/11/2017 14:44:15</lastModifiedDate_dt>
+	<lastModifiedDate>5/17/2017 15:51:28</lastModifiedDate>
+	<lastModifiedDate_dt>5/17/2017 15:51:28</lastModifiedDate_dt>
 	<title>Item Explorer</title>
 </page>

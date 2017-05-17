@@ -1,10 +1,6 @@
 import org.craftercms.blueprints.headless.AuthorSearchHelper
 
-def id = params.id
-
-if(!id) {
-	throw new Exception("Missing id parameter.")
-}
+def id = pathVars.id
 
 def authors = new AuthorSearchHelper(searchService)
 						.query("objectId: $id")

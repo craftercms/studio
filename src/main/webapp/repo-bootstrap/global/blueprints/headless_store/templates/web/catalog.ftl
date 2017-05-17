@@ -157,13 +157,13 @@
 					},
 					loadFilters: function() {
 						var self = this;
-						this.$http.get('/api/1/services/api/1/company/list.json').then(function(response) {
+						this.$http.get('/api/1/company/list.json').then(function(response) {
 							self.companies = response.body;
 						});
-						this.$http.get('/api/1/services/api/1/category/list.json').then(function(response) {
+						this.$http.get('/api/1/category/list.json').then(function(response) {
 							self.categories = response.body;
 						});
-						this.$http.get('/api/1/services/api/1/tag/list.json').then(function(response) {
+						this.$http.get('/api/1/tag/list.json').then(function(response) {
 							self.tags = response.body;
 						});
 					},
@@ -182,7 +182,7 @@
 						if(this.selectedTags.length > 0) {
 							params.tags = this.selectedTags.map(function(tag){ return tag.value }).join(",")
 						}
-						this.$http.get('/api/1/services/api/1/product/list.json', { params: params }).then(function(response) {
+						this.$http.get('/api/1/product/list.json', { params: params }).then(function(response) {
 							self.products = response.body;
 							self.pagination.total = Math.ceil(parseInt(response.body.total) / self.pagination.rows);
 							self.pagination.hasNext = self.pagination.current < self.pagination.total;

@@ -1,10 +1,6 @@
 import org.craftercms.blueprints.headless.PostSearchHelper
 
-def id = params.id
-
-if(!id) {
-	throw new Exception("Missing id parameter.")
-}
+def id = pathVars.id
 
 def posts = new PostSearchHelper(searchService)
 						.filter("objectId: $id")
