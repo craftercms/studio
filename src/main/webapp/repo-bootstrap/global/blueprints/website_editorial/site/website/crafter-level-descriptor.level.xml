@@ -7,18 +7,18 @@
 	<objectGroupId>0a68</objectGroupId>
 	<objectId>0a68e8ad-77d8-0a58-e7bf-09a71fb3077b</objectId>
 	<folder-name/>
-	<header>	<item>	<key>/site/components/header.xml</key>
+	<header>	<item>	<key>/site/components/headers/header.xml</key>
 	<value>Header</value>
-	<include>/site/components/header.xml</include>
+	<include>/site/components/headers/header.xml</include>
 	<disableFlattening>false</disableFlattening>
 	</item></header>
 	<createdDate>3/13/2017 20:26:50</createdDate>
 	<createdDate_dt>3/13/2017 20:26:50</createdDate_dt>
-	<lastModifiedDate>3/17/2017 19:54:27</lastModifiedDate>
-	<lastModifiedDate_dt>3/17/2017 19:54:27</lastModifiedDate_dt>
-	<left-rail>	<item>	<key>/site/components/left-rail-with-no-articles.xml</key>
+	<lastModifiedDate>5/18/2017 15:38:58</lastModifiedDate>
+	<lastModifiedDate_dt>5/18/2017 15:38:58</lastModifiedDate_dt>
+	<left-rail>	<item>	<key>/site/components/left-rails/left-rail-with-no-articles.xml</key>
 	<value>Left Rail with No Articles</value>
-	<include>/site/components/left-rail-with-no-articles.xml</include>
+	<include>/site/components/left-rails/left-rail-with-no-articles.xml</include>
 	<disableFlattening>false</disableFlattening>
 	</item></left-rail>
 </component>

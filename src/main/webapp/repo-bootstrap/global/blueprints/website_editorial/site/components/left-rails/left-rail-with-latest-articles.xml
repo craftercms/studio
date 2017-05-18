@@ -9,15 +9,15 @@
 	<internal-name>Left Rail with Latest Articles</internal-name>
 	<createdDate>3/17/2017 18:23:14</createdDate>
 	<createdDate_dt>3/17/2017 18:23:14</createdDate_dt>
-	<lastModifiedDate>3/28/2017 22:28:53</lastModifiedDate>
-	<lastModifiedDate_dt>3/28/2017 22:28:53</lastModifiedDate_dt>
-	<widgets>	<item>	<key>/site/components/latest-articles-widget.xml</key>
+	<lastModifiedDate>5/18/2017 15:53:42</lastModifiedDate>
+	<lastModifiedDate_dt>5/18/2017 15:53:42</lastModifiedDate_dt>
+	<widgets>	<item>	<key>/site/components/articles-widget/latest-articles-widget.xml</key>
 	<value>Latest Articles Widget</value>
-	<include>/site/components/latest-articles-widget.xml</include>
+	<include>/site/components/articles-widget/latest-articles-widget.xml</include>
 	<disableFlattening>false</disableFlattening>
-	</item>	<item>	<key>/site/components/contact-widget.xml</key>
+	</item>	<item>	<key>/site/components/contacts/contact-widget.xml</key>
 	<value>Contact Widget</value>
-	<include>/site/components/contact-widget.xml</include>
+	<include>/site/components/contacts/contact-widget.xml</include>
 	<disableFlattening>false</disableFlattening>
 	</item></widgets>
 </component>
