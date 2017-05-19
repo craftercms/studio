@@ -9,13 +9,13 @@
 	<internal-name>Search Results</internal-name>
 	<title>Search Results</title>
 	<header/>
-	<left-rail>	<item>	<key>/site/components/left-rail-with-latest-articles.xml</key>
+	<left-rail>	<item>	<key>/site/components/left-rails/left-rail-with-latest-articles.xml</key>
 	<value>Left Rail with Latest Articles</value>
-	<include>/site/components/left-rail-with-latest-articles.xml</include>
+	<include>/site/components/left-rails/left-rail-with-latest-articles.xml</include>
 	<disableFlattening>false</disableFlattening>
 	</item></left-rail>
 	<createdDate>3/23/2017 23:47:15</createdDate>
 	<createdDate_dt>3/23/2017 23:47:15</createdDate_dt>
-	<lastModifiedDate>3/23/2017 23:47:15</lastModifiedDate>
-	<lastModifiedDate_dt>3/23/2017 23:47:15</lastModifiedDate_dt>
+	<lastModifiedDate>5/18/2017 19:52:59</lastModifiedDate>
+	<lastModifiedDate_dt>5/18/2017 19:52:59</lastModifiedDate_dt>
 </page>

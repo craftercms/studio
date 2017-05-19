@@ -11,8 +11,8 @@
 	<folder-name/>
 	<createdDate>1/31/2017 16:18:14</createdDate>
 	<createdDate_dt>1/31/2017 16:18:14</createdDate_dt>
-	<lastModifiedDate>3/27/2017 14:3:29</lastModifiedDate>
-	<lastModifiedDate_dt>3/27/2017 14:3:29</lastModifiedDate_dt>
+	<lastModifiedDate>5/18/2017 15:52:21</lastModifiedDate>
+	<lastModifiedDate_dt>5/18/2017 15:52:21</lastModifiedDate_dt>
 	<title>Editorial</title>
 	<hero_text>&lt;p&gt;Aenean ornare velit lacus, ac varius enim ullamcorper eu. Proin aliquam facilisis ante interdum congue. Integer mollis, nisl amet convallis, porttitor magna ullamcorper, amet egestas mauris. Ut magna finibus nisi nec lacinia. Nam maximus erat id euismod egestas. Pellentesque sapien ac quam. Lorem ipsum dolor sit nullam.&lt;/p&gt;</hero_text>
 	<hero_title>&lt;h1&gt;&lt;span&gt;Hi, I&amp;rsquo;m Editorial&lt;/span&gt;&lt;/h1&gt;
@@ -20,6 +20,7 @@
 	<features>	<item>	<value>Quam lorem ipsum</value>
 	<key>/site/components/features/quam-lorem-ipsum.xml</key>
 	<include>/site/components/features/quam-lorem-ipsum.xml</include>
+	<disableFlattening>false</disableFlattening>
 	</item>	<item>	<key>/site/components/features/sapien-veroeros.xml</key>
 	<value>Sapien Veroeros</value>
 	<include>/site/components/features/sapien-veroeros.xml</include>
@@ -27,9 +28,9 @@
 	</item></features>
 	<header/>
 	<hero_image>/static-assets/images/strawberries.jpg</hero_image>
-	<left-rail>	<item>	<key>/site/components/left-rail-with-latest-articles.xml</key>
+	<left-rail>	<item>	<key>/site/components/left-rails/left-rail-with-latest-articles.xml</key>
 	<value>Left Rail with Latest Articles</value>
-	<include>/site/components/left-rail-with-latest-articles.xml</include>
+	<include>/site/components/left-rails/left-rail-with-latest-articles.xml</include>
 	<disableFlattening>false</disableFlattening>
 	</item></left-rail>
 	<features_title>Erat lacinia</features_title>

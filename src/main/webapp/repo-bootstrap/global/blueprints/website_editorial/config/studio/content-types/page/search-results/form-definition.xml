@@ -152,7 +152,7 @@
 						</property>
 						<property>
 							<name>itemManager</name>
-							<value>components</value>
+							<value>components-header</value>
 							<type>datasource:item</type>
 						</property>
 						<property>
@@ -200,7 +200,7 @@
 						</property>
 						<property>
 							<name>itemManager</name>
-							<value>components</value>
+							<value>components-left-rail</value>
 							<type>datasource:item</type>
 						</property>
 						<property>
@@ -232,13 +232,36 @@
 	</sections>
 	<datasources>				<datasource>
 					<type>child-content</type>
-					<id>components</id>
-					<title>Components</title>
+					<id>components-header</id>
+					<title>Components Header</title>
 					<interface>item</interface>
 					<properties>
 						<property>
 							<name>repoPath</name>
-							<value>/site/components/</value>
+							<value>/site/components/headers/</value>
+								<type>undefined</type>
+						</property>
+						<property>
+							<name>browsePath</name>
+							<value></value>
+								<type>undefined</type>
+						</property>
+						<property>
+							<name>type</name>
+							<value></value>
+								<type>undefined</type>
+						</property>
+					</properties>
+				</datasource>
+				<datasource>
+					<type>child-content</type>
+					<id>components-left-rail</id>
+					<title>Components Left Rail</title>
+					<interface>item</interface>
+					<properties>
+						<property>
+							<name>repoPath</name>
+							<value>/site/components/left-rails/</value>
 								<type>undefined</type>
 						</property>
 						<property>

@@ -7,13 +7,13 @@
 	<file-name>crafter-level-descriptor.level.xml</file-name>
 	<folder-name/>
 	<header/>
-	<left-rail>	<item>	<key>/site/components/left-rail-with-related-articles.xml</key>
+	<left-rail>	<item>	<key>/site/components/left-rails/left-rail-with-related-articles.xml</key>
 	<value>Left Rail with Related Articles</value>
-	<include>/site/components/left-rail-with-related-articles.xml</include>
+	<include>/site/components/left-rails/left-rail-with-related-articles.xml</include>
 	<disableFlattening>false</disableFlattening>
 	</item></left-rail>
 	<createdDate>3/17/2017 18:56:59</createdDate>
 	<createdDate_dt>3/17/2017 18:56:59</createdDate_dt>
-	<lastModifiedDate>3/17/2017 18:59:50</lastModifiedDate>
-	<lastModifiedDate_dt>3/17/2017 18:59:50</lastModifiedDate_dt>
+	<lastModifiedDate>5/18/2017 15:38:1</lastModifiedDate>
+	<lastModifiedDate_dt>5/18/2017 15:38:1</lastModifiedDate_dt>
 </component>
