@@ -8,4 +8,9 @@
 	<previewable>false</previewable>
 	<noThumbnail>false</noThumbnail>
 	<image-thumbnail>section-defaults.png</image-thumbnail>
+	<paths>
+		<includes>
+			<pattern>^/site/website/.*</pattern>
+		</includes>
+	</paths>
 </content-type>

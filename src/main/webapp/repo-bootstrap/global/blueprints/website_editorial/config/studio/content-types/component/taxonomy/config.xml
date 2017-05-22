@@ -8,4 +8,9 @@
 	<previewable>false</previewable>
 	<noThumbnail>false</noThumbnail>
 	<image-thumbnail>taxonomy.png</image-thumbnail>
+	<paths>
+		<includes>
+			<pattern>^/site/taxonomy/.*</pattern>
+		</includes>
+	</paths>
 </content-type>
