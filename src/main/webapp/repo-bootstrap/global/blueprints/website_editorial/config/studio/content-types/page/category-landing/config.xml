@@ -8,4 +8,9 @@
 	<previewable>true</previewable>
 	<noThumbnail>false</noThumbnail>
 	<image-thumbnail>page-category-landing.png</image-thumbnail>
+	<paths>
+		<includes>
+			<pattern>^/site/website/(?!articles/)(.*)</pattern>
+		</includes>
+	</paths>
 </content-type>

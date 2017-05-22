@@ -8,4 +8,9 @@
 	<previewable>false</previewable>
 	<noThumbnail>false</noThumbnail>
 	<image-thumbnail>component-contact-widget.png</image-thumbnail>
+	<paths>
+		<includes>
+			<pattern>^/site/components/contacts/.*</pattern>
+		</includes>
+	</paths>
 </content-type>

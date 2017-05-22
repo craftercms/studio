@@ -8,4 +8,9 @@
 	<previewable>false</previewable>
 	<noThumbnail>false</noThumbnail>
 	<image-thumbnail>component-articles-widget.png</image-thumbnail>
+	<paths>
+		<includes>
+			<pattern>^/site/components/articles-widget/.*</pattern>
+		</includes>
+	</paths>
 </content-type>

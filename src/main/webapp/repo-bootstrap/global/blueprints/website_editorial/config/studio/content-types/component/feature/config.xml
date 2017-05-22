@@ -8,4 +8,9 @@
 	<previewable>false</previewable>
 	<noThumbnail>false</noThumbnail>
 	<image-thumbnail>component-feature.png</image-thumbnail>
+	<paths>
+		<includes>
+			<pattern>^/site/components/features/.*</pattern>
+		</includes>
+	</paths>
 </content-type>
