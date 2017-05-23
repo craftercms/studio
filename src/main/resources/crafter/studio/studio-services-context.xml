@@ -920,7 +920,6 @@
         <property name="siteService" ref="cstudioSiteServiceSimple"/>
         <property name="objectStateService" ref="cstudioObjectStateService" />
         <property name="contentService" ref="cstudioContentService"/>
-        <property name="dmDependencyService" ref="cstudioDmDependencyService" />
         <property name="deploymentService" ref="cstudioDeploymentService"/>
         <property name="environmentsStoreRootPath" value="${crafter.deployer.environmentStoreRoot}"/>
         <property name="deployerFactory" ref="cstudioDeployerFactory"/>
@@ -932,6 +931,7 @@
         <property name="enablePublishingWithoutDependencies" value="${publishingManager.enablePublishingWithoutDependencies}"/>
         <property name="deploymentEventService" ref="cstudioDeploymentEventService"/>
         <property name="securityProvider" ref="securityProvider" />
+        <property name="deploymentDependencyRule" ref="studioDeplymentDependencyRule" />
     </bean>
 
     <!-- //////////////// -->
@@ -952,6 +952,7 @@
             <list>
                 <value>/components/page/.*</value>
                 <value>/static-assets/page/.*</value>
+                <value>/static-assets/images/page/.*</value>
             </list>
         </property>
     </bean>
