@@ -952,7 +952,6 @@
             <list>
                 <value>/components/page/.*</value>
                 <value>/static-assets/page/.*</value>
-                <value>/static-assets/images/page/.*</value>
             </list>
         </property>
     </bean>
