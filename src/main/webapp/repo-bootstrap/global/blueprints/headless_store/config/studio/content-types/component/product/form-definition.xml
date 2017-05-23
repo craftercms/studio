@@ -490,12 +490,12 @@
 					<properties>
 						<property>
 							<name>repoPath</name>
-							<value>/site/components/companies</value>
+							<value>/site/items/companies</value>
 								<type>undefined</type>
 						</property>
 						<property>
 							<name>browsePath</name>
-							<value>/site/components/companies</value>
+							<value>/site/items/companies</value>
 								<type>undefined</type>
 						</property>
 						<property>

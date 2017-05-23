@@ -15,7 +15,7 @@
 									<name>wcm-root-folder</name>
 									<showDivider>true</showDivider>
 									<params>
-										<label>Store</label>
+										<label>Example Store</label>
 										<path>/site/website</path>
 										<showRootItem>true</showRootItem>
 										<onClick>preview</onClick>
@@ -28,7 +28,7 @@
 									<showDivider>true</showDivider>
 									<params>
 										<label>Items</label>
-										<path>/site/components</path>
+										<path>/site/items</path>
 										<showRootItem>false</showRootItem>
 									</params>
 								</modulehook>
@@ -43,7 +43,16 @@
 										<showRootItem>false</showRootItem>
 									</params>
 								</modulehook>
-
+								<modulehook>
+									<name>wcm-assets-folder</name>
+									<showDivider>true</showDivider>
+									<params>
+										<label>Scripts</label>
+										<path>/scripts</path>
+										<showRootItem>true</showRootItem>
+										<onClick>none</onClick>
+									</params>
+								</modulehook>
 								<modulehook>
 									<name>wcm-assets-folder</name>
 									<showDivider>true</showDivider>
@@ -60,16 +69,6 @@
 									<params>
 										<label>Templates</label>
 										<path>/templates</path>
-										<showRootItem>true</showRootItem>
-										<onClick>none</onClick>
-									</params>
-								</modulehook>
-								<modulehook>
-									<name>wcm-assets-folder</name>
-									<showDivider>true</showDivider>
-									<params>
-										<label>Scripts</label>
-										<path>/scripts</path>
 										<showRootItem>true</showRootItem>
 										<onClick>none</onClick>
 									</params>

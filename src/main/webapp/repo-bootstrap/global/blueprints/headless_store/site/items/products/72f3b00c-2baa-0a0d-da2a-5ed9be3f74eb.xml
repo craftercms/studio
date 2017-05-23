@@ -17,9 +17,9 @@
 	<value_smv>Learning</value_smv>
 	</item></tags>
 	<image_s>/static-assets/images/products/chess.jpeg</image_s>
-	<company>	<item>	<key>/site/components/companies/9ea03b5c-e199-5e07-aa60-1997dcefbd4c.xml</key>
+	<company>	<item>	<key>/site/items/companies/9ea03b5c-e199-5e07-aa60-1997dcefbd4c.xml</key>
 	<value>Company 2</value>
-	<include>/site/components/companies/9ea03b5c-e199-5e07-aa60-1997dcefbd4c.xml</include>
+	<include>/site/items/companies/9ea03b5c-e199-5e07-aa60-1997dcefbd4c.xml</include>
 	<disableFlattening>false</disableFlattening>
 	</item></company>
 	<description_html>&lt;p&gt;Chess&lt;/p&gt;</description_html>

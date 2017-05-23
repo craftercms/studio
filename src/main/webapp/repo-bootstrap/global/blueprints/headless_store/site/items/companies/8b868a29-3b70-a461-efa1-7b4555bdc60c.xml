@@ -7,8 +7,8 @@
 	<file-name>8b868a29-3b70-a461-efa1-7b4555bdc60c.xml</file-name>
 	<internal-name>Company 1</internal-name>
 	<name_s>Company 1</name_s>
-	<website_s>www.company1.com</website_s>
-	<email_s>info@company1.com</email_s>
+	<website_s>https://www.example.com/</website_s>
+	<email_s>info@example.com/</email_s>
 	<phone_s>+1-123-123-123</phone_s>
 	<logo_s/>
 	<description_html>&lt;p&gt;Makes board games.&lt;/p&gt;</description_html>
