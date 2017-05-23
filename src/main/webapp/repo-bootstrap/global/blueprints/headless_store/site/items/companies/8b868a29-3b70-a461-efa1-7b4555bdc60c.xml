@@ -10,10 +10,10 @@
 	<website_s>https://www.example.com/</website_s>
 	<email_s>info@example.com/</email_s>
 	<phone_s>+1-123-123-123</phone_s>
-	<logo_s/>
+	<logo_s>/static-assets/images/companies/company1.jpeg</logo_s>
 	<description_html>&lt;p&gt;Makes board games.&lt;/p&gt;</description_html>
 	<createdDate>5/11/2017 17:32:31</createdDate>
 	<createdDate_dt>5/11/2017 17:32:31</createdDate_dt>
-	<lastModifiedDate>5/12/2017 16:20:6</lastModifiedDate>
-	<lastModifiedDate_dt>5/12/2017 16:20:6</lastModifiedDate_dt>
+	<lastModifiedDate>5/23/2017 23:11:5</lastModifiedDate>
+	<lastModifiedDate_dt>5/23/2017 23:11:5</lastModifiedDate_dt>
 </component>

@@ -6,6 +6,9 @@
 		<meta charset="utf-8">
 		<title>${model.title}</title>
 		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+		<style>
+			[v-cloak] { display:none; }
+		</style>
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 	</head>
 	<body>
@@ -19,7 +22,7 @@
 				<nav class="navbar navbar-default">
 					<ul class="nav navbar-nav">
 						<li class="dropdown">
-							<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button">Company<span v-if="selectedCompany">: {{ selectedCompany.name }}</span><span class="caret"></span></a>
+							<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button">Company<span class="caret"></span></a>
 							<ul class="dropdown-menu">
 								<li v-for="company in companies.items" v-bind:class="{ active: selectedCompany == company }">
 									<a href="#" v-on:click="updateCompany(selectedCompany != company? company : null)">
@@ -51,6 +54,21 @@
 					</ul>
 				</nav>
 			</div>
+			<div class="row" v-if="selectedCompany">
+				<div class="col-sm-12">
+					<div class="panel panel-default">
+						<div class="panel-body">
+							<div class="col-sm-2">
+								<img class="img-responsive img-circle center-block" v-bind:src="selectedCompany.logo"/>
+							</div>
+							<div class="col-sm-10 text-center">
+								<h2><a v-bind:href="selectedCompany.website">{{ selectedCompany.name }}</a></h2>
+								<p>{{ selectedCompany.description }}</p>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
 			<div class="row" v-if="selectedTags.length > 0 || selectedCategories.length > 0">
 				<div class="col-sm-12">
 					<div class="panel panel-default">
@@ -74,7 +92,7 @@
 				<div class="col-md-3" v-for="product in products.items">
 					<div class="panel panel-default">
 						<div class="panel-body">
-							<img v-bind:src="product.image" class="img-responsive img-thumbnail center-block"/>
+							<img v-bind:src="product.image" data-toggle="popover" data-trigger="hover" v-bind:data-content="product.description" class="img-responsive img-thumbnail center-block"/>
 							<h4>{{ product.name }}<small> by {{ product.company }}<small></h4>
 							<span class="badge pull-right">&#36;{{ product.price }}</span>
 						</div>
@@ -101,6 +119,8 @@
 				</div>
 			</div>
 		</div>
+		<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 		<script src="https://unpkg.com/vue"></script>
 		<script src="https://unpkg.com/vue-resource"></script>
 		<script>
@@ -192,11 +212,12 @@
 				mounted: function() {
 					this.loadFilters();
 					this.loadProducts();
+					$(function () {
+					  $('[data-toggle="popover"]').popover()
+					})
 				}
 			});
 		</script>
-		<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
-		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 		<@studio.toolSupport/>
 	</body>
 </html>
