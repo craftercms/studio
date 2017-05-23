@@ -40,6 +40,7 @@ import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
+import org.craftercms.studio.api.v1.service.dependency.DependencyRule;
 import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
 import org.craftercms.studio.api.v1.service.deployment.*;
 import org.craftercms.studio.api.v1.service.notification.NotificationService;
@@ -622,7 +623,7 @@ public class PublishingManagerImpl implements PublishingManager {
                 String helpPath = path.replace("/" + indexFile, "");
                 int idx = helpPath.lastIndexOf("/");
                 String parentPath = helpPath.substring(0, idx) + "/" + indexFile;
-                if (objectStateService.isNew(site, parentPath) /* TODO: check renamed || objectStateService.isRenamed(site, parentPath) */) {
+                if (objectStateService.isNew(site, parentPath) || objectMetadataManager.isRenamed(site, parentPath)) {
                     String parentFullPath = contentService.expandRelativeSitePath(site, parentPath);
                     if (!missingDependenciesPaths.contains(parentFullPath) && !pathsToDeploy.contains(parentFullPath)) {
                         deploymentService.cancelWorkflow(site, parentPath);
@@ -636,9 +637,9 @@ public class PublishingManagerImpl implements PublishingManager {
             }
 
             if (!enablePublishingWithoutDependencies) {
-                List<String> dependentPaths = dmDependencyService.getDependencyPaths(site, path);
+                Set<String> dependentPaths = deploymentDependencyRule.applyRule(site, path);
                 for (String dependentPath : dependentPaths) {
-                    if (objectStateService.isNew(site, dependentPath) /* TODO: check renamed || contentRepository.isRenamed(site, dependentPath) */) {
+                    if (objectStateService.isNew(site, dependentPath) || objectMetadataManager.isRenamed(site, dependentPath) ) {
                         String dependentFullPath = contentService.expandRelativeSitePath(site, dependentPath);
                         if (!missingDependenciesPaths.contains(dependentFullPath) && !pathsToDeploy.contains(dependentFullPath)) {
                             deploymentService.cancelWorkflow(site, dependentPath);
@@ -697,9 +698,6 @@ public class PublishingManagerImpl implements PublishingManager {
     public ContentService getContentService() { return contentService; }
     public void setContentService(ContentService contentService) { this.contentService = contentService; }
 
-    public DmDependencyService getDmDependencyService() { return dmDependencyService; }
-    public void setDmDependencyService(DmDependencyService dmDependencyService) { this.dmDependencyService = dmDependencyService; }
-
     public DeploymentService getDeploymentService() { return deploymentService; }
     public void setDeploymentService(DeploymentService deploymentService) { this.deploymentService = deploymentService; }
 
@@ -735,12 +733,14 @@ public class PublishingManagerImpl implements PublishingManager {
     public SecurityProvider getSecurityProvider() { return securityProvider; }
     public void setSecurityProvider(SecurityProvider securityProvider) { this.securityProvider = securityProvider; }
 
+    public DependencyRule getDeploymentDependencyRule() { return deploymentDependencyRule; }
+    public void setDeploymentDependencyRule(DependencyRule deploymentDependencyRule) { this.deploymentDependencyRule = deploymentDependencyRule; }
+
     protected String indexFile;
     protected boolean importModeEnabled;
     protected SiteService siteService;
     protected ObjectStateService objectStateService;
     protected ContentService contentService;
-    protected DmDependencyService dmDependencyService;
     protected DeploymentService deploymentService;
     protected String environmentsStoreRootPath;
     protected DeployerFactory deployerFactory;
@@ -752,6 +752,7 @@ public class PublishingManagerImpl implements PublishingManager {
     protected boolean enablePublishingWithoutDependencies = false;
     protected DeploymentEventService deploymentEventService;
     protected SecurityProvider securityProvider;
+    protected DependencyRule deploymentDependencyRule;
 
     @Autowired
     protected CopyToEnvironmentMapper copyToEnvironmentMapper;

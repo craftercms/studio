@@ -1756,23 +1756,11 @@ public class WorkflowServiceImpl implements WorkflowService {
             submitpackage.addToPackage(dmDependencyTO);
         }
 
-        DependencyRules rule = new DependencyRules(site);
-        rule.setObjectStateService(objectStateService);
-        rule.setContentService(contentService);
-        Set<DmDependencyTO> dependencyTOSet;
-        if (dmDependencyTO.isSubmittedForDeletion() || dmDependencyTO.isDeleted()) {
-            dependencyTOSet = rule.applyDeleteDependencyRule(dmDependencyTO);
-        } else {
-            long start = System.currentTimeMillis();
-            dependencyTOSet = rule.applySubmitRule(dmDependencyTO);
-            long end = System.currentTimeMillis();
-            logger.debug("Time to get dependencies rule = " + (end - start));
-
-        }
-        for (DmDependencyTO dependencyTO : dependencyTOSet) {
-            submitpackage.addToPackage(dependencyTO);
+        Set<String> dependencySet = deploymentDependencyRule.applyRule(site, dmDependencyTO.getUri());
+        for (String dependency : dependencySet) {
+            submitpackage.addToPackage(dependency);
             if (!isNotScheduled) {
-                dependencyPackage.addToPackage(dependencyTO);
+                dependencyPackage.addToPackage(dependency);
             }
         }
 
@@ -1999,21 +1987,8 @@ public class WorkflowServiceImpl implements WorkflowService {
             }
         }
 
-        DependencyRules rule = new DependencyRules(site);
-        rule.setObjectStateService(objectStateService);
-        rule.setContentService(contentService);
-        Set<DmDependencyTO> deps = rule.applySubmitRule(item);
-        if (deps != null) {
-            for (DmDependencyTO dep : deps) {
-                String depPath = contentService.expandRelativeSitePath(site, dep.getUri());
-                if (objectStateService.isUpdatedOrNew(site, dep.getUri())) {
-                    if (!submittedPaths.contains(depPath)) {
-                        submittedPaths.add(depPath);
-                    }
-                }
-                resolveSubmittedPaths(site, dep, submittedPaths);
-            }
-        }
+        Set<String> dependencyPaths = deploymentDependencyRule.applyRule(site, item.getUri());
+        submittedPaths.addAll(dependencyPaths);
 
     }
 
