@@ -661,13 +661,13 @@
         <property name="siteService" ref="cstudioSiteServiceSimple"/>
         <property name="objectStateService" ref="cstudioObjectStateService" />
         <property name="contentService" ref="cstudioContentService"/>
-        <property name="dmDependencyService" ref="cstudioDmDependencyService" />
         <property name="deploymentService" ref="cstudioDeploymentService"/>
         <property name="contentRepository" ref="contentRepository"/>
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
         <property name="securityProvider" ref="securityProvider" />
         <property name="studioConfiguration" ref="studioConfiguration" />
+        <property name="deploymentDependencyRule" ref="studioDeplymentDependencyRule" />
     </bean>
 
     <bean id="cstudioDeploymentEventLoggerListener" class="org.craftercms.studio.impl.v1.ebus.DeploymentEventLoggerListener" init-method="subscribeToDeploymentEngineDeployEvents">
