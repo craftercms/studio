@@ -38,6 +38,7 @@ import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
+import org.craftercms.studio.api.v1.service.dependency.DependencyRule;
 import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
@@ -211,7 +212,7 @@ public class PublishingManagerImpl implements PublishingManager {
                 String helpPath = path.replace("/" + getIndexFile(), "");
                 int idx = helpPath.lastIndexOf("/");
                 String parentPath = helpPath.substring(0, idx) + "/" + getIndexFile();
-                if (objectStateService.isNew(site, parentPath) /* TODO: check renamed || objectStateService.isRenamed(site, parentPath) */) {
+                if (objectStateService.isNew(site, parentPath) || objectMetadataManager.isRenamed(site, parentPath)) {
                     if (!missingDependenciesPaths.contains(parentPath) && !pathsToDeploy.contains(parentPath)) {
                         deploymentService.cancelWorkflow(site, parentPath);
                         missingDependenciesPaths.add(parentPath);
@@ -224,10 +225,10 @@ public class PublishingManagerImpl implements PublishingManager {
             }
 
             if (!isEnablePublishingWithoutDependencies()) {
-                List<String> dependentPaths = dmDependencyService.getDependencyPaths(site, path);
+                Set<String> dependentPaths = deploymentDependencyRule.applyRule(site, path);
                 for (String dependentPath : dependentPaths) {
                     // TODO: SJ: This bypasses the Content Service, fix
-                    if (objectStateService.isNew(site, dependentPath) /* TODO: check renamed || contentRepository.isRenamed(site, dependentPath) */) {
+                    if (objectStateService.isNew(site, dependentPath) || objectMetadataManager.isRenamed(site, dependentPath)) {
                         if (!missingDependenciesPaths.contains(dependentPath) && !pathsToDeploy.contains(dependentPath)) {
                             deploymentService.cancelWorkflow(site, dependentPath);
                             missingDependenciesPaths.add(dependentPath);
@@ -235,49 +236,6 @@ public class PublishingManagerImpl implements PublishingManager {
                             DeploymentItem dependentDeploymentItem = processItem(dependentItem);
                             mandatoryDependencies.add(dependentDeploymentItem);
                             mandatoryDependencies.addAll(processMandatoryDependencies(dependentItem, pathsToDeploy, missingDependenciesPaths));
-                        }
-                    }
-                }
-            }
-        }
-
-        return mandatoryDependencies;
-    }
-
-    public List<CopyToEnvironment> processMandatoryDependencies_old(CopyToEnvironment item, List<String> pathsToDeploy, Set<String> missingDependenciesPaths) throws DeploymentException {
-        List<CopyToEnvironment> mandatoryDependencies = new ArrayList<CopyToEnvironment>();
-        String site = item.getSite();
-        String path = item.getPath();
-
-        if (StringUtils.equals(item.getAction(), CopyToEnvironment.Action.NEW) || StringUtils.equals(item.getAction(), CopyToEnvironment.Action.MOVE)) {
-            if (ContentUtils.matchesPatterns(path, servicesConfig.getPagePatterns(site))) {
-                String helpPath = path.replace("/" + getIndexFile(), "");
-                int idx = helpPath.lastIndexOf("/");
-                String parentPath = helpPath.substring(0, idx) + "/" + getIndexFile();
-                if (objectStateService.isNew(site, parentPath) /* TODO: check renamed || objectStateService.isRenamed(site, parentPath) */) {
-                    if (!missingDependenciesPaths.contains(parentPath) && !pathsToDeploy.contains(parentPath)) {
-                        deploymentService.cancelWorkflow(site, parentPath);
-                        missingDependenciesPaths.add(parentPath);
-                        CopyToEnvironment parentItem = createMissingItem(site, parentPath, item);
-                        processItem(parentItem);
-                        mandatoryDependencies.add(parentItem);
-                        mandatoryDependencies.addAll(processMandatoryDependencies_old(parentItem, pathsToDeploy, missingDependenciesPaths));
-                    }
-                }
-            }
-
-            if (!isEnablePublishingWithoutDependencies()) {
-                List<String> dependentPaths = dmDependencyService.getDependencyPaths(site, path);
-                for (String dependentPath : dependentPaths) {
-                    // TODO: SJ: This bypasses the Content Service, fix
-                    if (objectStateService.isNew(site, dependentPath) /* TODO: check renamed || contentRepository.isRenamed(site, dependentPath) */) {
-                        if (!missingDependenciesPaths.contains(dependentPath) && !pathsToDeploy.contains(dependentPath)) {
-                            deploymentService.cancelWorkflow(site, dependentPath);
-                            missingDependenciesPaths.add(dependentPath);
-                            CopyToEnvironment dependentItem = createMissingItem(site, dependentPath, item);
-                            processItem(dependentItem);
-                            mandatoryDependencies.add(dependentItem);
-                            mandatoryDependencies.addAll(processMandatoryDependencies_old(dependentItem, pathsToDeploy, missingDependenciesPaths));
                         }
                     }
                 }
@@ -333,9 +291,6 @@ public class PublishingManagerImpl implements PublishingManager {
     public ContentService getContentService() { return contentService; }
     public void setContentService(ContentService contentService) { this.contentService = contentService; }
 
-    public DmDependencyService getDmDependencyService() { return dmDependencyService; }
-    public void setDmDependencyService(DmDependencyService dmDependencyService) { this.dmDependencyService = dmDependencyService; }
-
     public DeploymentService getDeploymentService() { return deploymentService; }
     public void setDeploymentService(DeploymentService deploymentService) { this.deploymentService = deploymentService; }
 
@@ -354,16 +309,19 @@ public class PublishingManagerImpl implements PublishingManager {
     public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
 
+    public DependencyRule getDeploymentDependencyRule() { return deploymentDependencyRule; }
+    public void setDeploymentDependencyRule(DependencyRule deploymentDependencyRule) { this.deploymentDependencyRule = deploymentDependencyRule; }
+
     protected SiteService siteService;
     protected ObjectStateService objectStateService;
     protected ContentService contentService;
-    protected DmDependencyService dmDependencyService;
     protected DeploymentService deploymentService;
     protected ContentRepository contentRepository;
     protected ObjectMetadataManager objectMetadataManager;
     protected ServicesConfig servicesConfig;
     protected SecurityProvider securityProvider;
     protected StudioConfiguration studioConfiguration;
+    protected DependencyRule deploymentDependencyRule;
 
     @Autowired
     protected CopyToEnvironmentMapper copyToEnvironmentMapper;
