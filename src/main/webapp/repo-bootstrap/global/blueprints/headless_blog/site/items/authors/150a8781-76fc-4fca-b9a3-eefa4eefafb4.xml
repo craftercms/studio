@@ -11,7 +11,7 @@
 	<lastModifiedDate>5/10/2017 21:32:57</lastModifiedDate>
 	<lastModifiedDate_dt>5/10/2017 21:32:57</lastModifiedDate_dt>
 	<name_s>Joe Bloggs</name_s>
-	<website_s>http://www.facebook.com/JoeBloggs</website_s>
+	<website_s>https://www.example.com/</website_s>
 	<disabled>false</disabled>
 	<photo_s>/static-assets/images/avatars/anonymous.png</photo_s>
 	<biography_html>&lt;p&gt;Donec sed odio dui. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus.&lt;/p&gt;</biography_html>

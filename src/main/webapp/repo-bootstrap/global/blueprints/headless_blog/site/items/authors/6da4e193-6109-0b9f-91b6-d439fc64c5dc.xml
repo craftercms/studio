@@ -12,7 +12,7 @@
 	<lastModifiedDate_dt>5/10/2017 21:32:18</lastModifiedDate_dt>
 	<disabled>false</disabled>
 	<name_s>Jane Doe</name_s>
-	<website_s>http://www.janedoe.org</website_s>
+	<website_s>https://www.example.com/</website_s>
 	<photo_s>/static-assets/images/avatars/gal.png</photo_s>
 	<biography_html>&lt;p&gt;Sed posuere consectetur est at lobortis. Integer posuere erat a ante venenatis dapibus posuere velit aliquet. Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis vestibulum. Maecenas faucibus mollis interdum. Etiam porta sem malesuada magna mollis euismod.&lt;/p&gt;</biography_html>
 </component>
