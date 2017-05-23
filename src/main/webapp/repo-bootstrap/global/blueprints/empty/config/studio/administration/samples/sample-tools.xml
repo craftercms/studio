@@ -23,12 +23,12 @@
 				<datasource>child-content</datasource>
 				<datasource>img-desktop-upload</datasource>
 				<datasource>img-repository-upload</datasource>
-				<datasource>img-flickr-upload</datasource>
 				<datasource>file-desktop-upload</datasource>
-				<datasource>flash-desktop-upload</datasource>
+				<datasource>file-browse-repo</datasource>
 				<datasource>video-desktop-upload</datasource>
+				<datasource>video-browse-repo</datasource>
 				<datasource>key-value-list</datasource>
-                <datasource>configured-list</datasource>
+                <datasource>site-component</datasource>
 			</datasources>
 			<objectTypes>
 				<type>
@@ -70,7 +70,14 @@
 
 			</objectTypes>
 		</tool>
+		<tool><name>admin-configurations</name><label>Configuration</label></tool>
+        <tool><name>groups</name><label>Groups</label></tool>
+        <tool><name>audit</name><label>Audit</label></tool>
+		<tool><name>bulkoperations</name><label>Bulk Operations</label></tool>
 		<tool><name>workflow-states</name><label>Workflow States</label></tool>
 		<tool><name>logging</name><label>Logging Levels</label></tool>
+		<tool><name>log-view</name><label>Log Console</label></tool>
+        <tool><name>preview-sync</name><label>Preview Sync</label></tool>
+        <tool><name>sync-from-repository</name><label>Sync From Repository</label></tool>
 	</tools>
 </config>

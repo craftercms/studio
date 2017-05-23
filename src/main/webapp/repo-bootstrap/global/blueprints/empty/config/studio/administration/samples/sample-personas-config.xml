@@ -12,19 +12,19 @@
         <thumb>lead.jpg</thumb>
         <settings>
             <property>
-            	<name>segment</name>
-            	<label>Segment</label>
-            	<value>lead</value>
+                <name>segment</name>
+                <label>Segment</label>
+                <value>lead</value>
             </property>
             <property>
-            	<name>someProp</name>
-            	<label>Another Property</label>
-            	<value>Foo</value>
+                <name>someProp</name>
+                <label>Another Property</label>
+                <value>Foo</value>
             </property>
             <property>
-            	<name>newOptIn</name>
-            	<label>Opt-in for newsletter</label>
-            	<value>true</value>
+                <name>newOptIn</name>
+                <label>Opt-in for newsletter</label>
+                <value>true</value>
             </property>
         </settings>
    </persona>
@@ -34,14 +34,14 @@
         <thumb>customer.jpg</thumb>
         <settings>
             <property>
-            	<name>segment</name>
-            	<label>Segment</label>
-            	<value>customer</value>
+                <name>segment</name>
+                <label>Segment</label>
+                <value>customer</value>
             </property>
             <property>
-            	<name>newOptIn</name>
-            	<label>Opt-in for newsletter</label>
-            	<value>true</value>
+                <name>newOptIn</name>
+                <label>Opt-in for newsletter</label>
+                <value>true</value>
             </property>
         </settings>
    </persona>
@@ -51,14 +51,14 @@
         <thumb>partner.jpg</thumb>
         <settings>
             <property>
-            	<name>segment</name>
-            	<label>Segment</label>
-            	<value>partner</value>
+                <name>segment</name>
+                <label>Segment</label>
+                <value>partner</value>
             </property>
             <property>
-            	<name>newOptIn</name>
-            	<label>Opt-in for newsletter</label>
-            	<value>true</value>
+                <name>newOptIn</name>
+                <label>Opt-in for newsletter</label>
+                <value>true</value>
             </property>
         </settings>
    </persona>
@@ -68,14 +68,14 @@
         <thumb>employee.jpg</thumb>
         <settings>
             <property>
-            	<name>segment</name>
-            	<label>Segment</label>
-            	<value>employee</value>
+                <name>segment</name>
+                <label>Segment</label>
+                <value>employee</value>
             </property>
             <property>
-            	<name>newOptIn</name>
-            	<label>Opt-in for newsletter</label>
-            	<value>false</value>
+                <name>newOptIn</name>
+                <label>Opt-in for newsletter</label>
+                <value>false</value>
             </property>
         </settings>
    </persona>
