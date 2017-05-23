@@ -21,6 +21,7 @@
 										<onClick>preview</onClick>
 									</params>
 								</modulehook>
+
 								<!-- COMPONENTS -->
 								<modulehook>
 									<name>wcm-root-folder</name>
@@ -36,16 +37,27 @@
 											<queryParam> <name>selection</name> <value>-1</value> </queryParam> <queryParam> 
 											<name>presearch</name> <value>true</value> </queryParam> </queryParams> </cannedSearch> 
 											</cannedSearches -->
-
 									</params>
 								</modulehook>
+
+								<!-- TAXONOMY -->
+								<modulehook>
+									<name>wcm-root-folder</name>
+									<showDivider>true</showDivider>
+									<params>
+										<label>Taxonomy</label>
+										<path>/site/taxonomy</path>
+										<showRootItem>true</showRootItem>
+									</params>
+								</modulehook>
+
 								<modulehook>
 									<name>wcm-assets-folder</name>
 									<showDivider>true</showDivider>
 									<params>
 										<label>Static Assets</label>
 										<path>/static-assets</path>
-										<!-- showRootItem>false</showRootItem -->
+										<showRootItem>true</showRootItem>
 										<onClick>none</onClick>
 									</params>
 								</modulehook>
@@ -55,14 +67,19 @@
 									<params>
 										<label>Templates</label>
 										<path>/templates</path>
-										<!-- showRootItem>false</showRootItem -->
+										<showRootItem>true</showRootItem>
 										<onClick>none</onClick>
 									</params>
 								</modulehook>
-
 								<modulehook>
-									<name>analytics-dashboard</name>
+									<name>wcm-assets-folder</name>
 									<showDivider>true</showDivider>
+									<params>
+										<label>Scripts</label>
+										<path>/scripts</path>
+										<showRootItem>true</showRootItem>
+										<onClick>none</onClick>
+									</params>
 								</modulehook>
 								<modulehook>
 									<name>admin-console</name>
@@ -70,14 +87,7 @@
 									<params>
 										<roles>
 											<role>admin</role>
-										</roles>
-									</params>
-								</modulehook>
-								<modulehook>
-									<name>previewsync</name>
-									<params>
-										<roles>
-											<role>admin</role>
+											<!--role>developer</role-->
 										</roles>
 									</params>
 								</modulehook>
