@@ -6,9 +6,13 @@
 					<menuItems>
 						<menuItem>
 							<modulehooks>
-								<!-- site selector -->
+								<!-- dashboard -->
 								<modulehook>
-									<name>site-selector</name>
+									<name>dashboard</name>
+                                    <params>
+                                        <label>Dashboard</label>
+                                        <path>/site-dashboard</path>
+									</params>
 								</modulehook>
 								<!-- Site IA PAGES -->
 								<modulehook>
@@ -65,20 +69,14 @@
 									<showDivider>true</showDivider>
 								</modulehook>
 								<modulehook>
-									<name>admin-console</name>
+									<name>site-config</name>
 									<showDivider>true</showDivider>
 									<params>
 										<roles>
 											<role>admin</role>
 										</roles>
-									</params>
-								</modulehook>
-								<modulehook>
-									<name>previewsync</name>
-									<params>
-										<roles>
-											<role>admin</role>
-										</roles>
+                                        <label>Site Config</label>
+                                        <path>/site-config</path>
 									</params>
 								</modulehook>
 							</modulehooks>
