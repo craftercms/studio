@@ -40,7 +40,7 @@
 				<div class="col-md-6">
 					<div class="panel panel-default" v-if="selectedItem">
 						<div class="panel-heading"><h2 class="panel-title">Details</h2></div>
-						<div class="panel-body">
+						<div class="panel-body" v-bind:data-studio-component-path="selectedItem.itemUrl" v-bind:data-studio-component="selectedItem.itemUrl" data-studio-ice="" v-bind:data-studio-ice-path="selectedItem.itemUrl">
 							<table class="table">
 								<thead>
 									<tr>
@@ -112,6 +112,9 @@
 					},
 					setItem: function(item) {
 						this.selectedItem = item;
+                        this.$nextTick(function(){
+                            studioICERepaint();
+                        });
 					}
 				}
 			});

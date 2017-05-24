@@ -90,7 +90,7 @@
 			</div>
 			<div class="row">
 				<div class="col-md-3" v-for="product in products.items">
-					<div class="panel panel-default">
+					<div class="panel panel-default" v-bind:data-studio-component-path="product.itemUrl" v-bind:data-studio-component="product.itemUrl" data-studio-ice="" v-bind:data-studio-ice-path="product.itemUrl">
 						<div class="panel-body">
 							<img v-bind:src="product.image" data-toggle="popover" data-trigger="hover" v-bind:data-content="product.description" class="img-responsive img-thumbnail center-block"/>
 							<h4>{{ product.name }}<small> by {{ product.company }}<small></h4>
@@ -206,6 +206,9 @@
 							self.products = response.body;
 							self.pagination.total = Math.ceil(parseInt(response.body.total) / self.pagination.rows);
 							self.pagination.hasNext = self.pagination.current < self.pagination.total;
+                           	self.$nextTick(function(){
+								studioICERepaint();
+							});
 						});
 					}
 				},
