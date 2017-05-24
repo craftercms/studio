@@ -493,127 +493,131 @@ public class ContentServiceImpl implements ContentService {
             String copyPathOnly = copyPath.substring(0, copyPath.lastIndexOf("/"));
             String copyFileName = copyPath.substring(copyPath.lastIndexOf("/")+1);
 
-            if(!processedPaths.contains(copyPath)) { 
+            if(!processedPaths.contains(copyPath)) {
+                ContentItemTO fromItem = getContentItem(site, fromPath, 0);
 
-                try {
-                    ContentItemTO fromItem = getContentItem(site, fromPath, 0);
-                    String contentType = fromItem.getContentType();
-                    InputStream fromContent = getContent(site, fromPath);
-                    Document fromDocument = ContentUtils.convertStreamToXml(fromContent);
-                    Map<String, String> fromPageIds = getContentIds(fromDocument); 
-
-                    logger.debug("copying file for site {0} from {1} to {2}, new name is {3}", site, fromPath, toPath, copyPath);
-
-                    // come up with a new object ID and group ID for the object
-                    Map<String,String> copyObjectIds = contentItemIdGenerator.getIds(); 
-
-                    Map<String, String> copyDependencies = dependencyService.getCopyDependencies(site, fromPath, fromPath);
-                    copyDependencies = getItemSpecificDependencies(fromDocument, copyDependencies);
-                    logger.debug("Calculated copy dependencies: {0}, {1}", fromPath, copyDependencies);
-
-                    // Duplicate the children 
-                    for(String dependecyKey : copyDependencies.keySet()) {
-                        String dependecyPath = copyDependencies.get(dependecyKey);
-                        String copyDepPath = dependecyPath;
-                        
-                        // Does not seem to work (leaving it here because it's suspposed to do the work below)
-                        //PathMacrosTransaltor.resolvePath(dependecyPath, copyObjectIds);
-                        //copyDepPath = copyDepPath + "/" +  dependecyPath.substring(dependecyPath.lastIndexOf("/")+1);
-
-                        // try a simple substitution
-                         copyDepPath = copyDepPath.replaceAll(
-                             fromPageIds.get(DmConstants.KEY_PAGE_ID), 
-                             copyObjectIds.get(DmConstants.KEY_PAGE_ID));
-                        
-                         copyDepPath = copyDepPath.replaceAll(
-                             fromPageIds.get(DmConstants.KEY_PAGE_GROUP_ID), 
-                             copyObjectIds.get(DmConstants.KEY_PAGE_GROUP_ID));
-                        logger.debug("TRANSLATED DEP PATH {0} to {1}", dependecyPath, copyDepPath);
-
-                        copyContent(site, dependecyPath, copyDepPath, processedPaths);
-                    }
-
-                    // update the file name / folder values
-                    Document copyDocument = updateContentForCopy(site, fromDocument, copyPathFileName, copyPathFolder, copyObjectIds, copyPathModifier);
-         
-                    InputStream copyContent = ContentUtils.convertDocumentToStream(copyDocument, CStudioConstants.CONTENT_ENCODING);
-
-                    // This code is very similar to what is in WRTIE CONTENT. Consolidate this code?
-                    Map<String, String> params = new HashMap<String, String>();
-                    params.put(DmConstants.KEY_SITE, site);
-                    params.put(DmConstants.KEY_PATH, copyPathOnly);
-                    params.put(DmConstants.KEY_FILE_NAME, copyFileName);
-                    params.put(DmConstants.KEY_USER, user);
-                    params.put(DmConstants.KEY_CONTENT_TYPE, contentType);
-                    params.put(DmConstants.KEY_CREATE_FOLDERS, "true");
-                    params.put(DmConstants.KEY_EDIT, "true");
-                    params.put(DmConstants.KEY_ACTIVITY_TYPE, "false");
-                    params.put(DmConstants.KEY_SKIP_CLEAN_PREVIEW, "true");
-                    params.put(DmConstants.KEY_COPIED_CONTENT, "true");
-                    params.put(DmConstants.CONTENT_LIFECYCLE_OPERATION, lifecycleOp);
-
-                    String id = site + ":" + copyPathOnly + ":" + copyFileName + ":" + contentType;
-                    
-                
+                if (fromItem.isFolder()) {
+                    createFolder(site, toPath, copyFileName);
+                    // copy was successful, return the new name
+                    retNewFileName = copyPath;
+                } else {
+                    InputStream copyContent = null;
                     try {
-                        generalLockService.lock(id);
+                        String contentType = fromItem.getContentType();
+                        InputStream fromContent = getContent(site, fromPath);
+                        Document fromDocument = ContentUtils.convertStreamToXml(fromContent);
+                        Map<String, String> fromPageIds = getContentIds(fromDocument);
 
-                        // processContent will close the input stream
-                        if (!StringUtils.isEmpty(contentType)) {
-                            processContent(id, copyContent, true, params, DmConstants.CONTENT_CHAIN_FORM);
-                        } else {
-                            if (copyFileName.endsWith(DmConstants.XML_PATTERN)) {
-                                // when do you get here?
-                               processContent(id, copyContent, true, params, DmConstants.CONTENT_CHAIN_FORM);
-                            } 
-                            else {
-                                processContent(id, fromContent, false, params, DmConstants.CONTENT_CHAIN_ASSET);
+                        logger.debug("copying file for site {0} from {1} to {2}, new name is {3}", site, fromPath, toPath, copyPath);
+
+                        // come up with a new object ID and group ID for the object
+                        Map<String, String> copyObjectIds = contentItemIdGenerator.getIds();
+
+                        Map<String, String> copyDependencies = dependencyService.getCopyDependencies(site, fromPath, fromPath);
+                        copyDependencies = getItemSpecificDependencies(fromDocument, copyDependencies);
+                        logger.debug("Calculated copy dependencies: {0}, {1}", fromPath, copyDependencies);
+
+                        // Duplicate the children
+                        for (String dependecyKey : copyDependencies.keySet()) {
+                            String dependecyPath = copyDependencies.get(dependecyKey);
+                            String copyDepPath = dependecyPath;
+
+                            // Does not seem to work (leaving it here because it's suspposed to do the work below)
+                            //PathMacrosTransaltor.resolvePath(dependecyPath, copyObjectIds);
+                            //copyDepPath = copyDepPath + "/" +  dependecyPath.substring(dependecyPath.lastIndexOf("/")+1);
+
+                            // try a simple substitution
+                            copyDepPath = copyDepPath.replaceAll(
+                                    fromPageIds.get(DmConstants.KEY_PAGE_ID),
+                                    copyObjectIds.get(DmConstants.KEY_PAGE_ID));
+
+                            copyDepPath = copyDepPath.replaceAll(
+                                    fromPageIds.get(DmConstants.KEY_PAGE_GROUP_ID),
+                                    copyObjectIds.get(DmConstants.KEY_PAGE_GROUP_ID));
+                            logger.debug("TRANSLATED DEP PATH {0} to {1}", dependecyPath, copyDepPath);
+
+                            copyContent(site, dependecyPath, copyDepPath, processedPaths);
+                        }
+
+                        // update the file name / folder values
+                        Document copyDocument = updateContentForCopy(site, fromDocument, copyPathFileName, copyPathFolder, copyObjectIds, copyPathModifier);
+
+                        copyContent = ContentUtils.convertDocumentToStream(copyDocument, CStudioConstants.CONTENT_ENCODING);
+
+                        // This code is very similar to what is in WRTIE CONTENT. Consolidate this code?
+                        Map<String, String> params = new HashMap<String, String>();
+                        params.put(DmConstants.KEY_SITE, site);
+                        params.put(DmConstants.KEY_PATH, copyPathOnly);
+                        params.put(DmConstants.KEY_FILE_NAME, copyFileName);
+                        params.put(DmConstants.KEY_USER, user);
+                        params.put(DmConstants.KEY_CONTENT_TYPE, contentType);
+                        params.put(DmConstants.KEY_CREATE_FOLDERS, "true");
+                        params.put(DmConstants.KEY_EDIT, "true");
+                        params.put(DmConstants.KEY_ACTIVITY_TYPE, "false");
+                        params.put(DmConstants.KEY_SKIP_CLEAN_PREVIEW, "true");
+                        params.put(DmConstants.KEY_COPIED_CONTENT, "true");
+                        params.put(DmConstants.CONTENT_LIFECYCLE_OPERATION, lifecycleOp);
+
+                        String id = site + ":" + copyPathOnly + ":" + copyFileName + ":" + contentType;
+
+
+                        try {
+                            generalLockService.lock(id);
+
+                            // processContent will close the input stream
+                            if (!StringUtils.isEmpty(contentType)) {
+                                processContent(id, copyContent, true, params, DmConstants.CONTENT_CHAIN_FORM);
+                            } else {
+                                if (copyFileName.endsWith(DmConstants.XML_PATTERN)) {
+                                    // when do you get here?
+                                    processContent(id, copyContent, true, params, DmConstants.CONTENT_CHAIN_FORM);
+                                } else {
+                                    processContent(id, fromContent, false, params, DmConstants.CONTENT_CHAIN_ASSET);
+                                }
                             }
+
+                            // I THINK this will always return null
+                            ObjectState objectState = objectStateService.getObjectState(site, copyPath);
+
+                            if (objectState == null) {
+                                ContentItemTO copyItem = getContentItem(site, copyPath, 0);
+                                objectStateService.insertNewEntry(site, copyItem);
+                                objectState = objectStateService.getObjectState(site, copyPath);
+
+                                // Do I need to do this?
+                                objectStateService.setSystemProcessing(site, copyPath, false);
+                            }
+
+                            // copy was successful, return the new name
+                            retNewFileName = copyPath;
+
+                            // Fire update events and preview sync
+                            RepositoryEventContext repositoryEventContext = new RepositoryEventContext(sessionTicket);
+                            RepositoryEventMessage message = new RepositoryEventMessage();
+
+                            message.setSite(site);
+                            message.setPath(copyPath);
+                            message.setRepositoryEventContext(repositoryEventContext);
+
+                            previewSync.syncPath(site, copyPath, repositoryEventContext);
+
+                            // track that we already copied so we don't follow a circular dependency
+                            processedPaths.add(copyPath);
+
+                            // not sure why item would be in cache (its a new name)
+                            removeItemFromCache(site, copyPath);
+                        } finally {
+                            generalLockService.unlock(id);
                         }
-
-                        // I THINK this will always return null
-                        ObjectState objectState = objectStateService.getObjectState(site, copyPath);
-
-                        if (objectState == null) {
-                            ContentItemTO copyItem = getContentItem(site, copyPath, 0);
-                            objectStateService.insertNewEntry(site, copyItem);
-                            objectState = objectStateService.getObjectState(site, copyPath);
-
-                            // Do I need to do this?
-                            objectStateService.setSystemProcessing(site, copyPath, false);
-                        }
-
-                        // copy was successful, return the new name
-                        retNewFileName = copyPath;
-
-                        // Fire update events and preview sync
-                        RepositoryEventContext repositoryEventContext = new RepositoryEventContext(sessionTicket);
-                        RepositoryEventMessage message = new RepositoryEventMessage();
-
-                        message.setSite(site);
-                        message.setPath(copyPath);
-                        message.setRepositoryEventContext(repositoryEventContext);
-
-                        previewSync.syncPath(site, copyPath, repositoryEventContext);
-
-                        // track that we already copied so we don't follow a circular dependency
-                        processedPaths.add(copyPath);
-
-                        // not sure why item would be in cache (its a new name)
-                        removeItemFromCache(site, copyPath);
-                    }
-                    finally {
-                        generalLockService.unlock(id);
+                    } catch (ContentNotFoundException eContentNotFound) {
+                        logger.error("Content not found while copying content for site {0} from {1} to {2}, new name is {3}", eContentNotFound, site, fromPath, toPath, copyPath);
+                    } catch (DocumentException eParseException) {
+                        logger.error("General Error while copying content for site {0} from {1} to {2}, new name is {3}", eParseException, site, fromPath, toPath, copyPath);
+                    } finally {
+                        IOUtils.closeQuietly(copyContent);
                     }
                 }
-                catch(ContentNotFoundException eContentNotFound) {
-                    logger.error("Content not found while copying content for site {0} from {1} to {2}, new name is {3}", eContentNotFound, site, fromPath, toPath, copyPath);
-                }
-                catch(DocumentException eParseException) {
-                    logger.error("General Error while copying content for site {0} from {1} to {2}, new name is {3}", eParseException, site, fromPath, toPath, copyPath);
-                }
-            }
-            else {
+            } else {
                 // no need to process
                 retNewFileName = copyPath;
             }
