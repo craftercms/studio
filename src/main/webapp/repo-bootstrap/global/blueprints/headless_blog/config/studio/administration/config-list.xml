@@ -7,10 +7,10 @@
             <samplePath>/administration/samples/sample-config-list.xml</samplePath>
         </file>
         <file>
-            <path>/administration/tools.xml</path>
+            <path>/administration/site-config-tools.xml</path>
             <title>confTabSiteConf</title>
             <description>confTabSiteConfDesc</description>
-            <samplePath>/administration/samples/sample-tools.xml</samplePath>
+            <samplePath>/administration/samples/sample-site-config-tools.xml</samplePath>
         </file>
         <file>
             <path>/context-nav/contextual-nav.xml</path>
