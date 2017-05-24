@@ -19,7 +19,8 @@ class CompanySearchHelper extends SearchHelper {
 			website: doc.website_s,
 			email: doc.email_s,
 			phone: doc.phone_s,
-			description: doc.description_html
+			description: doc.description_html,
+            itemUrl: doc.localId
 		]
 	}
 	

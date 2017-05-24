@@ -48,7 +48,7 @@
             </pattern-group>
 
             <pattern-group name="component">
-                <pattern>/site/components/([^&lt;]+)\.xml</pattern>
+                <pattern>/site/items/([^&lt;]+)\.xml</pattern>
                 <pattern>/site/system/page-components/([^&lt;]+)\.xml</pattern>
                 <pattern>/site/component-bindings/([^&lt;]+)\.xml</pattern>
                 <pattern>/site/indexes/([^&lt;]+)\.xml</pattern>
@@ -77,7 +77,7 @@
 
         <display-in-widget-patterns>
             <display-in-widget-pattern>/site/website/([^&lt;]+).xml</display-in-widget-pattern>
-            <display-in-widget-pattern>/site/components/([^&lt;]+).xml</display-in-widget-pattern>
+            <display-in-widget-pattern>/site/items/([^&lt;]+).xml</display-in-widget-pattern>
             <display-in-widget-pattern>/static-assets/([^&lt;"'\)]+)</display-in-widget-pattern>
             <display-in-widget-pattern>/templates/([^&lt;"]+)\.ftl</display-in-widget-pattern>
         </display-in-widget-patterns>

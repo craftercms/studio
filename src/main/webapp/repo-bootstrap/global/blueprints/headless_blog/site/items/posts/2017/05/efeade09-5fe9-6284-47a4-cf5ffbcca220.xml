@@ -8,9 +8,9 @@
 	<internal-name>Buying a camera</internal-name>
 	<title_s>How to choose the right camera?</title_s>
 	<disabled>false</disabled>
-	<authors>	<item>	<key>/site/components/authors/150a8781-76fc-4fca-b9a3-eefa4eefafb4.xml</key>
+	<authors>	<item>	<key>/site/items/authors/150a8781-76fc-4fca-b9a3-eefa4eefafb4.xml</key>
 	<value>Joe Bloggs (Guest)</value>
-	<include>/site/components/authors/150a8781-76fc-4fca-b9a3-eefa4eefafb4.xml</include>
+	<include>/site/items/authors/150a8781-76fc-4fca-b9a3-eefa4eefafb4.xml</include>
 	<disableFlattening>false</disableFlattening>
 	</item></authors>
 	<featuredImage_s>/static-assets/images/featured/camera.jpg</featuredImage_s>

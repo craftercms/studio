@@ -29,7 +29,8 @@ class ProductSearchHelper extends SearchHelper {
 			date: doc.createdDate_dt,
 			description: doc.description_html,
 			image: doc.image_s,
-			price: doc.price_d
+			price: doc.price_d,
+            itemUrl: doc.localId
 		]
 	}
 	

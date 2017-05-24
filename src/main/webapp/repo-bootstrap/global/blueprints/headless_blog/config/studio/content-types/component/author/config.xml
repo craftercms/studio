@@ -10,7 +10,7 @@
 	<image-thumbnail></image-thumbnail>
 	<paths>
 		<includes>
-			<pattern>/site/components/authors/.*</pattern>
+			<pattern>/site/items/authors/.*</pattern>
 		</includes>
 	</paths>
 </content-type>

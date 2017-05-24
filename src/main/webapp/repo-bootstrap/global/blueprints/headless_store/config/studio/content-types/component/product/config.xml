@@ -10,7 +10,7 @@
 	<image-thumbnail></image-thumbnail>
 	<paths>
 		<includes>
-			<pattern>/site/components/products/.*</pattern>
+			<pattern>/site/items/products/.*</pattern>
 		</includes>
 	</paths>
 </content-type>

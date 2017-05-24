@@ -12,7 +12,7 @@
 	<lastModifiedDate_dt>5/10/2017 21:36:46</lastModifiedDate_dt>
 	<disabled>false</disabled>
 	<name_s>John Doe</name_s>
-	<website_s>http://www.johndoe.com</website_s>
+	<website_s>https://www.example.com/</website_s>
 	<photo_s>/static-assets/images/avatars/guy.png</photo_s>
 	<biography_html>&lt;p&gt;Donec ullamcorper nulla non metus auctor fringilla. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Integer posuere erat a ante venenatis dapibus posuere velit aliquet. Etiam porta sem malesuada magna mollis euismod.&lt;/p&gt;</biography_html>
 </component>

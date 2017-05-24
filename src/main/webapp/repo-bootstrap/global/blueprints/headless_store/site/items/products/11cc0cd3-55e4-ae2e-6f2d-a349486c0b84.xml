@@ -13,9 +13,9 @@
 	<value_smv>Cars</value_smv>
 	</item></categories>
 	<tags/>
-	<company>	<item>	<key>/site/components/companies/8b868a29-3b70-a461-efa1-7b4555bdc60c.xml</key>
+	<company>	<item>	<key>/site/items/companies/8b868a29-3b70-a461-efa1-7b4555bdc60c.xml</key>
 	<value>Company 1</value>
-	<include>/site/components/companies/8b868a29-3b70-a461-efa1-7b4555bdc60c.xml</include>
+	<include>/site/items/companies/8b868a29-3b70-a461-efa1-7b4555bdc60c.xml</include>
 	<disableFlattening>false</disableFlattening>
 	</item></company>
 	<description_html>&lt;p&gt;Small toy plane&lt;/p&gt;</description_html>

@@ -10,7 +10,7 @@
           <permission>Create Folder</permission>
         </allowed-permissions>
       </rule>
-      <rule regex="/site/components/.*">
+      <rule regex="/site/items/.*">
         <allowed-permissions>
           <permission>Read</permission>
           <permission>Write</permission>
