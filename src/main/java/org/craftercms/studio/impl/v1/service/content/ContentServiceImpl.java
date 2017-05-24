@@ -505,107 +505,110 @@ public class ContentServiceImpl implements ContentService {
             String copyFileName = copyPath.substring(copyPath.lastIndexOf("/")+1);
 
             if(!processedPaths.contains(copyPath)) {
-                InputStream copyContent = null;
-                try {
-                    ContentItemTO fromItem = getContentItem(site, fromPath, 0);
-                    String contentType = fromItem.getContentType();
-                    InputStream fromContent = getContent(site, fromPath);
-                    Document fromDocument = ContentUtils.convertStreamToXml(fromContent);
-                    Map<String, String> fromPageIds = getContentIds(fromDocument);
+                ContentItemTO fromItem = getContentItem(site, fromPath, 0);
 
-                    logger.debug("copying file for site {0} from {1} to {2}, new name is {3}", site, fromPath,
-                        toPath, copyPath);
-
-                    // come up with a new object ID and group ID for the object
-                    Map<String,String> copyObjectIds = contentItemIdGenerator.getIds();
-
-                    Map<String, String> copyDependencies = dependencyService.getCopyDependencies(site, fromPath,
-                        fromPath);
-                    copyDependencies = getItemSpecificDependencies(fromDocument, copyDependencies);
-                    logger.debug("Calculated copy dependencies: {0}, {1}", fromPath, copyDependencies);
-
-                    // Duplicate the children
-                    for(String dependencyKey : copyDependencies.keySet()) {
-                        String dependencyPath = copyDependencies.get(dependencyKey);
-                        String copyDepPath = dependencyPath;
-
-                        // try a simple substitution
-                        copyDepPath = copyDepPath.replaceAll(
-                                fromPageIds.get(DmConstants.KEY_PAGE_ID),
-                                copyObjectIds.get(DmConstants.KEY_PAGE_ID));
-
-                        copyDepPath = copyDepPath.replaceAll(
-                                fromPageIds.get(DmConstants.KEY_PAGE_GROUP_ID),
-                                copyObjectIds.get(DmConstants.KEY_PAGE_GROUP_ID));
-                        logger.debug("Translated dependency path from {0} to {1}", dependencyPath, copyDepPath);
-
-                        copyContent(site, dependencyPath, copyDepPath, processedPaths);
-                    }
-
-                    // update the file name / folder values
-                    Document copyDocument = updateContentOnCopy(fromDocument, copyPathFileName, copyPathFolder,
-                        copyObjectIds, copyPathModifier);
-
-                    copyContent = ContentUtils.convertDocumentToStream(copyDocument, StudioConstants
-                        .CONTENT_ENCODING);
-
-                    // This code is very similar to what is in writeContent. Consolidate this code?
-                    Map<String, String> params = new HashMap<String, String>();
-                    params.put(DmConstants.KEY_SITE, site);
-                    params.put(DmConstants.KEY_PATH, copyPathOnly);
-                    params.put(DmConstants.KEY_FILE_NAME, copyFileName);
-                    params.put(DmConstants.KEY_USER, user);
-                    params.put(DmConstants.KEY_CONTENT_TYPE, contentType);
-                    params.put(DmConstants.KEY_CREATE_FOLDERS, "true");
-                    params.put(DmConstants.KEY_EDIT, "true");
-                    params.put(DmConstants.KEY_ACTIVITY_TYPE, "false");
-                    params.put(DmConstants.KEY_SKIP_CLEAN_PREVIEW, "true");
-                    params.put(DmConstants.KEY_COPIED_CONTENT, "true");
-                    params.put(DmConstants.CONTENT_LIFECYCLE_OPERATION, lifecycleOp);
-
-                    String id = site + ":" + copyPathOnly + ":" + copyFileName + ":" + contentType;
-
+                if (fromItem.isFolder()) {
+                    createFolder(site, toPath, copyFileName);
+                    // copy was successful, return the new name
+                    retNewFileName = copyPath;
+                } else {
+                    InputStream copyContent = null;
                     try {
-                        generalLockService.lock(id);
+                        String contentType = fromItem.getContentType();
+                        InputStream fromContent = getContent(site, fromPath);
+                        Document fromDocument = ContentUtils.convertStreamToXml(fromContent);
+                        Map<String, String> fromPageIds = getContentIds(fromDocument);
 
-                        // processContent will close the input stream
-                        if (!StringUtils.isEmpty(contentType)) {
-                            processContent(id, copyContent, true, params, DmConstants.CONTENT_CHAIN_FORM);
-                        } else {
-                            if (copyFileName.endsWith(DmConstants.XML_PATTERN)) {
+                        logger.debug("copying file for site {0} from {1} to {2}, new name is {3}", site, fromPath,
+                                toPath, copyPath);
+
+                        // come up with a new object ID and group ID for the object
+                        Map<String, String> copyObjectIds = contentItemIdGenerator.getIds();
+
+                        Map<String, String> copyDependencies = dependencyService.getCopyDependencies(site, fromPath,
+                                fromPath);
+                        copyDependencies = getItemSpecificDependencies(fromDocument, copyDependencies);
+                        logger.debug("Calculated copy dependencies: {0}, {1}", fromPath, copyDependencies);
+
+                        // Duplicate the children
+                        for (String dependencyKey : copyDependencies.keySet()) {
+                            String dependencyPath = copyDependencies.get(dependencyKey);
+                            String copyDepPath = dependencyPath;
+
+                            // try a simple substitution
+                            copyDepPath = copyDepPath.replaceAll(
+                                    fromPageIds.get(DmConstants.KEY_PAGE_ID),
+                                    copyObjectIds.get(DmConstants.KEY_PAGE_ID));
+
+                            copyDepPath = copyDepPath.replaceAll(
+                                    fromPageIds.get(DmConstants.KEY_PAGE_GROUP_ID),
+                                    copyObjectIds.get(DmConstants.KEY_PAGE_GROUP_ID));
+                            logger.debug("Translated dependency path from {0} to {1}", dependencyPath, copyDepPath);
+
+                            copyContent(site, dependencyPath, copyDepPath, processedPaths);
+                        }
+
+                        // update the file name / folder values
+                        Document copyDocument = updateContentOnCopy(fromDocument, copyPathFileName, copyPathFolder,
+                                copyObjectIds, copyPathModifier);
+
+                        copyContent = ContentUtils.convertDocumentToStream(copyDocument, StudioConstants
+                                .CONTENT_ENCODING);
+
+                        // This code is very similar to what is in writeContent. Consolidate this code?
+                        Map<String, String> params = new HashMap<String, String>();
+                        params.put(DmConstants.KEY_SITE, site);
+                        params.put(DmConstants.KEY_PATH, copyPathOnly);
+                        params.put(DmConstants.KEY_FILE_NAME, copyFileName);
+                        params.put(DmConstants.KEY_USER, user);
+                        params.put(DmConstants.KEY_CONTENT_TYPE, contentType);
+                        params.put(DmConstants.KEY_CREATE_FOLDERS, "true");
+                        params.put(DmConstants.KEY_EDIT, "true");
+                        params.put(DmConstants.KEY_ACTIVITY_TYPE, "false");
+                        params.put(DmConstants.KEY_SKIP_CLEAN_PREVIEW, "true");
+                        params.put(DmConstants.KEY_COPIED_CONTENT, "true");
+                        params.put(DmConstants.CONTENT_LIFECYCLE_OPERATION, lifecycleOp);
+
+                        String id = site + ":" + copyPathOnly + ":" + copyFileName + ":" + contentType;
+
+                        try {
+                            generalLockService.lock(id);
+
+                            // processContent will close the input stream
+                            if (!StringUtils.isEmpty(contentType)) {
                                 processContent(id, copyContent, true, params, DmConstants.CONTENT_CHAIN_FORM);
+                            } else {
+                                if (copyFileName.endsWith(DmConstants.XML_PATTERN)) {
+                                    processContent(id, copyContent, true, params, DmConstants.CONTENT_CHAIN_FORM);
+                                } else {
+                                    processContent(id, fromContent, false, params, DmConstants.CONTENT_CHAIN_ASSET);
+                                }
                             }
-                            else {
-                                processContent(id, fromContent, false, params, DmConstants.CONTENT_CHAIN_ASSET);
+
+                            ObjectState objectState = objectStateService.getObjectState(site, copyPath);
+
+                            if (objectState == null) {
+                                ContentItemTO copyItem = getContentItem(site, copyPath, 0);
+                                objectStateService.insertNewEntry(site, copyItem);
+                                objectStateService.setSystemProcessing(site, copyPath, false);
                             }
+
+                            // copy was successful, return the new name
+                            retNewFileName = copyPath;
+
+                            // track that we already copied so we don't follow a circular dependency
+                            processedPaths.add(copyPath);
+
+                        } finally {
+                            generalLockService.unlock(id);
                         }
-
-                        ObjectState objectState = objectStateService.getObjectState(site, copyPath);
-
-                        if (objectState == null) {
-                            ContentItemTO copyItem = getContentItem(site, copyPath, 0);
-                            objectStateService.insertNewEntry(site, copyItem);
-                            objectStateService.setSystemProcessing(site, copyPath, false);
-                        }
-
-                        // copy was successful, return the new name
-                        retNewFileName = copyPath;
-
-                        // track that we already copied so we don't follow a circular dependency
-                        processedPaths.add(copyPath);
-
+                    } catch (ContentNotFoundException eContentNotFound) {
+                        logger.debug("Content not found while copying content for site {0} from {1} to {2}, new name is {3}", eContentNotFound, site, fromPath, toPath, copyPath);
+                    } catch (DocumentException eParseException) {
+                        logger.error("General Error while copying content for site {0} from {1} to {2}, new name is {3}", eParseException, site, fromPath, toPath, copyPath);
+                    } finally {
+                        IOUtils.closeQuietly(copyContent);
                     }
-                    finally {
-                        generalLockService.unlock(id);
-                    }
-                }
-                catch(ContentNotFoundException eContentNotFound) {
-                    logger.debug("Content not found while copying content for site {0} from {1} to {2}, new name is {3}", eContentNotFound, site, fromPath, toPath, copyPath);
-                }
-                catch(DocumentException eParseException) {
-                    logger.error("General Error while copying content for site {0} from {1} to {2}, new name is {3}", eParseException, site, fromPath, toPath, copyPath);
-                } finally {
-                    IOUtils.closeQuietly(copyContent);
                 }
             } else {
                 // no need to process
