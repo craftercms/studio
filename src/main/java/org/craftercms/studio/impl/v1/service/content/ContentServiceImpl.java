@@ -656,11 +656,10 @@ public class ContentServiceImpl implements ContentService {
 
             if (commitId != null) {
                 // Update the database with the commitId for the target item
-                objectMetadataManager.updateCommitId(site, toPath, commitId);
-                siteService.updateLastCommitId(site, commitId);
                 updateDatabaseOnMove(site, fromPath, movePath);
-
                 updateChildrenOnMove(site, fromPath, movePath);
+                objectMetadataManager.updateCommitId(site, movePath, commitId);
+                siteService.updateLastCommitId(site, commitId);
             }
             else {
                 logger.error("Repository move failed site {0} from {1} to {2}", site, sourcePath, targetPath);
@@ -734,6 +733,48 @@ public class ContentServiceImpl implements ContentService {
         }
 
         activityService.postActivity(site, user, movePath, ActivityService.ActivityType.UPDATED, ActivityService.ActivitySource.UI, activityInfo);
+
+        updateDependenciesOnMove(site, fromPath, movePath);
+    }
+
+    protected void updateDependenciesOnMove(String site, String fromPath, String movePath) {
+        dependencyService.deleteDependenciesForSiteAndPath(site, fromPath);
+        if (movePath.endsWith(DmConstants.XML_PATTERN)) {
+            try {
+                Document document = getContentAsDocument(site, movePath);
+                Map<String, Set<String>> globalDeps = new HashMap<>();
+                dependencyService.extractDependencies(site, movePath, document, globalDeps);
+            } catch (ServiceException | DocumentException e) {
+                logger.error("Error while updating dependencies on move content site: " + site + " path: " + movePath, e);
+            }
+        } else {
+            boolean isCss = movePath.endsWith(DmConstants.CSS_PATTERN);
+            boolean isJs = movePath.endsWith(DmConstants.JS_PATTERN);
+            List<String> templatePatterns = servicesConfig.getRenderingTemplatePatterns(site);
+            boolean isTemplate = false;
+            for (String templatePattern : templatePatterns) {
+                Pattern pattern = Pattern.compile(templatePattern);
+                Matcher matcher = pattern.matcher(movePath);
+                if (matcher.matches()) {
+                    isTemplate = true;
+                    break;
+                }
+            }
+
+            StringBuffer assetContent = new StringBuffer(getContentAsString(site, movePath));
+            Map<String, Set<String>> globalDeps = new HashMap<String, Set<String>>();
+            try {
+                if (isCss) {
+                    dependencyService.extractDependenciesStyle(site, movePath, assetContent, globalDeps);
+                } else if (isJs) {
+                    dependencyService.extractDependenciesJavascript(site, movePath, assetContent, globalDeps);
+                } else if (isTemplate) {
+                    dependencyService.extractDependenciesTemplate(site, movePath, assetContent, globalDeps);
+                }
+            } catch (ServiceException e) {
+                logger.error("Error while updating dependencies on move content site: " + site + " path: " + movePath, e);
+            }
+        }
     }
 
     protected void updateChildrenOnMove(String site, String fromPath, String movePath) {
