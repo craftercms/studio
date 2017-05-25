@@ -8,4 +8,10 @@
 <previewable>false</previewable>
 <noThumbnail>true</noThumbnail>
 <image-thumbnail></image-thumbnail>
+<paths>
+	<excludes>
+		<pattern>/site/items/.*</pattern>
+		<pattern>/site/taxonomy/.*</pattern>
+	</excludes>
+</paths>
 </content-type>

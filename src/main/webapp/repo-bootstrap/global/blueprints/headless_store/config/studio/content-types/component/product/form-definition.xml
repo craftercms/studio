@@ -74,29 +74,6 @@
 					</constraints>
 				</field>
 				<field>
-					<type>checkbox</type>
-					<id>disabled</id>
-					<iceId></iceId>
-					<title>Disabled</title>
-					<description></description>
-					<defaultValue>false</defaultValue>
-					<help></help>
-					<properties>
-						<property>
-							<name>readonly</name>
-							<value></value>
-							<type>boolean</type>
-						</property>
-					</properties>
-					<constraints>
-						<constraint>
-							<name>required</name>
-							<value><![CDATA[]]></value>
-							<type>boolean</type>
-						</constraint>
-					</constraints>
-				</field>
-				<field>
 					<type>input</type>
 					<id>name_s</id>
 					<iceId></iceId>
@@ -129,13 +106,36 @@
 					<constraints>
 						<constraint>
 							<name>required</name>
-							<value><![CDATA[]]></value>
+							<value><![CDATA[true]]></value>
 							<type>boolean</type>
 						</constraint>
 						<constraint>
 							<name>pattern</name>
 							<value><![CDATA[]]></value>
 							<type>string</type>
+						</constraint>
+					</constraints>
+				</field>
+				<field>
+					<type>checkbox</type>
+					<id>disabled</id>
+					<iceId></iceId>
+					<title>Disabled</title>
+					<description></description>
+					<defaultValue>false</defaultValue>
+					<help></help>
+					<properties>
+						<property>
+							<name>readonly</name>
+							<value></value>
+							<type>boolean</type>
+						</property>
+					</properties>
+					<constraints>
+						<constraint>
+							<name>required</name>
+							<value><![CDATA[]]></value>
+							<type>boolean</type>
 						</constraint>
 					</constraints>
 				</field>
@@ -150,12 +150,12 @@
 					<properties>
 						<property>
 							<name>width</name>
-							<value></value>
+							<value>650</value>
 							<type>int</type>
 						</property>
 						<property>
 							<name>height</name>
-							<value></value>
+							<value>300</value>
 							<type>int</type>
 						</property>
 						<property>
@@ -200,7 +200,7 @@
 						</property>
 						<property>
 							<name>imageManager</name>
-							<value></value>
+							<value>upload_images,existing_images</value>
 							<type>datasource:image</type>
 						</property>
 					</properties>
@@ -331,18 +331,18 @@
 					<id>price_d</id>
 					<iceId></iceId>
 					<title>Price</title>
-					<description></description>
+					<description>Enter the price as a numerical value.</description>
 					<defaultValue></defaultValue>
 					<help></help>
 					<properties>
 						<property>
 							<name>size</name>
-							<value>50</value>
+							<value>12</value>
 							<type>int</type>
 						</property>
 						<property>
 							<name>maxlength</name>
-							<value>50</value>
+							<value>10</value>
 							<type>int</type>
 						</property>
 						<property>
@@ -490,12 +490,12 @@
 					<properties>
 						<property>
 							<name>repoPath</name>
-							<value>/site/components/companies</value>
+							<value>/site/items/companies</value>
 								<type>undefined</type>
 						</property>
 						<property>
 							<name>browsePath</name>
-							<value>/site/components/companies</value>
+							<value>/site/items/companies</value>
 								<type>undefined</type>
 						</property>
 						<property>

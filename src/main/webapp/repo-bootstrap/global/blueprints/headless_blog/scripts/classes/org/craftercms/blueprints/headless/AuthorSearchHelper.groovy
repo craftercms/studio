@@ -18,7 +18,8 @@ class AuthorSearchHelper extends SearchHelper {
 			photo: doc.photo_s,
 			website: doc.website_s,
 			photo: doc.photo_s,
-			biography: doc.biography_html
+			biography: doc.biography_html,
+			itemUrl: doc.localId
 		]
 	}
 	

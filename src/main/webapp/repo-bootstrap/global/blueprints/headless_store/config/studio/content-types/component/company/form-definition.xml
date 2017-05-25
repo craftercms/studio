@@ -175,12 +175,12 @@
 					<properties>
 						<property>
 							<name>width</name>
-							<value></value>
+							<value>650</value>
 							<type>int</type>
 						</property>
 						<property>
 							<name>height</name>
-							<value></value>
+							<value>300</value>
 							<type>int</type>
 						</property>
 						<property>
@@ -225,7 +225,7 @@
 						</property>
 						<property>
 							<name>imageManager</name>
-							<value></value>
+							<value>upload_images,existing_images</value>
 							<type>datasource:image</type>
 						</property>
 					</properties>

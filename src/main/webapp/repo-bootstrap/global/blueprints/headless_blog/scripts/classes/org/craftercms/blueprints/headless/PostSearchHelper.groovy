@@ -41,7 +41,8 @@ class PostSearchHelper extends SearchHelper {
 			tags: getTags(doc),
 			date: doc.createdDate_dt,
 			body: doc.body_html,
-			featuredImage: doc.featuredImage_s
+			featuredImage: doc.featuredImage_s,
+			itemUrl: doc.localId
 		]
 	}
 	

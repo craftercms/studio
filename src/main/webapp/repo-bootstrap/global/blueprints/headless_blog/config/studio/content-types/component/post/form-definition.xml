@@ -314,12 +314,12 @@
 					<properties>
 						<property>
 							<name>width</name>
-							<value></value>
+							<value>650</value>
 							<type>int</type>
 						</property>
 						<property>
 							<name>height</name>
-							<value></value>
+							<value>300</value>
 							<type>int</type>
 						</property>
 						<property>
@@ -329,7 +329,7 @@
 						</property>
 						<property>
 							<name>allowResize</name>
-							<value></value>
+							<value>true</value>
 							<type>boolean</type>
 						</property>
 						<property>
@@ -364,14 +364,14 @@
 						</property>
 						<property>
 							<name>imageManager</name>
-							<value></value>
+							<value>upload_images,existing_images</value>
 							<type>datasource:image</type>
 						</property>
 					</properties>
 					<constraints>
 						<constraint>
 							<name>required</name>
-							<value><![CDATA[]]></value>
+							<value><![CDATA[true]]></value>
 							<type>boolean</type>
 						</constraint>
 					</constraints>
@@ -471,12 +471,12 @@
 					<properties>
 						<property>
 							<name>repoPath</name>
-							<value>/site/components/authors</value>
+							<value>/site/items/authors</value>
 								<type>undefined</type>
 						</property>
 						<property>
 							<name>browsePath</name>
-							<value>/site/components/authors</value>
+							<value>/site/items/authors</value>
 								<type>undefined</type>
 						</property>
 						<property>
