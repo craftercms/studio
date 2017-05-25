@@ -759,6 +759,8 @@ public class ContentServiceImpl implements ContentService {
             ActivityService.ActivityType.UPDATED, 
             activityInfo);
 
+        updateDependenciesOnMove(site, fromPath, movePath);
+
         // we added this check because deployer is asking content service for old content
         // which of course will NOT be there, becasue it has been moved in the repo
         if(isMoveRoot) {
@@ -778,6 +780,46 @@ public class ContentServiceImpl implements ContentService {
             // note this was not here before 
             // assume notify takes care of this but was bot previously applied to copy
             previewSync.syncPath(site, movePath, repositoryEventContext);
+        }
+    }
+
+    protected void updateDependenciesOnMove(String site, String fromPath, String movePath) {
+        dependencyService.deleteDependenciesForSiteAndPath(site, fromPath);
+        if (movePath.endsWith(DmConstants.XML_PATTERN)) {
+            try {
+                Document document = getContentAsDocument(expandRelativeSitePath(site, movePath));
+                Map<String, Set<String>> globalDeps = new HashMap<>();
+                dependencyService.extractDependencies(site, movePath, document, globalDeps);
+            } catch (ServiceException | DocumentException e) {
+                logger.error("Error while updating dependencies on move content site: " + site + " path: " + movePath, e);
+            }
+        } else {
+            boolean isCss = movePath.endsWith(DmConstants.CSS_PATTERN);
+            boolean isJs = movePath.endsWith(DmConstants.JS_PATTERN);
+            List<String> templatePatterns = servicesConfig.getRenderingTemplatePatterns(site);
+            boolean isTemplate = false;
+            for (String templatePattern : templatePatterns) {
+                Pattern pattern = Pattern.compile(templatePattern);
+                Matcher matcher = pattern.matcher(movePath);
+                if (matcher.matches()) {
+                    isTemplate = true;
+                    break;
+                }
+            }
+
+            StringBuffer assetContent = new StringBuffer(getContentAsString(expandRelativeSitePath(site, movePath)));
+            Map<String, Set<String>> globalDeps = new HashMap<String, Set<String>>();
+            try {
+                if (isCss) {
+                    dependencyService.extractDependenciesStyle(site, movePath, assetContent, globalDeps);
+                } else if (isJs) {
+                    dependencyService.extractDependenciesJavascript(site, movePath, assetContent, globalDeps);
+                } else if (isTemplate) {
+                    dependencyService.extractDependenciesTemplate(site, movePath, assetContent, globalDeps);
+                }
+            } catch (ServiceException e) {
+                logger.error("Error while updating dependencies on move content site: " + site + " path: " + movePath, e);
+            }
         }
     }
 
