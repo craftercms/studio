@@ -12,6 +12,13 @@
                                     <params>
                                         <label>Dashboard</label>
                                         <path>/site-dashboard</path>
+                                        <icon>  	<!-- icon customization - only one state (no tree link) -->
+                                        	<class>fa-cog</class> 	<!-- change default icon - using Font Awesome class -->
+											<styles> 	<!-- Change default icon styles - using css rules -->
+                                              	<color>#409a00</color>
+                                            	<font-size>16px</font-size>
+                                            </styles>
+                                        </icon>
 									</params>
 								</modulehook>
 								<!-- Site IA PAGES -->
@@ -23,6 +30,31 @@
 										<path>/site/website</path>
 										<showRootItem>true</showRootItem>
 										<onClick>preview</onClick>
+										
+										<module-icon-open>   <!-- custom icon for module root folder open state - using Font Awesome class -->
+                                        	<class>fa-hand-paper-o</class>
+                                            <styles>
+                                              	<color>#409a00</color>
+                                            	<font-size>16px</font-size>
+                                            </styles>
+	                                    </module-icon-open>
+										<module-icon-closed>  	<!-- custom icon for module root folder closed state - using Font Awesome class -->
+                                        	<class>fa-hand-rock-o</class>
+                                            <styles>
+                                              	<color>#ff0000</color>
+                                            	<font-size>16px</font-size>
+                                            </styles>
+                                      	</module-icon-closed>
+                                        <child-icon-open> 	<!-- custom icon for child folders open state - using Font Awesome class -->
+                                        	<class>fa-chevron-down</class>
+                                            <styles>
+                                              	<color>#ff0000</color>
+                                            	<font-size>16px</font-size>
+                                            </styles>
+                                      	</child-icon-open>
+                                        <child-icon-closed> 	<!-- custom icon for child folders closed state - using Font Awesome class -->
+                                        	<class>fa-chevron-right</class>
+                                      	</child-icon-closed>
 									</params>
 								</modulehook>
 
@@ -44,17 +76,6 @@
 									</params>
 								</modulehook>
 
-								<!-- TAXONOMY -->
-								<modulehook>
-									<name>wcm-root-folder</name>
-									<showDivider>true</showDivider>
-									<params>
-										<label>Taxonomy</label>
-										<path>/site/taxonomy</path>
-										<showRootItem>true</showRootItem>
-									</params>
-								</modulehook>
-
 								<modulehook>
 									<name>wcm-assets-folder</name>
 									<showDivider>true</showDivider>
@@ -71,6 +92,16 @@
 									<params>
 										<label>Templates</label>
 										<path>/templates</path>
+										<showRootItem>true</showRootItem>
+										<onClick>none</onClick>
+									</params>
+								</modulehook>
+								<modulehook>
+									<name>wcm-assets-folder</name>
+									<showDivider>true</showDivider>
+									<params>
+										<label>Classes</label>
+										<path>/classes</path>
 										<showRootItem>true</showRootItem>
 										<onClick>none</onClick>
 									</params>
