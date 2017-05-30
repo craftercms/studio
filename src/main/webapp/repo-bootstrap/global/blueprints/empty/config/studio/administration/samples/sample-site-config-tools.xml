@@ -3,6 +3,13 @@
 		<tool>
 			<name>content-types</name>
 			<label>Content Types</label>
+			<icon>
+                <styles>	<!-- Change default icon styles - using css rules -->
+                    <color>#409a00</color>
+                    <font-size>16px</font-size>
+                    <font-width>bold</font-width>
+                </styles>
+            </icon>
 			<controls>
 				<control>input</control>
 				<control>textarea</control>
@@ -70,9 +77,26 @@
 
 			</objectTypes>
 		</tool>
-		<tool><name>admin-configurations</name><label>Configuration</label></tool>
+		<tool>
+			<name>admin-configurations</name>
+			<label>Configuration</label>
+			<icon>
+                <class>fa-cogs</class>  <!-- Custom icon -->
+            </icon>
+		</tool>
         <tool><name>groups</name><label>Groups</label></tool>
-        <tool><name>audit</name><label>Audit</label></tool>
+        <tool>
+        	<name>audit</name>
+        	<label>Audit</label>
+        	<icon>
+            	<class>fa-file-o</class> 	<!-- Custom icon -->
+                <styles>	<!-- Change icon styles - using css rules -->
+                    <color>#075412</color>
+                    <font-size>16px</font-size>
+                    <font-width>bold</font-width>
+                </styles>
+            </icon>
+    	</tool>
 		<tool><name>bulkoperations</name><label>Bulk Operations</label></tool>
 		<tool><name>workflow-states</name><label>Workflow States</label></tool>
 		<tool><name>logging</name><label>Logging Levels</label></tool>
