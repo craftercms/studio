@@ -9,8 +9,8 @@
 <noThumbnail>true</noThumbnail>
 <image-thumbnail></image-thumbnail>
 <paths>
-    <excludes>
-        <pattern>/site/items/.*</pattern>
-    </excludes>
+    <includes>
+        <pattern>^/site/website/.*</pattern>
+    </includes>
 </paths>
 </content-type>
