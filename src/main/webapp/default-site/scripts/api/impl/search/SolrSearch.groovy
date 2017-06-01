@@ -25,7 +25,7 @@ class SolrSearch {
 		// build query
 		def queryStatement = "crafterSite:\"" + site + "\" "
 		if(keywords && keywords != "") {
-			queryStatement    += " AND *" + keywords + "* "
+			queryStatement    += " AND _text_content_: *" + keywords + "* "
 		}
 
 		// can't support filters for images at this time because images are not indexed
