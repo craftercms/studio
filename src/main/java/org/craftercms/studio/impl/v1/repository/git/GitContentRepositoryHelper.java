@@ -48,10 +48,8 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.diff.DiffEntry;
-import org.eclipse.jgit.diff.RawTextComparator;
 import org.eclipse.jgit.dircache.DirCache;
 import org.eclipse.jgit.errors.AmbiguousObjectException;
-import org.eclipse.jgit.errors.CorruptObjectException;
 import org.eclipse.jgit.errors.IncorrectObjectTypeException;
 import org.eclipse.jgit.errors.MissingObjectException;
 import org.eclipse.jgit.lib.*;
@@ -60,10 +58,9 @@ import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
-import org.eclipse.jgit.treewalk.TreeWalk;
 
+import static org.craftercms.studio.api.v1.constant.SecurityConstants.*;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.*;
-import static org.eclipse.jgit.lib.Constants.DEFAULT_REMOTE_NAME;
 
 /**
  * Created by Sumer Jabri
@@ -601,8 +598,9 @@ public class GitContentRepositoryHelper {
     public PersonIdent getAuthorIdent(String author) {
         Map<String, Object> currentUserProfile = securityProvider.getUserProfile(author);
         PersonIdent currentUserIdent = new PersonIdent
-                (currentUserProfile.get("first_name").toString() + " " + currentUserProfile.get("last_name").toString(),
-                        currentUserProfile.get("email").toString());
+                (currentUserProfile.get(KEY_FIRSTNAME).toString() + " " +
+                            currentUserProfile.get(KEY_LASTNAME).toString(),
+                        currentUserProfile.get(KEY_EMAIL).toString());
 
         return currentUserIdent;
     }

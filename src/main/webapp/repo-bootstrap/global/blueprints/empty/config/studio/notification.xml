@@ -113,7 +113,7 @@
                         </head>
                         <body style=" font-size: 12pt">
                             <p>
-                                ${submitter.firstName!submitter.username} ${submitter.lastName} has submitted items for your review:
+                                ${submitter.first_name!submitter.username} ${submitter.last_name} has submitted items for your review:
                               <ul>
                               <#list files as file>
                                 	<#if file.page>
