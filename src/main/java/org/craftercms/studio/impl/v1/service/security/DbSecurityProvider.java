@@ -38,6 +38,7 @@ import org.springframework.dao.DuplicateKeyException;
 import javax.servlet.http.HttpSession;
 import java.util.*;
 
+import static org.craftercms.studio.api.v1.constant.SecurityConstants.*;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_DB_SESSION_TIMEOUT;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_SESSION_TIMEOUT;
 import static org.craftercms.studio.impl.v1.service.security.SecurityServiceImpl.STUDIO_SESSION_TOKEN_ATRIBUTE;
@@ -136,11 +137,11 @@ public class DbSecurityProvider implements SecurityProvider {
                         toRet.add(userProfile);
                     }
                     userProfile = new HashMap<String, Object>();
-                    userProfile.put("username", username);
-                    userProfile.put("first_name", row.getFirstName());
-                    userProfile.put("last_name", row.getLastName());
-                    userProfile.put("email", row.getEmail());
-                    userProfile.put("externally_managed", row.getExternallyManaged() > 0);
+                    userProfile.put(KEY_USERNAME, username);
+                    userProfile.put(KEY_FIRSTNAME, row.getFirstName());
+                    userProfile.put(KEY_LASTNAME, row.getLastName());
+                    userProfile.put(KEY_EMAIL, row.getEmail());
+                    userProfile.put(KEY_EXTERNALLY_MANAGED, row.getExternallyManaged() > 0);
                     sites = new ArrayList<Object>();
                     groups = new ArrayList<Map<String, Object>>();
                     site = null;
@@ -211,11 +212,11 @@ public class DbSecurityProvider implements SecurityProvider {
                                 toRet.add(userProfile);
                             }
                             userProfile = new HashMap<String, Object>();
-                            userProfile.put("username", username);
-                            userProfile.put("first_name", row.getFirstName());
-                            userProfile.put("last_name", row.getLastName());
-                            userProfile.put("email", row.getEmail());
-                            userProfile.put("externally_managed", row.getExternallyManaged() > 0);
+                            userProfile.put(KEY_USERNAME, username);
+                            userProfile.put(KEY_FIRSTNAME, row.getFirstName());
+                            userProfile.put(KEY_LASTNAME, row.getLastName());
+                            userProfile.put(KEY_EMAIL, row.getEmail());
+                            userProfile.put(KEY_EXTERNALLY_MANAGED, row.getExternallyManaged() > 0);
                             groups = new ArrayList<Map<String, Object>>();
                         }
                         Map<String, Object> group = new HashMap<String, Object>();
@@ -367,7 +368,7 @@ public class DbSecurityProvider implements SecurityProvider {
     @Override
     public boolean userExists(String username) {
         Map<String, Object> params = new HashMap<String, Object>();
-        params.put("username", username);
+        params.put(KEY_USERNAME, username);
         Integer result = securityMapper.userExists(params);
         return (result > 0);
     }
@@ -377,7 +378,7 @@ public class DbSecurityProvider implements SecurityProvider {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("groupName", groupName);
         params.put("siteId", siteId);
-        params.put("username", username);
+        params.put(KEY_USERNAME, username);
         Integer result = securityMapper.userExistsInGroup(params);
         return (result > 0);
     }
@@ -397,7 +398,7 @@ public class DbSecurityProvider implements SecurityProvider {
             params.put("siteId", siteId);
             Group group = securityMapper.getGroupObject(params);
             params = new HashMap<String, Object>();
-            params.put("username", user);
+            params.put(KEY_USERNAME, user);
             params.put("groupId", group.getId());
             securityMapper.addUserToGroup(params);
             return true;
@@ -417,7 +418,7 @@ public class DbSecurityProvider implements SecurityProvider {
             params.put("siteId", siteId);
             Group group = securityMapper.getGroupObject(params);
             params = new HashMap<String, Object>();
-            params.put("username", user);
+            params.put(KEY_USERNAME, user);
             params.put("groupId", group.getId());
             securityMapper.removeUserFromGroup(params);
             return true;
@@ -453,11 +454,11 @@ public class DbSecurityProvider implements SecurityProvider {
         } else {
             String hashedPassword = CipherUtils.hashPassword(password);
             Map<String, Object> params = new HashMap<String, Object>();
-            params.put("username", username);
+            params.put(KEY_USERNAME, username);
             params.put("password", hashedPassword);
             params.put("firstname", firstName);
             params.put("lastname", lastName);
-            params.put("email", email);
+            params.put(KEY_EMAIL, email);
             params.put("externallyManaged", externallyManaged ? 1 : 0);
             try {
                 securityMapper.createUser(params);
@@ -475,7 +476,7 @@ public class DbSecurityProvider implements SecurityProvider {
             throw new UserNotFoundException();
         } else {
             Map<String, String> params = new HashMap<String, String>();
-            params.put("username", username);
+            params.put(KEY_USERNAME, username);
             securityMapper.deleteUser(params);
             return true;
         }
@@ -491,10 +492,10 @@ public class DbSecurityProvider implements SecurityProvider {
                 throw new UserExternallyManagedException();
             } else {
                 Map<String, String> params = new HashMap<String, String>();
-                params.put("username", username);
+                params.put(KEY_USERNAME, username);
                 params.put("firstname", firstName);
                 params.put("lastname", lastName);
-                params.put("email", email);
+                params.put(KEY_EMAIL, email);
                 securityMapper.updateUser(params);
                 return true;
             }
@@ -511,7 +512,7 @@ public class DbSecurityProvider implements SecurityProvider {
                 throw new UserExternallyManagedException();
             } else {
                 Map<String, Object> params = new HashMap<String, Object>();
-                params.put("username", username);
+                params.put(KEY_USERNAME, username);
                 params.put("enabled", enabled ? 1 : 0);
                 securityMapper.enableUser(params);
                 return true;
@@ -527,7 +528,7 @@ public class DbSecurityProvider implements SecurityProvider {
             User u = securityMapper.getUser(user);
             Map<String, Object> userStatus = new HashMap<String, Object>();
             if (u != null) {
-                userStatus.put("username", u.getUsername());
+                userStatus.put(KEY_USERNAME, u.getUsername());
                 userStatus.put("enabled", u.isEnabled());
 
             }
@@ -678,11 +679,11 @@ public class DbSecurityProvider implements SecurityProvider {
                 }
                 if (StringUtils.isNotEmpty(row.getUsername())) {
                     Map<String, Object> user = new HashMap<String, Object>();
-                    user.put("username", row.getUsername());
-                    user.put("first_name", row.getFirstName());
-                    user.put("last_name", row.getLastName());
-                    user.put("email", row.getEmail());
-                    user.put("externally_managed", row.getExternallyManaged() > 0);
+                    user.put(KEY_USERNAME, row.getUsername());
+                    user.put(KEY_FIRSTNAME, row.getFirstName());
+                    user.put(KEY_LASTNAME, row.getLastName());
+                    user.put(KEY_EMAIL, row.getEmail());
+                    user.put(KEY_EXTERNALLY_MANAGED, row.getExternallyManaged() > 0);
                     users.add(user);
                 }
                 lastGroup = groupName;
@@ -713,11 +714,11 @@ public class DbSecurityProvider implements SecurityProvider {
             if (resultSet != null && !resultSet.isEmpty()) {
                 for (User u : resultSet) {
                     Map<String, Object> userProfile = new HashMap<String, Object>();
-                    userProfile.put("username", u.getUsername());
-                    userProfile.put("first_name", u.getFirstname());
-                    userProfile.put("last_name", u.getLastname());
-                    userProfile.put("email", u.getEmail());
-                    userProfile.put("externally_managed", u.getExternallyManaged() > 0);
+                    userProfile.put(KEY_USERNAME, u.getUsername());
+                    userProfile.put(KEY_FIRSTNAME, u.getFirstname());
+                    userProfile.put(KEY_LASTNAME, u.getLastname());
+                    userProfile.put(KEY_EMAIL, u.getEmail());
+                    userProfile.put(KEY_EXTERNALLY_MANAGED, u.getExternallyManaged() > 0);
                     toRet.add(userProfile);
                 }
             }
@@ -799,7 +800,7 @@ public class DbSecurityProvider implements SecurityProvider {
             } else {
                 String hashedPassword = CipherUtils.hashPassword(newPassword);
                 Map<String, String> params = new HashMap<String, String>();
-                params.put("username", username);
+                params.put(KEY_USERNAME, username);
                 params.put("password", hashedPassword);
                 securityMapper.setUserPassword(params);
                 return true;
@@ -813,7 +814,7 @@ public class DbSecurityProvider implements SecurityProvider {
             throw new UserNotFoundException();
         } else {
             Map<String, String> params = new HashMap<String, String>();
-            params.put("username", username);
+            params.put(KEY_USERNAME, username);
             int result = securityMapper.isSystemUser(params);
             return result > 0;
         }
