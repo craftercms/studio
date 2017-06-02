@@ -40,8 +40,7 @@ import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATIO
 
 public class DeploymentEndpointConfigImpl implements DeploymentEndpointConfig {
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(DeploymentEndpointConfigImpl.class);
-
+    private static final Logger LOGGER = LoggerFactory.getLogger(DeploymentEndpointConfigImpl.class);
 
     protected DeploymentConfigTO loadConfiguration(String key) {
         String siteConfigPath = getConfigPath().replaceFirst(StudioConstants.PATTERN_SITE, key);

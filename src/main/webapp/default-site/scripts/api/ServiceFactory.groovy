@@ -13,6 +13,7 @@ import scripts.api.impl.site.SpringSiteServices
 import scripts.api.impl.dependency.SpringDependencyServices
 import scripts.api.impl.objectstate.SpringObjectStateServices
 import scripts.api.impl.monitor.SpringMonitorServices
+import scripts.api.impl.cmis.SpringCmisServices
 
 /**
  * Class is a factory used by the API wrappers to find their implementation
@@ -149,5 +150,15 @@ class ServiceFactory {
      */
     static getMonitorServices(context) {
         return new SpringMonitorServices(context)
+    }
+
+    /**
+     * return the implementation for cmis services
+     *
+     * @param context site context
+     * @return Cmis Services
+     */
+    static getCmisServices(context) {
+        return new SpringCmisServices(context)
     }
 }
