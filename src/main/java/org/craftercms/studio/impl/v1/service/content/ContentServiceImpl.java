@@ -1524,7 +1524,11 @@ public class ContentServiceImpl implements ContentService {
             root = getContentItem(site, path + "/index.xml");
         }
         else {
-            root = getContentItem(site, path);
+            if (depth > 1) {
+                root = getContentItem(site, path, depth);
+            } else {
+                root = getContentItem(site, path);
+            }
         }
 
         long executionTime = System.currentTimeMillis() - startTime;
