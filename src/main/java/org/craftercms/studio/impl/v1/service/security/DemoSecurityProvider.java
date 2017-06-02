@@ -36,6 +36,7 @@ import org.dom4j.io.SAXReader;
 import java.io.File;
 import java.util.*;
 
+import static org.craftercms.studio.api.v1.constant.SecurityConstants.*;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_FILE_CONFIG_LOCATION;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_TYPE;
 
@@ -150,10 +151,10 @@ public class DemoSecurityProvider implements SecurityProvider {
         Map<String, Object> toRet = new HashMap<String, Object>();;
         User u = userMap.get(user);
         if (u != null) {
-            toRet.put("username", u.getUsername());
-            toRet.put("email", u.getEmail());
-            toRet.put("firstName", u.getFirstName());
-            toRet.put("lastName", u.getLastName());
+            toRet.put(KEY_USERNAME, u.getUsername());
+            toRet.put(KEY_EMAIL, u.getEmail());
+            toRet.put(KEY_FIRSTNAME, u.getFirstName());
+            toRet.put(KEY_LASTNAME, u.getLastName());
         }
         return toRet;
     }

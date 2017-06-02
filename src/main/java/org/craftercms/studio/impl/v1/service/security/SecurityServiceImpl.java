@@ -68,6 +68,8 @@ import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
+import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_EMAIL;
+import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_EXTERNALLY_MANAGED;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.*;
 
 /**
@@ -658,11 +660,11 @@ public class SecurityServiceImpl implements SecurityService {
             logger.info("User profile not found for " + username);
             throw new UserNotFoundException();
         } else {
-            if (Boolean.parseBoolean(userProfile.get("externally_managed").toString())) {
+            if (Boolean.parseBoolean(userProfile.get(KEY_EXTERNALLY_MANAGED).toString())) {
                 throw new UserExternallyManagedException();
             } else {
-                if (userProfile.get("email") != null) {
-                    String email = userProfile.get("email").toString();
+                if (userProfile.get(KEY_EMAIL) != null) {
+                    String email = userProfile.get(KEY_EMAIL).toString();
 
                     logger.debug("Creating security token for forgot password");
                     long timestamp = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(Long.parseLong(studioConfiguration
@@ -704,7 +706,7 @@ public class SecurityServiceImpl implements SecurityService {
                     logger.info("User profile not found for " + username);
                     throw new UserNotFoundException();
                 } else {
-                    if (Boolean.parseBoolean(userProfile.get("externally_managed").toString())) {
+                    if (Boolean.parseBoolean(userProfile.get(KEY_EXTERNALLY_MANAGED).toString())) {
                         throw new UserExternallyManagedException();
                     } else {
                         long tokenTimestamp = Long.parseLong(tokenElements.nextToken());

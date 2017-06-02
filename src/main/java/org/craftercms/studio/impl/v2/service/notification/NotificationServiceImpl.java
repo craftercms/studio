@@ -46,6 +46,7 @@ import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.Node;
 
+import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_EMAIL;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.*;
 
 public class NotificationServiceImpl implements NotificationService {
@@ -105,7 +106,8 @@ public class NotificationServiceImpl implements NotificationService {
             templateModel.put("submitterUser", submitter);
             templateModel.put("approver", securityService.getUserProfile(approver));
             templateModel.put("scheduleDate", scheduleDate);
-            notify(site, Arrays.asList(submitterUser.get("email").toString()), NOTIFY_CONTENT_APPROVAL, locale, templateModel);
+            notify(site, Arrays.asList(submitterUser.get(KEY_EMAIL).toString()), NOTIFY_CONTENT_APPROVAL, locale,
+                templateModel);
         }
         catch(Throwable ex) {
             logger.error("Unable to Notify Content Approval", ex);
@@ -235,7 +237,8 @@ public class NotificationServiceImpl implements NotificationService {
             templateModel.put("submitter", submitterUser);
             templateModel.put("rejectionReason", rejectionReason);
             templateModel.put("userThatRejects", securityService.getUserProfile(userThatRejects));
-            notify(site, Arrays.asList(submitterUser.get("email").toString()), NOTIFY_CONTENT_REJECTED, locale, templateModel);
+            notify(site, Arrays.asList(submitterUser.get(KEY_EMAIL).toString()), NOTIFY_CONTENT_REJECTED, locale,
+                templateModel);
         } catch (Throwable ex) {
             logger.error("Unable to notify content rejection", ex);
         }

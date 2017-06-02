@@ -69,6 +69,10 @@ studio.configuration.site.contentTypes.configFileName: config.xml
 studio.configuration.site.defaultGroups: Author,Publisher,Developer,Reviewer,Admin
 # Default admin group when site is created to add creator as admin
 studio.configuration.site.defaultAdminGroup: Admin
+# Location where data sources configuration is stored for a site.
+studio.configuration.site.dataSources.configBasePath: /config/studio/data-sources
+# File name where data sources configuration is stored.
+studio.configuration.site.dataSources.configFileName: cmis-config.xml
 ########################################################
 ##                   Import Service                   ##
 ########################################################
