@@ -26,6 +26,8 @@ import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 
+import static org.craftercms.studio.api.v1.constant.SecurityConstants.*;
+
 /**
  */
 public class TestSecurityProvider implements SecurityProvider {
@@ -45,22 +47,22 @@ public class TestSecurityProvider implements SecurityProvider {
 
     private final static Map<String, Map<String, Object>> USER_PROFILES = new HashMap<String, Map<String, Object>>() {{
         Map<String, Object> adminProfile = new HashMap<String, Object>();
-        adminProfile.put("username", "admin");
-        adminProfile.put("email", "evaladmin@example.com");
-        adminProfile.put("firstName", "Joe");
-        adminProfile.put("lastName", "Admin");
+        adminProfile.put(KEY_USERNAME, "admin");
+        adminProfile.put(KEY_EMAIL, "evaladmin@example.com");
+        adminProfile.put(KEY_FIRSTNAME, "Joe");
+        adminProfile.put(KEY_LASTNAME, "Admin");
 
         Map<String, Object> authorProfile = new HashMap<String, Object>();
-        authorProfile.put("username", "author");
-        authorProfile.put("email", "evalauthor@example.com");
-        authorProfile.put("firstName", "Joe");
-        authorProfile.put("lastName", "Author");
+        authorProfile.put(KEY_USERNAME, "author");
+        authorProfile.put(KEY_EMAIL, "evalauthor@example.com");
+        authorProfile.put(KEY_FIRSTNAME, "Joe");
+        authorProfile.put(KEY_LASTNAME, "Author");
 
         Map<String, Object> approverProfile = new HashMap<String, Object>();
-        authorProfile.put("username", "approver");
-        authorProfile.put("email", "evalapprover@example.com");
-        authorProfile.put("firstName", "Joe");
-        authorProfile.put("lastName", "Approver");
+        authorProfile.put(KEY_USERNAME, "approver");
+        authorProfile.put(KEY_EMAIL, "evalapprover@example.com");
+        authorProfile.put(KEY_FIRSTNAME, "Joe");
+        authorProfile.put(KEY_LASTNAME, "Approver");
 
         put("admin", adminProfile);
         put("author", authorProfile);
@@ -86,12 +88,12 @@ public class TestSecurityProvider implements SecurityProvider {
         String username = null;
 
         if(context!=null) {
-            username = activeUser.get("username");
+            username = activeUser.get(KEY_USERNAME);
             //HttpSession httpSession = context.getRequest().getSession();
-            //(String)httpSession.getValue("username");
+            //(String)httpSession.getValue(KEY_USERNAME);
         }
         else {
-             username = activeProcess.get("username");
+             username = activeProcess.get(KEY_USERNAME);
         }
 
         return username;
@@ -133,15 +135,15 @@ public class TestSecurityProvider implements SecurityProvider {
             if(context != null) {
                 //     HttpSession httpSession = context.getRequest().getSession();
                 //     if(httpSession != null) {
-                //         httpSession.putValue("username", username);
+                //         httpSession.putValue(KEY_USERNAME, username);
                 //         httpSession.putValue("ticket", ticket);
                 //     }
-                activeUser.put("username", username);
+                activeUser.put(KEY_USERNAME, username);
                 activeUser.put("ticket", ticket);
 
              }
              else {
-                activeProcess.put("username", username);
+                activeProcess.put(KEY_USERNAME, username);
                 activeProcess.put("ticket", ticket);
              }
         }
@@ -187,7 +189,7 @@ public class TestSecurityProvider implements SecurityProvider {
 
     @Override
     public boolean logout() {
-        activeUser.remove("username");
+        activeUser.remove(KEY_USERNAME);
         activeUser.remove("ticket");
         return true;
     }
