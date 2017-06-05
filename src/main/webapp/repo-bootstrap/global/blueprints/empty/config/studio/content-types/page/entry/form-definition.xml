@@ -32,9 +32,9 @@
 					<id>file-name</id>
 					<iceId></iceId>
 					<title>Page URL</title>
-					<description>DESC</description>
+					<description></description>
 					<defaultValue></defaultValue>
-					<help>HELP</help>
+					<help></help>
 					<properties>
 						<property>
 							<name>size</name>
@@ -53,7 +53,7 @@
 						</property>
 						<property>
 							<name>readonly</name>
-							<value></value>
+							<value>true</value>
 							<type>boolean</type>
 						</property>
 					</properties>
@@ -63,11 +63,11 @@
 				<field>
 					<type>input</type>
 					<id>internal-name</id>
-					<iceId>optional</iceId>
+					<iceId></iceId>
 					<title>File Title</title>
-					<description>optional</description>
+					<description></description>
 					<defaultValue></defaultValue>
-					<help>optional</help>
+					<help></help>
 					<properties>
 						<property>
 							<name>size</name>
