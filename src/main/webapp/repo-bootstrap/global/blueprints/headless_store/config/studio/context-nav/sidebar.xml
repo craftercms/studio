@@ -83,6 +83,7 @@
 									<params>
 										<roles>
 											<role>admin</role>
+											<role>developer</role>
 										</roles>
                                         <label>Site Config</label>
                                         <path>/site-config</path>

@@ -43,7 +43,7 @@
 						</property>
 						<property>
 							<name>readonly</name>
-							<value></value>
+							<value>true</value>
 							<type>boolean</type>
 						</property>
 					</properties>
