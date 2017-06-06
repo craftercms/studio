@@ -19,6 +19,7 @@
 package org.craftercms.studio.impl.v1.web.filter;
 
 
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.craftercms.studio.impl.v1.web.http.MultiReadHttpServletRequestWrapper;
 
 import javax.servlet.*;
@@ -29,7 +30,11 @@ public class MultiReadHttpServletRequestWrapperFilter implements Filter {
     public void init ( FilterConfig fc ) throws ServletException { }
 
     public void doFilter (ServletRequest request, ServletResponse response, FilterChain chain ) throws IOException,	ServletException {
-        chain.doFilter(new MultiReadHttpServletRequestWrapper((HttpServletRequest) request), response);
+        if (!ServletFileUpload.isMultipartContent((HttpServletRequest)request)) {
+            chain.doFilter(new MultiReadHttpServletRequestWrapper((HttpServletRequest) request), response);
+        } else {
+            chain.doFilter(request, response);
+        }
     }
 
     public void destroy () { }
