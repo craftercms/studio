@@ -514,7 +514,7 @@
                             <doCheck>false</doCheck>
                             <doUpdate>false</doUpdate>
                             <revisionOnScmFailure>unknown</revisionOnScmFailure>
-                            <scmDirectory>target/ui</scmDirectory>
+                            <scmDirectory>${studio.ui.path}</scmDirectory>
                             <buildNumberPropertyName>UIbuildNumber</buildNumberPropertyName>
                         </configuration>
                     </execution>
