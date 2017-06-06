@@ -1484,7 +1484,9 @@ text/vnd.wap.wml				wml
 text/vnd.wap.wmlscript				wmls
 text/x-asm					s asm
 text/x-c					c cc cxx cpp h hh dic
+text/x-freemarker           ftl
 text/x-fortran					f for f77 f90
+text/x-groovy               groovy
 text/x-java-source				java
 text/x-opml					opml
 text/x-pascal					p pas
