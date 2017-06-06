@@ -23,7 +23,8 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.DmXmlConstants;
@@ -1393,6 +1394,12 @@ public class ContentServiceImpl implements ContentService {
         }
 
         loadContentTypeProperties(site, item, item.contentType);
+
+        MimetypesFileTypeMap mimeTypesMap = new MimetypesFileTypeMap();
+        String mimeType = mimeTypesMap.getContentType(item.getName());
+        if (StringUtils.isNotEmpty(mimeType)) {
+            item.setMimeType(mimeType);
+        }
         return item;
     }
 
@@ -1815,7 +1822,7 @@ public class ContentServiceImpl implements ContentService {
     public List<DmOrderTO> getItemOrders(String site, String path) throws ContentNotFoundException {
         List<DmOrderTO> dmOrderTOs = getOrders(site, path, "default", false);
         for (DmOrderTO dmOrderTO : dmOrderTOs) {
-            dmOrderTO.setName(StringUtils.escape(dmOrderTO.getName()));
+            dmOrderTO.setName(StringEscapeUtils.escapeJava(dmOrderTO.getName()));
         }
         return dmOrderTOs;
     }

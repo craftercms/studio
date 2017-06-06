@@ -124,6 +124,8 @@ public class ContentItemTO implements Serializable {
     public double size;
     public String sizeUnit;
 
+    public String mimeType;
+
 	public ContentItemTO() {}
 
 	// Copy constructors
@@ -208,6 +210,7 @@ public class ContentItemTO implements Serializable {
         this.isReference = item.isReference;
         this.parentPath = item.parentPath;
         this.orders = item.orders;
+        this.mimeType = item.mimeType;
 
 		if (cloneChildren) {
 			if (item.children != null) {
@@ -398,7 +401,10 @@ public class ContentItemTO implements Serializable {
     public String getSizeUnit() { return sizeUnit; }
     public void setSizeUnit(String sizeUnit) { this.sizeUnit = sizeUnit; }
 
-	public void addChild(ContentItemTO itemToAdd, boolean recursive, boolean renamed) {
+    public String getMimeType() { return mimeType; }
+    public void setMimeType(String mimeType) { this.mimeType = mimeType; }
+
+    public void addChild(ContentItemTO itemToAdd, boolean recursive, boolean renamed) {
 
 		if (uri != null && uri.equals(itemToAdd.uri)) {
 			// do not add itself
