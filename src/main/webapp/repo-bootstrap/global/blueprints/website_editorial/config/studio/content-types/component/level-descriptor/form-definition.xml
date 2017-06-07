@@ -1,6 +1,6 @@
 <form>
 	<title>Section Defaults</title>
-	<description></description>
+	<description>Section Defaults provides inherited values to all children and sibling content items. To learn more about content inheritance see docs.craftercms.org topic &quot;Content Inheritance&quot;</description>
 	<objectType>component</objectType>
 	<content-type>/component/level-descriptor</content-type>
 	<imageThumbnail>section-defaults.png</imageThumbnail>
