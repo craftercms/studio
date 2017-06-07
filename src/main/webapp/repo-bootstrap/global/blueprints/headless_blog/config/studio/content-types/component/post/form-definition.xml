@@ -77,9 +77,9 @@
 					<type>checkbox</type>
 					<id>disabled</id>
 					<iceId></iceId>
-					<title>Disabled</title>
+					<title>Disable Item Post</title>
 					<description></description>
-					<defaultValue>false</defaultValue>
+					<defaultValue></defaultValue>
 					<help></help>
 					<properties>
 						<property>
