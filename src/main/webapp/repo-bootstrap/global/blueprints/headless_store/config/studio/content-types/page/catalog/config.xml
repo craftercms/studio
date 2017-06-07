@@ -1,4 +1,4 @@
-<content-type name="/page/entry" is-wcm-type="true">
+<content-type name="/page/catalog" is-wcm-type="true">
 	<label>Entry</label>
 	<form>/page/catalog</form>
 	<form-path>simple</form-path>
