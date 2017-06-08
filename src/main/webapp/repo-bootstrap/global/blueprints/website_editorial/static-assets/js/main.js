@@ -296,7 +296,14 @@
     					window.location.replace("/search-results?q=" + value);
   					}
 				});
-
+				
+				$query.autocomplete({
+					minLength: 2,
+					source: '/api/1/services/suggestions.json',
+					select: function(evt, ui) {
+						window.location.replace("/search-results?q=" + ui.item.value);
+					}
+				});
 	});
 
 })(jQuery);

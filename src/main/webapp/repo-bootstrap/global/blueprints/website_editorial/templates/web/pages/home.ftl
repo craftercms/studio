@@ -15,6 +15,7 @@
 		<link rel="stylesheet" href="/static-assets/css/main.css" />
 		<!--[if lte IE 9]><link rel="stylesheet" href="/static-assets/css/ie9.css" /><![endif]-->
 		<!--[if lte IE 8]><link rel="stylesheet" href="/static-assets/css/ie8.css" /><![endif]-->
+		<link rel="stylesheet" href="/static-assets/css/jquery-ui.min.css" />
 	</head>
 	<body>
 		<!-- Wrapper -->
@@ -88,6 +89,7 @@
 
 		<!-- Scripts -->
 			<script src="/static-assets/js/jquery.min.js"></script>
+			<script src="/static-assets/js/jquery-ui.min.js"></script>
 			<script src="/static-assets/js/skel.min.js"></script>
 			<script src="/static-assets/js/util.js"></script>
 			<!--[if lte IE 8]><script src="/static-assets/js/ie/respond.min.js"></script><![endif]-->
