@@ -77,7 +77,7 @@
 					<type>checkbox</type>
 					<id>disabled</id>
 					<iceId></iceId>
-					<title>Disabled</title>
+					<title>Disable Item Author</title>
 					<description></description>
 					<defaultValue>false</defaultValue>
 					<help></help>
