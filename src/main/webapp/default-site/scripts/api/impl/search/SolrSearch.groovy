@@ -6,10 +6,10 @@ import groovy.json.JsonSlurper
  * search implementation
  */
 class SolrSearch {
- 
-	/** 
+
+	/**
 	 * search the repository
-	 * @param site - the project ID	 
+	 * @param site - the project ID
 	 * @param keywords - keywords
 	 * @param filters - Filters object (document based)
 	 * @param sort - sort object
@@ -25,7 +25,7 @@ class SolrSearch {
 		// build query
 		def queryStatement = "crafterSite:\"" + site + "\" "
 		if(keywords && keywords != "") {
-			queryStatement    += " AND *" + keywords + "* "
+			queryStatement += " AND (localId:*${keywords}* OR internal-name:*${keywords}* OR title:*${keywords}* OR *${keywords}*) "
 		}
 
 		// can't support filters for images at this time because images are not indexed
@@ -50,12 +50,12 @@ class SolrSearch {
 			}
 			else if("cstudio-core:title".equals(searchParams.sortBy)) {
 				sort = "title"
-			}	
+			}
 			else if("cm:created".equals(searchParams.sortBy)) {
 				sort = "createdDate_dt"
 			}
 			else {
-				sort = searchParams.sortBy	
+				sort = searchParams.sortBy
 			}
 
 			query = query.addParam("sort", sort + " " + order)
@@ -65,10 +65,10 @@ class SolrSearch {
         }
 
 		try {
- 			def executedQuery = searchService.search(query)   
+ 			def executedQuery = searchService.search(query)
 			def queryResults = executedQuery.response.documents
 
-			results.resultCount = executedQuery.response.numFound   
+			results.resultCount = executedQuery.response.numFound
 			results.pageTotal = (results.resultCount < pageSize) ? 1 : results.resultCount / pageSize
 			results.resultPerPage = pageSize
 			results.searchFailed = false
@@ -84,9 +84,9 @@ class SolrSearch {
 				item.internalName = item["internal-name"]
 				item.contentType = item["content-type"]
 				item.path = item["localId"]
-				item.lastEditDate = item.lastModifiedDate 
+				item.lastEditDate = item.lastModifiedDate
 				//item.lastEditDateAsString = "2014-11-04T09:36:03"
-				//item.eventDate = item.lastModifiedDate  
+				//item.eventDate = item.lastModifiedDate
 
 				result.item = item
 				if(item.internalName != null) {
@@ -107,4 +107,4 @@ class SolrSearch {
 		return results
 
 	}
-}	
+}
