@@ -30,6 +30,10 @@ studio.repo.bootstrapRepo: true
 # Defines size of a batch when rebuilding crafter repository metadata stored in database.
 studio.repo.rebuildMetadata.batchSize: 100
 
+studio.repo.published.cherryPickMessage: ~~ Crafter Studio - commit ID = <commitId> ~~
+studio.repo.published.cherryPickMessage.replace: <commitId>
+studio.repo.published.cherryPickMessage.commitId.regex: (~~\sCrafter\sStudio\s-\scommit\sID\s=\s)([a-f0-9]*)(\s~~)
+
 ############################################################
 ##                   Site Configuration                   ##
 ############################################################

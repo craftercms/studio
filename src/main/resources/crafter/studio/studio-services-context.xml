@@ -673,6 +673,7 @@
         <property name="securityProvider" ref="securityProvider" />
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="deploymentDependencyRule" ref="studioDeplymentDependencyRule" />
+        <property name="deploymentHistoryProvider" ref="contentRepository" />
     </bean>
 
     <bean id="cstudioDeploymentEventLoggerListener" class="org.craftercms.studio.impl.v1.ebus.DeploymentEventLoggerListener" init-method="subscribeToDeploymentEngineDeployEvents">

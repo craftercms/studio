@@ -253,6 +253,16 @@ public interface ContentRepository {
      */
     String getRepoFirstCommitId(String site);
 
+    /**
+     * Get a list of commits for updates on a content
+     * @param site site id
+     * @param path path
+     * @param commitIdFrom range from commit id (inclusive)
+     * @param commitIdTo range to commit id (inclusive)
+     * @return
+     */
+    List<String> getEditCommitIds(String site, String path, String commitIdFrom, String commitIdTo);
+
     /*
     List<PublishTO> getPublishEvents(String site, String commitIdFrom, String commitIdTo);
     List<PublishTO> getPublishEvents(String site, String commitIdFrom);
