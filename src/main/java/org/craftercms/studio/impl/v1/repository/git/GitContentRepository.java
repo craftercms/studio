@@ -31,6 +31,8 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.servlet.ServletContext;
 
 import org.apache.commons.collections4.iterators.ReverseListIterator;
@@ -60,6 +62,7 @@ import org.eclipse.jgit.api.errors.RefNotFoundException;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.internal.storage.file.LockFile;
 import org.eclipse.jgit.lib.*;
+import org.eclipse.jgit.merge.MergeStrategy;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevSort;
 import org.eclipse.jgit.revwalk.RevTree;
@@ -76,7 +79,7 @@ import static org.craftercms.studio.api.v1.constant.GitRepositories.PUBLISHED;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.BOOTSTRAP_REPO_GLOBAL_PATH;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.BOOTSTRAP_REPO_PATH;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.BOOTSTRAP_REPO;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.*;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.EMPTY_FILE;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_COMMIT_ALL_ITEMS;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
@@ -719,7 +722,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
     @Override
     public void publish(String site, List<String> commitIds, String environment, String author, String comment) {
-        Repository repo = helper.getRepository(site, GitRepositories.PUBLISHED);
+            Repository repo = helper.getRepository(site, GitRepositories.PUBLISHED);
 
         synchronized(helper.getRepository(site, GitRepositories.PUBLISHED)) {
             try (Git git = new Git(repo)) {
@@ -742,10 +745,14 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 FetchResult fetchResult = git.fetch().call();
 
                 // cherry pick all commit ids
-                CherryPickCommand cherryPickCommand = git
-                        .cherryPick()
-                        .setNoCommit(false);
                 for (String commitId : commitIds) {
+                    String message = studioConfiguration.getProperty(REPO_PUBLISHED_CHERRY_PICK_MESSAGE);
+                    message = message.replace(studioConfiguration.getProperty(REPO_PUBLISHED_CHERRY_PICK_MESSAGE_REPLACE), commitId);
+                    CherryPickCommand cherryPickCommand = git
+                            .cherryPick()
+                            .setOurCommitName(message)
+                            .setNoCommit(false);
+
                     if (StringUtils.isNotEmpty(commitId)) {
                         String initialCommit = getRepoFirstCommitId(site);
                         if (!StringUtils.equals(initialCommit, commitId)) {
@@ -753,30 +760,33 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                             cherryPickCommand.include(objectId);
                         }
                     }
-                }
-                CherryPickResult cherryPickResult = cherryPickCommand.call();
 
-                switch (cherryPickResult.getStatus()) {
-                    case FAILED:
-                        // TODO: DB: what to do if cherry pick failed ?
-                        logger.error("Cherry-pick failed " + cherryPickResult.getFailingPaths());
-                        break;
+                    CherryPickResult cherryPickResult = cherryPickCommand.call();
 
-                    case CONFLICTING:
-                        // TODO: DB: what to do if cherry pick has conflict ?
-                        logger.error("Conflict executing cherry-pick " + cherryPickResult.getFailingPaths());
-                        break;
+                    switch (cherryPickResult.getStatus()) {
+                        case FAILED:
+                            // TODO: DB: what to do if cherry pick failed ?
+                            logger.error("Cherry-pick failed " + cherryPickResult.getFailingPaths());
+                            break;
 
-                    case OK:
-                        long commitTime = 1000l * cherryPickResult.getNewHead().getCommitTime();
-                        // tag
-                        Date tagDate2 = new Date(commitTime);
-                        Date publishDate = new Date();
-                        SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy-MM-dd'T'HHmmssSSSX");
-                        String tagName2 = sdf2.format(tagDate2) + "_published_on_" + sdf2.format(publishDate);
-                        PersonIdent authorIdent2 = helper.getAuthorIdent(author);
-                        Ref tagResult2 = git.tag().setTagger(authorIdent2).setName(tagName2).setMessage(comment).call();
-                        break;
+                        case CONFLICTING:
+                            // TODO: DB: what to do if cherry pick has conflict ?
+                            logger.error("Conflict executing cherry-pick " + cherryPickResult.getFailingPaths());
+                            break;
+
+                        case OK:
+                            git.commit().setAmend(true).setMessage(message).call();
+
+                            long commitTime = 1000l * cherryPickResult.getNewHead().getCommitTime();
+                            // tag
+                            Date tagDate2 = new Date(commitTime);
+                            Date publishDate = new Date();
+                            SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy-MM-dd'T'HHmmssSSSX");
+                            String tagName2 = sdf2.format(tagDate2) + "_published_on_" + sdf2.format(publishDate);
+                            PersonIdent authorIdent2 = helper.getAuthorIdent(author);
+                            Ref tagResult2 = git.tag().setTagger(authorIdent2).setName(tagName2).setMessage(message).call();
+                            break;
+                    }
                 }
 
 
@@ -1015,6 +1025,83 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             logger.error("Error while getting last deployment date for site " + site + ", path " + path, e);
         }
         return toRet;
+    }
+
+    @Override
+    public String getLastPublishedCommitId(String site, String environment, String path) {
+        String toRet = null;
+        Repository publishedRepo = helper.getRepository(site, PUBLISHED);
+        try (Git git = new Git(publishedRepo)) {
+            Iterable<RevCommit> logs = git.log()
+                    .add(publishedRepo.resolve(environment))
+                    .addPath(helper.getGitPath(path))
+                    .setMaxCount(1)
+                    .call();
+            Iterator<RevCommit> iter = logs.iterator();
+            if (iter.hasNext()) {
+                RevCommit revCommit = iter.next();
+                String message = revCommit.getFullMessage();
+                String commitIdPattern = studioConfiguration.getProperty(REPO_PUBLISHED_CHERRY_PICK_MESSAGE_COMMIT_ID_REGEX);
+                Pattern p = Pattern.compile(commitIdPattern);
+                Matcher m = p.matcher(message);
+                if (m.matches()) {
+                    toRet = m.group(2);
+                }
+            }
+        } catch (IOException | GitAPIException e) {
+            logger.error("Error while getting last commit id for site " + site + ", path " + path + " on environment " + environment, e);
+        }
+        return toRet;
+    }
+
+    @Override
+    public List<String> getEditCommitIds(String site, String path, String commitIdFrom, String commitIdTo) {
+        List<String> commitIds = new ArrayList<String>();
+
+        synchronized(helper.getRepository(site, SANDBOX)) {
+            try {
+                // Get the sandbox repo, and then get a reference to the commitId we received and another for head
+                Repository repo = helper.getRepository(site, SANDBOX);
+                if (StringUtils.isEmpty(commitIdFrom)) {
+                    commitIdFrom = getRepoFirstCommitId(site);
+                }
+                if (StringUtils.isEmpty(commitIdTo)) {
+                    commitIdTo = getRepoLastCommitId(site);
+                }
+                ObjectId objCommitIdFrom = repo.resolve(commitIdFrom);
+                ObjectId objCommitIdTo = repo.resolve(commitIdTo);
+
+                try (Git git = new Git(repo)) {
+
+                    // If the commitIdFrom is the same as commitIdTo, there is nothing to calculate, otherwise, let's do it
+                    if (!objCommitIdFrom.equals(objCommitIdTo)) {
+                        // Compare HEAD with commitId we're given
+                        // Get list of commits between commitId and HEAD in chronological order
+
+                        // Get the log of all the commits between commitId and head
+                        Iterable<RevCommit> commits = git.log()
+                                .addPath(helper.getGitPath(path))
+                                .addRange(objCommitIdFrom, objCommitIdTo)
+                                .call();
+
+                        // Reverse orders of commits
+                        Iterator<RevCommit> iterator = commits.iterator();
+                        while (iterator.hasNext()) {
+
+                            RevCommit commit = iterator.next();
+                            commitIds.add(0, commit.getId().getName());
+                        }
+                    }
+                } catch (GitAPIException e) {
+                    logger.error("Error getting commit ids for site " + site + " and path " + path + " from commit ID: " + commitIdFrom
+                            + " to commit ID: " + commitIdTo, e);
+                }
+            } catch (IOException e) {
+                logger.error("Error getting operations for site " + site + " and path " + path + " from commit ID: " + commitIdFrom + " to commit ID: " + commitIdTo, e);
+            }
+        }
+
+        return commitIds;
     }
 
     public void setServletContext(ServletContext ctx) { this.ctx = ctx; }

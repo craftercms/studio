@@ -49,7 +49,11 @@ public class DeploymentItem implements Serializable {
         this.commitId = commitId;
     }
 
+    public String getLastPublishedCommitId() { return lastPublishedCommitId; }
+    public void setLastPublishedCommitId(String lastPublishedCommitId) { this.lastPublishedCommitId = lastPublishedCommitId; }
+
     protected String site;
     protected String path;
     protected String commitId;
+    protected String lastPublishedCommitId;
 }

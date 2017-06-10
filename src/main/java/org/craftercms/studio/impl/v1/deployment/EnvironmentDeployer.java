@@ -45,7 +45,8 @@ public class EnvironmentDeployer {
         List<DeploymentItem> items = context.getItems();
         List<String> commitIds = new ArrayList<String>(items.size());
         for (DeploymentItem item : items) {
-            commitIds.add(item.getCommitId());
+            List<String> itemCommitIds = contentRepository.getEditCommitIds(item.getSite(), item.getPath(), item.getLastPublishedCommitId(), item.getCommitId());
+            commitIds.addAll(itemCommitIds);
         }
         contentRepository.publish(context.getSite(), commitIds, context.getEnvironment(), context.getAuthor(), context.getComment());
     }

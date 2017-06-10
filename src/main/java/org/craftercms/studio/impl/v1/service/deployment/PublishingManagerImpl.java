@@ -41,6 +41,7 @@ import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
 import org.craftercms.studio.api.v1.service.dependency.DependencyRule;
 import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
+import org.craftercms.studio.api.v1.service.deployment.DeploymentHistoryProvider;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.deployment.PublishingManager;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
@@ -89,6 +90,7 @@ public class PublishingManagerImpl implements PublishingManager {
         } else {
             deploymentItem.setCommitId(contentRepository.getRepoLastCommitId(item.getSite()));
         }
+        deploymentItem.setLastPublishedCommitId(deploymentHistoryProvider.getLastPublishedCommitId(item.getSite(), item.getEnvironment(), item.getPath()));
 
         String site = item.getSite();
         String path = item.getPath();
@@ -312,6 +314,9 @@ public class PublishingManagerImpl implements PublishingManager {
     public DependencyRule getDeploymentDependencyRule() { return deploymentDependencyRule; }
     public void setDeploymentDependencyRule(DependencyRule deploymentDependencyRule) { this.deploymentDependencyRule = deploymentDependencyRule; }
 
+    public DeploymentHistoryProvider getDeploymentHistoryProvider() { return deploymentHistoryProvider; }
+    public void setDeploymentHistoryProvider(DeploymentHistoryProvider deploymentHistoryProvider) { this.deploymentHistoryProvider = deploymentHistoryProvider; }
+
     protected SiteService siteService;
     protected ObjectStateService objectStateService;
     protected ContentService contentService;
@@ -322,6 +327,7 @@ public class PublishingManagerImpl implements PublishingManager {
     protected SecurityProvider securityProvider;
     protected StudioConfiguration studioConfiguration;
     protected DependencyRule deploymentDependencyRule;
+    protected DeploymentHistoryProvider deploymentHistoryProvider;
 
     @Autowired
     protected CopyToEnvironmentMapper copyToEnvironmentMapper;
