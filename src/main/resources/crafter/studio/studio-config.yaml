@@ -8,7 +8,7 @@
 ##     Location of Override Config File         ##
 ##################################################
 # Load override configuration files (to override what's defined here)
-studio.config.overrideConfig: crafter/studio/extension/studio-config.yaml
+studio.config.overrideConfig: crafter/studio/extension/studio-config-override.yaml
 
 ##################################################
 ##              Content Repository              ##
@@ -48,7 +48,7 @@ studio.configuration.global.ui.resource.override.path: crafter/studio/ui
 # Root location where configuration for all sites is stored inside repository.
 studio.configuration.site.configBasePath: /config/studio
 # Location pattern where environment specific configuration for a site is stored
-studio.configuration.site.environment.configBasePath: /config/studio/environment-overrides
+studio.configuration.site.environment.configBasePath: /config/studio/environment
 # Location where deployment configuration is stored for a site.
 studio.configuration.site.deployment.configBasePath: /config/studio/deployment
 # Location where content types are stored for a site.

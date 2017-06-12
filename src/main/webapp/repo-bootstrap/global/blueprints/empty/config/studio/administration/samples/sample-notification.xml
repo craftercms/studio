@@ -63,7 +63,7 @@
 ]]></body>
             </emailTemplate>
 
-            <emailTemplate key="contentApproval">
+            <emailTemplate key="contentApproved">
                 <subject><![CDATA[<#if scheduleDate??>Content Scheduled <#else>Content Approved</#if>]]></subject>
                 <!-- Timezone can/is being overwritten in the following template -->
                 <body><![CDATA[
@@ -103,25 +103,25 @@
                         ]]></body>
             </emailTemplate>
 
-            <emailTemplate key="submitToApproval">
+            <emailTemplate key="submittedForReview">
                 <subject>Content Review</subject>
                 <body><![CDATA[
-                                            <#setting time_zone='EST'>
+                    						<#setting time_zone='EST'>
                         <html>
                         <head>
                             <meta charset="utf-8"/>
                         </head>
                         <body style=" font-size: 12pt">
                             <p>
-                                ${submitter.firstName!submitter.username} ${submitter.lastName} has submitted items for your review:
+                                ${submitter.first_name!submitter.username} ${submitter.last_name} has submitted items for your review:
                               <ul>
                               <#list files as file>
-                                    <#if file.page>
-                                    <a href="${authoringUrl}/preview/#/?page=${file.browserUri!""}&site=${siteName}">
+                                	<#if file.page>
+                                  	<a href="${authoringUrl}/preview/#/?page=${file.browserUri!""}&site=${siteName}">
                                        </#if>
-                                   <li>${file.internalName!file.name}</li>
-                                    <#if file.page>
-                                      </a>
+    	                           <li>${file.internalName!file.name}</li>
+                                  	<#if file.page>
+	                                  </a>
                                   </#if>
                                 </#list>
                             </ul>
@@ -144,7 +144,7 @@
             <emailTemplate key="contentRejected">
                 <subject>Content Requires Revision</subject>
                 <body><![CDATA[
-                        <#setting time_zone='EST'>
+						<#setting time_zone='EST'>
                         <html>
                             <head>
                                 <meta charset="utf-8"/>

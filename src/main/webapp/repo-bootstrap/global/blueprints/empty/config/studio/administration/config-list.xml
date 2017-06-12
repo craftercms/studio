@@ -1,22 +1,29 @@
+<!--
+    This file configures the list of configurations available in the SiteConfig section for this site/blueprint.
+
+    For every configuration you'd like to make editable, you need:
+        <file>
+            <path />
+            <title />
+            <description />
+            <samplePath />
+        </file>
+
+    The elements are:
+    - path: the path to the file. This path is rooted in /config off the base of the site/blueprint
+    - title: the title of this file. This should be a key into the string-table in Studio's localization string table
+        "base.js", if no entry is found, Studio will use the string you have here as is
+    - description: the description of this file.  This should be a key into the string-table in Studio's localization
+        string table "base.js", if no entry is found, Studio will use the string you have here as is
+    - samplePath: the path to a sample file to help the user update the file
+-->
 <config>
     <files>
         <file>
-            <path>/studio/administration/config-list.xml</path>
-            <title>confTabConfigurations</title>
-            <description>confTabConfDesc</description>
-            <samplePath>/studio/administration/samples/sample-config-list.xml</samplePath>
-        </file>
-        <file>
-            <path>/studio/administration/site-config-tools.xml</path>
-            <title>confTabSiteConf</title>
-            <description>confTabSiteConfDesc</description>
-            <samplePath>/studio/administration/samples/sample-site-config-tools.xml</samplePath>
-        </file>
-        <file>
-            <path>/studio/context-nav/contextual-nav.xml</path>
-            <title>confTabContextualNavigationConf</title>
-            <description>confTabContextualNavigationConfDesc</description>
-            <samplePath>/studio/administration/samples/sample-contextual-nav.xml</samplePath>
+            <path>/studio/site-config.xml</path>
+            <title>confTabSiteConfiguration</title>
+            <description>confTabSiteConfigurationDesc</description>
+            <samplePath>/studio/administration/samples/sample-site-config.xml</samplePath>
         </file>
         <file>
             <path>/studio/context-nav/sidebar.xml</path>
@@ -37,16 +44,16 @@
             <samplePath>/studio/administration/samples/sample-preview-components-config.xml</samplePath>
         </file>
         <file>
+            <path>/studio/targeting/targeting-config.xml</path>
+            <title>confTabTargetingConfiguration</title>
+            <description>confTabTargetingConfigurationDesc</description>
+            <samplePath>/studio/administration/samples/sample-targeting-config.xml</samplePath>
+        </file>
+        <file>
             <path>/studio/preview-tools/panel.xml</path>
             <title>confTabPreviewPanelConf</title>
             <description>confTabconfTabPreviewPanelConfDesc</description>
             <samplePath>/studio/administration/samples/sample-preview-panel.xml</samplePath>
-        </file>
-        <file>
-            <path>/studio/targeting/personas/personas-config.xml</path>
-            <title>confTabPersonasConf</title>
-            <description>confTabPersonasConfDesc</description>
-            <samplePath>/studio/administration/samples/sample-personas-config.xml</samplePath>
         </file>
         <file>
             <path>/studio/notification.xml</path>
@@ -67,10 +74,34 @@
             <samplePath>/studio/administration/samples/sample-role-mappings-config.xml</samplePath>
         </file>
         <file>
-            <path>/studio/site-config.xml</path>
-            <title>confTabSiteConfiguration</title>
-            <description>confTabSiteConfigurationDesc</description>
-            <samplePath>/studio/administration/samples/sample-site-config.xml</samplePath>
+            <path>/studio/environment/environment-config.xml</path>
+            <title>confTabEnvironmentConfiguration</title>
+            <description>confTabEnvironmentConfigurationDesc</description>
+            <samplePath>/studio/administration/samples/sample-environment-config.xml</samplePath>
+        </file>
+        <file>
+            <path>/studio/data-sources/cmis-config.xml</path>
+            <title>confTabCMISConfiguration</title>
+            <description>confTabCMISConfigurationDesc</description>
+            <samplePath>/studio/administration/samples/sample-cmis-config.xml</samplePath>
+        </file>
+        <file>
+            <path>/studio/context-nav/contextual-nav.xml</path>
+            <title>confTabContextualNavigationConf</title>
+            <description>confTabContextualNavigationConfDesc</description>
+            <samplePath>/studio/administration/samples/sample-contextual-nav.xml</samplePath>
+        </file>
+        <file>
+            <path>/studio/administration/site-config-tools.xml</path>
+            <title>confTabSiteConf</title>
+            <description>confTabSiteConfDesc</description>
+            <samplePath>/studio/administration/samples/sample-site-config-tools.xml</samplePath>
+        </file>
+        <file>
+            <path>/studio/administration/config-list.xml</path>
+            <title>confTabConfigurations</title>
+            <description>confTabConfDesc</description>
+            <samplePath>/studio/administration/samples/sample-config-list.xml</samplePath>
         </file>
     </files>
 </config>

@@ -4,7 +4,7 @@
        <moduleName>ice-tools-panel</moduleName>
        <title>inContextEditing</title>
      </module>
-     
+
      <module>
        <moduleName>component-panel</moduleName>
        <title>pageComponents</title>
@@ -24,8 +24,8 @@
            <channel>
              <title>smartPhone</title>
              <value>iphone</value>
-             <width>320</width>
-             <height>568</height>
+             <width>375</width>
+             <height>667</height>
            </channel>
            <channel>
              <title>tablet</title>
@@ -36,11 +36,5 @@
          </channels>
        </config>
      </module>
-
-     <module>
-       <moduleName>targeting-panel</moduleName>
-       <title>targeting</title>
-     </module>
-
   </modules>
 </panel>
