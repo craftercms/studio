@@ -23,7 +23,7 @@
 
    Please note that valid types are limited to: dropdown, checkboxes, input
     -->
-
+ 
     <property>
         <name>name</name>
         <label>Name</label>
@@ -33,3 +33,4 @@
         <hint>Enter user's first and last name.</hint>
    </property>
 </targeting>
+
