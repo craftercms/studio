@@ -24,8 +24,8 @@
            <channel>
              <title>smartPhone</title>
              <value>iphone</value>
-             <width>320</width>
-             <height>568</height>
+             <width>375</width>
+             <height>667</height>
            </channel>
            <channel>
              <title>tablet</title>

@@ -51,6 +51,11 @@
 
     -->
     <email-message-templates>
+        <email-message-template name="submitToApproval">
+            <Subject>Content '$title' was submitted for review</Subject>
+            <message>Item(s) '$title' have been submitted for review by '$user-name'. Please review at $preview-url
+                and approve/reject.</message>
+        </email-message-template>
 
         <email-message-template name="rejection">
             <Subject>Publish request for '$title' was rejected</Subject>
