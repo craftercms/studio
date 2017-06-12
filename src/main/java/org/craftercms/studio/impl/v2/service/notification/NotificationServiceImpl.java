@@ -52,10 +52,10 @@ import static org.craftercms.studio.api.v1.util.StudioConfiguration.*;
 public class NotificationServiceImpl implements NotificationService {
     private static final Logger logger = LoggerFactory.getLogger(NotificationServiceImpl.class);
 
-    private static final String DEPLOYMENT_ERROR_MSG_KEY = "deploymentError";
-    private static final String NOTIFY_CONTENT_APPROVAL = "contentApproval";
-    private static final String NOTIFY_CONTENT_SUBMIT_FOR_APPROVAL = "submitToApproval";
-    private static final String NOTIFY_CONTENT_REJECTED = "contentRejected";
+    private static final String NOTIFICATION_KEY_DEPLOYMENT_ERROR = "deploymentError";
+    private static final String NOTIFICATION_KEY_CONTENT_APPROVED = "contentApproved";
+    private static final String NOTIFICATION_KEY_SUBMITTED_FOR_REVIEW = "submittedForReview";
+    private static final String NOTIFICATION_KEY_CONTENT_REJECTED = "contentRejected";
 
     protected Map<String, NotificationConfigTO> notificationConfiguration;
     protected ContentService contentService;
@@ -84,7 +84,7 @@ public class NotificationServiceImpl implements NotificationService {
             final Map<String, Object> templateModel = new HashMap<>();
             templateModel.put("deploymentError", throwable);
             templateModel.put("files", convertPathsToContent(site, filesUnableToPublish));
-            notify(site, notificationConfig.getDeploymentFailureNotifications(), DEPLOYMENT_ERROR_MSG_KEY,
+            notify(site, notificationConfig.getDeploymentFailureNotifications(), NOTIFICATION_KEY_DEPLOYMENT_ERROR,
                 locale, templateModel);
         } catch (Throwable ex) {
             logger.error("Unable to Notify Error", ex);
@@ -106,7 +106,7 @@ public class NotificationServiceImpl implements NotificationService {
             templateModel.put("submitterUser", submitter);
             templateModel.put("approver", securityService.getUserProfile(approver));
             templateModel.put("scheduleDate", scheduleDate);
-            notify(site, Arrays.asList(submitterUser.get(KEY_EMAIL).toString()), NOTIFY_CONTENT_APPROVAL, locale,
+            notify(site, Arrays.asList(submitterUser.get(KEY_EMAIL).toString()), NOTIFICATION_KEY_CONTENT_APPROVED, locale,
                 templateModel);
         }
         catch(Throwable ex) {
@@ -178,10 +178,10 @@ public class NotificationServiceImpl implements NotificationService {
             templateModel.put("isDeleted", isADelete);
             templateModel.put("submissionComments", submissionComments);
             if (usersToNotify == null) {
-                notify(site, notificationConfig.getApproverEmails(), NOTIFY_CONTENT_SUBMIT_FOR_APPROVAL, locale,
+                notify(site, notificationConfig.getApproverEmails(), NOTIFICATION_KEY_SUBMITTED_FOR_REVIEW, locale,
                     templateModel);
             } else {
-                notify(site, usersToNotify, NOTIFY_CONTENT_SUBMIT_FOR_APPROVAL, locale, templateModel);
+                notify(site, usersToNotify, NOTIFICATION_KEY_SUBMITTED_FOR_REVIEW, locale, templateModel);
             }
         } catch (Throwable ex) {
             logger.error("Unable to notify content submission", ex);
@@ -238,7 +238,7 @@ public class NotificationServiceImpl implements NotificationService {
             templateModel.put("submitter", submitterUser);
             templateModel.put("rejectionReason", rejectionReason);
             templateModel.put("userThatRejects", securityService.getUserProfile(userThatRejects));
-            notify(site, Arrays.asList(submitterUser.get(KEY_EMAIL).toString()), NOTIFY_CONTENT_REJECTED, locale,
+            notify(site, Arrays.asList(submitterUser.get(KEY_EMAIL).toString()), NOTIFICATION_KEY_CONTENT_REJECTED, locale,
                 templateModel);
         } catch (Throwable ex) {
             logger.error("Unable to notify content rejection", ex);
