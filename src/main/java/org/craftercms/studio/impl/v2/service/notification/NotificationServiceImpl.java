@@ -143,11 +143,12 @@ public class NotificationServiceImpl implements NotificationService {
                 for (Pair<String, Object> param : params) {
                     model.put(param.getKey(), param.getValue());
                 }
-                model.put("siteName", site);
+                model.put(StudioConstants.SITE_NAME, site);
                 return processMessage(key, message, model);
             }
         } catch (Throwable ex) {
-            logger.error("Unable to Get Message", ex);
+            logger.error("Unable to get notification message from notification configuration for site: {0} type: {1}"
+                    + " key: {2}, locale {3}.", ex);
             return StringUtil.EMPTY_STRING;
         }
         return StringUtil.EMPTY_STRING;

@@ -94,4 +94,5 @@ package org.craftercms.studio.api.v1.constant;
      * Site Constants
      */
     String SITE_DEFAULT_GROUPS_DESCRIPTION = " site default group";
+    String SITE_NAME = "siteName";
 }
