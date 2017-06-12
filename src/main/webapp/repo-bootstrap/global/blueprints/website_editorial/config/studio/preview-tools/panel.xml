@@ -4,7 +4,7 @@
        <moduleName>ice-tools-panel</moduleName>
        <title>inContextEditing</title>
      </module>
-     
+
      <module>
        <moduleName>component-panel</moduleName>
        <title>pageComponents</title>
@@ -36,11 +36,5 @@
          </channels>
        </config>
      </module>
-
-     <module>
-       <moduleName>targeting-panel</moduleName>
-       <title>targeting</title>
-     </module>
-
   </modules>
 </panel>
