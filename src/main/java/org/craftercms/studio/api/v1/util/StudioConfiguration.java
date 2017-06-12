@@ -34,6 +34,9 @@ public interface StudioConfiguration {
     String BOOTSTRAP_REPO = "studio.repo.bootstrapRepo";
     String REPO_PREVIEW_ROOT_PATH = "studio.repo.previewRootPath";
     String REPO_REBUILD_METADATA_BATCH_SIZE = "studio.repo.rebuildMetadata.batchSize";
+    String REPO_PUBLISHED_CHERRY_PICK_MESSAGE = "studio.repo.published.cherryPickMessage";
+    String REPO_PUBLISHED_CHERRY_PICK_MESSAGE_REPLACE = "studio.repo.published.cherryPickMessage.replace";
+    String REPO_PUBLISHED_CHERRY_PICK_MESSAGE_COMMIT_ID_REGEX = "studio.repo.published.cherryPickMessage.commitId.regex";
 
     /** Database */
     String DB_DRIVER = "studio.db.driver";
