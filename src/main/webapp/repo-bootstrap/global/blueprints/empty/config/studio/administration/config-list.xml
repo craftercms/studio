@@ -103,5 +103,11 @@
             <description>confTabConfDesc</description>
             <samplePath>/studio/administration/samples/sample-config-list.xml</samplePath>
         </file>
+        <file>
+            <path>/studio/mime-type.xml</path>
+            <title>Mime Types</title>
+            <description>mime Types</description>
+            <samplePath>/studio/administration/samples/sample-mime-type.xml</samplePath>
+        </file>
     </files>
 </config>
