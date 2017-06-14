@@ -1,8 +1,8 @@
 <config>
-	<tools>
-		<tool>
-			<name>content-types</name>
-			<label>Content Types</label>
+    <tools>
+        <tool>
+            <name>content-types</name>
+            <label>Content Types</label>
             <formSection>
                 <icon>
                     <class>fa-object-group</class>
@@ -160,54 +160,81 @@
                     </icon>
                 </datasource>
             </datasources>
-			<objectTypes>
-				<type>
-					<label>Page</label>
-					<name>page</name>
-					<properties>
-						<property>
-							<name>display-template</name>
-							<label>Display Template</label>
-							<value></value>
-							<type>template</type>
-						</property>
-						<property>
-							<name>merge-strategy</name>
-							<label>Merge Strategy</label>
-							<value>inherit-levels</value>
-							<type>string</type>
-						</property>
-					</properties>
-				</type>
-				<type>
-					<label>Component</label>
-					<name>component</name>
-					<properties>
-						<property>
-							<name>display-template</name>
-							<label>Display Template</label>
-							<value></value>
-							<type>template</type>
-						</property>
-						<property>
-							<name>merge-strategy</name>
-							<label>Merge Strategy</label>
-							<value>inherit-levels</value>
-							<type>string</type>
-						</property>
-					</properties>
-				</type>
+            <objectTypes>
+                <type>
+                    <label>Page</label>
+                    <name>page</name>
+                    <properties>
+                        <property>
+                            <name>display-template</name>
+                            <label>Display Template</label>
+                            <value></value>
+                            <type>template</type>
+                        </property>
+                        <property>
+                            <name>merge-strategy</name>
+                            <label>Merge Strategy</label>
+                            <value>inherit-levels</value>
+                            <type>string</type>
+                        </property>
+                    </properties>
+                </type>
+                <type>
+                    <label>Component</label>
+                    <name>component</name>
+                    <properties>
+                        <property>
+                            <name>display-template</name>
+                            <label>Display Template</label>
+                            <value></value>
+                            <type>template</type>
+                        </property>
+                        <property>
+                            <name>merge-strategy</name>
+                            <label>Merge Strategy</label>
+                            <value>inherit-levels</value>
+                            <type>string</type>
+                        </property>
+                    </properties>
+                </type>
 
-			</objectTypes>
-		</tool>
-		<tool><name>admin-configurations</name><label>Configuration</label></tool>
-        <tool><name>groups</name><label>Groups</label></tool>
-        <tool><name>audit</name><label>Audit</label></tool>
-		<tool><name>bulkoperations</name><label>Bulk Operations</label></tool>
-		<tool><name>workflow-states</name><label>Workflow States</label></tool>
-		<tool><name>logging</name><label>Logging Levels</label></tool>
-		<tool><name>log-view</name><label>Log Console</label></tool>
-        <tool><name>preview-sync</name><label>Preview Sync</label></tool>
-        <tool><name>sync-from-repository</name><label>Sync From Repository</label></tool>
-	</tools>
+            </objectTypes>
+        </tool>
+        <tool>
+            <name>admin-configurations</name>
+            <label>Configuration</label>
+        </tool>
+        <tool>
+            <name>groups</name>
+            <label>Groups</label>
+        </tool>
+        <tool>
+            <name>audit</name>
+            <label>Audit</label>
+        </tool>
+        <tool>
+            <name>bulkoperations</name>
+            <label>Bulk Operations</label>
+        </tool>
+        <tool>
+            <name>workflow-states</name>
+            <label>Workflow States</label>
+        </tool>
+        <tool>
+            <name>logging</name>
+            <label>Logging Levels</label>
+        </tool>
+        <tool>
+            <name>log-view</name>
+            <label>Log Console</label>
+        </tool>
+        <tool>
+            <name>preview-sync</name>
+            <label>Preview Sync</label>
+        </tool>
+        <tool>
+            <name>sync-from-repository</name>
+            <label>Sync From Repository</label>
+        </tool>
+    </tools>
 </config>
