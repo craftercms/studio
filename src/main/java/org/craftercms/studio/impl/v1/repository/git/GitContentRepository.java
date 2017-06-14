@@ -775,7 +775,18 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                             break;
 
                         case OK:
-                            git.commit().setAmend(true).setMessage(message).call();
+                            String newCommitMessage = message;
+                            Iterable<RevCommit> logs = git.log()
+                                    .add(repo.resolve(environment))
+                                    .setMaxCount(1)
+                                    .call();
+                            Iterator<RevCommit> iter = logs.iterator();
+                            if (iter.hasNext()) {
+                                RevCommit revCommit = iter.next();
+                                newCommitMessage += "\n----------------------------------\n";
+                                newCommitMessage += revCommit.getFullMessage();
+                            }
+                            git.commit().setAmend(true).setMessage(newCommitMessage).call();
 
                             long commitTime = 1000l * cherryPickResult.getNewHead().getCommitTime();
                             // tag
@@ -784,7 +795,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                             SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy-MM-dd'T'HHmmssSSSX");
                             String tagName2 = sdf2.format(tagDate2) + "_published_on_" + sdf2.format(publishDate);
                             PersonIdent authorIdent2 = helper.getAuthorIdent(author);
-                            Ref tagResult2 = git.tag().setTagger(authorIdent2).setName(tagName2).setMessage(message).call();
+                            Ref tagResult2 = git.tag().setTagger(authorIdent2).setName(tagName2).setMessage(newCommitMessage).call();
                             break;
                     }
                 }
