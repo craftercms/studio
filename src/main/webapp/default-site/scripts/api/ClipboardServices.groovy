@@ -70,4 +70,12 @@ class ClipboardServices {
     static newClipboardItem(path, cut) {
         return new ClipboardService.ClipboardItem(path, cut)
     }
+
+    static parseTree(parent, subtree) {
+        subtree.children.each { childItem ->
+            def clipboardItem = newClipboardItem(childItem.uri, false)
+            parseTree(clipboardItem, childItem)
+            parent.children.add(clipboardItem)
+        }
+    }
 }
