@@ -23,7 +23,7 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.security.UserDetailsManager;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
-import org.craftercms.studio.impl.v1.util.TokenUtils;
+import org.craftercms.studio.impl.v1.util.SessionTokenUtils;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -56,7 +56,7 @@ public class StudioAuthenticationTokenProcessingFilter extends GenericFilterBean
 
                 UserDetails userDetails = this.userDetailsManager.loadUserByUsername(userName);
 
-                if (TokenUtils.validateToken(authToken, userDetails)) {
+                if (SessionTokenUtils.validateToken(authToken, userDetails.getUsername())) {
 
                     UsernamePasswordAuthenticationToken authentication =
                             new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
@@ -64,8 +64,7 @@ public class StudioAuthenticationTokenProcessingFilter extends GenericFilterBean
 
                     if (httpRequest.getRequestURI().startsWith(httpRequest.getContextPath() + "/api/1") && !httpRequest.getRequestURI().contains("/validate-session.json")) {
                         int timeout = Integer.parseInt(studioConfiguration.getProperty(SECURITY_SESSION_TIMEOUT));
-                        long ttl = 1000L * 60 * timeout;
-                        String newToken = TokenUtils.createToken(userDetails, ttl);
+                        String newToken = SessionTokenUtils.createToken(userDetails.getUsername(), timeout);
                         httpSession.setAttribute(STUDIO_SESSION_TOKEN_ATRIBUTE, newToken);
                     }
                 }

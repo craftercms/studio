@@ -31,7 +31,7 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
-import org.craftercms.studio.impl.v1.util.TokenUtils;
+import org.craftercms.studio.impl.v1.util.SessionTokenUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 
@@ -39,7 +39,6 @@ import javax.servlet.http.HttpSession;
 import java.util.*;
 
 import static org.craftercms.studio.api.v1.constant.SecurityConstants.*;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_DB_SESSION_TIMEOUT;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_SESSION_TIMEOUT;
 import static org.craftercms.studio.impl.v1.service.security.SecurityServiceImpl.STUDIO_SESSION_TOKEN_ATRIBUTE;
 
@@ -264,8 +263,7 @@ public class DbSecurityProvider implements SecurityProvider {
 
     protected String createToken(User user) {
         int timeout = Integer.parseInt(studioConfiguration.getProperty(SECURITY_SESSION_TIMEOUT));
-        long ttl = 1000L * 60 * timeout;
-        String token = TokenUtils.createToken(user, ttl);
+        String token = SessionTokenUtils.createToken(user.getUsername(), timeout);
         return token;
     }
 
@@ -830,8 +828,4 @@ public class DbSecurityProvider implements SecurityProvider {
     @Autowired
     protected SiteFeedMapper siteFeedMapper;
 
-    public int getSessionTimeout() {
-        int toReturn = Integer.parseInt(studioConfiguration.getProperty(SECURITY_DB_SESSION_TIMEOUT));
-        return toReturn;
-    }
 }
