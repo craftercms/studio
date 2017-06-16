@@ -732,7 +732,7 @@ public class SiteServiceImpl implements SiteService {
     public boolean syncDatabaseWithRepo(String site, String fromCommitId) {
 		boolean toReturn = true;
 
-		logger.info("Syncing database with repository for site: " + site + " fromCommitId = " + fromCommitId);
+		logger.info("Syncing database with repository for site: " + site + " fromCommitId = " + (StringUtils.isEmpty(fromCommitId) ? "Empty repo" : fromCommitId));
 
 	    List<RepoOperationTO> repoOperations = contentRepository.getOperations(site, fromCommitId, contentRepository
 		    .getRepoLastCommitId(site));
@@ -881,7 +881,7 @@ public class SiteServiceImpl implements SiteService {
             logger.error("Error synchronizing preview with repository for site: " + site, e);
         }
 
-	    logger.info("Done syncing database with repository for site: " + site + " fromCommitId = " + fromCommitId +
+	    logger.info("Done syncing database with repository for site: " + site + " fromCommitId = " + (StringUtils.isEmpty(fromCommitId) ? "Empty repo" : fromCommitId) +
 		    " with a final result of: " + toReturn);
 
         if (!toReturn) {
