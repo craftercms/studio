@@ -124,8 +124,7 @@ public class RebuildRepositoryMetadata {
 
 
     protected boolean rebuildMetadata(String site) {
-        String firstCommitId = contentRepository.getRepoFirstCommitId(site);
-        siteService.syncDatabaseWithRepo(site, firstCommitId);
+        siteService.syncDatabaseWithRepo(site, null);
         return true;
     }
 
