@@ -139,8 +139,6 @@ studio.security.exceptionUrls: /api/1/services/api/1/user/login.json,/api/1/serv
 studio.security.type: db
 # Location of XML file that contains users for demo security provider.
 studio.security.file.configLocation: ${repository.diskImplementation.path}/security-config.xml
-# Session timeout for db security provider
-studio.security.db.sessionTimeout: 15
 # Salt for encrypting
 studio.security.cipher.salt: STUDIO_SALT
 # Key for encrypting

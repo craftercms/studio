@@ -111,7 +111,6 @@ public interface StudioConfiguration {
     String SECURITY_EXCEPTION_URLS = "studio.security.exceptionUrls";
     String SECURITY_TYPE = "studio.security.type";
     String SECURITY_FILE_CONFIG_LOCATION = "studio.security.file.configLocation";
-    String SECURITY_DB_SESSION_TIMEOUT = "studio.security.db.sessionTimeout";
     String SECURITY_CIPHER_SALT = "studio.security.cipher.salt";
     String SECURITY_CIPHER_KEY = "studio.security.cipher.key";
     String SECURITY_CIPHER_TYPE = "studio.security.cipher.type";
