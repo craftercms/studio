@@ -77,9 +77,10 @@ public interface ContentRepository {
      *
      * @param site site id where the operation will be executed
      * @param path path to content
+     * @param approver user that approves delete content
      * @return Commit ID if successful, null otherwise
      */
-    String deleteContent(String site, String path);
+    String deleteContent(String site, String path, String approver);
 
     /**
      * move content from PathA to pathB

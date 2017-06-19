@@ -225,7 +225,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     @Override
-    public String deleteContent(String site, String path) {
+    public String deleteContent(String site, String path, String approver) {
         String commitId = null;
 
         synchronized(helper.getRepository(site, StringUtils.isEmpty(site)? GitRepositories.GLOBAL: SANDBOX)) {
@@ -236,7 +236,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 git.rm().addFilepattern(helper.getGitPath(path)).setCached(false).call();
 
                 // TODO: SJ: we need to define messages in a string table of sorts
-                commitId = helper.commitFile(repo, site, path, "Delete file " + path, helper.getCurrentUserIdent());
+                commitId = helper.commitFile(repo, site, path, "Delete file " + path, StringUtils.isEmpty(approver) ? helper.getCurrentUserIdent() : helper.getAuthorIdent(approver));
 
                 git.close();
             } catch (GitAPIException e) {
