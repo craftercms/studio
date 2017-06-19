@@ -430,7 +430,7 @@ public class ContentServiceImpl implements ContentService {
             generateDeleteActivity(site, path, approver);
         }
 
-        commitId = _contentRepository.deleteContent(site, path);
+        commitId = _contentRepository.deleteContent(site, path, approver);
 
         objectStateService.deleteObjectStateForPath(site, path);
         objectMetadataManager.deleteObjectMetadata(site, path);

@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.CopyToEnvironment;
 import org.craftercms.studio.api.v1.dal.CopyToEnvironmentMapper;
 import org.craftercms.studio.api.v1.dal.ObjectMetadata;
@@ -99,6 +100,7 @@ public class PublishingManagerImpl implements PublishingManager {
         String oldPath = item.getOldPath();
         String environment = item.getEnvironment();
         String action = item.getAction();
+        String user = item.getUser();
 
         String liveEnvironment = LIVE_ENVIRONMENT;
         boolean isLive = false;
@@ -112,23 +114,52 @@ public class PublishingManagerImpl implements PublishingManager {
             isLive = true;
         }
 
-        if (StringUtils.equals(action, CopyToEnvironment.Action.DELETE)) {
+        if (org.apache.commons.lang.StringUtils.equals(action, CopyToEnvironment.Action.DELETE)) {
             if (oldPath != null && oldPath.length() > 0) {
+                contentService.deleteContent(site, oldPath, user);
+                boolean hasRenamedChildren = false;
+
+                if (oldPath.endsWith("/" + DmConstants.INDEX_FILE)) {
+                    if (contentService.contentExists(site, oldPath.replace("/" + DmConstants.INDEX_FILE, ""))) {
+                        // TODO: SJ: This bypasses the Content Service, fix
+                        RepositoryItem[] children = contentRepository.getContentChildren(site, oldPath.replace("/" + DmConstants.INDEX_FILE, ""));
+
+                        if (children.length > 1) {
+                            hasRenamedChildren = true;
+                        }
+                    }
+                    if (!hasRenamedChildren) {
+                        deleteFolder(site, oldPath.replace("/" + DmConstants.INDEX_FILE, ""), user);
+                    }
+                }
+
                 objectMetadataManager.clearRenamed(site, path);
+            }
+
+
+            boolean haschildren = false;
+
+            if (item.getPath().endsWith("/" + DmConstants.INDEX_FILE)) {
+                if (contentService.contentExists(site, path.replace("/" + DmConstants.INDEX_FILE, ""))) {
+                    // TODO: SJ: This bypasses the Content Service, fix
+                    RepositoryItem[] children = contentRepository.getContentChildren(site, path.replace("/" + DmConstants.INDEX_FILE, ""));
+
+                    if (children.length > 1) {
+                        haschildren = true;
+                    }
+                }
+            }
+
+            if (contentService.contentExists(site, path)) {
+                contentService.deleteContent(site, path, user);
+
+                if (!haschildren) {
+                    deleteFolder(site, path.replace("/" + DmConstants.INDEX_FILE, ""), user);
+                }
             }
         } else {
             LOGGER.debug("Setting system processing for {0}:{1}", site, path);
             objectStateService.setSystemProcessing(site, path, true);
-
-            if (isLive) {
-                if (!isImportModeEnabled()) {
-                    // TODO: SJ: This bypasses the Content Service, fix
-                    //contentRepository.createVersion(site, path, submissionComment, true);
-                }
-                else {
-                    LOGGER.debug("Import mode is ON. Create new version is skipped for [{0}] site \"{1}\"", path, site);
-                }
-            }
 
             if (StringUtils.equals(action, CopyToEnvironment.Action.MOVE)) {
                 if (oldPath != null && oldPath.length() > 0) {
@@ -167,16 +198,15 @@ public class PublishingManagerImpl implements PublishingManager {
         return deploymentItem;
     }
 
-    private void deleteFolder(String site, String path, String user, Deployer deployer) {
+    private void deleteFolder(String site, String path, String user) {
         if (contentService.contentExists(site, path)) {
             // TODO: SJ: This bypasses the Content Service, fix
             RepositoryItem[] children = contentRepository.getContentChildren(site, path);
 
             if (children.length < 1) {
                 contentService.deleteContent(site, path, false, user);
-                deployer.deleteFile(site, path);
                 String parentPath = ContentUtils.getParentUrl(path);
-                deleteFolder(site, parentPath, user, deployer);
+                deleteFolder(site, parentPath, user);
             }
         }
     }
