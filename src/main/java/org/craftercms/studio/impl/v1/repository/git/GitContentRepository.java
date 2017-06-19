@@ -1080,7 +1080,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 String commitIdPattern = studioConfiguration.getProperty(REPO_PUBLISHED_CHERRY_PICK_MESSAGE_COMMIT_ID_REGEX);
                 Pattern p = Pattern.compile(commitIdPattern);
                 Matcher m = p.matcher(message);
-                if (m.matches()) {
+                if (m.lookingAt()) {
                     toRet = m.group(2);
                 }
             }
