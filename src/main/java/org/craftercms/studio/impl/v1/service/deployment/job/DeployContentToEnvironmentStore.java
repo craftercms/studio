@@ -18,12 +18,10 @@
 package org.craftercms.studio.impl.v1.service.deployment.job;
 
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.studio.api.v1.dal.CopyToEnvironment;
 import org.craftercms.studio.api.v1.ebus.DeploymentEventContext;
@@ -95,8 +93,8 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
                             logger.debug("Processing content ready for deployment for site \"{0}\"", site);
                             List<CopyToEnvironment> itemsToDeploy = publishingManager.getItemsReadyForDeployment(site, environment);
                             List<String> pathsToDeploy = getPaths(itemsToDeploy);
-                            Set<String> missingDependenciesPaths = new HashSet<String>();
-                            List<DeploymentItem> deploymentItemList = new ArrayList<DeploymentItem>();
+                            //Set<String> missingDependenciesPaths = new HashSet<String>();
+                            //List<DeploymentItem> deploymentItemList = new ArrayList<DeploymentItem>();
 
                             if (itemsToDeploy != null && itemsToDeploy.size() > 0) {
                                 logger.debug("Site \"{0}\" has {1} items ready for deployment", site, itemsToDeploy.size());
@@ -112,11 +110,18 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
                                 try {
                                     logger.debug("Mark items as processing for site \"{0}\"", site);
 
-                                    publishingManager.markItemsProcessing(site, environment, itemsToDeploy);
+                                    //publishingManager.markItemsProcessing(site, environment, itemsToDeploy);
                                     for (CopyToEnvironment item : itemsToDeploy) {
+                                        publishingManager.markItemsProcessing(site, environment, Arrays.asList(item));
                                         String lockKey = item.getSite() + ":" + item.getPath();
                                         generalLockService.lock(lockKey);
                                         contentRepository.lockItem(item.getSite(), item.getPath());
+
+                                        Set<String> missingDependenciesPaths = new HashSet<String>();
+                                        List<DeploymentItem> deploymentItemList = new ArrayList<DeploymentItem>();
+                                        String author = item.getUser();
+                                        String comment = item.getSubmissionComment();
+
                                         try {
                                             logger.debug("Processing [{0}] content item for site \"{1}\"", item
                                                 .getPath(), site);
@@ -133,13 +138,24 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
                                                 logger.debug("Processing Mandatory Dependencies COMPLETE [{0}]"
                                                     + " content item for site \"{1}\"", item.getPath(), site);
                                             }
-                                        }
-                                        finally {
+                                            deploymentItemList.addAll(missingDependencies);
+                                            deploy(site, environment, deploymentItemList, author, comment);
+                                            publishingManager.markItemsCompleted(site, environment, Arrays.asList(item));
+                                        } catch (DeploymentException err) {
+                                            logger.error("Error while executing deployment to environment store for site \"{0}\", number of items \"{1}\"", err, site, itemsToDeploy.size());
+                                            publishingManager.markItemsReady(site, environment, Arrays.asList(item));
+                                            throw err;
+                                        } catch (Exception err) {
+                                            logger.error("Unexpected error while executing deployment to environment " +
+                                                    "store for site \"{0}\", number of items \"{1}\"", err, site, itemsToDeploy.size());
+                                            publishingManager.markItemsReady(site, environment, Arrays.asList(item));
+                                            throw err;
+                                        } finally {
                                             generalLockService.unlock(lockKey);
                                             contentRepository.unLockItem(item.getSite(), item.getPath());
                                         }
                                     }
-
+/*
                                     logger.debug("Setting up items for publishing synchronization for site \"{0}\"", site);
                                     if (isMandatoryDependenciesCheckEnabled() && missingDependencies.size() > 0) {
                                         List<DeploymentItem> mergedList = new ArrayList<DeploymentItem>(deploymentItemList);
@@ -162,17 +178,9 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
                                         context.setComment("TODO: DB: comment");
                                         eventService.publish(EVENT_PUBLISH_TO_ENVIRONMENT, context);
                                     }
+                                    */
                                     logger.debug("Mark deployment completed for processed items for site \"{0}\"", site);
-                                    publishingManager.markItemsCompleted(site, environment, itemsToDeploy);
-                                } catch (DeploymentException err) {
-                                    logger.error("Error while executing deployment to environment store for site \"{0}\", number of items \"{1}\"", err, site, itemsToDeploy.size());
-                                    publishingManager.markItemsReady(site, environment, itemsToDeploy);
-                                    throw err;
-                                } catch (Exception err) {
-                                    logger.error("Unexpected error while executing deployment to environment " +
-                                            "store for site \"{0}\", number of items \"{1}\"", err, site, itemsToDeploy.size());
-                                    publishingManager.markItemsReady(site, environment, itemsToDeploy);
-                                    throw err;
+                                    //publishingManager.markItemsCompleted(site, environment, itemsToDeploy);
                                 } finally {
                                     for (CopyToEnvironment item : itemsToDeploy) {
                                         String itemSite = item.getSite();
@@ -201,6 +209,15 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
             logger.error("Error while executing deployment to environment store", err);
             notificationService.notifyDeploymentError("UNKNOWN", err);
         }
+    }
+
+    private void deploy(String site, String environment, List<DeploymentItem> items, String author, String comment) {
+        List<String> commitIds = new ArrayList<String>(items.size());
+        for (DeploymentItem item : items) {
+            List<String> itemCommitIds = contentRepository.getEditCommitIds(item.getSite(), item.getPath(), item.getLastPublishedCommitId(), item.getCommitId());
+            commitIds.addAll(itemCommitIds);
+        }
+        contentRepository.publish(site, commitIds, environment, author, comment);
     }
 
     private List<String> getPaths(List<CopyToEnvironment> itemsToDeploy) {
