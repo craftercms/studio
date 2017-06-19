@@ -84,12 +84,14 @@ public class PublishingManagerImpl implements PublishingManager {
         DeploymentItem deploymentItem = new DeploymentItem();
         deploymentItem.setSite(item.getSite());
         deploymentItem.setPath(item.getPath());
+        deploymentItem.setCommitId(item.getCommitId());
+        /*
         ObjectMetadata itemMetadata = objectMetadataManager.getProperties(item.getSite(), item.getPath());
         if (itemMetadata != null) {
             deploymentItem.setCommitId(itemMetadata.getCommitId());
         } else {
             deploymentItem.setCommitId(contentRepository.getRepoLastCommitId(item.getSite()));
-        }
+        }*/
         deploymentItem.setLastPublishedCommitId(deploymentHistoryProvider.getLastPublishedCommitId(item.getSite(), item.getEnvironment(), item.getPath()));
 
         String site = item.getSite();
@@ -199,6 +201,14 @@ public class PublishingManagerImpl implements PublishingManager {
     public void markItemsReady(String site, String environment, List<CopyToEnvironment> copyToEnvironmentItems) throws DeploymentException {
         for (CopyToEnvironment item : copyToEnvironmentItems) {
             item.setState(CopyToEnvironment.State.READY_FOR_LIVE);
+            copyToEnvironmentMapper.updateItemDeploymentState(item);
+        }
+    }
+
+    @Override
+    public void markItemsBlocked(String site, String environment, List<CopyToEnvironment> copyToEnvironmentItems) throws DeploymentException {
+        for (CopyToEnvironment item : copyToEnvironmentItems) {
+            item.setState(CopyToEnvironment.State.BLOCKED);
             copyToEnvironmentMapper.updateItemDeploymentState(item);
         }
     }

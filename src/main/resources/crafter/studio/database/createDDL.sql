@@ -93,6 +93,7 @@ CREATE TABLE IF NOT EXISTS `cstudio_copytoenvironment` (
   `action`           VARCHAR(20)  NOT NULL,
   `contenttypeclass` VARCHAR(20)  NULL,
   `submissioncomment` TEXT        NULL,
+  `commit_id` VARCHAR(50) NULL,
   PRIMARY KEY (`id`),
   INDEX `cstudio_cte_site_idx` (`site` ASC),
   INDEX `cstudio_cte_environment_idx` (`environment` ASC),

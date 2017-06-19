@@ -143,12 +143,12 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
                                             publishingManager.markItemsCompleted(site, environment, Arrays.asList(item));
                                         } catch (DeploymentException err) {
                                             logger.error("Error while executing deployment to environment store for site \"{0}\", number of items \"{1}\"", err, site, itemsToDeploy.size());
-                                            publishingManager.markItemsReady(site, environment, Arrays.asList(item));
+                                            publishingManager.markItemsBlocked(site, environment, Arrays.asList(item));
                                             throw err;
                                         } catch (Exception err) {
                                             logger.error("Unexpected error while executing deployment to environment " +
                                                     "store for site \"{0}\", number of items \"{1}\"", err, site, itemsToDeploy.size());
-                                            publishingManager.markItemsReady(site, environment, Arrays.asList(item));
+                                            publishingManager.markItemsBlocked(site, environment, Arrays.asList(item));
                                             throw err;
                                         } finally {
                                             generalLockService.unlock(lockKey);

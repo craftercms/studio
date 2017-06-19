@@ -34,6 +34,7 @@
         <result property="action" column="action"/>
         <result property="contentTypeClass" column="contenttypeclass"/>
         <result property="submissionComment" column="submissioncomment"/>
+        <result property="commitId" column="commit_id"/>
     </resultMap>
 
     <cache/>
@@ -61,8 +62,8 @@
     </select>
 
     <insert id="insertItemForDeployment" parameterType="org.craftercms.studio.api.v1.dal.CopyToEnvironment">
-        INSERT INTO cstudio_copytoenvironment (site, environment, path, oldpath, username, scheduleddate, state, action, contenttypeclass, submissioncomment)
-        values (#{site}, #{environment}, #{path}, #{oldPath}, #{user}, #{scheduledDate}, #{state}, #{action}, #{contentTypeClass}, #{submissionComment})
+        INSERT INTO cstudio_copytoenvironment (site, environment, path, oldpath, username, scheduleddate, state, action, contenttypeclass, submissioncomment, commit_id)
+        values (#{site}, #{environment}, #{path}, #{oldPath}, #{user}, #{scheduledDate}, #{state}, #{action}, #{contentTypeClass}, #{submissionComment}, #{commitId})
     </insert>
 
     <update id="cancelWorkflow" parameterType="java.util.Map">

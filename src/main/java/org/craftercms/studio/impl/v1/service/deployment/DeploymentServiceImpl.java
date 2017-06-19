@@ -19,7 +19,7 @@ package org.craftercms.studio.impl.v1.service.deployment;
 
 import net.sf.json.JSONObject;
 import org.apache.commons.collections.FastArrayList;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.*;
@@ -152,6 +152,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         for (String action : paths.keySet()) {
             for (String path : paths.get(action)) {
                 CopyToEnvironment item = new CopyToEnvironment();
+                ObjectMetadata metadata = objectMetadataManager.getProperties(site, path);
                 item.setId(++CTED_AUTOINCREMENT);
                 item.setSite(site);
                 item.setEnvironment(environment);
@@ -159,9 +160,17 @@ public class DeploymentServiceImpl implements DeploymentService {
                 item.setScheduledDate(scheduledDate);
                 item.setState(CopyToEnvironment.State.READY_FOR_LIVE);
                 item.setAction(action);
-                if (objectMetadataManager.isRenamed(site, path)) {
-                    String oldPath = objectMetadataManager.getOldPath(site, item.getPath());
-                    item.setOldPath(oldPath);
+                if (metadata != null) {
+                    if (metadata.getRenamed() > 0) {
+                        String oldPath = metadata.getOldUrl();
+                        item.setOldPath(oldPath);
+                    }
+                    String commitId = metadata.getCommitId();
+                    if (StringUtils.isNotEmpty(commitId)) {
+                        item.setCommitId(commitId);
+                    } else {
+                        item.setCommitId(contentRepository.getRepoLastCommitId(site));
+                    }
                 }
                 String contentTypeClass = contentService.getContentTypeClass(site, path);
                 item.setContentTypeClass(contentTypeClass);
@@ -682,7 +691,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         params.put("site", site);
         params.put("path", path);
         params.put("id", deploymentId);
-        params.put("canceledState", CopyToEnvironment.State.CANCELED);
+        params.put("canceledState", CopyToEnvironment.State.CANCELLED);
         copyToEnvironmentMapper.cancelDeployment(params);
         return true;
     }
