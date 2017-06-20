@@ -748,6 +748,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 for (String commitId : commitIds) {
                     String message = studioConfiguration.getProperty(REPO_PUBLISHED_CHERRY_PICK_MESSAGE);
                     message = message.replace(studioConfiguration.getProperty(REPO_PUBLISHED_CHERRY_PICK_MESSAGE_REPLACE), commitId);
+
                     CherryPickCommand cherryPickCommand = git
                             .cherryPick()
                             .setOurCommitName(message)
@@ -775,7 +776,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                             break;
 
                         case OK:
-                            String newCommitMessage = message;
+                            String newCommitMessage = StringUtils.EMPTY;
                             Iterable<RevCommit> logs = git.log()
                                     .add(repo.resolve(environment))
                                     .setMaxCount(1)
@@ -783,9 +784,9 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                             Iterator<RevCommit> iter = logs.iterator();
                             if (iter.hasNext()) {
                                 RevCommit revCommit = iter.next();
-                                newCommitMessage += "\n----------------------------------\n";
-                                newCommitMessage += revCommit.getFullMessage();
+                                newCommitMessage += revCommit.getFullMessage() + "\n";
                             }
+                            newCommitMessage += message;
                             git.commit().setAmend(true).setMessage(newCommitMessage).call();
 
                             long commitTime = 1000l * cherryPickResult.getNewHead().getCommitTime();
@@ -1081,7 +1082,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 Pattern p = Pattern.compile(commitIdPattern);
                 Matcher m = p.matcher(message);
                 if (m.lookingAt()) {
-                    toRet = m.group(2);
+                    toRet = m.group(3);
                 }
             }
         } catch (IOException | GitAPIException e) {
