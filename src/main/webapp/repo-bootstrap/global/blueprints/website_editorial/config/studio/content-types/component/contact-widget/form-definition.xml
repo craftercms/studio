@@ -82,7 +82,7 @@
 					<type>checkbox</type>
 					<id>disabled</id>
 					<iceId></iceId>
-					<title>Disable Component - Contact Widget</title>
+					<title>Disable Component</title>
 					<description></description>
 					<defaultValue></defaultValue>
 					<help></help>
