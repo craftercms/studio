@@ -45,4 +45,10 @@ public interface CopyToEnvironmentMapper {
     int checkIfItemWasPublished(Map params);
 
     int checkIfItemWasPublishedForEnvironment(Map params);
+
+    CopyToEnvironment checkPublishingStatus(Map params);
+
+    int isPublishingBlocked(Map params);
+
+    CopyToEnvironment getLastDeployedItem(Map params);
 }

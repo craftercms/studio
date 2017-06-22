@@ -19,6 +19,7 @@ package org.craftercms.studio.api.v1.service.deployment;
 
 import org.craftercms.studio.api.v1.dal.CopyToEnvironment;
 import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.to.*;
 
 import java.util.Date;
@@ -83,4 +84,19 @@ public interface DeploymentService {
      * @return last deployment date or null if never deployed
      */
     Date getLastDeploymentDate(String site, String path);
+
+    /**
+     * Get publish status for given site
+     * @param site site id
+     * @return publish status
+     */
+    PublishStatus getPublishStatus(String site) throws SiteNotFoundException;
+
+    /**
+     * Enable/Disable publishing for given site
+     * @param site site id
+     * @param enabled true to enable publishing, false to disable publishing
+     * @throws SiteNotFoundException
+     */
+    boolean enablePublishing(String site, boolean enabled) throws SiteNotFoundException;
 }

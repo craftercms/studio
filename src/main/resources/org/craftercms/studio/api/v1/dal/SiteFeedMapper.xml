@@ -29,6 +29,8 @@
         <result property="description" column="description"/>
         <result property="status" column="status" jdbcType="VARCHAR" javaType="String"/>
         <result property="lastCommitId" column="last_commit_id" jdbcType="VARCHAR" javaType="String"/>
+        <result property="publishingEnabled" column="publishing_enabled" javaType="Integer" jdbcType="INTEGER"/>
+        <result property="publishingStatusMessage" column="publishing_status_message" jdbcType="VARCHAR" javaType="String"/>
     </resultMap>
 
     <parameterMap id="SiteFeedMapParams" type="org.craftercms.studio.api.v1.dal.SiteFeed">
@@ -38,6 +40,8 @@
         <parameter property="description" jdbcType="VARCHAR"/>
         <parameter property="status" jdbcType="VARCHAR"/>
         <parameter property="lastCommitId" jdbcType="VARCHAR"/>
+        <parameter property="publishingEnabled" jdbcType="INTEGER"/>
+        <parameter property="publishingStatusMessage" jdbcType="VARCHAR" />
     </parameterMap>
 
     <select id="getSites" resultMap="SiteFeedMap">
@@ -101,4 +105,12 @@
         AND system = 0
         ORDER BY site_id
     </select>
+
+    <update id="enablePublishing" parameterType="java.util.Map">
+        UPDATE cstudio_site SET publishing_enabled = #{enabled} WHERE site_id = #{siteId}
+    </update>
+
+    <update id="updatePublishingStatusMessage" parameterType="java.util.Map">
+        UPDATE cstudio_site SET publishing_status_message = #{message} WHERE site_id = #{siteId}
+    </update>
 </mapper>

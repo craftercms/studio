@@ -118,4 +118,38 @@
         DELETE FROM cstudio_copytoenvironment
         WHERE site = #{site}
     </delete>
+
+    <select id="checkPublishingStatus" resultMap="CopyToEnvironmentMap">
+        SELECT *
+        FROM cstudio_copytoenvironment
+        WHERE site = #{site}
+        AND scheduleddate &lt;= #{now}
+        AND state in
+        <foreach item="state" index="index" collection="states"
+                 open="(" separator="," close=")">
+            #{state}
+        </foreach>
+        ORDER BY scheduleddate ASC
+        LIMIT 0, 1
+    </select>
+
+    <select id="isPublishingBlocked" resultType="int">
+        SELECT count(1)
+        FROM cstudio_copytoenvironment
+        WHERE site = #{site}
+        AND scheduleddate &lt;= #{now}
+        AND state = #{state}
+        ORDER BY scheduleddate ASC
+        LIMIT 0, 1
+    </select>
+
+    <select id="getLastDeployedItem" resultMap="CopyToEnvironmentMap">
+        SELECT *
+        FROM cstudio_copytoenvironment
+        WHERE site = #{site}
+        AND state = #{state}
+        AND scheduleddate &lt;= #{now}
+        ORDER BY scheduleddate DESC
+        LIMIT 0, 1
+    </select>
 </mapper>

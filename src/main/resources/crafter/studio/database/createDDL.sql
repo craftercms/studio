@@ -113,6 +113,8 @@ CREATE TABLE IF NOT EXISTS `cstudio_site` (
   `status` VARCHAR(255) NULL,
   `last_commit_id` VARCHAR(50) NULL,
   `system` INT NOT NULL DEFAULT 0,
+  `publishing_enabled` INT NOT NULL DEFAULT 1,
+  `publishing_status_message` VARCHAR(2000) NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `id_unique` (`id` ASC),
   UNIQUE INDEX `site_id_unique` (`site_id` ASC),

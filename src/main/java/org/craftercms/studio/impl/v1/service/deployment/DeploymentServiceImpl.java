@@ -26,6 +26,7 @@ import org.craftercms.studio.api.v1.dal.*;
 import org.craftercms.studio.api.v1.deployment.Deployer;
 import org.craftercms.studio.api.v1.ebus.PreviewEventContext;
 import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
@@ -721,8 +722,18 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     @Override
+    public PublishStatus getPublishStatus(String site) throws SiteNotFoundException {
+        return siteService.getPublishStatus(site);
+    }
+
+    @Override
     public Date getLastDeploymentDate(String site, String path) {
         return deploymentHistoryProvider.getLastDeploymentDate(site, path);
+    }
+
+    @Override
+    public boolean enablePublishing(String site, boolean enabled) throws SiteNotFoundException {
+        return siteService.enablePublishing(site, enabled);
     }
 
     public void setServicesConfig(ServicesConfig servicesConfig) {
