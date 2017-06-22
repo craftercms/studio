@@ -8,6 +8,19 @@ import groovy.json.JsonSlurper
 class SolrSearch {
 
 	/**
+	 * Creates a query for all possible combinations of the given keywords
+	 * @param keywords
+	 * @param field
+	 */
+	static expandTextSearch(String keywords, String field = null) {
+		def query = "\"$keywords\" OR *$keywords* OR ($keywords)"
+		if(field) {
+			query = "$field: ($query)"
+		}
+		query
+	}
+
+	/**
 	 * search the repository
 	 * @param site - the project ID
 	 * @param keywords - keywords
@@ -25,7 +38,11 @@ class SolrSearch {
 		// build query
 		def queryStatement = "crafterSite:\"" + site + "\" "
 		if(keywords && keywords != "") {
-			queryStatement += " AND (localId:*${keywords}* OR internal-name:*${keywords}* OR title:*${keywords}* OR *${keywords}*) "
+			def localIdQuery = expandTextSearch(keywords, "localId")
+			def internalNameQuery = expandTextSearch(keywords, "internal-name")
+			def titleQuery = expandTextSearch(keywords, "title")
+			def textQuery = expandTextSearch(keywords)
+			queryStatement += " AND ($localIdQuery OR $internalNameQuery OR $titleQuery OR $textQuery)"
 		}
 
 		// can't support filters for images at this time because images are not indexed
@@ -61,7 +78,7 @@ class SolrSearch {
 			query = query.addParam("sort", sort + " " + order)
 		}
         else {
-              	query = query.addParam("sort", "internal-name_s asc ")
+              	query = query.addParam("sort", "score desc")
         }
 
 		try {
