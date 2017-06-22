@@ -92,7 +92,7 @@
 					<type>checkbox</type>
 					<id>disabled</id>
 					<iceId></iceId>
-					<title>Disable Page - Search Results</title>
+					<title>Disable Page</title>
 					<description></description>
 					<defaultValue></defaultValue>
 					<help></help>
