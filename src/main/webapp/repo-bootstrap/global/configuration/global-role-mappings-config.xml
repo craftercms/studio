@@ -22,12 +22,6 @@
         <group name="crafter-admin">
             <role>crafter-admin</role>
         </group>
-        <group name="crafter-author">
-            <role>crafter-author</role>
-        </group>
-        <group name="CRAFTER_CREATE_SITES">
-            <role>create-sites</role>
-        </group>
         <group name="crafter-create-sites">
             <role>create-sites</role>
         </group>

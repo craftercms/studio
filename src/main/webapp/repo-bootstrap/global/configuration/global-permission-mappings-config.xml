@@ -37,20 +37,12 @@
                 </allowed-permissions>
             </rule>
         </role>
-        <role name="crafter-author">
-            <rule regex="/.*">
-                <allowed-permissions>
-                    <permission>Read</permission>
-                    <permission>Write</permission>
-                </allowed-permissions>
-            </rule>
-        </role>
-        <role name="*">
-            <rule regex="/.*">
-                <allowed-permissions>
-                    <permission>Read</permission>
-                </allowed-permissions>
-            </rule>
-        </role>
+        <!--<role name="*">-->
+            <!--<rule regex="/.*">-->
+                <!--<allowed-permissions>-->
+                    <!--<permission>Read</permission>-->
+                <!--</allowed-permissions>-->
+            <!--</rule>-->
+        <!--</role>-->
     </site>
 </permissions>
