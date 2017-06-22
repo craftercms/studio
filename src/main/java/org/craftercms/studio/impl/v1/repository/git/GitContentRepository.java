@@ -50,6 +50,7 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
+import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentHistoryProvider;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.to.RepoOperationTO;
@@ -95,8 +96,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     @Override
     public boolean contentExists(String site, String path) {
         boolean toReturn = false;
-        Repository repo = helper.getRepository(site, StringUtils.isEmpty(site)? GitRepositories.GLOBAL:GitRepositories
-            .SANDBOX);
+        Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GitRepositories.GLOBAL : GitRepositories
+                .SANDBOX);
 
         try {
             RevTree tree = helper.getTreeForLastCommit(repo);
@@ -125,8 +126,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     @Override
     public InputStream getContent(String site, String path) throws ContentNotFoundException {
         InputStream toReturn = null;
-        Repository repo = helper.getRepository(site, StringUtils.isEmpty(site)? GitRepositories
-            .GLOBAL:GitRepositories.SANDBOX);
+        Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GitRepositories
+                .GLOBAL : GitRepositories.SANDBOX);
 
         try {
             RevTree tree = helper.getTreeForLastCommit(repo);
@@ -154,9 +155,9 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         // Write content to git and commit it
         String commitId = null;
 
-        synchronized(helper.getRepository(site, StringUtils.isEmpty(site)? GitRepositories.GLOBAL: SANDBOX)) {
-            Repository repo = helper.getRepository(site, StringUtils.isEmpty(site)? GitRepositories.GLOBAL:
-                GitRepositories.SANDBOX);
+        synchronized (helper.getRepository(site, StringUtils.isEmpty(site) ? GitRepositories.GLOBAL : SANDBOX)) {
+            Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GitRepositories.GLOBAL :
+                    GitRepositories.SANDBOX);
 
             if (repo != null) {
                 if (helper.writeFile(repo, site, path, content))
@@ -177,9 +178,9 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         String commitId = null;
         boolean result;
 
-        synchronized(helper.getRepository(site, StringUtils.isEmpty(site)? GitRepositories.GLOBAL: SANDBOX)) {
+        synchronized (helper.getRepository(site, StringUtils.isEmpty(site) ? GitRepositories.GLOBAL : SANDBOX)) {
             Path emptyFilePath = Paths.get(path, name, EMPTY_FILE);
-            Repository repo = helper.getRepository(site, StringUtils.isEmpty(site)? GitRepositories.GLOBAL: GitRepositories.SANDBOX);
+            Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GitRepositories.GLOBAL : GitRepositories.SANDBOX);
 
 
             try {
@@ -217,7 +218,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
             if (result) {
                 commitId = helper.commitFile(repo, site, emptyFilePath.toString(), "Created folder site: " + site +
-                    " " + "path: " + path, helper.getCurrentUserIdent());
+                        " " + "path: " + path, helper.getCurrentUserIdent());
             }
         }
 
@@ -228,9 +229,9 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     public String deleteContent(String site, String path, String approver) {
         String commitId = null;
 
-        synchronized(helper.getRepository(site, StringUtils.isEmpty(site)? GitRepositories.GLOBAL: SANDBOX)) {
-            Repository repo = helper.getRepository(site, StringUtils.isEmpty(site)? GitRepositories.GLOBAL:
-                GitRepositories.SANDBOX);
+        synchronized (helper.getRepository(site, StringUtils.isEmpty(site) ? GitRepositories.GLOBAL : SANDBOX)) {
+            Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GitRepositories.GLOBAL :
+                    GitRepositories.SANDBOX);
 
             try (Git git = new Git(repo)) {
                 git.rm().addFilepattern(helper.getGitPath(path)).setCached(false).call();
@@ -256,9 +257,9 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     public String moveContent(String site, String fromPath, String toPath, String newName) {
         String commitId = null;
 
-        synchronized(helper.getRepository(site, StringUtils.isEmpty(site)? GitRepositories.GLOBAL: SANDBOX)) {
-            Repository repo = helper.getRepository(site, StringUtils.isEmpty(site)? GitRepositories.GLOBAL:
-                 GitRepositories.SANDBOX);
+        synchronized (helper.getRepository(site, StringUtils.isEmpty(site) ? GitRepositories.GLOBAL : SANDBOX)) {
+            Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GitRepositories.GLOBAL :
+                    GitRepositories.SANDBOX);
 
             String gitFromPath = helper.getGitPath(fromPath);
             String gitToPath;
@@ -319,9 +320,9 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     public String copyContent(String site, String fromPath, String toPath) {
         String commitId = null;
 
-        synchronized(helper.getRepository(site, StringUtils.isEmpty(site)? GitRepositories.GLOBAL: SANDBOX)) {
-            Repository repo = helper.getRepository(site, StringUtils.isEmpty(site)? GitRepositories.GLOBAL:
-                 GitRepositories.SANDBOX);
+        synchronized (helper.getRepository(site, StringUtils.isEmpty(site) ? GitRepositories.GLOBAL : SANDBOX)) {
+            Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GitRepositories.GLOBAL :
+                    GitRepositories.SANDBOX);
 
             String gitFromPath = helper.getGitPath(fromPath);
             String gitToPath = helper.getGitPath(toPath);
@@ -338,18 +339,18 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 // The operation is done on disk, now it's time to commit
                 git.add().addFilepattern(gitToPath).call();
                 RevCommit commit = git.commit()
-                    .setOnly(gitFromPath)
-                    .setOnly(gitToPath)
-                    .setAuthor(helper.getCurrentUserIdent())
-                    .setCommitter(helper.getCurrentUserIdent())
-                    .setMessage("Copying " + fromPath + " to " + toPath)
-                    .call();
+                        .setOnly(gitFromPath)
+                        .setOnly(gitToPath)
+                        .setAuthor(helper.getCurrentUserIdent())
+                        .setCommitter(helper.getCurrentUserIdent())
+                        .setMessage("Copying " + fromPath + " to " + toPath)
+                        .call();
                 commitId = commit.getName();
 
                 git.close();
             } catch (IOException | GitAPIException e) {
                 logger.error("Error while copying content for site: " + site + " fromPath: " + fromPath + " toPath:"
-                    + " " + toPath + " newName: ");
+                        + " " + toPath + " newName: ");
             }
         }
 
@@ -360,8 +361,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     public RepositoryItem[] getContentChildren(String site, String path) {
         // TODO: SJ: Rethink this API call for 3.1+
         final List<RepositoryItem> retItems = new ArrayList<RepositoryItem>();
-        Repository repo = helper.getRepository(site, StringUtils.isEmpty(site)? GitRepositories
-            .GLOBAL:GitRepositories.SANDBOX);
+        Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GitRepositories
+                .GLOBAL : GitRepositories.SANDBOX);
 
         try {
             RevTree tree = helper.getTreeForLastCommit(repo);
@@ -401,29 +402,29 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     String gitPath = helper.getGitPath(path);
                     if (StringUtils.isEmpty(gitPath) || gitPath.equals(".")) {
                         try (TreeWalk treeWalk = new TreeWalk(repo)) {
-                                treeWalk.addTree(tree);
+                            treeWalk.addTree(tree);
 
-                                while (treeWalk.next()) {
+                            while (treeWalk.next()) {
 
-                                    ObjectLoader loader = repo.open(treeWalk.getObjectId(0));
+                                ObjectLoader loader = repo.open(treeWalk.getObjectId(0));
 
-                                    RepositoryItem item = new RepositoryItem();
-                                    item.name = treeWalk.getNameString();
+                                RepositoryItem item = new RepositoryItem();
+                                item.name = treeWalk.getNameString();
 
-                                    String visitFolderPath = File.separator + treeWalk.getPathString();
-                                    loader = repo.open(treeWalk.getObjectId(0));
-                                    item.isFolder = loader.getType() == Constants.OBJ_TREE;
-                                    int lastIdx = visitFolderPath.lastIndexOf(File.separator + item.name);
-                                    if (lastIdx > 0) {
-                                        item.path = visitFolderPath.substring(0, lastIdx);
-                                    } else {
-                                        item.path = StringUtils.EMPTY;
-                                    }
-
-                                    if (!ArrayUtils.contains(IGNORE_FILES, item.name)) {
-                                        retItems.add(item);
-                                    }
+                                String visitFolderPath = File.separator + treeWalk.getPathString();
+                                loader = repo.open(treeWalk.getObjectId(0));
+                                item.isFolder = loader.getType() == Constants.OBJ_TREE;
+                                int lastIdx = visitFolderPath.lastIndexOf(File.separator + item.name);
+                                if (lastIdx > 0) {
+                                    item.path = visitFolderPath.substring(0, lastIdx);
+                                } else {
+                                    item.path = StringUtils.EMPTY;
                                 }
+
+                                if (!ArrayUtils.contains(IGNORE_FILES, item.name)) {
+                                    retItems.add(item);
+                                }
+                            }
 
                         } catch (IOException e) {
                             logger.error("Error while getting children for site: " + site + " path: " + path, e);
@@ -447,9 +448,9 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     public VersionTO[] getContentVersionHistory(String site, String path) {
         List<VersionTO> versionHistory = new ArrayList<VersionTO>();
 
-        synchronized(helper.getRepository(site, StringUtils.isEmpty(site)? GitRepositories.GLOBAL: SANDBOX)) {
-            Repository repo = helper.getRepository(site, StringUtils.isEmpty(site)? GitRepositories.GLOBAL:
-                GitRepositories.SANDBOX);
+        synchronized (helper.getRepository(site, StringUtils.isEmpty(site) ? GitRepositories.GLOBAL : SANDBOX)) {
+            Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GitRepositories.GLOBAL :
+                    GitRepositories.SANDBOX);
 
             try {
                 ObjectId head = repo.resolve(Constants.HEAD);
@@ -492,10 +493,10 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         // TODO: SJ: Redesign/refactor the whole approach in 3.1+
         String toReturn = StringUtils.EMPTY;
 
-        synchronized(helper.getRepository(site, StringUtils.isEmpty(site)? GitRepositories.GLOBAL: PUBLISHED)) {
+        synchronized (helper.getRepository(site, StringUtils.isEmpty(site) ? GitRepositories.GLOBAL : PUBLISHED)) {
             if (majorVersion) {
-                Repository repo = helper.getRepository(site, StringUtils.isEmpty(site)? GitRepositories.GLOBAL:
-                    GitRepositories.PUBLISHED);
+                Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GitRepositories.GLOBAL :
+                        GitRepositories.PUBLISHED);
                 // Tag the repository with a date-time based version label
                 String gitPath = helper.getGitPath(path);
 
@@ -506,9 +507,9 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     String versionLabel = dateFormat.format(cal.getTime());
 
                     TagCommand tagCommand = git.tag()
-                        .setName(versionLabel)
-                        .setMessage(comment)
-                        .setTagger(currentUserIdent);
+                            .setName(versionLabel)
+                            .setMessage(comment)
+                            .setTagger(currentUserIdent);
 
                     tagCommand.call();
 
@@ -546,8 +547,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     public InputStream getContentVersion(String site, String path, String version) throws ContentNotFoundException {
         InputStream toReturn = null;
 
-        Repository repo = helper.getRepository(site, StringUtils.isEmpty(site)? GitRepositories
-            .GLOBAL: SANDBOX);
+        Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GitRepositories
+                .GLOBAL : SANDBOX);
 
         try {
             RevTree tree = helper.getTreeForCommit(repo, version);
@@ -560,7 +561,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 }
             } catch (IOException e) {
                 logger.error("Error while getting content for file at site: " + site + " path: " + path + " version:"
-                    + " " + version, e);
+                        + " " + version, e);
             }
         } catch (IOException e) {
             logger.error("Failed to create RevTree for site: " + site + " path: " + path + " version: " + version, e);
@@ -570,17 +571,16 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     @Override
-    public Date getModifiedDate(String site, String path)
-    {
+    public Date getModifiedDate(String site, String path) {
         throw new RuntimeException("Method not implemented.");
     }
 
     @Override
     public void lockItem(String site, String path) {
-        Repository repo = helper.getRepository(site, StringUtils.isEmpty(site)? GitRepositories.GLOBAL:
+        Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GitRepositories.GLOBAL :
                 SANDBOX);
 
-        synchronized(helper.getRepository(site, StringUtils.isEmpty(site)? GitRepositories.GLOBAL: SANDBOX)) {
+        synchronized (helper.getRepository(site, StringUtils.isEmpty(site) ? GitRepositories.GLOBAL : SANDBOX)) {
             try (TreeWalk tw = new TreeWalk(repo)) {
                 RevTree tree = helper.getTreeForLastCommit(repo);
                 tw.addTree(tree); // tree ‘0’
@@ -607,10 +607,10 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
     @Override
     public void unLockItem(String site, String path) {
-        Repository repo = helper.getRepository(site, StringUtils.isEmpty(site)? GitRepositories.GLOBAL:
+        Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GitRepositories.GLOBAL :
                 SANDBOX);
 
-        synchronized(helper.getRepository(site, StringUtils.isEmpty(site)? GitRepositories.GLOBAL: SANDBOX)) {
+        synchronized (helper.getRepository(site, StringUtils.isEmpty(site) ? GitRepositories.GLOBAL : SANDBOX)) {
             try (TreeWalk tw = new TreeWalk(repo)) {
                 RevTree tree = helper.getTreeForLastCommit(repo);
                 tw.addTree(tree); // tree ‘0’
@@ -655,7 +655,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 // Copy the bootstrap repo to the global repo
                 Path globalConfigPath = helper.buildRepoPath(GitRepositories.GLOBAL);
                 TreeCopier tc = new TreeCopier(source,
-                    globalConfigPath);
+                        globalConfigPath);
                 EnumSet<FileVisitOption> opts = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
                 Files.walkFileTree(source, opts, Integer.MAX_VALUE, tc);
 
@@ -713,7 +713,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     public boolean deleteSite(String site) {
         boolean toReturn;
 
-        synchronized(helper.getRepository(site, StringUtils.isEmpty(site)? GitRepositories.GLOBAL: SANDBOX)) {
+        synchronized (helper.getRepository(site, StringUtils.isEmpty(site) ? GitRepositories.GLOBAL : SANDBOX)) {
             toReturn = helper.deleteSiteGitRepo(site);
         }
 
@@ -721,10 +721,10 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     @Override
-    public void publish(String site, List<String> commitIds, String environment, String author, String comment) {
-            Repository repo = helper.getRepository(site, GitRepositories.PUBLISHED);
-
-        synchronized(helper.getRepository(site, GitRepositories.PUBLISHED)) {
+    public void publish(String site, List<String> commitIds, String environment, String author, String comment) throws DeploymentException {
+        Repository repo = helper.getRepository(site, GitRepositories.PUBLISHED);
+        String commitId = StringUtils.EMPTY;
+        synchronized (helper.getRepository(site, GitRepositories.PUBLISHED)) {
             try (Git git = new Git(repo)) {
 
                 // checkout environment branch
@@ -745,7 +745,9 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 FetchResult fetchResult = git.fetch().call();
 
                 // cherry pick all commit ids
-                for (String commitId : commitIds) {
+                for (String cId:
+                     commitIds) {
+                    commitId = cId;
                     String message = studioConfiguration.getProperty(REPO_PUBLISHED_CHERRY_PICK_MESSAGE);
                     message = message.replace(studioConfiguration.getProperty(REPO_PUBLISHED_CHERRY_PICK_MESSAGE_REPLACE), commitId);
 
@@ -800,12 +802,9 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                             break;
                     }
                 }
-
-
-            } catch (GitAPIException e) {
-                logger.error("Error when publishing site " + site + " to environment " + environment, e);
             } catch (Exception e) {
                 logger.error("Error when publishing site " + site + " to environment " + environment, e);
+                throw new DeploymentException("Error when publishing site " + site + " to environment " + environment + " [commit ID = " + commitId + "]");
             }
         }
 
@@ -815,7 +814,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     public List<RepoOperationTO> getOperations(String site, String commitIdFrom, String commitIdTo) {
         List<RepoOperationTO> operations = new ArrayList<>();
 
-        synchronized(helper.getRepository(site, StringUtils.isEmpty(site)? GitRepositories.GLOBAL: SANDBOX)) {
+        synchronized (helper.getRepository(site, StringUtils.isEmpty(site) ? GitRepositories.GLOBAL : SANDBOX)) {
             try {
                 // Get the sandbox repo, and then get a reference to the commitId we received and another for head
                 boolean fromEmptyRepo = StringUtils.isEmpty(commitIdFrom);
@@ -902,7 +901,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                                 // also include date/time of commit by taking number of seconds and multiply by 1000 and
                                 // convert to java date before sending over
                                 operations.addAll(processDiffEntry(diffEntries, nextCommitId, author, new Date(commit.getCommitTime() *
-                                    1000l)));
+                                        1000l)));
                                 prevCommitId = nextCommitId;
                             }
                         }
@@ -924,7 +923,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     public String getRepoLastCommitId(final String site) {
         String toReturn = StringUtils.EMPTY;
 
-        synchronized(helper.getRepository(site, StringUtils.isEmpty(site)? GitRepositories.GLOBAL: SANDBOX)) {
+        synchronized (helper.getRepository(site, StringUtils.isEmpty(site) ? GitRepositories.GLOBAL : SANDBOX)) {
             Repository repo = helper.getRepository(site, SANDBOX);
             try {
                 ObjectId commitId = repo.resolve(Constants.HEAD);
@@ -941,7 +940,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     public String getRepoFirstCommitId(final String site) {
         String toReturn = StringUtils.EMPTY;
 
-        synchronized(helper.getRepository(site, StringUtils.isEmpty(site)? GitRepositories.GLOBAL: SANDBOX)) {
+        synchronized (helper.getRepository(site, StringUtils.isEmpty(site) ? GitRepositories.GLOBAL : SANDBOX)) {
             Repository repo = helper.getRepository(site, SANDBOX);
             try (RevWalk rw = new RevWalk(repo)) {
                 ObjectId head = repo.resolve(Constants.HEAD);
@@ -965,30 +964,30 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         for (DiffEntry diffEntry : diffEntries) {
 
             // Update the paths to have a preceding separator
-            String pathNew = File.separator +  diffEntry.getNewPath();
-            String pathOld = File.separator +  diffEntry.getOldPath();
+            String pathNew = File.separator + diffEntry.getNewPath();
+            String pathOld = File.separator + diffEntry.getOldPath();
 
             RepoOperationTO repoOperation = null;
             switch (diffEntry.getChangeType()) {
                 case ADD:
                     repoOperation = new RepoOperationTO(RepoOperation.CREATE, pathNew,
-                        commitTime, null, commitId.getName());
+                            commitTime, null, commitId.getName());
                     break;
                 case MODIFY:
                     repoOperation = new RepoOperationTO(RepoOperation.UPDATE, pathNew,
-                        commitTime, null, commitId.getName());
+                            commitTime, null, commitId.getName());
                     break;
                 case DELETE:
                     repoOperation = new RepoOperationTO(RepoOperation.DELETE, pathOld,
-                        commitTime, null, commitId.getName());
+                            commitTime, null, commitId.getName());
                     break;
                 case RENAME:
                     repoOperation = new RepoOperationTO(RepoOperation.MOVE, pathOld,
-                        commitTime, pathNew, commitId.getName());
+                            commitTime, pathNew, commitId.getName());
                     break;
                 case COPY:
                     repoOperation = new RepoOperationTO(RepoOperation.COPY, pathNew,
-                        commitTime, null, commitId.getName());
+                            commitTime, null, commitId.getName());
                     break;
                 default:
                     logger.error("Error: Unknown git operation " + diffEntry.getChangeType());
@@ -1095,7 +1094,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     public List<String> getEditCommitIds(String site, String path, String commitIdFrom, String commitIdTo) {
         List<String> commitIds = new ArrayList<String>();
 
-        synchronized(helper.getRepository(site, SANDBOX)) {
+        synchronized (helper.getRepository(site, SANDBOX)) {
             try {
                 // Get the sandbox repo, and then get a reference to the commitId we received and another for head
                 Repository repo = helper.getRepository(site, SANDBOX);
@@ -1141,7 +1140,9 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         return commitIds;
     }
 
-    public void setServletContext(ServletContext ctx) { this.ctx = ctx; }
+    public void setServletContext(ServletContext ctx) {
+        this.ctx = ctx;
+    }
 
     public SecurityProvider getSecurityProvider() {
         return securityProvider;
@@ -1150,6 +1151,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     public void setSecurityProvider(final SecurityProvider securityProvider) {
         this.securityProvider = securityProvider;
     }
+
     public void setStudioConfiguration(final StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
     }

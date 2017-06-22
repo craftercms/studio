@@ -18,13 +18,13 @@
 package org.craftercms.studio.impl.v1.service.deployment.job;
 
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.dal.CopyToEnvironment;
-import org.craftercms.studio.api.v1.ebus.DeploymentEventContext;
 import org.craftercms.studio.api.v1.ebus.DeploymentItem;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -39,10 +39,7 @@ import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.impl.v1.job.RepositoryJob;
 
-import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PUBLISH_TO_ENVIRONMENT;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_DEPLOYMENT_MASTER_PUBLISHING_NODE;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_MANDATORY_DEPENDENCIES_CHECK_ENABLED;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_PROCESSING_CHUNK_SIZE;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.*;
 
 public class DeployContentToEnvironmentStore extends RepositoryJob {
 
@@ -87,121 +84,120 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
             Set<String> siteNames = siteService.getAllAvailableSites();
             if (siteNames != null && siteNames.size() > 0) {
                 for (String site : siteNames) {
-                    try {
-                        Set<String> environments = getAllPublishingEnvironments(site);
-                        for (String environment : environments) {
-                            logger.debug("Processing content ready for deployment for site \"{0}\"", site);
-                            List<CopyToEnvironment> itemsToDeploy = publishingManager.getItemsReadyForDeployment(site, environment);
-                            List<String> pathsToDeploy = getPaths(itemsToDeploy);
-                            //Set<String> missingDependenciesPaths = new HashSet<String>();
-                            //List<DeploymentItem> deploymentItemList = new ArrayList<DeploymentItem>();
+                    if (siteService.isPublishingEnabled(site)) {
+                        if (!publishingManager.isPublishingBlocked(site)) {
+                            String statusMessage = StringUtils.EMPTY;
+                            try {
+                                Set<String> environments = getAllPublishingEnvironments(site);
+                                for (String environment : environments) {
+                                    logger.debug("Processing content ready for deployment for site \"{0}\"", site);
+                                    List<CopyToEnvironment> itemsToDeploy = publishingManager.getItemsReadyForDeployment(site, environment);
+                                    List<String> pathsToDeploy = getPaths(itemsToDeploy);
 
-                            if (itemsToDeploy != null && itemsToDeploy.size() > 0) {
-                                logger.debug("Site \"{0}\" has {1} items ready for deployment", site, itemsToDeploy.size());
+                                    if (itemsToDeploy != null && itemsToDeploy.size() > 0) {
+                                        logger.debug("Site \"{0}\" has {1} items ready for deployment", site, itemsToDeploy.size());
 
-                                List<DeploymentItem> missingDependencies = new ArrayList<DeploymentItem>();
+                                        List<DeploymentItem> missingDependencies = new ArrayList<DeploymentItem>();
 
-                                for (CopyToEnvironment item : itemsToDeploy) {
-                                    String lockKey = item.getSite() + ":" + item.getPath();
-                                    generalLockService.lock(lockKey);
-                                    contentRepository.lockItem(item.getSite(), item.getPath());
-                                }
-
-                                try {
-                                    logger.debug("Mark items as processing for site \"{0}\"", site);
-
-                                    //publishingManager.markItemsProcessing(site, environment, itemsToDeploy);
-                                    for (CopyToEnvironment item : itemsToDeploy) {
-                                        publishingManager.markItemsProcessing(site, environment, Arrays.asList(item));
-                                        String lockKey = item.getSite() + ":" + item.getPath();
-                                        generalLockService.lock(lockKey);
-                                        contentRepository.lockItem(item.getSite(), item.getPath());
-
-                                        Set<String> missingDependenciesPaths = new HashSet<String>();
-                                        List<DeploymentItem> deploymentItemList = new ArrayList<DeploymentItem>();
-                                        String author = item.getUser();
-                                        String comment = item.getSubmissionComment();
+                                        for (CopyToEnvironment item : itemsToDeploy) {
+                                            String lockKey = item.getSite() + ":" + item.getPath();
+                                            generalLockService.lock(lockKey);
+                                            contentRepository.lockItem(item.getSite(), item.getPath());
+                                        }
 
                                         try {
-                                            logger.debug("Processing [{0}] content item for site \"{1}\"", item
-                                                .getPath(), site);
-                                            DeploymentItem deploymentItem = publishingManager.processItem(item);
-                                            deploymentItemList.add(deploymentItem);
-                                            logger.debug("Processing COMPLETE [{0}] content item for site \"{1}\"",
-                                                item.getPath(), site);
+                                            logger.debug("Mark items as processing for site \"{0}\"", site);
+                                            for (CopyToEnvironment item : itemsToDeploy) {
+                                                statusMessage = studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_BUSY);
+                                                statusMessage = statusMessage.replace("{file_name}", item.getPath());
+                                                siteService.updatePublishingStatusMessage(site, statusMessage);
+                                                publishingManager.markItemsProcessing(site, environment, Arrays.asList(item));
+                                                String lockKey = item.getSite() + ":" + item.getPath();
+                                                generalLockService.lock(lockKey);
+                                                contentRepository.lockItem(item.getSite(), item.getPath());
 
-                                            if (isMandatoryDependenciesCheckEnabled()) {
-                                                logger.debug("Processing Mandatory Deps [{0}] content item for site "
-                                                    + "\"{1}\"", item.getPath(), site);
-                                                missingDependencies.addAll(publishingManager
-                                                    .processMandatoryDependencies(item, pathsToDeploy, missingDependenciesPaths));
-                                                logger.debug("Processing Mandatory Dependencies COMPLETE [{0}]"
-                                                    + " content item for site \"{1}\"", item.getPath(), site);
+                                                Set<String> missingDependenciesPaths = new HashSet<String>();
+                                                List<DeploymentItem> deploymentItemList = new ArrayList<DeploymentItem>();
+                                                String author = item.getUser();
+                                                String comment = item.getSubmissionComment();
+
+                                                try {
+                                                    logger.debug("Processing [{0}] content item for site \"{1}\"", item
+                                                            .getPath(), site);
+                                                    DeploymentItem deploymentItem = publishingManager.processItem(item);
+                                                    deploymentItemList.add(deploymentItem);
+                                                    logger.debug("Processing COMPLETE [{0}] content item for site \"{1}\"",
+                                                            item.getPath(), site);
+
+                                                    if (isMandatoryDependenciesCheckEnabled()) {
+                                                        logger.debug("Processing Mandatory Deps [{0}] content item for site "
+                                                                + "\"{1}\"", item.getPath(), site);
+                                                        missingDependencies.addAll(publishingManager
+                                                                .processMandatoryDependencies(item, pathsToDeploy, missingDependenciesPaths));
+                                                        logger.debug("Processing Mandatory Dependencies COMPLETE [{0}]"
+                                                                + " content item for site \"{1}\"", item.getPath(), site);
+                                                    }
+                                                    deploymentItemList.addAll(missingDependencies);
+                                                    deploy(site, environment, deploymentItemList, author, comment);
+                                                    publishingManager.markItemsCompleted(site, environment, Arrays.asList(item));
+                                                    statusMessage = studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_IDLE);
+                                                    statusMessage = statusMessage.replace("{file_name}", item.getPath());
+                                                } catch (DeploymentException err) {
+                                                    logger.error("Error while executing deployment to environment store for site \"{0}\", number of items \"{1}\"", err, site, itemsToDeploy.size());
+                                                    publishingManager.markItemsReady(site, environment, Arrays.asList(item));
+                                                    siteService.enablePublishing(site, false);
+                                                    StringWriter sw = new StringWriter();
+                                                    PrintWriter pw = new PrintWriter(sw, true);
+                                                    err.printStackTrace(pw);
+                                                    statusMessage = studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_BLOCKED);
+                                                    statusMessage = statusMessage.replace("{file_name}", item.getPath()).replace("{exception}", pw.toString());
+                                                    siteService.updatePublishingStatusMessage(site, statusMessage);
+                                                    throw err;
+                                                } catch (Exception err) {
+                                                    logger.error("Unexpected error while executing deployment to environment " +
+                                                            "store for site \"{0}\", number of items \"{1}\"", err, site, itemsToDeploy.size());
+                                                    publishingManager.markItemsReady(site, environment, Arrays.asList(item));
+                                                    siteService.enablePublishing(site, false);
+                                                    StringWriter sw = new StringWriter();
+                                                    PrintWriter pw = new PrintWriter(sw, true);
+                                                    err.printStackTrace(pw);
+                                                    statusMessage = studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_BLOCKED);
+                                                    statusMessage = statusMessage.replace("{file_name}", item.getPath()).replace("{exception}", pw.toString());
+                                                    siteService.updatePublishingStatusMessage(site, statusMessage);
+                                                    throw err;
+                                                } finally {
+                                                    generalLockService.unlock(lockKey);
+                                                    contentRepository.unLockItem(item.getSite(), item.getPath());
+                                                }
                                             }
-                                            deploymentItemList.addAll(missingDependencies);
-                                            deploy(site, environment, deploymentItemList, author, comment);
-                                            publishingManager.markItemsCompleted(site, environment, Arrays.asList(item));
-                                        } catch (DeploymentException err) {
-                                            logger.error("Error while executing deployment to environment store for site \"{0}\", number of items \"{1}\"", err, site, itemsToDeploy.size());
-                                            publishingManager.markItemsBlocked(site, environment, Arrays.asList(item));
-                                            throw err;
-                                        } catch (Exception err) {
-                                            logger.error("Unexpected error while executing deployment to environment " +
-                                                    "store for site \"{0}\", number of items \"{1}\"", err, site, itemsToDeploy.size());
-                                            publishingManager.markItemsBlocked(site, environment, Arrays.asList(item));
-                                            throw err;
+                                            siteService.updatePublishingStatusMessage(site, statusMessage);
+                                            logger.debug("Mark deployment completed for processed items for site \"{0}\"", site);
                                         } finally {
-                                            generalLockService.unlock(lockKey);
-                                            contentRepository.unLockItem(item.getSite(), item.getPath());
-                                        }
-                                    }
-/*
-                                    logger.debug("Setting up items for publishing synchronization for site \"{0}\"", site);
-                                    if (isMandatoryDependenciesCheckEnabled() && missingDependencies.size() > 0) {
-                                        List<DeploymentItem> mergedList = new ArrayList<DeploymentItem>(deploymentItemList);
-                                        mergedList.addAll(missingDependencies);
-                                        // TODO: DB: figure out author and comment
-                                        DeploymentEventContext context = new DeploymentEventContext();
-                                        context.setSite(site);
-                                        context.setItems(mergedList);
-                                        context.setEnvironment(environment);
-                                        context.setAuthor("admin");
-                                        context.setComment("TODO: DB: comment");
-                                        eventService.publish(EVENT_PUBLISH_TO_ENVIRONMENT, context);
-                                    } else {
-                                        // TODO: DB: figure out author and comment
-                                        DeploymentEventContext context = new DeploymentEventContext();
-                                        context.setSite(site);
-                                        context.setItems(deploymentItemList);
-                                        context.setEnvironment(environment);
-                                        context.setAuthor("admin");
-                                        context.setComment("TODO: DB: comment");
-                                        eventService.publish(EVENT_PUBLISH_TO_ENVIRONMENT, context);
-                                    }
-                                    */
-                                    logger.debug("Mark deployment completed for processed items for site \"{0}\"", site);
-                                    //publishingManager.markItemsCompleted(site, environment, itemsToDeploy);
-                                } finally {
-                                    for (CopyToEnvironment item : itemsToDeploy) {
-                                        String itemSite = item.getSite();
-                                        String itemPath = item.getPath();
-                                        String lockKey =  itemSite + ":" + itemPath;
+                                            for (CopyToEnvironment item : itemsToDeploy) {
+                                                String itemSite = item.getSite();
+                                                String itemPath = item.getPath();
+                                                String lockKey = itemSite + ":" + itemPath;
 
-                                        try {
-                                            generalLockService.unlock(lockKey);
-                                            contentRepository.unLockItem(itemSite, itemPath);
-                                        }
-                                        catch(Exception eUnlockError) {
-                                            logger.error("Unable to unlock item after deploy site:{0} path:{1} error:{2}", itemSite, itemPath,""+eUnlockError);
+                                                try {
+                                                    generalLockService.unlock(lockKey);
+                                                    contentRepository.unLockItem(itemSite, itemPath);
+                                                } catch (Exception eUnlockError) {
+                                                    logger.error("Unable to unlock item after deploy site:{0} path:{1} error:{2}", itemSite, itemPath, "" + eUnlockError);
+                                                }
+                                            }
                                         }
                                     }
                                 }
+                            } catch (Exception err) {
+                                logger.error("Error while executing deployment to environment store for site: " + site, err);
+                                notificationService.notifyDeploymentError(site, err);
+                                logger.info("Continue executing deployment for other sites.");
                             }
+                        } else {
+                            logger.info("Publishing is blocked for site " + site);
                         }
-                    } catch (Exception err) {
-                        logger.error("Error while executing deployment to environment store for site: " + site, err);
-                        notificationService.notifyDeploymentError(site, err);
-                        logger.info("Continue executing deployment for other sites.");
+                    } else {
+                        logger.info("Publishing is disabled for site " + site);
                     }
                 }
             }
@@ -211,7 +207,7 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
         }
     }
 
-    private void deploy(String site, String environment, List<DeploymentItem> items, String author, String comment) {
+    private void deploy(String site, String environment, List<DeploymentItem> items, String author, String comment) throws DeploymentException {
         List<String> commitIds = new ArrayList<String>(items.size());
         for (DeploymentItem item : items) {
             List<String> itemCommitIds = contentRepository.getEditCommitIds(item.getSite(), item.getPath(), item.getLastPublishedCommitId(), item.getCommitId());

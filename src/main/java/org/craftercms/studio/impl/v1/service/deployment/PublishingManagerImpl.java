@@ -310,6 +310,25 @@ public class PublishingManagerImpl implements PublishingManager {
         return missingItem;
     }
 
+    @Override
+    public boolean isPublishingBlocked(String site) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("site", site);
+        params.put("now", new Date());
+        params.put("state", CopyToEnvironment.State.BLOCKED);
+        Integer result = copyToEnvironmentMapper.isPublishingBlocked(params);
+        return result > 0;
+    }
+
+    @Override
+    public String getPublishingStatus(String site) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("site", site);
+        params.put("now", new Date());
+        CopyToEnvironment result = copyToEnvironmentMapper.checkPublishingStatus(params);
+        return result.getState();
+    }
+
     public String getIndexFile() {
         return studioConfiguration.getProperty(PUBLISHING_MANAGER_INDEX_FILE);
     }

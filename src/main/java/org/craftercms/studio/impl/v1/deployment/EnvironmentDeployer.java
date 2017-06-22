@@ -26,6 +26,7 @@ import org.craftercms.studio.api.v1.ebus.EventListener;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
+import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.event.EventService;
 
 import java.lang.reflect.Method;
@@ -48,7 +49,11 @@ public class EnvironmentDeployer {
             List<String> itemCommitIds = contentRepository.getEditCommitIds(item.getSite(), item.getPath(), item.getLastPublishedCommitId(), item.getCommitId());
             commitIds.addAll(itemCommitIds);
         }
-        contentRepository.publish(context.getSite(), commitIds, context.getEnvironment(), context.getAuthor(), context.getComment());
+        try {
+            contentRepository.publish(context.getSite(), commitIds, context.getEnvironment(), context.getAuthor(), context.getComment());
+        } catch (DeploymentException e) {
+            e.printStackTrace();logger.error("Error when publishing site " + context.getSite() + " to environment " + context.getEnvironment(), e);
+        }
     }
 
     public void subscribeToPublishToEnvironmentEvents() {

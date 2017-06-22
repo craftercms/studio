@@ -20,6 +20,7 @@ package org.craftercms.studio.api.v1.repository;
 
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.to.RepoOperationTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
 
@@ -226,7 +227,7 @@ public interface ContentRepository {
      * @param author
      * @param comment
      */
-    void publish(String site, List<String> commitIds, String environment, String author, String comment);
+    void publish(String site, List<String> commitIds, String environment, String author, String comment) throws DeploymentException;
 
     /**
      * Get a list of operations since the commit ID provided (compare that commit to HEAD)
