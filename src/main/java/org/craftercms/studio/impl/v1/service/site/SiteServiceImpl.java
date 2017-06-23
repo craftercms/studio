@@ -20,13 +20,7 @@ package org.craftercms.studio.impl.v1.service.site;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -76,13 +70,7 @@ import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteConfigNotFoundException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.api.v1.to.DeploymentConfigTO;
-import org.craftercms.studio.api.v1.to.DeploymentEndpointConfigTO;
-import org.craftercms.studio.api.v1.to.EnvironmentConfigTO;
-import org.craftercms.studio.api.v1.to.PublishingTargetTO;
-import org.craftercms.studio.api.v1.to.RepoOperationTO;
-import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
-import org.craftercms.studio.api.v1.to.SiteTO;
+import org.craftercms.studio.api.v1.to.*;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.impl.v1.repository.job.RebuildRepositoryMetadata;
@@ -971,6 +959,58 @@ public class SiteServiceImpl implements SiteService {
         } else {
             throw new SiteNotFoundException();
         }
+    }
+
+    @Override
+    public boolean isPublishingEnabled(String siteId) {
+        try {
+            SiteFeed siteFeed = getSite(siteId);
+            return siteFeed.getPublishingEnabled() > 0;
+        } catch (SiteNotFoundException e) {
+            logger.debug("Site " + siteId + " not found. Publishing disabled");
+            return false;
+        }
+    }
+
+    @Override
+    public boolean enablePublishing(String siteId, boolean enabled) throws SiteNotFoundException {
+        if (exists(siteId)) {
+            Map<String, Object> params = new HashMap<String, Object>();
+            params.put("siteId", siteId);
+            params.put("enabled", enabled ? 1 : 0);
+            siteFeedMapper.enablePublishing(params);
+            return true;
+        } else {
+            throw new SiteNotFoundException();
+        }
+    }
+
+    @Override
+    public boolean updatePublishingStatusMessage(String siteId, String message) throws SiteNotFoundException {
+        if (exists(siteId)) {
+            Map<String, Object> params = new HashMap<String, Object>();
+            params.put("siteId", siteId);
+            params.put("message", message);
+            siteFeedMapper.updatePublishingStatusMessage(params);
+            return true;
+        } else {
+            throw new SiteNotFoundException();
+        }
+    }
+
+    @Override
+    public PublishStatus getPublishStatus(String site) throws SiteNotFoundException {
+        SiteFeed siteFeed = getSite(site);
+        String psm = siteFeed.getPublishingStatusMessage();
+        StringTokenizer tokenizer = new StringTokenizer(psm, "|");
+        PublishStatus ps = new PublishStatus();
+        if (tokenizer.countTokens() > 1) {
+            ps.setStatus(tokenizer.nextToken());
+            ps.setMessage(tokenizer.nextToken());
+        } else {
+            ps.setMessage(psm);
+        }
+        return ps;
     }
 
     public String getGlobalConfigRoot() {

@@ -26,6 +26,7 @@ import org.craftercms.studio.api.v1.exception.SiteCreationException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.to.DeploymentEndpointConfigTO;
+import org.craftercms.studio.api.v1.to.PublishStatus;
 import org.craftercms.studio.api.v1.to.PublishingTargetTO;
 import org.dom4j.Document;
 
@@ -194,4 +195,34 @@ public interface SiteService {
      * @return
      */
     SiteFeed getSite(String siteId) throws SiteNotFoundException;
+
+    /**
+     * Check if publishing is enabled for given site
+     * @param siteId site id
+     * @return true if publishing is enabled for given site, otherwise false
+     */
+    boolean isPublishingEnabled(String siteId);
+
+    /**
+     * Enable/Disable publishing for given site
+     * @param siteId site id
+     * @param enabled true to enable publishing, false to disable publishing
+     */
+    boolean enablePublishing(String siteId, boolean enabled) throws SiteNotFoundException;
+
+    /**
+     * Update publishing status message for given site
+     * @param siteId site id
+     * @param message new publishing status message
+     * @return
+     * @throws SiteNotFoundException
+     */
+    boolean updatePublishingStatusMessage(String siteId, String message) throws SiteNotFoundException;
+
+    /**
+     * Get publish status for given site
+     * @param site site id
+     * @return publish status
+     */
+    PublishStatus getPublishStatus(String site) throws SiteNotFoundException;
 }

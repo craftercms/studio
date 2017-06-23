@@ -152,6 +152,9 @@ public interface StudioConfiguration {
     /** Jobs */
     String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_PROCESSING_CHUNK_SIZE = "studio.job.deployContentToEnvironment.processingChunkSize";
     String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_MANDATORY_DEPENDENCIES_CHECK_ENABLED = "studio.job.deployContentToEnvironment.mandatoryDependenciesCheckEnabled";
+    String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_IDLE = "studio.job.deployContentToEnvironment.status.message.idle";
+    String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_BUSY = "studio.job.deployContentToEnvironment.status.message.busy";
+    String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_BLOCKED = "studio.job.deployContentToEnvironment.status.message.blocked";
     String JOB_DEPLOYMENT_MASTER_PUBLISHING_NODE = "studio.job.deployment.masterPublishingNode";
     String JOB_SYNC_TARGETS_MAX_TOLERABLE_RETRIES = "studio.job.syncTargets.maxTolerableRetries";
 

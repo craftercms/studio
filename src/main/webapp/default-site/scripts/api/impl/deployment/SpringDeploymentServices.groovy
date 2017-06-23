@@ -74,4 +74,14 @@ class SpringDeploymentServices {
         def springBackedService = this.context.applicationContext.get("cstudioDeploymentService");
         return springBackedService.getDeploymentJobs();
     }
+
+    def getPublishStatus(siteId) {
+        def springBackedService = this.context.applicationContext.get("cstudioDeploymentService");
+        return springBackedService.getPublishStatus(siteId);
+    }
+
+    def enablePublishing(siteId, enabled) {
+        def springBackedService = this.context.applicationContext.get("cstudioDeploymentService");
+        return springBackedService.enablePublishing(siteId, enabled);
+    }
 }
