@@ -22,10 +22,12 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.dal.User;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
+import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.springframework.security.access.AccessDecisionVoter;
@@ -35,6 +37,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_DEFAULT_ADMIN_GROUP;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_GLOBAL_ADMIN_GROUP;
 
 public abstract class StudioAbstractAccessDecisionVoter implements AccessDecisionVoter {
@@ -82,6 +85,28 @@ public abstract class StudioAbstractAccessDecisionVoter implements AccessDecisio
         }
     }
 
+    protected boolean isSiteAdmin(String siteId, User currentUser) {
+        try {
+            int total = siteService.getSitesPerUserTotal(currentUser.getUsername());
+            List<SiteFeed> sitesFeed = siteService.getSitesPerUser(currentUser.getUsername(), 0, total);
+
+            Set<String> sites = new HashSet<String>();
+            for (SiteFeed site : sitesFeed) {
+                sites.add(site.getSiteId());
+            }
+
+            boolean toRet = sites.contains(siteId);
+            if (toRet) {
+                Set<String> userGroups = securityProvider.getUserGroups(currentUser.getUsername());
+                toRet = userGroups.contains(studioConfiguration.getProperty(CONFIGURATION_SITE_DEFAULT_ADMIN_GROUP));
+            }
+            return toRet;
+        } catch (UserNotFoundException e) {
+            logger.info("User is not site member", e);
+            return false;
+        }
+    }
+
     protected boolean isSelf(User currentUser, String userParam) {
         return StringUtils.equals(userParam, currentUser.getUsername());
     }
@@ -109,7 +134,11 @@ public abstract class StudioAbstractAccessDecisionVoter implements AccessDecisio
     public SiteService getSiteService() { return siteService; }
     public void setSiteService(SiteService siteService) { this.siteService = siteService; }
 
+    public SecurityService getSecurityService() { return securityService; }
+    public void setSecurityService(SecurityService securityService) { this.securityService = securityService; }
+
     protected SecurityProvider securityProvider;
+    protected SecurityService securityService;
     protected StudioConfiguration studioConfiguration;
     protected SiteService siteService;
 }

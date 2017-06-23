@@ -20,10 +20,12 @@ package org.craftercms.studio.impl.v1.service.deployment.job;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.dal.CopyToEnvironment;
 import org.craftercms.studio.api.v1.ebus.DeploymentItem;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -108,8 +110,9 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
                                         try {
                                             logger.debug("Mark items as processing for site \"{0}\"", site);
                                             for (CopyToEnvironment item : itemsToDeploy) {
+                                                SimpleDateFormat sdf = new SimpleDateFormat(StudioConstants.DATE_PATTERN_WORKFLOW_WITH_TZ);
                                                 statusMessage = studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_BUSY);
-                                                statusMessage = statusMessage.replace("{file_name}", item.getPath());
+                                                statusMessage = statusMessage.replace("{item_path}", item.getPath()).replace("{datetime}", sdf.format(new Date()));
                                                 siteService.updatePublishingStatusMessage(site, statusMessage);
                                                 publishingManager.markItemsProcessing(site, environment, Arrays.asList(item));
                                                 String lockKey = item.getSite() + ":" + item.getPath();
@@ -141,16 +144,13 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
                                                     deploy(site, environment, deploymentItemList, author, comment);
                                                     publishingManager.markItemsCompleted(site, environment, Arrays.asList(item));
                                                     statusMessage = studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_IDLE);
-                                                    statusMessage = statusMessage.replace("{file_name}", item.getPath());
+                                                    statusMessage = statusMessage.replace("{item_path}", item.getPath()).replace("{datetime}", sdf.format(new Date()));
                                                 } catch (DeploymentException err) {
                                                     logger.error("Error while executing deployment to environment store for site \"{0}\", number of items \"{1}\"", err, site, itemsToDeploy.size());
                                                     publishingManager.markItemsReady(site, environment, Arrays.asList(item));
                                                     siteService.enablePublishing(site, false);
-                                                    StringWriter sw = new StringWriter();
-                                                    PrintWriter pw = new PrintWriter(sw, true);
-                                                    err.printStackTrace(pw);
-                                                    statusMessage = studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_BLOCKED);
-                                                    statusMessage = statusMessage.replace("{file_name}", item.getPath()).replace("{exception}", pw.toString());
+                                                    statusMessage = studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED_ERROR);
+                                                    statusMessage = statusMessage.replace("{item_path}", item.getPath()).replace("{datetime}", sdf.format(new Date()));
                                                     siteService.updatePublishingStatusMessage(site, statusMessage);
                                                     throw err;
                                                 } catch (Exception err) {
@@ -158,11 +158,8 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
                                                             "store for site \"{0}\", number of items \"{1}\"", err, site, itemsToDeploy.size());
                                                     publishingManager.markItemsReady(site, environment, Arrays.asList(item));
                                                     siteService.enablePublishing(site, false);
-                                                    StringWriter sw = new StringWriter();
-                                                    PrintWriter pw = new PrintWriter(sw, true);
-                                                    err.printStackTrace(pw);
-                                                    statusMessage = studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_BLOCKED);
-                                                    statusMessage = statusMessage.replace("{file_name}", item.getPath()).replace("{exception}", pw.toString());
+                                                    statusMessage = studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED_ERROR);
+                                                    statusMessage = statusMessage.replace("{item_path}", item.getPath()).replace("{datetime}", sdf.format(new Date()));
                                                     siteService.updatePublishingStatusMessage(site, statusMessage);
                                                     throw err;
                                                 } finally {
