@@ -44,6 +44,7 @@ import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.*;
 import org.craftercms.studio.api.v1.util.DmContentItemComparator;
+import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.impl.v1.service.deployment.job.DeployContentToEnvironmentStore;
@@ -733,7 +734,17 @@ public class DeploymentServiceImpl implements DeploymentService {
 
     @Override
     public boolean enablePublishing(String site, boolean enabled) throws SiteNotFoundException {
-        return siteService.enablePublishing(site, enabled);
+        boolean toRet = siteService.enablePublishing(site, enabled);
+        String message = StringUtils.EMPTY;
+        SimpleDateFormat sdf = new SimpleDateFormat(StudioConstants.DATE_PATTERN_WORKFLOW_WITH_TZ);
+        if (enabled) {
+            message = studioConfiguration.getProperty(StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STARTED_USER);
+        } else {
+            message = studioConfiguration.getProperty(StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED_USER);
+        }
+        message = message.replace("{username}", securityService.getCurrentUser()).replace("{datetime}",sdf.format(new Date()));
+        siteService.updatePublishingStatusMessage(site, message);
+        return toRet;
     }
 
     public void setServicesConfig(ServicesConfig servicesConfig) {
@@ -790,6 +801,9 @@ public class DeploymentServiceImpl implements DeploymentService {
     public DeploymentHistoryProvider getDeploymentHistoryProvider() { return deploymentHistoryProvider; }
     public void setDeploymentHistoryProvider(DeploymentHistoryProvider deploymentHistoryProvider) { this.deploymentHistoryProvider = deploymentHistoryProvider; }
 
+    public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
+
     protected ServicesConfig servicesConfig;
     protected ContentService contentService;
     protected ActivityService activityService;
@@ -806,6 +820,7 @@ public class DeploymentServiceImpl implements DeploymentService {
     protected DeployContentToEnvironmentStore deployContentToEnvironmentStoreJob;
     protected NotificationService notificationService;
     protected DeploymentHistoryProvider deploymentHistoryProvider;
+    protected StudioConfiguration studioConfiguration;
 
     @Autowired
     protected CopyToEnvironmentMapper copyToEnvironmentMapper;

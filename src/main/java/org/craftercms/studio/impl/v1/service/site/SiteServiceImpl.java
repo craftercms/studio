@@ -1002,13 +1002,18 @@ public class SiteServiceImpl implements SiteService {
     public PublishStatus getPublishStatus(String site) throws SiteNotFoundException {
         SiteFeed siteFeed = getSite(site);
         String psm = siteFeed.getPublishingStatusMessage();
-        StringTokenizer tokenizer = new StringTokenizer(psm, "|");
         PublishStatus ps = new PublishStatus();
-        if (tokenizer.countTokens() > 1) {
-            ps.setStatus(tokenizer.nextToken());
-            ps.setMessage(tokenizer.nextToken());
+        if (StringUtils.isNotEmpty(psm)) {
+            StringTokenizer tokenizer = new StringTokenizer(psm, "|");
+            if (tokenizer.countTokens() > 1) {
+                ps.setStatus(tokenizer.nextToken());
+                ps.setMessage(tokenizer.nextToken());
+            } else {
+                ps.setMessage(psm);
+            }
         } else {
-            ps.setMessage(psm);
+            ps.setStatus("UNKNOWN");
+            ps.setMessage("UNKNOWN");
         }
         return ps;
     }

@@ -28,7 +28,6 @@ def invalidParams = false;
 
 if (StringUtils.isEmpty(siteId)) {
     invalidParams = true
-    paramsList.add("site_id")
 }
 
 if (invalidParams) {
