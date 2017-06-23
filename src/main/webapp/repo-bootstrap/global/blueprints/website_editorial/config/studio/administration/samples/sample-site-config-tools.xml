@@ -1,10 +1,34 @@
+<!--
+    Site Configuration Tools
+
+    This file helps configure the Site Config section with tools. The tools specified here appear on the left-
+    hand-side of the Site Config section.
+
+    The file has the the following structure:
+    <config>
+        <tools>
+            <tool>
+                <name>sync-from-repository</name>
+                <label>Sync From Repository</label>
+                <icon>
+                    <styles>    ( Change default icon styles - using css rules )
+                        <color>#409a00</color>
+                        <font-size>16px</font-size>
+                        <font-width>bold</font-width>
+                    </styles>
+                </icon>
+                <... tool specific configuration ../>
+            </tool>
+        </tools>
+    </config>
+-->
 <config>
-	<tools>
-		<tool>
-			<name>content-types</name>
-			<label>Content Types</label>
-			<icon>
-                <styles>	<!-- Change default icon styles - using css rules -->
+    <tools>
+        <tool>
+            <name>content-types</name>
+            <label>Content Types</label>
+            <icon>
+                <styles>    <!-- Change default icon styles - using css rules -->
                     <color>#409a00</color>
                     <font-size>16px</font-size>
                     <font-width>bold</font-width>
@@ -239,71 +263,92 @@
                     </icon>
                 </datasource>
             </datasources>
-			<objectTypes>
-				<type>
-					<label>Page</label>
-					<name>page</name>
-					<properties>
-						<property>
-							<name>display-template</name>
-							<label>Display Template</label>
-							<value></value>
-							<type>template</type>
-						</property>
-						<property>
-							<name>merge-strategy</name>
-							<label>Merge Strategy</label>
-							<value>inherit-levels</value>
-							<type>string</type>
-						</property>
-					</properties>
-				</type>
-				<type>
-					<label>Component</label>
-					<name>component</name>
-					<properties>
-						<property>
-							<name>display-template</name>
-							<label>Display Template</label>
-							<value></value>
-							<type>template</type>
-						</property>
-						<property>
-							<name>merge-strategy</name>
-							<label>Merge Strategy</label>
-							<value>inherit-levels</value>
-							<type>string</type>
-						</property>
-					</properties>
-				</type>
+            <objectTypes>
+                <type>
+                    <label>Page</label>
+                    <name>page</name>
+                    <properties>
+                        <property>
+                            <name>display-template</name>
+                            <label>Display Template</label>
+                            <value></value>
+                            <type>template</type>
+                        </property>
+                        <property>
+                            <name>merge-strategy</name>
+                            <label>Merge Strategy</label>
+                            <value>inherit-levels</value>
+                            <type>string</type>
+                        </property>
+                    </properties>
+                </type>
+                <type>
+                    <label>Component</label>
+                    <name>component</name>
+                    <properties>
+                        <property>
+                            <name>display-template</name>
+                            <label>Display Template</label>
+                            <value></value>
+                            <type>template</type>
+                        </property>
+                        <property>
+                            <name>merge-strategy</name>
+                            <label>Merge Strategy</label>
+                            <value>inherit-levels</value>
+                            <type>string</type>
+                        </property>
+                    </properties>
+                </type>
 
-			</objectTypes>
-		</tool>
-		<tool>
-			<name>admin-configurations</name>
-			<label>Configuration</label>
-			<icon>
+            </objectTypes>
+        </tool>
+        <tool>
+            <name>admin-configurations</name>
+            <label>Configuration</label>
+            <icon>
                 <class>fa-cogs</class>  <!-- Custom icon -->
             </icon>
-		</tool>
-        <tool><name>groups</name><label>Groups</label></tool>
+        </tool>
         <tool>
-        	<name>audit</name>
-        	<label>Audit</label>
-        	<icon>
-            	<class>fa-file-o</class> 	<!-- Custom icon -->
-                <styles>	<!-- Change icon styles - using css rules -->
+            <name>groups</name>
+            <label>Groups</label>
+        </tool>
+        <tool>
+            <name>audit</name>
+            <label>Audit</label>
+            <icon>
+                <class>fa-file-o</class>    <!-- Custom icon -->
+                <styles>    <!-- Change icon styles - using css rules -->
                     <color>#075412</color>
                     <font-size>16px</font-size>
                     <font-width>bold</font-width>
                 </styles>
             </icon>
-    	</tool>
-		<tool><name>bulkoperations</name><label>Bulk Operations</label></tool>
-		<tool><name>workflow-states</name><label>Workflow States</label></tool>
-		<tool><name>logging</name><label>Logging Levels</label></tool>
-		<tool><name>log-view</name><label>Log Console</label></tool>
-        <tool><name>preview-sync</name><label>Preview Sync</label></tool>
-        <tool><name>sync-from-repository</name><label>Sync From Repository</label></tool>
-	</tools>
+        </tool>
+        <tool>
+            <name>bulkoperations</name>
+            <label>Bulk Operations</label>
+        </tool>
+        <tool>
+            <name>workflow-states</name>
+            <label>Workflow States</label>
+        </tool>
+        <tool>
+            <name>logging</name>
+            <label>Logging Levels</label>
+        </tool>
+        <tool>
+            <name>log-view</name>
+            <label>Log Console</label>
+        </tool>
+        <tool>
+            <name>preview-sync</name>
+            <label>Preview Sync</label>
+        </tool>
+        <tool>
+            <name>sync-from-repository</name>
+            <label>Sync From Repository</label>
+        </tool>
+    </tools>
 </config>
