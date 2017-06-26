@@ -86,6 +86,7 @@
         <constructor-arg name="decisionVoters">
             <list>
                 <bean class="org.craftercms.studio.impl.v1.web.security.access.StudioSiteAPIAccessDecisionVoter" parent="studioAbstractAccessDecisionVoter" />
+                <bean class="org.craftercms.studio.impl.v1.web.security.access.StudioPublishingAPIAccessDecisionVoter" parent="studioAbstractAccessDecisionVoter" />
                 <bean class="org.craftercms.studio.impl.v1.web.security.access.StudioUserAPIAccessDecisionVoter" parent="studioAbstractAccessDecisionVoter" />
                 <bean class="org.craftercms.studio.impl.v1.web.security.access.StudioGroupAPIAccessDecisionVoter" parent="studioAbstractAccessDecisionVoter" />
                 <bean class="org.craftercms.studio.impl.v1.web.security.access.StudioCmisDSAPIAccessDecisionVoter" parent="studioAbstractAccessDecisionVoter" />
@@ -98,6 +99,7 @@
         <property name="securityProvider" ref="securityProvider"/>
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="siteService" ref="cstudioSiteServiceSimple" />
+        <property name="securityService" ref="cstudioSecurityService" />
     </bean>
 
     <bean id="studioAccessDeniedHandler" class="org.craftercms.studio.impl.v1.web.security.access.StudioAccessDeniedHandler"/>

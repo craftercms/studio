@@ -34,6 +34,7 @@
         <result property="action" column="action"/>
         <result property="contentTypeClass" column="contenttypeclass"/>
         <result property="submissionComment" column="submissioncomment"/>
+        <result property="commitId" column="commit_id"/>
     </resultMap>
 
     <cache/>
@@ -61,8 +62,8 @@
     </select>
 
     <insert id="insertItemForDeployment" parameterType="org.craftercms.studio.api.v1.dal.CopyToEnvironment">
-        INSERT INTO cstudio_copytoenvironment (site, environment, path, oldpath, username, scheduleddate, state, action, contenttypeclass, submissioncomment)
-        values (#{site}, #{environment}, #{path}, #{oldPath}, #{user}, #{scheduledDate}, #{state}, #{action}, #{contentTypeClass}, #{submissionComment})
+        INSERT INTO cstudio_copytoenvironment (site, environment, path, oldpath, username, scheduleddate, state, action, contenttypeclass, submissioncomment, commit_id)
+        values (#{site}, #{environment}, #{path}, #{oldPath}, #{user}, #{scheduledDate}, #{state}, #{action}, #{contentTypeClass}, #{submissionComment}, #{commitId})
     </insert>
 
     <update id="cancelWorkflow" parameterType="java.util.Map">
@@ -117,4 +118,38 @@
         DELETE FROM cstudio_copytoenvironment
         WHERE site = #{site}
     </delete>
+
+    <select id="checkPublishingStatus" resultMap="CopyToEnvironmentMap">
+        SELECT *
+        FROM cstudio_copytoenvironment
+        WHERE site = #{site}
+        AND scheduleddate &lt;= #{now}
+        AND state in
+        <foreach item="state" index="index" collection="states"
+                 open="(" separator="," close=")">
+            #{state}
+        </foreach>
+        ORDER BY scheduleddate ASC
+        LIMIT 0, 1
+    </select>
+
+    <select id="isPublishingBlocked" resultType="int">
+        SELECT count(1)
+        FROM cstudio_copytoenvironment
+        WHERE site = #{site}
+        AND scheduleddate &lt;= #{now}
+        AND state = #{state}
+        ORDER BY scheduleddate ASC
+        LIMIT 0, 1
+    </select>
+
+    <select id="getLastDeployedItem" resultMap="CopyToEnvironmentMap">
+        SELECT *
+        FROM cstudio_copytoenvironment
+        WHERE site = #{site}
+        AND state = #{state}
+        AND scheduleddate &lt;= #{now}
+        ORDER BY scheduleddate DESC
+        LIMIT 0, 1
+    </select>
 </mapper>

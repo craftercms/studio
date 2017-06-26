@@ -82,7 +82,7 @@
 					<type>checkbox</type>
 					<id>disabled</id>
 					<iceId></iceId>
-					<title>Disable Component - Feature</title>
+					<title>Disable Component</title>
 					<description></description>
 					<defaultValue></defaultValue>
 					<help></help>
@@ -119,7 +119,7 @@
 					<properties>
 						<property>
 							<name>datasource</name>
-							<value>featureicons,featureicons,featureicons,featureIcons</value>
+							<value>feature_icons</value>
 							<type>datasource:item</type>
 						</property>
 						<property>

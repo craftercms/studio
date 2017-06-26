@@ -71,4 +71,14 @@ class DeploymentServices {
         def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context);
         return deploymentServicesImpl.getDeploymentJobs();
     }
+
+    static getStatus(context, siteId) {
+        def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context);
+        return deploymentServicesImpl.getPublishStatus(siteId);
+    }
+
+    static enablePublishing(context, siteId, enabled) {
+        def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context);
+        return deploymentServicesImpl.enablePublishing(siteId, enabled);
+    }
 }

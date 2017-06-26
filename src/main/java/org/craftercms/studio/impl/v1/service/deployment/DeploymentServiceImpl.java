@@ -19,13 +19,14 @@ package org.craftercms.studio.impl.v1.service.deployment;
 
 import net.sf.json.JSONObject;
 import org.apache.commons.collections.FastArrayList;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.*;
 import org.craftercms.studio.api.v1.deployment.Deployer;
 import org.craftercms.studio.api.v1.ebus.PreviewEventContext;
 import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
@@ -43,6 +44,7 @@ import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.*;
 import org.craftercms.studio.api.v1.util.DmContentItemComparator;
+import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.impl.v1.service.deployment.job.DeployContentToEnvironmentStore;
@@ -152,6 +154,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         for (String action : paths.keySet()) {
             for (String path : paths.get(action)) {
                 CopyToEnvironment item = new CopyToEnvironment();
+                ObjectMetadata metadata = objectMetadataManager.getProperties(site, path);
                 item.setId(++CTED_AUTOINCREMENT);
                 item.setSite(site);
                 item.setEnvironment(environment);
@@ -159,9 +162,17 @@ public class DeploymentServiceImpl implements DeploymentService {
                 item.setScheduledDate(scheduledDate);
                 item.setState(CopyToEnvironment.State.READY_FOR_LIVE);
                 item.setAction(action);
-                if (objectMetadataManager.isRenamed(site, path)) {
-                    String oldPath = objectMetadataManager.getOldPath(site, item.getPath());
-                    item.setOldPath(oldPath);
+                if (metadata != null) {
+                    if (metadata.getRenamed() > 0) {
+                        String oldPath = metadata.getOldUrl();
+                        item.setOldPath(oldPath);
+                    }
+                    String commitId = metadata.getCommitId();
+                    if (StringUtils.isNotEmpty(commitId)) {
+                        item.setCommitId(commitId);
+                    } else {
+                        item.setCommitId(contentRepository.getRepoLastCommitId(site));
+                    }
                 }
                 String contentTypeClass = contentService.getContentTypeClass(site, path);
                 item.setContentTypeClass(contentTypeClass);
@@ -682,7 +693,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         params.put("site", site);
         params.put("path", path);
         params.put("id", deploymentId);
-        params.put("canceledState", CopyToEnvironment.State.CANCELED);
+        params.put("canceledState", CopyToEnvironment.State.CANCELLED);
         copyToEnvironmentMapper.cancelDeployment(params);
         return true;
     }
@@ -712,8 +723,28 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     @Override
+    public PublishStatus getPublishStatus(String site) throws SiteNotFoundException {
+        return siteService.getPublishStatus(site);
+    }
+
+    @Override
     public Date getLastDeploymentDate(String site, String path) {
         return deploymentHistoryProvider.getLastDeploymentDate(site, path);
+    }
+
+    @Override
+    public boolean enablePublishing(String site, boolean enabled) throws SiteNotFoundException {
+        boolean toRet = siteService.enablePublishing(site, enabled);
+        String message = StringUtils.EMPTY;
+        SimpleDateFormat sdf = new SimpleDateFormat(StudioConstants.DATE_PATTERN_WORKFLOW_WITH_TZ);
+        if (enabled) {
+            message = studioConfiguration.getProperty(StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STARTED_USER);
+        } else {
+            message = studioConfiguration.getProperty(StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED_USER);
+        }
+        message = message.replace("{username}", securityService.getCurrentUser()).replace("{datetime}",sdf.format(new Date()));
+        siteService.updatePublishingStatusMessage(site, message);
+        return toRet;
     }
 
     public void setServicesConfig(ServicesConfig servicesConfig) {
@@ -770,6 +801,9 @@ public class DeploymentServiceImpl implements DeploymentService {
     public DeploymentHistoryProvider getDeploymentHistoryProvider() { return deploymentHistoryProvider; }
     public void setDeploymentHistoryProvider(DeploymentHistoryProvider deploymentHistoryProvider) { this.deploymentHistoryProvider = deploymentHistoryProvider; }
 
+    public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
+
     protected ServicesConfig servicesConfig;
     protected ContentService contentService;
     protected ActivityService activityService;
@@ -786,6 +820,7 @@ public class DeploymentServiceImpl implements DeploymentService {
     protected DeployContentToEnvironmentStore deployContentToEnvironmentStoreJob;
     protected NotificationService notificationService;
     protected DeploymentHistoryProvider deploymentHistoryProvider;
+    protected StudioConfiguration studioConfiguration;
 
     @Autowired
     protected CopyToEnvironmentMapper copyToEnvironmentMapper;

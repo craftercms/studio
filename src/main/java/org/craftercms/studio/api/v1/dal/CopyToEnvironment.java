@@ -32,7 +32,8 @@ public class CopyToEnvironment implements Serializable {
         public final static String READY_FOR_LIVE = "READY_FOR_LIVE";
         public final static String PROCESSING = "PROCESSING";
         public final static String COMPLETED = "COMPLETED";
-        public final static String CANCELED = "CANCELLED";
+        public final static String CANCELLED = "CANCELLED";
+        public final static String BLOCKED = "BLOCKED";
     }
 
     public class Action {
@@ -53,6 +54,7 @@ public class CopyToEnvironment implements Serializable {
     private String action;
     private String contentTypeClass;
     private String submissionComment;
+    private String commitId;
 
     public long getId() { return id; }
     public void setId(long id) { this.id = id; }
@@ -86,4 +88,7 @@ public class CopyToEnvironment implements Serializable {
 
     public String getSubmissionComment() { return submissionComment; }
     public void setSubmissionComment(String submissionComment) { this.submissionComment = submissionComment; }
+
+    public String getCommitId() { return commitId; }
+    public void setCommitId(String commitId) { this.commitId = commitId; }
 }

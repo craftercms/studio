@@ -49,7 +49,7 @@ import org.craftercms.studio.api.v1.service.security.UserDetailsManager;
 import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
 import org.craftercms.studio.api.v1.to.PermissionsConfigTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
-import org.craftercms.studio.impl.v1.util.TokenUtils;
+import org.craftercms.studio.impl.v1.util.SessionTokenUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -82,13 +82,6 @@ public class SecurityServiceImpl implements SecurityService {
     @Override
     public String authenticate(String username, String password) throws BadCredentialsException, AuthenticationSystemException {
         String toRet = securityProvider.authenticate(username, password);
-        /*
-        String sessionToken = SessionTokenUtils.createToken(username, getSessionTimeout());
-        RequestContext context = RequestContext.getCurrent();
-        if (context != null) {
-            HttpSession httpSession = context.getRequest().getSession();
-            httpSession.setAttribute(STUDIO_SESSION_TOKEN_ATRIBUTE, sessionToken);
-        }*/
         return toRet;
     }
 
@@ -868,19 +861,10 @@ public class SecurityServiceImpl implements SecurityService {
 
             UserDetails userDetails = this.userDetailsManager.loadUserByUsername(userName);
 
-            return (TokenUtils.validateToken(authToken, userDetails));
+            return (SessionTokenUtils.validateToken(authToken, userDetails.getUsername()));
 
         }
-        /*
-        if (StringUtils.isEmpty(sessionToken) || StringUtils.isEmpty(user)) {
-            return true;
-        }
-        if (StringUtils.isNotEmpty(sessionToken) && StringUtils.isNotEmpty(user)) {
-            if (SessionTokenUtils.validateToken(sessionToken, user)) {
-                return true;
-            }
-        }
-      */
+
         return false;
     }
 

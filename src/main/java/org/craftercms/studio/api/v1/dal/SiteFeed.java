@@ -41,6 +41,12 @@ public class SiteFeed {
     public String getLastCommitId() { return lastCommitId; }
     public void setLastCommitId(String lastCommitId) { this.lastCommitId = lastCommitId; }
 
+    public int getPublishingEnabled() { return publishingEnabled; }
+    public void setPublishingEnabled(int publishingEnabled) { this.publishingEnabled = publishingEnabled; }
+
+    public String getPublishingStatusMessage() { return publishingStatusMessage; }
+    public void setPublishingStatusMessage(String publishingStatusMessage) { this.publishingStatusMessage = publishingStatusMessage; }
+
     protected long id;
     protected String siteId;
     protected String name;
@@ -48,4 +54,6 @@ public class SiteFeed {
     protected String status;
     protected String liveUrl;
     protected String lastCommitId;
+    protected int publishingEnabled;
+    protected String publishingStatusMessage;
 }

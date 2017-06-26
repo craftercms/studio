@@ -39,5 +39,11 @@ public interface PublishingManager {
 
     void markItemsReady(String site, String liveEnvironment, List<CopyToEnvironment> copyToEnvironmentItems) throws DeploymentException;
 
+    void markItemsBlocked(String site, String environment, List<CopyToEnvironment> copyToEnvironmentItems) throws DeploymentException;
+
     List<DeploymentItem> processMandatoryDependencies(CopyToEnvironment item, List<String> pathsToDeploy, Set<String> missingDependenciesPaths) throws DeploymentException;
+
+    boolean isPublishingBlocked(String site);
+
+    String getPublishingStatus(String site);
 }

@@ -29,10 +29,10 @@ studio.repo.blueprintsPath: blueprints
 studio.repo.bootstrapRepo: true
 # Defines size of a batch when rebuilding crafter repository metadata stored in database.
 studio.repo.rebuildMetadata.batchSize: 100
-
-studio.repo.published.cherryPickMessage: ~~ Crafter Studio - commit ID = <commitId> ~~
+# Repository mechanics, don't change unless you REALLY know what you're doing.
+studio.repo.published.cherryPickMessage: (cherry picked from commit <commitId>)
 studio.repo.published.cherryPickMessage.replace: <commitId>
-studio.repo.published.cherryPickMessage.commitId.regex: (~~\sCrafter\sStudio\s-\scommit\sID\s=\s)([a-f0-9]*)(\s~~)
+studio.repo.published.cherryPickMessage.commitId.regex: (.*\W*)(\(cherry\spicked\sfrom\scommit\s)([a-f0-9]*)(\))
 
 ############################################################
 ##                   Site Configuration                   ##
@@ -137,10 +137,6 @@ studio.security.exceptionUrls: /api/1/services/api/1/user/login.json,/api/1/serv
 # Defines security provider for accessing repository. Possible values:
 # db (users are stored in database) -- this is the only option at this time
 studio.security.type: db
-# Location of XML file that contains users for demo security provider.
-studio.security.file.configLocation: ${repository.diskImplementation.path}/security-config.xml
-# Session timeout for db security provider
-studio.security.db.sessionTimeout: 15
 # Salt for encrypting
 studio.security.cipher.salt: STUDIO_SALT
 # Key for encrypting
@@ -219,6 +215,16 @@ studio.mail.debug: false
 studio.job.deployContentToEnvironment.processingChunkSize: 1000
 # Turn on/off (value true/false) check if mandatory dependencies of deployed content are included in deployment package.
 studio.job.deployContentToEnvironment.mandatoryDependenciesCheckEnabled: true
+# Publishing idle status message
+studio.job.deployContentToEnvironment.status.message.idle: "idle|Last successful publish was for item: {item_path} on {datetime}"
+# Publishing busy status message
+studio.job.deployContentToEnvironment.status.message.busy: "busy|Currently publishing item: {item_path} on {datetime}"
+# Publishing stopped by error status message
+studio.job.deployContentToEnvironment.status.message.stopped.error: "stopped|Stopped while trying to publish item: {item_path} on {datetime}"
+# Publishing stopped by user status message
+studio.job.deployContentToEnvironment.status.message.stopped.user: "stopped|User {username} stopped the site on {datetime}"
+# Publishing stopped by user status message
+studio.job.deployContentToEnvironment.status.message.started.user: "started|User {username} started the site on {datetime}"
 # Defines master publishing node in clustered environment. Value false disables publishing (even in non-clustered environment).
 studio.job.deployment.masterPublishingNode: true
 # Defines maximum number of retries in case of failure when synchronizing deployment target with published content.

@@ -20,6 +20,7 @@ package org.craftercms.studio.api.v1.repository;
 
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.to.RepoOperationTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
 
@@ -77,9 +78,10 @@ public interface ContentRepository {
      *
      * @param site site id where the operation will be executed
      * @param path path to content
+     * @param approver user that approves delete content
      * @return Commit ID if successful, null otherwise
      */
-    String deleteContent(String site, String path);
+    String deleteContent(String site, String path, String approver);
 
     /**
      * move content from PathA to pathB
@@ -225,7 +227,7 @@ public interface ContentRepository {
      * @param author
      * @param comment
      */
-    void publish(String site, List<String> commitIds, String environment, String author, String comment);
+    void publish(String site, List<String> commitIds, String environment, String author, String comment) throws DeploymentException;
 
     /**
      * Get a list of operations since the commit ID provided (compare that commit to HEAD)

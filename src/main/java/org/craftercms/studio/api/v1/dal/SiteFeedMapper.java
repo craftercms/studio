@@ -42,4 +42,8 @@ public interface SiteFeedMapper {
     List<String> getSitesPerUserQuery(Map params);
 
     List<SiteFeed> getSitesPerUserData(Map params);
+
+    void enablePublishing(Map params);
+
+    void updatePublishingStatusMessage(Map params);
 }
