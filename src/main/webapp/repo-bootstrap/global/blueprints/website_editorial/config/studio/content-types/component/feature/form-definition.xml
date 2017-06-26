@@ -119,7 +119,7 @@
 					<properties>
 						<property>
 							<name>datasource</name>
-							<value>featureicons,featureicons,featureicons,featureIcons</value>
+							<value>feature_icons</value>
 							<type>datasource:item</type>
 						</property>
 						<property>

@@ -37,7 +37,6 @@ def invalidParams = false;
 if (StringUtils.isEmpty(siteId)) {
     if (StringUtils.isEmpty(siteIdJson)) {
         invalidParams = true
-        paramsList.add("site_id")
     } else {
         siteId = siteIdJson;
     }

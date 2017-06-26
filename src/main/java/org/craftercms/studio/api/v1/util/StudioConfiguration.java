@@ -110,7 +110,6 @@ public interface StudioConfiguration {
     String SECURITY_URLS_TO_EXCLUDE = "studio.security.urlsToExclude";
     String SECURITY_EXCEPTION_URLS = "studio.security.exceptionUrls";
     String SECURITY_TYPE = "studio.security.type";
-    String SECURITY_FILE_CONFIG_LOCATION = "studio.security.file.configLocation";
     String SECURITY_CIPHER_SALT = "studio.security.cipher.salt";
     String SECURITY_CIPHER_KEY = "studio.security.cipher.key";
     String SECURITY_CIPHER_TYPE = "studio.security.cipher.type";
@@ -154,7 +153,9 @@ public interface StudioConfiguration {
     String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_MANDATORY_DEPENDENCIES_CHECK_ENABLED = "studio.job.deployContentToEnvironment.mandatoryDependenciesCheckEnabled";
     String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_IDLE = "studio.job.deployContentToEnvironment.status.message.idle";
     String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_BUSY = "studio.job.deployContentToEnvironment.status.message.busy";
-    String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_BLOCKED = "studio.job.deployContentToEnvironment.status.message.blocked";
+    String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED_ERROR = "studio.job.deployContentToEnvironment.status.message.stopped.error";
+    String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED_USER = "studio.job.deployContentToEnvironment.status.message.stopped.user";
+    String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STARTED_USER = "studio.job.deployContentToEnvironment.status.message.started.user";
     String JOB_DEPLOYMENT_MASTER_PUBLISHING_NODE = "studio.job.deployment.masterPublishingNode";
     String JOB_SYNC_TARGETS_MAX_TOLERABLE_RETRIES = "studio.job.syncTargets.maxTolerableRetries";
 
