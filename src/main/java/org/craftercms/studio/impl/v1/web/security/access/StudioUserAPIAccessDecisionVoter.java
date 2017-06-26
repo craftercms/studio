@@ -20,6 +20,7 @@ package org.craftercms.studio.impl.v1.web.security.access;
 
 import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.dal.User;
@@ -30,6 +31,7 @@ import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.FilterInvocation;
 
+import javax.servlet.Servlet;
 import javax.servlet.http.HttpServletRequest;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -75,7 +77,9 @@ public class StudioUserAPIAccessDecisionVoter extends StudioAbstractAccessDecisi
             HttpServletRequest  request = filterInvocation.getRequest();
             requestUri = request.getRequestURI().replace(request.getContextPath(), "");
             String userParam = request.getParameter("username");
-            if (StringUtils.isEmpty(userParam) && StringUtils.equalsIgnoreCase(request.getMethod(), HttpMethod.POST.name())) {
+            if (StringUtils.isEmpty(userParam)
+                && StringUtils.equalsIgnoreCase(request.getMethod(), HttpMethod.POST.name())
+                && !ServletFileUpload.isMultipartContent(request)) {
                 try {
                     InputStream is = request.getInputStream();
                     is.mark(0);
