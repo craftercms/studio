@@ -18,9 +18,13 @@
 
 package org.craftercms.studio.impl.v1.web.security.access;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Collection;
+import javax.servlet.http.HttpServletRequest;
+
 import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
-import org.apache.commons.fileupload.FileUpload;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -31,12 +35,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.FilterInvocation;
-import org.springframework.web.multipart.commons.CommonsFileUploadSupport;
-
-import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Collection;
 
 public class StudioPublishingAPIAccessDecisionVoter extends StudioAbstractAccessDecisionVoter {
 

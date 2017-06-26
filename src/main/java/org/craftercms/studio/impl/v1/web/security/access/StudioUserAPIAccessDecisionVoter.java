@@ -18,6 +18,11 @@
 
 package org.craftercms.studio.impl.v1.web.security.access;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Collection;
+import javax.servlet.http.HttpServletRequest;
+
 import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
@@ -30,14 +35,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.FilterInvocation;
-
-import javax.servlet.Servlet;
-import javax.servlet.http.HttpServletRequest;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringReader;
-import java.util.Collection;
 
 /**
  * Created by dejanbrkic on 4/19/17.
