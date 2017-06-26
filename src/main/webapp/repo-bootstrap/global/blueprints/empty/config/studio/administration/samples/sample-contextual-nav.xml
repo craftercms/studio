@@ -56,6 +56,7 @@
                 <item><modulehook>preview_tools</modulehook></item>
                 <item><modulehook>targeting</modulehook></item>
                 <item><modulehook>search</modulehook></item>
+                <item><modulehook>status</modulehook></item>
                 <item><modulehook>logout</modulehook></item>
             </menuItem>
         </right>
@@ -70,6 +71,7 @@
             <module><moduleName>ice_tools</moduleName><value>ice_tools</value></module>
             <module><moduleName>targeting</moduleName><value>targeting</value></module>
             <module><moduleName>search</moduleName><value>search</value></module>
+            <module><moduleName>status</moduleName><value>status</value></module>
             <module><moduleName>logout</moduleName><value>logout</value></module>
         </modules>
     </context>
