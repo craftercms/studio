@@ -54,6 +54,7 @@ import org.craftercms.studio.api.v1.to.RepoOperationTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
+import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.RefNotFoundException;
@@ -1047,15 +1048,19 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     List<String> files = helper.getFilesInCommit(publishedRepo, revCommit);
                     for (int j = 0; j < files.size() && counter < numberOfItems; j++) {
                         String file = files.get(j);
-                        if (dmFilterWrapper.accept(site, file, filterType)) {
-                            DeploymentSyncHistory dsh = new DeploymentSyncHistory();
-                            dsh.setSite(site);
-                            dsh.setPath(file);
-                            dsh.setSyncDate(new Date(1000l * revCommit.getCommitTime()));
-                            dsh.setUser(revCommit.getAuthorIdent().getName());
-                            dsh.setEnvironment(environment);
-                            toRet.add(dsh);
-                            counter++;
+                        Path path = Paths.get(file);
+                        String fileName = path.getFileName().toString();
+                        if (!ArrayUtils.contains(IGNORE_FILES, fileName)) {
+                            if (dmFilterWrapper.accept(site, file, filterType)) {
+                                DeploymentSyncHistory dsh = new DeploymentSyncHistory();
+                                dsh.setSite(site);
+                                dsh.setPath(file);
+                                dsh.setSyncDate(new Date(1000l * revCommit.getCommitTime()));
+                                dsh.setUser(revCommit.getAuthorIdent().getName());
+                                dsh.setEnvironment(environment);
+                                toRet.add(dsh);
+                                counter++;
+                            }
                         }
                     }
                 }
