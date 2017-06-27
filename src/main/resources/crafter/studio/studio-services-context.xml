@@ -184,6 +184,7 @@
         <property name="objectStateService" ref="cstudioObjectStateService"/>
         <property name="submitToApproveDependencyRule" ref="studioSubmitToApproveDependencyRule"/>
         <property name="studioConfiguration" ref="studioConfiguration" />
+        <property name="objectMetadataManager" ref="cstudioObjectMetadataManager" />
     </bean>
 
     <bean id="cstudioObjectStateService" class="org.craftercms.studio.impl.v1.service.objectstate.ObjectStateServiceImpl"

@@ -33,6 +33,7 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.AbstractRegistrableService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
+import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
 import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.CopyDependencyConfigTO;
@@ -647,7 +648,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
     protected void addDependencyItem(String site, List<ContentItemTO> items, Set<String> includedItems, Set<String> includedDependencies,
                                      ContentItemTO item, DmContentItemComparator comparator,boolean deleteDependencies) throws ServiceException {
         // if this item is a new file, check if the parent is new
-        if (!deleteDependencies && (item.isNewFile() /* TODO: check renamed */)) {
+        if (!deleteDependencies && (item.isNew() || objectMetadataManager.isRenamed(site, item.getUri()))) {
             String parentUri = "";
             if (item.getName().equals(DmConstants.INDEX_FILE)) {
                 // if the current page is the index page, then the parent page is one level above
@@ -670,7 +671,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
                     ContentItemTO parentItem = contentService.getContentItem(site, parentUri);
                     if (parentItem != null ) {
                         retrieveDependencyItems(parentItem, includedDependencies,deleteDependencies, site);
-                        if (parentItem.isNewFile() /* TODO: check renamed */) {
+                        if (parentItem.isNew() || objectMetadataManager.isRenamed(site, parentUri)) {
                             // add the parent item first recursively
                             addDependencyItem(site, items, includedItems, includedDependencies, parentItem, comparator,deleteDependencies);
                         }
@@ -679,47 +680,12 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
                     // if no parent found, there is no mandatory parent (e.g. download content)
                 }
             }
-        }/*
-        boolean found = false;
-        int position = -1;
-        // add a new item as a child if the new item is a sub folder
-        // or a file under one of the top level items
-        for (int index = 0; index < items.size(); index++) {
-            ContentItemTO topLevelItem = items.get(index);
-            String categoryUri = topLevelItem.getUri();
-            categoryUri = categoryUri.replaceFirst(DmConstants.INDEX_FILE, "");
-            String topLevelItemFullPath = contentService.expandRelativeSitePath(site, topLevelItem.getUri());
-            if (item.getUri().startsWith(categoryUri)) {
-                populatePageDependencies(site, item, true);
-                boolean topLevelItemRenamed = false; // TODO: check renamed
-                topLevelItem.addChild(item, comparator, true,topLevelItemRenamed);
-                position = index;
-                found = true;
-            } else {
-                // if the top level item belongs to the current item being added
-                // replace top level item with the current item and add the top level item to the current item
-                String currentCategoryUri = item.getUri().replaceFirst(DmConstants.INDEX_FILE, "");
-                if (topLevelItem.getUri().startsWith(currentCategoryUri)) {
-                    items.remove(index);
-                    populatePageDependencies(site, item, true);
-                    item.addChild(topLevelItem, comparator, true);
-                    if (!found) {
-                        populatePageDependencies(site, item, true);
-                        items.add(index, item);
-                        found = true;
-                        position = index;
-                    }
-                }
-            }
-        }*/
-        // if not, add the new item to the top level item list
-        //if (!found) {
-            //EMO-11523 dont include page dependencies for delete flow
-            if(!deleteDependencies) {
-                populatePageDependencies(site, item, true);
-            }
-            items.add(item);
-        //}
+        }
+        if(!deleteDependencies) {
+            populatePageDependencies(site, item, true);
+        }
+        items.add(item);
+
         includedItems.add(item.getUri());
     }
 
@@ -793,18 +759,6 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
             item.setPages(pageItems);
         }
     }
-/*
-    @Override
-    public List<DependencyEntity> getDirectDependencies(String site, String path) {
-        try {
-            return _dependencyDaoService.getDependencies(site, path);
-        } catch (SQLException e) {
-            if (logger.isErrorEnabled()) {
-                logger.error("Failed to get direct dependency", e);
-            }
-            return null;
-        }
-    }*/
 
     @Override
     public void extractDependencies(String site, String path, Document document, Map<String, Set<String>> globalDeps) throws ServiceException {
@@ -1318,11 +1272,15 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
     public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
 
+    public ObjectMetadataManager getObjectMetadataManager() { return objectMetadataManager; }
+    public void setObjectMetadataManager(ObjectMetadataManager objectMetadataManager) { this.objectMetadataManager = objectMetadataManager; }
+
     protected ContentService contentService;
     protected ServicesConfig servicesConfig;
     protected org.craftercms.studio.api.v1.service.objectstate.ObjectStateService objectStateService;
     protected SubmitToApproveDependencyRule submitToApproveDependencyRule;
     protected StudioConfiguration studioConfiguration;
+    protected ObjectMetadataManager objectMetadataManager;
 
     @Autowired
     protected DependencyMapper dependencyMapper;
