@@ -1,3 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Site Configuration Tools
+
+    This file helps configure the Site Config section with tools. The tools specified here appear on the left-
+    hand-side of the Site Config section.
+
+    The file has the the following structure:
+    <config>
+        <tools>
+            <tool>
+                <name>sync-from-repository</name>
+                <label>Sync From Repository</label>
+                <icon>          (Optional icon configuration)
+                    <styles>    ( Change default icon styles - using css rules )
+                        <color>#409a00</color>
+                        <font-size>16px</font-size>
+                        <font-width>bold</font-width>
+                    </styles>
+                </icon>
+                <... tool specific configuration ../>
+            </tool>
+        </tools>
+    </config>
+-->
 <config>
     <tools>
         <tool>

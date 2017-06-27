@@ -18,8 +18,14 @@
 
 package org.craftercms.studio.impl.v1.web.security.access;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Collection;
+import javax.servlet.http.HttpServletRequest;
+
 import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.dal.User;
@@ -29,11 +35,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.FilterInvocation;
-
-import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Collection;
 
 public class StudioPublishingAPIAccessDecisionVoter extends StudioAbstractAccessDecisionVoter {
 
@@ -58,7 +59,10 @@ public class StudioPublishingAPIAccessDecisionVoter extends StudioAbstractAccess
             requestUri = request.getRequestURI().replace(request.getContextPath(), "");
             String userParam = request.getParameter("username");
             String siteParam = request.getParameter("site_id");
-            if (StringUtils.isEmpty(userParam) && StringUtils.equalsIgnoreCase(request.getMethod(), HttpMethod.POST.name())) {
+            if (StringUtils.isEmpty(userParam)
+                && StringUtils.equalsIgnoreCase(request.getMethod(), HttpMethod.POST.name())
+                && !ServletFileUpload.isMultipartContent(request)
+                ) {
                 try {
                     InputStream is = request.getInputStream();
                     is.mark(0);
