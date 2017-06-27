@@ -37,9 +37,6 @@ import javax.servlet.ServletContext;
 
 import org.apache.commons.collections4.iterators.ReverseListIterator;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.filefilter.DirectoryFileFilter;
-import org.apache.commons.io.filefilter.FileFileFilter;
-import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
@@ -57,13 +54,14 @@ import org.craftercms.studio.api.v1.to.RepoOperationTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
+import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.RefNotFoundException;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.internal.storage.file.LockFile;
 import org.eclipse.jgit.lib.*;
-import org.eclipse.jgit.merge.MergeStrategy;
+import org.eclipse.jgit.merge.ResolveMerger;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevSort;
 import org.eclipse.jgit.revwalk.RevTree;
@@ -751,8 +749,14 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     String message = studioConfiguration.getProperty(REPO_PUBLISHED_CHERRY_PICK_MESSAGE);
                     message = message.replace(studioConfiguration.getProperty(REPO_PUBLISHED_CHERRY_PICK_MESSAGE_REPLACE), commitId);
 
+                    ObjectId objCommitId = repo.resolve(commitId);
+                    RevWalk rw = new RevWalk(repo);
+                    RevCommit rc = rw.parseCommit(objCommitId);
+                    int pc = rc.getParentCount();
+
                     CherryPickCommand cherryPickCommand = git
                             .cherryPick()
+                            .setMainlineParentNumber(pc)
                             .setOurCommitName(message)
                             .setNoCommit(false);
 
@@ -769,12 +773,33 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     switch (cherryPickResult.getStatus()) {
                         case FAILED:
                             // TODO: DB: what to do if cherry pick failed ?
-                            logger.error("Cherry-pick failed " + cherryPickResult.getFailingPaths());
+                            logger.error("Cherry-pick failed.");
+                            String errorMessage = "Failing paths:\n";
+                            Map<String, ResolveMerger.MergeFailureReason> failPaths = cherryPickResult.getFailingPaths();
+                            if (failPaths != null){
+                                for (String key : failPaths.keySet()) {
+                                    errorMessage += "\t" + key + " -> " + failPaths.get(key).toString() + "\n";
+                                }
+                            }
+                            logger.error(errorMessage);
                             break;
 
                         case CONFLICTING:
                             // TODO: DB: what to do if cherry pick has conflict ?
-                            logger.error("Conflict executing cherry-pick " + cherryPickResult.getFailingPaths());
+                            logger.error("Conflict executing cherry-pick.");
+                            String errorMessage2 = "Failing paths:\n";
+                            Map<String, ResolveMerger.MergeFailureReason> failPaths2 =  cherryPickResult.getFailingPaths();
+                            if (failPaths2 != null) {
+                                for (String key : failPaths2.keySet()) {
+                                    errorMessage2 += "\t" + key + " -> " + failPaths2.get(key).toString() + "\n";
+                                }
+                                logger.error(errorMessage2);
+                            } else {
+                                git.add().addFilepattern(GIT_COMMIT_ALL_ITEMS).call();
+                                String commitMessage = rc.getFullMessage() + "\n" + message;
+                                git.commit().setMessage(commitMessage).call();
+                                logger.info("No conflict paths. resolved conflict and committed");
+                            }
                             break;
 
                         case OK:
@@ -1023,15 +1048,19 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     List<String> files = helper.getFilesInCommit(publishedRepo, revCommit);
                     for (int j = 0; j < files.size() && counter < numberOfItems; j++) {
                         String file = files.get(j);
-                        if (dmFilterWrapper.accept(site, file, filterType)) {
-                            DeploymentSyncHistory dsh = new DeploymentSyncHistory();
-                            dsh.setSite(site);
-                            dsh.setPath(file);
-                            dsh.setSyncDate(new Date(1000l * revCommit.getCommitTime()));
-                            dsh.setUser(revCommit.getAuthorIdent().getName());
-                            dsh.setEnvironment(environment);
-                            toRet.add(dsh);
-                            counter++;
+                        Path path = Paths.get(file);
+                        String fileName = path.getFileName().toString();
+                        if (!ArrayUtils.contains(IGNORE_FILES, fileName)) {
+                            if (dmFilterWrapper.accept(site, file, filterType)) {
+                                DeploymentSyncHistory dsh = new DeploymentSyncHistory();
+                                dsh.setSite(site);
+                                dsh.setPath(file);
+                                dsh.setSyncDate(new Date(1000l * revCommit.getCommitTime()));
+                                dsh.setUser(revCommit.getAuthorIdent().getName());
+                                dsh.setEnvironment(environment);
+                                toRet.add(dsh);
+                                counter++;
+                            }
                         }
                     }
                 }
