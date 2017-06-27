@@ -595,7 +595,6 @@ public class WorkflowServiceImpl implements WorkflowService {
 
     protected List<String> getWorkflowAffectedPathsInternal(String site, String path) {
         List<String> affectedPaths = new ArrayList<String>();
-        //List<ContentItemTO> affectedItems = new ArrayList<ContentItemTO>();
         List<String> filteredPaths = new ArrayList<String>();
         if (objectStateService.isInWorkflow(site, path)) {
             affectedPaths.add(path);
@@ -605,7 +604,10 @@ public class WorkflowServiceImpl implements WorkflowService {
                 getMandatoryChildren(site, path, affectedPaths);
             }
 
-            List<String> dependencyPaths = getDependencyCandidates(site, affectedPaths);
+            List<String> dependencyPaths = new ArrayList<String>();
+            for (String affectedPath : affectedPaths) {
+                dependencyPaths.addAll(deploymentDependencyRule.applyRule(site, affectedPath));
+            }
             affectedPaths.addAll(dependencyPaths);
             List<String> candidates = new ArrayList<String>();
             for (String p : affectedPaths) {
@@ -619,10 +621,9 @@ public class WorkflowServiceImpl implements WorkflowService {
                     filteredPaths.add(cp);
                 }
             }
-            //affectedItems = getWorkflowAffectedItems(site, filteredPaths);
         }
 
-        return affectedPaths;
+        return filteredPaths;
     }
 
     @Override
@@ -632,20 +633,13 @@ public class WorkflowServiceImpl implements WorkflowService {
     }
 
     private void getMandatoryChildren(String site, String path, List<String> affectedPaths) {
-        // TODO: check folders and list children
-		/*
-		PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-		String parentPath = fullPath.replace("/" + DmConstants.INDEX_FILE, "");
-		List<FileInfo> children = persistenceManagerService.list(parentPath);
-		for (FileInfo child : children) {
-			NodeRef childRef = child.getNodeRef();
-			String childPath = persistenceManagerService.getNodePath(childRef);
-			DmPathTO dmPathTO = new DmPathTO(childPath);
-			if (!affectedPaths.contains(dmPathTO.getRelativePath())) {
-				affectedPaths.add(dmPathTO.getRelativePath());
-				getMandatoryChildren(childPath, affectedPaths);
-			}
-		}*/
+        ContentItemTO item = contentService.getContentItem(site, path);
+        for (ContentItemTO child : item.getChildren()) {
+            if (!affectedPaths.contains(child.getUri())) {
+                affectedPaths.add(child.getUri());
+                getMandatoryChildren(site, child.getUri(), affectedPaths);
+            }
+        }
     }
 
     private List<String> getDependencyCandidates(String site, List<String> affectedPaths) {
