@@ -28,7 +28,7 @@
         <name>segment</name>
         <label>Segment</label>
         <description>User segment.</description>
-        <type>checkboxes</type> <!-- valid types: dropdown, checkboxes, input -->
+        <type>dropdown</type> <!-- valid types: dropdown, checkboxes, input -->
         <possible_values>
             <value>guy</value>
             <value>gal</value>
