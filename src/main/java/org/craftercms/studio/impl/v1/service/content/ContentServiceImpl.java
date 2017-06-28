@@ -66,6 +66,7 @@ import org.apache.commons.io.IOUtils;
 
 import javax.activation.MimetypesFileTypeMap;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_UNKNOWN;
 import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC;
 
 /**
@@ -1091,7 +1092,7 @@ public class ContentServiceImpl implements ContentService {
         item.asset = true;
         item.site = site;
         item.internalName = item.name;
-        item.contentType = "asset";
+        item.contentType = CONTENT_TYPE_UNKNOWN;
         item.disabled = false;
         item.savedAsDraft = false;
         item.floating = false;
@@ -1405,7 +1406,7 @@ public class ContentServiceImpl implements ContentService {
 
     protected void loadContentTypeProperties(String site, ContentItemTO item, String contentType) {
         // TODO: SJ: Refactor in 2.7.x
-        if(contentType != null && !contentType.equals("folder") && !contentType.equals("asset")) {
+        if(contentType != null && !contentType.equals("folder") && !contentType.equals("asset") && !contentType.equals(CONTENT_TYPE_UNKNOWN)) {
             ContentTypeConfigTO config = servicesConfig.getContentTypeConfig(site, contentType);
             if (config != null) {
                 item.setForm(config.getForm());

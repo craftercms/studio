@@ -18,7 +18,7 @@
 
 package org.craftercms.studio.impl.v1.service.configuration;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -37,6 +37,7 @@ import org.dom4j.Node;
 import java.util.*;
 import java.util.regex.Pattern;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_UNKNOWN;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_CONTENT_TYPES_CONFIG_FILE_NAME;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_CONTENT_TYPES_CONFIG_PATH;
 
@@ -49,7 +50,7 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
 
     @Override
     public ContentTypeConfigTO getContentTypeConfig(final String site, final String contentType) {
-        if (StringUtils.isNotEmpty(contentType)) {
+        if (StringUtils.isNotEmpty(contentType) && !StringUtils.equals(contentType, CONTENT_TYPE_UNKNOWN)) {
             return loadConfiguration(site, contentType);
         } else {
             return null;

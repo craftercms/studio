@@ -95,4 +95,9 @@ package org.craftercms.studio.api.v1.constant;
      */
     String SITE_DEFAULT_GROUPS_DESCRIPTION = " site default group";
     String SITE_NAME = "siteName";
+
+    /**
+     * Content types constants
+     */
+    String CONTENT_TYPE_UNKNOWN = "unknown";
 }
