@@ -134,4 +134,17 @@
         SET state = #{state}, system_processing = 0
         WHERE site = #{siteId}
     </update>
+
+    <select id="getChangeSetForSubtree" resultSetType="FORWARD_ONLY"
+            resultMap="ObjectStateMap" parameterType="java.util.Map">
+        SELECT object_id, site, path, state, system_processing
+        FROM cstudio_objectstate
+        WHERE site=#{site}
+        AND (path = #{path} or path like #{likepath})
+        AND state in
+        <foreach item="state" index="index" collection="states"
+                 open="(" separator="," close=")">
+            #{state}
+        </foreach>
+    </select>
 </mapper>

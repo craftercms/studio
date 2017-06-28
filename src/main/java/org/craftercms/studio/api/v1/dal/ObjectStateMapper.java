@@ -53,4 +53,6 @@ public interface ObjectStateMapper {
     int isFolderLive(Map<String, Object> params);
 
     void setStateForSiteContent(Map params);
+
+    List<ObjectState> getChangeSetForSubtree(Map params);
 }

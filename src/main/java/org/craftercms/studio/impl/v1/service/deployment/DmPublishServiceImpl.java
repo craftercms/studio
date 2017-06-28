@@ -18,11 +18,11 @@
 package org.craftercms.studio.impl.v1.service.deployment;
 
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.codec.digest.DigestUtils;
@@ -33,6 +33,7 @@ import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.service.AbstractRegistrableService;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
+import org.craftercms.studio.api.v1.service.dependency.DependencyRule;
 import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
@@ -41,9 +42,6 @@ import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.service.workflow.context.MultiChannelPublishingContext;
-import org.craftercms.studio.api.v1.to.ContentItemTO;
-import org.craftercms.studio.api.v1.to.PublishingChannelConfigTO;
-import org.craftercms.studio.api.v1.to.PublishingChannelGroupConfigTO;
 import org.craftercms.studio.api.v1.to.PublishingTargetTO;
 
 public class DmPublishServiceImpl extends AbstractRegistrableService implements DmPublishService {
@@ -126,26 +124,17 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
     public void bulkGoLive(String site, String environment, String path) {
         logger.info("Starting Bulk Go Live for path " + path + " site " + site);
 
-        List<String> childrenPaths = new ArrayList<String>();
-        ContentItemTO item = contentService.getContentItem(site, path, 2);
-        logger.debug("Traversing subtree for site " + site + " and root path " + path);
-        if (item != null) {
-            if (path.equals("/")) {
-                getAllMandatoryChildren(site, item, childrenPaths);
-            } else {
-                if (!item.isFolder()) {
-                    childrenPaths.add(item.getUri());
-                }
-                if (item.getUri().endsWith("/" + DmConstants.INDEX_FILE) && objectMetadataManager.isRenamed(site, item.getUri())) {
-                    getAllMandatoryChildren(site, item, childrenPaths);
-                } else {
-                    if (item.isFolder() || item.isContainer()) {
-                        getAllMandatoryChildren(site, item, childrenPaths);
-                    }
-                }
-            }
+        String queryPath = path;
+        if (queryPath.startsWith(File.separator + DmConstants.INDEX_FILE)) {
+            queryPath = queryPath.replace(File.separator + DmConstants.INDEX_FILE, "");
         }
-        logger.debug("Collected " + childrenPaths.size() + " content items for site " + site + " and root path " + path);
+
+        logger.debug("Get change set for subtree for site: " + site + " root path: " + queryPath);
+        List<String> childrenPaths = new ArrayList<String>();
+
+        childrenPaths = objectStateService.getChangeSetForSubtree(site, queryPath);
+
+        logger.debug("Collected " + childrenPaths.size() + " content items for site " + site + " and root path " + queryPath);
         Set<String> processedPaths = new HashSet<String>();
         Date launchDate = new Date();
         for (String childPath : childrenPaths) {
@@ -153,11 +142,9 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
             logger.debug("Processing dependencies for site " + site + " path " + childPath);
             if (processedPaths.add(childHash)) {
                 List<String> pathsToPublish = new ArrayList<String>();
-                List<String> candidatePathsToPublish = new ArrayList<String>();
                 pathsToPublish.add(childPath);
-                candidatePathsToPublish.add(childPath);
-                getAllDependenciesRecursive(site, childPath, candidatePathsToPublish);
-                for (String pathToAdd : candidatePathsToPublish) {
+                pathsToPublish.addAll(deploymentDependencyRule.applyRule(site, childPath));
+                for (String pathToAdd : pathsToPublish) {
                     String hash = DigestUtils.md2Hex(pathToAdd);
                     if (processedPaths.add(hash)) {
                         pathsToPublish.add(pathToAdd);
@@ -177,36 +164,6 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
             }
         }
         logger.info("Finished Bulk Go Live for path " + path + " site " + site);
-    }
-
-    protected void getAllDependenciesRecursive(String site, String path, List<String> dependencyPaths) {
-        List<String> depPaths = dmDependencyService.getDependencyPaths(site, path);
-        for (String depPath : depPaths) {
-            if (!dependencyPaths.contains(depPath)) {
-                if (contentService.contentExists(site, depPath)) {
-                    if (objectStateService.isUpdatedOrNew(site, depPath)) {
-                        if (!dependencyPaths.contains(depPath)) {
-                            dependencyPaths.add(depPath);
-                        }
-                        getAllDependenciesRecursive(site, depPath, dependencyPaths);
-                    }
-                }
-            }
-        }
-    }
-
-    protected void getAllMandatoryChildren(String site, ContentItemTO item, List<String> pathsToPublish) {
-        if (item != null) {
-            for (ContentItemTO child : item.getChildren()) {
-                child = contentService.getContentItem(site, child.getUri(), 2);
-                if (!child.isFolder()) {
-                    pathsToPublish.add(child.getUri());
-                }
-                if (child.getChildren() != null && child.getChildren().size() > 0) {
-                    getAllMandatoryChildren(site, child, pathsToPublish);
-                }
-            }
-        }
     }
 
     public void setDeploymentService(DeploymentService deploymentService) {
@@ -234,6 +191,9 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
     public ObjectStateService getObjectStateService() { return objectStateService; }
     public void setObjectStateService(ObjectStateService objectStateService) { this.objectStateService = objectStateService; }
 
+    public DependencyRule getDeploymentDependencyRule() { return deploymentDependencyRule; }
+    public void setDeploymentDependencyRule(DependencyRule deploymentDependencyRule) { this.deploymentDependencyRule = deploymentDependencyRule; }
+
     protected DeploymentService deploymentService;
     protected SecurityService securityService;
     protected SiteService siteService;
@@ -242,4 +202,5 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
     protected ObjectMetadataManager objectMetadataManager;
     protected DmDependencyService dmDependencyService;
     protected ObjectStateService objectStateService;
+    protected DependencyRule deploymentDependencyRule;
 }

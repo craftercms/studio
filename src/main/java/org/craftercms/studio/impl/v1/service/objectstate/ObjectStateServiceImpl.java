@@ -34,6 +34,7 @@ import org.craftercms.studio.api.v1.util.DebugUtils;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.io.File;
 import java.util.*;
 
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.OBJECT_STATE_BULK_OPERATIONS_BATCH_SIZE;
@@ -445,6 +446,21 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
         params.put("siteId", site);
         params.put("state", state.name());
         objectStateMapper.setStateForSiteContent(params);
+    }
+
+    @Override
+    public List<String> getChangeSetForSubtree(String site, String path) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("site", site);
+        params.put("path", path);
+        params.put("likepath", path + (path.endsWith("/") ? "" : File.separator) + "%");
+        params.put("states", State.CHANGE_SET_STATES);
+        List<ObjectState> result = objectStateMapper.getChangeSetForSubtree(params);
+        List<String> toRet = new ArrayList<String>();
+        for (ObjectState state : result) {
+            toRet.add(state.getPath());
+        }
+        return toRet;
     }
 
     private void initializeTransitionTable() {

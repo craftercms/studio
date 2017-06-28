@@ -78,4 +78,6 @@ public interface ObjectStateService {
     boolean isSubmitted(String site, String dep);
 
     void setStateForSiteContent(String site, State state);
+
+    List<String> getChangeSetForSubtree(String site, String path);
 }
