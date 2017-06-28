@@ -234,6 +234,7 @@
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
         <property name="dmDependencyService" ref="cstudioDmDependencyService"/>
         <property name="objectStateService" ref="cstudioObjectStateService"/>
+        <property name="deploymentDependencyRule" ref="studioDeplymentDependencyRule" />
     </bean>
 
     <bean id="cstudioPageNavOrderService" class="org.craftercms.studio.impl.v1.service.content.DmPageNavigationOrderServiceImpl"
