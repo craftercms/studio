@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS `cstudio_activity` (
   `summary`        TEXT         NOT NULL,
   `summary_format` VARCHAR(255) NOT NULL,
   `content_id`     TEXT         NOT NULL,
-  `site_network`   VARCHAR(255) NOT NULL,
+  `site_network`   VARCHAR(50) NOT NULL,
   `activity_type`  VARCHAR(255) NOT NULL,
   `content_type`   VARCHAR(255) NOT NULL,
   `post_user_id`   VARCHAR(255) NOT NULL,
@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS `cstudio_activity` (
 
 CREATE TABLE IF NOT EXISTS `cstudio_dependency` (
   `id`          BIGINT(20)  NOT NULL AUTO_INCREMENT,
-  `site`        VARCHAR(35) NOT NULL,
+  `site`        VARCHAR(50) NOT NULL,
   `source_path` TEXT        NOT NULL,
   `target_path` TEXT        NOT NULL,
   `type`        VARCHAR(15) NOT NULL,
@@ -107,7 +107,7 @@ CREATE TABLE IF NOT EXISTS `cstudio_copytoenvironment` (
 
 CREATE TABLE IF NOT EXISTS `cstudio_site` (
   `id` BIGINT(20) NOT NULL AUTO_INCREMENT,
-  `site_id` VARCHAR(255) NOT NULL,
+  `site_id` VARCHAR(50) NOT NULL,
   `name` VARCHAR(255) NOT NULL,
   `description` TEXT NULL,
   `status` VARCHAR(255) NULL,
