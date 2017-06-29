@@ -139,7 +139,7 @@ public class NotificationServiceImpl implements NotificationService {
                     break;
             }
             if (message != null) {
-                Map<String, Object> model = new HashMap<>();
+                Map<String, Object> model =  new HashMap<>();
                 for (Pair<String, Object> param : params) {
                     model.put(param.getKey(), param.getValue());
                 }
@@ -148,7 +148,7 @@ public class NotificationServiceImpl implements NotificationService {
             }
         } catch (Throwable ex) {
             logger.error("Unable to get notification message from notification configuration for site: {0} type: {1}"
-                    + " key: {2}, locale {3}.", ex);
+                    + " key: {2}, locale {3}.", (Exception) ex, site, type, key , locale);
             return StringUtil.EMPTY_STRING;
         }
         return StringUtil.EMPTY_STRING;
