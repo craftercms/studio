@@ -180,9 +180,13 @@ public class PublishingManagerImpl implements PublishingManager {
             if (isLive) {
                 // should consider what should be done if this does not work. Currently the method will bail and the item is stuck in processing.
                 LOGGER.debug("Environment is live, transition item to LIVE state {0}:{1}", site, path);
+
+                // check if commit id from workflow and from object state match
                 ContentItemTO contentItem = contentService.getContentItem(site, path);
-                objectStateService.transition(site, contentItem, TransitionEvent.DEPLOYMENT);
                 if (objectMetadata != null) {
+                    if (objectMetadata.getCommitId().equals(item.getCommitId())) {
+                        objectStateService.transition(site, contentItem, TransitionEvent.DEPLOYMENT);
+                    }
                     Map<String, Object> props = new HashMap<String, Object>();
                     props.put(ObjectMetadata.PROP_SUBMITTED_BY, StringUtils.EMPTY);
                     props.put(ObjectMetadata.PROP_SEND_EMAIL, 0);
