@@ -106,10 +106,9 @@ public class NotificationServiceImpl implements NotificationService {
             templateModel.put("submitterUser", submitter);
             templateModel.put("approver", securityService.getUserProfile(approver));
             templateModel.put("scheduleDate", scheduleDate);
-            notify(site, Arrays.asList(submitterUser.get(KEY_EMAIL).toString()), NOTIFICATION_KEY_CONTENT_APPROVED, locale,
-                templateModel);
-        }
-        catch(Throwable ex) {
+            notify(site, Arrays.asList(submitterUser.get(KEY_EMAIL).toString()), NOTIFICATION_KEY_CONTENT_APPROVED,
+                locale, templateModel);
+        } catch (Throwable ex) {
             logger.error("Unable to Notify Content Approval", ex);
         }
     }
@@ -131,11 +130,11 @@ public class NotificationServiceImpl implements NotificationService {
                     message = notificationConfig.getCompleteMessages().get(key);
                     break;
                 case CannedMessages:
-                    message = getCannedMessage(notificationConfig.getCannedMessages(),key);
+                    message = getCannedMessage(notificationConfig.getCannedMessages(), key);
                     break;
                 default:
-                    logger.error("Requested notification message bundle not recognized: site: {0}, type: {1},"
-                        + "key: {2}, locale {3}.", site, type.toString(), key, locale);
+                    logger.error("Requested notification message bundle not recognized: site: {0}, type: {1}," +
+                        "key: {2}, locale {3}.", site, type.toString(), key, locale);
                     break;
             }
             if (message != null) {
@@ -148,17 +147,17 @@ public class NotificationServiceImpl implements NotificationService {
             }
         } catch (Throwable ex) {
             logger.error("Unable to get notification message from notification configuration for site: {0} type: {1}"
-                    + " key: {2}, locale {3}.", ex);
+                + " key: {2}, locale {3}.", (Exception)ex, site, type, key, locale);
             return StringUtil.EMPTY_STRING;
         }
         return StringUtil.EMPTY_STRING;
     }
 
     private String getCannedMessage(final Map<String, List<MessageTO>> cannedMessages, final String key) {
-        if(cannedMessages.containsKey(key)){
+        if (cannedMessages.containsKey(key)) {
             final List<MessageTO> messages = cannedMessages.get(key);
-            if(!messages.isEmpty()){
-             return messages.get(0).getBody();
+            if (!messages.isEmpty()) {
+                return messages.get(0).getBody();
             }
         }
         return "";
@@ -238,8 +237,8 @@ public class NotificationServiceImpl implements NotificationService {
             templateModel.put("submitter", submitterUser);
             templateModel.put("rejectionReason", rejectionReason);
             templateModel.put("userThatRejects", securityService.getUserProfile(userThatRejects));
-            notify(site, Arrays.asList(submitterUser.get(KEY_EMAIL).toString()), NOTIFICATION_KEY_CONTENT_REJECTED, locale,
-                templateModel);
+            notify(site, Arrays.asList(submitterUser.get(KEY_EMAIL).toString()), NOTIFICATION_KEY_CONTENT_REJECTED,
+                locale, templateModel);
         } catch (Throwable ex) {
             logger.error("Unable to notify content rejection", ex);
         }
@@ -254,8 +253,8 @@ public class NotificationServiceImpl implements NotificationService {
                 Element root = document.getRootElement();
                 final List<Element> languages = root.selectNodes("//lang");
                 if (languages.isEmpty()) {
-                    throw new ConfigurationException("Notification Configuration is a invalid xml file, missing "
-                        + "at " + "least one lang");
+                    throw new ConfigurationException("Notification Configuration is a invalid xml file, missing " +
+                        "at " + "least one lang");
 
                 }
                 for (Element language : languages) {
@@ -267,14 +266,14 @@ public class NotificationServiceImpl implements NotificationService {
                         NotificationConfigTO configForLang = notificationConfiguration.get(messagesLang);
                         loadGenericMessage((Element)language.selectSingleNode("//generalMessages"), configForLang
                             .getMessages());
-                        loadGenericMessage((Element)language.selectSingleNode("//completeMessages"),
-                            configForLang.getCompleteMessages());
+                        loadGenericMessage((Element)language.selectSingleNode("//completeMessages"), configForLang
+                            .getCompleteMessages());
                         loadEmailTemplates((Element)language.selectSingleNode("//emailTemplates"), configForLang
                             .getEmailMessageTemplates());
                         loadCannedMessages((Element)language.selectSingleNode("//cannedMessages"), configForLang
                             .getCannedMessages());
-                        loadEmailList(site, (Element)language.selectSingleNode("//deploymentFailureNotification")
-                            , configForLang.getDeploymentFailureNotifications());
+                        loadEmailList(site, (Element)language.selectSingleNode("//deploymentFailureNotification"),
+                            configForLang.getDeploymentFailureNotifications());
                         loadEmailList(site, (Element)language.selectSingleNode("//approverEmails"), configForLang
                             .getApproverEmails());
                     } else {
@@ -283,8 +282,7 @@ public class NotificationServiceImpl implements NotificationService {
                 }
             }
         } catch (Exception ex) {
-            logger.error("Unable to read or load notification '" + configFullPath + "' configuration for " +
-                site, ex);
+            logger.error("Unable to read or load notification '" + configFullPath + "' configuration for " + site, ex);
         }
     }
 
@@ -363,7 +361,7 @@ public class NotificationServiceImpl implements NotificationService {
                         messageContainer.put(messageKey, new ArrayList<MessageTO>());
                     }
                     List<MessageTO> messageTOs = messageContainer.get(messageKey);
-                    messageTOs.add(new MessageTO(messageTitle, messageContent,messageKey));
+                    messageTOs.add(new MessageTO(messageTitle, messageContent, messageKey));
                 }
             } else {
                 logger.error("completed Messages is empty");
@@ -441,11 +439,21 @@ public class NotificationServiceImpl implements NotificationService {
         this.securityService = securityService;
     }
 
-    public GeneralLockService getGeneralLockService() { return generalLockService; }
-    public void setGeneralLockService(GeneralLockService generalLockService) { this.generalLockService = generalLockService; }
+    public GeneralLockService getGeneralLockService() {
+        return generalLockService;
+    }
 
-    public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
-    public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
+    public void setGeneralLockService(GeneralLockService generalLockService) {
+        this.generalLockService = generalLockService;
+    }
+
+    public StudioConfiguration getStudioConfiguration() {
+        return studioConfiguration;
+    }
+
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+        this.studioConfiguration = studioConfiguration;
+    }
 
     protected GeneralLockService generalLockService;
 }
