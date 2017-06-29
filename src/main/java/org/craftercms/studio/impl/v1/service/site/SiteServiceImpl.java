@@ -85,13 +85,7 @@ import org.dom4j.io.SAXReader;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_DEFAULT_GROUPS_DESCRIPTION;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.BLUE_PRINTS_PATH;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_GLOBAL_CONFIG_BASE_PATH;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_DEFAULT_ADMIN_GROUP;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_DEFAULT_GROUPS;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_ENVIRONMENT;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_ENVIRONMENT_CONFIG_BASE_PATH;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.*;
 
 /**
  * Note: consider renaming
@@ -376,6 +370,7 @@ public class SiteServiceImpl implements SiteService {
 			    siteFeed.setSiteId(siteId);
 			    siteFeed.setDescription(desc);
 			    siteFeed.setLastCommitId(lastCommitId);
+			    siteFeed.setPublishingStatusMessage(studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT));
 			    siteFeedMapper.createSite(siteFeed);
 
                 // Add default groups
@@ -1012,8 +1007,14 @@ public class SiteServiceImpl implements SiteService {
                 ps.setMessage(psm);
             }
         } else {
-            ps.setStatus("UNKNOWN");
-            ps.setMessage("UNKNOWN");
+            psm = studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT);
+            StringTokenizer tokenizer = new StringTokenizer(psm, "|");
+            if (tokenizer.countTokens() > 1) {
+                ps.setStatus(tokenizer.nextToken());
+                ps.setMessage(tokenizer.nextToken());
+            } else {
+                ps.setMessage(psm);
+            }
         }
         return ps;
     }
