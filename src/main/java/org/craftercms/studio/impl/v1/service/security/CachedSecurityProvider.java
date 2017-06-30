@@ -200,7 +200,7 @@ public class CachedSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public boolean createGroup(String groupName, String description, String siteId) {
+    public boolean createGroup(String groupName, String description, String siteId, boolean externallyManaged) {
         // TODO: DB: Implement this ?
         return false;
     }

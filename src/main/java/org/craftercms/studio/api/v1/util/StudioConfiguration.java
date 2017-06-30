@@ -129,6 +129,8 @@ public interface StudioConfiguration {
     String SECURITY_LDAP_USER_ATTRIBUTE_FIRST_NAME = "studio.security.ldap.userAttribute.firstName";
     String SECURITY_LDAP_USER_ATTRIBUTE_LAST_NAME = "studio.security.ldap.userAttribute.lastName";
     String SECURITY_LDAP_USER_ATTRIBUTE_EMAIL = "studio.security.ldap.userAttribute.email";
+    String SECURITY_LDAP_USER_ATTRIBUTE_SITE_ID = "studio.security.ldap.userAttribute.siteId";
+    String SECURITY_LDAP_USER_ATTRIBUTE_GROUP_NAME = "studio.security.ldap.userAttribute.groupName";
 
     /** Page Navigation Order Service */
     String PAGE_NAVIGATION_ORDER_INCREMENT = "studio.pageNavigationOrder.increment";

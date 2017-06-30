@@ -191,9 +191,9 @@ public class MappedSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public boolean createGroup(String groupName, String description, String siteId) throws GroupAlreadyExistsException, SiteNotFoundException {
+    public boolean createGroup(String groupName, String description, String siteId, boolean exterenallyManaged) throws GroupAlreadyExistsException, SiteNotFoundException {
         SecurityProvider provider = lookupProvider(getProviderType());
-        return provider.createGroup(groupName, description, siteId);
+        return provider.createGroup(groupName, description, siteId, exterenallyManaged);
     }
 
     @Override

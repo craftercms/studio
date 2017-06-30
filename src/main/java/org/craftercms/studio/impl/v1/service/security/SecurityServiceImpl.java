@@ -586,7 +586,7 @@ public class SecurityServiceImpl implements SecurityService {
 
     @Override
     public boolean createGroup(String groupName, String description, String siteId) throws GroupAlreadyExistsException, SiteNotFoundException {
-        return securityProvider.createGroup(groupName, description, siteId);
+        return securityProvider.createGroup(groupName, description, siteId, false);
     }
 
     @Override

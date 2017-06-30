@@ -38,6 +38,7 @@
         <result property="name" column="name"/>
         <result property="description" column="description"/>
         <result property="siteId" column="site_id"/>
+        <result property="externallyManaged" column="externally_managed" />
     </resultMap>
 
     <resultMap id="UserProfileResultMap" type="org.craftercms.studio.api.v1.dal.UserProfileResult">
@@ -174,8 +175,8 @@
     </update>
 
     <insert id="createGroup" parameterType="java.util.Map">
-        INSERT INTO cstudio_group (name, description, site_id)
-        VALUES (#{name}, #{description}, #{siteId})
+        INSERT INTO cstudio_group (name, description, site_id, externally_managed)
+        VALUES (#{name}, #{description}, #{siteId}, #{externallyManaged})
     </insert>
 
     <select id="getGroup" parameterType="java.util.Map" resultType="java.util.Map">

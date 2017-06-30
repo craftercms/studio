@@ -535,7 +535,7 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public boolean createGroup(String groupName, String description, String siteId) throws
+    public boolean createGroup(String groupName, String description, String siteId, boolean externallyManaged) throws
         GroupAlreadyExistsException, SiteNotFoundException {
 
         // Get the site first
@@ -549,6 +549,7 @@ public class DbSecurityProvider implements SecurityProvider {
             params.put("name", groupName);
             params.put("description", description);
             params.put("siteId", site.getId());
+            params.put("externallyManaged", externallyManaged ? 1 : 0);
             try {
                 securityMapper.createGroup(params);
             } catch (DuplicateKeyException e) {

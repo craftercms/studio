@@ -147,9 +147,10 @@ public interface SecurityProvider {
      * @param groupName
      * @param description
      * @param siteId
+     * @param externallyManaged true if externally managed, otherwise false
      * @return
      */
-    boolean createGroup(String groupName, String description, String siteId) throws GroupAlreadyExistsException, SiteNotFoundException;
+    boolean createGroup(String groupName, String description, String siteId, boolean externallyManaged) throws GroupAlreadyExistsException, SiteNotFoundException;
 
     /**
      * Get all users
