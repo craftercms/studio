@@ -20,7 +20,6 @@ package org.craftercms.studio.impl.v1.deployment;
 
 import net.sf.json.JSONObject;
 import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.RequestEntity;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
@@ -35,6 +34,7 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.event.EventService;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
+import org.springframework.http.HttpStatus;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -73,6 +73,10 @@ public class PreviewDeployerImpl implements PreviewDeployer {
         HttpClient client = new HttpClient();
         try {
             int status = client.executeMethod(postMethod);
+            HttpStatus httpStatus = HttpStatus.valueOf(status);
+            if (!httpStatus.is2xxSuccessful()) {
+                logger.error("Preview sync request for site " + site + " returned status " + httpStatus + " (" + httpStatus.getReasonPhrase() + ")");
+            }
         } catch (IOException e) {
             logger.error("Error while sending preview sync request for site " + site, e);
         } finally {
@@ -113,7 +117,7 @@ public class PreviewDeployerImpl implements PreviewDeployer {
         HttpClient client = new HttpClient();
         try {
             int status = client.executeMethod(postMethod);
-            if (status != HttpStatus.SC_CREATED) {
+            if (HttpStatus.valueOf(status) != HttpStatus.CREATED) {
                 toReturn = false;
             }
         } catch (IOException e) {

@@ -66,6 +66,8 @@ import org.apache.commons.io.IOUtils;
 
 import javax.activation.MimetypesFileTypeMap;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_TAXONOMY;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_TAXONOMY_REGEX;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_UNKNOWN;
 import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC;
 
@@ -1183,6 +1185,12 @@ public class ContentServiceImpl implements ContentService {
         }
         else {
             logger.debug("no xml document could be loaded for site '{}' path '{}'", site, contentPath);
+        }
+
+        Pattern taxonomyPattern = Pattern.compile(CONTENT_TYPE_TAXONOMY_REGEX);
+        Matcher matcher = taxonomyPattern.matcher(contentPath);
+        if (matcher.matches()) {
+            item.contentType = CONTENT_TYPE_TAXONOMY;
         }
 
         return item;
