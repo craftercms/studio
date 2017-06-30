@@ -181,6 +181,7 @@ CREATE TABLE cstudio_group
   `name` VARCHAR(255) NOT NULL,
   `description` VARCHAR(3000),
   `site_id` BIGINT(20),
+  `externally_managed` INT NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
   FOREIGN KEY group_site_fk(site_id) REFERENCES cstudio_site(id) ON DELETE CASCADE,
   UNIQUE `uq_group_name_siteid` (`name`, `site_id`)

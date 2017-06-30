@@ -9,3 +9,6 @@ alter table cstudio_site add column `publishing_status_message` VARCHAR(2000) NU
 alter table cstudio_activity modify column `site_network` VARCHAR(50) NOT NULL;
 alter table cstudio_dependency modify column `site` VARCHAR(50) NOT NULL;
 alter table cstudio_site modify column `site_id` VARCHAR(50) NOT NULL;
+
+-- 2017-06-30 CRAFTERCMS-981 Upsert groups from LDAP
+alter table cstudio_group add column `externally_managed` INT NOT NULL DEFAULT 0;

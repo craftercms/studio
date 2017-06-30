@@ -31,6 +31,8 @@ public class Group implements Serializable, GrantedAuthority {
     private String name;
     private String description;
     private long siteId;
+    private int externallyManaged;
+    private String site;
 
     public long getId() { return id; }
     public void setId(long id) { this.id = id; }
@@ -43,6 +45,12 @@ public class Group implements Serializable, GrantedAuthority {
 
     public long getSiteId() { return siteId; }
     public void setSiteId(long siteId) { this.siteId = siteId; }
+
+    public int getExternallyManaged() { return externallyManaged; }
+    public void setExternallyManaged(int externallyManaged) { this.externallyManaged = externallyManaged; }
+
+    public String getSite() { return site; }
+    public void setSite(String site) { this.site = site; }
 
     @Override
     public String getAuthority() {

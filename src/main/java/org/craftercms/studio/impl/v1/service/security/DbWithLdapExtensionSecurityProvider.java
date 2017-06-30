@@ -18,11 +18,12 @@
 
 package org.craftercms.studio.impl.v1.service.security;
 
+import org.apache.commons.lang3.StringUtils;
+import org.craftercms.studio.api.v1.dal.Group;
+import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.dal.User;
-import org.craftercms.studio.api.v1.exception.security.AuthenticationSystemException;
-import org.craftercms.studio.api.v1.exception.security.BadCredentialsException;
-import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
-import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.*;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -33,11 +34,13 @@ import org.springframework.ldap.core.LdapEntryIdentification;
 import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.ldap.query.LdapQuery;
 
+import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
 import javax.naming.directory.Attributes;
 import javax.naming.directory.DirContext;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -62,9 +65,14 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
                     String emailAttribName = studioConfiguration.getProperty(SECURITY_LDAP_USER_ATTRIBUTE_EMAIL);
                     String firstNameAttribName = studioConfiguration.getProperty(SECURITY_LDAP_USER_ATTRIBUTE_FIRST_NAME);
                     String lastNameAttribName = studioConfiguration.getProperty(SECURITY_LDAP_USER_ATTRIBUTE_LAST_NAME);
+                    String siteIdAttribName = studioConfiguration.getProperty(SECURITY_LDAP_USER_ATTRIBUTE_SITE_ID);
+                    String groupNameAttribName = studioConfiguration.getProperty(SECURITY_LDAP_USER_ATTRIBUTE_GROUP_NAME);
                     Attribute emailAttrib = attributes.get(emailAttribName);
                     Attribute firstNameAttrib = attributes.get(firstNameAttribName);
                     Attribute lastNameAttrib = attributes.get(lastNameAttribName);
+                    Attribute siteIdAttrib = attributes.get(siteIdAttribName);
+                    Attribute groupNameAttrib = attributes.get(groupNameAttribName);
+
 
                     User user = new User();
                     user.setActive(1);
@@ -86,6 +94,35 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
                         user.setLastname(lastNameAttrib.get().toString());
                     } else {
                         logger.warn("No LDAP attribute " + lastNameAttribName + " found for username " + username);
+                    }
+
+                    String siteId = StringUtils.EMPTY;
+                    SiteFeed siteFeed = null;
+                    if (siteIdAttrib != null && siteIdAttrib.get() != null) {
+                        siteId = siteIdAttrib.get().toString();
+                        Map<String, Object> params = new HashMap<String, Object>();
+                        params.put("siteId", siteId);
+                        siteFeed = siteFeedMapper.getSite(params);
+                        if (groupNameAttrib != null && groupNameAttrib.size() > 0) {
+                            NamingEnumeration groupAttribValues = groupNameAttrib.getAll();
+                            while (groupAttribValues.hasMore()) {
+                                String groupName = groupAttribValues.next().toString();
+                                Group g = new Group();
+                                g.setName(groupName);
+                                g.setExternallyManaged(1);
+                                g.setDescription("Externally managed group");
+                                g.setSiteId(siteFeed.getId());
+                                g.setSite(siteFeed.getSiteId());
+                                if (user.getGroups() == null) {
+                                    user.setGroups(new ArrayList<Group>());
+                                }
+                                user.getGroups().add(g);
+                            }
+                        } else {
+                            logger.warn("No LDAP attribute " + lastNameAttribName + " found for username " + username);
+                        }
+                    } else {
+                        logger.warn("No LDAP attribute " + siteIdAttribName + " found for username " + username);
                     }
 
                     return user;
@@ -137,6 +174,13 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
                     throw new AuthenticationSystemException("Error adding user " + username + " from external authentication provider", e);
                 }
             }
+            for (Group group : user.getGroups()) {
+                try {
+                    upsertUserGroup(group.getSite(), group.getName(), user.getUsername());
+                } catch (GroupAlreadyExistsException | SiteNotFoundException | UserNotFoundException | UserAlreadyExistsException | GroupNotFoundException e) {
+                    logger.error("Failed to upsert user groups data from LDAP", e);
+                }
+            }
 
             String token = createToken(user);
             storeSessionTicket(token);
@@ -163,6 +207,16 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
             securityMapper.updateUser(params);
             return true;
         }
+    }
+
+    private boolean upsertUserGroup(String siteId, String groupName, String username) throws GroupAlreadyExistsException, SiteNotFoundException, UserNotFoundException, UserAlreadyExistsException, GroupNotFoundException {
+        if (!groupExists(siteId, groupName)) {
+           createGroup(groupName, "Externally managed group", siteId, true);
+        }
+        if (!userExistsInGroup(siteId, groupName, username)) {
+            addUserToGroup(siteId, groupName, username);
+        }
+        return true;
     }
 
     public LdapTemplate getLdapTemplate() { return ldapTemplate; }
