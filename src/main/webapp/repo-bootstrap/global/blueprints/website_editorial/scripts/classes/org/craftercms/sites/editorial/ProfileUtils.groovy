@@ -5,10 +5,12 @@ class ProfileUtils {
   private ProfileUtils() {
   }
 
-  static def getSegment(profile) {
+  static def getSegment(profile, siteItemService) {
     if (profile) {
+        def taxonomyHelper = new TaxonomyHelper(siteItemService)
+        def validSegments = taxonomyHelper.getValues("segments")
         def segment = profile.attributes.segment
-        if (segment != "unknown") {
+        if (segment in validSegments) {
           return segment
         }
     }

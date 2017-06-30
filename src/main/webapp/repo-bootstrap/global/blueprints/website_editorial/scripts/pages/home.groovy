@@ -3,7 +3,7 @@ import org.craftercms.sites.editorial.ProfileUtils
 
 logger.info(profile.toString())
 
-def segment = ProfileUtils.getSegment(profile)
+def segment = ProfileUtils.getSegment(profile, siteItemService)
 def searchHelper = new SearchHelper(searchService, urlTransformationService)
 def articles = searchHelper.searchArticles(true, null, segment)
 
