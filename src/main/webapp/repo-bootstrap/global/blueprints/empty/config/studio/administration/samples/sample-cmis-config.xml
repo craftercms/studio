@@ -4,27 +4,27 @@
     CMIS-capable repositories as data-sources for content authors to pick
     from.
 
-    Items can be selected in one of two modes:
-    - Reference: the item selected is referenced via URL and Crafter CMS will
-        simply insert a direct link to the CMIS repository so the end-user
-        will pull the content directly from the CMIS repo
-    - Clone: the item selected is downloaded into Crafter CMS and the end-user
-        will pull the content from Crafter CMS
+Items can be selected in one of two modes:
+- Reference: the item selected is referenced via URL and Crafter CMS will
+    simply insert a direct link to the CMIS repository so the end-user
+    will pull the content directly from the CMIS repo
+- Clone: the item selected is downloaded into Crafter CMS and the end-user
+    will pull the content from Crafter CMS
 
-    For every repository you need to specify:
-        <cmis>
-            <repositories>
-                <repository>
-                    <id />
-                    <type />
-                    <url />
-                    <username />
-                    <password />
-                    <base-path />
-                    <download-url-regex />
-                </repository>
-            </repositories>
-        </cmis>
+For every repository you need to specify:
+    <cmis>
+        <repositories>
+            <repository>
+                <id />
+                <type />
+                <url />
+                <username />
+                <password />
+                <base-path />
+                <download-url-regex />
+            </repository>
+        </repositories>
+    </cmis>
 
     id:	a unique id for this repository, this will be referenced in the
         data source defined in the content type
@@ -43,16 +43,16 @@
 -->
 <cmis>
     <repositories>
-    <!--
-        <repository>
-            <id>alfresco</id>
-            <type>alfresco</type>
-            <url>http://localhost:8080/alfresco</url>
-            <username>guest</username>
-            <password>guest</password>
-            <base-path>/</base-path>
-            <download-url-regex>http://localhost:8080/alfresco/service/api/node/content/workspace/SpacesStore/{item_id}</download-url-regex>
-        </repository>
-    -->
+        <!--
+            <repository>
+                <id>alfresco</id>
+                <type>alfresco</type>
+                <url>http://localhost:8080/alfresco</url>
+                <username>guest</username>
+                <password>guest</password>
+                <base-path>/</base-path>
+                <download-url-regex>http://localhost:8080/alfresco/service/api/node/content/workspace/SpacesStore/{item_id}</download-url-regex>
+            </repository>
+        -->
     </repositories>
 </cmis>

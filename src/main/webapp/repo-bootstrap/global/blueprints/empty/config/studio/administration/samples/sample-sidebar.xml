@@ -1,3 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+	This configuration file controls the SideBar in Crafter Studio. The SideBar is the left bar that shows
+	different projections of the content in addition to other tools to assist in content authoring.
+
+	<contextNav>
+		<modulehook>
+			<name>dashboard</name>
+			<params>
+				<label>Dashboard</label>
+				<path>/site-dashboard</path>
+				<icon>  	               (optional icon customization - only one state (no tree link))
+					<class>fa-cog</class>  (change default icon - using Font Awesome class)
+					<styles> 	           (Change default icon styles - using css rules)
+						<color>#409a00</color>
+						<font-size>16px</font-size>
+					</styles>
+				</icon>
+				<roles>
+					<role>admin</role>
+					<role>developer</role>
+				</roles>
+				<label>Site Config</label>
+				<path>/site-config</path>
+				<showRootItem>true</showRootItem>
+				<onClick>preview</onClick>
+			</params>
+		</modulehook>
+	</contextNav>
+
+-->
 <contextNav>
 	<contexts>
 		<context>
@@ -9,18 +40,12 @@
 								<!-- dashboard -->
 								<modulehook>
 									<name>dashboard</name>
-                                    <params>
-                                        <label>Dashboard</label>
-                                        <path>/site-dashboard</path>
-                                        <icon>  	<!-- icon customization - only one state (no tree link) -->
-                                        	<class>fa-cog</class> 	<!-- change default icon - using Font Awesome class -->
-											<styles> 	<!-- Change default icon styles - using css rules -->
-                                              	<color>#409a00</color>
-                                            	<font-size>16px</font-size>
-                                            </styles>
-                                        </icon>
+									<params>
+										<label>Dashboard</label>
+										<path>/site-dashboard</path>
 									</params>
 								</modulehook>
+
 								<!-- Site IA PAGES -->
 								<modulehook>
 									<name>wcm-root-folder</name>
@@ -30,31 +55,6 @@
 										<path>/site/website</path>
 										<showRootItem>true</showRootItem>
 										<onClick>preview</onClick>
-										
-										<module-icon-open>   <!-- custom icon for module root folder open state - using Font Awesome class -->
-                                        	<class>fa-hand-paper-o</class>
-                                            <styles>
-                                              	<color>#409a00</color>
-                                            	<font-size>16px</font-size>
-                                            </styles>
-	                                    </module-icon-open>
-										<module-icon-closed>  	<!-- custom icon for module root folder closed state - using Font Awesome class -->
-                                        	<class>fa-hand-rock-o</class>
-                                            <styles>
-                                              	<color>#ff0000</color>
-                                            	<font-size>16px</font-size>
-                                            </styles>
-                                      	</module-icon-closed>
-                                        <child-icon-open> 	<!-- custom icon for child folders open state - using Font Awesome class -->
-                                        	<class>fa-chevron-down</class>
-                                            <styles>
-                                              	<color>#ff0000</color>
-                                            	<font-size>16px</font-size>
-                                            </styles>
-                                      	</child-icon-open>
-                                        <child-icon-closed> 	<!-- custom icon for child folders closed state - using Font Awesome class -->
-                                        	<class>fa-chevron-right</class>
-                                      	</child-icon-closed>
 									</params>
 								</modulehook>
 
@@ -66,13 +66,6 @@
 										<label>Components</label>
 										<path>/site/components</path>
 										<showRootItem>true</showRootItem>
-										<!--cannedSearches> <cannedSearch> <label>All Shout Boxes</label> 
-											<path>/site/components/shout-box</path> <insertAs>replace</insertAs> <newPath>/site/components/shout-box</newPath> 
-											<queryParams> <queryParam> <name>context</name> <value>/demo/component/shoutbox</value> 
-											</queryParam> <queryParam> <name>mode</name> <value>act</value> </queryParam> 
-											<queryParam> <name>selection</name> <value>-1</value> </queryParam> <queryParam> 
-											<name>presearch</name> <value>true</value> </queryParam> </queryParams> </cannedSearch> 
-											</cannedSearches -->
 									</params>
 								</modulehook>
 
@@ -86,6 +79,7 @@
 										<onClick>none</onClick>
 									</params>
 								</modulehook>
+
 								<modulehook>
 									<name>wcm-assets-folder</name>
 									<showDivider>true</showDivider>
@@ -96,16 +90,7 @@
 										<onClick>none</onClick>
 									</params>
 								</modulehook>
-								<modulehook>
-									<name>wcm-assets-folder</name>
-									<showDivider>true</showDivider>
-									<params>
-										<label>Classes</label>
-										<path>/classes</path>
-										<showRootItem>true</showRootItem>
-										<onClick>none</onClick>
-									</params>
-								</modulehook>
+
 								<modulehook>
 									<name>wcm-assets-folder</name>
 									<showDivider>true</showDivider>
@@ -116,15 +101,17 @@
 										<onClick>none</onClick>
 									</params>
 								</modulehook>
+
 								<modulehook>
 									<name>site-config</name>
 									<showDivider>true</showDivider>
 									<params>
 										<roles>
 											<role>admin</role>
+											<role>developer</role>
 										</roles>
-                                        <label>Site Config</label>
-                                        <path>/site-config</path>
+										<label>Site Config</label>
+										<path>/site-config</path>
 									</params>
 								</modulehook>
 							</modulehooks>

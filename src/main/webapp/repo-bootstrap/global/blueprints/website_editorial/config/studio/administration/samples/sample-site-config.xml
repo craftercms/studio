@@ -3,27 +3,6 @@
     <wem-project>{siteName}</wem-project>
     <display-name>{siteName}</display-name>
     <default-timezone>EST5EDT</default-timezone>
-    <default-content-type/>
-    <namespace-to-type-map>
-    </namespace-to-type-map>
-
-    <search>
-        <max-count>200</max-count>
-
-        <base-searchable-properties>
-        </base-searchable-properties>
-
-        <extractable-properties>
-            <property name="cstudio-core:articleId">id</property>
-            <property name="cstudio-core:title">title</property>
-            <property name="cstudio-core:summary">summary</property>
-            <property name="cstudio-core:description">description</property>
-        </extractable-properties>
-
-        <searchable-content-types>
-            <property name="cm:name">name</property>
-        </searchable-content-types>
-    </search>
 
     <repository rootPrefix="/site">
 
@@ -81,33 +60,11 @@
                 <pattern>application/vnd.ms-powerpoint</pattern>
             </pattern-group>
         </patterns>
-        
-        <exclude-paths>
-        </exclude-paths>
 
         <!-- The patterns below identify what is allowed to show up in the Dashboard widgets -->
         <display-in-widget-patterns>
-            <display-in-widget-pattern>/site/website/([^&lt;]+).xml</display-in-widget-pattern>
-            <display-in-widget-pattern>/site/components/([^&lt;]+).xml</display-in-widget-pattern>
-            <display-in-widget-pattern>/static-assets/([^&lt;"'\)]+)</display-in-widget-pattern>
-            <display-in-widget-pattern>/templates/([^&lt;"]+)\.ftl</display-in-widget-pattern>
+            <display-in-widget-pattern>.*</display-in-widget-pattern>
         </display-in-widget-patterns>
-        <common-prototype-config>
-
-            <excluded-on-convert-paths>
-                <excluded-on-convert-path>page-template</excluded-on-convert-path>
-                <excluded-on-convert-path>descriptor-mapper</excluded-on-convert-path>
-                <excluded-on-convert-path>content-type</excluded-on-convert-path>
-                <excluded-on-convert-path>template-version</excluded-on-convert-path>
-            </excluded-on-convert-paths>
-
-            <multi-valued-on-convert-paths>
-                <multi-valued-on-convert-path>javascripts</multi-valued-on-convert-path>
-                <multi-valued-on-convert-path>styles</multi-valued-on-convert-path>
-                <multi-valued-on-convert-path>components</multi-valued-on-convert-path>
-            </multi-valued-on-convert-paths>
-
-        </common-prototype-config>
 
     </repository>
 </site-config>

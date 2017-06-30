@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
     Site Configuration Tools
 
@@ -11,7 +12,7 @@
                 <name>sync-from-repository</name>
                 <label>Sync From Repository</label>
                 <icon>          (Optional icon configuration)
-                    <styles>    (Change default icon styles - using css rules )
+                    <styles>    ( Change default icon styles - using css rules )
                         <color>#409a00</color>
                         <font-size>16px</font-size>
                         <font-width>bold</font-width>
@@ -27,27 +28,14 @@
         <tool>
             <name>content-types</name>
             <label>Content Types</label>
-            <icon>
-                <styles>    <!-- Change default icon styles - using css rules -->
-                    <color>#409a00</color>
-                    <font-size>16px</font-size>
-                    <font-width>bold</font-width>
-                </styles>
-            </icon>
             <formSection>
                 <icon>
                     <class>fa-object-group</class>
-                    <styles>
-                        <color>#7e9dbb</color>
-                    </styles>
                 </icon>
             </formSection>
             <repeatSection>
                 <icon>
                     <class>fa-repeat</class>
-                    <styles>
-                        <color>#7e9dbb</color>
-                    </styles>
                 </icon>
             </repeatSection>
             <controls>
@@ -55,36 +43,24 @@
                     <name>input</name>
                     <icon>
                         <class>fa-pencil-square-o</class>
-                        <styles>
-                            <color>#7e9dbb</color>
-                        </styles>
                     </icon>
                 </control>
                 <control>
                     <name>textarea</name>
                     <icon>
                         <class>fa-paragraph</class>
-                        <styles>
-                            <color>#7e9dbb</color>
-                        </styles>
                     </icon>
                 </control>
                 <control>
                     <name>rte</name>
                     <icon>
                         <class>fa-code</class>
-                        <styles>
-                            <color>#7e9dbb</color>
-                        </styles>
                     </icon>
                 </control>
                 <control>
                     <name>dropdown</name>
                     <icon>
                         <class>fa-sort-desc</class>
-                        <styles>
-                            <color>#7e9dbb</color>
-                        </styles>
                     </icon>
                 </control>
                 <control>
@@ -92,36 +68,24 @@
                     <icon>
                         <class>fa-calendar</class>
                         <stackedclass>fa-clock-o</stackedclass>
-                        <styles>
-                            <color>#7e9dbb</color>
-                        </styles>
                     </icon>
                 </control>
                 <control>
                     <name>checkbox</name>
                     <icon>
                         <class>fa-check-square-o</class>
-                        <styles>
-                            <color>#7e9dbb</color>
-                        </styles>
                     </icon>
                 </control>
                 <control>
                     <name>checkbox-group</name>
                     <icon>
                         <class>fa-check-square-o</class>
-                        <styles>
-                            <color>#7e9dbb</color>
-                        </styles>
                     </icon>
                 </control>
                 <control>
                     <name>node-selector</name>
                     <icon>
                         <class>fa-crosshairs</class>
-                        <styles>
-                            <color>#7e9dbb</color>
-                        </styles>
                     </icon>
                 </control>
                 <control>
@@ -137,36 +101,24 @@
                     <name>video-picker</name>
                     <icon>
                         <class>fa-video-camera</class>
-                        <styles>
-                            <color>#7e9dbb</color>
-                        </styles>
                     </icon>
                 </control>
                 <control>
                     <name>label</name>
                     <icon>
                         <class>fa-tag</class>
-                        <styles>
-                            <color>#7e9dbb</color>
-                        </styles>
                     </icon>
                 </control>
                 <control>
                     <name>page-nav-order</name>
                     <icon>
                         <class>fa-sort</class>
-                        <styles>
-                            <color>#7e9dbb</color>
-                        </styles>
                     </icon>
                 </control>
                 <control>
                     <name>file-name</name>
                     <icon>
                         <class>fa-file-o</class>
-                        <styles>
-                            <color>#7e9dbb</color>
-                        </styles>
                     </icon>
                 </control>
                 <control>
@@ -174,9 +126,6 @@
                     <icon>
                         <class>fa-file-o</class>
                         <stackedclass>fa-magic</stackedclass>
-                        <styles>
-                            <color>#7e9dbb</color>
-                        </styles>
                     </icon>
                 </control>
             </controls>
@@ -185,81 +134,54 @@
                     <name>child-content</name>
                     <icon>
                         <class>fa-child</class>
-                        <styles>
-                            <color>#7e9dbb</color>
-                        </styles>
                     </icon>
                 </datasource>
                 <datasource>
                     <name>img-desktop-upload</name>
                     <icon>
                         <class>fa-picture-o</class>
-                        <styles>
-                            <color>#7e9dbb</color>
-                        </styles>
                     </icon>
                 </datasource>
                 <datasource>
                     <name>img-repository-upload</name>
                     <icon>
                         <class>fa-file-image-o</class>
-                        <styles>
-                            <color>#7e9dbb</color>
-                        </styles>
                     </icon>
                 </datasource>
                 <datasource>
                     <name>file-desktop-upload</name>
                     <icon>
                         <class>fa-upload</class>
-                        <styles>
-                            <color>#7e9dbb</color>
-                        </styles>
                     </icon>
                 </datasource>
                 <datasource>
                     <name>file-browse-repo</name>
                     <icon>
                         <class>fa-hand-o-up</class>
-                        <styles>
-                            <color>#7e9dbb</color>
-                        </styles>
                     </icon>
                 </datasource>
                 <datasource>
                     <name>video-desktop-upload</name>
                     <icon>
                         <class>fa-video-camera</class>
-                        <styles>
-                            <color>#7e9dbb</color>
-                        </styles>
                     </icon>
                 </datasource>
                 <datasource>
                     <name>video-browse-repo</name>
                     <icon>
                         <class>fa-file-video-o</class>
-                        <styles>
-                            <color>#7e9dbb</color>
-                        </styles>
                     </icon>
                 </datasource>
                 <datasource>
                     <name>key-value-list</name>
                     <icon>
                         <class>fa-key</class>
-                        <styles>
-                            <color>#7e9dbb</color>
-                        </styles>
                     </icon>
                 </datasource>
                 <datasource>
                     <name>site-component</name>
                     <icon>
                         <class>fa-puzzle-piece</class>
-                        <styles>
-                            <color>#7e9dbb</color>
-                        </styles>
                     </icon>
                 </datasource>
             </datasources>
@@ -306,9 +228,6 @@
         <tool>
             <name>admin-configurations</name>
             <label>Configuration</label>
-            <icon>
-                <class>fa-cogs</class>  <!-- Custom icon -->
-            </icon>
         </tool>
         <tool>
             <name>groups</name>
@@ -317,14 +236,6 @@
         <tool>
             <name>audit</name>
             <label>Audit</label>
-            <icon>
-                <class>fa-file-o</class>    <!-- Custom icon -->
-                <styles>    <!-- Change icon styles - using css rules -->
-                    <color>#075412</color>
-                    <font-size>16px</font-size>
-                    <font-width>bold</font-width>
-                </styles>
-            </icon>
         </tool>
         <tool>
             <name>bulkoperations</name>

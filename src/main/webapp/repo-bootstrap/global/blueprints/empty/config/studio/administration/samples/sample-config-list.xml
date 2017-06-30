@@ -33,12 +33,6 @@
             <samplePath>/studio/administration/samples/sample-sidebar.xml</samplePath>
         </file>
         <file>
-            <path>/studio/context-nav/contextual-nav.xml</path>
-            <title>confTabContextualNavigationConf</title>
-            <description>confTabContextualNavigationConfDesc</description>
-            <samplePath>/studio/administration/samples/sample-contextual-nav.xml</samplePath>
-        </file>
-        <file>
             <path>/studio/form-control-config/rte/rte-setup.xml</path>
             <title>confTabRTEConf</title>
             <description>confTabRTEConfDesc</description>
@@ -63,7 +57,7 @@
             <samplePath>/studio/administration/samples/sample-preview-panel.xml</samplePath>
         </file>
         <file>
-            <path>/studio/notification.xml</path>
+            <path>/studio/workflow/notification-config.xml</path>
             <title>confTabNotificationConf</title>
             <description>confTabNotificationConfDesc</description>
             <samplePath>/studio/administration/samples/sample-notification.xml</samplePath>
@@ -91,6 +85,12 @@
             <title>confTabCMISConfiguration</title>
             <description>confTabCMISConfigurationDesc</description>
             <samplePath>/studio/administration/samples/sample-cmis-config.xml</samplePath>
+        </file>
+        <file>
+            <path>/studio/context-nav/contextual-nav.xml</path>
+            <title>confTabContextualNavigationConf</title>
+            <description>confTabContextualNavigationConfDesc</description>
+            <samplePath>/studio/administration/samples/sample-contextual-nav.xml</samplePath>
         </file>
         <file>
             <path>/studio/administration/site-config-tools.xml</path>

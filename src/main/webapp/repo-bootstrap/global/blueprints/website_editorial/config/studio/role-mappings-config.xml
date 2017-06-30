@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- role-mappings-config.xml
+-->
 <role-mappings>
     <groups>
         <group name="Admin">

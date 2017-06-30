@@ -60,7 +60,7 @@
             <path>/studio/workflow/notification-config.xml</path>
             <title>confTabNotificationConf</title>
             <description>confTabNotificationConfDesc</description>
-            <samplePath>/studio/administration/samples/sample-notification.xml</samplePath>
+            <samplePath>/studio/administration/samples/sample-notification-config.xml</samplePath>
         </file>
         <file>
             <path>/studio/permission-mappings-config.xml</path>
