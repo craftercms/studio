@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
     Site Configuration Tools
 
@@ -10,7 +11,7 @@
             <tool>
                 <name>sync-from-repository</name>
                 <label>Sync From Repository</label>
-                <icon>
+                <icon>          (Optional icon configuration)
                     <styles>    ( Change default icon styles - using css rules )
                         <color>#409a00</color>
                         <font-size>16px</font-size>

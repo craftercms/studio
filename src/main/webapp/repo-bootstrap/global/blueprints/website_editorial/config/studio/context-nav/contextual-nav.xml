@@ -1,7 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    This configuration file drives the top contextual navigation bar in Crafter Studio.
+
+-->
 <app-context-menu>
     <context>
-       <name>default</name>
-        <left>
+        <name>default</name>
+        <left> <!-- left-aligned modules -->
             <menuItem>
                 <item><modulehook>wcm_logo</modulehook></item>
                 <item><modulehook>wcm_dropdown</modulehook></item>
@@ -10,7 +16,7 @@
             </menuItem>
         </left>
 
-        <right>
+        <right> <!-- right-aligned modules -->
             <menuItem>
                 <item><modulehook>ice_tools</modulehook></item>
                 <item><modulehook>preview_tools</modulehook></item>
@@ -21,7 +27,7 @@
             </menuItem>
         </right>
 
-        <modules>
+        <modules> <!-- module definitions -->
             <module><moduleName>wcm_logo</moduleName><value>wcm_logo</value></module>
             <module><moduleName>wcm_dropdown</moduleName><value>wcm_dropdown</value></module>
             <module><moduleName>wcm_content</moduleName><value>wcm_content</value></module>

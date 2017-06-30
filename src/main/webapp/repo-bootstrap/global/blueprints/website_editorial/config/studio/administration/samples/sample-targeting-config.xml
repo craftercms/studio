@@ -21,7 +21,7 @@
         <hint />
     </property>
 
-    Please note that valid types are limited to: dropdown, checkboxes, input
+    Please note that valid types are limited to: dropdown, checkboxes, input.
 -->
 <targeting>
     <property>

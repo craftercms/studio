@@ -43,16 +43,16 @@ For every repository you need to specify:
 -->
 <cmis>
     <repositories>
-    <!--
-        <repository>
-            <id>alfresco</id>
-            <type>alfresco</type>
-            <url>http://localhost:8080/alfresco</url>
-            <username>guest</username>
-            <password>guest</password>
-            <base-path>/</base-path>
-            <download-url-regex>http://localhost:8080/alfresco/service/api/node/content/workspace/SpacesStore/{item_id}</download-url-regex>
-        </repository>
-    -->
+        <!--
+            <repository>
+                <id>alfresco</id>
+                <type>alfresco</type>
+                <url>http://localhost:8080/alfresco</url>
+                <username>guest</username>
+                <password>guest</password>
+                <base-path>/</base-path>
+                <download-url-regex>http://localhost:8080/alfresco/service/api/node/content/workspace/SpacesStore/{item_id}</download-url-regex>
+            </repository>
+        -->
     </repositories>
 </cmis>

@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- site-config.xml
+
+    This contains the primary site configuration.
+
+-->
 <site-config>
     <wem-project>{siteName}</wem-project>
     <display-name>{siteName}</display-name>
@@ -6,6 +11,7 @@
 
     <repository rootPrefix="/site">
 
+        <!-- default inheritance file name -->
         <level-descriptor>crafter-level-descriptor.level.xml</level-descriptor>
 
         <!-- The section below classifies items into folders for two dashboard widgets:

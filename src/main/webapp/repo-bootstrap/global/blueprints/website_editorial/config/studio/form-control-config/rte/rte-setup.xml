@@ -6,29 +6,33 @@
 <config>
     <setup>
         <id>generic</id> <!-- This starts a profile configuration -->
-        <rteStylesheets> <!-- This informs the RTE to use the CSS files of your project. This allows the authors
-								to see the RTE in the style of the site -->
+        <rteStylesheets> <!-- This informs the RTE to use the CSS files -->
             <link>
                 <loadFromPreview>true</loadFromPreview>
-                <url>/static-assets/css/main.css</url>
+                <url>/static-assets/css/style.css</url>
             </link>
 
-            <!-- It's also possible to set channel specific styles for the RTE
             <link>
-                <appliesToChannel>smartPhone</appliesToChannel>
+                <appliesToChannel>iphonev,iphoneh</appliesToChannel>
                 <loadFromPreview>true</loadFromPreview>
                 <url>/static-assets/mobile/css/iphone.css</url>
-            </link> -->
+            </link>
+            <link>
+                <appliesToChannel>iphonev,iphoneh</appliesToChannel>
+                <loadFromPreview>true</loadFromPreview>
+                <url>/static-assets/mobile/css/libs/jquery.mobile-1.0.min.css</url>
+            </link>
         </rteStylesheets>
 
-        <toolbarItems1> <!-- Specify toolbar controls for the RTE, see https://www.tinymce.com/docs-3x/reference/buttons/ -->
+        <toolbarItems1>
             formatselect,|,bold,italic,underline,strikethrough,|,sub,sup,charmap,|,outdent,indent,blockquote,|,justifyleft,justifycenter,justifyright,justifyfull,|,bullist,numlist,|,managedImage,link,unlink,anchor,|,edithtml,|,undo,redo
         </toolbarItems1>
         <toolbarItems2></toolbarItems2>
         <toolbarItems3></toolbarItems3>
         <toolbarItems4></toolbarItems4>
 
-        <rteLinkStyles>
+        <rteLinkStyles> <!-- configures HTTP link styles within the RTE (double click a link in the RTE and select the
+						`Class` field. -->
             <style>
                 <!-- first row is the title -->
                 <name>Link Styles</name>
@@ -56,19 +60,29 @@
             </style>
         </rteLinkStyles>
 
-        <!-- widgets -->
+        <!-- Widgets: These are Crafter components that can be dragged and dropped in the RTE -->
         <rteWidgets>
+            <!--
+            <widget>
+                <name />
+                <description />
+                <contentIdField />
+                <contentIdType />
+                <contentPath />
+                <contentType />
+                <includeJs />
+                <includeCss />
+            </widget>
+            -->
         </rteWidgets>
 
-        <!-- modules -->
+        <!-- Modules: -->
         <rteModules>
             <module>insert-image</module>
             <module>channel</module>
             <module>edit-html</module>
         </rteModules>
-
     </setup>
-
 
     <setup>
         <id>sidebar</id>

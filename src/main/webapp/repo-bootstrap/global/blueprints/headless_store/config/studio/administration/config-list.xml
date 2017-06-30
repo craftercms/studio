@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
     This file configures the list of configurations available in the SiteConfig section for this site/blueprint.
 
@@ -56,10 +57,10 @@
             <samplePath>/studio/administration/samples/sample-preview-panel.xml</samplePath>
         </file>
         <file>
-            <path>/studio/notification.xml</path>
+            <path>/studio/workflow/notification-config.xml</path>
             <title>confTabNotificationConf</title>
             <description>confTabNotificationConfDesc</description>
-            <samplePath>/studio/administration/samples/sample-notification.xml</samplePath>
+            <samplePath>/studio/administration/samples/sample-notification-config.xml</samplePath>
         </file>
         <file>
             <path>/studio/permission-mappings-config.xml</path>
