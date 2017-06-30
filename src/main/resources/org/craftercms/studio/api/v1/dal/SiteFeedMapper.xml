@@ -53,8 +53,8 @@
     </select>
 
     <insert id="createSite" parameterType="org.craftercms.studio.api.v1.dal.SiteFeed">
-        insert into cstudio_site (site_id, name, description, status, last_commit_id)
-        values (#{siteId}, #{name}, #{description}, #{status}, #{lastCommitId})
+        insert into cstudio_site (site_id, name, description, status, last_commit_id, publishing_status_message)
+        values (#{siteId}, #{name}, #{description}, #{status}, #{lastCommitId}, #{publishingStatusMessage})
     </insert>
 
     <delete id="deleteSite" parameterType="java.util.Map" >
