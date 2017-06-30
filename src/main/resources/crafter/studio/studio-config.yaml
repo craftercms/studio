@@ -91,7 +91,7 @@ studio.import.assetChainName: assetContent
 ##                   Notification Service                   ##
 ##############################################################
 # Path where the notification configuration is located
-studio.notification.configurationFile: /config/studio/notification.xml
+studio.notification.configurationFile: /config/studio/workflow/notification-config.xml
 # Timezone for the email template engine (which determines how FreeMarker interprets `now` etc.)
 studio.notification.timezone: UTC
 

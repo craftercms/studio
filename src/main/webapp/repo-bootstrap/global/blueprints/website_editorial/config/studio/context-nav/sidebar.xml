@@ -1,3 +1,33 @@
+<!--
+	This configuration file controls the SideBar in Crafter Studio. The SideBar is the left bar that shows
+	different projections of the content in addition to other tools to assist in content authoring.
+
+	<contextNav>
+		<modulehook>
+			<name>dashboard</name>
+			<params>
+				<label>Dashboard</label>
+				<path>/site-dashboard</path>
+				<icon>  	               (optional icon customization - only one state (no tree link))
+					<class>fa-cog</class>  (change default icon - using Font Awesome class)
+					<styles> 	           (Change default icon styles - using css rules)
+						<color>#409a00</color>
+						<font-size>16px</font-size>
+					</styles>
+				</icon>
+				<roles>
+					<role>admin</role>
+					<role>developer</role>
+				</roles>
+				<label>Site Config</label>
+				<path>/site-config</path>
+				<showRootItem>true</showRootItem>
+				<onClick>preview</onClick>
+			</params>
+		</modulehook>
+	</contextNav>
+
+-->
 <contextNav>
 	<contexts>
 		<context>
@@ -9,9 +39,9 @@
 								<!-- dashboard -->
 								<modulehook>
 									<name>dashboard</name>
-                                    <params>
-                                        <label>Dashboard</label>
-                                        <path>/site-dashboard</path>
+									<params>
+										<label>Dashboard</label>
+										<path>/site-dashboard</path>
 									</params>
 								</modulehook>
 								<!-- Site IA PAGES -->
@@ -33,17 +63,6 @@
 									<params>
 										<label>Components</label>
 										<path>/site/components</path>
-										<showRootItem>true</showRootItem>
-									</params>
-								</modulehook>
-
-								<!-- TAXONOMY -->
-								<modulehook>
-									<name>wcm-root-folder</name>
-									<showDivider>true</showDivider>
-									<params>
-										<label>Taxonomy</label>
-										<path>/site/taxonomy</path>
 										<showRootItem>true</showRootItem>
 									</params>
 								</modulehook>
@@ -72,6 +91,16 @@
 									<name>wcm-assets-folder</name>
 									<showDivider>true</showDivider>
 									<params>
+										<label>Classes</label>
+										<path>/classes</path>
+										<showRootItem>true</showRootItem>
+										<onClick>none</onClick>
+									</params>
+								</modulehook>
+								<modulehook>
+									<name>wcm-assets-folder</name>
+									<showDivider>true</showDivider>
+									<params>
 										<label>Scripts</label>
 										<path>/scripts</path>
 										<showRootItem>true</showRootItem>
@@ -86,8 +115,8 @@
 											<role>admin</role>
 											<role>developer</role>
 										</roles>
-                                        <label>Site Config</label>
-                                        <path>/site-config</path>
+										<label>Site Config</label>
+										<path>/site-config</path>
 									</params>
 								</modulehook>
 							</modulehooks>

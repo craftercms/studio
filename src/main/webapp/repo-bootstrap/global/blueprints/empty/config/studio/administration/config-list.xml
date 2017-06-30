@@ -57,7 +57,7 @@
             <samplePath>/studio/administration/samples/sample-preview-panel.xml</samplePath>
         </file>
         <file>
-            <path>/studio/notification.xml</path>
+            <path>/studio/workflow/notification-config.xml</path>
             <title>confTabNotificationConf</title>
             <description>confTabNotificationConfDesc</description>
             <samplePath>/studio/administration/samples/sample-notification.xml</samplePath>
