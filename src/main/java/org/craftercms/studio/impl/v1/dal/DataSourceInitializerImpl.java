@@ -62,6 +62,7 @@ public class DataSourceInitializerImpl implements DataSourceInitializer, Disposa
 
             sr.setDelimiter(delimiter);
             sr.setStopOnError(true);
+            sr.setLogWriter(null);
             InputStream is = getClass().getClassLoader().getResourceAsStream(scriptPath);
             Reader reader = new InputStreamReader(is);
             try {
