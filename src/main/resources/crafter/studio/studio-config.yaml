@@ -135,7 +135,8 @@ studio.security.urlsToExclude: "**,/**"
 # Urls to be treated as exception to the rules.
 studio.security.exceptionUrls: /api/1/services/api/1/user/login.json,/api/1/services/api/1/user/logut.json,/api/1/services/api/1/server/get-available-languages.json,/api/1/services/api/1/server/get-ui-resource-override.json,/api/1/services/api/1/user/reset-password.json,/api/1/services/api/1/user/forgot-password.json,/api/1/services/api/1/user/set-password.json,/api/1/services/api/1/user/validate-token.json
 # Defines security provider for accessing repository. Possible values:
-# db (users are stored in database) -- this is the only option at this time
+# db (users are stored in database)
+# ldap (users are imported from LDAP into the database)
 studio.security.type: db
 # Salt for encrypting
 studio.security.cipher.salt: STUDIO_SALT
