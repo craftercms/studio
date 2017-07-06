@@ -93,18 +93,20 @@ public class BinaryView extends AbstractView {
         //Writer output = response.getWriter();
         OutputStream out = response.getOutputStream();
         Map<String, Object> responseModelMap = (Map<String, Object>)model.get(RestScriptsController.DEFAULT_RESPONSE_BODY_MODEL_ATTR_NAME);
-        InputStream contentStream = (InputStream)responseModelMap.get(DEFAULT_CONTENT_STREAM_MODEL_ATTR_NAME);
-        String contentPath = (String)responseModelMap.get(DEFAULT_CONTENT_PATH_MODEL_ATTR_NAME);
+        if (responseModelMap != null) {
+            InputStream contentStream = (InputStream) responseModelMap.get(DEFAULT_CONTENT_STREAM_MODEL_ATTR_NAME);
+            String contentPath = (String) responseModelMap.get(DEFAULT_CONTENT_PATH_MODEL_ATTR_NAME);
 
-        MimetypesFileTypeMap mimetypesFileTypeMap = new MimetypesFileTypeMap();
-        String contentType = mimetypesFileTypeMap.getContentType(contentPath);
-        response.setContentType(contentType);
-        if (contentStream != null) {
-            IOUtils.write(IOUtils.toByteArray(contentStream), out);
+            MimetypesFileTypeMap mimetypesFileTypeMap = new MimetypesFileTypeMap();
+            String contentType = mimetypesFileTypeMap.getContentType(contentPath);
+            response.setContentType(contentType);
+            if (contentStream != null) {
+                IOUtils.write(IOUtils.toByteArray(contentStream), out);
+            }
+            out.flush();
+            IOUtils.closeQuietly(contentStream);
+            IOUtils.closeQuietly(out);
         }
-        out.flush();
-        IOUtils.closeQuietly(contentStream);
-        IOUtils.closeQuietly(out);
     }
 
 }
