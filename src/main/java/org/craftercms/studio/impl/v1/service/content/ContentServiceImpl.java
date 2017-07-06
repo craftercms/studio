@@ -1537,7 +1537,11 @@ public class ContentServiceImpl implements ContentService {
         ContentItemTO root = null;
 
         if (isPages && contentExists(site, path + "/index.xml")) {
-            root = getContentItem(site, path + "/index.xml");
+            if (depth > 1) {
+                root = getContentItem(site, path + "/index.xml", depth);
+            } else {
+                root = getContentItem(site, path + "/index.xml");
+            }
         }
         else {
             if (depth > 1) {
