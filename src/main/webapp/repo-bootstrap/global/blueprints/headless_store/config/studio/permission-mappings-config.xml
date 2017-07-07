@@ -44,7 +44,7 @@
       </role>
 
   A regex of "~DASHBOARD~" governs view access to the publishing workflow
-  related dasbhboard widgets:
+  related dashboard widgets:
   - Items Waiting For Approval
   - Approved Scheduled Items
   - Recently Published
