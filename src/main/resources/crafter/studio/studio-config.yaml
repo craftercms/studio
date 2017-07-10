@@ -221,7 +221,7 @@ studio.job.deployContentToEnvironment.processingChunkSize: 1000
 # Turn on/off (value true/false) check if mandatory dependencies of deployed content are included in deployment package.
 studio.job.deployContentToEnvironment.mandatoryDependenciesCheckEnabled: true
 # Publishing default status message
-studio.job.deployContentToEnvironment.status.message.default: "idle|No deployments"
+studio.job.deployContentToEnvironment.status.message.default: "idle|Idle"
 # Publishing idle status message
 studio.job.deployContentToEnvironment.status.message.idle: "idle|Last successful publish was for item: {item_path} on {datetime}"
 # Publishing busy status message
