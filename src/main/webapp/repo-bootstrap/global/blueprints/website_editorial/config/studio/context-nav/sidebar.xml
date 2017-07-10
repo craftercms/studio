@@ -37,7 +37,7 @@
 					<menuItems>
 						<menuItem>
 							<modulehooks>
-								<!-- dashboard -->
+								<!-- Dashboard -->
 								<modulehook>
 									<name>dashboard</name>
 									<params>
@@ -46,7 +46,7 @@
 									</params>
 								</modulehook>
 
-								<!-- Site IA PAGES -->
+								<!-- Site IA Pages -->
 								<modulehook>
 									<name>wcm-root-folder</name>
 									<showDivider>true</showDivider>
@@ -58,7 +58,7 @@
 									</params>
 								</modulehook>
 
-								<!-- COMPONENTS -->
+								<!-- Components -->
 								<modulehook>
 									<name>wcm-root-folder</name>
 									<showDivider>true</showDivider>
@@ -69,6 +69,18 @@
 									</params>
 								</modulehook>
 
+								<!-- Taxonomy -->
+								<modulehook>
+									<name>wcm-root-folder</name>
+									<showDivider>true</showDivider>
+									<params>
+										<label>Taxonomy</label>
+										<path>/site/taxonomy</path>
+										<showRootItem>true</showRootItem>
+									</params>
+								</modulehook>
+
+								<!-- Static Assets -->
 								<modulehook>
 									<name>wcm-assets-folder</name>
 									<showDivider>true</showDivider>
@@ -80,6 +92,7 @@
 									</params>
 								</modulehook>
 
+								<!-- Templates -->
 								<modulehook>
 									<name>wcm-assets-folder</name>
 									<showDivider>true</showDivider>
@@ -91,6 +104,7 @@
 									</params>
 								</modulehook>
 
+								<!-- Scripts -->
 								<modulehook>
 									<name>wcm-assets-folder</name>
 									<showDivider>true</showDivider>
@@ -102,6 +116,7 @@
 									</params>
 								</modulehook>
 
+								<!-- Site Config -->
 								<modulehook>
 									<name>site-config</name>
 									<showDivider>true</showDivider>

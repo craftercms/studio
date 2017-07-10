@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
+<!-- sidebar.xml
 	This configuration file controls the SideBar in Crafter Studio. The SideBar is the left bar that shows
 	different projections of the content in addition to other tools to assist in content authoring.
 
@@ -37,7 +37,7 @@
 					<menuItems>
 						<menuItem>
 							<modulehooks>
-								<!-- dashboard -->
+								<!-- Dashboard -->
 								<modulehook>
 									<name>dashboard</name>
 									<params>
@@ -46,7 +46,7 @@
 									</params>
 								</modulehook>
 
-								<!-- Site IA PAGES -->
+								<!-- Site IA Pages -->
 								<modulehook>
 									<name>wcm-root-folder</name>
 									<showDivider>true</showDivider>
@@ -58,7 +58,7 @@
 									</params>
 								</modulehook>
 
-								<!-- COMPONENTS -->
+								<!-- Components -->
 								<modulehook>
 									<name>wcm-root-folder</name>
 									<showDivider>true</showDivider>
@@ -69,6 +69,7 @@
 									</params>
 								</modulehook>
 
+								<!-- Static Assets -->
 								<modulehook>
 									<name>wcm-assets-folder</name>
 									<showDivider>true</showDivider>
@@ -80,6 +81,7 @@
 									</params>
 								</modulehook>
 
+								<!-- Templates -->
 								<modulehook>
 									<name>wcm-assets-folder</name>
 									<showDivider>true</showDivider>
@@ -91,6 +93,7 @@
 									</params>
 								</modulehook>
 
+								<!-- Scripts -->
 								<modulehook>
 									<name>wcm-assets-folder</name>
 									<showDivider>true</showDivider>
@@ -102,6 +105,7 @@
 									</params>
 								</modulehook>
 
+								<!-- Site Config -->
 								<modulehook>
 									<name>site-config</name>
 									<showDivider>true</showDivider>
