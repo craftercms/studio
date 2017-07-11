@@ -1500,17 +1500,12 @@ public class WorkflowServiceImpl implements WorkflowService {
                 deleteItems.add(submittedItem);
             }
             ContentItemTO itemToDelete = contentService.getContentItem(site,uri);
-            /* TODO: if item is renamed
-            if(persistenceManagerService.hasAspect(itemToDelete, CStudioContentModel.ASPECT_RENAMED)){
-                String oldPath = (String) persistenceManagerService.getProperty(itemToDelete, CStudioContentModel.PROP_RENAMED_OLD_URL);
-                if(oldPath!=null){
-                    itemsToDelete.add(oldPath);//Make sure old path is going to be deleted
-                }
-            }*/
+            if (objectMetadataManager.isRenamed(site, uri)) {
+                ObjectMetadata metadata = objectMetadataManager.getProperties(site, uri);
+                itemsToDelete.add(metadata.getOldUrl());
+            }
         }
-        //List<String> deletedItems = deleteInTransaction(site, itemsToDelete);
         GoLiveContext context = new GoLiveContext(approver, site);
-        //final String pathPrefix = getSiteRoot(site, null);
         final String pathPrefix = "/wem-projects/" + site + "/" + site + "/work-area";
         Map<Date, List<DmDependencyTO>> groupedPackages = groupByDate(deleteItems, now);
         if (groupedPackages.isEmpty()) {
@@ -1530,7 +1525,6 @@ public class WorkflowServiceImpl implements WorkflowService {
                     }
                 }
                 String label = submitpackage.getLabel();
-                //String workFlowName = _submitDirectWorkflowName;
 
                 SubmitLifeCycleOperation deleteOperation = null;
                 Set<String> liveDependencyItems = new HashSet<String>();
@@ -1546,12 +1540,6 @@ public class WorkflowServiceImpl implements WorkflowService {
                 if (launchDate != null) {
                     deleteOperation = new PreScheduleDeleteOperation(this, submitpackage.getUris(), launchDate, context, rescheduledUris);
                     label = DmConstants.DM_SCHEDULE_SUBMISSION_FLOW + ":" + label;
-                    //workFlowName = _reviewWorkflowName;
-                    /*
-                    for (String submitPackPath : submitpackage.getUris()) {
-                        String fullpath = dmContentService.getContentFullPath(site, submitPackPath);
-                        _cacheManager.invalidateAndRemoveFromQueue(fullpath, site);
-                    }*/
                 } else {
                     //add dependencies to submitPackage
                     for (String liveDependency : liveDependencyItems) {
@@ -1561,9 +1549,6 @@ public class WorkflowServiceImpl implements WorkflowService {
 
                     deleteOperation = new PreSubmitDeleteOperation(this, new HashSet<String>(itemsToDelete), context, rescheduledUris);
                     removeChildFromSubmitPackForDelete(submitPackPaths);
-                    for (String deleteCandidate : allItems) {
-                        //_cacheManager.invalidateAndRemoveFromQueue(deleteCandidate, site);
-                    }
                 }
                 Map<String, String> submittedBy = new HashMap<>();
 
