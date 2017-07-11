@@ -532,7 +532,11 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
                 if (!StringUtils.isEmpty(submittedItem) && !includedItems.contains(submittedItem)) {
                     try {
                         ContentItemTO item = null;
-                        item = contentService.getContentItem(site, submittedItem);
+                        if (deleteDependencies) {
+                            item = contentService.getContentItem(site, submittedItem, Integer.MAX_VALUE);
+                        } else {
+                            item = contentService.getContentItem(site, submittedItem);
+                        }
                         if(item.isSubmittedForDeletion()) {
                             deleteDependencies = true;
                         }
