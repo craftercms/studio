@@ -780,15 +780,6 @@
         </profile>
 
         <profile>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <id>standalone</id>
-            <properties>
-                <selenium.baseUrl>http://standalone.crafterdev.vm2.rivetlogic.com/studio</selenium.baseUrl>
-            </properties>
-        </profile>
-        <profile>
             <id>local</id>
             <properties>
                 <selenium.baseUrl>http://localhost:9080/studio/</selenium.baseUrl>
