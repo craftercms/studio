@@ -54,6 +54,10 @@
                 <pattern>/templates/([^&lt;"]+)\.ftl</pattern>
             </pattern-group>
 
+            <pattern-group name="scripts">
+                <pattern>/scripts/([^&lt;"]+)\.groovy</pattern>
+            </pattern-group>
+
             <!-- The section below enumerates the mime-types we can preview -->
             <pattern-group name="previewable-mimetypes">
                 <pattern>image/(.*)</pattern>

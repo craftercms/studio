@@ -56,6 +56,7 @@ public class ServicesConfigImpl implements ServicesConfig {
 	protected static final String PATTERN_ASSET = "asset";
 	protected static final String PATTERN_DOCUMENT = "document";
     protected static final String PATTERN_RENDERING_TEMPLATE = "rendering-template";
+    protected static final String PATTERN_SCRIPTS = "scripts";
     protected static final String PATTERN_LEVEL_DESCRIPTOR = "level-descriptor";
     protected static final String PATTERN_PREVIEWABLE_MIMETYPES = "previewable-mimetypes";
 
@@ -63,17 +64,10 @@ public class ServicesConfigImpl implements ServicesConfig {
 	protected static final String ELM_PATTERN = "pattern";
 
 	/** xml attribute names **/
-	protected static final String ATTR_DEPTH = "@depth";
-	protected static final String ATTR_DISPLAY_NAME = "@displayName";
-	protected static final String ATTR_NAMESPACE = "@namespace";
 	protected static final String ATTR_NAME = "@name";
-    protected static final String ATTR_SITE = "@site";
 	protected static final String ATTR_PATH = "@path";
 	protected static final String ATTR_READ_DIRECT_CHILDREN = "@read-direct-children";
 	protected static final String ATTR_ATTACH_ROOT_PREFIX = "@attach-root-prefix";
-
-    protected static final String LIVE_REPOSITORY_PATH_SUFFIX = "-live";
-
 
 	/**
 	 * content types configuration
@@ -176,6 +170,14 @@ public class ServicesConfigImpl implements ServicesConfig {
         return null;
     }
 
+    public List<String> getScriptsPatterns(String site) {
+        SiteConfigTO config = getSiteConfig(site);
+        if (config != null && config.getRepositoryConfig() != null) {
+            return config.getRepositoryConfig().getScriptsPatterns();
+        }
+        return null;
+    }
+
     public List<String> getLevelDescriptorPatterns(String site) {
         SiteConfigTO config = getSiteConfig(site);
         if (config != null && config.getRepositoryConfig() != null) {
@@ -239,16 +241,8 @@ public class ServicesConfigImpl implements ServicesConfig {
              String name = configNode.valueOf("display-name");
              siteConfig = new SiteConfigTO();
              siteConfig.setName(name);
-             //siteConfig.setSiteName(configNode.valueOf("name"));
              siteConfig.setWemProject(configNode.valueOf("wem-project"));
-             //siteConfig.setDefaultContentType(configNode.valueOf("default-content-type"));
-             //String assetUrl = configNode.valueOf("assets-url");
              siteConfig.setTimezone(configNode.valueOf("default-timezone"));
-             //siteConfig.setAssetUrl(assetUrl);
-             //loadNamespaceToTypeMap(siteConfig, configNode.selectNodes("namespace-to-type-map/namespace"));
-             //loadModelConfig(siteConfig, configNode.selectNodes("models/model"));
-             //SearchConfigTO searchConfig = _contentTypesConfig.loadSearchConfig(configNode.selectSingleNode("search"));
-             //siteConfig.setDefaultSearchConfig(searchConfig);
              loadSiteRepositoryConfiguration(siteConfig, configNode.selectSingleNode("repository"));
              // set the last updated date
              siteConfig.setLastUpdated(new Date());
@@ -329,6 +323,8 @@ public class ServicesConfigImpl implements ServicesConfig {
                             repo.setDocumentPatterns(patterns);
                         } else if (patternKey.equals(PATTERN_RENDERING_TEMPLATE)) {
                             repo.setRenderingTemplatePatterns(patterns);
+                        } else if (patternKey.equals(PATTERN_SCRIPTS)) {
+                            repo.setScriptsPatterns(patterns);
                         } else if (patternKey.equals(PATTERN_LEVEL_DESCRIPTOR)) {
                             repo.setLevelDescriptorPatterns(patterns);
                         } else if (patternKey.equals(PATTERN_PREVIEWABLE_MIMETYPES)) {
