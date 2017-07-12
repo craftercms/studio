@@ -118,9 +118,7 @@ public class CherryPickCommandExt extends GitCommand<CherryPickResult> {
      * @throws NoHeadException
      */
     @Override
-    public CherryPickResult call() throws GitAPIException, NoMessageException,
-            UnmergedPathsException, ConcurrentRefUpdateException,
-            WrongRepositoryStateException, NoHeadException {
+    public CherryPickResult call() throws GitAPIException {
         RevCommit newHead = null;
         List<Ref> cherryPickedRefs = new LinkedList<>();
         checkCallable();
@@ -173,31 +171,6 @@ public class CherryPickCommandExt extends GitCommand<CherryPickResult> {
                             e), e);
         }
         return new CherryPickResult(newHead, cherryPickedRefs);
-    }
-
-    private RevCommit getParentCommit(RevCommit srcCommit, RevWalk revWalk)
-            throws MultipleParentsNotAllowedException, MissingObjectException,
-            IOException {
-        final RevCommit srcParent;
-        if (mainlineParentNumber == null) {
-            if (srcCommit.getParentCount() != 1)
-                throw new MultipleParentsNotAllowedException(
-                        MessageFormat.format(
-                                JGitText.get().canOnlyCherryPickCommitsWithOneParent,
-                                srcCommit.name(),
-                                Integer.valueOf(srcCommit.getParentCount())));
-            srcParent = srcCommit.getParent(0);
-        } else {
-            if (mainlineParentNumber.intValue() > srcCommit.getParentCount())
-                throw new JGitInternalException(MessageFormat.format(
-                        JGitText.get().commitDoesNotHaveGivenParent, srcCommit,
-                        mainlineParentNumber));
-            srcParent = srcCommit
-                    .getParent(mainlineParentNumber.intValue() - 1);
-        }
-
-        revWalk.parseHeaders(srcParent);
-        return srcParent;
     }
 
     /**
@@ -298,15 +271,6 @@ public class CherryPickCommandExt extends GitCommand<CherryPickResult> {
     public CherryPickCommandExt setNoCommit(boolean noCommit) {
         this.noCommit = noCommit;
         return this;
-    }
-
-    private String calculateOurName(Ref headRef) {
-        if (ourCommitName != null)
-            return ourCommitName;
-
-        String targetRefName = headRef.getTarget().getName();
-        String headName = Repository.shortenRefName(targetRefName);
-        return headName;
     }
 
     @SuppressWarnings("nls")
