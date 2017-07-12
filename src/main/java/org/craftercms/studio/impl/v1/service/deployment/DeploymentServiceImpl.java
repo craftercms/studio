@@ -217,57 +217,44 @@ public class DeploymentServiceImpl implements DeploymentService {
     private List<CopyToEnvironment> createDeleteItems(String site, String environment, List<String> paths, String approver, Date scheduledDate) {
         List<CopyToEnvironment> newItems = new ArrayList<CopyToEnvironment>(paths.size());
         for (String path : paths) {
-            Map<String, String> params = new HashMap<String, String>();
-            params.put("site", site);
-            params.put("environment", environment);
-            params.put("path", path);
-            params.put("state", CopyToEnvironment.State.COMPLETED);
-            int numDeployments = copyToEnvironmentMapper.checkIfItemWasPublishedForEnvironment(params);
-            if (numDeployments > 0) {
-                CopyToEnvironment item = new CopyToEnvironment();
-                item.setId(++CTED_AUTOINCREMENT);
-                item.setSite(site);
-                item.setEnvironment(environment);
-                item.setPath(path);
-                item.setScheduledDate(scheduledDate);
-                item.setState(CopyToEnvironment.State.READY_FOR_LIVE);
-                item.setAction(CopyToEnvironment.Action.DELETE);
-                if (objectMetadataManager.isRenamed(site, path)) {
-                    String oldPath = objectMetadataManager.getOldPath(site, item.getPath());
-                    item.setOldPath(oldPath);
-                }
-                String contentTypeClass = contentService.getContentTypeClass(site, path);
-                item.setContentTypeClass(contentTypeClass);
-                item.setUser(approver);
-                newItems.add(item);
-            } else {
-                params = new HashMap<String, String>();
-                params.put("site", site);
-                params.put("path", path);
-                params.put("state", CopyToEnvironment.State.COMPLETED);
-                numDeployments = copyToEnvironmentMapper.checkIfItemWasPublishedForEnvironment(params);
-                if (numDeployments < 1) {
-                    boolean haschildren = false;
-                    if (path.endsWith("/" + DmConstants.INDEX_FILE)) {
-                        String folderPath = path.replace("/" + DmConstants.INDEX_FILE, "");
-                        if (contentService.contentExists(site, folderPath)) {
-                            RepositoryItem[] children = contentRepository.getContentChildren(site, folderPath);
+            CopyToEnvironment item = new CopyToEnvironment();
+            item.setId(++CTED_AUTOINCREMENT);
+            item.setSite(site);
+            item.setEnvironment(environment);
+            item.setPath(path);
+            item.setScheduledDate(scheduledDate);
+            item.setState(CopyToEnvironment.State.READY_FOR_LIVE);
+            item.setAction(CopyToEnvironment.Action.DELETE);
+            if (objectMetadataManager.isRenamed(site, path)) {
+                String oldPath = objectMetadataManager.getOldPath(site, item.getPath());
+                item.setOldPath(oldPath);
+            }
+            String contentTypeClass = contentService.getContentTypeClass(site, path);
+            item.setContentTypeClass(contentTypeClass);
+            item.setUser(approver);
+            newItems.add(item);
 
-                            if (children.length > 1) {
-                                haschildren = true;
-                            }
-                        }
-                    }
 
-                    if (contentService.contentExists(site, path)) {
-                        contentService.deleteContent(site, path, approver);
+            boolean haschildren = false;
+            if (path.endsWith("/" + DmConstants.INDEX_FILE)) {
+                String folderPath = path.replace("/" + DmConstants.INDEX_FILE, "");
+                if (contentService.contentExists(site, folderPath)) {
+                    RepositoryItem[] children = contentRepository.getContentChildren(site, folderPath);
 
-                        if (!haschildren) {
-                            deleteFolder(site, path.replace("/" + DmConstants.INDEX_FILE, ""), approver);
-                        }
+                    if (children.length > 1) {
+                        haschildren = true;
                     }
                 }
             }
+
+            if (contentService.contentExists(site, path)) {
+                contentService.deleteContent(site, path, approver);
+
+                if (!haschildren) {
+                    deleteFolder(site, path.replace("/" + DmConstants.INDEX_FILE, ""), approver);
+                }
+            }
+
         }
         return newItems;
     }
