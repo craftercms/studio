@@ -161,6 +161,12 @@
                     </icon>
                 </datasource>
                 <datasource>
+                    <name>CMIS-repo</name>
+                    <icon>
+                        <class>fa-search</class>
+                    </icon>
+                </datasource>
+                <datasource>
                     <name>video-desktop-upload</name>
                     <icon>
                         <class>fa-video-camera</class>
