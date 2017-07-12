@@ -68,13 +68,10 @@ import org.eclipse.jgit.lib.ObjectIdRef;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Ref.Storage;
 import org.eclipse.jgit.lib.Repository;
-import org.eclipse.jgit.merge.MergeMessageFormatter;
 import org.eclipse.jgit.merge.MergeStrategy;
 import org.eclipse.jgit.merge.Merger;
-import org.eclipse.jgit.merge.ResolveMerger;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
-import org.eclipse.jgit.treewalk.FileTreeIterator;
 
 /**
  * A class used to execute a {@code cherry-pick} command. It has setters for all
@@ -146,13 +143,6 @@ public class CherryPickCommandExt extends GitCommand<CherryPickResult> {
                 if (srcObjectId == null)
                     srcObjectId = src.getObjectId();
                 RevCommit srcCommit = revWalk.parseCommit(srcObjectId);
-
-                // get the parent of the commit to cherry-pick
-                final RevCommit srcParent = getParentCommit(srcCommit, revWalk);
-
-                String ourName = calculateOurName(headRef);
-                String cherryPickName = srcCommit.getId().abbreviate(7).name()
-                        + " " + srcCommit.getShortMessage(); //$NON-NLS-1$
 
                 Merger merger = strategy.newMerger(repo);
                 if (merger.merge(newHead, srcCommit)) {
