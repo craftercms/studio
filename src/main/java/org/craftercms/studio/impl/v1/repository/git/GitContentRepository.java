@@ -54,7 +54,7 @@ import org.craftercms.studio.api.v1.to.RepoOperationTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
-import org.craftercms.studio.impl.v1.util.ContentUtils;
+import org.craftercms.studio.impl.v1.util.git.CherryPickCommandExt;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.RefNotFoundException;
@@ -786,7 +786,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
                         case CONFLICTING:
                             // TODO: DB: what to do if cherry pick has conflict ?
-                            logger.error("Conflict executing cherry-pick.");
+                            logger.error("Conflict executing cherry-pick with default merge strategy.");
                             String errorMessage2 = "Failing paths:\n";
                             Map<String, ResolveMerger.MergeFailureReason> failPaths2 =  cherryPickResult.getFailingPaths();
                             if (failPaths2 != null) {
@@ -795,10 +795,53 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                                 }
                                 logger.error(errorMessage2);
                             } else {
-                                git.add().addFilepattern(GIT_COMMIT_ALL_ITEMS).call();
-                                String commitMessage = rc.getFullMessage() + "\n" + message;
-                                git.commit().setMessage(commitMessage).call();
-                                logger.info("No conflict paths. resolved conflict and committed");
+                                logger.debug("Reset previous attempt to cherry-pick, and try again with merge strategy THEIRS.");
+                                git.reset().setMode(ResetCommand.ResetType.HARD).call();
+                                CherryPickCommandExt cp = new CherryPickCommandExt(repo);
+                                cp = cp.setMainlineParentNumber(pc)
+                                        .setOurCommitName(message)
+                                        .setNoCommit(false);
+
+                                if (StringUtils.isNotEmpty(commitId)) {
+                                    String initialCommit = getRepoFirstCommitId(site);
+                                    if (!StringUtils.equals(initialCommit, commitId)) {
+                                        ObjectId objectId = ObjectId.fromString(commitId);
+                                        cp.include(objectId);
+                                    }
+                                }
+
+                                CherryPickResult cherryPickResult2 = cp.call();
+                                if (cherryPickResult2.getStatus() == CherryPickResult.CherryPickStatus.CONFLICTING) {
+                                    git.add().addFilepattern(GIT_COMMIT_ALL_ITEMS).call();
+                                    String commitMessage = rc.getFullMessage() + "\n" + message;
+                                    git.commit().setMessage(commitMessage).call();
+                                } else if (cherryPickResult2.getStatus() == CherryPickResult.CherryPickStatus.OK) {
+                                    logger.info("Successfully cherry picked with merge strategy THEIRS.");
+                                }
+
+                                String newCommitMessage = StringUtils.EMPTY;
+                                long commitTime = 0l;
+                                Iterable<RevCommit> logs = git.log()
+                                        .add(repo.resolve(environment))
+                                        .setMaxCount(1)
+                                        .call();
+                                Iterator<RevCommit> iter = logs.iterator();
+                                if (iter.hasNext()) {
+                                    RevCommit revCommit = iter.next();
+                                    newCommitMessage += revCommit.getFullMessage() + "\n";
+                                    commitTime = 1000l * revCommit.getCommitTime();
+                                }
+                                newCommitMessage += message;
+                                git.commit().setAmend(true).setMessage(newCommitMessage).call();
+
+                                // tag
+                                Date tagDate2 = new Date(commitTime);
+                                Date publishDate = new Date();
+                                SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy-MM-dd'T'HHmmssSSSX");
+                                String tagName2 = sdf2.format(tagDate2) + "_published_on_" + sdf2.format(publishDate);
+                                PersonIdent authorIdent2 = helper.getAuthorIdent(author);
+                                Ref tagResult2 = git.tag().setTagger(authorIdent2).setName(tagName2).setMessage(newCommitMessage).call();
+                                break;
                             }
                             break;
 
