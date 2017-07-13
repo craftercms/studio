@@ -54,7 +54,7 @@ import org.craftercms.studio.api.v1.to.RepoOperationTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
-import org.craftercms.studio.impl.v1.util.git.CherryPickCommandExt;
+import org.craftercms.studio.impl.v1.util.git.CherryPickCommandEx;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.RefNotFoundException;
@@ -797,7 +797,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                             } else {
                                 logger.debug("Reset previous attempt to cherry-pick, and try again with merge strategy THEIRS.");
                                 git.reset().setMode(ResetCommand.ResetType.HARD).call();
-                                CherryPickCommandExt cp = new CherryPickCommandExt(repo);
+                                CherryPickCommandEx cp = new CherryPickCommandEx(repo);
                                 cp = cp.setMainlineParentNumber(pc)
                                         .setOurCommitName(message)
                                         .setNoCommit(false);
