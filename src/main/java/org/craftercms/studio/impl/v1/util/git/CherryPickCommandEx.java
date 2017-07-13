@@ -81,7 +81,7 @@ import org.eclipse.jgit.revwalk.RevWalk;
  *      href="http://www.kernel.org/pub/software/scm/git/docs/git-cherry-pick.html"
  *      >Git documentation about cherry-pick</a>
  */
-public class CherryPickCommandExt extends GitCommand<CherryPickResult> {
+public class CherryPickCommandEx extends GitCommand<CherryPickResult> {
     private String reflogPrefix = "cherry-pick:"; //$NON-NLS-1$
 
     private List<Ref> commits = new LinkedList<>();
@@ -97,7 +97,7 @@ public class CherryPickCommandExt extends GitCommand<CherryPickResult> {
     /**
      * @param repo
      */
-    public CherryPickCommandExt(Repository repo) {
+    public CherryPickCommandEx(Repository repo) {
         super(repo);
     }
 
@@ -177,7 +177,7 @@ public class CherryPickCommandExt extends GitCommand<CherryPickResult> {
      *            head
      * @return {@code this}
      */
-    public CherryPickCommandExt include(Ref commit) {
+    public CherryPickCommandEx include(Ref commit) {
         checkCallable();
         commits.add(commit);
         return this;
@@ -188,7 +188,7 @@ public class CherryPickCommandExt extends GitCommand<CherryPickResult> {
      *            the Id of a commit which is cherry-picked to the current head
      * @return {@code this}
      */
-    public CherryPickCommandExt include(AnyObjectId commit) {
+    public CherryPickCommandEx include(AnyObjectId commit) {
         return include(commit.getName(), commit);
     }
 
@@ -199,7 +199,7 @@ public class CherryPickCommandExt extends GitCommand<CherryPickResult> {
      *            the Id of a commit which is cherry-picked to the current head
      * @return {@code this}
      */
-    public CherryPickCommandExt include(String name, AnyObjectId commit) {
+    public CherryPickCommandEx include(String name, AnyObjectId commit) {
         return include(new ObjectIdRef.Unpeeled(Storage.LOOSE, name,
                 commit.copy()));
     }
@@ -210,7 +210,7 @@ public class CherryPickCommandExt extends GitCommand<CherryPickResult> {
      *            markers
      * @return {@code this}
      */
-    public CherryPickCommandExt setOurCommitName(String ourCommitName) {
+    public CherryPickCommandEx setOurCommitName(String ourCommitName) {
         this.ourCommitName = ourCommitName;
         return this;
     }
@@ -226,7 +226,7 @@ public class CherryPickCommandExt extends GitCommand<CherryPickResult> {
      * @return {@code this}
      * @since 3.1
      */
-    public CherryPickCommandExt setReflogPrefix(final String prefix) {
+    public CherryPickCommandEx setReflogPrefix(final String prefix) {
         this.reflogPrefix = prefix;
         return this;
     }
@@ -237,7 +237,7 @@ public class CherryPickCommandExt extends GitCommand<CherryPickResult> {
      * @return {@code this}
      * @since 3.4
      */
-    public CherryPickCommandExt setStrategy(MergeStrategy strategy) {
+    public CherryPickCommandEx setStrategy(MergeStrategy strategy) {
         this.strategy = strategy;
         return this;
     }
@@ -249,7 +249,7 @@ public class CherryPickCommandExt extends GitCommand<CherryPickResult> {
      * @return {@code this}
      * @since 3.4
      */
-    public CherryPickCommandExt setMainlineParentNumber(int mainlineParentNumber) {
+    public CherryPickCommandEx setMainlineParentNumber(int mainlineParentNumber) {
         this.mainlineParentNumber = Integer.valueOf(mainlineParentNumber);
         return this;
     }
@@ -266,7 +266,7 @@ public class CherryPickCommandExt extends GitCommand<CherryPickResult> {
      * @return {@code this}
      * @since 3.5
      */
-    public CherryPickCommandExt setNoCommit(boolean noCommit) {
+    public CherryPickCommandEx setNoCommit(boolean noCommit) {
         this.noCommit = noCommit;
         return this;
     }
