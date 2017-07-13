@@ -26,6 +26,9 @@ import java.util.regex.Pattern;
 
 import net.sf.json.JSON;
 import net.sf.json.JSONObject;
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.DmConstants;
@@ -553,6 +556,13 @@ public class SiteServiceImpl implements SiteService {
 		}
 
 		try {
+            success = success && destroySitePreviewContext(siteId);
+        } catch(Exception e) {
+            success = false;
+            logger.error("Failed to destroy the preview context for site:" + siteId, e);
+        }
+
+		try {
 		    logger.debug("Deleting repo");
 		    contentRepository.deleteSite(siteId);
 		} catch(Exception e) {
@@ -576,6 +586,36 @@ public class SiteServiceImpl implements SiteService {
 	    }
 
 	 	return success;
+    }
+
+    private boolean destroySitePreviewContext(String site) {
+        boolean toReturn = true;
+        String requestUrl = getDestroySitePreviewContextUrl(site);
+
+        GetMethod getMethod = new GetMethod(requestUrl);
+        getMethod.getParams().setBooleanParameter(HttpMethodParams.USE_EXPECT_CONTINUE, true);
+
+        HttpClient client = new HttpClient();
+        try {
+            int status = client.executeMethod(getMethod);
+            if (status != 200) {
+                toReturn = false;
+            }
+        } catch (IOException e) {
+            logger.error("Error while sending destroy preview context request for site " + site, e);
+            toReturn = false;
+        } finally {
+            getMethod.releaseConnection();
+        }
+        return toReturn;
+    }
+
+    private String getDestroySitePreviewContextUrl(String site) {
+	    StringBuilder sb = new StringBuilder(studioConfiguration.getProperty(PREVIEW_ENGINE_URL));
+        sb.append(studioConfiguration.getProperty(CONFIGURATION_SITE_PREVIEW_DESTROY_CONTEXT_URL));
+        String url = sb.toString();
+        url = url.replaceAll(StudioConstants.CONFIG_SITENAME_VARIABLE, site);
+        return url;
     }
 
     @Override
