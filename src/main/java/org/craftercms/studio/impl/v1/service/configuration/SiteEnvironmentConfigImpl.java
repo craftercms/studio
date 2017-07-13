@@ -23,7 +23,6 @@ import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
-import org.craftercms.studio.api.v1.service.configuration.DeploymentEndpointConfig;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.configuration.SiteEnvironmentConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
@@ -211,21 +210,12 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
 
     }
 
-    protected boolean checkEndpointConfigured(String site, String endpointName) {
-        DeploymentEndpointConfigTO endpointConfigTO = deploymentEndpointConfig.getDeploymentConfig(site, endpointName);
-        return (endpointConfigTO != null);
-    }
-
     public GeneralLockService getGeneralLockService() { return generalLockService; }
     public void setGeneralLockService(GeneralLockService generalLockService) { this.generalLockService = generalLockService; }
-
-    public DeploymentEndpointConfig getDeploymentEndpointConfig() { return deploymentEndpointConfig; }
-    public void setDeploymentEndpointConfig(DeploymentEndpointConfig deploymentEndpointConfig) { this.deploymentEndpointConfig = deploymentEndpointConfig; }
 
     public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
 
     protected GeneralLockService generalLockService;
-    protected DeploymentEndpointConfig deploymentEndpointConfig;
     protected StudioConfiguration studioConfiguration;
 }

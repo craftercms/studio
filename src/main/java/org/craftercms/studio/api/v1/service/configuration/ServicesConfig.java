@@ -24,7 +24,6 @@ import org.craftercms.studio.api.v1.to.DeleteDependencyConfigTO;
 import org.craftercms.studio.api.v1.to.DmFolderConfigTO;
 
 import java.util.List;
-import java.util.Set;
 
 /**
  * This class provides the repository configuration information
@@ -33,39 +32,6 @@ import java.util.Set;
  * 
  */
 public interface ServicesConfig {
-
-	/**
-	 * get content type by site name
-	 * 
-	 * @param site
-	 * @return content type
-	 */
-	//public QName getContentType(String site);
-
-	/**
-	 * get model configuration by site name
-	 * 
-	 * @param site
-	 * @return model configuration
-	 */
-	//public Map<QName, ModelConfigTO> getModelConfig(String site);
-
-	/**
-	 * get search columns configuration by site name
-	 * 
-	 * @param site
-	 * @return search columns configuration
-	 */
-	//public Map<String, QName> getSearchColumnsConfig(String site);
-
-	/**
-	 * get the content type by given namespace
-	 * 
-	 * @param site
-	 * @param namespace
-	 * @return QName if found. Otherwise it returns null
-	 */
-	//public QName getTypeByNamespace(String site, String namespace);
 
 	/**
 	 * get the root prefix of site. the root prefix represents the folder name
@@ -140,20 +106,18 @@ public interface ServicesConfig {
     List<String> getRenderingTemplatePatterns(String site);
 
     /**
+     * get scripts item URI patterns
+     *
+     * @return scripts item URI patterns
+     */
+    List<String> getScriptsPatterns(String site);
+
+    /**
      * get level descriptor item URI patterns
      *
      * @return level descriptor item URI patterns
      */
     List<String> getLevelDescriptorPatterns(String site);
-
-	/**
-	 * get the category root path specified for each category (e.g. /site/websites for Pages)
-	 * 
-	 * @param site
-	 * @param category
-	 * @return category root path
-	 */
-	//public String getCategoryRootPath(String site, String category);
 
 	/**
 	 * get the name of level descriptor 
@@ -180,22 +144,6 @@ public interface ServicesConfig {
 	 * @return
 	 */
 	List<CopyDependencyConfigTO> getCopyDependencyPatterns(String site, String contentType);
-	
-	/**
-	 * get the default search configuration for all content types
-	 * 
-	 * @param site
-	 * @return default search configuration
-	 */
-	//public SearchConfigTO getDefaultSearchConfig(String site);
-
-	/**
-	 * get a list of paths to exclude when traversing file/folder hierarchy
-	 * 
-	 * @param site
-	 * @return a list of paths to exclude
-	 */
-	//public List<String> getExcludePaths(String site);
 
 	/**
 	 * get a list of paths to display in widgets
@@ -211,24 +159,6 @@ public interface ServicesConfig {
 	 * @return default timezone
 	 */
 	String getDefaultTimezone(String site);
-
-	
-	/**
-	 * 
-	 * @param site
-	 * @return
-	 */
-	//public boolean isCheckForRename(String site);
-	
-	/**
-	 * get the common template configuration for the given site
-	 * 
-	 * @param site
-	 * @return
-	 */
-	//public TemplateConfigTO getTemplateConfig(String site);
-
-    //public String getRepositoryRootPath(String site);
     
     List<String> getPreviewableMimetypesPaterns(String site);
 

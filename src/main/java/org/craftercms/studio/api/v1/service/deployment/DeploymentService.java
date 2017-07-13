@@ -68,8 +68,6 @@ public interface DeploymentService {
 
     List<CopyToEnvironment> getDeploymentQueue(String site) throws ServiceException;
 
-    List<DeploymentEndpointConfigTO> getDeploymentEndpoints(String site);
-
     boolean cancelDeployment(String site, String path, long deploymentId) throws ServiceException;
 
     void bulkGoLive(String site, String environment, String path);

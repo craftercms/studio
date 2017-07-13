@@ -31,8 +31,6 @@ public class RepositoryConfigTO implements Serializable {
     protected String levelDescriptorName;
     /** top level folders **/
     protected List<DmFolderConfigTO> folders = null;
-    /** a list of paths to exclude when traversing file/folder hierarchy **/
-    //protected List<String> _excludePaths = null;
 
     /** page path patterns **/
     protected List<String> pagePatterns = null;
@@ -44,21 +42,13 @@ public class RepositoryConfigTO implements Serializable {
     protected List<String> documentPatterns = null;
     /** rendering template path patterns **/
     protected List<String> renderingTemplatePatterns = null;
+    /** scripts path patterns **/
+    protected List<String> scriptsPatterns = null;
     /** level descriptors path patterns **/
     protected List<String> levelDescriptorPatterns = null;
 
     /** content to display in widgets **/
     protected List<String> displayPatterns = null;
-
-    /** periodically index repository? **/
-    //protected boolean _indexRepository = false;
-    /** index life time. default = 1 hour **/
-    //protected long _indexTimeToLive = 3600000;
-
-    //protected boolean _checkForRenamed = false;
-
-    /** common template configuration **/
-    //protected TemplateConfigTO _templateConfig = null;
 
     /** previewable mimetypes patterns **/
     private List<String> previewableMimetypesPaterns;
@@ -136,23 +126,6 @@ public class RepositoryConfigTO implements Serializable {
     }
 
     /**
-     * get the root path of the given category (e.g. /site/website for Pages)
-     *
-     * @param category
-     * @return the category root path
-     *//*
-    public String getCategoryRootPath(String category) {
-        if (_folders != null) {
-            for (DmFolderConfigTO folder : _folders) {
-                if (folder.getName().equals(category)) {
-                    return folder.getPath();
-                }
-            }
-        }
-        return "";
-    }*/
-
-    /**
      * @param levelDescriptorName the levelDescriptorName to set
      */
     public void setLevelDescriptorName(String levelDescriptorName) {
@@ -165,48 +138,6 @@ public class RepositoryConfigTO implements Serializable {
     public String getLevelDescriptorName() {
         return levelDescriptorName;
     }
-
-    /**
-     * @param checkForRenamed the checkForRenamed to set
-     *//*
-    public void setCheckForRenamed(boolean checkForRenamed) {
-        this._checkForRenamed = checkForRenamed;
-    }*/
-
-    /**
-     * @return the useCollaborativeSandbox
-     *//*
-    public boolean isCheckForRenamed() {
-        return this._checkForRenamed;
-    }*/
-
-    /**
-     * @param indexRepository the indexRepository to set
-     *//*
-    public void setIndexRepository(boolean indexRepository) {
-        this._indexRepository = indexRepository;
-    }*/
-
-    /**
-     * @return the indexRepository
-     *//*
-    public boolean isIndexRepository() {
-        return _indexRepository;
-    }*/
-
-    /**
-     * @param indexTimeToLive the indexTimeToLive to set
-     *//*
-    public void setIndexTimeToLive(long indexTimeToLive) {
-        this._indexTimeToLive = indexTimeToLive;
-    }*/
-
-    /**
-     * @return the indexTimeToLive
-     *//*
-    public long getIndexTimeToLive() {
-        return _indexTimeToLive;
-    }*/
 
     /**
      * @param documentPatterns the documentPatterns to set
@@ -223,20 +154,6 @@ public class RepositoryConfigTO implements Serializable {
     }
 
     /**
-     * @return the excludePaths
-     *//*
-    public List<String> getExcludePaths() {
-        return _excludePaths;
-    }*/
-
-    /**
-     * @param excludePaths the excludePaths to set
-     *//*
-    public void setExcludePaths(List<String> excludePaths) {
-        this._excludePaths = excludePaths;
-    }*/
-
-    /**
      * @param displayPatterns the displayPatterns to set
      */
     public void setDisplayPatterns(List<String> displayPatterns) {
@@ -249,24 +166,6 @@ public class RepositoryConfigTO implements Serializable {
     public List<String> getDisplayPatterns() {
         return displayPatterns;
     }
-
-    /**
-     * @return the templateConfig
-     *//*
-    public TemplateConfigTO getTemplateConfig() {
-        if (_templateConfig == null) {
-            _templateConfig = new TemplateConfigTO();
-        }
-        return _templateConfig;
-    }*/
-
-    /**
-     * @param templateConfig the templateConfig to set
-     *//*
-    public void setTemplateConfig(TemplateConfigTO templateConfig) {
-        this._templateConfig = templateConfig;
-    }*/
-
 
     public List<String> getPreviewableMimetypesPaterns() {
         return previewableMimetypesPaterns;
@@ -284,6 +183,9 @@ public class RepositoryConfigTO implements Serializable {
     public void setRenderingTemplatePatterns(List<String> paterns) {
         this.renderingTemplatePatterns = paterns;
     }
+
+    public List<String> getScriptsPatterns() { return scriptsPatterns; }
+    public void setScriptsPatterns(List<String> scriptsPatterns) { this.scriptsPatterns = scriptsPatterns; }
 
     public List<String> getLevelDescriptorPatterns() {
         return this.levelDescriptorPatterns;

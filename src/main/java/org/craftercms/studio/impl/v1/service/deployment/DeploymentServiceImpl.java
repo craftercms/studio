@@ -32,7 +32,6 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.activity.ActivityService;
-import org.craftercms.studio.api.v1.service.configuration.DeploymentEndpointConfig;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
@@ -673,12 +672,6 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     @Override
-    public List<DeploymentEndpointConfigTO> getDeploymentEndpoints(String site) {
-        DeploymentConfigTO config = deploymentEndpointConfig.getSiteDeploymentConfig(site);
-        return new ArrayList<>(config.getEndpointMapping().values());
-    }
-
-    @Override
     public boolean cancelDeployment(String site, String path, long deploymentId) throws ServiceException {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("site", site);
@@ -773,9 +766,6 @@ public class DeploymentServiceImpl implements DeploymentService {
     public DmPublishService getDmPublishService() { return dmPublishService; }
     public void setDmPublishService(DmPublishService dmPublishService) { this.dmPublishService = dmPublishService; }
 
-    public DeploymentEndpointConfig getDeploymentEndpointConfig() { return deploymentEndpointConfig; }
-    public void setDeploymentEndpointConfig(DeploymentEndpointConfig deploymentEndpointConfig) { this.deploymentEndpointConfig = deploymentEndpointConfig; }
-
     public SecurityService getSecurityService() { return securityService; }
     public void setSecurityService(SecurityService securityService) { this.securityService = securityService; }
 
@@ -805,7 +795,6 @@ public class DeploymentServiceImpl implements DeploymentService {
     protected ObjectMetadataManager objectMetadataManager;
     protected ContentRepository contentRepository;
     protected DmPublishService dmPublishService;
-    protected DeploymentEndpointConfig deploymentEndpointConfig;
     protected SecurityService securityService;
     protected EventService eventService;
     protected DeployContentToEnvironmentStore deployContentToEnvironmentStoreJob;

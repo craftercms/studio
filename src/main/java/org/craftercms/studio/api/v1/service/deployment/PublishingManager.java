@@ -19,7 +19,6 @@ package org.craftercms.studio.api.v1.service.deployment;
 
 import org.craftercms.studio.api.v1.dal.CopyToEnvironment;
 import org.craftercms.studio.api.v1.ebus.DeploymentItem;
-import org.craftercms.studio.api.v1.to.DeploymentEndpointConfigTO;
 
 import java.util.List;
 import java.util.Set;

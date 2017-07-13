@@ -19,8 +19,6 @@ package org.craftercms.studio.api.v1.to;
 
 
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * SiteTO carries the configuration for a given share site There is some overlap
@@ -47,8 +45,6 @@ public class SiteTO implements Serializable {
 	protected String adminEmail;
 	/** admin email **/
 	protected boolean openSiteDropdown;
-
-    protected Map<String, DeploymentEndpointConfigTO> deploymentEndpointConfigs = new HashMap<String, DeploymentEndpointConfigTO>();
 	
 	/**
 	 * @return the site
@@ -158,12 +154,4 @@ public class SiteTO implements Serializable {
 		SiteTO targetSite = (SiteTO) target;
 		return this.toString().equals(targetSite.toString());
 	}
-
-    public Map<String, DeploymentEndpointConfigTO> getDeploymentEndpointConfigs() {
-        return deploymentEndpointConfigs;
-    }
-
-    public void setDeploymentEndpointConfigs(Map<String, DeploymentEndpointConfigTO> deploymentEndpointConfigs) {
-        this.deploymentEndpointConfigs = deploymentEndpointConfigs;
-    }
 }

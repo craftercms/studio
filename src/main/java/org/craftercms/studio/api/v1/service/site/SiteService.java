@@ -25,7 +25,6 @@ import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.SiteCreationException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.to.DeploymentEndpointConfigTO;
 import org.craftercms.studio.api.v1.to.PublishStatus;
 import org.craftercms.studio.api.v1.to.PublishingTargetTO;
 import org.dom4j.Document;
@@ -90,11 +89,7 @@ public interface SiteService {
 	 */
 	Map<String, Object> getConfiguration(String site, String path, boolean applyEnv);
 
-    DeploymentEndpointConfigTO getDeploymentEndpoint(String site, String endpoint);
-
     List<PublishingTargetTO> getPublishingTargetsForSite(String site);
-
-    DeploymentEndpointConfigTO getPreviewDeploymentEndpoint(String site);
 
     Set<String> getAllAvailableSites();
 

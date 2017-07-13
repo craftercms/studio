@@ -61,7 +61,6 @@
         <property name="contentService" ref="cstudioContentService"/>
         <property name="contentRepository" ref="contentRepository"/>
         <property name="environmentConfig" ref="cstudioEnvironmentConfig"/>
-        <property name="deploymentEndpointConfig" ref="cstudioDeploymentConfig"/>
         <property name="objectStateService" ref="cstudioObjectStateService" />
         <property name="dmDependencyService" ref="cstudioDmDependencyService"/>
         <property name="securityService" ref="cstudioSecurityService"/>
@@ -126,7 +125,6 @@
          <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
          <property name="contentRepository" ref="contentRepository"/>
          <property name="dmPublishService" ref="cstudioDmPublishService"/>
-         <property name="deploymentEndpointConfig" ref="cstudioDeploymentConfig"/>
          <property name="securityService" ref="cstudioSecurityService"/>
          <property name="deployContentToEnvironmentStoreJob" ref="cstudioDeployContentToEnvironmentJobs"/>
          <property name="notificationService" ref="cstudioNotificationService"/>
@@ -158,14 +156,7 @@
         <property name="contentService" ref="cstudioContentService"/>
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
         <property name="generalLockService" ref="cstudioGeneralLockService"/>
-        <property name="deploymentEndpointConfig" ref="cstudioDeploymentConfig" />
         <property name="studioConfiguration" ref="studioConfiguration"/>
-    </bean>
-
-    <bean id="cstudioDeploymentConfig" class="org.craftercms.studio.impl.v1.service.configuration.DeploymentEndpointConfigImpl">
-        <property name="contentService" ref="cstudioContentService"/>
-        <property name="generalLockService" ref="cstudioGeneralLockService"/>
-        <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
     <bean id="cstudioActivityService" class="org.craftercms.studio.impl.v1.service.activity.ActivityServiceImpl"

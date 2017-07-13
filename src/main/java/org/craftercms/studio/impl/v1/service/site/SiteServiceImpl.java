@@ -24,7 +24,6 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.google.gdata.util.common.base.StringUtil;
 import net.sf.json.JSON;
 import net.sf.json.JSONObject;
 import org.apache.commons.io.IOUtils;
@@ -51,7 +50,6 @@ import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.activity.ActivityService;
-import org.craftercms.studio.api.v1.service.configuration.DeploymentEndpointConfig;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.configuration.SiteEnvironmentConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
@@ -234,37 +232,9 @@ public class SiteServiceImpl implements SiteService {
 		siteConfig.setOpenSiteDropdown(environmentConfigTO.getOpenDropdown());
 	}
 
-	/***
-	 * load site environment specific info
-	 *
-	 * @param site
-	 * @param siteConfig
-	 */
-	protected void loadSiteDeploymentConfig(String site, SiteTO siteConfig) {
-		// get environment specific configuration
-		logger.debug("Loading deployment configuration for " + site + "; Environment: " + getEnvironment());
-		DeploymentConfigTO deploymentConfig = deploymentEndpointConfig.getSiteDeploymentConfig(site);
-		if (deploymentConfig == null) {
-			logger.error("Deployment configuration for site " + site + " does not exist.");
-			return;
-		}
-		siteConfig.setDeploymentEndpointConfigs(deploymentConfig.getEndpointMapping());
-	}
-
-    @Override
-    public DeploymentEndpointConfigTO getDeploymentEndpoint(String site, String endpoint) {
-        return deploymentEndpointConfig.getDeploymentConfig(site, endpoint);
-    }
-
     @Override
     public List<PublishingTargetTO> getPublishingTargetsForSite(String site) {
         return environmentConfig.getPublishingTargetsForSite(site);
-    }
-
-    @Override
-    public DeploymentEndpointConfigTO getPreviewDeploymentEndpoint(String site) {
-        String endpoint = environmentConfig.getPreviewDeploymentEndpoint(site);
-        return getDeploymentEndpoint(site, endpoint);
     }
 
     @Override
@@ -665,8 +635,6 @@ public class SiteServiceImpl implements SiteService {
         servicesConfig.reloadConfiguration(site);
         environmentConfig.reloadConfiguration(site);
         loadSiteEnvironmentConfig(site, siteConfig);
-        deploymentEndpointConfig.reloadConfiguration(site);
-        loadSiteDeploymentConfig(site, siteConfig);
 		notificationService.reloadConfiguration(site);
         securityService.reloadConfiguration(site);
         contentTypeService.reloadConfiguration(site);
@@ -1057,9 +1025,6 @@ public class SiteServiceImpl implements SiteService {
 	public SiteEnvironmentConfig getEnvironmentConfig() { return environmentConfig; }
 	public void setEnvironmentConfig(SiteEnvironmentConfig environmentConfig) { this.environmentConfig = environmentConfig; }
 
-	public DeploymentEndpointConfig getDeploymentEndpointConfig() { return deploymentEndpointConfig; }
-	public void setDeploymentEndpointConfig(DeploymentEndpointConfig deploymentEndpointConfig) { this.deploymentEndpointConfig = deploymentEndpointConfig; }
-
 	public ContentRepository getContenetRepository() { return contentRepository; }
 	public void setContentRepository(ContentRepository repo) { contentRepository = repo; }
 
@@ -1127,7 +1092,6 @@ public class SiteServiceImpl implements SiteService {
 	protected ServicesConfig servicesConfig;
 	protected ContentService contentService;
 	protected SiteEnvironmentConfig environmentConfig;
-	protected DeploymentEndpointConfig deploymentEndpointConfig;
 	protected ContentRepository contentRepository;
 	protected ObjectStateService objectStateService;
 	protected DmDependencyService dmDependencyService;
