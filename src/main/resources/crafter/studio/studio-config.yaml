@@ -77,6 +77,8 @@ studio.configuration.site.defaultAdminGroup: Admin
 studio.configuration.site.dataSources.configBasePath: /config/studio/data-sources
 # File name where data sources configuration is stored.
 studio.configuration.site.dataSources.configFileName: cmis-config.xml
+# Destroy site context url for preview engine
+studio.configuration.site.preview.destroy.sontext.url: /api/1/site/context/destroy.json?crafterSite={siteName}
 ########################################################
 ##                   Import Service                   ##
 ########################################################
