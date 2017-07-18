@@ -262,6 +262,10 @@ public class DeploymentServiceImpl implements DeploymentService {
                     deleteFolder(site, path.replace("/" + DmConstants.INDEX_FILE, ""), approver);
                 }
             }
+            String lastRepoCommitId = contentRepository.getRepoLastCommitId(site);
+            if (StringUtils.isNotEmpty(lastRepoCommitId)) {
+                item.setCommitId(lastRepoCommitId);
+            }
 
         }
         return newItems;
