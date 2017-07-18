@@ -726,6 +726,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             try (Git git = new Git(repo)) {
 
                 // checkout environment branch
+                logger.info("Checkout environment branch " + environment + " for site " + site);
                 try {
                     Ref checkoutResult = git.checkout()
                             .setName(environment)
@@ -740,12 +741,14 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 }
 
                 // fetch "origin/master"
+                logger.info("Fetch from sandbox for site " + site);
                 FetchResult fetchResult = git.fetch().call();
 
                 // cherry pick all commit ids
                 for (String cId:
                      commitIds) {
                     commitId = cId;
+                    logger.info("Cherry-picking commit id " + commitId);
                     String message = studioConfiguration.getProperty(REPO_PUBLISHED_CHERRY_PICK_MESSAGE);
                     message = message.replace(studioConfiguration.getProperty(REPO_PUBLISHED_CHERRY_PICK_MESSAGE_REPLACE), commitId);
 
@@ -846,6 +849,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                             break;
 
                         case OK:
+                            logger.info("Cherry-pick completed successfully.");
                             String newCommitMessage = StringUtils.EMPTY;
                             Iterable<RevCommit> logs = git.log()
                                     .add(repo.resolve(environment))
