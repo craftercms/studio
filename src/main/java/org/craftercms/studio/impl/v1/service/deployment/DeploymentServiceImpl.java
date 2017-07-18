@@ -217,6 +217,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         List<CopyToEnvironment> newItems = new ArrayList<CopyToEnvironment>(paths.size());
         for (String path : paths) {
             CopyToEnvironment item = new CopyToEnvironment();
+            ObjectMetadata metadata = objectMetadataManager.getProperties(site, path);
             item.setId(++CTED_AUTOINCREMENT);
             item.setSite(site);
             item.setEnvironment(environment);
@@ -224,9 +225,17 @@ public class DeploymentServiceImpl implements DeploymentService {
             item.setScheduledDate(scheduledDate);
             item.setState(CopyToEnvironment.State.READY_FOR_LIVE);
             item.setAction(CopyToEnvironment.Action.DELETE);
-            if (objectMetadataManager.isRenamed(site, path)) {
-                String oldPath = objectMetadataManager.getOldPath(site, item.getPath());
-                item.setOldPath(oldPath);
+            if (metadata != null) {
+                if (metadata.getRenamed() > 0) {
+                    String oldPath = metadata.getOldUrl();
+                    item.setOldPath(oldPath);
+                }
+                String commitId = metadata.getCommitId();
+                if (StringUtils.isNotEmpty(commitId)) {
+                    item.setCommitId(commitId);
+                } else {
+                    item.setCommitId(contentRepository.getRepoLastCommitId(site));
+                }
             }
             String contentTypeClass = contentService.getContentTypeClass(site, path);
             item.setContentTypeClass(contentTypeClass);
