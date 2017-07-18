@@ -928,9 +928,11 @@ public class ContentServiceImpl implements ContentService {
                 //proposedDestPath = getNextAvailableName(site, proposedDestPath);
 
                 if(proposedDestPath.indexOf("/index.xml") == -1) {
+                    int pdpli = proposedDestPath.lastIndexOf(".");
+                    if (pdpli == -1) pdpli = proposedDestPath.length();
                     proposedDestPath =
-                            proposedDestPath.substring(0, proposedDestPath.lastIndexOf(".")) + "-" + id +
-                                    proposedDestPath.substring(proposedDestPath.lastIndexOf("."));
+                            proposedDestPath.substring(0, pdpli) + "-" + id +
+                                    proposedDestPath.substring(pdpli);
 
                     // a regex would be better
                     proposedDestPath_filename = proposedDestPath.substring(proposedDestPath.lastIndexOf("/")+1);
