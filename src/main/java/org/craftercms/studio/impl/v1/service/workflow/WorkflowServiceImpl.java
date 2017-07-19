@@ -1499,11 +1499,6 @@ public class WorkflowServiceImpl implements WorkflowService {
             if (!isNew || isItemForSchedule) {
                 deleteItems.add(submittedItem);
             }
-            ContentItemTO itemToDelete = contentService.getContentItem(site,uri);
-            if (objectMetadataManager.isRenamed(site, uri)) {
-                ObjectMetadata metadata = objectMetadataManager.getProperties(site, uri);
-                itemsToDelete.add(metadata.getOldUrl());
-            }
         }
         GoLiveContext context = new GoLiveContext(approver, site);
         final String pathPrefix = "/wem-projects/" + site + "/" + site + "/work-area";
@@ -1551,12 +1546,6 @@ public class WorkflowServiceImpl implements WorkflowService {
                     removeChildFromSubmitPackForDelete(submitPackPaths);
                 }
                 Map<String, String> submittedBy = new HashMap<>();
-
-                /* TODO: add to submitted by mapping
-                for (String longPath : submitPackPaths) {
-                    String uri = longPath.substring(pathPrefix.length());
-                    //DmUtils.addToSubmittedByMapping(persistenceManagerService, dmContentService, searchService, site, uri, submittedBy, approver);
-                }*/
 
                 workflowProcessor.addToWorkflow(site, new ArrayList<String>(), launchDate, label, deleteOperation, approver, null);
             }
