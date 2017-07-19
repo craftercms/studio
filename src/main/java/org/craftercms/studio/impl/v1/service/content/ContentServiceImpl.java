@@ -660,9 +660,8 @@ public class ContentServiceImpl implements ContentService {
 
             if (commitId != null) {
                 // Update the database with the commitId for the target item
-                updateDatabaseOnMove(site, fromPath, movePath);
-                updateChildrenOnMove(site, fromPath, movePath);
-                objectMetadataManager.updateCommitId(site, movePath, commitId);
+                updateDatabaseOnMove(site, fromPath, movePath, commitId);
+                updateChildrenOnMove(site, fromPath, movePath, commitId);
                 siteService.updateLastCommitId(site, commitId);
             }
             else {
@@ -681,7 +680,7 @@ public class ContentServiceImpl implements ContentService {
         return movePath;
     }
 
-    protected void updateDatabaseOnMove(String site, String fromPath, String movePath) {
+    protected void updateDatabaseOnMove(String site, String fromPath, String movePath, String commitId) {
         logger.debug("updateDatabaseOnMove FROM {0} TO {1}  ", fromPath, movePath);
 
         String user = securityService.getCurrentUser();
@@ -725,6 +724,7 @@ public class ContentServiceImpl implements ContentService {
         }
 
         objectMetadataManager.updateObjectPath(site, fromPath, movePath);
+        objectMetadataManager.updateCommitId(site, movePath, commitId);
 
         // write activity stream
         activityService.renameContentId(site, fromPath, movePath);
@@ -781,7 +781,7 @@ public class ContentServiceImpl implements ContentService {
         }
     }
 
-    protected void updateChildrenOnMove(String site, String fromPath, String movePath) {
+    protected void updateChildrenOnMove(String site, String fromPath, String movePath, String commitId) {
         logger.debug("updateChildrenOnMove from {0} to {1}", fromPath, movePath);
 
         // get the list of children
@@ -801,10 +801,10 @@ public class ContentServiceImpl implements ContentService {
             logger.debug("updateChildrenOnMove handling child from: {0} to: {1}  ", childFromPath, childToPath);
 
             // update database, preview, cache etc
-            updateDatabaseOnMove(site, childFromPath, childToPath);
+            updateDatabaseOnMove(site, childFromPath, childToPath, commitId);
 
             // handle this child's children
-            updateChildrenOnMove(site, childFromPath, childToPath);
+            updateChildrenOnMove(site, childFromPath, childToPath, commitId);
         }
     }
 
