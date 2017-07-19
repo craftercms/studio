@@ -163,7 +163,7 @@
                 <datasource>
                     <name>CMIS-repo</name>
                     <icon>
-                        <class>fa-search</class>
+                        <class>fa-plug</class>
                     </icon>
                 </datasource>
                 <datasource>
