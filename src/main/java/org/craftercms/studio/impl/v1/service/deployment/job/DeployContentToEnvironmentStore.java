@@ -128,7 +128,9 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
                                                     logger.debug("Processing [{0}] content item for site \"{1}\"", item
                                                             .getPath(), site);
                                                     DeploymentItem deploymentItem = publishingManager.processItem(item);
-                                                    deploymentItemList.add(deploymentItem);
+                                                    if (!(item.getAction().equals(CopyToEnvironment.Action.DELETE) && deploymentItem.getLastPublishedCommitId() == null)) {
+                                                        deploymentItemList.add(deploymentItem);
+                                                    }
                                                     logger.debug("Processing COMPLETE [{0}] content item for site \"{1}\"",
                                                             item.getPath(), site);
 
