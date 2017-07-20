@@ -512,7 +512,7 @@ public class ContentServiceImpl implements ContentService {
                 ContentItemTO fromItem = getContentItem(site, fromPath, 0);
 
                 if (fromItem.isFolder()) {
-                    createFolder(site, toPath, copyFileName);
+                    createFolder(site, copyPathOnly, copyFileName);
                     // copy was successful, return the new name
                     retNewFileName = copyPath;
                 } else {
