@@ -27,6 +27,7 @@ import org.craftercms.studio.api.v1.to.VersionTO;
 import java.io.InputStream;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /**
  * This interface represents the repository layer of Crafter Studio.  All interaction with the backend
@@ -91,7 +92,7 @@ public interface ContentRepository {
      * @param toPath target path
      * @return Commit ID if successful, null otherwise
      */
-    String moveContent(String site, String fromPath, String toPath);
+    Map<String, String> moveContent(String site, String fromPath, String toPath);
 
     /**
      * move content from PathA to pathB
@@ -103,7 +104,7 @@ public interface ContentRepository {
      * @return Commit ID if successful, empty string otherwise
      */
     // TODO: SJ: Should refactor to be from path to path without the newName param
-    String moveContent(String site, String fromPath, String toPath, String newName);
+    Map<String, String> moveContent(String site, String fromPath, String toPath, String newName);
 
     /**
      * copy content from PathA to pathB

@@ -656,13 +656,16 @@ public class ContentServiceImpl implements ContentService {
             logger.debug("Move file for site {0} from {1} to {2}, sourcePath {3} to target path {4}", site, fromPath, toPath, sourcePath, targetPath);
 
             // NOTE: IN WRITE SCENARIOS the repository OP IS PART of this PIPELINE, for some reason, historically with MOVE it is not
-            String commitId = _contentRepository.moveContent(site, sourcePath, targetPath);
+            Map<String, String> commitIds = _contentRepository.moveContent(site, sourcePath, targetPath);
 
-            if (commitId != null) {
+            if (commitIds != null) {
                 // Update the database with the commitId for the target item
-                updateDatabaseOnMove(site, fromPath, movePath, commitId);
-                updateChildrenOnMove(site, fromPath, movePath, commitId);
-                siteService.updateLastCommitId(site, commitId);
+                updateDatabaseOnMove(site, fromPath, movePath);
+                updateChildrenOnMove(site, fromPath, movePath);
+                for (Map.Entry<String, String> entry : commitIds.entrySet()) {
+                    objectMetadataManager.updateCommitId(site, "/" + entry.getKey(), entry.getValue());
+                }
+                siteService.updateLastCommitId(site, _contentRepository.getRepoLastCommitId(site));
             }
             else {
                 logger.error("Repository move failed site {0} from {1} to {2}", site, sourcePath, targetPath);
@@ -680,7 +683,7 @@ public class ContentServiceImpl implements ContentService {
         return movePath;
     }
 
-    protected void updateDatabaseOnMove(String site, String fromPath, String movePath, String commitId) {
+    protected void updateDatabaseOnMove(String site, String fromPath, String movePath) {
         logger.debug("updateDatabaseOnMove FROM {0} TO {1}  ", fromPath, movePath);
 
         String user = securityService.getCurrentUser();
@@ -724,7 +727,6 @@ public class ContentServiceImpl implements ContentService {
         }
 
         objectMetadataManager.updateObjectPath(site, fromPath, movePath);
-        objectMetadataManager.updateCommitId(site, movePath, commitId);
 
         // write activity stream
         activityService.renameContentId(site, fromPath, movePath);
@@ -781,7 +783,7 @@ public class ContentServiceImpl implements ContentService {
         }
     }
 
-    protected void updateChildrenOnMove(String site, String fromPath, String movePath, String commitId) {
+    protected void updateChildrenOnMove(String site, String fromPath, String movePath) {
         logger.debug("updateChildrenOnMove from {0} to {1}", fromPath, movePath);
 
         // get the list of children
@@ -801,10 +803,10 @@ public class ContentServiceImpl implements ContentService {
             logger.debug("updateChildrenOnMove handling child from: {0} to: {1}  ", childFromPath, childToPath);
 
             // update database, preview, cache etc
-            updateDatabaseOnMove(site, childFromPath, childToPath, commitId);
+            updateDatabaseOnMove(site, childFromPath, childToPath);
 
             // handle this child's children
-            updateChildrenOnMove(site, childFromPath, childToPath, commitId);
+            updateChildrenOnMove(site, childFromPath, childToPath);
         }
     }
 

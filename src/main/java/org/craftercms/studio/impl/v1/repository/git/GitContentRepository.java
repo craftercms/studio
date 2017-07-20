@@ -247,14 +247,14 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     @Override
-    public String moveContent(String site, String fromPath, String toPath) {
+    public Map<String, String> moveContent(String site, String fromPath, String toPath) {
         return moveContent(site, fromPath, toPath, null);
     }
 
     @Override
-    public String moveContent(String site, String fromPath, String toPath, String newName) {
-        String commitId = null;
-
+    public Map<String, String> moveContent(String site, String fromPath, String toPath, String newName) {
+        Map<String, String> toRet = new TreeMap<String, String>();
+        String commitId;
         synchronized (helper.getRepository(site, StringUtils.isEmpty(site) ? GitRepositories.GLOBAL : SANDBOX)) {
             Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GitRepositories.GLOBAL :
                     GitRepositories.SANDBOX);
@@ -302,16 +302,23 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
                 // The operation is done on disk, now it's time to commit
                 git.add().addFilepattern(gitToPath).call();
-                RevCommit commit = git.commit().setOnly(gitFromPath).setOnly(gitToPath).setAuthor(helper.getCurrentUserIdent()).setCommitter(helper.getCurrentUserIdent()).setMessage("Moving " + fromPath + " to " + toPath + newName).call();
-                commitId = commit.getName();
 
+                Status gitStatus = git.status().addPath(gitToPath).call();
+                Set<String> changeSet = gitStatus.getAdded();
+
+                for (String pathToCommit : changeSet) {
+                    String pathRemoved = pathToCommit.replace(gitToPath, gitFromPath);
+                    RevCommit commit = git.commit().setOnly(pathToCommit).setOnly(pathRemoved).setAuthor(helper.getCurrentUserIdent()).setCommitter(helper.getCurrentUserIdent()).setMessage("Moving " + fromPath + " to " + toPath + newName).call();
+                    commitId = commit.getName();
+                    toRet.put(pathToCommit, commitId);
+                }
                 git.close();
             } catch (IOException | GitAPIException e) {
                 logger.error("Error while moving content for site: " + site + " fromPath: " + fromPath + " toPath: " + toPath + " newName: " + newName);
             }
         }
 
-        return commitId;
+        return toRet;
     }
 
     @Override
