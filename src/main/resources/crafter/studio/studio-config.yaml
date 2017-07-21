@@ -128,7 +128,7 @@ studio.objectState.bulkOperationsBatchSize: 500
 ##########################################################
 ##                   Security Service                   ##
 ##########################################################
-# HTTP Session timeout for studio.
+# HTTP Session timeout for studio (value is in minutes).
 studio.security.sessionTimeout: 60
 # Urls to include in restriction for authenticated user only.
 studio.security.urlsToInclude: /api/**
