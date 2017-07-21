@@ -96,11 +96,11 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
                         logger.warn("No LDAP attribute " + lastNameAttribName + " found for username " + username);
                     }
 
-                    String siteId = StringUtils.EMPTY;
-                    SiteFeed siteFeed = null;
+                    String siteId;
+                    SiteFeed siteFeed;
                     if (siteIdAttrib != null && siteIdAttrib.get() != null) {
                         siteId = siteIdAttrib.get().toString();
-                        Map<String, Object> params = new HashMap<String, Object>();
+                        Map<String, Object> params = new HashMap<>();
                         params.put("siteId", siteId);
                         siteFeed = siteFeedMapper.getSite(params);
                         if (groupNameAttrib != null && groupNameAttrib.size() > 0) {
@@ -114,7 +114,7 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
                                 g.setSiteId(siteFeed.getId());
                                 g.setSite(siteFeed.getSiteId());
                                 if (user.getGroups() == null) {
-                                    user.setGroups(new ArrayList<Group>());
+                                    user.setGroups(new ArrayList<>());
                                 }
                                 user.getGroups().add(g);
                             }
@@ -136,7 +136,7 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
 
         // Create ldap query to authenticate user
         LdapQuery ldapQuery = query().where(studioConfiguration.getProperty(SECURITY_LDAP_USER_ATTRIBUTE_USERNAME)).is(username);
-        User user = null;
+        User user;
         try {
             user = ldapTemplate.authenticate(ldapQuery, password, mapper);
         } catch (EmptyResultDataAccessException e) {
@@ -177,7 +177,8 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
             for (Group group : user.getGroups()) {
                 try {
                     upsertUserGroup(group.getSite(), group.getName(), user.getUsername());
-                } catch (GroupAlreadyExistsException | SiteNotFoundException | UserNotFoundException | UserAlreadyExistsException | GroupNotFoundException e) {
+                } catch (GroupAlreadyExistsException | SiteNotFoundException | UserNotFoundException |
+                    UserAlreadyExistsException | GroupNotFoundException e) {
                     logger.error("Failed to upsert user groups data from LDAP", e);
                 }
             }
@@ -209,7 +210,8 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
         }
     }
 
-    private boolean upsertUserGroup(String siteId, String groupName, String username) throws GroupAlreadyExistsException, SiteNotFoundException, UserNotFoundException, UserAlreadyExistsException, GroupNotFoundException {
+    private boolean upsertUserGroup(String siteId, String groupName, String username) throws GroupAlreadyExistsException,
+        SiteNotFoundException, UserNotFoundException, UserAlreadyExistsException, GroupNotFoundException {
         if (!groupExists(siteId, groupName)) {
            createGroup(groupName, "Externally managed group", siteId, true);
         }
