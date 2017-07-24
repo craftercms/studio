@@ -1,5 +1,5 @@
 <#import "/templates/system/common/cstudio-support.ftl" as studio />
-<header id="header" <@studio.componentAttr path=contentModel.storeUrl ice=true />>
+<header id="header" <@studio.componentAttr path=contentModel.storeUrl ice=true iceGroup="header"/>>
     <a href="/" class="logo"><img border="0" alt="${contentModel.logo_text!""}" src="${contentModel.logo!""}">
         <#if profile??>
             <#assign name = profile.attributes.name!"stranger" />
