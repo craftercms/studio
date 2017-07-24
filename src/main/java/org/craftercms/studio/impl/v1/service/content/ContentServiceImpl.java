@@ -436,7 +436,7 @@ public class ContentServiceImpl implements ContentService {
         commitId = _contentRepository.deleteContent(site, path, approver);
 
         objectStateService.deleteObjectStateForPath(site, path);
-        objectMetadataManager.deleteObjectMetadata(site, path);
+        //objectMetadataManager.deleteObjectMetadata(site, path);
         dependencyService.deleteDependenciesForSiteAndPath(site, path);
 
         PreviewEventContext context = new PreviewEventContext();
