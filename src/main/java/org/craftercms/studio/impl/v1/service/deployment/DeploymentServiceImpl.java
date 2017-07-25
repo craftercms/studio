@@ -216,43 +216,45 @@ public class DeploymentServiceImpl implements DeploymentService {
     private List<CopyToEnvironment> createDeleteItems(String site, String environment, List<String> paths, String approver, Date scheduledDate) {
         List<CopyToEnvironment> newItems = new ArrayList<CopyToEnvironment>(paths.size());
         for (String path : paths) {
-            ContentItemTO contentItem = contentService.getContentItem(site, path, 0);
-            if (!contentItem.isFolder()) {
-                CopyToEnvironment item = new CopyToEnvironment();
-                ObjectMetadata metadata = objectMetadataManager.getProperties(site, path);
-                item.setId(++CTED_AUTOINCREMENT);
-                item.setSite(site);
-                item.setEnvironment(environment);
-                item.setPath(path);
-                item.setScheduledDate(scheduledDate);
-                item.setState(CopyToEnvironment.State.READY_FOR_LIVE);
-                item.setAction(CopyToEnvironment.Action.DELETE);
-                if (metadata != null) {
-                    if (metadata.getRenamed() > 0) {
-                        String oldPath = metadata.getOldUrl();
-                        item.setOldPath(oldPath);
+            if (contentService.contentExists(site, path)) {
+                ContentItemTO contentItem = contentService.getContentItem(site, path, 0);
+                if (!contentItem.isFolder()) {
+                    CopyToEnvironment item = new CopyToEnvironment();
+                    ObjectMetadata metadata = objectMetadataManager.getProperties(site, path);
+                    item.setId(++CTED_AUTOINCREMENT);
+                    item.setSite(site);
+                    item.setEnvironment(environment);
+                    item.setPath(path);
+                    item.setScheduledDate(scheduledDate);
+                    item.setState(CopyToEnvironment.State.READY_FOR_LIVE);
+                    item.setAction(CopyToEnvironment.Action.DELETE);
+                    if (metadata != null) {
+                        if (metadata.getRenamed() > 0) {
+                            String oldPath = metadata.getOldUrl();
+                            item.setOldPath(oldPath);
+                        }
+                        String commitId = metadata.getCommitId();
+                        if (StringUtils.isNotEmpty(commitId)) {
+                            item.setCommitId(commitId);
+                        } else {
+                            item.setCommitId(contentRepository.getRepoLastCommitId(site));
+                        }
                     }
-                    String commitId = metadata.getCommitId();
-                    if (StringUtils.isNotEmpty(commitId)) {
-                        item.setCommitId(commitId);
-                    } else {
-                        item.setCommitId(contentRepository.getRepoLastCommitId(site));
-                    }
-                }
-                String contentTypeClass = contentService.getContentTypeClass(site, path);
-                item.setContentTypeClass(contentTypeClass);
-                item.setUser(approver);
-                newItems.add(item);
+                    String contentTypeClass = contentService.getContentTypeClass(site, path);
+                    item.setContentTypeClass(contentTypeClass);
+                    item.setUser(approver);
+                    newItems.add(item);
 
-                if (contentService.contentExists(site, path)) {
-                    contentService.deleteContent(site, path, approver);
+                    if (contentService.contentExists(site, path)) {
+                        contentService.deleteContent(site, path, approver);
+                    }
+                    String lastRepoCommitId = contentRepository.getRepoLastCommitId(site);
+                    if (StringUtils.isNotEmpty(lastRepoCommitId)) {
+                        item.setCommitId(lastRepoCommitId);
+                    }
+                } else {
+                    deleteFolder(site, path, approver);
                 }
-                String lastRepoCommitId = contentRepository.getRepoLastCommitId(site);
-                if (StringUtils.isNotEmpty(lastRepoCommitId)) {
-                    item.setCommitId(lastRepoCommitId);
-                }
-            } else {
-                deleteFolder(site, path, approver);
             }
         }
         return newItems;
