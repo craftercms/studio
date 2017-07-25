@@ -18,10 +18,11 @@
 
 package org.craftercms.studio.api.v1.service.cmis;
 
-import org.craftercms.studio.api.v1.exception.CmisTimeoutException;
-import org.craftercms.studio.api.v1.exception.CmisUnavailableException;
+import org.craftercms.studio.api.v1.exception.*;
 import org.craftercms.studio.api.v1.to.CmisContentItemTO;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
 import java.util.List;
 
 /** Cmis Service **/
@@ -34,4 +35,6 @@ public interface CmisService {
     long searchTotal(String site, String cmisRepo, String searchTerm, String path) throws CmisUnavailableException, CmisTimeoutException;
 
     List<CmisContentItemTO> search(String site, String cmisRepo, String searchTerm, String path, int start, int number) throws CmisUnavailableException, CmisTimeoutException;
+
+    void cloneContent(String siteId, String cmisRepoId, String cmisPath, String studioPath) throws CmisUnavailableException, CmisTimeoutException, CmisPathNotFoundException, ServiceException, StudioPathNotFoundException;
 }
