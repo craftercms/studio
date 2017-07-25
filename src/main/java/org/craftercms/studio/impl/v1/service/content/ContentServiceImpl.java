@@ -738,7 +738,9 @@ public class ContentServiceImpl implements ContentService {
             activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
         }
 
-        activityService.postActivity(site, user, movePath, ActivityService.ActivityType.UPDATED, ActivityService.ActivitySource.UI, activityInfo);
+        if (!renamedItem.isFolder()) {
+            activityService.postActivity(site, user, movePath, ActivityService.ActivityType.UPDATED, ActivityService.ActivitySource.UI, activityInfo);
+        }
 
         updateDependenciesOnMove(site, fromPath, movePath);
     }
