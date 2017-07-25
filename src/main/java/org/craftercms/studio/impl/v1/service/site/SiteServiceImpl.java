@@ -382,7 +382,7 @@ public class SiteServiceImpl implements SiteService {
 	    if (success) {
 		    // Now that everything is created, we can sync the preview deployer with the new content
 		    try {
-			    deploymentService.syncAllContentToPreview(siteId);
+			    deploymentService.syncAllContentToPreview(siteId, true);
 		    } catch (ServiceException e) {
 			    // TODO: SJ: We need better exception handling here
 			    logger.error("Error while syncing site: " + siteName + " ID: " + siteId + " to preview. Site was "
@@ -867,7 +867,7 @@ public class SiteServiceImpl implements SiteService {
         updateLastCommitId(site, lastCommitId);
         // Sync all preview deployers
         try {
-            deploymentService.syncAllContentToPreview(site);
+            deploymentService.syncAllContentToPreview(site, false);
         } catch (ServiceException e) {
             logger.error("Error synchronizing preview with repository for site: " + site, e);
         }
