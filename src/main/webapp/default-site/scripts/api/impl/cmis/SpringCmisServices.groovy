@@ -50,4 +50,9 @@ class SpringCmisServices {
         def springBackedService = this.context.applicationContext.get("studioCmisService")
         return springBackedService.search(site, cmisRepo, searchTerm, path, start, number)
     }
+
+    def cloneContent(site, cmisRepoId, cmisPath, studioPath) {
+        def springBackedService = this.context.applicationContext.get("studioCmisService")
+        return springBackedService.cloneContent(site, cmisRepoId, cmisPath, studioPath)
+    }
 }
