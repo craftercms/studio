@@ -232,10 +232,15 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     GitRepositories.SANDBOX);
 
             try (Git git = new Git(repo)) {
-                git.rm().addFilepattern(helper.getGitPath(path)).setCached(false).call();
+                String pathToDelete = helper.getGitPath(path);
+                //Path toDelete = Paths.get(repo.getDirectory().getParent(), pathToDelete);
+                Path parentToDelete = Paths.get(pathToDelete).getParent();
+                git.rm().addFilepattern(pathToDelete).setCached(false).call();
+
+                String pathToCommit = deleteParentFolder(git, parentToDelete);
 
                 // TODO: SJ: we need to define messages in a string table of sorts
-                commitId = helper.commitFile(repo, site, path, "Delete file " + path, StringUtils.isEmpty(approver) ? helper.getCurrentUserIdent() : helper.getAuthorIdent(approver));
+                commitId = helper.commitFile(repo, site, pathToCommit, "Delete file " + path, StringUtils.isEmpty(approver) ? helper.getCurrentUserIdent() : helper.getAuthorIdent(approver));
 
                 git.close();
             } catch (GitAPIException e) {
@@ -244,6 +249,26 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         }
 
         return commitId;
+    }
+
+    private String deleteParentFolder(Git git, Path parentFolder) throws GitAPIException {
+        String parent = parentFolder.toString();
+        String toRet = parent;
+        String folderToDelete = helper.getGitPath(parent);
+        Path toDelete = Paths.get(git.getRepository().getDirectory().getParent(), parent);
+        String[] children = toDelete.toFile().list();
+        if (children != null && children.length < 2) {
+            if (children.length == 1 || children[0].equals(".keep")) {
+                Path ancestor = parentFolder.getParent();
+                git.rm().addFilepattern(helper.getGitPath(folderToDelete + File.separator + ".keep")).setCached(false).call();
+                toRet = deleteParentFolder(git, ancestor);
+            } else {
+                Path ancestor = parentFolder.getParent();
+                git.rm().addFilepattern(helper.getGitPath(parentFolder.toString())).setCached(false).call();
+                toRet = deleteParentFolder(git, ancestor);
+            }
+        }
+        return toRet;
     }
 
     @Override

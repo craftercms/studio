@@ -216,57 +216,42 @@ public class DeploymentServiceImpl implements DeploymentService {
     private List<CopyToEnvironment> createDeleteItems(String site, String environment, List<String> paths, String approver, Date scheduledDate) {
         List<CopyToEnvironment> newItems = new ArrayList<CopyToEnvironment>(paths.size());
         for (String path : paths) {
-            CopyToEnvironment item = new CopyToEnvironment();
-            ObjectMetadata metadata = objectMetadataManager.getProperties(site, path);
-            item.setId(++CTED_AUTOINCREMENT);
-            item.setSite(site);
-            item.setEnvironment(environment);
-            item.setPath(path);
-            item.setScheduledDate(scheduledDate);
-            item.setState(CopyToEnvironment.State.READY_FOR_LIVE);
-            item.setAction(CopyToEnvironment.Action.DELETE);
-            if (metadata != null) {
-                if (metadata.getRenamed() > 0) {
-                    String oldPath = metadata.getOldUrl();
-                    item.setOldPath(oldPath);
-                }
-                String commitId = metadata.getCommitId();
-                if (StringUtils.isNotEmpty(commitId)) {
-                    item.setCommitId(commitId);
-                } else {
-                    item.setCommitId(contentRepository.getRepoLastCommitId(site));
-                }
-            }
-            String contentTypeClass = contentService.getContentTypeClass(site, path);
-            item.setContentTypeClass(contentTypeClass);
-            item.setUser(approver);
-            newItems.add(item);
-
-
-            boolean haschildren = false;
-            if (path.endsWith("/" + DmConstants.INDEX_FILE)) {
-                String folderPath = path.replace("/" + DmConstants.INDEX_FILE, "");
-                if (contentService.contentExists(site, folderPath)) {
-                    RepositoryItem[] children = contentRepository.getContentChildren(site, folderPath);
-
-                    if (children.length > 1) {
-                        haschildren = true;
+            ContentItemTO contentItem = contentService.getContentItem(site, path, 0);
+            if (!contentItem.isFolder()) {
+                CopyToEnvironment item = new CopyToEnvironment();
+                ObjectMetadata metadata = objectMetadataManager.getProperties(site, path);
+                item.setId(++CTED_AUTOINCREMENT);
+                item.setSite(site);
+                item.setEnvironment(environment);
+                item.setPath(path);
+                item.setScheduledDate(scheduledDate);
+                item.setState(CopyToEnvironment.State.READY_FOR_LIVE);
+                item.setAction(CopyToEnvironment.Action.DELETE);
+                if (metadata != null) {
+                    if (metadata.getRenamed() > 0) {
+                        String oldPath = metadata.getOldUrl();
+                        item.setOldPath(oldPath);
+                    }
+                    String commitId = metadata.getCommitId();
+                    if (StringUtils.isNotEmpty(commitId)) {
+                        item.setCommitId(commitId);
+                    } else {
+                        item.setCommitId(contentRepository.getRepoLastCommitId(site));
                     }
                 }
-            }
+                String contentTypeClass = contentService.getContentTypeClass(site, path);
+                item.setContentTypeClass(contentTypeClass);
+                item.setUser(approver);
+                newItems.add(item);
 
-            if (contentService.contentExists(site, path)) {
-                contentService.deleteContent(site, path, approver);
-
-                if (!haschildren) {
-                    deleteFolder(site, path.replace("/" + DmConstants.INDEX_FILE, ""), approver);
+                if (contentService.contentExists(site, path)) {
+                    contentService.deleteContent(site, path, approver);
+                }
+                String lastRepoCommitId = contentRepository.getRepoLastCommitId(site);
+                if (StringUtils.isNotEmpty(lastRepoCommitId)) {
+                    item.setCommitId(lastRepoCommitId);
                 }
             }
-            String lastRepoCommitId = contentRepository.getRepoLastCommitId(site);
-            if (StringUtils.isNotEmpty(lastRepoCommitId)) {
-                item.setCommitId(lastRepoCommitId);
-            }
-
         }
         return newItems;
     }
