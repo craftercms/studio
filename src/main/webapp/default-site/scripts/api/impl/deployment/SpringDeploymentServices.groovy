@@ -24,64 +24,63 @@ class SpringDeploymentServices {
      * @oaran context - container for passing request and other values that may be needed by the implementation
      */
     def getDeploymentHistory(site, daysFromToday, numberOfItems, sort, ascending, filterType) {
-        
         def springBackedService = this.context.applicationContext.get("cstudioDeploymentService")
         return springBackedService.getDeploymentHistory(site, daysFromToday, numberOfItems, sort, ascending, filterType)
     }
 
     def getScheduledItems(site, sort, ascending, subSort, subAscending, filterType) {
 
-        def springBackedService = this.context.applicationContext.get("cstudioDeploymentService");
-        return springBackedService.getScheduledItems(site, sort, ascending, subSort, subAscending, filterType);
+        def springBackedService = this.context.applicationContext.get("cstudioDeploymentService")
+        return springBackedService.getScheduledItems(site, sort, ascending, subSort, subAscending, filterType)
     }
 
     def getAvailablePublishingChannelGroups(site, path) {
-        def springBackedService = this.context.applicationContext.get("cstudioDeploymentService");
-        return springBackedService.getAvailablePublishingChannelGroups(site, path);
+        def springBackedService = this.context.applicationContext.get("cstudioDeploymentService")
+        return springBackedService.getAvailablePublishingChannelGroups(site, path)
     }
 
     def syncAllContentToPreview(site) {
-        def springBackedService = this.context.applicationContext.get("cstudioDeploymentService");
-        return springBackedService.syncAllContentToPreview(site);
+        def springBackedService = this.context.applicationContext.get("cstudioDeploymentService")
+        return springBackedService.syncAllContentToPreview(site, false)
     }
 
     def getDeploymentQueue(site) {
-        def springBackedService = this.context.applicationContext.get("cstudioDeploymentService");
-        return springBackedService.getDeploymentQueue(site);
+        def springBackedService = this.context.applicationContext.get("cstudioDeploymentService")
+        return springBackedService.getDeploymentQueue(site)
     }
 
     def getSyncTargetQueue(site, endpoint, targetVersion) {
-        def springBackedService = this.context.applicationContext.get("cstudioDeploymentService");
-        return springBackedService.getSyncTargetQueue(site, endpoint, targetVersion);
+        def springBackedService = this.context.applicationContext.get("cstudioDeploymentService")
+        return springBackedService.getSyncTargetQueue(site, endpoint, targetVersion)
     }
 
     def getDeploymentEndpoints(site) {
-        def springBackedService = this.context.applicationContext.get("cstudioDeploymentService");
-        return springBackedService.getDeploymentEndpoints(site);
+        def springBackedService = this.context.applicationContext.get("cstudioDeploymentService")
+        return springBackedService.getDeploymentEndpoints(site)
     }
 
     def cancelDeployment(site, path, deploymentId) {
-        def springBackedService = this.context.applicationContext.get("cstudioDeploymentService");
-        return springBackedService.cancelDeployment(site, path, deploymentId);
+        def springBackedService = this.context.applicationContext.get("cstudioDeploymentService")
+        return springBackedService.cancelDeployment(site, path, deploymentId)
     }
 
     def bulkGoLive(site, environment, path) {
-        def springBackedService = this.context.applicationContext.get("cstudioDeploymentService");
-        return springBackedService.bulkGoLive(site, environment, path);
+        def springBackedService = this.context.applicationContext.get("cstudioDeploymentService")
+        return springBackedService.bulkGoLive(site, environment, path)
     }
 
     def getDeploymentJobs() {
-        def springBackedService = this.context.applicationContext.get("cstudioDeploymentService");
-        return springBackedService.getDeploymentJobs();
+        def springBackedService = this.context.applicationContext.get("cstudioDeploymentService")
+        return springBackedService.getDeploymentJobs()
     }
 
     def getPublishStatus(siteId) {
-        def springBackedService = this.context.applicationContext.get("cstudioDeploymentService");
-        return springBackedService.getPublishStatus(siteId);
+        def springBackedService = this.context.applicationContext.get("cstudioDeploymentService")
+        return springBackedService.getPublishStatus(siteId)
     }
 
     def enablePublishing(siteId, enabled) {
-        def springBackedService = this.context.applicationContext.get("cstudioDeploymentService");
-        return springBackedService.enablePublishing(siteId, enabled);
+        def springBackedService = this.context.applicationContext.get("cstudioDeploymentService")
+        return springBackedService.enablePublishing(siteId, enabled)
     }
 }
