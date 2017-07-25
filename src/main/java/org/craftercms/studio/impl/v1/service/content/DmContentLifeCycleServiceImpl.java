@@ -17,7 +17,7 @@
  */
 package org.craftercms.studio.impl.v1.service.content;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
@@ -40,6 +40,7 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_UNKNOWN;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONTENT_PROCESSOR_CONTENT_LIFE_CYCLE_SCRIPT_LOCATION;
 
 public class DmContentLifeCycleServiceImpl extends AbstractRegistrableService implements DmContentLifeCycleService {
@@ -72,15 +73,16 @@ public class DmContentLifeCycleServiceImpl extends AbstractRegistrableService im
             logger.warn("No lifecycle operation provided for " + site + ":" + path);
             return;
         }
-        if (StringUtils.isEmpty(contentType)) {
+        if (StringUtils.isEmpty(contentType) || StringUtils.equals(contentType, CONTENT_TYPE_UNKNOWN)) {
             logger.warn("Skipping content lifecycle script execution. no content type provided for " + site + ":" + path);
             return;
         }
+
+
         // find the script ref based on content type
         String scriptPath = getScriptPath(site, contentType);
         if (!contentService.contentExists(site, scriptPath)) {
             logger.error("No script found at " + scriptPath + ", contentType: " + contentType);
-
             return;
         }
         String script = contentService.getContentAsString(site, scriptPath);
