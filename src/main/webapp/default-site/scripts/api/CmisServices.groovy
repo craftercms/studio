@@ -38,22 +38,27 @@ class CmisServices {
     }
 
     static listTotal(context, site, cmisRepo, path) {
-        def cmisServiceImpl = ServiceFactory.getCmisServices(context);
+        def cmisServiceImpl = ServiceFactory.getCmisServices(context)
         return cmisServiceImpl.listTotal(site, cmisRepo, path)
     }
 
     static list(context, site, cmisRepo, path, start, number) {
-        def cmisServiceImpl = ServiceFactory.getCmisServices(context);
+        def cmisServiceImpl = ServiceFactory.getCmisServices(context)
         return cmisServiceImpl.list(site, cmisRepo, path, start, number)
     }
 
     static searchTotal(context, site, cmisRepo, searchTerm, path) {
-        def cmisServiceImpl = ServiceFactory.getCmisServices(context);
+        def cmisServiceImpl = ServiceFactory.getCmisServices(context)
         return cmisServiceImpl.searchTotal(site, cmisRepo, searchTerm, path)
     }
 
     static search(context, site, cmisRepo, searchTerm, path, start, number) {
-        def cmisServiceImpl = ServiceFactory.getCmisServices(context);
+        def cmisServiceImpl = ServiceFactory.getCmisServices(context)
         return cmisServiceImpl.search(site, cmisRepo, searchTerm, path, start, number)
+    }
+
+    static cloneContent(context, siteId, cmisRepoId, cmisPath, studioPath) {
+        def cmisServiceImpl = ServiceFactory.getCmisServices(context)
+        return cmisServiceImpl.cloneContent(siteId, cmisRepoId, cmisPath, studioPath)
     }
 }

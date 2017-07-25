@@ -22,13 +22,15 @@ import org.apache.chemistry.opencmis.client.api.*;
 import org.apache.chemistry.opencmis.client.runtime.SessionFactoryImpl;
 import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.SessionParameter;
+import org.apache.chemistry.opencmis.commons.data.ContentStream;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.chemistry.opencmis.commons.enums.BindingType;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisBaseException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisConnectionException;
+import org.apache.chemistry.opencmis.commons.exceptions.CmisRuntimeException;
+import org.apache.chemistry.opencmis.commons.exceptions.CmisUnauthorizedException;
 import org.apache.commons.lang3.StringUtils;
-import org.craftercms.studio.api.v1.exception.CmisUnavailableException;
-import org.craftercms.studio.api.v1.exception.CmisTimeoutException;
+import org.craftercms.studio.api.v1.exception.*;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.cmis.CmisService;
@@ -40,7 +42,17 @@ import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Node;
 
-import java.nio.file.Paths;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.ByteBuffer;
+import java.nio.channels.Channels;
+import java.nio.channels.FileChannel;
+import java.nio.channels.ReadableByteChannel;
+import java.nio.file.*;
 import java.util.*;
 
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_DATA_SOURCES_CONFIG_BASE_PATH;
@@ -273,6 +285,38 @@ public class CmisServiceImpl implements CmisService {
             }
         }
         return toRet;
+    }
+
+    @Override
+    public void cloneContent(String siteId, String cmisRepoId, String cmisPath, String studioPath) throws CmisUnavailableException, CmisTimeoutException, CmisPathNotFoundException, ServiceException, StudioPathNotFoundException {
+        if (!contentService.contentExists(siteId, studioPath)) throw new StudioPathNotFoundException();
+        List<CmisContentItemTO> toRet = new ArrayList<CmisContentItemTO>();
+        DataSourceRepositoryTO repositoryConfig = getConfiguration(siteId, cmisRepoId);
+        if (repositoryConfig != null) {
+            logger.debug("Create new CMIS session");
+            Session session = createCMISSession(repositoryConfig);
+            if (session != null) {
+                String contentPath = Paths.get(repositoryConfig.getBasePath(), cmisPath).toString();
+                logger.debug("Find object for CMIS path: " + contentPath);
+                CmisObject cmisObject = session.getObjectByPath(contentPath);
+                if (cmisObject != null) {
+                    if (BaseTypeId.CMIS_FOLDER.equals(cmisObject.getBaseTypeId())) {
+                        throw new CmisPathNotFoundException();
+                    } else if (BaseTypeId.CMIS_DOCUMENT.equals(cmisObject.getBaseTypeId())) {
+                        org.apache.chemistry.opencmis.client.api.Document cmisDoc = (org.apache.chemistry.opencmis.client.api.Document)cmisObject;
+                        String fileName = cmisDoc.getName();
+                        String savePath = studioPath + File.separator + fileName;
+                        ContentStream cs = cmisDoc.getContentStream();
+                        logger.debug("Save CMIS file to: " + savePath);
+                        contentService.writeContent(siteId, savePath, cs.getStream());
+                    }
+                } else {
+                    throw new CmisPathNotFoundException();
+                }
+            } else {
+                throw new CmisUnauthorizedException();
+            }
+        }
     }
 
     private String getConfigLocation() {
