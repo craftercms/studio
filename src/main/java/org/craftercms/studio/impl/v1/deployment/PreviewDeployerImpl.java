@@ -121,7 +121,7 @@ public class PreviewDeployerImpl implements PreviewDeployer {
     @Override
     public boolean createTarget(String site) {
         boolean toReturn = true;
-        String requestUrl = getCreateTargetUrl(site);
+        String requestUrl = getCreateTargetUrl();
 
         PostMethod postMethod = new PostMethod(requestUrl);
         postMethod.getParams().setBooleanParameter(HttpMethodParams.USE_EXPECT_CONTINUE, true);
@@ -155,7 +155,7 @@ public class PreviewDeployerImpl implements PreviewDeployer {
         return toReturn;
     }
 
-    private String getCreateTargetUrl(String site) {
+    private String getCreateTargetUrl() {
         // TODO: DB: implement deployer agent configuration for preview
         // TODO: SJ: Pseudo code: check if site configuration has a Preview Deployer URL, if so, return it, if not
         // TODO: SJ: return default from studioConfiguration.getProperty(PREVIEW_DEFAULT_CREATE_TARGET_URL);
