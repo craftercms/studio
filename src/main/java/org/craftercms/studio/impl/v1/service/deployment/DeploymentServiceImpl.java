@@ -251,6 +251,8 @@ public class DeploymentServiceImpl implements DeploymentService {
                 if (StringUtils.isNotEmpty(lastRepoCommitId)) {
                     item.setCommitId(lastRepoCommitId);
                 }
+            } else {
+                deleteFolder(site, path, approver);
             }
         }
         return newItems;
