@@ -76,6 +76,7 @@ class ContentMonitoring {
 					def query = searchService.createQuery()
 					query = query.setQuery(queryStatement)
 					query = query.setRows(10000)
+					query = query.setDisableAdditionalFilters(true)
 
 					def executedQuery = searchService.search(site, query)
 					def itemsFound = executedQuery.response.numFound
