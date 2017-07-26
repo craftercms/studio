@@ -436,7 +436,7 @@ public class ContentServiceImpl implements ContentService {
         commitId = _contentRepository.deleteContent(site, path, approver);
 
         objectStateService.deleteObjectStateForPath(site, path);
-        //objectMetadataManager.deleteObjectMetadata(site, path);
+        objectMetadataManager.deleteObjectMetadata(site, path);
         dependencyService.deleteDependenciesForSiteAndPath(site, path);
 
         PreviewEventContext context = new PreviewEventContext();
@@ -697,15 +697,14 @@ public class ContentServiceImpl implements ContentService {
 
         ContentItemTO renamedItem = getContentItem(site, movePath, 0);
         String contentType = renamedItem.getContentType();
+        if (!renamedItem.isFolder()) {
+            dmContentLifeCycleService.process(site, user, movePath, contentType, DmContentLifeCycleService
+                    .ContentLifeCycleOperation.RENAME, params);
 
-        dmContentLifeCycleService.process(site, user, movePath, contentType, DmContentLifeCycleService
-            .ContentLifeCycleOperation.RENAME, params);
-
-        // change the path of this object in the object state database
-        objectStateService.updateObjectPath(site, fromPath, movePath);
-        ContentItemTO movedTO = getContentItem(site, movePath, 0);
-        objectStateService.transition(site, movedTO, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.SAVE);
-
+            // change the path of this object in the object state database
+            objectStateService.updateObjectPath(site, fromPath, movePath);
+            objectStateService.transition(site, renamedItem, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.SAVE);
+        }
         // update metadata
         if (!objectMetadataManager.isRenamed(site, fromPath)) {
             // if an item was previously moved, we do not track intermediate moves because it will
@@ -716,7 +715,7 @@ public class ContentServiceImpl implements ContentService {
                 metadata = objectMetadataManager.getProperties(site, fromPath);
             }
 
-            if (!movedTO.isNew() && !renamedItem.isFolder()) {
+            if (!renamedItem.isNew() && !renamedItem.isFolder()) {
                 // if the item is not new, we need to track the old URL for deployment
                 logger.debug("item is not new, and has not previously been moved. Track the old URL {0}", fromPath);
                 Map<String, Object> objMetadataProps = new HashMap<String, Object>();
