@@ -711,12 +711,12 @@ public class ContentServiceImpl implements ContentService {
             // if an item was previously moved, we do not track intermediate moves because it will
             // ultimately orphan deployed content.  Old Path is always the OLDEST DEPLOYED PATH
             ObjectMetadata metadata = objectMetadataManager.getProperties(site, fromPath);
-            if(metadata == null) {
+            if (metadata == null && !renamedItem.isFolder()) {
                 objectMetadataManager.insertNewObjectMetadata(site, fromPath);
                 metadata = objectMetadataManager.getProperties(site, fromPath);
             }
 
-            if (!movedTO.isNew()) {
+            if (!movedTO.isNew() && !renamedItem.isFolder()) {
                 // if the item is not new, we need to track the old URL for deployment
                 logger.debug("item is not new, and has not previously been moved. Track the old URL {0}", fromPath);
                 Map<String, Object> objMetadataProps = new HashMap<String, Object>();
