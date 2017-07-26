@@ -726,7 +726,9 @@ public class ContentServiceImpl implements ContentService {
             }
         }
 
-        objectMetadataManager.updateObjectPath(site, fromPath, movePath);
+        if (!renamedItem.isFolder()) {
+            objectMetadataManager.updateObjectPath(site, fromPath, movePath);
+        }
 
         // write activity stream
         activityService.renameContentId(site, fromPath, movePath);
