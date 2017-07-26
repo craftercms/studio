@@ -821,7 +821,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
                         case CONFLICTING:
                             // TODO: DB: what to do if cherry pick has conflict ?
-                            logger.error("Conflict executing cherry-pick with default merge strategy.");
+                            logger.error("Conflict executing cherry-pick with default merge strategy for site " + site + ".");
                             String errorMessage2 = "Failing paths:\n";
                             Map<String, ResolveMerger.MergeFailureReason> failPaths2 =  cherryPickResult.getFailingPaths();
                             if (failPaths2 != null) {
