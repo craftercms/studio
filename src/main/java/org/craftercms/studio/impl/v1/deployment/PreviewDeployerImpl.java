@@ -64,9 +64,26 @@ public class PreviewDeployerImpl implements PreviewDeployer {
     @EventListener(EVENT_PREVIEW_SYNC)
     public void onPreviewSync(PreviewEventContext context) {
         String site = context.getSite();
-        String requestUrl = getDeployerPreviewSyncUrl(site);
+        String requestUrl = getDeployTargetUrl(site);
         PostMethod postMethod = new PostMethod(requestUrl);
         postMethod.getParams().setBooleanParameter(HttpMethodParams.USE_EXPECT_CONTINUE, true);
+
+        if (context.isWaitTillDeploymentIsDone()) {
+            String requestBody = getDeployTargetRequestBody(true);
+            RequestEntity requestEntity = null;
+            try {
+                requestEntity = new StringRequestEntity(requestBody, ContentType.APPLICATION_JSON.toString(),
+                                                        StandardCharsets.UTF_8.displayName());
+
+            } catch (UnsupportedEncodingException e) {
+                logger.info("Unsupported encoding for request body. Using deprecated method instead.");
+            }
+            if (requestEntity != null) {
+                postMethod.setRequestEntity(requestEntity);
+            } else {
+                postMethod.setRequestBody(requestBody);
+            }
+        }
 
         // TODO: DB: add all required params to post method
 
@@ -75,7 +92,8 @@ public class PreviewDeployerImpl implements PreviewDeployer {
             int status = client.executeMethod(postMethod);
             HttpStatus httpStatus = HttpStatus.valueOf(status);
             if (!httpStatus.is2xxSuccessful()) {
-                logger.error("Preview sync request for site " + site + " returned status " + httpStatus + " (" + httpStatus.getReasonPhrase() + ")");
+                logger.error("Preview sync request for site " + site + " returned status " + httpStatus + " (" +
+                             httpStatus.getReasonPhrase() + ")");
             }
         } catch (IOException e) {
             logger.error("Error while sending preview sync request for site " + site, e);
@@ -84,7 +102,7 @@ public class PreviewDeployerImpl implements PreviewDeployer {
         }
     }
 
-    private String getDeployerPreviewSyncUrl(String site) {
+    private String getDeployTargetUrl(String site) {
         // TODO: DB: implement deployer agent configuration for preview
         // TODO: SJ: Pseudo code: check if site configuration has a Preview Deployer URL, if so, return it, if not
         // TODO: SJ: return default from studioConfiguration.getProperty(PREVIEW_DEFAULT_PREVIEW_DEPLOYER_URL);
@@ -93,25 +111,33 @@ public class PreviewDeployerImpl implements PreviewDeployer {
         return toRet;
     }
 
+    private String getDeployTargetRequestBody(boolean waitTillDone) {
+        DeployTargetRequestBody requestBody = new DeployTargetRequestBody();
+        requestBody.setWaitTillDone(waitTillDone);
+
+        return requestBody.toJson();
+    }
+
     @Override
     public boolean createTarget(String site) {
         boolean toReturn = true;
-        String requestUrl = getDeployerCreatePreviewTargetUrl(site);
+        String requestUrl = getCreateTargetUrl();
 
         PostMethod postMethod = new PostMethod(requestUrl);
         postMethod.getParams().setBooleanParameter(HttpMethodParams.USE_EXPECT_CONTINUE, true);
-        String rqBody = getDeployerCreatePreviewTargetRequestBody(site);
+
+        String requestBody = getCreateTargetRequestBody(site);
         RequestEntity requestEntity = null;
         try {
-            requestEntity = new StringRequestEntity(rqBody, ContentType.APPLICATION_JSON.toString(), StandardCharsets
-                .UTF_8.displayName());
+            requestEntity = new StringRequestEntity(requestBody, ContentType.APPLICATION_JSON.toString(),
+                                                    StandardCharsets.UTF_8.displayName());
         } catch (UnsupportedEncodingException e) {
             logger.info("Unsupported encoding for request body. Using deprecated method instead.");
         }
         if (requestEntity != null) {
             postMethod.setRequestEntity(requestEntity);
         } else {
-            postMethod.setRequestBody(rqBody);
+            postMethod.setRequestBody(requestBody);
         }
 
         HttpClient client = new HttpClient();
@@ -129,7 +155,7 @@ public class PreviewDeployerImpl implements PreviewDeployer {
         return toReturn;
     }
 
-    private String getDeployerCreatePreviewTargetUrl(String site) {
+    private String getCreateTargetUrl() {
         // TODO: DB: implement deployer agent configuration for preview
         // TODO: SJ: Pseudo code: check if site configuration has a Preview Deployer URL, if so, return it, if not
         // TODO: SJ: return default from studioConfiguration.getProperty(PREVIEW_DEFAULT_CREATE_TARGET_URL);
@@ -137,7 +163,7 @@ public class PreviewDeployerImpl implements PreviewDeployer {
         return toReturn;
     }
 
-    private String getDeployerCreatePreviewTargetRequestBody(String site) {
+    private String getCreateTargetRequestBody(String site) {
         CreateTargetRequestBody requestBody = new CreateTargetRequestBody();
         requestBody.setEnvironment("preview");
         requestBody.setSiteName(site);
@@ -155,7 +181,7 @@ public class PreviewDeployerImpl implements PreviewDeployer {
     @Override
     public boolean deleteTarget(String site) {
         boolean toReturn = true;
-        String requestUrl = getDeployerDeletePreviewTargetUrl(site);
+        String requestUrl = getDeleteTargetUrl(site);
 
         PostMethod postMethod = new PostMethod(requestUrl);
         postMethod.getParams().setBooleanParameter(HttpMethodParams.USE_EXPECT_CONTINUE, true);
@@ -175,7 +201,7 @@ public class PreviewDeployerImpl implements PreviewDeployer {
         return toReturn;
     }
 
-    private String getDeployerDeletePreviewTargetUrl(String site) {
+    private String getDeleteTargetUrl(String site) {
         // TODO: DB: implement deployer agent configuration for preview
         // TODO: SJ: Pseudo code: check if site configuration has a Preview Deployer URL, if so, return it, if not
         // TODO: SJ: return default from studioConfiguration.getProperty(PREVIEW_DEFAULT_DELETE_TARGET_URL);
@@ -198,7 +224,7 @@ public class PreviewDeployerImpl implements PreviewDeployer {
     protected EventService eventService;
     protected String beanName;
 
-    class CreateTargetRequestBody {
+    protected class CreateTargetRequestBody {
 
         protected String environment;
         protected String siteName;
@@ -241,4 +267,25 @@ public class PreviewDeployerImpl implements PreviewDeployer {
         public String getEngineUrl() { return engineUrl; }
         public void setEngineUrl(String engineUrl) { this.engineUrl = engineUrl; }
     }
+
+    protected class DeployTargetRequestBody {
+
+        protected boolean waitTillDone;
+
+        public boolean isWaitTillDone() {
+            return waitTillDone;
+        }
+
+        public void setWaitTillDone(boolean waitTillDone) {
+            this.waitTillDone = waitTillDone;
+        }
+
+        public String toJson() {
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("wait_till_done", this.waitTillDone);
+            return  jsonObject.toString();
+        }
+
+    }
+
 }

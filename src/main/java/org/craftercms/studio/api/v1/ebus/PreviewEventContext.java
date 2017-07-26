@@ -24,4 +24,18 @@ import java.io.Serializable;
 public class PreviewEventContext extends EventContext implements Serializable {
 
     private static final long serialVersionUID = 6915982832841499939L;
+
+    private boolean waitTillDeploymentIsDone;
+
+    public PreviewEventContext() {
+    }
+
+    public PreviewEventContext(boolean waitTillDeploymentIsDone) {
+        this.waitTillDeploymentIsDone = waitTillDeploymentIsDone;
+    }
+
+    public boolean isWaitTillDeploymentIsDone() {
+        return waitTillDeploymentIsDone;
+    }
+
 }

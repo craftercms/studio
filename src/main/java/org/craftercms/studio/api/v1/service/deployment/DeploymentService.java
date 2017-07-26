@@ -64,7 +64,7 @@ public interface DeploymentService {
 
     Map<String, List<PublishingChannelTO>> getAvailablePublishingChannelGroups(String site, String path);
 
-    void syncAllContentToPreview(String site) throws ServiceException;
+    void syncAllContentToPreview(String site, boolean waitTillDone) throws ServiceException;
 
     List<CopyToEnvironment> getDeploymentQueue(String site) throws ServiceException;
 

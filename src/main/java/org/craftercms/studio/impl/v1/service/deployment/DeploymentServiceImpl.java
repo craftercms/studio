@@ -632,8 +632,8 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     @Override
-    public void syncAllContentToPreview(String site) throws ServiceException {
-        PreviewEventContext context = new PreviewEventContext();
+    public void syncAllContentToPreview(String site, boolean waitTillDone) throws ServiceException {
+        PreviewEventContext context = new PreviewEventContext(waitTillDone);
         context.setSite(site);
         eventService.publish(EVENT_PREVIEW_SYNC, context);
     }

@@ -26,7 +26,7 @@ class PreviewServices {
 	 * @param site - the project ID
 	 */
 	static syncAllContentToPreview(context, site) {
-		def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context);
-		return deploymentServicesImpl.syncAllContentToPreview(site);
+		def deploymentServices = ServiceFactory.getDeploymentServices(context)
+		return deploymentServices.syncAllContentToPreview(site)
 	}
 }
