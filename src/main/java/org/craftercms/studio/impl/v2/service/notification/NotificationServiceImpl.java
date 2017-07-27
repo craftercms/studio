@@ -57,7 +57,7 @@ public class NotificationServiceImpl implements NotificationService {
     private static final String NOTIFICATION_KEY_SUBMITTED_FOR_REVIEW = "submittedForReview";
     private static final String NOTIFICATION_KEY_CONTENT_REJECTED = "contentRejected";
 
-    protected Map<String, NotificationConfigTO> notificationConfiguration;
+    protected Map<String, Map<String, NotificationConfigTO>> notificationConfiguration;
     protected ContentService contentService;
     protected EmailMessageQueueTo emailMessages;
     protected ServicesConfig servicesConfig;
@@ -67,7 +67,7 @@ public class NotificationServiceImpl implements NotificationService {
     protected StudioConfiguration studioConfiguration;
 
     public NotificationServiceImpl() {
-        notificationConfiguration = new HashMap<>();
+        notificationConfiguration = new HashMap<String, Map<String, NotificationConfigTO>>();
     }
 
     public void init() {
@@ -80,7 +80,7 @@ public class NotificationServiceImpl implements NotificationService {
     public void notifyDeploymentError(final String site, final Throwable throwable, final List<String>
         filesUnableToPublish, final Locale locale) {
         try {
-            final NotificationConfigTO notificationConfig = getNotificationConfig(locale);
+            final NotificationConfigTO notificationConfig = getNotificationConfig(site, locale);
             final Map<String, Object> templateModel = new HashMap<>();
             templateModel.put("deploymentError", throwable);
             templateModel.put("files", convertPathsToContent(site, filesUnableToPublish));
@@ -117,7 +117,7 @@ public class NotificationServiceImpl implements NotificationService {
     public String getNotificationMessage(final String site, final NotificationMessageType type, final String key,
                                          final Locale locale, final Pair<String, Object>... params) {
         try {
-            final NotificationConfigTO notificationConfig = getNotificationConfig(locale);
+            final NotificationConfigTO notificationConfig = getNotificationConfig(site, locale);
             String message = null;
             switch (type) {
                 case GeneralMessages:
@@ -168,7 +168,7 @@ public class NotificationServiceImpl implements NotificationService {
     List<String> itemsSubmitted, final String submitter, final Date scheduleDate, final boolean isADelete, final
     String submissionComments, final Locale locale) {
         try {
-            final NotificationConfigTO notificationConfig = getNotificationConfig(locale);
+            final NotificationConfigTO notificationConfig = getNotificationConfig(site, locale);
             final Map<String, Object> submitterUser = securityService.getUserProfile(submitter);
             Map<String, Object> templateModel = new HashMap<>();
             templateModel.put("files", convertPathsToContent(site, itemsSubmitted));
@@ -191,7 +191,7 @@ public class NotificationServiceImpl implements NotificationService {
     public void notify(final String site, final List<String> toUsers, final String key, final Locale locale, final
     Pair<String, Object>... params) {
         try {
-            final NotificationConfigTO notificationConfig = getNotificationConfig(locale);
+            final NotificationConfigTO notificationConfig = getNotificationConfig(site, locale);
             final EmailMessageTemplateTO emailTemplate = notificationConfig.getEmailMessageTemplates().get(key);
             if (emailTemplate != null) {
                 Map<String, Object> templateModel = new HashMap<>();
@@ -245,7 +245,10 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     protected void loadConfig(final String site) {
-        notificationConfiguration = new HashMap<>();
+        if (notificationConfiguration == null) {
+            notificationConfiguration = new HashMap<String, Map<String, NotificationConfigTO>>();
+        }
+        Map<String, NotificationConfigTO> siteNotificationConfig = new HashMap<String, NotificationConfigTO>();
         String configFullPath = getConfigPath().replaceFirst(StudioConstants.PATTERN_SITE, site);
         try {
             Document document = contentService.getContentAsDocument(site, configFullPath);
@@ -260,10 +263,10 @@ public class NotificationServiceImpl implements NotificationService {
                 for (Element language : languages) {
                     String messagesLang = language.attributeValue("name");
                     if (StringUtils.isNotBlank(messagesLang)) {
-                        if (!notificationConfiguration.containsKey(messagesLang)) {
-                            notificationConfiguration.put(messagesLang, new NotificationConfigTO(site));
+                        if (!siteNotificationConfig.containsKey(messagesLang)) {
+                            siteNotificationConfig.put(messagesLang, new NotificationConfigTO(site));
                         }
-                        NotificationConfigTO configForLang = notificationConfiguration.get(messagesLang);
+                        NotificationConfigTO configForLang = siteNotificationConfig.get(messagesLang);
                         loadGenericMessage((Element)language.selectSingleNode("//generalMessages"), configForLang
                             .getMessages());
                         loadGenericMessage((Element)language.selectSingleNode("//completeMessages"), configForLang
@@ -284,6 +287,7 @@ public class NotificationServiceImpl implements NotificationService {
         } catch (Exception ex) {
             logger.error("Unable to read or load notification '" + configFullPath + "' configuration for " + site, ex);
         }
+        notificationConfiguration.put(site, siteNotificationConfig);
     }
 
     private void loadEmailList(final String site, final Element emailList, final List<String>
@@ -376,12 +380,17 @@ public class NotificationServiceImpl implements NotificationService {
         loadConfig(site);
     }
 
-    protected NotificationConfigTO getNotificationConfig(final Locale locale) {
+    protected NotificationConfigTO getNotificationConfig(final String site, final Locale locale) {
+        Map<String, NotificationConfigTO> siteNotificationConfig = notificationConfiguration.get(site);
+        if (siteNotificationConfig == null || siteNotificationConfig.isEmpty()) {
+            loadConfig(site);
+            siteNotificationConfig = notificationConfiguration.get(site);
+        }
         Locale realLocale = locale;
         if (locale == null) {
             realLocale = Locale.ENGLISH;
         }
-        return notificationConfiguration.get(realLocale.getLanguage());
+        return siteNotificationConfig.get(realLocale.getLanguage());
     }
 
 
