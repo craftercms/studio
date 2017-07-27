@@ -28,8 +28,6 @@
         <result property="maxCount" column="max_count"/>
     </resultMap>
 
-    <cache/>
-
     <select id="getPageNavigationOrderForSiteAndPath" parameterType="java.util.HashMap"
             resultMap="PageNavigationOrderMap">
         SELECT folder_id, site, path, max_count

@@ -29,8 +29,6 @@
         <result property="systemProcessing" column="system_processing"/>
     </resultMap>
 
-    <cache/>
-
     <select id="getObjectStateByStates" resultSetType="FORWARD_ONLY"
             resultMap="ObjectStateMap" parameterType="java.util.Map">
         SELECT object_id, site, path, state, system_processing
