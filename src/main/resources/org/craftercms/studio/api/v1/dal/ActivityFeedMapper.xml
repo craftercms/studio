@@ -25,7 +25,7 @@
         where site_network = #{siteNetwork}
         and content_id = #{contentId}
         and activity_type = #{activityType}
-        order by modified_date DESC
+        order by modified_date DESC limit 0, 1
     </select>
 
     <select id="selectUserFeedEntries" parameterType="java.util.Map" resultMap="ActivityFeedMap">
