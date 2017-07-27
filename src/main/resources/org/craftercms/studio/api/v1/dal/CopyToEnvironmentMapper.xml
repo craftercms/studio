@@ -37,8 +37,6 @@
         <result property="commitId" column="commit_id"/>
     </resultMap>
 
-    <cache/>
-
     <select id="getScheduledItems" resultMap="CopyToEnvironmentMap" parameterType="java.util.Map">
         SELECT *
         FROM cstudio_copytoenvironment

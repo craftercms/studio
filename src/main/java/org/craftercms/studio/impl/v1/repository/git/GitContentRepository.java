@@ -61,6 +61,7 @@ import org.eclipse.jgit.api.errors.RefNotFoundException;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.internal.storage.file.LockFile;
 import org.eclipse.jgit.lib.*;
+import org.eclipse.jgit.merge.MergeStrategy;
 import org.eclipse.jgit.merge.ResolveMerger;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevSort;
@@ -830,29 +831,25 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                                 }
                                 logger.error(errorMessage2);
                             } else {
-                                logger.debug("Reset previous attempt to cherry-pick, and try again with merge strategy THEIRS.");
-                                git.reset().setMode(ResetCommand.ResetType.HARD).call();
-                                CherryPickCommandEx cp = new CherryPickCommandEx(repo);
-                                cp = cp.setMainlineParentNumber(pc)
-                                        .setOurCommitName(message)
-                                        .setNoCommit(false);
-
-                                if (StringUtils.isNotEmpty(commitId)) {
-                                    String initialCommit = getRepoFirstCommitId(site);
-                                    if (!StringUtils.equals(initialCommit, commitId)) {
-                                        ObjectId objectId = ObjectId.fromString(commitId);
-                                        cp.include(objectId);
+                                Status gitStatus = git.status().call();
+                                Set<String> removed =  gitStatus.getRemoved();
+                                Map<String, IndexDiff.StageState> conflicts = gitStatus.getConflictingStageState();
+                                for (Map.Entry<String, IndexDiff.StageState> entry : conflicts.entrySet()) {
+                                    String path = entry.getKey();
+                                    IndexDiff.StageState stageState = entry.getValue();
+                                    if (stageState == IndexDiff.StageState.DELETED_BY_THEM) {
+                                        git.rm().addFilepattern(path).call();
+                                    } else {
+                                        throw new DeploymentException("Conflict while cherry-pick commit id: " + commitId + " for site " + site);
                                     }
-                                }
 
-                                CherryPickResult cherryPickResult2 = cp.call();
-                                if (cherryPickResult2.getStatus() == CherryPickResult.CherryPickStatus.CONFLICTING) {
-                                    git.add().addFilepattern(GIT_COMMIT_ALL_ITEMS).call();
-                                    String commitMessage = rc.getFullMessage() + "\n" + message;
-                                    git.commit().setMessage(commitMessage).call();
-                                } else if (cherryPickResult2.getStatus() == CherryPickResult.CherryPickStatus.OK) {
-                                    logger.debug("Successfully cherry picked with merge strategy THEIRS.");
                                 }
+                                git.add().addFilepattern(GIT_COMMIT_ALL_ITEMS).call();
+                                for(String rm : removed) {
+                                    git.rm().addFilepattern(rm).call();
+                                }
+                                String commitMessage = rc.getFullMessage();
+                                git.commit().setMessage(commitMessage).call();
 
                                 String newCommitMessage = StringUtils.EMPTY;
                                 long commitTime = 0l;

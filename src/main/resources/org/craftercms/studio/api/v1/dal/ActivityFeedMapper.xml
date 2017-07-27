@@ -17,8 +17,6 @@
         <result property="source" column="source" />
     </resultMap>
 
-    <cache/>
-
     <select id="getDeletedActivity" parameterType="java.util.Map" resultMap="ActivityFeedMap">
         select *
         from cstudio_activity

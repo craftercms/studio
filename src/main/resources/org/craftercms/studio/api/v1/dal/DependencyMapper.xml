@@ -30,8 +30,6 @@
         <result property="type" column="type"/>
     </resultMap>
 
-    <cache/>
-
     <select id="getDependencies" resultMap="DependencyMap" parameterType="java.util.HashMap">
         SELECT site, source_path, target_path, type
         FROM cstudio_dependency
