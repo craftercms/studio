@@ -668,6 +668,7 @@
     <bean id="studioDeplymentDependencyRule" class="org.craftercms.studio.impl.v1.service.dependency.DeploymentDependencyRule">
         <property name="dmDependencyService" ref="cstudioDmDependencyService"/>
         <property name="objectStateService" ref="cstudioObjectStateService"/>
+        <property name="contentService" ref="cstudioContentService"/>
         <property name="contentSpecificDependencies">
             <list>
                 <value>/components/page/.*</value>

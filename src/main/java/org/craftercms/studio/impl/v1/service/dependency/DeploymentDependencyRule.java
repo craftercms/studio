@@ -19,11 +19,16 @@
 
 package org.craftercms.studio.impl.v1.service.dependency;
 
+import org.apache.commons.lang.StringUtils;
+import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.dependency.DependencyRule;
 import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
+import org.craftercms.studio.api.v1.to.ContentItemTO;
+import org.craftercms.studio.impl.v1.util.ContentUtils;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -40,6 +45,7 @@ public class DeploymentDependencyRule implements DependencyRule {
     public Set<String> applyRule(String site, String path) {
         Set<String> dependencies = new HashSet<String>();
         List<String> allDependencies = new ArrayList<String>();
+        getMandatoryParent(site, path, allDependencies);
         getAllDependenciesRecursive(site, path, allDependencies);
 
         for (String dep : allDependencies) {
@@ -62,6 +68,23 @@ public class DeploymentDependencyRule implements DependencyRule {
         return dependencies;
     }
 
+    protected void getMandatoryParent(String site, String path, List<String> dependecyPaths) {
+        int idx = path.lastIndexOf("/" + DmConstants.INDEX_FILE);
+        if (idx > 0) {
+            path = path.substring(0, idx);
+        }
+        String parentPath = ContentUtils.getParentUrl(path);
+        if (StringUtils.isNotEmpty(parentPath)) {
+            if (contentService.contentExists(site, parentPath)) {
+                ContentItemTO item = contentService.getContentItem(site, parentPath);
+                if (item.isNew()) {
+                    dependecyPaths.add(item.getUri());
+                    getMandatoryParent(site, item.getUri(), dependecyPaths);
+                }
+            }
+        }
+    }
+
     protected void getAllDependenciesRecursive(String site, String path, List<String> dependecyPaths) {
         List<String> depPaths = dmDependencyService.getDependencyPaths(site, path);
         for (String depPath : depPaths) {
@@ -81,7 +104,11 @@ public class DeploymentDependencyRule implements DependencyRule {
     public List<String> getContentSpecificDependencies() { return contentSpecificDependencies; }
     public void setContentSpecificDependencies(List<String> contentSpecificDependencies) { this.contentSpecificDependencies = contentSpecificDependencies; }
 
+    public ContentService getContentService() { return contentService; }
+    public void setContentService(ContentService contentService) { this.contentService = contentService; }
+
     protected DmDependencyService dmDependencyService;
     protected ObjectStateService objectStateService;
+    protected ContentService contentService;
     protected List<String> contentSpecificDependencies;
 }
