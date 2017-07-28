@@ -189,11 +189,20 @@ public class ContentTypeServiceImpl implements ContentTypeService {
 
     protected List<ContentTypeConfigTO> getAllContentTypes(String site) {
         String contentTypesRootPath = getConfigPath().replaceAll(StudioConstants.PATTERN_SITE, site);
+
         RepositoryItem[] folders = contentRepository.getContentChildren(site, contentTypesRootPath);
         List<ContentTypeConfigTO> contentTypes = new ArrayList<>();
 
         if (folders != null) {
             for (int i = 0; i < folders.length; i++) {
+                String configPath = folders[i].path + "/" + folders[i].name + "/" + getConfigFileName();
+                if (contentService.contentExists(site, configPath)) {
+                    ContentTypeConfigTO config = contentTypesConfig.reloadConfiguration(site, configPath.replace(contentTypesRootPath, "").replace("/" + getConfigFileName(), ""));
+                    if (config != null) {
+                        contentTypes.add(config);
+                    }
+                }
+
                 reloadContentTypeConfigForChildren(site, folders[i], contentTypes);
             }
         }
@@ -208,6 +217,14 @@ public class ContentTypeServiceImpl implements ContentTypeService {
 
         if (folders != null) {
             for (int i = 0; i < folders.length; i++) {
+                String configPath = folders[i].path + "/" + folders[i].name + "/" + getConfigFileName();
+                if (contentService.contentExists(site, configPath)) {
+                    ContentTypeConfigTO config = contentTypesConfig.reloadConfiguration(site, configPath.replace(contentTypesRootPath, "").replace("/" + getConfigFileName(), ""));
+                    if (config != null) {
+                        contentTypes.add(config);
+                    }
+                }
+
                 reloadContentTypeConfigForChildren(site, folders[i], contentTypes);
             }
         }
