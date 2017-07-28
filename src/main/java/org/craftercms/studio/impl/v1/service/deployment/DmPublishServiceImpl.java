@@ -142,9 +142,10 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
             logger.debug("Processing dependencies for site " + site + " path " + childPath);
             if (processedPaths.add(childHash)) {
                 List<String> pathsToPublish = new ArrayList<String>();
+                List<String> candidatesToPublish = new ArrayList<String>();
                 pathsToPublish.add(childPath);
-                pathsToPublish.addAll(deploymentDependencyRule.applyRule(site, childPath));
-                for (String pathToAdd : pathsToPublish) {
+                candidatesToPublish.addAll(deploymentDependencyRule.applyRule(site, childPath));
+                for (String pathToAdd : candidatesToPublish) {
                     String hash = DigestUtils.md2Hex(pathToAdd);
                     if (processedPaths.add(hash)) {
                         pathsToPublish.add(pathToAdd);
