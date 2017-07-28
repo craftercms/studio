@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component>
-	<content-type>/component/taxonomy</content-type>	<display-template/>
+	<content-type>/taxonomy</content-type>	<display-template/>
 	<merge-strategy>inherit-levels</merge-strategy>
 	<objectGroupId>c2ce</objectGroupId>
 	<objectId>c2ce41c5-14f3-5d36-3a61-be7b635d78f2</objectId>
