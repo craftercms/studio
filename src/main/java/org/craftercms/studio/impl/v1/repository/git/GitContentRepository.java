@@ -334,7 +334,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
                 for (String pathToCommit : changeSet) {
                     String pathRemoved = pathToCommit.replace(gitToPath, gitFromPath);
-                    RevCommit commit = git.commit().setOnly(pathToCommit).setOnly(pathRemoved).setAuthor(helper.getCurrentUserIdent()).setCommitter(helper.getCurrentUserIdent()).setMessage("Moving " + fromPath + " to " + toPath + newName).call();
+                    RevCommit commit = git.commit().setOnly(pathToCommit).setOnly(pathRemoved).setAuthor(helper.getCurrentUserIdent()).setCommitter(helper.getCurrentUserIdent()).setMessage("Moving " + fromPath + " to " + toPath + (StringUtils.isNotEmpty(newName) ? newName: StringUtils.EMPTY)).call();
                     commitId = commit.getName();
                     toRet.put(pathToCommit, commitId);
                 }
