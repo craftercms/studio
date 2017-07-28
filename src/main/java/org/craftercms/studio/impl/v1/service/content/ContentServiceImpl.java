@@ -512,7 +512,7 @@ public class ContentServiceImpl implements ContentService {
                 ContentItemTO fromItem = getContentItem(site, fromPath, 0);
 
                 if (fromItem.isFolder()) {
-                    createFolder(site, toPath, copyFileName);
+                    createFolder(site, copyPathOnly, copyFileName);
                     // copy was successful, return the new name
                     retNewFileName = copyPath;
                 } else {
@@ -697,26 +697,25 @@ public class ContentServiceImpl implements ContentService {
 
         ContentItemTO renamedItem = getContentItem(site, movePath, 0);
         String contentType = renamedItem.getContentType();
+        if (!renamedItem.isFolder()) {
+            dmContentLifeCycleService.process(site, user, movePath, contentType, DmContentLifeCycleService
+                    .ContentLifeCycleOperation.RENAME, params);
 
-        dmContentLifeCycleService.process(site, user, movePath, contentType, DmContentLifeCycleService
-            .ContentLifeCycleOperation.RENAME, params);
-
-        // change the path of this object in the object state database
-        objectStateService.updateObjectPath(site, fromPath, movePath);
-        ContentItemTO movedTO = getContentItem(site, movePath, 0);
-        objectStateService.transition(site, movedTO, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.SAVE);
-
+            // change the path of this object in the object state database
+            objectStateService.updateObjectPath(site, fromPath, movePath);
+            objectStateService.transition(site, renamedItem, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.SAVE);
+        }
         // update metadata
         if (!objectMetadataManager.isRenamed(site, fromPath)) {
             // if an item was previously moved, we do not track intermediate moves because it will
             // ultimately orphan deployed content.  Old Path is always the OLDEST DEPLOYED PATH
             ObjectMetadata metadata = objectMetadataManager.getProperties(site, fromPath);
-            if(metadata == null) {
+            if (metadata == null && !renamedItem.isFolder()) {
                 objectMetadataManager.insertNewObjectMetadata(site, fromPath);
                 metadata = objectMetadataManager.getProperties(site, fromPath);
             }
 
-            if (!movedTO.isNew()) {
+            if (!renamedItem.isNew() && !renamedItem.isFolder()) {
                 // if the item is not new, we need to track the old URL for deployment
                 logger.debug("item is not new, and has not previously been moved. Track the old URL {0}", fromPath);
                 Map<String, Object> objMetadataProps = new HashMap<String, Object>();
@@ -726,7 +725,9 @@ public class ContentServiceImpl implements ContentService {
             }
         }
 
-        objectMetadataManager.updateObjectPath(site, fromPath, movePath);
+        if (!renamedItem.isFolder()) {
+            objectMetadataManager.updateObjectPath(site, fromPath, movePath);
+        }
 
         // write activity stream
         activityService.renameContentId(site, fromPath, movePath);
@@ -738,7 +739,9 @@ public class ContentServiceImpl implements ContentService {
             activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
         }
 
-        activityService.postActivity(site, user, movePath, ActivityService.ActivityType.UPDATED, ActivityService.ActivitySource.UI, activityInfo);
+        if (!renamedItem.isFolder()) {
+            activityService.postActivity(site, user, movePath, ActivityService.ActivityType.UPDATED, ActivityService.ActivitySource.UI, activityInfo);
+        }
 
         updateDependenciesOnMove(site, fromPath, movePath);
     }

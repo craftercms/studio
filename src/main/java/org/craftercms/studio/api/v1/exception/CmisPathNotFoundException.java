@@ -16,6 +16,29 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import scripts.api.impl.content.ContentMonitoring
+package org.craftercms.studio.api.v1.exception;
 
-ContentMonitoring.doMonitoringForAllSites(applicationContext, logger)
+public class CmisPathNotFoundException extends Exception {
+
+
+    private static final long serialVersionUID = 4326252919181542064L;
+
+    public CmisPathNotFoundException() {
+    }
+
+    public CmisPathNotFoundException(String message) {
+        super(message);
+    }
+
+    public CmisPathNotFoundException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public CmisPathNotFoundException(Throwable cause) {
+        super(cause);
+    }
+
+    public CmisPathNotFoundException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+        super(message, cause, enableSuppression, writableStackTrace);
+    }
+}

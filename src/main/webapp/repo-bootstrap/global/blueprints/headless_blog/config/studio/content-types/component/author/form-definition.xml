@@ -170,7 +170,7 @@
 						</property>
 						<property>
 							<name>imageManager</name>
-							<value>uploadImage,browseImage</value>
+							<value>upload_images,existing_images</value>
 							<type>datasource:image</type>
 						</property>
 						<property>

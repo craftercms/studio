@@ -1,0 +1,16 @@
+<content-type name="/taxonomy" is-wcm-type="true">
+	<label>Taxonomy</label>
+	<form>/taxonomy</form>
+	<form-path>simple</form-path>
+	<model-instance-path>NOT-USED-BY-SIMPLE-FORM-ENGINE</model-instance-path>
+	<file-extension>xml</file-extension>
+	<content-as-folder>false</content-as-folder>
+	<previewable>false</previewable>
+	<noThumbnail>false</noThumbnail>
+	<image-thumbnail>taxonomy.png</image-thumbnail>
+	<paths>
+		<includes>
+			<pattern>^/site/taxonomy/.*</pattern>
+		</includes>
+	</paths>
+</content-type>

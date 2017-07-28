@@ -46,8 +46,6 @@
         <result property="commitId" column="commit_id"/>
     </resultMap>
 
-    <cache/>
-
     <select id="getProperties" parameterType="java.util.Map" resultMap="ObjectMetadataMap">
         SELECT * FROM cstudio_objectmetadata WHERE site=#{site} AND path=#{path}
     </select>

@@ -128,7 +128,7 @@ studio.objectState.bulkOperationsBatchSize: 500
 ##########################################################
 ##                   Security Service                   ##
 ##########################################################
-# HTTP Session timeout for studio.
+# HTTP Session timeout for studio (value is in minutes).
 studio.security.sessionTimeout: 60
 # Urls to include in restriction for authenticated user only.
 studio.security.urlsToInclude: /api/**
@@ -172,9 +172,9 @@ studio.security.ldap.userAttribute.firstName: cn
 studio.security.ldap.userAttribute.lastName: sn
 # LDAP email attribute
 studio.security.ldap.userAttribute.email: mail
-# LDAP email attribute
+# LDAP site ID attribute
 studio.security.ldap.userAttribute.siteId: o
-# LDAP email attribute
+# LDAP groups attribute
 studio.security.ldap.userAttribute.groupName: ou
 # Global admin group
 studio.security.global.adminGroup: crafter-admin

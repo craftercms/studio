@@ -16,6 +16,28 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import scripts.api.impl.content.ContentMonitoring
+package org.craftercms.studio.api.v1.exception;
 
-ContentMonitoring.doMonitoringForAllSites(applicationContext, logger)
+public class StudioPathNotFoundException extends Exception {
+
+    private static final long serialVersionUID = -2972372995023632836L;
+
+    public StudioPathNotFoundException() {
+    }
+
+    public StudioPathNotFoundException(String message) {
+        super(message);
+    }
+
+    public StudioPathNotFoundException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public StudioPathNotFoundException(Throwable cause) {
+        super(cause);
+    }
+
+    public StudioPathNotFoundException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+        super(message, cause, enableSuppression, writableStackTrace);
+    }
+}

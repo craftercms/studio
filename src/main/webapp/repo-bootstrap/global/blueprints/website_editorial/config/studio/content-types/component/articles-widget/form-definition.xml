@@ -53,7 +53,7 @@
 				<field>
 					<type>input</type>
 					<id>internal-name</id>
-					<iceId></iceId>
+					<iceId>articles</iceId>
 					<title>Internal Name</title>
 					<description></description>
 					<defaultValue></defaultValue>
@@ -81,7 +81,7 @@
 				<field>
 					<type>checkbox</type>
 					<id>disabled</id>
-					<iceId></iceId>
+					<iceId>articles</iceId>
 					<title>Disable Component</title>
 					<description></description>
 					<defaultValue></defaultValue>
@@ -152,7 +152,7 @@
 				<field>
 					<type>input</type>
 					<id>title</id>
-					<iceId></iceId>
+					<iceId>articles</iceId>
 					<title>Title</title>
 					<description></description>
 					<defaultValue></defaultValue>
@@ -195,7 +195,7 @@
 				<field>
 					<type>input</type>
 					<id>max_articles</id>
-					<iceId></iceId>
+					<iceId>articles</iceId>
 					<title>Max Articles</title>
 					<description></description>
 					<defaultValue></defaultValue>
