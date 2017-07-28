@@ -831,23 +831,32 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                                 }
                                 logger.error(errorMessage2);
                             } else {
+                                logger.debug("Cherry pick in conflict state without failing paths. Get status to check repository.");
                                 Status gitStatus = git.status().call();
                                 Set<String> removed =  gitStatus.getRemoved();
+                                logger.debug("Get all conflicts for cherry-pick command");
                                 Map<String, IndexDiff.StageState> conflicts = gitStatus.getConflictingStageState();
                                 for (Map.Entry<String, IndexDiff.StageState> entry : conflicts.entrySet()) {
                                     String path = entry.getKey();
                                     IndexDiff.StageState stageState = entry.getValue();
                                     if (stageState == IndexDiff.StageState.DELETED_BY_THEM) {
+                                        logger.debug("If conflict is caused by incoming delete, remove file from repository with rm command");
                                         git.rm().addFilepattern(path).call();
                                     } else {
+                                        logger.debug("Conflict is " + stageState.name() + " path " + path + "- not able to handle it. Throw error");
                                         throw new DeploymentException("Conflict while cherry-pick commit id: " + commitId + " for site " + site);
                                     }
 
                                 }
+                                logger.debug("Add all changes to index with git add.");
                                 git.add().addFilepattern(GIT_COMMIT_ALL_ITEMS).call();
+                                logger.debug("Remove all removed files with git rm.");
                                 for(String rm : removed) {
+
                                     git.rm().addFilepattern(rm).call();
                                 }
+
+                                logger.debug("Conflict resolved - execute commit and finish deployment");
                                 String commitMessage = rc.getFullMessage();
                                 git.commit().setMessage(commitMessage).call();
 
