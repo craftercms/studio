@@ -8,7 +8,7 @@ class TaxonomySearchHelper extends SearchHelper {
 	def TaxonomySearchHelper(String name, searchService) {
 		super(searchService)
 		filter("file-name: \"${name}.xml\"")
-		filter("content-type:\"/component/taxonomy\"")
+		filter("content-type:\"/taxonomy\"")
 	}
 	
 	def processItem(doc) {
