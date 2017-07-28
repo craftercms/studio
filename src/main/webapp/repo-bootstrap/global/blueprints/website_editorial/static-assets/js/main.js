@@ -113,7 +113,7 @@
 								event.stopPropagation();
 
                             //Studio event to repaint the pencils.
-                                if(typeof studioICERepaint != ‘undefined’){
+                                if(typeof studioICERepaint != 'undefined'){
                                     studioICERepaint();
                                 }
 
