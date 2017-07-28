@@ -25,7 +25,7 @@
 				<field>
 					<type>file-name</type>
 					<id>file-name</id>
-					<iceId></iceId>
+					<iceId>left-rail</iceId>
 					<title>Component ID</title>
 					<description></description>
 					<defaultValue></defaultValue>
@@ -53,7 +53,7 @@
 				<field>
 					<type>input</type>
 					<id>internal-name</id>
-					<iceId></iceId>
+					<iceId>left-rail</iceId>
 					<title>Internal Name</title>
 					<description></description>
 					<defaultValue></defaultValue>
@@ -81,7 +81,7 @@
 				<field>
 					<type>checkbox</type>
 					<id>disabled</id>
-					<iceId></iceId>
+					<iceId>left-rail</iceId>
 					<title>Disable Component</title>
 					<description></description>
 					<defaultValue></defaultValue>
@@ -111,7 +111,7 @@
 				<field>
 					<type>node-selector</type>
 					<id>widgets</id>
-					<iceId></iceId>
+					<iceId>left-rail</iceId>
 					<title>Widgets</title>
 					<description></description>
 					<defaultValue></defaultValue>
