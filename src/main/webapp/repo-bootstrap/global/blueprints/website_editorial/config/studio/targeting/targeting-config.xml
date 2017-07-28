@@ -33,7 +33,7 @@
         <possible_values>
             <value>guy</value>
             <value>gal</value>
-            <value></value>
+            <value>anonymous</value>
         </possible_values>
         <default_value></default_value>
         <hint>Setting the segment will change content targeting to the audience selected.</hint>
