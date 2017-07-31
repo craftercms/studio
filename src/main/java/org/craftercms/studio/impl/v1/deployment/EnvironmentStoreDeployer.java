@@ -24,6 +24,7 @@ import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.content.ContentService;
+import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 
 import java.io.File;
 import java.io.IOException;
@@ -35,13 +36,14 @@ public class EnvironmentStoreDeployer implements Deployer{
     private final static Logger logger = LoggerFactory.getLogger(EnvironmentStoreDeployer.class);
 
     @Override
-    public void deployFile(String site, String path) {
+    public void deployFile(String site, String path) throws DeploymentException {
         InputStream content = null;
         try {
             content = contentService.getContent(site, path);
             writeFile(site, path, environment, content);
         } catch (ContentNotFoundException e) {
             logger.error("Deployment to environment store failed [{0}]. Content not found for [{1}:{2}]", e, environment, site, path);
+            throw new DeploymentException("Deployment to environment store failed ["+ environment + "]. Content not found for [" + site + ":" + path + "]", e);
         }
     }
 /*
@@ -50,7 +52,7 @@ public class EnvironmentStoreDeployer implements Deployer{
 
     }
 */
-    private void writeFile(String site, String path, String environment, InputStream content) {
+    private void writeFile(String site, String path, String environment, InputStream content) throws DeploymentException {
 
         try {
             if (content == null || content.available() < 0) {
@@ -62,6 +64,7 @@ public class EnvironmentStoreDeployer implements Deployer{
             FileUtils.copyInputStreamToFile(content, file);
         } catch (IOException e) {
             logger.error("Error while saving content to environment store [site: {0}] [path: {1}] [envirnonment: {2}]", e, site, path, environment);
+            throw new DeploymentException("Error while saving content to environment store [site: " + site + "] [path: " + path + "] [envirnonment: "+ environment + "]", e);
         }
     }
 
