@@ -21,13 +21,12 @@ package org.craftercms.studio.api.v1.deployment;
 import org.craftercms.studio.api.v1.service.deployment.ContentNotFoundForPublishingException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.UploadFailedException;
-import org.craftercms.studio.api.v1.to.DeploymentEndpointConfigTO;
 
 import java.util.List;
 
 public interface Deployer {
 
-    void deployFile(String site, String path);
+    void deployFile(String site, String path) throws DeploymentException;
 
     //void deployFile(String site, String path, String environment);
 

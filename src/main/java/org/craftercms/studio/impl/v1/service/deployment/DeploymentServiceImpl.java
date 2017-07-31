@@ -777,7 +777,11 @@ public class DeploymentServiceImpl implements DeploymentService {
             if (item.isFolder) {
                 syncFolder(site, item.path + "/" + item.name, deployer);
             } else {
-                deployer.deployFile(site, contentService.getRelativeSitePath(site, item.path + "/" + item.name));
+                try {
+                    deployer.deployFile(site, contentService.getRelativeSitePath(site, item.path + "/" + item.name));
+                } catch (DeploymentException e) {
+                    e.printStackTrace();logger.error("Error while saving content to preview [site: {0}] [path: {1}]", e, site, item.path + "/" + item.name);
+                }
             }
         }
     }
