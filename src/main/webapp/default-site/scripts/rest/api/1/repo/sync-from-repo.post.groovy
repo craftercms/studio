@@ -17,47 +17,54 @@
  *
  */
 
+
+import groovy.json.JsonException
 import groovy.json.JsonSlurper
 import org.apache.commons.lang3.StringUtils
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException
 import scripts.api.SiteServices
 
 def result = [:]
-def requestBody = request.reader.text
+try {
+    def requestBody = request.reader.text
 
-def slurper = new JsonSlurper()
-def parsedReq = slurper.parseText(requestBody)
+    def slurper = new JsonSlurper()
+    def parsedReq = slurper.parseText(requestBody)
 
-def siteId = parsedReq.site_id
+    def siteId = parsedReq.site_id
 
 /** Validate Parameters */
-def invalidParams = false;
+    def invalidParams = false;
 
 // site_id
-try {
-    if (StringUtils.isEmpty(siteId)) {
+    try {
+        if (StringUtils.isEmpty(siteId)) {
+            invalidParams = true
+        }
+    } catch (Exception exc) {
         invalidParams = true
     }
-} catch (Exception exc) {
-    invalidParams = true
-}
 
-if (invalidParams) {
-    response.setStatus(400)
-    result.message = "Invalid parameter: site_id"
-} else {
-    def context = SiteServices.createContext(applicationContext, request)
+    if (invalidParams) {
+        response.setStatus(400)
+        result.message = "Invalid parameter: site_id"
+    } else {
+        def context = SiteServices.createContext(applicationContext, request)
 
-    try {
-        SiteServices.syncRepository(context, siteId)
-        response.setStatus(200)
-        result.message = "OK"
-    } catch (SiteNotFoundException e) {
-        response.setStatus(404)
-        result.message = "Site not found"
-    } catch (Exception e) {
-        response.setStatus(500)
-        result.message = "Internal server error: \n" + e
+        try {
+            SiteServices.syncRepository(context, siteId)
+            response.setStatus(200)
+            result.message = "OK"
+        } catch (SiteNotFoundException e) {
+            response.setStatus(404)
+            result.message = "Site not found"
+        } catch (Exception e) {
+            response.setStatus(500)
+            result.message = "Internal server error: \n" + e
+        }
     }
+} catch (JsonException e) {
+    response.setStatus(400)
+    result.message = "Bad Request"
 }
 return result

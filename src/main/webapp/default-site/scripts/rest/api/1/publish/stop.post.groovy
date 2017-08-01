@@ -17,51 +17,57 @@
  */
 
 
+import groovy.json.JsonException
 import groovy.json.JsonSlurper
 import org.apache.commons.lang3.StringUtils
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException
 import scripts.api.DeploymentServices
 
 def result = [:]
-def siteId = params.site_id
+try {
+    def siteId = params.site_id
 
-def requestBody = request.reader.text
+    def requestBody = request.reader.text
 
-def slurper = new JsonSlurper()
-def parsedReq = slurper.parseText(requestBody)
+    def slurper = new JsonSlurper()
+    def parsedReq = slurper.parseText(requestBody)
 
-def siteIdJson = parsedReq.site_id
+    def siteIdJson = parsedReq.site_id
 /** Validate Parameters */
-def invalidParams = false;
+    def invalidParams = false;
 
-if (StringUtils.isEmpty(siteId)) {
-    if (StringUtils.isEmpty(siteIdJson)) {
-        invalidParams = true
-    } else {
-        siteId = siteIdJson;
-    }
-}
-
-if (invalidParams) {
-    response.setStatus(400)
-    result.message = "Invalid parameter: site_id"
-} else {
-    def context = DeploymentServices.createContext(applicationContext, request)
-    try {
-        def success = DeploymentServices.enablePublishing(context, siteId, false)
-        if (success) {
-            response.setStatus(200)
-            result.message = "OK"
+    if (StringUtils.isEmpty(siteId)) {
+        if (StringUtils.isEmpty(siteIdJson)) {
+            invalidParams = true
         } else {
-            response.setStatus(500)
-            result.message = "Internal server error"
+            siteId = siteIdJson;
         }
-    } catch (SiteNotFoundException e) {
-        response.setStatus(404)
-        result.message = "Site not found"
-    } catch (Exception e) {
-        response.setStatus(500)
-        result.message = "Internal server error: \n" + e
     }
+
+    if (invalidParams) {
+        response.setStatus(400)
+        result.message = "Invalid parameter: site_id"
+    } else {
+        def context = DeploymentServices.createContext(applicationContext, request)
+        try {
+            def success = DeploymentServices.enablePublishing(context, siteId, false)
+            if (success) {
+                response.setStatus(200)
+                result.message = "OK"
+            } else {
+                response.setStatus(500)
+                result.message = "Internal server error"
+            }
+        } catch (SiteNotFoundException e) {
+            response.setStatus(404)
+            result.message = "Site not found"
+        } catch (Exception e) {
+            response.setStatus(500)
+            result.message = "Internal server error: \n" + e
+        }
+    }
+} catch (JsonException e) {
+    response.setStatus(400)
+    result.message = "Bad Request"
 }
 return result

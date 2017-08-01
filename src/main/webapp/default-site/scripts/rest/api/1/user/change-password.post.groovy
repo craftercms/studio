@@ -17,6 +17,8 @@
  *
  */
 
+
+import groovy.json.JsonException
 import groovy.json.JsonSlurper
 import org.apache.commons.lang3.StringUtils
 import org.craftercms.studio.api.v1.exception.security.PasswordDoesNotMatchException
@@ -25,80 +27,85 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException
 import scripts.api.SecurityServices
 
 def result = [:]
-def requestBody = request.reader.text
+try {
+    def requestBody = request.reader.text
 
-def slurper = new JsonSlurper()
-def parsedReq = slurper.parseText(requestBody)
+    def slurper = new JsonSlurper()
+    def parsedReq = slurper.parseText(requestBody)
 
-def username = parsedReq.username
-def current = parsedReq.current
-def newPassword = parsedReq.new
+    def username = parsedReq.username
+    def current = parsedReq.current
+    def newPassword = parsedReq.new
 
 /** Validate Parameters */
-def invalidParams = false;
-def paramsList = []
+    def invalidParams = false;
+    def paramsList = []
 
 // username
-try {
-    if (StringUtils.isEmpty(username)) {
+    try {
+        if (StringUtils.isEmpty(username)) {
+            invalidParams = true
+            paramsList.add("username")
+        }
+    } catch (Exception exc) {
         invalidParams = true
         paramsList.add("username")
     }
-} catch (Exception exc) {
-    invalidParams = true
-    paramsList.add("username")
-}
 
 // current password
-try {
-    if (StringUtils.isEmpty(current)) {
+    try {
+        if (StringUtils.isEmpty(current)) {
+            invalidParams = true
+            paramsList.add("current")
+        }
+    } catch (Exception exc) {
         invalidParams = true
         paramsList.add("current")
     }
-} catch (Exception exc) {
-    invalidParams = true
-    paramsList.add("current")
-}
 
 // new password
-try {
-    if (StringUtils.isEmpty(newPassword)) {
+    try {
+        if (StringUtils.isEmpty(newPassword)) {
+            invalidParams = true
+            paramsList.add("new")
+        }
+    } catch (Exception exc) {
         invalidParams = true
         paramsList.add("new")
     }
-} catch (Exception exc) {
-    invalidParams = true
-    paramsList.add("new")
-}
 
-if (invalidParams) {
-    response.setStatus(400)
-    result.message = "Invalid parameter(s): " + paramsList
-} else {
-    def context = SecurityServices.createContext(applicationContext, request)
-    try {
-        def success = SecurityServices.changePassword(context, username, current, newPassword)
-        if (success) {
-            def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/user/get.json?username=" + username
-            response.addHeader("Location", locationHeader)
-            result.message = "OK"
-            response.setStatus(200)
-        } else {
+    if (invalidParams) {
+        response.setStatus(400)
+        result.message = "Invalid parameter(s): " + paramsList
+    } else {
+        def context = SecurityServices.createContext(applicationContext, request)
+        try {
+            def success = SecurityServices.changePassword(context, username, current, newPassword)
+            if (success) {
+                def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/user/get.json?username=" + username
+                response.addHeader("Location", locationHeader)
+                result.message = "OK"
+                response.setStatus(200)
+            } else {
+                response.setStatus(500)
+                result.message = "Internal server error"
+            }
+        } catch (PasswordDoesNotMatchException e) {
+            response.setStatus(401)
+            result.message = "Unauthorized"
+        } catch (UserExternallyManagedException e) {
+            response.setStatus(403)
+            result.message = "Externally managed user"
+        } catch (UserNotFoundException e) {
+            response.setStatus(404)
+            result.message = "User not found"
+        } catch (Exception e) {
             response.setStatus(500)
-            result.message = "Internal server error"
+            result.message = "Internal server error: \n" + e
         }
-    } catch (PasswordDoesNotMatchException e) {
-        response.setStatus(401)
-        result.message = "Unauthorized"
-    } catch (UserExternallyManagedException e) {
-        response.setStatus(403)
-        result.message = "Externally managed user"
-    } catch (UserNotFoundException e) {
-        response.setStatus(404)
-        result.message = "User not found"
-    } catch (Exception e) {
-        response.setStatus(500)
-        result.message = "Internal server error: \n" + e
     }
+} catch (JsonException e) {
+    response.setStatus(400)
+    result.message = "Bad Request"
 }
 return result
