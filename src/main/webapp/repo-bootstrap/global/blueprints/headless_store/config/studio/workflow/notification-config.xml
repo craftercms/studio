@@ -7,13 +7,13 @@
 <notificationConfig>
     <lang name="en"> <!-- language specific notifications -->
         <deploymentFailureNotification> <!-- list of email addresses to notify in case of publishing failure -->
-            <email>admin@local.loc</email>
-            <email>admin2@local.loc</email>
+            <email>admin@example.com</email>
+            <email>admin2@example.com</email>
         </deploymentFailureNotification>
 
         <approverEmails> <!-- list of content approver emails -->
-            <email>admin@local.loc</email>
-            <email>admin2@local.loc</email>
+            <email>admin@example.com</email>
+            <email>admin2@example.com</email>
         </approverEmails>
 
         <generalMessages> <!-- list of general messages -->
@@ -176,6 +176,30 @@
                                 <a href="${authoringUrl}/site-dashboard" >
                                     <img style="max-width: 350px;  max-height: 350px;" src="${liveUrl}/static-assets/images/workflow-email-footer.png" alt="" />
                                 </a>
+                                </p>
+                            </body>
+                        </html>
+                        ]]></body>
+            </emailTemplate>
+            <emailTemplate key="contentExpiringSoon">
+                <subject>Content Expiring Soon</subject>
+                <body><![CDATA[
+                     <html>
+                            <head>
+                                <meta charset="utf-8"/>
+                            </head>
+                             <body>
+                                <p>
+                                    ${monitorName} in site '${siteName}':
+                                    <ul>
+                                  <#list items as item>
+                                        <#if item.url??>
+                                            <li><a href="${item.url}">${item.internalName!item.id}</a></li>
+                                        <#else>
+                                            <li>${item.internalName!item.id}</li>
+                                      </#if>
+                                    </#list>
+                                </ul>
                                 </p>
                             </body>
                         </html>
