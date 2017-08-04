@@ -176,6 +176,7 @@
         <property name="submitToApproveDependencyRule" ref="studioSubmitToApproveDependencyRule"/>
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager" />
+        <property name="dependencyResolver" ref="studioDependencyResolver" />
     </bean>
 
     <bean id="cstudioObjectStateService" class="org.craftercms.studio.impl.v1.service.objectstate.ObjectStateServiceImpl"
@@ -664,7 +665,9 @@
         <property name="beanName" value="cstudioDeploymentEventLoggerListener" />
     </bean>
 
-    <!-- Dependency Rules -->
+    <!-- ////////////////////////////////////// -->
+    <!--         Dependencies                   -->
+    <!-- ////////////////////////////////////// -->
     <bean id="studioDeplymentDependencyRule" class="org.craftercms.studio.impl.v1.service.dependency.DeploymentDependencyRule">
         <property name="dmDependencyService" ref="cstudioDmDependencyService"/>
         <property name="objectStateService" ref="cstudioObjectStateService"/>
@@ -687,6 +690,11 @@
                 <value>/static-assets/page/.*</value>
             </list>
         </property>
+    </bean>
+
+    <bean id="studioDependencyResolver" class="org.craftercms.studio.impl.v1.service.dependency.RegexDependencyResolver">
+        <property name="contentService" ref="cstudioContentService"/>
+        <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
     <!-- Utilities -->

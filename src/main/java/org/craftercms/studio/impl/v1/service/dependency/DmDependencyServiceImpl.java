@@ -34,6 +34,7 @@ import org.craftercms.studio.api.v1.service.AbstractRegistrableService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
+import org.craftercms.studio.api.v1.service.dependency.DependencyResolver;
 import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.CopyDependencyConfigTO;
@@ -791,6 +792,9 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
         // need all items regardless they are updated or not
         // add the current path to all dependency items as a parent
         // update the corresponding components, documents, assets to have this path as a mandatory parent
+
+
+
         if (globalDeps == null) {
             globalDeps = new HashMap<>();
         }
@@ -813,12 +817,22 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
             }
 
             StringBuffer buffer = new StringBuffer(XmlUtils.convertDocumentToString(document));
-            List<String> assets = getDependentFileNames(site, buffer, false, servicesConfig.getAssetPatterns(site));
-            List<String> components = getDependentFileNames(site, buffer, false, servicesConfig.getComponentPatterns(site));
-            List<String> documents = getDependentFileNames(site, buffer, false, servicesConfig.getDocumentPatterns(site));
-            List<String> pages = getDependentFileNames(site, buffer, false, servicesConfig.getPagePatterns(site));
-            List<String> templates = getDependentFileNames(site, buffer, false, servicesConfig.getRenderingTemplatePatterns(site));
+            List<String> assets = new ArrayList<String>();
+            List<String> components = new ArrayList<String>();
+            List<String> documents = new ArrayList<String>();
+            List<String> pages = new ArrayList<String>();
+            List<String> templates = new ArrayList<String>();
+            List<String> scripts = new ArrayList<String>();
             //List<String> levelDescriptors = getDependentLevelDescriptors(site, path, false, servicesConfig.getLevelDescriptorName(site));
+
+            assets.addAll(dependencyResolver.resolve(site, path, "asset", "application/xml", buffer.toString()));
+            components.addAll(dependencyResolver.resolve(site, path, "component", "application/xml", buffer.toString()));
+            documents.addAll(dependencyResolver.resolve(site, path, "document", "application/xml", buffer.toString()));
+            pages.addAll(dependencyResolver.resolve(site, path, "page", "application/xml", buffer.toString()));
+            templates.addAll(dependencyResolver.resolve(site, path, "rendering-template", "application/xml", buffer.toString()));
+            scripts.addAll(dependencyResolver.resolve(site, path, "script", "application/xml", buffer.toString()));
+
+
             Map<String, List<String>> dependency = new HashMap<>();
             dependency.put(DEPENDENCY_NAME_ASSET, assets);
             dependency.put(DEPENDENCY_NAME_COMPONENT, components);
@@ -915,11 +929,12 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
         if (globalDeps == null) {
             globalDeps = new HashMap<>();
         }
-        List<String> assets = getDependentFileNames(site, templateContent, false, servicesConfig.getAssetPatterns(site));
-        List<String> templates = getDependentFileNames(site, templateContent, false, servicesConfig.getRenderingTemplatePatterns(site));
-        while (templates.contains(path)) {
-            templates.remove(path);
-        }
+        List<String> assets = new ArrayList<String>();
+        List<String> templates = new ArrayList<String>();
+
+        assets.addAll(dependencyResolver.resolve(site, path, "asset", "text/x-freemarker", templateContent.toString()));
+        templates.addAll(dependencyResolver.resolve(site, path, "rendering-template", "text/x-freemarker", templateContent.toString()));
+
         Map<String, List<String>> dependency = new HashMap<>();
         dependency.put(DEPENDENCY_NAME_ASSET, assets);
         dependency.put(DEPENDENCY_NAME_RENDERING_TEMPLATE, templates);
@@ -969,10 +984,9 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
         if (globalDeps == null) {
             globalDeps = new HashMap<>();
         }
-        List<String> assets = getDependentFileNames(site, styleContent, false, servicesConfig.getAssetPatterns(site));
-        while (assets.contains(path)) {
-            assets.remove(path);
-        }
+        List<String> assets = new ArrayList<String>();
+        assets.addAll(dependencyResolver.resolve(site, path, "asset", "text/css", styleContent.toString()));
+
         Map<String, List<String>> dependency = new HashMap<>();
 
         dependency.put(DEPENDENCY_NAME_ASSET, assets);
@@ -1003,10 +1017,9 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
         if (globalDeps == null) {
             globalDeps = new HashMap<>();
         }
-        List<String> assets = getDependentFileNames(site, javascriptContent, false, servicesConfig.getAssetPatterns(site));
-        while (assets.contains(path)) {
-            assets.remove(path);
-        }
+        List<String> assets = new ArrayList<String>();
+        assets.addAll(dependencyResolver.resolve(site, path, "asset", "application/javascript", javascriptContent.toString()));
+
         Map<String, List<String>> dependency = new HashMap<>();
         dependency.put(DEPENDENCY_NAME_ASSET, assets);
         setDependencies(site, path, dependency);
@@ -1183,33 +1196,6 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
         return copyDependency;
     }
 
-
-
-    /**
-	 *
-	 * @param site
-	 * @param sourcePath
-	 * @param dependencies
-	 * @return
-	 * @throws ServiceException
-	 *//*
-	protected List<String> filterDependenicesMatchingDeletePattern(String site, String sourcePath, List<String> dependencies) throws ServiceException{
-		List<String> matchingDep = new FastList<String>();
-		if(sourcePath.endsWith(DmConstants.XML_PATTERN) && sourcePath.endsWith(DmConstants.XML_PATTERN)){
-			List<DeleteDependencyConfigTO> deleteAssociations = getDeletePatternConfig(site,sourcePath);
-			if (deleteAssociations != null && deleteAssociations.size() > 0) {
-				for(String dependency:dependencies){
-					for (DeleteDependencyConfigTO deleteAssoc : deleteAssociations) {
-						if (dependency.matches(deleteAssoc.getPattern())) {
-							matchingDep.add(dependency);
-						}
-					}
-				}
-			}
-		}
-		return matchingDep;
-	}*/
-
     @Override
     public List<String> getDependencyPaths(String site, String path) {
         List<String> toRet = new ArrayList<>();
@@ -1279,12 +1265,16 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
     public ObjectMetadataManager getObjectMetadataManager() { return objectMetadataManager; }
     public void setObjectMetadataManager(ObjectMetadataManager objectMetadataManager) { this.objectMetadataManager = objectMetadataManager; }
 
+    public DependencyResolver getDependencyResolver() { return dependencyResolver; }
+    public void setDependencyResolver(DependencyResolver dependencyResolver) { this.dependencyResolver = dependencyResolver; }
+
     protected ContentService contentService;
     protected ServicesConfig servicesConfig;
     protected org.craftercms.studio.api.v1.service.objectstate.ObjectStateService objectStateService;
     protected SubmitToApproveDependencyRule submitToApproveDependencyRule;
     protected StudioConfiguration studioConfiguration;
     protected ObjectMetadataManager objectMetadataManager;
+    protected DependencyResolver dependencyResolver;
 
     @Autowired
     protected DependencyMapper dependencyMapper;

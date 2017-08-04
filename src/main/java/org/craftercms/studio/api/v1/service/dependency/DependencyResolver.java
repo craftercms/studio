@@ -34,7 +34,7 @@ public interface DependencyResolver {
      * @param content content to resolve its dependencies
      * @return set of paths of files that content is dependant on
      */
-    Set<String> resolve(String site, String path, String mimetype, InputStream content) throws IOException;
+    Set<String> resolve(String site, String path, String dependencyType, String mimetype, InputStream content) throws IOException;
 
     /**
      * Resolves dependent files for given content of given mimetype
@@ -43,5 +43,5 @@ public interface DependencyResolver {
      * @param content String content to resolve its dependencies
      * @return set of paths of files that content is dependant on
      */
-    Set<String> resolve(String site, String path, String mimetype, String content);
+    Set<String> resolve(String site, String path, String dependencyType, String mimetype, String content);
 }
