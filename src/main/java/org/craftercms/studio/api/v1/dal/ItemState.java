@@ -23,7 +23,7 @@ import java.io.Serializable;
 /**
  * @author Dejan Brkic
  */
-public class ObjectState implements Serializable {
+public class ItemState implements Serializable {
     private static final long serialVersionUID = -4858304001684851333L;
 
     public String getObjectId() { return objectId; }

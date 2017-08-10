@@ -27,9 +27,9 @@ import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.DmConstants;
-import org.craftercms.studio.api.v1.dal.CopyToEnvironment;
-import org.craftercms.studio.api.v1.dal.CopyToEnvironmentMapper;
-import org.craftercms.studio.api.v1.dal.ObjectMetadata;
+import org.craftercms.studio.api.v1.dal.PublishRequest;
+import org.craftercms.studio.api.v1.dal.PublishRequestMapper;
+import org.craftercms.studio.api.v1.dal.ItemMetadata;
 import org.craftercms.studio.api.v1.ebus.DeploymentItem;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -64,17 +64,17 @@ public class PublishingManagerImpl implements PublishingManager {
     private static final String PRODUCTION_ENVIRONMENT = "Production";
 
     @Override
-    public List<CopyToEnvironment> getItemsReadyForDeployment(String site, String environment) {
+    public List<PublishRequest> getItemsReadyForDeployment(String site, String environment) {
         Map<String, Object> params = new HashMap<>();
         params.put("site", site);
-        params.put("state", CopyToEnvironment.State.READY_FOR_LIVE);
+        params.put("state", PublishRequest.State.READY_FOR_LIVE);
         params.put("environment", environment);
         params.put("now", new Date());
-        return copyToEnvironmentMapper.getItemsReadyForDeployment(params);
+        return publishRequestMapper.getItemsReadyForDeployment(params);
     }
 
     @Override
-    public DeploymentItem processItem(CopyToEnvironment item) throws DeploymentException {
+    public DeploymentItem processItem(PublishRequest item) throws DeploymentException {
 
         if (item == null) {
             throw new DeploymentException("Cannot process item, item is null.");
@@ -112,7 +112,7 @@ public class PublishingManagerImpl implements PublishingManager {
             isLive = true;
         }
 
-        if (org.apache.commons.lang.StringUtils.equals(action, CopyToEnvironment.Action.DELETE)) {
+        if (org.apache.commons.lang.StringUtils.equals(action, PublishRequest.Action.DELETE)) {
             if (oldPath != null && oldPath.length() > 0) {
                 contentService.deleteContent(site, oldPath, user);
                 boolean hasRenamedChildren = false;
@@ -159,7 +159,7 @@ public class PublishingManagerImpl implements PublishingManager {
             LOGGER.debug("Setting system processing for {0}:{1}", site, path);
             objectStateService.setSystemProcessing(site, path, true);
 
-            if (StringUtils.equals(action, CopyToEnvironment.Action.MOVE)) {
+            if (StringUtils.equals(action, PublishRequest.Action.MOVE)) {
                 if (oldPath != null && oldPath.length() > 0) {
                     if (isLive) {
                         objectMetadataManager.clearRenamed(site, path);
@@ -167,12 +167,12 @@ public class PublishingManagerImpl implements PublishingManager {
                 }
             }
 
-            ObjectMetadata objectMetadata = objectMetadataManager.getProperties(site, path);
+            ItemMetadata itemMetadata = objectMetadataManager.getProperties(site, path);
 
-            if (objectMetadata == null) {
+            if (itemMetadata == null) {
                 LOGGER.debug("No object state found for {0}:{1}, create it", site, path);
                 objectMetadataManager.insertNewObjectMetadata(site, path);
-                objectMetadata = objectMetadataManager.getProperties(site, path);
+                itemMetadata = objectMetadataManager.getProperties(site, path);
             }
 
             if (isLive) {
@@ -181,15 +181,15 @@ public class PublishingManagerImpl implements PublishingManager {
 
                 // check if commit id from workflow and from object state match
                 ContentItemTO contentItem = contentService.getContentItem(site, path);
-                if (objectMetadata != null) {
-                    if (objectMetadata.getCommitId().equals(item.getCommitId())) {
+                if (itemMetadata != null) {
+                    if (itemMetadata.getCommitId().equals(item.getCommitId())) {
                         objectStateService.transition(site, contentItem, TransitionEvent.DEPLOYMENT);
                     }
                     Map<String, Object> props = new HashMap<String, Object>();
-                    props.put(ObjectMetadata.PROP_SUBMITTED_BY, StringUtils.EMPTY);
-                    props.put(ObjectMetadata.PROP_SEND_EMAIL, 0);
-                    props.put(ObjectMetadata.PROP_SUBMITTED_FOR_DELETION, 0);
-                    props.put(ObjectMetadata.PROP_SUBMISSION_COMMENT, StringUtils.EMPTY);
+                    props.put(ItemMetadata.PROP_SUBMITTED_BY, StringUtils.EMPTY);
+                    props.put(ItemMetadata.PROP_SEND_EMAIL, 0);
+                    props.put(ItemMetadata.PROP_SUBMITTED_FOR_DELETION, 0);
+                    props.put(ItemMetadata.PROP_SUBMISSION_COMMENT, StringUtils.EMPTY);
                     objectMetadataManager.setObjectMetadata(site, path, props);
                 }
             }
@@ -214,44 +214,44 @@ public class PublishingManagerImpl implements PublishingManager {
     }
 
     @Override
-    public void markItemsCompleted(String site, String environment, List<CopyToEnvironment> processedItems) throws DeploymentException {
-        for (CopyToEnvironment item : processedItems) {
-            item.setState(CopyToEnvironment.State.COMPLETED);
-            copyToEnvironmentMapper.updateItemDeploymentState(item);
+    public void markItemsCompleted(String site, String environment, List<PublishRequest> processedItems) throws DeploymentException {
+        for (PublishRequest item : processedItems) {
+            item.setState(PublishRequest.State.COMPLETED);
+            publishRequestMapper.updateItemDeploymentState(item);
         }
     }
 
     @Override
-    public void markItemsProcessing(String site, String environment, List<CopyToEnvironment> itemsToDeploy) throws DeploymentException {
-        for (CopyToEnvironment item : itemsToDeploy) {
-            item.setState(CopyToEnvironment.State.PROCESSING);
-            copyToEnvironmentMapper.updateItemDeploymentState(item);
+    public void markItemsProcessing(String site, String environment, List<PublishRequest> itemsToDeploy) throws DeploymentException {
+        for (PublishRequest item : itemsToDeploy) {
+            item.setState(PublishRequest.State.PROCESSING);
+            publishRequestMapper.updateItemDeploymentState(item);
         }
     }
 
     @Override
-    public void markItemsReady(String site, String environment, List<CopyToEnvironment> copyToEnvironmentItems) throws DeploymentException {
-        for (CopyToEnvironment item : copyToEnvironmentItems) {
-            item.setState(CopyToEnvironment.State.READY_FOR_LIVE);
-            copyToEnvironmentMapper.updateItemDeploymentState(item);
+    public void markItemsReady(String site, String environment, List<PublishRequest> copyToEnvironmentItems) throws DeploymentException {
+        for (PublishRequest item : copyToEnvironmentItems) {
+            item.setState(PublishRequest.State.READY_FOR_LIVE);
+            publishRequestMapper.updateItemDeploymentState(item);
         }
     }
 
     @Override
-    public void markItemsBlocked(String site, String environment, List<CopyToEnvironment> copyToEnvironmentItems) throws DeploymentException {
-        for (CopyToEnvironment item : copyToEnvironmentItems) {
-            item.setState(CopyToEnvironment.State.BLOCKED);
-            copyToEnvironmentMapper.updateItemDeploymentState(item);
+    public void markItemsBlocked(String site, String environment, List<PublishRequest> copyToEnvironmentItems) throws DeploymentException {
+        for (PublishRequest item : copyToEnvironmentItems) {
+            item.setState(PublishRequest.State.BLOCKED);
+            publishRequestMapper.updateItemDeploymentState(item);
         }
     }
 
     @Override
-    public List<DeploymentItem> processMandatoryDependencies(CopyToEnvironment item, List<String> pathsToDeploy, Set<String> missingDependenciesPaths) throws DeploymentException {
+    public List<DeploymentItem> processMandatoryDependencies(PublishRequest item, List<String> pathsToDeploy, Set<String> missingDependenciesPaths) throws DeploymentException {
         List<DeploymentItem> mandatoryDependencies = new ArrayList<DeploymentItem>();
         String site = item.getSite();
         String path = item.getPath();
 
-        if (StringUtils.equals(item.getAction(), CopyToEnvironment.Action.NEW) || StringUtils.equals(item.getAction(), CopyToEnvironment.Action.MOVE)) {
+        if (StringUtils.equals(item.getAction(), PublishRequest.Action.NEW) || StringUtils.equals(item.getAction(), PublishRequest.Action.MOVE)) {
             if (ContentUtils.matchesPatterns(path, servicesConfig.getPagePatterns(site))) {
                 String helpPath = path.replace("/" + getIndexFile(), "");
                 int idx = helpPath.lastIndexOf("/");
@@ -260,7 +260,7 @@ public class PublishingManagerImpl implements PublishingManager {
                     if (!missingDependenciesPaths.contains(parentPath) && !pathsToDeploy.contains(parentPath)) {
                         deploymentService.cancelWorkflow(site, parentPath);
                         missingDependenciesPaths.add(parentPath);
-                        CopyToEnvironment parentItem = createMissingItem(site, parentPath, item);
+                        PublishRequest parentItem = createMissingItem(site, parentPath, item);
                         DeploymentItem parentDeploymentItem = processItem(parentItem);
                         mandatoryDependencies.add(parentDeploymentItem);
                         mandatoryDependencies.addAll(processMandatoryDependencies(parentItem, pathsToDeploy, missingDependenciesPaths));
@@ -276,7 +276,7 @@ public class PublishingManagerImpl implements PublishingManager {
                         if (!missingDependenciesPaths.contains(dependentPath) && !pathsToDeploy.contains(dependentPath)) {
                             deploymentService.cancelWorkflow(site, dependentPath);
                             missingDependenciesPaths.add(dependentPath);
-                            CopyToEnvironment dependentItem = createMissingItem(site, dependentPath, item);
+                            PublishRequest dependentItem = createMissingItem(site, dependentPath, item);
                             DeploymentItem dependentDeploymentItem = processItem(dependentItem);
                             mandatoryDependencies.add(dependentDeploymentItem);
                             mandatoryDependencies.addAll(processMandatoryDependencies(dependentItem, pathsToDeploy, missingDependenciesPaths));
@@ -289,21 +289,21 @@ public class PublishingManagerImpl implements PublishingManager {
         return mandatoryDependencies;
     }
 
-    private CopyToEnvironment createMissingItem(String site, String itemPath, CopyToEnvironment item) {
-        CopyToEnvironment missingItem = new CopyToEnvironment();
+    private PublishRequest createMissingItem(String site, String itemPath, PublishRequest item) {
+        PublishRequest missingItem = new PublishRequest();
         missingItem.setSite(site);
         missingItem.setEnvironment(item.getEnvironment());
         missingItem.setPath(itemPath);
         missingItem.setScheduledDate(item.getScheduledDate());
         missingItem.setState(item.getState());
         if (objectStateService.isNew(site, itemPath)) {
-            missingItem.setAction(CopyToEnvironment.Action.NEW);
+            missingItem.setAction(PublishRequest.Action.NEW);
         }
-        ObjectMetadata metadata = objectMetadataManager.getProperties(site, itemPath);
+        ItemMetadata metadata = objectMetadataManager.getProperties(site, itemPath);
         if ((metadata != null) && (metadata.getRenamed() != 0)) {
             String oldPath = metadata.getOldUrl();
             missingItem.setOldPath(oldPath);
-            missingItem.setAction(CopyToEnvironment.Action.MOVE);
+            missingItem.setAction(PublishRequest.Action.MOVE);
         }
         String contentTypeClass = contentService.getContentTypeClass(site, itemPath);
         missingItem.setContentTypeClass(contentTypeClass);
@@ -317,8 +317,8 @@ public class PublishingManagerImpl implements PublishingManager {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("site", site);
         params.put("now", new Date());
-        params.put("state", CopyToEnvironment.State.BLOCKED);
-        Integer result = copyToEnvironmentMapper.isPublishingBlocked(params);
+        params.put("state", PublishRequest.State.BLOCKED);
+        Integer result = publishRequestMapper.isPublishingBlocked(params);
         return result > 0;
     }
 
@@ -327,7 +327,7 @@ public class PublishingManagerImpl implements PublishingManager {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("site", site);
         params.put("now", new Date());
-        CopyToEnvironment result = copyToEnvironmentMapper.checkPublishingStatus(params);
+        PublishRequest result = publishRequestMapper.checkPublishingStatus(params);
         return result.getState();
     }
 
@@ -391,5 +391,5 @@ public class PublishingManagerImpl implements PublishingManager {
     protected DeploymentHistoryProvider deploymentHistoryProvider;
 
     @Autowired
-    protected CopyToEnvironmentMapper copyToEnvironmentMapper;
+    protected PublishRequestMapper publishRequestMapper;
 }

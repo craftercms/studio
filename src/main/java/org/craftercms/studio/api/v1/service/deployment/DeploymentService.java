@@ -17,7 +17,7 @@
  ******************************************************************************/
 package org.craftercms.studio.api.v1.service.deployment;
 
-import org.craftercms.studio.api.v1.dal.CopyToEnvironment;
+import org.craftercms.studio.api.v1.dal.PublishRequest;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.to.*;
@@ -37,7 +37,7 @@ public interface DeploymentService {
     // document
     void delete(String site, List<String> paths, String approver, Date scheduledDate) throws DeploymentException;
 
-    List<CopyToEnvironment> getScheduledItems(String site);
+    List<PublishRequest> getScheduledItems(String site);
 
     void cancelWorkflow(String site, String path) throws DeploymentException;
 
@@ -66,7 +66,7 @@ public interface DeploymentService {
 
     void syncAllContentToPreview(String site, boolean waitTillDone) throws ServiceException;
 
-    List<CopyToEnvironment> getDeploymentQueue(String site) throws ServiceException;
+    List<PublishRequest> getDeploymentQueue(String site) throws ServiceException;
 
     boolean cancelDeployment(String site, String path, long deploymentId) throws ServiceException;
 

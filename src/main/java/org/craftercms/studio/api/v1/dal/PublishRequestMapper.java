@@ -18,28 +18,37 @@
 
 package org.craftercms.studio.api.v1.dal;
 
+import java.util.List;
 import java.util.Map;
 
-public interface ObjectMetadataMapper {
+/**
+ * @author Dejan Brkic
+ */
+public interface PublishRequestMapper {
 
-    ObjectMetadata getProperties(Map params);
+    List<PublishRequest> getScheduledItems(Map params);
 
-    void setProperties(Map params);
+    void insertItemForDeployment(PublishRequest copyToEnvironment);
 
-    void insertEntry(Map params);
+    void cancelWorkflow(Map params);
 
-    int countEntries(Map params);
+    List<PublishRequest> getItemsReadyForDeployment(Map params);
 
-    void deleteEntry(Map params);
+    void updateItemDeploymentState(PublishRequest item);
 
-    void setLockOwner(Map params);
+    void deleteDeploymentDataForSite(Map params);
 
-    void deleteObjectMetadataForSite(Map params);
+    List<PublishRequest> getItemsBySiteAndStates(Map params);
 
-    void updateObjectPath(Map params);
+    void cancelDeployment(Map params);
 
-    void updateObjectMetadata(ObjectMetadata objectMetadata);
+    int checkIfItemWasPublished(Map params);
 
-    void updateCommitId(Map params);
+    int checkIfItemWasPublishedForEnvironment(Map params);
 
+    PublishRequest checkPublishingStatus(Map params);
+
+    int isPublishingBlocked(Map params);
+
+    PublishRequest getLastDeployedItem(Map params);
 }

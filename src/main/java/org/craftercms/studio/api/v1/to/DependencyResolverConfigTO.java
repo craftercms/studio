@@ -39,12 +39,21 @@ public class DependencyResolverConfigTO {
 
         private String name;
         private Map<String, MimeType> mimetypes;
+        private List<String> includePaths;
 
         public String getName() { return name; }
         public void setName(String name) { this.name = name; }
 
         public Map<String, MimeType> getMimetypes() { return mimetypes; }
         public void setMimetypes(Map<String, MimeType> mimetypes) { this.mimetypes = mimetypes; }
+
+        public List<String> getIncludePaths() {
+            return includePaths;
+        }
+
+        public void setIncludePaths(List<String> includePaths) {
+            this.includePaths = includePaths;
+        }
     }
 
     public static class MimeType {

@@ -36,8 +36,8 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
-import org.craftercms.studio.api.v1.dal.ObjectMetadata;
-import org.craftercms.studio.api.v1.dal.ObjectState;
+import org.craftercms.studio.api.v1.dal.ItemMetadata;
+import org.craftercms.studio.api.v1.dal.ItemState;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -267,15 +267,15 @@ public class WorkflowServiceImpl implements WorkflowService {
         ContentItemTO item = contentService.getContentItem(site, dependencyTO.getUri());
 
         Map<String, Object> properties = new HashMap<>();
-        properties.put(ObjectMetadata.PROP_SUBMITTED_BY, user);
-        properties.put(ObjectMetadata.PROP_SEND_EMAIL, sendEmail? 1 : 0);
-        properties.put(ObjectMetadata.PROP_SUBMITTED_FOR_DELETION, submitForDeletion? 1 : 0);
-        properties.put(ObjectMetadata.PROP_SUBMISSION_COMMENT, submissionComment);
+        properties.put(ItemMetadata.PROP_SUBMITTED_BY, user);
+        properties.put(ItemMetadata.PROP_SEND_EMAIL, sendEmail? 1 : 0);
+        properties.put(ItemMetadata.PROP_SUBMITTED_FOR_DELETION, submitForDeletion? 1 : 0);
+        properties.put(ItemMetadata.PROP_SUBMISSION_COMMENT, submissionComment);
 
         if (null == scheduledDate) {
-            properties.put(ObjectMetadata.PROP_LAUNCH_DATE, null);
+            properties.put(ItemMetadata.PROP_LAUNCH_DATE, null);
         } else {
-            properties.put(ObjectMetadata.PROP_LAUNCH_DATE, scheduledDate);
+            properties.put(ItemMetadata.PROP_LAUNCH_DATE, scheduledDate);
         }
         if (!objectMetadataManager.metadataExist(site, dependencyTO.getUri())) {
             objectMetadataManager.insertNewObjectMetadata(site, dependencyTO.getUri());
@@ -373,14 +373,14 @@ public class WorkflowServiceImpl implements WorkflowService {
     }
 
     public void fillQueue(String site, GoLiveQueue goLiveQueue, GoLiveQueue inProcessQueue) throws ServiceException {
-        List<ObjectState> changeSet = objectStateService.getSubmittedItems(site);
+        List<ItemState> changeSet = objectStateService.getSubmittedItems(site);
         // TODO: implement list changed all
 
         // the category item to add all other items that do not belong to
         // regular categories specified in the configuration
         if (changeSet != null) {
             // add all content items from each task if task is the review task
-            for (ObjectState state : changeSet) {
+            for (ItemState state : changeSet) {
                 try {
                     if (contentService.contentExists( state.getSite(), state.getPath())) {
                         ContentItemTO item = contentService.getContentItem(state.getSite(), state.getPath(), 0);
@@ -400,7 +400,7 @@ public class WorkflowServiceImpl implements WorkflowService {
         }
     }
 
-    protected void addToQueue(String site, GoLiveQueue queue, GoLiveQueue inProcessQueue, ContentItemTO item, ObjectState itemState) throws ServiceException {
+    protected void addToQueue(String site, GoLiveQueue queue, GoLiveQueue inProcessQueue, ContentItemTO item, ItemState itemState) throws ServiceException {
         if (item != null) {
             State state = State.valueOf(itemState.getState());
             //add only submitted items to go live Q.
@@ -445,7 +445,7 @@ public class WorkflowServiceImpl implements WorkflowService {
 
 
         long st = System.currentTimeMillis();
-        List<ObjectState> changeSet = objectStateService.getChangeSet(site);
+        List<ItemState> changeSet = objectStateService.getChangeSet(site);
 
         logger.debug("Time taken listChangedAll()  " + (System.currentTimeMillis() - st));
 
@@ -456,7 +456,7 @@ public class WorkflowServiceImpl implements WorkflowService {
         if (changeSet != null) {
             List<String> displayPatterns = servicesConfig.getDisplayInWidgetPathPatterns(site);
             //List<String> inProgressItems = new FastList<String>();
-            for (ObjectState state : changeSet) {
+            for (ItemState state : changeSet) {
                 if (contentService.contentExists(state.getSite(), state.getPath())) {
                     if (ContentUtils.matchesPatterns(state.getPath(), displayPatterns)) {
                         ContentItemTO item = contentService.getContentItem(state.getSite(), state.getPath(), 0);
@@ -576,14 +576,14 @@ public class WorkflowServiceImpl implements WorkflowService {
         for (String affectedItem : allItemsToCancel) {
             try {
                 deploymentService.cancelWorkflow(site, affectedItem);
-                ObjectMetadata objectMetadata = objectMetadataManager.getProperties(site, affectedItem);
-                if (objectMetadata != null) {
-                    objectMetadata.setSubmittedBy(StringUtils.EMPTY);
-                    objectMetadata.setSendEmail(0);
-                    objectMetadata.setSubmittedForDeletion(0);
-                    objectMetadata.setSubmissionComment(StringUtils.EMPTY);
-                    objectMetadata.setLaunchDate(null);
-                    objectMetadataManager.updateObjectMetadata(objectMetadata);
+                ItemMetadata itemMetadata = objectMetadataManager.getProperties(site, affectedItem);
+                if (itemMetadata != null) {
+                    itemMetadata.setSubmittedBy(StringUtils.EMPTY);
+                    itemMetadata.setSendEmail(0);
+                    itemMetadata.setSubmittedForDeletion(0);
+                    itemMetadata.setSubmissionComment(StringUtils.EMPTY);
+                    itemMetadata.setLaunchDate(null);
+                    objectMetadataManager.updateObjectMetadata(itemMetadata);
                 }
                 paths.add(affectedItem);
             } catch (DeploymentException e) {
@@ -1574,12 +1574,12 @@ public class WorkflowServiceImpl implements WorkflowService {
     }
 
     protected void handleReferences(String site, SubmitPackage submitpackage, DmDependencyTO dmDependencyTO, boolean isNotScheduled, SubmitPackage dependencyPackage, String approver, Set<String> rescheduledUris) {//,boolean isReferencePage) {
-        ObjectMetadata properties = objectMetadataManager.getProperties(site, dmDependencyTO.getUri());
+        ItemMetadata properties = objectMetadataManager.getProperties(site, dmDependencyTO.getUri());
         Date scheduledDate = null;
         if (properties != null) {
             scheduledDate = properties.getLaunchDate();
         }
-        ObjectState state = objectStateService.getObjectState(site, dmDependencyTO.getUri());
+        ItemState state = objectStateService.getObjectState(site, dmDependencyTO.getUri());
         if (state != null) {
             if (!State.isSubmitted(State.valueOf(state.getState())) && scheduledDate != null && scheduledDate.equals(dmDependencyTO.getScheduledDate())) {
                 if (objectStateService.isScheduled(site, dmDependencyTO.getUri())) {
@@ -2276,7 +2276,7 @@ public class WorkflowServiceImpl implements WorkflowService {
             if(!submittedItems.isEmpty()) {
                 // for some reason ,  submittedItems.get(0).getSubmittedBy() returns empty and
                 // metadata for the same value is also empty , using last modify to blame the rejection.
-                final ObjectMetadata metaData = objectMetadataManager.getProperties(site, submittedItems.get(0).getUri
+                final ItemMetadata metaData = objectMetadataManager.getProperties(site, submittedItems.get(0).getUri
                         ());
                 String whoToBlame = "admin"; //worst case, we need someone to blame.
                 if(metaData!=null && StringUtils.isNotBlank(metaData.getModifier())){
@@ -2314,10 +2314,10 @@ public class WorkflowServiceImpl implements WorkflowService {
             }
 
             Map<String, Object> newProps = new HashMap<String, Object>();
-            newProps.put(ObjectMetadata.PROP_SUBMITTED_BY, "");
-            newProps.put(ObjectMetadata.PROP_SEND_EMAIL, 0);
-            newProps.put(ObjectMetadata.PROP_SUBMITTED_FOR_DELETION, 0);
-            newProps.put(ObjectMetadata.PROP_LAUNCH_DATE, null);
+            newProps.put(ItemMetadata.PROP_SUBMITTED_BY, "");
+            newProps.put(ItemMetadata.PROP_SEND_EMAIL, 0);
+            newProps.put(ItemMetadata.PROP_SUBMITTED_FOR_DELETION, 0);
+            newProps.put(ItemMetadata.PROP_LAUNCH_DATE, null);
             objectMetadataManager.setObjectMetadata(site, dmDependencyTO.getUri(), newProps);
             ContentItemTO item = contentService.getContentItem(site, dmDependencyTO.getUri());
             objectStateService.transition(site, item, TransitionEvent.REJECT);

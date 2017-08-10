@@ -108,6 +108,15 @@ public class RegexDependencyResolver implements DependencyResolver {
                     Map<String, DependencyResolverConfigTO.MimeType> mimeTypes = new HashMap<String, DependencyResolverConfigTO.MimeType>();
                     Element type = iterTypes.next();
                     String typeName = type.valueOf("name");
+                    Element includes = type.element("includes");
+                    Iterator<Element> iterPathPatterns = includes.elementIterator("path-pattern");
+                    List<String> pathPatterns = new ArrayList<String>();
+                    while (iterPathPatterns.hasNext()) {
+                        Element pathPattern = iterPathPatterns.next();
+                        String pathPatternValue = pathPattern.getStringValue();
+                        pathPatterns.add(pathPatternValue);
+                    }
+                    dependencyType.setIncludePaths(pathPatterns);
                     Element mimetypes = type.element("mimetypes");
                     Iterator<Element> iterMimetype = mimetypes.elementIterator("mimetype");
                     while (iterMimetype.hasNext()) {

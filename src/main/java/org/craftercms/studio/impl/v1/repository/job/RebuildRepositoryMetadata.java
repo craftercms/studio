@@ -19,7 +19,7 @@
 
 package org.craftercms.studio.impl.v1.repository.job;
 
-import org.craftercms.studio.api.v1.dal.CopyToEnvironmentMapper;
+import org.craftercms.studio.api.v1.dal.PublishRequestMapper;
 import org.craftercms.studio.api.v1.job.CronJobContext;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -98,7 +98,7 @@ public class RebuildRepositoryMetadata {
         try {
             // Delete deployment queue
             logger.debug("Deleting deployment queue for site " + site);
-            copyToEnvironmentMapper.deleteDeploymentDataForSite(params);
+            publishRequestMapper.deleteDeploymentDataForSite(params);
         } catch (Exception error) {
             logger.error("Failed to delete deployment queue for site " + site);
         }
@@ -134,7 +134,7 @@ public class RebuildRepositoryMetadata {
     }
 
     @Autowired
-    protected CopyToEnvironmentMapper copyToEnvironmentMapper;
+    protected PublishRequestMapper publishRequestMapper;
 
     protected ObjectMetadataManager objectMetadataManager;
     protected ObjectStateService objectStateService;

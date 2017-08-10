@@ -18,7 +18,7 @@
 
 package org.craftercms.studio.api.v1.service.content;
 
-import org.craftercms.studio.api.v1.dal.ObjectMetadata;
+import org.craftercms.studio.api.v1.dal.ItemMetadata;
 
 import java.util.Map;
 
@@ -28,7 +28,7 @@ public interface ObjectMetadataManager {
 
     void setObjectMetadata(String site, String path, Map<String, Object> properties);
 
-    ObjectMetadata getProperties(String site, String path);
+    ItemMetadata getProperties(String site, String path);
 
     boolean metadataExist(String site, String path);
 
@@ -48,7 +48,7 @@ public interface ObjectMetadataManager {
 
     void clearRenamed(String site, String path);
 
-    void updateObjectMetadata(ObjectMetadata objectMetadata);
+    void updateObjectMetadata(ItemMetadata itemMetadata);
 
     void updateCommitId(String site, String path, String commitId);
 }

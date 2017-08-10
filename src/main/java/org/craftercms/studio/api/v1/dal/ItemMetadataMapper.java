@@ -18,37 +18,28 @@
 
 package org.craftercms.studio.api.v1.dal;
 
-import java.util.List;
 import java.util.Map;
 
-/**
- * @author Dejan Brkic
- */
-public interface CopyToEnvironmentMapper {
+public interface ItemMetadataMapper {
 
-    List<CopyToEnvironment> getScheduledItems(Map params);
+    ItemMetadata getProperties(Map params);
 
-    void insertItemForDeployment(CopyToEnvironment copyToEnvironment);
+    void setProperties(Map params);
 
-    void cancelWorkflow(Map params);
+    void insertEntry(Map params);
 
-    List<CopyToEnvironment> getItemsReadyForDeployment(Map params);
+    int countEntries(Map params);
 
-    void updateItemDeploymentState(CopyToEnvironment item);
+    void deleteEntry(Map params);
 
-    void deleteDeploymentDataForSite(Map params);
+    void setLockOwner(Map params);
 
-    List<CopyToEnvironment> getItemsBySiteAndStates(Map params);
+    void deleteObjectMetadataForSite(Map params);
 
-    void cancelDeployment(Map params);
+    void updateObjectPath(Map params);
 
-    int checkIfItemWasPublished(Map params);
+    void updateObjectMetadata(ItemMetadata itemMetadata);
 
-    int checkIfItemWasPublishedForEnvironment(Map params);
+    void updateCommitId(Map params);
 
-    CopyToEnvironment checkPublishingStatus(Map params);
-
-    int isPublishingBlocked(Map params);
-
-    CopyToEnvironment getLastDeployedItem(Map params);
 }

@@ -3,6 +3,9 @@
 	<types>
 		<dependency-type>
 			<name>page</name>
+            <includes>
+                <path-pattern>/site/website/.*\.xml</path-pattern>
+            </includes>
 			<mimetypes>
 				<mimetype>
 					<name>application/xml</name>
@@ -32,6 +35,14 @@
 		</dependency-type>
 		<dependency-type>
 			<name>component</name>
+            <includes>
+                <path-pattern>/site/components/.*\.xml</path-pattern>
+                <path-pattern>/site/system/page-components/.*\.xml</path-pattern>
+                <path-pattern>/site/component-bindings/.*\.xml</path-pattern>
+                <path-pattern>/site/indexes/.*\.xml</path-pattern>
+                <path-pattern>/site/resources/.*\.xml</path-pattern>
+                <path-pattern>/site/items/.*\.xml</path-pattern>
+            </includes>
 			<mimetypes>
 				<mimetype>
 					<name>application/xml</name>
@@ -77,6 +88,9 @@
 		</dependency-type>
 		<dependency-type>
 			<name>asset</name>
+            <includes>
+                <path-pattern>/static-assets/.*</path-pattern>
+            </includes>
 			<mimetypes>
 				<mimetype>
 					<name>application/xml</name>
@@ -106,6 +120,9 @@
 		</dependency-type>
 		<dependency-type>
 			<name>rendering-template</name>
+            <includes>
+                <path-pattern>/templates/.*\.ftl</path-pattern>
+            </includes>
 			<mimetypes>
 				<mimetype>
 					<name>application/xml</name>
@@ -135,6 +152,9 @@
 		</dependency-type>
 		<dependency-type>
 			<name>script</name>
+            <includes>
+                <path-pattern>/scripts/.*\.groovy</path-pattern>
+            </includes>
 			<mimetypes>
 				<mimetype>
 					<name>application/xml</name>
@@ -164,6 +184,9 @@
 		</dependency-type>
 		<dependency-type>
 			<name>document</name>
+            <includes>
+                <pattern>/site/documents/.*</pattern>
+            </includes>
 			<mimetypes>
 				<mimetype>
 					<name>application/xml</name>
