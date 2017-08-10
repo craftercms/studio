@@ -20,8 +20,8 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="org.craftercms.studio.api.v1.dal.ObjectStateMapper">
-    <resultMap id="ObjectStateMap" type="org.craftercms.studio.api.v1.dal.ObjectState">
+<mapper namespace="org.craftercms.studio.api.v1.dal.ItemStateMapper">
+    <resultMap id="ItemStateMap" type="org.craftercms.studio.api.v1.dal.ItemState">
         <id property="objectId" column="object_id"/>
         <result property="site" column="site"/>
         <result property="path" column="path"/>
@@ -30,9 +30,9 @@
     </resultMap>
 
     <select id="getObjectStateByStates" resultSetType="FORWARD_ONLY"
-            resultMap="ObjectStateMap" parameterType="java.util.Map">
+            resultMap="ItemStateMap" parameterType="java.util.Map">
         SELECT object_id, site, path, state, system_processing
-        FROM cstudio_objectstate
+        FROM item_state
         WHERE state in
         <foreach item="state" index="index" collection="states"
                  open="(" separator="," close=")">
@@ -43,24 +43,24 @@
 
 
     <delete id="deleteObjectState" parameterType="String">
-        DELETE FROM cstudio_objectstate
+        DELETE FROM item_state
         WHERE object_id = #{objectId}
     </delete>
 
-    <select id="getObjectStateBySiteAndPath" parameterType="java.util.Map" resultMap="ObjectStateMap">
+    <select id="getObjectStateBySiteAndPath" parameterType="java.util.Map" resultMap="ItemStateMap">
         SELECT object_id, site, path, state, system_processing
-        FROM cstudio_objectstate
+        FROM item_state
         WHERE site = #{site} AND path = #{path}
     </select>
 
     <update id="setSystemProcessingBySiteAndPath" parameterType="java.util.Map" flushCache="true">
-        UPDATE cstudio_objectstate
+        UPDATE item_state
         SET system_processing = #{systemProcessing}
         WHERE site = #{site} AND path = #{path}
     </update>
 
     <update id="setSystemProcessingBySiteAndPathBulk" parameterType="java.util.Map" flushCache="true">
-        UPDATE cstudio_objectstate
+        UPDATE item_state
         SET system_processing = #{systemProcessing}
         WHERE site = #{site} AND path IN
         <foreach item="path" index="index" collection="paths"
@@ -69,23 +69,23 @@
         </foreach>
     </update>
 
-    <insert id="insertEntry" parameterType="org.craftercms.studio.api.v1.dal.ObjectState" flushCache="true">
+    <insert id="insertEntry" parameterType="org.craftercms.studio.api.v1.dal.ItemState" flushCache="true">
         INSERT INTO
-        cstudio_objectstate
+        item_state
         (object_id, site, path, state, system_processing)
         VALUES
         (#{objectId}, #{site}, #{path}, #{state}, 0)
     </insert>
 
-    <update id="setObjectState" parameterType="org.craftercms.studio.api.v1.dal.ObjectState" flushCache="true">
-        UPDATE cstudio_objectstate
+    <update id="setObjectState" parameterType="org.craftercms.studio.api.v1.dal.ItemState" flushCache="true">
+        UPDATE item_state
         SET state = #{state}, system_processing = #{systemProcessing}
         WHERE object_id = #{objectId}
     </update>
 
-    <select id="getObjectStateForSiteAndPaths" parameterType="java.util.Map" resultMap="ObjectStateMap">
+    <select id="getObjectStateForSiteAndPaths" parameterType="java.util.Map" resultMap="ItemStateMap">
         SELECT object_id, site, path, state, system_processing
-        FROM cstudio_objectstate
+        FROM item_state
         WHERE site = #{site}
         AND path in
         <foreach item="path" index="index" collection="paths"
@@ -95,7 +95,7 @@
     </select>
 
     <update id="setObjectStateForSiteAndPaths" parameterType="java.util.Map" flushCache="true">
-        UPDATE cstudio_objectstate
+        UPDATE item_state
         SET state = #{state}
         WHERE site = #{site}
         AND path in
@@ -106,37 +106,37 @@
     </update>
 
     <update id="updateObjectPath" parameterType="java.util.Map" flushCache="true">
-        UPDATE cstudio_objectstate
+        UPDATE item_state
         SET path = #{newPath}
         WHERE site = #{site}
         AND path = #{oldPath}
     </update>
 
     <delete id="deleteObjectStatesForSite" parameterType="java.util.Map" flushCache="true">
-        DELETE FROM cstudio_objectstate
+        DELETE FROM item_state
         WHERE site = #{site}
     </delete>
 
     <delete id="deleteObjectStateForSiteAndPath" parameterType="java.util.Map" flushCache="true">
-        DELETE FROM cstudio_objectstate
+        DELETE FROM item_state
         WHERE site = #{site}
         AND path = #{path}
     </delete>
 
     <select id="isFolderLive" parameterType="java.util.Map" resultType="java.lang.Integer">
-        SELECT count(*) FROM cstudio_objectstate where site=#{site} and path like #{folderPath} and state like 'EXISTING%'
+        SELECT count(*) FROM item_state where site=#{site} and path like #{folderPath} and state like 'EXISTING%'
     </select>
 
-    <update id="setStateForSiteContent" parameterType="org.craftercms.studio.api.v1.dal.ObjectState" flushCache="true">
-        UPDATE cstudio_objectstate
+    <update id="setStateForSiteContent" parameterType="org.craftercms.studio.api.v1.dal.ItemState" flushCache="true">
+        UPDATE item_state
         SET state = #{state}, system_processing = 0
         WHERE site = #{siteId}
     </update>
 
     <select id="getChangeSetForSubtree" resultSetType="FORWARD_ONLY"
-            resultMap="ObjectStateMap" parameterType="java.util.Map">
+            resultMap="ItemStateMap" parameterType="java.util.Map">
         SELECT object_id, site, path, state, system_processing
-        FROM cstudio_objectstate
+        FROM item_state
         WHERE site=#{site}
         AND (path = #{path} or path like #{likepath})
         AND state in

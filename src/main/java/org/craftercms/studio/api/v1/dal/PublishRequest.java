@@ -24,7 +24,7 @@ import java.util.Date;
 /**
  * @author Dejan Brkic
  */
-public class CopyToEnvironment implements Serializable {
+public class PublishRequest implements Serializable {
 
     private static final long serialVersionUID = 1287567542272432148L;
 

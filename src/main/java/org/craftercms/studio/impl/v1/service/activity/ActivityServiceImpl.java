@@ -25,8 +25,8 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
-import org.craftercms.studio.api.v1.dal.ActivityFeed;
-import org.craftercms.studio.api.v1.dal.ActivityFeedMapper;
+import org.craftercms.studio.api.v1.dal.AuditFeed;
+import org.craftercms.studio.api.v1.dal.AuditFeedMapper;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -162,7 +162,7 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 
 		try {
 			Date postDate = new Date();
-			ActivityFeed activityPost = new ActivityFeed();
+			AuditFeed activityPost = new AuditFeed();
 			activityPost.setUserId(currentUser);
 			activityPost.setSiteNetwork(siteNetwork);
 			activityPost.setSummary(activityData);
@@ -198,20 +198,20 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 		params.put("siteNetwork",siteId);
 
 		// where feed user is me and post user is not me
-		return activityFeedMapper.getCountUserContentFeedEntries(params);
+		return auditFeedMapper.getCountUserContentFeedEntries(params);
 	}
 
-	private long insertFeedEntry(ActivityFeed activityFeed) {
+	private long insertFeedEntry(AuditFeed activityFeed) {
 		DebugUtils.addDebugStack(logger);
 		logger.debug("Insert activity " + activityFeed.getContentId());
-		Long id = activityFeedMapper.insertActivityFeed(activityFeed);
+		Long id = auditFeedMapper.insertActivityFeed(activityFeed);
 		return (id != null ? id : -1);
 	}
 
-	private void updateFeedEntry(ActivityFeed activityFeed) {
+	private void updateFeedEntry(AuditFeed activityFeed) {
 		DebugUtils.addDebugStack(logger);
 		logger.debug("Update activity " + activityFeed.getContentId());
-		activityFeedMapper.updateActivityFeed(activityFeed);
+		auditFeedMapper.updateActivityFeed(activityFeed);
 
 	}
 
@@ -224,7 +224,7 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 		params.put("newPath", newUrl);
 		params.put("site", site);
 		params.put("oldPath", oldUrl);
-        activityFeedMapper.renameContent(params);
+        auditFeedMapper.renameContent(params);
 	}
 
 	@Override
@@ -255,10 +255,10 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 			user = user.toLowerCase();
 		}
 
-		List<ActivityFeed> activityFeeds = null;
+		List<AuditFeed> activityFeeds = null;
 		activityFeeds = selectUserFeedEntries(user, ACTIVITY_FEED_FORMAT, site, startPos, size,
 				filterType, hideLiveItems);
-		for (ActivityFeed activityFeed : activityFeeds) {
+		for (AuditFeed activityFeed : activityFeeds) {
 			activityFeedEntries.add(activityFeed.getJSONString());
 		}
 
@@ -339,7 +339,7 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 		}
 	}
 
-	private List<ActivityFeed> selectUserFeedEntries(String feedUserId, String format, String siteId,int startPos, int feedSize,String contentType, boolean hideLiveItems) {
+	private List<AuditFeed> selectUserFeedEntries(String feedUserId, String format, String siteId, int startPos, int feedSize, String contentType, boolean hideLiveItems) {
 		HashMap<String,Object> params = new HashMap<String,Object>();
 		params.put("userId",feedUserId);
 		params.put("summaryFormat",format);
@@ -355,31 +355,31 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 				statesValues.add(state.name());
 			}
 			params.put("states", statesValues);
-			return activityFeedMapper.selectUserFeedEntriesHideLive(params);
+			return auditFeedMapper.selectUserFeedEntriesHideLive(params);
 		} else {
-			return activityFeedMapper.selectUserFeedEntries(params);
+			return auditFeedMapper.selectUserFeedEntries(params);
 		}
 	}
 
 	@Override
-	public ActivityFeed getDeletedActivity(String site, String path) {
+	public AuditFeed getDeletedActivity(String site, String path) {
 		HashMap<String,String> params = new HashMap<String,String>();
 		params.put("contentId", path);
 		params.put("siteNetwork", site);
 		String activityType = ActivityType.DELETED.toString();
 		params.put("activityType", activityType);
-		return activityFeedMapper.getDeletedActivity(params);
+		return auditFeedMapper.getDeletedActivity(params);
 	}
 
 	@Override
 	public void deleteActivitiesForSite(String site) {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("site", site);
-		activityFeedMapper.deleteActivitiesForSite(params);
+		auditFeedMapper.deleteActivitiesForSite(params);
 	}
 
     @Override
-    public List<ActivityFeed> getAuditLogForSite(String site, int start, int number, String user, List<String> actions)
+    public List<AuditFeed> getAuditLogForSite(String site, int start, int number, String user, List<String> actions)
 	throws SiteNotFoundException {
 		if (!siteService.exists(site)) {
 			throw new SiteNotFoundException();
@@ -394,7 +394,7 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 			if (CollectionUtils.isNotEmpty(actions)) {
 				params.put("actions", actions);
 			}
-			return activityFeedMapper.getAuditLogForSite(params);
+			return auditFeedMapper.getAuditLogForSite(params);
 		}
     }
 
@@ -412,7 +412,7 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
             if (CollectionUtils.isNotEmpty(actions)) {
                 params.put("actions", actions);
             }
-            return activityFeedMapper.getAuditLogForSiteTotal(params);
+            return auditFeedMapper.getAuditLogForSiteTotal(params);
         }
     }
 
@@ -422,7 +422,7 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
     }
 
     @Autowired
-	protected ActivityFeedMapper activityFeedMapper;
+	protected AuditFeedMapper auditFeedMapper;
 
 	protected ContentService contentService;
 

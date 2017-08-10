@@ -18,12 +18,11 @@
 
 package org.craftercms.studio.impl.v1.service.content;
 
-import org.craftercms.studio.api.v1.dal.ObjectMetadata;
-import org.craftercms.studio.api.v1.dal.ObjectMetadataMapper;
+import org.craftercms.studio.api.v1.dal.ItemMetadata;
+import org.craftercms.studio.api.v1.dal.ItemMetadataMapper;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
-import org.craftercms.studio.api.v1.util.DebugUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.HashMap;
@@ -39,7 +38,7 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
         Map<String, String> params = new HashMap<>();
         params.put("site", site);
         params.put("path", path);
-        objectMetadataMapper.insertEntry(params);
+        itemMetadataMapper.insertEntry(params);
     }
 
     @Override
@@ -49,21 +48,21 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
         params.put("site", site);
         params.put("path", path);
         params.putAll(properties);
-        objectMetadataMapper.setProperties(params);
+        itemMetadataMapper.setProperties(params);
     }
 
     @Override
-    public void updateObjectMetadata(ObjectMetadata objectMetadata) {
-        objectMetadataMapper.updateObjectMetadata(objectMetadata);
+    public void updateObjectMetadata(ItemMetadata itemMetadata) {
+        itemMetadataMapper.updateObjectMetadata(itemMetadata);
     }
 
     @Override
-    public ObjectMetadata getProperties(String site, String path) {
+    public ItemMetadata getProperties(String site, String path) {
         path = path.replace("//", "/");
         Map<String, String> params = new HashMap<>();
         params.put("site", site);
         params.put("path", path);
-        return objectMetadataMapper.getProperties(params);
+        return itemMetadataMapper.getProperties(params);
     }
 
     @Override
@@ -72,7 +71,7 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
         Map<String, String> params = new HashMap<>();
         params.put("site", site);
         params.put("path", path);
-        int cnt = objectMetadataMapper.countEntries(params);
+        int cnt = itemMetadataMapper.countEntries(params);
         if (cnt < 1) {
             return false;
         } else if (cnt > 1) {
@@ -86,7 +85,7 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
     public boolean isRenamed(String site, String path) {
         path = path.replace("//", "/");
         if (metadataExist(site, path)) {
-            ObjectMetadata metadata = getProperties(site, path);
+            ItemMetadata metadata = getProperties(site, path);
             return metadata.getRenamed() > 0;
         } else {
             return false;
@@ -97,7 +96,7 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
     public String getOldPath(String site, String path) {
         path = path.replace("//", "/");
         if (metadataExist(site, path)) {
-            ObjectMetadata metadata = getProperties(site, path);
+            ItemMetadata metadata = getProperties(site, path);
             return metadata.getOldUrl();
         } else {
             return "";
@@ -114,7 +113,7 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
         params.put("site", site);
         params.put("path", path);
         params.put("lockOwner", lockOwner);
-        objectMetadataMapper.setLockOwner(params);
+        itemMetadataMapper.setLockOwner(params);
     }
 
     @Override
@@ -127,14 +126,14 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
         params.put("site", site);
         params.put("path", path);
         params.put("lockOwner", null);
-        objectMetadataMapper.setLockOwner(params);
+        itemMetadataMapper.setLockOwner(params);
     }
 
     @Override
     public void deleteObjectMetadataForSite(String site) {
         Map<String, String> params = new HashMap<>();
         params.put("site", site);
-        objectMetadataMapper.deleteObjectMetadataForSite(params);
+        itemMetadataMapper.deleteObjectMetadataForSite(params);
     }
 
     @Override
@@ -143,7 +142,7 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
         Map<String, String> params = new HashMap<>();
         params.put("site", site);
         params.put("path", path);
-        objectMetadataMapper.deleteEntry(params);
+        itemMetadataMapper.deleteEntry(params);
     }
 
     @Override
@@ -154,7 +153,7 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
         params.put("site", site);
         params.put("oldPath", oldPath);
         params.put("newPath", newPath);
-        objectMetadataMapper.updateObjectPath(params);
+        itemMetadataMapper.updateObjectPath(params);
     }
 
     @Override
@@ -162,7 +161,7 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
         path = path.replace("//", "/");
         Map<String, Object> params = new HashMap<>();
         params.put("renamed", false);
-        params.put(ObjectMetadata.PROP_OLD_URL, "");
+        params.put(ItemMetadata.PROP_OLD_URL, "");
         setObjectMetadata(site, path, params);
     }
 
@@ -173,9 +172,9 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
         params.put("site", site);
         params.put("path", path);
         params.put("commitId", commitId);
-        objectMetadataMapper.updateCommitId(params);
+        itemMetadataMapper.updateCommitId(params);
     }
 
     @Autowired
-    protected ObjectMetadataMapper objectMetadataMapper;
+    protected ItemMetadataMapper itemMetadataMapper;
 }

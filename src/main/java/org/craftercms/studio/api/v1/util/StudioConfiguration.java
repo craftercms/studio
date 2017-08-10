@@ -82,6 +82,8 @@ public interface StudioConfiguration {
     String CONFIGURATION_SITE_DATA_SOURCES_CONFIG_BASE_PATH = "studio.configuration.site.dataSources.configBasePath";
     String CONFIGURATION_SITE_DATA_SOURCES_CONFIG_FILE_NAME = "studio.configuration.site.dataSources.configFileName";
     String CONFIGURATION_SITE_PREVIEW_DESTROY_CONTEXT_URL = "studio.configuration.site.preview.destroy.sontext.url";
+    String CONFIGURATION_SITE_DEPENDENCY_RESOLVER_CONFIG_FILE_NAME = "studio.configuration.site.dependencyResolver.configFileName";
+    String CONFIGURATION_SITE_DEPENDENCY_RESOLVER_CONFIG_BASE_PATH = "studio.configuration.site.dependencyResolver.configBasePath";
 
     /** Import Service */
     String IMPORT_ASSIGNEE = "studio.import.assignee";

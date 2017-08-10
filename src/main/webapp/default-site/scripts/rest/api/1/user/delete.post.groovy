@@ -17,47 +17,54 @@
  *
  */
 
+
+import groovy.json.JsonException
 import groovy.json.JsonSlurper
 import org.apache.commons.lang3.StringUtils
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException
 import scripts.api.SecurityServices
 
 def result = [:]
-def requestBody = request.reader.text
+try {
+    def requestBody = request.reader.text
 
-def slurper = new JsonSlurper()
-def parsedReq = slurper.parseText(requestBody)
+    def slurper = new JsonSlurper()
+    def parsedReq = slurper.parseText(requestBody)
 
-def username = parsedReq.username
+    def username = parsedReq.username
 
 /** Validate Parameters */
-def invalidParams = false;
+    def invalidParams = false;
 
 // username
-try {
-    if (StringUtils.isEmpty(username)) {
+    try {
+        if (StringUtils.isEmpty(username)) {
+            invalidParams = true
+        }
+    } catch (Exception exc) {
         invalidParams = true
     }
-} catch (Exception exc) {
-    invalidParams = true
-}
 
-if (invalidParams) {
-    response.setStatus(400)
-    result.message = "Invalid parameter: username"
-} else {
+    if (invalidParams) {
+        response.setStatus(400)
+        result.message = "Invalid parameter: username"
+    } else {
 
-    def context = SecurityServices.createContext(applicationContext, request)
-    try {
-        def success = SecurityServices.deleteUser(context, username);
-        result.message = "OK"
-        response.setStatus(204)
-    } catch (UserNotFoundException e) {
-        response.setStatus(404)
-        result.message = "User not found"
-    } catch (Exception e) {
-        result.message = "Internal server error: \n" + e
-        response.setStatus(500)
+        def context = SecurityServices.createContext(applicationContext, request)
+        try {
+            def success = SecurityServices.deleteUser(context, username);
+            result.message = "OK"
+            response.setStatus(204)
+        } catch (UserNotFoundException e) {
+            response.setStatus(404)
+            result.message = "User not found"
+        } catch (Exception e) {
+            result.message = "Internal server error: \n" + e
+            response.setStatus(500)
+        }
     }
+} catch (JsonException e) {
+    response.setStatus(400)
+    result.message = "Bad Request"
 }
 return result

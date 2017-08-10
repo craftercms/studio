@@ -21,7 +21,7 @@ package org.craftercms.studio.api.v1.dal;
 import java.io.Serializable;
 import java.util.Date;
 
-public class ObjectMetadata implements Serializable {
+public class ItemMetadata implements Serializable {
     private static final long serialVersionUID = 8859492095343542092L;
 
     public static final String PROP_SITE = "site";
