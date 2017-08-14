@@ -33,9 +33,9 @@
     <cache/>
 
     <select id="getDependencies" resultMap="DependencyMap" parameterType="java.util.HashMap" databaseId="oracle">
-        SELECT site, source_path, target_path, "type"
-        FROM cstudio_DEPENDENCY
-        WHERE source_path = #{sourcePath} AND site = #{site}
+        SELECT cd.site, cd.source_path, cd.target_path, cd.type
+        FROM cstudio_DEPENDENCY cd
+        WHERE cd.source_path = #{sourcePath} AND cd.site = #{site}
     </select>
 
     <select id="getDependencies" resultMap="DependencyMap" parameterType="java.util.HashMap">
@@ -45,9 +45,9 @@
     </select>
 
     <select id="getDependant" resultMap="DependencyMap" parameterType="java.util.HashMap" databaseId="oracle">
-        SELECT site, source_path, target_path, "type"
-        FROM cstudio_DEPENDENCY
-        WHERE target_path = #{targetPath} AND site = #{site}
+        SELECT cd.site, cd.source_path, cd.target_path, cd.type
+        FROM cstudio_DEPENDENCY cd
+        WHERE cd.target_path = #{targetPath} AND cd.site = #{site}
     </select>
 
     <select id="getDependant" resultMap="DependencyMap" parameterType="java.util.HashMap">
@@ -65,7 +65,7 @@
     <insert id="insertList" databaseId="oracle" parameterType="java.util.Map">
         INSERT ALL
         <foreach collection="dependencies" item="element" index="index">
-            INTO cstudio_DEPENDENCY (site, source_path, target_path, "type") VALUES ( #{element.site}, #{element.sourcePath}, #{element.targetPath}, #{element.type} )
+            INTO cstudio_DEPENDENCY (site, source_path, target_path, type) VALUES ( #{element.site}, #{element.sourcePath}, #{element.targetPath}, #{element.type} )
         </foreach>
         SELECT * FROM dual
     </insert>
@@ -78,9 +78,9 @@
     </insert>
 
     <select id="getDependenciesByType" parameterType="java.util.Map" resultMap="DependencyMap" databaseId="oracle">
-        SELECT site, source_path, target_path, "type"
-        FROM cstudio_DEPENDENCY
-        WHERE source_path = #{sourcePath} AND site = #{site} AND "type" = #{type}
+        SELECT cd.site, cd.source_path, cd.target_path, cd.type
+        FROM cstudio_DEPENDENCY cd
+        WHERE cd.source_path = #{sourcePath} AND cd.site = #{site} AND cd.type = #{type}
     </select>
 
     <select id="getDependenciesByType" parameterType="java.util.Map" resultMap="DependencyMap">
