@@ -20,7 +20,7 @@ package org.craftercms.studio.impl.v1.util.spring.mvc;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.RandomStringUtils;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.craftercms.engine.controller.rest.RestScriptsController;
 import org.springframework.web.servlet.view.AbstractView;
 

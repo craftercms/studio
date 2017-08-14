@@ -16,7 +16,7 @@ import org.outerj.daisy.diff.html.HtmlSaxDiffOutput
 import org.outerj.daisy.diff.html.TextNodeComparator
 import org.outerj.daisy.diff.html.dom.DomTreeBuilder
 import org.xml.sax.InputSource
-import org.apache.commons.lang.StringEscapeUtils
+import org.apache.commons.lang3.StringEscapeUtils
 
 class HTMLCompareTools {
 		static CONTENT_XML_TO_HTML_XSL =

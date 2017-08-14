@@ -112,7 +112,7 @@ public class PublishingManagerImpl implements PublishingManager {
             isLive = true;
         }
 
-        if (org.apache.commons.lang.StringUtils.equals(action, CopyToEnvironment.Action.DELETE)) {
+        if (org.apache.commons.lang3.StringUtils.equals(action, CopyToEnvironment.Action.DELETE)) {
             if (oldPath != null && oldPath.length() > 0) {
                 contentService.deleteContent(site, oldPath, user);
                 boolean hasRenamedChildren = false;
