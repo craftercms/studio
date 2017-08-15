@@ -20,6 +20,7 @@ package org.craftercms.studio.api.v1.service.dependency;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -30,18 +31,10 @@ public interface DependencyResolver {
     /**
      * Resolves dependent files for given content of given mimetype
      *
-     * @param mimetype mimetype of content
-     * @param content content to resolve its dependencies
+     * @param site
+     * @param path
      * @return set of paths of files that content is dependant on
      */
-    Set<String> resolve(String site, String path, String dependencyType, String mimetype, InputStream content) throws IOException;
+    Map<String, Set<String>> resolve(String site, String path);
 
-    /**
-     * Resolves dependent files for given content of given mimetype
-     *
-     * @param mimetype mimetype of given content
-     * @param content String content to resolve its dependencies
-     * @return set of paths of files that content is dependant on
-     */
-    Set<String> resolve(String site, String path, String dependencyType, String mimetype, String content);
 }

@@ -18,53 +18,70 @@
 
 package org.craftercms.studio.api.v1.to;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class DependencyResolverConfigTO {
 
-    private Map<String, DependencyType> dependencyTypes = new HashMap<String, DependencyType>();
+    private Map<String, ItemType> itemTypes;
 
-    public Map<String, DependencyType> getDependencyTypes() {
-        return dependencyTypes;
+    public Map<String, ItemType> getItemTypes() {
+        return itemTypes;
     }
 
-    public void setDependencyTypes(Map<String, DependencyType> dependencyTypes) {
-        this.dependencyTypes = dependencyTypes;
+    public void setItemTypes(Map<String, ItemType> itemTypes) {
+        this.itemTypes = itemTypes;
+    }
+
+    public static class ItemType {
+
+        private String name;
+        private List<String> includes;
+        private Map<String, DependencyType> dependencyTypes;
+
+        public String getName() { return name; }
+        public void setName(String name) { this.name = name; }
+
+        public List<String> getIncludes() { return includes; }
+        public void setIncludes(List<String> includes) { this.includes = includes; }
+
+        public Map<String, DependencyType> getDependencyTypes() { return dependencyTypes; }
+        public void setDependencyTypes(Map<String, DependencyType> dependencyTypes) { this.dependencyTypes = dependencyTypes; }
     }
 
     public static class DependencyType {
 
         private String name;
-        private Map<String, MimeType> mimetypes;
-        private List<String> includePaths;
+        private List<DependencyExtractionPattern> includes;
 
         public String getName() { return name; }
         public void setName(String name) { this.name = name; }
 
-        public Map<String, MimeType> getMimetypes() { return mimetypes; }
-        public void setMimetypes(Map<String, MimeType> mimetypes) { this.mimetypes = mimetypes; }
-
-        public List<String> getIncludePaths() {
-            return includePaths;
-        }
-
-        public void setIncludePaths(List<String> includePaths) {
-            this.includePaths = includePaths;
-        }
+        public List<DependencyExtractionPattern> getIncludes() { return includes; }
+        public void setIncludes(List<DependencyExtractionPattern> includes) { this.includes = includes; }
     }
 
-    public static class MimeType {
+    public static class DependencyExtractionPattern {
 
-        private String name;
-        private List<String> patterns;
+        private String findRegex;
+        private List<DependencyExtractionTransform> transforms;
 
-        public String getName() { return name; }
-        public void setName(String name) { this.name = name; }
+        public String getFindRegex() { return findRegex; }
+        public void setFindRegex(String findRegex) { this.findRegex = findRegex; }
 
-        public List<String> getPatterns() { return patterns; }
-        public void setPatterns(List<String> patterns) { this.patterns = patterns; }
+        public List<DependencyExtractionTransform> getTransforms() { return transforms; }
+        public void setTransforms(List<DependencyExtractionTransform> transforms) { this.transforms = transforms; }
+    }
+
+    public static class DependencyExtractionTransform {
+
+        private String match;
+        private String replace;
+
+        public String getMatch() { return match; }
+        public void setMatch(String match) { this.match = match; }
+
+        public String getReplace() { return replace; }
+        public void setReplace(String replace) { this.replace = replace; }
     }
 }

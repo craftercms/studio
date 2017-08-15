@@ -9,3 +9,5 @@ ALTER TABLE `cstudio_objectmetadata` RENAME `item_metadata`;
 ALTER TABLE `cstudio_user` RENAME `user`;
 ALTER TABLE `cstudio_group` RENAME `group`;
 ALTER TABLE `cstudio_usergroup` RENAME `group_user`;
+
+alter table dependency modify column `type` VARCHAR(50) NOT NULL;

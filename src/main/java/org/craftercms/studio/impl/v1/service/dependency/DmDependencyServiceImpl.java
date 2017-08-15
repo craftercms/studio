@@ -770,158 +770,29 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
         if (globalDeps == null) {
             globalDeps = new HashMap<String, Set<String>>();
         }
+
+        extractDirectDependenciesRecursively(site, path, new HashSet<>());
+        /*
         Map<String, List<String>> dependencies = extractDirectDependency(site, path, document, globalDeps);
         int size = 0;
         for (List<String> vals : dependencies.values()) {
             size += (vals == null) ? 0 : vals.size();
         }
-        setDependencies(site, path, dependencies);
+        setDependencies(site, path, dependencies);*/
     }
 
-    /**
-     * get a map of prefixed QName and a list of dependency files for the given document
-     * (e.g. cstudio-core:children={/site/website/...},cstudio-core:components={...},...)
-     *
-     * @param site
-     * @param path
-     * @param document
-     * @return a map of direct dependency
-     */
-    protected Map<String, List<String>> extractDirectDependency(String site, String path, Document document, Map<String, Set<String>> globalDeps) {
-        // here we only care about direct dependencies (assets, components, documents - no child pages)
-        // need all items regardless they are updated or not
-        // add the current path to all dependency items as a parent
-        // update the corresponding components, documents, assets to have this path as a mandatory parent
 
-
-
-        if (globalDeps == null) {
-            globalDeps = new HashMap<>();
+    protected void extractDirectDependenciesRecursively(String site, String path, Set<String> processedPaths) throws ServiceException {
+        if (!processedPaths.contains(path)) {
+            processedPaths.add(path);
+            Map<String, Set<String>> extractedDependencies = dependencyResolver.resolve(site, path);
+            setDependencies(site, path, extractedDependencies);
+            for (Set<String> values : extractedDependencies.values()) {
+                for (String value : values) {
+                    extractDirectDependenciesRecursively(site, path, processedPaths);
+                }
+            }
         }
-        Set<String> globalPages = globalDeps.get(DEPENDENCY_NAME_PAGE);
-        Set<String> globalComponents = globalDeps.get(DEPENDENCY_NAME_COMPONENT);
-        if ((globalPages != null && globalPages.contains(path)) || (globalComponents != null && globalComponents.contains(path))) {
-            return new HashMap<>();
-        }
-        try {
-
-            // Check for skipDependencies flag
-            Element root = document.getRootElement();
-            boolean skipDependencies = false;
-            String isSkipDependenciesValue = root.valueOf("//" + DmXmlConstants.ELM_SKIP_DEPENDENCIES);
-            if (isSkipDependenciesValue != null && !"".equals(isSkipDependenciesValue)) {
-                skipDependencies = ContentFormatUtils.getBooleanValue(isSkipDependenciesValue);
-            }
-            if (skipDependencies) {
-                return new HashMap<>();
-            }
-
-            StringBuffer buffer = new StringBuffer(XmlUtils.convertDocumentToString(document));
-            List<String> assets = new ArrayList<String>();
-            List<String> components = new ArrayList<String>();
-            List<String> documents = new ArrayList<String>();
-            List<String> pages = new ArrayList<String>();
-            List<String> templates = new ArrayList<String>();
-            List<String> scripts = new ArrayList<String>();
-            //List<String> levelDescriptors = getDependentLevelDescriptors(site, path, false, servicesConfig.getLevelDescriptorName(site));
-
-            assets.addAll(dependencyResolver.resolve(site, path, "asset", "application/xml", buffer.toString()));
-            components.addAll(dependencyResolver.resolve(site, path, "component", "application/xml", buffer.toString()));
-            documents.addAll(dependencyResolver.resolve(site, path, "document", "application/xml", buffer.toString()));
-            pages.addAll(dependencyResolver.resolve(site, path, "page", "application/xml", buffer.toString()));
-            templates.addAll(dependencyResolver.resolve(site, path, "rendering-template", "application/xml", buffer.toString()));
-            scripts.addAll(dependencyResolver.resolve(site, path, "script", "application/xml", buffer.toString()));
-
-
-            Map<String, List<String>> dependency = new HashMap<>();
-            dependency.put(DEPENDENCY_NAME_ASSET, assets);
-            dependency.put(DEPENDENCY_NAME_COMPONENT, components);
-            dependency.put(DEPENDENCY_NAME_DOCUMENT, documents);
-            dependency.put(DEPENDENCY_NAME_PAGE, pages);
-            dependency.put(DEPENDENCY_NAME_RENDERING_TEMPLATE, templates);
-            //dependency.put(DEPENDENCY_NAME_LEVEL_DESCRIPTOR, levelDescriptors);
-
-            for (String patternStr : servicesConfig.getPagePatterns(site)) {
-                Pattern pattern = Pattern.compile(patternStr);
-                Matcher matcher = pattern.matcher(path);
-                if (matcher.matches()) {
-                    if (globalPages == null) {
-                        globalPages = new HashSet<>();
-                    }
-                    globalPages.add(path);
-                    globalDeps.put(DEPENDENCY_NAME_PAGE, globalPages);
-                    break;
-                }
-            }
-
-            for (String patternStr : servicesConfig.getComponentPatterns(site)) {
-                Pattern pattern = Pattern.compile(patternStr);
-                Matcher matcher = pattern.matcher(path);
-                if (matcher.matches()) {
-                    if (globalComponents == null) {
-                        globalComponents = new HashSet<>();
-                    }
-                    globalComponents.add(path);
-                    globalDeps.put(DEPENDENCY_NAME_COMPONENT, globalComponents);
-                    break;
-                }
-            }
-
-            for (String assetPath : assets) {
-                Set<String> parsedAssets = globalDeps.get(DEPENDENCY_NAME_ASSET);
-                if (parsedAssets == null) {
-                    parsedAssets = new HashSet<>();
-                }
-                if (parsedAssets.contains(assetPath)) {
-                    continue;
-                }
-                if (assetPath.endsWith(DmConstants.CSS_PATTERN)) {
-                    String content = contentService.getContentAsString(site, assetPath);
-                    if (StringUtils.isNotEmpty(content)) {
-                        StringBuffer sb = new StringBuffer(content);
-                        try {
-                            extractDependenciesStyle(site, assetPath, sb, globalDeps);
-                        } catch (ServiceException e) {
-                            logger.error("Failed to get style dependencies", e);
-                        }
-                    }
-
-                } else if (assetPath.endsWith(DmConstants.JS_PATTERN)) {
-                    String content = contentService.getContentAsString(site, assetPath);
-                    if (StringUtils.isNotEmpty(content)) {
-                        StringBuffer sb = new StringBuffer(content);
-                        try {
-                            extractDependenciesJavascript(site, assetPath, sb, globalDeps);
-                        } catch (ServiceException e) {
-                            logger.error("Failed to get javascript dependencies", e);
-                        }
-                    }
-                }
-            }
-            for (String templatePath : templates) {
-                Set<String> parsedTemplates = globalDeps.get(DEPENDENCY_NAME_RENDERING_TEMPLATE);
-                if (parsedTemplates == null) {
-                    parsedTemplates = new HashSet<>();
-                }
-                if (parsedTemplates.contains(templatePath)) {
-                    continue;
-                }
-                String content = contentService.getContentAsString(site, templatePath);
-                if (StringUtils.isNotEmpty(content)) {
-                    StringBuffer sb = new StringBuffer(content);
-                    try {
-                        extractDependenciesTemplate(site, templatePath, sb, globalDeps);
-                    } catch (ServiceException e) {
-                        logger.error("Failed to get template dependencies", e);
-                    }
-                }
-            }
-            return dependency;
-
-        } catch (IOException e) {
-            logger.error("Failed to get direct dependency", e);
-        }
-        return null;
     }
 
     @Override
@@ -929,54 +800,9 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
         if (globalDeps == null) {
             globalDeps = new HashMap<>();
         }
-        List<String> assets = new ArrayList<String>();
-        List<String> templates = new ArrayList<String>();
 
-        assets.addAll(dependencyResolver.resolve(site, path, "asset", "text/x-freemarker", templateContent.toString()));
-        templates.addAll(dependencyResolver.resolve(site, path, "rendering-template", "text/x-freemarker", templateContent.toString()));
+        extractDirectDependenciesRecursively(site, path, new HashSet<>());
 
-        Map<String, List<String>> dependency = new HashMap<>();
-        dependency.put(DEPENDENCY_NAME_ASSET, assets);
-        dependency.put(DEPENDENCY_NAME_RENDERING_TEMPLATE, templates);
-        setDependencies(site, path, dependency);
-        Set<String> parsedTemplates = globalDeps.get(DEPENDENCY_NAME_RENDERING_TEMPLATE);
-        if (parsedTemplates == null) {
-            parsedTemplates = new HashSet<>();
-        }
-        parsedTemplates.add(path);
-        globalDeps.put(DEPENDENCY_NAME_RENDERING_TEMPLATE, parsedTemplates);
-        for (String assetPath : assets) {
-            Set<String> parsedAssets = globalDeps.get(DEPENDENCY_NAME_ASSET);
-            if (parsedAssets == null) {
-                parsedAssets = new HashSet<>();
-            }
-            if (parsedAssets.contains(assetPath)) {
-                continue;
-            }
-            if (assetPath.endsWith(DmConstants.CSS_PATTERN)) {
-                if (contentService.contentExists(site, assetPath)) {
-                    StringBuffer sb = new StringBuffer(contentService.getContentAsString(site, assetPath));
-                    extractDependenciesStyle(site, assetPath, sb, globalDeps);
-                }
-            } else if (assetPath.endsWith(DmConstants.JS_PATTERN)) {
-                if (contentService.contentExists(site, assetPath)) {
-                    StringBuffer sb = new StringBuffer(contentService.getContentAsString(site, assetPath));
-                    extractDependenciesJavascript(site, assetPath, sb, globalDeps);
-                }
-            }
-        }
-        for (String templatePath : templates) {
-
-            if (parsedTemplates.contains(templatePath)) {
-
-                continue;
-            }
-            if (contentService.contentExists(site, templatePath)) {
-                StringBuffer sb = new StringBuffer(contentService.getContentAsString(site, templatePath));
-                extractDependenciesTemplate(site, templatePath, sb, globalDeps);
-            }
-
-        }
     }
 
     @Override
@@ -984,31 +810,8 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
         if (globalDeps == null) {
             globalDeps = new HashMap<>();
         }
-        List<String> assets = new ArrayList<String>();
-        assets.addAll(dependencyResolver.resolve(site, path, "asset", "text/css", styleContent.toString()));
 
-        Map<String, List<String>> dependency = new HashMap<>();
-
-        dependency.put(DEPENDENCY_NAME_ASSET, assets);
-        setDependencies(site, path, dependency);
-        Set<String> parsedAssets = globalDeps.get(DEPENDENCY_NAME_ASSET);
-        if (parsedAssets == null) {
-            parsedAssets = new HashSet<>();
-        }
-        parsedAssets.add(path);
-        globalDeps.put(DEPENDENCY_NAME_ASSET, parsedAssets);
-        for (String assetPath : assets) {
-
-            if (parsedAssets.contains(assetPath)) {
-                continue;
-            }
-            if (assetPath.endsWith(DmConstants.CSS_PATTERN)) {
-                if (contentService.contentExists(site, assetPath)) {
-                    StringBuffer sb = new StringBuffer(contentService.getContentAsString(site, assetPath));
-                    extractDependenciesStyle(site, assetPath, sb, globalDeps);
-                }
-            }
-        }
+        extractDirectDependenciesRecursively(site, path, new HashSet<>());
 
     }
 
@@ -1017,29 +820,9 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
         if (globalDeps == null) {
             globalDeps = new HashMap<>();
         }
-        List<String> assets = new ArrayList<String>();
-        assets.addAll(dependencyResolver.resolve(site, path, "asset", "application/javascript", javascriptContent.toString()));
 
-        Map<String, List<String>> dependency = new HashMap<>();
-        dependency.put(DEPENDENCY_NAME_ASSET, assets);
-        setDependencies(site, path, dependency);
-        Set<String> parsedAssets = globalDeps.get(DEPENDENCY_NAME_ASSET);
-        if (parsedAssets == null) {
-            parsedAssets = new HashSet<>();
-        }
-        parsedAssets.add(path);
-        globalDeps.put(DEPENDENCY_NAME_ASSET, parsedAssets);
-        for (String assetPath : assets) {
-            if (parsedAssets.contains(assetPath)) {
-                continue;
-            }
-            if (assetPath.endsWith(DmConstants.JS_PATTERN)) {
-                if (contentService.contentExists(site, assetPath)) {
-                    StringBuffer sb = new StringBuffer(contentService.getContentAsString(site, assetPath));
-                    extractDependenciesJavascript(site, assetPath, sb, globalDeps);
-                }
-            }
-        }
+        extractDirectDependenciesRecursively(site, path, new HashSet<>());
+
     }
 
     protected List<String> getDependentLevelDescriptors(String site, String path, boolean b, String levelDescriptorName) {
@@ -1048,10 +831,10 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
         return levelDescriptors;
     }
 
-	@Override
-    public void setDependencies(final String site, final String path, final Map<String, List<String>> dependencies) throws ServiceException {
+    @Override
+    public void setDependencies(final String site, final String path, final Map<String, Set<String>> dependencies) throws ServiceException {
         try {
-            final Map<String, List<String>> filteredDependencies =  new HashMap<>();
+            final Map<String, Set<String>> filteredDependencies =  new HashMap<>();
             for (String type : dependencies.keySet()) {
                 filteredDependencies.put(type, applyIgnoreDependenciesRules(site, dependencies.get(type)));
             }
@@ -1061,7 +844,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
             dependencyMapper.deleteAllSourceDependencies(params);
             if (dependencies != null) {
                 for (String type : dependencies.keySet()) {
-                    List<String> files = dependencies.get(type);
+                    Set<String> files = dependencies.get(type);
                     if (files != null && files.size() > 0) {
                         List<DependencyEntity> deps = new ArrayList<>();
                         for (String file : files) {
@@ -1088,8 +871,8 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
         return cleanPath;
     }
 
-    private List<String> applyIgnoreDependenciesRules(String site, List<String> dependencies) {
-        List<String> filteredDependencies = new ArrayList<>();
+    private Set<String> applyIgnoreDependenciesRules(String site, Set<String> dependencies) {
+        Set<String> filteredDependencies = new HashSet<String>();
         for (String dependency : dependencies) {
             boolean ignore = false;
             if (!contentService.contentExists(site, dependency)) {
@@ -1105,9 +888,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
             }
         }
         return filteredDependencies;
-     }
-
-
+    }
 
     @Override
     public void updateDependencies(String site, String path, String state) {

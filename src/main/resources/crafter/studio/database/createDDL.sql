@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS `dependency` (
   `site`        VARCHAR(50) NOT NULL,
   `source_path` TEXT        NOT NULL,
   `target_path` TEXT        NOT NULL,
-  `type`        VARCHAR(15) NOT NULL,
+  `type`        VARCHAR(50) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `dependency_site_idx` (`site`),
   KEY `dependency_sourcepath_idx` (`source_path`(1000))
