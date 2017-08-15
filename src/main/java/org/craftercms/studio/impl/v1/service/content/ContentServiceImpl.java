@@ -466,9 +466,7 @@ public class ContentServiceImpl implements ContentService {
             String user = (properties != null && !StringUtils.isEmpty(properties.getSubmittedBy()) ? properties
                 .getSubmittedBy() : approver);
             Map<String, String> extraInfo = new HashMap<String, String>();
-            if (path.endsWith(DmConstants.XML_PATTERN)) {
-                extraInfo.put(DmConstants.KEY_CONTENT_TYPE, getContentTypeClass(site, path));
-            }
+            extraInfo.put(DmConstants.KEY_CONTENT_TYPE, getContentTypeClass(site, path));
             logger.debug("[DELETE] posting delete activity on " + path + " by " + user + " in " + site);
 
             activityService.postActivity(site, user, path, ActivityService.ActivityType.DELETED, ActivityService.ActivitySource.UI, extraInfo);
