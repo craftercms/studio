@@ -66,9 +66,7 @@ import org.apache.commons.io.IOUtils;
 
 import javax.activation.MimetypesFileTypeMap;
 
-import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_TAXONOMY;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_TAXONOMY_REGEX;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_UNKNOWN;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC;
 
 /**
@@ -1405,6 +1403,7 @@ public class ContentServiceImpl implements ContentService {
             item.document = ContentUtils.matchesPatterns(item.getUri(), servicesConfig.getDocumentPatterns(site));
             item.isDocument = item.document;
             item.browserUri =item.getUri();
+            item.setContentType(getContentTypeClass(site, path));
         }
 
         loadContentTypeProperties(site, item, item.contentType);
@@ -1692,15 +1691,15 @@ public class ContentServiceImpl implements ContentService {
     public String getContentTypeClass(String site, String uri) {
         // TODO: SJ: This reads: if can't guess what it is, it's a page. This is to be replaced in 3.1+
         if (matchesPatterns(uri, servicesConfig.getComponentPatterns(site)) || uri.endsWith("/" + servicesConfig.getLevelDescriptorName(site))) {
-            return DmConstants.CONTENT_TYPE_COMPONENT;
+            return CONTENT_TYPE_COMPONENT;
         } else if (matchesPatterns(uri, servicesConfig.getDocumentPatterns(site))) {
-            return DmConstants.CONTENT_TYPE_DOCUMENT;
+            return CONTENT_TYPE_DOCUMENT;
         } else if (matchesPatterns(uri, servicesConfig.getAssetPatterns(site))) {
-            return DmConstants.CONTENT_TYPE_ASSET;
+            return CONTENT_TYPE_ASSET;
         } else if (matchesPatterns(uri, servicesConfig.getRenderingTemplatePatterns(site))) {
-            return DmConstants.CONTENT_TYPE_RENDERING_TEMPLATE;
+            return CONTENT_TYPE_RENDERING_TEMPLATE;
         }
-        return DmConstants.CONTENT_TYPE_PAGE;
+        return CONTENT_TYPE_UNKNOWN;
     }
 
     protected boolean matchesPatterns(String uri, List<String> patterns) {
