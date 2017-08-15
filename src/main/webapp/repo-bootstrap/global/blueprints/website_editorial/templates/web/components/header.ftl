@@ -2,11 +2,11 @@
 <header id="header" <@studio.componentAttr path=contentModel.storeUrl ice=true iceGroup="header"/>>
     <a href="/" class="logo"><img border="0" alt="${contentModel.logo_text!""}" src="${contentModel.logo!""}">
         <#if profile??>
-            <#assign name = profile.attributes.name!"stranger" />
-            Howdy, ${name}
+            <#assign name = profile.attributes.name!"stranger" />            
         <#else>
-            ${contentModel.business_name!""}
+            <#assign name = "stranger" />
         </#if>
+        Howdy, ${name}
     </a>
 
     <ul class="icons">
