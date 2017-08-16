@@ -17,7 +17,7 @@
  */
 package org.craftercms.studio.impl.v1.content.pipeline;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.content.pipeline.ContentProcessor;
 import org.craftercms.studio.api.v1.content.pipeline.PipelineContent;
 import org.craftercms.studio.api.v1.exception.ContentProcessException;

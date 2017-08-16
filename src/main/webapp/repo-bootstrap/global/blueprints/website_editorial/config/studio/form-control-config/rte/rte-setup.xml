@@ -9,7 +9,7 @@
         <rteStylesheets> <!-- This informs the RTE to use the CSS files -->
             <link>
                 <loadFromPreview>true</loadFromPreview>
-                <url>/static-assets/css/style.css</url>
+                <url>/static-assets/css/main.css</url>
             </link>
 
             <link>
@@ -23,6 +23,31 @@
                 <url>/static-assets/mobile/css/libs/jquery.mobile-1.0.min.css</url>
             </link>
         </rteStylesheets>
+        
+        <rteStyleOverride>
+            body { background: none; background-color: white; padding: 10px; }
+            .layoutColumn { border: 1px solid gray; }
+            .layoutColumn3 { border: 1px solid gray; }
+            .layoutColumn4 { border: 1px solid gray; }
+                        
+            h1 {
+            color:rgb(61, 68, 73);
+            font-family:'Roboto Slab';
+            font-size:44px;
+            font-weight:bold;
+            }
+            
+            h3 {
+            color:rgb(61, 68, 73);
+            font-family:'Roboto Slab';
+            font-size:18px;            
+            }
+            
+            p {
+            font-size:14px;            
+            }
+
+        </rteStyleOverride>
 
         <toolbarItems1>
             formatselect,|,bold,italic,underline,strikethrough,|,sub,sup,charmap,|,outdent,indent,blockquote,|,justifyleft,justifycenter,justifyright,justifyfull,|,bullist,numlist,|,managedImage,link,unlink,anchor,|,edithtml,|,undo,redo

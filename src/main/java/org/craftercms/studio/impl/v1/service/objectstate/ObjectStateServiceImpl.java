@@ -18,7 +18,7 @@
 package org.craftercms.studio.impl.v1.service.objectstate;
 
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.dal.ObjectState;
 import org.craftercms.studio.api.v1.dal.ObjectStateMapper;
 import org.craftercms.studio.api.v1.log.Logger;

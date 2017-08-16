@@ -20,7 +20,7 @@
 package org.craftercms.studio.impl.v1.web.filter;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.craftercms.commons.http.HttpUtils;
 import org.craftercms.studio.api.v1.log.Logger;

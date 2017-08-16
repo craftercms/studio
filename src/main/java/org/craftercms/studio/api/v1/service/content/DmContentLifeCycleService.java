@@ -17,7 +17,7 @@
  */
 package org.craftercms.studio.api.v1.service.content;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Map;
 
