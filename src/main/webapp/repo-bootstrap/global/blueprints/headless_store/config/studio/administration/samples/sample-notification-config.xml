@@ -7,13 +7,13 @@
 <notificationConfig>
     <lang name="en"> <!-- language specific notifications -->
         <deploymentFailureNotification> <!-- list of email addresses to notify in case of publishing failure -->
-            <email>admin@local.loc</email>
-            <email>admin2@local.loc</email>
+            <email>admin@example.com</email>
+            <email>admin2@example.com</email>
         </deploymentFailureNotification>
 
         <approverEmails> <!-- list of content approver emails -->
-            <email>admin@local.loc</email>
-            <email>admin2@local.loc</email>
+            <email>admin@example.com</email>
+            <email>admin2@example.com</email>
         </approverEmails>
 
         <generalMessages> <!-- list of general messages -->
