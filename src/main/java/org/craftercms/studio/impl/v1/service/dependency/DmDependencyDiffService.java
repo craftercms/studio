@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
 import org.craftercms.studio.api.v1.to.DmDependencyTO;
 import org.craftercms.studio.api.v1.exception.ServiceException;

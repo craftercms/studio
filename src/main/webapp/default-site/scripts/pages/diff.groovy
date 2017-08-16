@@ -1,7 +1,7 @@
 import scripts.libs.EnvironmentOverrides
 import scripts.libs.HTMLCompareTools
 import scripts.api.ContentServices
-import org.apache.commons.lang.StringEscapeUtils
+import org.apache.commons.lang3.StringEscapeUtils
 
 
 def result = [:]

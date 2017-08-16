@@ -17,7 +17,7 @@
  */
 package org.craftercms.studio.impl.v1.service.content;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.DmXmlConstants;
 import org.craftercms.studio.api.v1.dal.PageNavigationOrder;
 import org.craftercms.studio.api.v1.dal.PageNavigationOrderMapper;
