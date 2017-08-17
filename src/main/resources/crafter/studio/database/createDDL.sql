@@ -25,6 +25,10 @@ WITH GRANT OPTION ;
 
 USE crafter ;
 
+CREATE TABLE _meta (`version` VARCHAR(10) NOT NULL , PRIMARY KEY (`version`)) ;
+
+INSERT INTO _meta (version) VALUES ('3.0.1') ;
+
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`             BIGINT(20)   NOT NULL AUTO_INCREMENT,
   `modified_date`  DATETIME     NOT NULL,
