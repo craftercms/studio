@@ -49,49 +49,53 @@ public class RegexDependencyResolver implements DependencyResolver {
     public Map<String, Set<String>> resolve(String site, String path) {
         Map<String, Set<String>> toRet = new HashMap<String, Set<String>>();
         DependencyResolverConfigTO config = getConfiguraion(site);
-        String content = contentService.getContentAsString(site, path);
-        Map<String, DependencyResolverConfigTO.ItemType> itemTypes = config.getItemTypes();
-        if (itemTypes != null) {
-            for (Map.Entry<String, DependencyResolverConfigTO.ItemType> entry : itemTypes.entrySet()) {
-                DependencyResolverConfigTO.ItemType itemType = entry.getValue();
-                List<String> includes = itemType.getIncludes();
-                if (ContentUtils.matchesPatterns(path, includes)) {
-                    Map<String, DependencyResolverConfigTO.DependencyType> dependencyTypes = itemType.getDependencyTypes();
-                    for (Map.Entry<String, DependencyResolverConfigTO.DependencyType> dependencyTypeEntry : dependencyTypes.entrySet()) {
-                        Set<String> extractedPaths = new HashSet<String>();
-                        DependencyResolverConfigTO.DependencyType dependencyType = dependencyTypeEntry.getValue();
-                        List<DependencyResolverConfigTO.DependencyExtractionPattern> extractionPatterns = dependencyType.getIncludes();
-                        for (DependencyResolverConfigTO.DependencyExtractionPattern extractionPattern : extractionPatterns) {
-                            Pattern pattern = Pattern.compile(extractionPattern.getFindRegex());
-                            Matcher matcher = pattern.matcher(content);
-                            while (matcher.find()) {
-                                String matchedPath = matcher.group();
-                                if (CollectionUtils.isNotEmpty(extractionPattern.getTransforms())) {
-                                    for (DependencyResolverConfigTO.DependencyExtractionTransform transform : extractionPattern.getTransforms()) {
-                                        Pattern find = Pattern.compile(transform.getMatch());
-                                        Matcher replaceMatcher = find.matcher(matchedPath);
-                                        matchedPath = replaceMatcher.replaceAll(transform.getReplace());
+        if (config != null) {
+            String content = contentService.getContentAsString(site, path);
+            Map<String, DependencyResolverConfigTO.ItemType> itemTypes = config.getItemTypes();
+            if (itemTypes != null) {
+                for (Map.Entry<String, DependencyResolverConfigTO.ItemType> entry : itemTypes.entrySet()) {
+                    DependencyResolverConfigTO.ItemType itemType = entry.getValue();
+                    List<String> includes = itemType.getIncludes();
+                    if (ContentUtils.matchesPatterns(path, includes)) {
+                        Map<String, DependencyResolverConfigTO.DependencyType> dependencyTypes = itemType.getDependencyTypes();
+                        for (Map.Entry<String, DependencyResolverConfigTO.DependencyType> dependencyTypeEntry : dependencyTypes.entrySet()) {
+                            Set<String> extractedPaths = new HashSet<String>();
+                            DependencyResolverConfigTO.DependencyType dependencyType = dependencyTypeEntry.getValue();
+                            List<DependencyResolverConfigTO.DependencyExtractionPattern> extractionPatterns = dependencyType.getIncludes();
+                            for (DependencyResolverConfigTO.DependencyExtractionPattern extractionPattern : extractionPatterns) {
+                                Pattern pattern = Pattern.compile(extractionPattern.getFindRegex());
+                                Matcher matcher = pattern.matcher(content);
+                                while (matcher.find()) {
+                                    String matchedPath = matcher.group();
+                                    if (CollectionUtils.isNotEmpty(extractionPattern.getTransforms())) {
+                                        for (DependencyResolverConfigTO.DependencyExtractionTransform transform : extractionPattern.getTransforms()) {
+                                            Pattern find = Pattern.compile(transform.getMatch());
+                                            Matcher replaceMatcher = find.matcher(matchedPath);
+                                            matchedPath = replaceMatcher.replaceAll(transform.getReplace());
+                                        }
+                                    }
+                                    if (contentService.contentExists(site, matchedPath)) {
+                                        extractedPaths.add(matchedPath);
+                                    } else {
+                                        logger.info("Found reference to " + matchedPath + " in content at " + path + " but content does not exist in referenced path for site " + site);
                                     }
                                 }
-                                if (contentService.contentExists(site, matchedPath)) {
-                                    extractedPaths.add(matchedPath);
-                                } else {
-                                    logger.info("Found reference to " + matchedPath + " in content at " + path + " but content does not exist in referenced path for site " + site);
-                                }
                             }
+                            toRet.put(dependencyType.getName(), extractedPaths);
                         }
-                        toRet.put(dependencyType.getName(), extractedPaths);
                     }
                 }
             }
+        } else {
+            String configLocation = getConfigLocation(site);
+            logger.error("Failed to load Dependency Resolver configuration. Verify that configuration exists and it is valid XML file: " + configLocation);
         }
         return toRet;
     }
 
     private DependencyResolverConfigTO getConfiguraion(String site) {
         DependencyResolverConfigTO config = null;
-        String configLocation = getConfigPath().replaceFirst(StudioConstants.PATTERN_SITE, site);
-        configLocation = configLocation + "/" + getConfigFileName();
+        String configLocation = getConfigLocation(site);
         Document document = null;
         try {
             document = contentService.getContentAsDocument(site, configLocation);
@@ -163,6 +167,12 @@ public class RegexDependencyResolver implements DependencyResolver {
         }
 
         return config;
+    }
+
+    private String getConfigLocation(String site) {
+        String configLocation = getConfigPath().replaceFirst(StudioConstants.PATTERN_SITE, site);
+        configLocation = configLocation + "/" + getConfigFileName();
+        return configLocation;
     }
 
     public String getConfigPath() {
