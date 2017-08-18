@@ -20,7 +20,7 @@
 package org.craftercms.studio.impl.v1.service.security;
 
 import org.apache.commons.lang3.StringUtils;
-import org.craftercms.commons.crypto.CipherUtils;
+import org.craftercms.commons.crypto.CryptoUtils;
 import org.craftercms.commons.http.RequestContext;
 import org.craftercms.studio.api.v1.dal.*;
 import org.craftercms.studio.api.v1.ebus.RepositoryEventContext;
@@ -249,7 +249,7 @@ public class DbSecurityProvider implements SecurityProvider {
     @Override
     public String authenticate(String username, String password) throws BadCredentialsException, AuthenticationSystemException {
         User user = securityMapper.getUser(username);
-        if (user != null && user.isEnabled() && CipherUtils.matchPassword(user.getPassword(), password)) {
+        if (user != null && user.isEnabled() && CryptoUtils.matchPassword(user.getPassword(), password)) {
             //byte[] randomBytes = CryptoUtils.generateRandomBytes(20);
             //String token = randomBytes.toString();
             String token = createToken(user);
@@ -441,7 +441,7 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     public String getPasswordHash(String password) {
-        return CipherUtils.hashPassword(password);
+        return CryptoUtils.hashPassword(password);
     }
 
     @Override
@@ -450,7 +450,7 @@ public class DbSecurityProvider implements SecurityProvider {
             logger.error("Not able to create user " + username + ", already exists.");
             throw new UserAlreadyExistsException("User already exists.");
         } else {
-            String hashedPassword = CipherUtils.hashPassword(password);
+            String hashedPassword = CryptoUtils.hashPassword(password);
             Map<String, Object> params = new HashMap<String, Object>();
             params.put(KEY_USERNAME, username);
             params.put("password", hashedPassword);
@@ -779,7 +779,7 @@ public class DbSecurityProvider implements SecurityProvider {
             if (user.getExternallyManaged() > 0) {
                 throw new UserExternallyManagedException();
             } else {
-                if (CipherUtils.matchPassword(user.getPassword(), current)) {
+                if (CryptoUtils.matchPassword(user.getPassword(), current)) {
                     return setUserPassword(username, newPassword);
                 } else {
                     throw new PasswordDoesNotMatchException();
@@ -797,7 +797,7 @@ public class DbSecurityProvider implements SecurityProvider {
             if (user.getExternallyManaged() > 0) {
                 throw new UserExternallyManagedException();
             } else {
-                String hashedPassword = CipherUtils.hashPassword(newPassword);
+                String hashedPassword = CryptoUtils.hashPassword(newPassword);
                 Map<String, String> params = new HashMap<String, String>();
                 params.put(KEY_USERNAME, username);
                 params.put("password", hashedPassword);

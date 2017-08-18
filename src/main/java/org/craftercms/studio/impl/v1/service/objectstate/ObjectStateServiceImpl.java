@@ -398,13 +398,13 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     /**
      * get the object for a given set of states
      */
-    public List<ItemState> getObjectStateByStates(String site, List<String> states) {
+    public List<ObjectState> getObjectStateByStates(String site, List<String> states) {
 
         if (states != null && !states.isEmpty()) {
             Map<String, Object> params = new HashMap<String, Object>();
             params.put("states", states);
             params.put("site", site);
-            List<ItemState> result = itemStateMapper.getObjectStateByStates(params);
+            List<ObjectState> result = objectStateMapper.getObjectStateByStates(params);
             return result;
         } else {
             return new ArrayList<>(0);
@@ -416,14 +416,14 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
         Map<String, String> params = new HashMap<String, String>();
         params.put("site", site);
         params.put("path", path);
-        ItemState itemState = itemStateMapper.getObjectStateBySiteAndPath(params);
-        if (itemState == null) {
+        ObjectState objectState = objectStateMapper.getObjectStateBySiteAndPath(params);
+        if (objectState == null) {
             insertNewEntry(site, path);
-            itemState = itemStateMapper.getObjectStateBySiteAndPath(params);
+            objectState = objectStateMapper.getObjectStateBySiteAndPath(params);
         }
-        itemState.setState(state);
-        itemState.setSystemProcessing(systemProcessing ? 1 : 0);
-        itemStateMapper.setObjectState(itemState);
+        objectState.setState(state);
+        objectState.setSystemProcessing(systemProcessing ? 1 : 0);
+        objectStateMapper.setObjectState(objectState);
         return "Success";
     }
 
@@ -431,7 +431,7 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     public void deleteObjectStatesForSite(String site) {
         Map<String, String> params = new HashMap<String, String>();
         params.put("site", site);
-        itemStateMapper.deleteObjectStatesForSite(params);
+        objectStateMapper.deleteObjectStatesForSite(params);
     }
 
     public int getBulkOperationBatchSize() {
@@ -444,7 +444,7 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
         Map<String, String> params = new HashMap<String, String>();
         params.put("siteId", site);
         params.put("state", state.name());
-        itemStateMapper.setStateForSiteContent(params);
+        objectStateMapper.setStateForSiteContent(params);
     }
 
     @Override
@@ -454,9 +454,9 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
         params.put("path", path);
         params.put("likepath", path + (path.endsWith("/") ? "" : File.separator) + "%");
         params.put("states", State.CHANGE_SET_STATES);
-        List<ItemState> result = itemStateMapper.getChangeSetForSubtree(params);
+        List<ObjectState> result = objectStateMapper.getChangeSetForSubtree(params);
         List<String> toRet = new ArrayList<String>();
-        for (ItemState state : result) {
+        for (ObjectState state : result) {
             toRet.add(state.getPath());
         }
         return toRet;
@@ -492,7 +492,7 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     }
 
     @Autowired
-    protected ItemStateMapper itemStateMapper;
+    protected ObjectStateMapper objectStateMapper;
 
     protected GeneralLockService generalLockService;
     protected ContentService contentService;
