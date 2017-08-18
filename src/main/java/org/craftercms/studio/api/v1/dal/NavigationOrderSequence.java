@@ -14,16 +14,30 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 package org.craftercms.studio.api.v1.dal;
 
-import org.craftercms.studio.api.v1.exception.DatabaseUpgradeUnsupportedVersionException;
+import java.io.Serializable;
 
-import java.util.Map;
+public class NavigationOrderSequence implements Serializable {
 
-public interface DataSourceInitializer {
+    private static final long serialVersionUID = 3646263089226872560L;
 
-    void initDataSource() throws DatabaseUpgradeUnsupportedVersionException;
+    protected String folderId;
+    protected String site;
+    protected String path;
+    protected double maxCount;
+
+    public String getFolderId() { return folderId; }
+    public void setFolderId(String folderId) { this.folderId = folderId; }
+
+    public String getSite() { return site; }
+    public void setSite(String site) { this.site = site; }
+
+    public String getPath() { return path; }
+    public void setPath(String path) { this.path = path; }
+
+    public double getMaxCount() { return maxCount; }
+    public void setMaxCount(double maxCount) { this.maxCount = maxCount; }
 }

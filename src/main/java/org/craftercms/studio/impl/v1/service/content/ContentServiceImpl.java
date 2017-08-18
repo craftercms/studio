@@ -28,8 +28,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.DmXmlConstants;
-import org.craftercms.studio.api.v1.dal.ObjectMetadata;
-import org.craftercms.studio.api.v1.dal.ObjectState;
+import org.craftercms.studio.api.v1.dal.ItemMetadata;
+import org.craftercms.studio.api.v1.dal.ItemState;
 import org.craftercms.studio.api.v1.ebus.PreviewEventContext;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
@@ -66,9 +66,7 @@ import org.apache.commons.io.IOUtils;
 
 import javax.activation.MimetypesFileTypeMap;
 
-import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_TAXONOMY;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_TAXONOMY_REGEX;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_UNKNOWN;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC;
 
 /**
@@ -174,18 +172,18 @@ public class ContentServiceImpl implements ContentService {
             boolean isSaveAndClose = (StringUtils.isNotEmpty(unlock) && !unlock.equalsIgnoreCase("false"));
 
             if (contentExists) {
-                ObjectState objectState = objectStateService.getObjectState(site, path);
-                if (objectState == null) {
+                ItemState itemState = objectStateService.getObjectState(site, path);
+                if (itemState == null) {
                     // This file is either new or someone created it outside of our system, we must create a state
                     // for it
                     ContentItemTO item = getContentItem(site, path, 0);
                     objectStateService.insertNewEntry(site, item);
-                    objectState = objectStateService.getObjectState(site, path);
+                    itemState = objectStateService.getObjectState(site, path);
                 }
 
-                if (objectState != null) {
+                if (itemState != null) {
 
-                    if (objectState.getSystemProcessing() != 0) {
+                    if (itemState.getSystemProcessing() != 0) {
                         // TODO: SJ: Review and refactor/redo
                         logger.error("Error Content {0} is being processed (Object State is system "
                                 + "processing);", fileName);
@@ -343,7 +341,7 @@ public class ContentServiceImpl implements ContentService {
             item = getContentItem(site, path);
 
             if (item != null) {
-                ObjectState itemState = objectStateService.getObjectState(site, path);
+                ItemState itemState = objectStateService.getObjectState(site, path);
                 if (itemState != null) {
                     if (itemState.getSystemProcessing() != 0) {
                         logger.error(String.format("Error Content %s is being processed (Object State is SYSTEM_PROCESSING);", assetName));
@@ -462,13 +460,11 @@ public class ContentServiceImpl implements ContentService {
         }
         boolean exists = contentExists(site, path);
         if (exists) {
-            ObjectMetadata properties = objectMetadataManager.getProperties(site, path);
+            ItemMetadata properties = objectMetadataManager.getProperties(site, path);
             String user = (properties != null && !StringUtils.isEmpty(properties.getSubmittedBy()) ? properties
                 .getSubmittedBy() : approver);
             Map<String, String> extraInfo = new HashMap<String, String>();
-            if (path.endsWith(DmConstants.XML_PATTERN)) {
-                extraInfo.put(DmConstants.KEY_CONTENT_TYPE, getContentTypeClass(site, path));
-            }
+            extraInfo.put(DmConstants.KEY_CONTENT_TYPE, getContentTypeClass(site, path));
             logger.debug("[DELETE] posting delete activity on " + path + " by " + user + " in " + site);
 
             activityService.postActivity(site, user, path, ActivityService.ActivityType.DELETED, ActivityService.ActivitySource.UI, extraInfo);
@@ -556,8 +552,7 @@ public class ContentServiceImpl implements ContentService {
                         Document copyDocument = updateContentOnCopy(fromDocument, copyPathFileName, copyPathFolder,
                                 copyObjectIds, copyPathModifier);
 
-                        copyContent = ContentUtils.convertDocumentToStream(copyDocument, StudioConstants
-                                .CONTENT_ENCODING);
+                        copyContent = ContentUtils.convertDocumentToStream(copyDocument, CONTENT_ENCODING);
 
                         // This code is very similar to what is in writeContent. Consolidate this code?
                         Map<String, String> params = new HashMap<String, String>();
@@ -589,9 +584,9 @@ public class ContentServiceImpl implements ContentService {
                                 }
                             }
 
-                            ObjectState objectState = objectStateService.getObjectState(site, copyPath);
+                            ItemState itemState = objectStateService.getObjectState(site, copyPath);
 
-                            if (objectState == null) {
+                            if (itemState == null) {
                                 ContentItemTO copyItem = getContentItem(site, copyPath, 0);
                                 objectStateService.insertNewEntry(site, copyItem);
                                 objectStateService.setSystemProcessing(site, copyPath, false);
@@ -709,7 +704,7 @@ public class ContentServiceImpl implements ContentService {
         if (!objectMetadataManager.isRenamed(site, fromPath)) {
             // if an item was previously moved, we do not track intermediate moves because it will
             // ultimately orphan deployed content.  Old Path is always the OLDEST DEPLOYED PATH
-            ObjectMetadata metadata = objectMetadataManager.getProperties(site, fromPath);
+            ItemMetadata metadata = objectMetadataManager.getProperties(site, fromPath);
             if (metadata == null && !renamedItem.isFolder()) {
                 objectMetadataManager.insertNewObjectMetadata(site, fromPath);
                 metadata = objectMetadataManager.getProperties(site, fromPath);
@@ -719,8 +714,8 @@ public class ContentServiceImpl implements ContentService {
                 // if the item is not new, we need to track the old URL for deployment
                 logger.debug("item is not new, and has not previously been moved. Track the old URL {0}", fromPath);
                 Map<String, Object> objMetadataProps = new HashMap<String, Object>();
-                objMetadataProps.put(ObjectMetadata.PROP_RENAMED, 1);
-                objMetadataProps.put(ObjectMetadata.PROP_OLD_URL, fromPath);
+                objMetadataProps.put(ItemMetadata.PROP_RENAMED, 1);
+                objMetadataProps.put(ItemMetadata.PROP_OLD_URL, fromPath);
                 objectMetadataManager.setObjectMetadata(site, fromPath, objMetadataProps);
             }
         }
@@ -1407,6 +1402,7 @@ public class ContentServiceImpl implements ContentService {
             item.document = ContentUtils.matchesPatterns(item.getUri(), servicesConfig.getDocumentPatterns(site));
             item.isDocument = item.document;
             item.browserUri =item.getUri();
+            item.setContentType(getContentTypeClass(site, path));
         }
 
         loadContentTypeProperties(site, item, item.contentType);
@@ -1442,7 +1438,7 @@ public class ContentServiceImpl implements ContentService {
     }
 
     protected void populateWorkflowProperties(String site, ContentItemTO item) {
-        ObjectState state = objectStateService.getObjectState(site, item.getUri(), false);
+        ItemState state = objectStateService.getObjectState(site, item.getUri(), false);
         if (state != null) {
             if (item.isFolder()) {
                 boolean liveFolder = objectStateService.isFolderLive(site, item.getUri());
@@ -1480,7 +1476,7 @@ public class ContentServiceImpl implements ContentService {
 
         // TODO: SJ: Create a method String getValueIfNotNull(String) to use to return not null/empty string if null
         // TODO: SJ: Use that method to reduce redundant code here. 3.1+
-        ObjectMetadata metadata = objectMetadataManager.getProperties(site, item.getUri());
+        ItemMetadata metadata = objectMetadataManager.getProperties(site, item.getUri());
         if (metadata != null) {
             // Set the lock owner to empty string if we get a null to not confuse the UI, or set it to what's in the
             // database if it's not null
@@ -1694,15 +1690,15 @@ public class ContentServiceImpl implements ContentService {
     public String getContentTypeClass(String site, String uri) {
         // TODO: SJ: This reads: if can't guess what it is, it's a page. This is to be replaced in 3.1+
         if (matchesPatterns(uri, servicesConfig.getComponentPatterns(site)) || uri.endsWith("/" + servicesConfig.getLevelDescriptorName(site))) {
-            return DmConstants.CONTENT_TYPE_COMPONENT;
+            return CONTENT_TYPE_COMPONENT;
         } else if (matchesPatterns(uri, servicesConfig.getDocumentPatterns(site))) {
-            return DmConstants.CONTENT_TYPE_DOCUMENT;
+            return CONTENT_TYPE_DOCUMENT;
         } else if (matchesPatterns(uri, servicesConfig.getAssetPatterns(site))) {
-            return DmConstants.CONTENT_TYPE_ASSET;
+            return CONTENT_TYPE_ASSET;
         } else if (matchesPatterns(uri, servicesConfig.getRenderingTemplatePatterns(site))) {
-            return DmConstants.CONTENT_TYPE_RENDERING_TEMPLATE;
+            return CONTENT_TYPE_RENDERING_TEMPLATE;
         }
-        return DmConstants.CONTENT_TYPE_PAGE;
+        return CONTENT_TYPE_UNKNOWN;
     }
 
     protected boolean matchesPatterns(String uri, List<String> patterns) {

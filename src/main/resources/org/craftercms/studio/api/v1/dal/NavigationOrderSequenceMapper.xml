@@ -20,8 +20,8 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="org.craftercms.studio.api.v1.dal.PageNavigationOrderMapper">
-    <resultMap id="PageNavigationOrderMap" type="org.craftercms.studio.api.v1.dal.PageNavigationOrder">
+<mapper namespace="org.craftercms.studio.api.v1.dal.NavigationOrderSequenceMapper">
+    <resultMap id="NavigationOrderSequenceMap" type="org.craftercms.studio.api.v1.dal.NavigationOrderSequence">
         <id property="folderId" column="folder_id"/>
         <result property="site" column="site"/>
         <result property="path" column="path"/>
@@ -29,30 +29,30 @@
     </resultMap>
 
     <select id="getPageNavigationOrderForSiteAndPath" parameterType="java.util.HashMap"
-            resultMap="PageNavigationOrderMap">
+            resultMap="NavigationOrderSequenceMap">
         SELECT folder_id, site, path, max_count
-        FROM cstudio_pagenavigationordersequence
+        FROM navigation_order_sequence
         WHERE site = #{site} AND path = #{path}
     </select>
 
-    <insert id="insert" parameterType="org.craftercms.studio.api.v1.dal.PageNavigationOrder">
+    <insert id="insert" parameterType="org.craftercms.studio.api.v1.dal.NavigationOrderSequence">
         INSERT INTO
-        cstudio_pagenavigationordersequence
+        navigation_order_sequence
         (folder_id, site, path, max_count)
         VALUES
         (#{folderId}, #{site}, #{path}, #{maxCount})
     </insert>
 
-    <update id="update" parameterType="org.craftercms.studio.api.v1.dal.PageNavigationOrder">
+    <update id="update" parameterType="org.craftercms.studio.api.v1.dal.NavigationOrderSequence">
         UPDATE
-        cstudio_pagenavigationordersequence
+        navigation_order_sequence
         SET site= #{site}, path = #{path}, max_count = #{maxCount}
         WHERE folder_id = #{folderId}
     </update>
 
     <delete id="deleteSequencesForSite" parameterType="java.util.Map">
         DELETE FROM
-        cstudio_pagenavigationordersequence
+        navigation_order_sequence
         WHERE site = #{site}
     </delete>
 </mapper>

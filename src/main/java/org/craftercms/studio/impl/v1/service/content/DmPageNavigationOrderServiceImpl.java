@@ -19,8 +19,8 @@ package org.craftercms.studio.impl.v1.service.content;
 
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.DmXmlConstants;
-import org.craftercms.studio.api.v1.dal.PageNavigationOrder;
-import org.craftercms.studio.api.v1.dal.PageNavigationOrderMapper;
+import org.craftercms.studio.api.v1.dal.NavigationOrderSequence;
+import org.craftercms.studio.api.v1.dal.NavigationOrderSequenceMapper;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.AbstractRegistrableService;
@@ -45,6 +45,13 @@ public class DmPageNavigationOrderServiceImpl extends AbstractRegistrableService
 
     private static final Logger logger = LoggerFactory.getLogger(DmPageNavigationOrderServiceImpl.class);
 
+    protected GeneralLockService generalLockService;
+    protected ContentService contentService;
+    protected StudioConfiguration studioConfiguration;
+
+    @Autowired
+    protected NavigationOrderSequenceMapper navigationOrderSequenceMapper;
+
     @Override
     public void register() {
         this._servicesManager.registerService(DmPageNavigationOrderService.class, this);
@@ -65,35 +72,35 @@ public class DmPageNavigationOrderServiceImpl extends AbstractRegistrableService
             Map<String, String> params = new HashMap<String, String>();
             params.put("site", site);
             params.put("path", path);
-            PageNavigationOrder pageNavigationOrder = pageNavigationOrderMapper.getPageNavigationOrderForSiteAndPath(params);
-            if (pageNavigationOrder == null) {
-                pageNavigationOrder = new PageNavigationOrder();
-                pageNavigationOrder.setSite(site);
-                pageNavigationOrder.setPath(path);
+            NavigationOrderSequence navigationOrderSequence = navigationOrderSequenceMapper.getPageNavigationOrderForSiteAndPath(params);
+            if (navigationOrderSequence == null) {
+                navigationOrderSequence = new NavigationOrderSequence();
+                navigationOrderSequence.setSite(site);
+                navigationOrderSequence.setPath(path);
                 ContentItemTO itemTreeTO = contentService.getContentItemTree(site, path, 1);
                 if (itemTreeTO == null) {
-                    pageNavigationOrder.setMaxCount(0F);
+                    navigationOrderSequence.setMaxCount(0F);
                 } else {
                     if (StringUtils.isEmpty(itemTreeTO.getNodeRef())) {
-                        pageNavigationOrder.setFolderId(UUID.randomUUID().toString());
+                        navigationOrderSequence.setFolderId(UUID.randomUUID().toString());
                     } else {
-                        pageNavigationOrder.setFolderId(itemTreeTO.getNodeRef());
+                        navigationOrderSequence.setFolderId(itemTreeTO.getNodeRef());
                     }
                     if (currentMaxNavOrder < 0) {
-                        pageNavigationOrder.setMaxCount(1000F * itemTreeTO.getNumOfChildren());
+                        navigationOrderSequence.setMaxCount(1000F * itemTreeTO.getNumOfChildren());
                     } else {
                         double newMaxCount = currentMaxNavOrder + getPageNavigationOrderIncrement();
-                        pageNavigationOrder.setMaxCount(newMaxCount);
+                        navigationOrderSequence.setMaxCount(newMaxCount);
                     }
 
                 }
-                pageNavigationOrderMapper.insert(pageNavigationOrder);
+                navigationOrderSequenceMapper.insert(navigationOrderSequence);
             } else {
-                double newMaxCount = pageNavigationOrder.getMaxCount() + getPageNavigationOrderIncrement();
-                pageNavigationOrder.setMaxCount(newMaxCount);
-                pageNavigationOrderMapper.update(pageNavigationOrder);
+                double newMaxCount = navigationOrderSequence.getMaxCount() + getPageNavigationOrderIncrement();
+                navigationOrderSequence.setMaxCount(newMaxCount);
+                navigationOrderSequenceMapper.update(navigationOrderSequence);
             }
-            lastNavOrder = pageNavigationOrder.getMaxCount();
+            lastNavOrder = navigationOrderSequence.getMaxCount();
         } catch (Exception e) {
             logger.error("Unexpected error: ", e);
         } finally {
@@ -146,7 +153,7 @@ public class DmPageNavigationOrderServiceImpl extends AbstractRegistrableService
     public void deleteSequencesForSite(String site) {
         Map<String, String> params = new HashMap<String, String>();
         params.put("site", site);
-        pageNavigationOrderMapper.deleteSequencesForSite(params);
+        navigationOrderSequenceMapper.deleteSequencesForSite(params);
     }
 
     @Override
@@ -163,11 +170,4 @@ public class DmPageNavigationOrderServiceImpl extends AbstractRegistrableService
 
     public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
-
-    protected GeneralLockService generalLockService;
-    protected ContentService contentService;
-    protected StudioConfiguration studioConfiguration;
-
-    @Autowired
-    protected PageNavigationOrderMapper pageNavigationOrderMapper;
 }

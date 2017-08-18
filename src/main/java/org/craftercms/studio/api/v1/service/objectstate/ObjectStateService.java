@@ -18,15 +18,14 @@
 package org.craftercms.studio.api.v1.service.objectstate;
 
 
-import org.craftercms.studio.api.v1.dal.ObjectState;
+import org.craftercms.studio.api.v1.dal.ItemState;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 
-import java.util.Arrays;
 import java.util.List;
 
 public interface ObjectStateService {
 
-    ObjectState getObjectState(String site, String path);
+    ItemState getObjectState(String site, String path);
 
     void transition(String site, ContentItemTO item, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent event);
 
@@ -36,9 +35,9 @@ public interface ObjectStateService {
 
     void insertNewEntry(String site, String path);
 
-    List<ObjectState> getSubmittedItems(String site);
+    List<ItemState> getSubmittedItems(String site);
 
-    ObjectState getObjectState(String site, String path, boolean insert);
+    ItemState getObjectState(String site, String path, boolean insert);
 
     void setSystemProcessing(String site, String path, boolean isSystemProcessing);
 
@@ -54,7 +53,7 @@ public interface ObjectStateService {
 
     boolean isNew(String site, String path);
 
-    List<ObjectState> getChangeSet(String site);
+    List<ItemState> getChangeSet(String site);
 
     void deleteObjectState(String objectId);
 
@@ -65,7 +64,7 @@ public interface ObjectStateService {
     /**
      * get the object for a given set of states
      */
-    List<ObjectState> getObjectStateByStates(String site, List<String> states);
+    List<ItemState> getObjectStateByStates(String site, List<String> states);
 
     boolean isScheduled(String site, String path);
 

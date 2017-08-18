@@ -20,13 +20,26 @@ package org.craftercms.studio.api.v1.dal;
 
 import java.util.Map;
 
-public interface PageNavigationOrderMapper {
+public interface ItemMetadataMapper {
 
-    void insert(PageNavigationOrder pageNavigationOrder);
+    ItemMetadata getProperties(Map params);
 
-    void update(PageNavigationOrder pageNavigationOrder);
+    void setProperties(Map params);
 
-    PageNavigationOrder getPageNavigationOrderForSiteAndPath(Map params);
+    void insertEntry(Map params);
 
-    void deleteSequencesForSite(Map params);
+    int countEntries(Map params);
+
+    void deleteEntry(Map params);
+
+    void setLockOwner(Map params);
+
+    void deleteObjectMetadataForSite(Map params);
+
+    void updateObjectPath(Map params);
+
+    void updateObjectMetadata(ItemMetadata itemMetadata);
+
+    void updateCommitId(Map params);
+
 }

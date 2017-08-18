@@ -18,15 +18,13 @@
 package org.craftercms.studio.impl.v1.service.deployment.job;
 
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
-import org.craftercms.studio.api.v1.dal.CopyToEnvironment;
+import org.craftercms.studio.api.v1.dal.PublishRequest;
 import org.craftercms.studio.api.v1.ebus.DeploymentItem;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -93,7 +91,7 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
                                 Set<String> environments = getAllPublishingEnvironments(site);
                                 for (String environment : environments) {
                                     logger.debug("Processing content ready for deployment for site \"{0}\"", site);
-                                    List<CopyToEnvironment> itemsToDeploy = publishingManager.getItemsReadyForDeployment(site, environment);
+                                    List<PublishRequest> itemsToDeploy = publishingManager.getItemsReadyForDeployment(site, environment);
                                     List<String> pathsToDeploy = getPaths(itemsToDeploy);
 
                                     if (itemsToDeploy != null && itemsToDeploy.size() > 0) {
@@ -101,7 +99,7 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
 
                                         List<DeploymentItem> missingDependencies = new ArrayList<DeploymentItem>();
 
-                                        for (CopyToEnvironment item : itemsToDeploy) {
+                                        for (PublishRequest item : itemsToDeploy) {
                                             String lockKey = item.getSite() + ":" + item.getPath();
                                             generalLockService.lock(lockKey);
                                             contentRepository.lockItem(item.getSite(), item.getPath());
@@ -109,7 +107,7 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
 
                                         try {
                                             logger.debug("Mark items as processing for site \"{0}\"", site);
-                                            for (CopyToEnvironment item : itemsToDeploy) {
+                                            for (PublishRequest item : itemsToDeploy) {
                                                 SimpleDateFormat sdf = new SimpleDateFormat(StudioConstants.DATE_PATTERN_WORKFLOW_WITH_TZ);
                                                 statusMessage = studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_BUSY);
                                                 statusMessage = statusMessage.replace("{item_path}", item.getPath()).replace("{datetime}", sdf.format(new Date()));
@@ -128,7 +126,7 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
                                                     logger.debug("Processing [{0}] content item for site \"{1}\"", item
                                                             .getPath(), site);
                                                     DeploymentItem deploymentItem = publishingManager.processItem(item);
-                                                    if (!(item.getAction().equals(CopyToEnvironment.Action.DELETE) && deploymentItem.getLastPublishedCommitId() == null)) {
+                                                    if (!(item.getAction().equals(PublishRequest.Action.DELETE) && deploymentItem.getLastPublishedCommitId() == null)) {
                                                         deploymentItemList.add(deploymentItem);
                                                     }
                                                     logger.debug("Processing COMPLETE [{0}] content item for site \"{1}\"",
@@ -172,7 +170,7 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
                                             siteService.updatePublishingStatusMessage(site, statusMessage);
                                             logger.debug("Mark deployment completed for processed items for site \"{0}\"", site);
                                         } finally {
-                                            for (CopyToEnvironment item : itemsToDeploy) {
+                                            for (PublishRequest item : itemsToDeploy) {
                                                 String itemSite = item.getSite();
                                                 String itemPath = item.getPath();
                                                 String lockKey = itemSite + ":" + itemPath;
@@ -225,10 +223,10 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
         contentRepository.publish(site, commitIds, environment, author, comment);
     }
 
-    private List<String> getPaths(List<CopyToEnvironment> itemsToDeploy) {
+    private List<String> getPaths(List<PublishRequest> itemsToDeploy) {
         List<String> paths = new ArrayList<String>(itemsToDeploy.size());
         if (isMandatoryDependenciesCheckEnabled()) {
-            for (CopyToEnvironment item : itemsToDeploy) {
+            for (PublishRequest item : itemsToDeploy) {
                 paths.add(item.getPath());
             }
         }

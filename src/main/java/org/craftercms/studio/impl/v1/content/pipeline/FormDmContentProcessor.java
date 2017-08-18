@@ -22,7 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.content.pipeline.DmContentProcessor;
 import org.craftercms.studio.api.v1.content.pipeline.PipelineContent;
-import org.craftercms.studio.api.v1.dal.ObjectMetadata;
+import org.craftercms.studio.api.v1.dal.ItemMetadata;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ContentProcessException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
@@ -261,8 +261,8 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 
     private void updateLastEditedProperties(String site, String relativePath, String user) {
         Map<String, Object> properties = new HashMap<>();
-        properties.put(ObjectMetadata.PROP_MODIFIER, user);
-        properties.put(ObjectMetadata.PROP_MODIFIED, new Date());
+        properties.put(ItemMetadata.PROP_MODIFIER, user);
+        properties.put(ItemMetadata.PROP_MODIFIED, new Date());
         if (!objectMetadataManager.metadataExist(site, relativePath)) {
             objectMetadataManager.insertNewObjectMetadata(site, relativePath);
         }
@@ -304,15 +304,15 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                     objectMetadataManager.insertNewObjectMetadata(site, parentItem.getUri() + "/" + fileName);
                 }
                 Map<String, Object> properties = new HashMap<>();
-                properties.put(ObjectMetadata.PROP_NAME, fileName);
-                properties.put(ObjectMetadata.PROP_MODIFIED, new Date());
-                properties.put(ObjectMetadata.PROP_CREATOR, user);
-                properties.put(ObjectMetadata.PROP_MODIFIER, user);
-                properties.put(ObjectMetadata.PROP_OWNER, user);
+                properties.put(ItemMetadata.PROP_NAME, fileName);
+                properties.put(ItemMetadata.PROP_MODIFIED, new Date());
+                properties.put(ItemMetadata.PROP_CREATOR, user);
+                properties.put(ItemMetadata.PROP_MODIFIER, user);
+                properties.put(ItemMetadata.PROP_OWNER, user);
                 if (unlock) {
-                    properties.put(ObjectMetadata.PROP_LOCK_OWNER, StringUtils.EMPTY);
+                    properties.put(ItemMetadata.PROP_LOCK_OWNER, StringUtils.EMPTY);
                 } else {
-                    properties.put(ObjectMetadata.PROP_LOCK_OWNER, user);
+                    properties.put(ItemMetadata.PROP_LOCK_OWNER, user);
                 }
                 objectMetadataManager.setObjectMetadata(site, parentItem.getUri() + "/" + fileName, properties);
             } catch (Exception e) {
@@ -357,12 +357,12 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
         }
 
         Map<String, Object> properties = new HashMap<>();
-        properties.put(ObjectMetadata.PROP_MODIFIER, user);
-        properties.put(ObjectMetadata.PROP_MODIFIED, new Date());
+        properties.put(ItemMetadata.PROP_MODIFIER, user);
+        properties.put(ItemMetadata.PROP_MODIFIED, new Date());
         if (unlock) {
-            properties.put(ObjectMetadata.PROP_LOCK_OWNER, StringUtils.EMPTY);
+            properties.put(ItemMetadata.PROP_LOCK_OWNER, StringUtils.EMPTY);
         } else {
-            properties.put(ObjectMetadata.PROP_LOCK_OWNER, user);
+            properties.put(ItemMetadata.PROP_LOCK_OWNER, user);
         }
         if (!objectMetadataManager.metadataExist(site, path)) {
             objectMetadataManager.insertNewObjectMetadata(site, path);

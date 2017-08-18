@@ -79,6 +79,10 @@ studio.configuration.site.dataSources.configBasePath: /config/studio/data-source
 studio.configuration.site.dataSources.configFileName: cmis-config.xml
 # Destroy site context url for preview engine
 studio.configuration.site.preview.destroy.sontext.url: /api/1/site/context/destroy.json?crafterSite={siteName}
+# Location pattern where dependency resolver specific configuration for a site is stored
+studio.configuration.site.dependencyResolver.configBasePath: /config/studio/dependency
+# File name where dependency specific configuration is stored
+studio.configuration.site.dependencyResolver.configFileName: resolver-config.xml
 ########################################################
 ##                   Import Service                   ##
 ########################################################
@@ -319,8 +323,10 @@ studio.db.pool.maxWaitTime: 10000
 studio.db.initializer.enabled: true
 # Connection string used to initialize database
 studio.db.initializer.url: jdbc:mariadb://127.0.0.1:33306?user=root&password=
-# Initialize database SQL script location
-studio.db.initializer.scriptLocation: crafter/studio/database/createDDL.sql
+# Create database SQL script location
+studio.db.initializer.createDbscriptLocation: crafter/studio/database/createDDL.sql
+# Upgrade database SQL script location
+studio.db.initializer.upgradeDbScriptLocation: crafter/studio/database/upgrade-{version}.sql
 # Test database connections retrieved from the pool before being used (value true).
 # If value is set to false database connection will not be tested before being used.
 studio.db.testOnBorrow: true

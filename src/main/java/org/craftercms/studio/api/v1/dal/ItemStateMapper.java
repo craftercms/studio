@@ -24,23 +24,23 @@ import java.util.Map;
 /**
  * @author Dejan Brkic
  */
-public interface ObjectStateMapper {
+public interface ItemStateMapper {
 
-    List<ObjectState> getObjectStateByStates(Map params);
+    List<ItemState> getObjectStateByStates(Map params);
 
     void deleteObjectState(String objectId);
 
-    ObjectState getObjectStateBySiteAndPath(Map params);
+    ItemState getObjectStateBySiteAndPath(Map params);
 
     void setSystemProcessingBySiteAndPath(Map params);
 
     void setSystemProcessingBySiteAndPathBulk(Map params);
 
-    void insertEntry(ObjectState objectState);
+    void insertEntry(ItemState itemState);
 
-    void setObjectState(ObjectState objectState);
+    void setObjectState(ItemState itemState);
 
-    List<ObjectState> getObjectStateForSiteAndPaths(Map params);
+    List<ItemState> getObjectStateForSiteAndPaths(Map params);
 
     void setObjectStateForSiteAndPaths(Map params);
 
@@ -54,5 +54,5 @@ public interface ObjectStateMapper {
 
     void setStateForSiteContent(Map params);
 
-    List<ObjectState> getChangeSetForSubtree(Map params);
+    List<ItemState> getChangeSetForSubtree(Map params);
 }

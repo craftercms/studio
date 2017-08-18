@@ -70,38 +70,38 @@
     </resultMap>
 
     <select id="getUser" resultMap="UserMap">
-        SELECT * FROM cstudio_user WHERE username = #{username}
+        SELECT * FROM user WHERE username = #{username}
     </select>
 
     <select id="getUserDetails" resultMap="UserProfileResultMap">
         SELECT cu.username AS username, cu.firstname AS firstname, cu.lastname AS lastname, cu.email AS email, cu.externally_managed AS externally_managed, cg.name AS groupname, cs.site_id AS siteid, cs.name AS sitename
-        FROM cstudio_user cu LEFT JOIN cstudio_usergroup cug ON cu.username = cug.username
-          LEFT JOIN cstudio_group cg ON cug.groupId = cg.id
-          LEFT JOIN cstudio_site cs ON cg.site_id=cs.id
+        FROM `user` cu LEFT JOIN group_user cug ON cu.username = cug.username
+          LEFT JOIN `group` cg ON cug.groupId = cg.id
+          LEFT JOIN site cs ON cg.site_id=cs.id
         WHERE cu.username = #{username}
     </select>
 
     <select id="getAllUsersQuery" resultType="java.lang.String" parameterType="java.util.Map">
         SELECT DISTINCT cu.username AS username
-        FROM cstudio_user cu LEFT JOIN cstudio_usergroup cug ON cu.username = cug.username
-        LEFT JOIN cstudio_group cg ON cug.groupId = cg.id
-        LEFT JOIN cstudio_site cs ON cg.site_id=cs.id
+        FROM `user` cu LEFT JOIN group_user cug ON cu.username = cug.username
+        LEFT JOIN `group` cg ON cug.groupId = cg.id
+        LEFT JOIN site cs ON cg.site_id=cs.id
         ORDER BY username
         LIMIT #{start}, #{number}
     </select>
     <select id="getAllUsersQueryTotal" resultType="int" parameterType="java.util.Map">
         SELECT COUNT(DISTINCT cu.username)
-        FROM cstudio_user cu LEFT JOIN cstudio_usergroup cug ON cu.username = cug.username
-        LEFT JOIN cstudio_group cg ON cug.groupId = cg.id
-        LEFT JOIN cstudio_site cs ON cg.site_id=cs.id
+        FROM `user` cu LEFT JOIN group_user cug ON cu.username = cug.username
+        LEFT JOIN `group` cg ON cug.groupId = cg.id
+        LEFT JOIN site cs ON cg.site_id=cs.id
     </select>
 
 
     <select id="getAllUsersData" resultMap="UserProfileResultMap" parameterType="java.util.Map">
         SELECT cu.username AS username, cu.firstname AS firstname, cu.lastname AS lastname, cu.email AS email, cu.externally_managed AS externally_managed, cg.name AS groupname, cs.site_id AS siteid, cs.name AS sitename
-        FROM cstudio_user cu LEFT JOIN cstudio_usergroup cug ON cu.username = cug.username
-        LEFT JOIN cstudio_group cg ON cug.groupId = cg.id
-        LEFT JOIN cstudio_site cs ON cg.site_id=cs.id
+        FROM `user` cu LEFT JOIN group_user cug ON cu.username = cug.username
+        LEFT JOIN `group` cg ON cug.groupId = cg.id
+        LEFT JOIN site cs ON cg.site_id=cs.id
         WHERE cu.username IN
         <foreach item="username" index="index" collection="usernames"
                  open="(" separator="," close=")">
@@ -112,9 +112,9 @@
 
     <select id="getUsersPerSiteData" resultMap="UserProfileResultMap" parameterType="java.util.Map">
         SELECT cu.username AS username, cu.firstname AS firstname, cu.lastname AS lastname, cu.email AS email, cu.externally_managed AS externally_managed, cg.name AS groupname, cs.site_id AS siteid, cs.name AS sitename
-        FROM cstudio_user cu INNER JOIN cstudio_usergroup cug ON cu.username = cug.username
-        INNER JOIN cstudio_group cg ON cug.groupId = cg.id
-        INNER JOIN cstudio_site cs ON cg.site_id=cs.id
+        FROM `user` cu INNER JOIN group_user cug ON cu.username = cug.username
+        INNER JOIN `group` cg ON cug.groupId = cg.id
+        INNER JOIN site cs ON cg.site_id=cs.id
         WHERE cs.site_id = #{siteId}
         AND cu.username IN
         <foreach item="username" index="index" collection="usernames"
@@ -126,9 +126,9 @@
 
     <select id="getUsersPerSiteQuery" resultType="java.lang.String" parameterType="java.util.Map">
         SELECT DISTINCT cu.username AS username
-        FROM cstudio_user cu INNER JOIN cstudio_usergroup cug ON cu.username = cug.username
-        INNER JOIN cstudio_group cg ON cug.groupId = cg.id
-        INNER JOIN cstudio_site cs ON cg.site_id=cs.id
+        FROM `user` cu INNER JOIN group_user cug ON cu.username = cug.username
+        INNER JOIN `group` cg ON cug.groupId = cg.id
+        INNER JOIN site cs ON cg.site_id=cs.id
         WHERE cs.site_id = #{siteId}
         ORDER BY username
         LIMIT #{start}, #{number}
@@ -136,30 +136,30 @@
 
     <select id="getUsersPerSiteQueryTotal" resultType="int" parameterType="java.util.Map">
         SELECT COUNT(DISTINCT cu.username)
-        FROM cstudio_user cu INNER JOIN cstudio_usergroup cug ON cu.username = cug.username
-        INNER JOIN cstudio_group cg ON cug.groupId = cg.id
-        INNER JOIN cstudio_site cs ON cg.site_id=cs.id
+        FROM `user` cu INNER JOIN group_user cug ON cu.username = cug.username
+        INNER JOIN `group` cg ON cug.groupId = cg.id
+        INNER JOIN site cs ON cg.site_id=cs.id
         WHERE cs.site_id = #{siteId}
     </select>
 
     <select id="getUserGroups" resultType="Group">
-        SELECT cstudio_group.* FROM
-        ((cstudio_user INNER JOIN cstudio_usergroup ON cstudio_user.username = cstudio_usergroup.username)
-        INNER JOIN cstudio_group ON cstudio_usergroup.groupid = cstudio_group.id)
-        WHERE cstudio_user.username = #{username}
+        SELECT `group`.* FROM
+        ((`user` INNER JOIN group_user ON `user`.username = group_user.username)
+        INNER JOIN `group` ON group_user.groupid = `group`.id)
+        WHERE `user`.username = #{username}
     </select>
 
     <insert id="createUser" parameterType="java.util.Map">
-        INSERT INTO cstudio_user (username, password, firstname, lastname, email, enabled, externally_managed)
+        INSERT INTO `user` (username, password, firstname, lastname, email, enabled, externally_managed)
         VALUES (#{username}, #{password}, #{firstname}, #{lastname}, #{email}, 1, #{externallyManaged})
     </insert>
 
     <delete id="deleteUser" parameterType="java.util.Map">
-        DELETE FROM cstudio_user WHERE username = #{username}
+        DELETE FROM `user` WHERE username = #{username}
     </delete>
 
     <update id="updateUser" parameterType="java.util.Map">
-        UPDATE cstudio_user
+        UPDATE `user`
         <trim prefix="SET" suffixOverrides=",">
             <if test="firstname != null">firstname = #{firstname},</if>
             <if test="lastname != null">lastname = #{lastname},</if>
@@ -169,38 +169,38 @@
     </update>
 
     <update id="enableUser" parameterType="java.util.Map">
-        UPDATE cstudio_user
+        UPDATE `user`
         SET enabled = #{enabled}
         WHERE username = #{username}
     </update>
 
     <insert id="createGroup" parameterType="java.util.Map">
-        INSERT INTO cstudio_group (name, description, site_id, externally_managed)
+        INSERT INTO `group` (name, description, site_id, externally_managed)
         VALUES (#{name}, #{description}, #{siteId}, #{externallyManaged})
     </insert>
 
     <select id="getGroup" parameterType="java.util.Map" resultType="java.util.Map">
         SELECT cg.name AS group_name, cg.description AS description, cs.site_id AS site_id
-        FROM cstudio_group cg INNER JOIN cstudio_site cs ON cg.site_id = cs.id
+        FROM `group` cg INNER JOIN site cs ON cg.site_id = cs.id
         WHERE cs.site_id = #{siteId} AND cg.name = #{groupName}
     </select>
 
     <select id="getGroupObject" parameterType="java.util.Map" resultMap="GroupMap">
         SELECT cg.*
-        FROM cstudio_group cg INNER JOIN cstudio_site cs ON cg.site_id = cs.id
+        FROM `group` cg INNER JOIN site cs ON cg.site_id = cs.id
         WHERE cs.site_id = #{siteId} AND cg.name = #{groupName}
     </select>
 
     <select id="getAllGroupsQuery" resultType="long" parameterType="java.util.Map">
         SELECT DISTINCT cg.id
-        FROM cstudio_group cg INNER JOIN cstudio_site cs ON cg.site_id = cs.id
+        FROM `group` cg INNER JOIN site cs ON cg.site_id = cs.id
         ORDER BY cs.name, cg.name
         LIMIT #{start},#{number}
     </select>
 
     <select id="getAllGroupsData" resultMap="GroupResultMap" parameterType="java.util.Map">
         SELECT cs.site_id AS site_id, cs.name AS site_name, cg.name AS group_name, cg.description AS group_description
-        FROM cstudio_group cg INNER JOIN cstudio_site cs ON cg.site_id = cs.id
+        FROM `group` cg INNER JOIN site cs ON cg.site_id = cs.id
         WHERE cg.id IN
         <foreach item="groupid" index="index" collection="groupids"
                  open="(" separator="," close=")">
@@ -212,9 +212,9 @@
     <select id="getGroupsPerSiteQuery" resultType="long" parameterType="java.util.Map">
         SELECT
           DISTINCT cg.id AS groupid
-        FROM cstudio_group cg INNER JOIN cstudio_site cs ON cg.site_id = cs.id
-          LEFT JOIN cstudio_usergroup cug ON cg.id = cug.groupid
-          LEFT JOIN cstudio_user cu ON cug.username = cu.username
+        FROM `group` cg INNER JOIN site cs ON cg.site_id = cs.id
+          LEFT JOIN group_user cug ON cg.id = cug.groupid
+          LEFT JOIN `user` cu ON cug.username = cu.username
         WHERE cs.site_id = #{site}
         ORDER BY cg.name
         LIMIT #{start},#{number}
@@ -223,9 +223,9 @@
     <select id="getGroupsPerSiteQueryTotal" resultType="int" parameterType="java.util.Map">
         SELECT
         COUNT(DISTINCT cg.id)
-        FROM cstudio_group cg INNER JOIN cstudio_site cs ON cg.site_id = cs.id
-        LEFT JOIN cstudio_usergroup cug ON cg.id = cug.groupid
-        LEFT JOIN cstudio_user cu ON cug.username = cu.username
+        FROM `group` cg INNER JOIN site cs ON cg.site_id = cs.id
+        LEFT JOIN group_user cug ON cg.id = cug.groupid
+        LEFT JOIN `user` cu ON cug.username = cu.username
         WHERE cs.site_id = #{site}
         ORDER BY cg.name
     </select>
@@ -239,9 +239,9 @@
         cu.lastname AS last_name,
         cu.externally_managed AS externally_managed,
         cu.email AS email
-        FROM cstudio_group cg INNER JOIN cstudio_site cs ON cg.site_id = cs.id
-        LEFT JOIN cstudio_usergroup cug ON cg.id = cug.groupid
-        LEFT JOIN cstudio_user cu ON cug.username = cu.username
+        FROM `group` cg INNER JOIN site cs ON cg.site_id = cs.id
+        LEFT JOIN group_user cug ON cg.id = cug.groupid
+        LEFT JOIN `user` cu ON cug.username = cu.username
         WHERE cs.site_id = #{site}
         AND cg.id IN
         <foreach item="groupid" index="index" collection="groupids"
@@ -253,9 +253,9 @@
 
     <select id="getUsersPerGroup" resultMap="UserMap" parameterType="java.util.Map">
         SELECT cu.*
-        FROM cstudio_group cg INNER JOIN cstudio_site cs ON cg.site_id = cs.id
-          INNER JOIN cstudio_usergroup cug ON cg.id = cug.groupid
-          INNER JOIN cstudio_user cu ON cug.username = cu.username
+        FROM `group` cg INNER JOIN site cs ON cg.site_id = cs.id
+          INNER JOIN group_user cug ON cg.id = cug.groupid
+          INNER JOIN `user` cu ON cug.username = cu.username
         WHERE cs.site_id = #{siteId}
         AND cg.name = #{groupName}
         LIMIT #{start},#{number}
@@ -263,64 +263,64 @@
 
     <select id="getUsersPerGroupTotal" resultType="int" parameterType="java.util.Map">
         SELECT COUNT(1)
-        FROM cstudio_group cg INNER JOIN cstudio_site cs ON cg.site_id = cs.id
-        INNER JOIN cstudio_usergroup cug ON cg.id = cug.groupid
-        INNER JOIN cstudio_user cu ON cug.username = cu.username
+        FROM `group` cg INNER JOIN site cs ON cg.site_id = cs.id
+        INNER JOIN group_user cug ON cg.id = cug.groupid
+        INNER JOIN `user` cu ON cug.username = cu.username
         WHERE cs.site_id = #{siteId}
         AND cg.name = #{groupName}
     </select>
 
     <update id="updateGroup" parameterType="java.util.Map">
-        UPDATE cstudio_group
+        UPDATE `group`
         SET description = #{description}
         WHERE site_id = #{siteId}
         AND name = #{groupName}
     </update>
 
     <update id="deleteGroup" parameterType="java.util.Map">
-        DELETE FROM cstudio_group WHERE name=#{groupName} AND site_id=#{siteId}
+        DELETE FROM `group` WHERE name=#{groupName} AND site_id=#{siteId}
     </update>
 
     <insert id="addUserToGroup" parameterType="java.util.Map">
-        INSERT INTO cstudio_usergroup (username, groupid) VALUES (#{username}, #{groupId})
+        INSERT INTO group_user (username, groupid) VALUES (#{username}, #{groupId})
     </insert>
 
     <insert id="removeUserFromGroup" parameterType="java.util.Map">
-        DELETE FROM cstudio_usergroup WHERE username = #{username} AND groupid = #{groupId}
+        DELETE FROM group_user WHERE username = #{username} AND groupid = #{groupId}
     </insert>
 
     <update id="setUserPassword" parameterType="java.util.Map">
-        UPDATE cstudio_user
+        UPDATE `user`
         SET password = #{password}
         WHERE username = #{username}
     </update>
 
     <select id="userExistsInGroup" resultType="Integer" parameterType="java.util.Map">
         SELECT COUNT (1)
-        FROM cstudio_group cg INNER JOIN cstudio_site cs ON cg.site_id = cs.id
-        INNER JOIN cstudio_usergroup cug ON cg.id = cug.groupid
-        INNER JOIN cstudio_user cu ON cug.username = cu.username
+        FROM `group` cg INNER JOIN site cs ON cg.site_id = cs.id
+        INNER JOIN group_user cug ON cg.id = cug.groupid
+        INNER JOIN `user` cu ON cug.username = cu.username
         WHERE cs.site_id = #{siteId} AND cu.username = #{username}
         AND cg.name = #{groupName}
     </select>
 
     <select id="userExists" resultType="Integer" parameterType="java.util.Map">
         SELECT COUNT (1)
-        FROM cstudio_user cu
+        FROM `user` cu
         WHERE cu.username = #{username}
     </select>
 
     <select id="groupExists" resultType="Integer" parameterType="java.util.Map">
         SELECT COUNT (1)
-        FROM cstudio_group cg INNER JOIN cstudio_site cs ON cg.site_id = cs.id
+        FROM `group` cg INNER JOIN site cs ON cg.site_id = cs.id
         WHERE cs.site_id = #{siteId} AND cg.name = #{groupName}
     </select>
 
     <select id="isSystemUser" resultType="int" parameterType="java.util.Map">
         SELECT COUNT(1)
-        FROM cstudio_user cu INNER JOIN cstudio_usergroup cug ON cu.username = cug.username
-        INNER JOIN cstudio_group cg ON cug.groupId = cg.id
-        INNER JOIN cstudio_site cs ON cg.site_id=cs.id
+        FROM `user` cu INNER JOIN group_user cug ON cu.username = cug.username
+        INNER JOIN `group` cg ON cug.groupId = cg.id
+        INNER JOIN site cs ON cg.site_id=cs.id
         WHERE cu.username = #{username}
         AND cs.system = 1
     </select>

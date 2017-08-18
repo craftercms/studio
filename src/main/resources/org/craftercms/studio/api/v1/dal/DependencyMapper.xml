@@ -32,30 +32,30 @@
 
     <select id="getDependencies" resultMap="DependencyMap" parameterType="java.util.HashMap">
         SELECT site, source_path, target_path, type
-        FROM cstudio_dependency
+        FROM dependency
         WHERE source_path = #{sourcePath} AND site = #{site}
     </select>
 
     <select id="getDependant" resultMap="DependencyMap" parameterType="java.util.HashMap" databaseId="oracle">
         SELECT site, source_path, target_path, "type"
-        FROM cstudio_dependency
+        FROM dependency
         WHERE target_path = #{targetPath} AND site = #{site}
     </select>
 
     <select id="getDependant" resultMap="DependencyMap" parameterType="java.util.HashMap">
         SELECT site, source_path, target_path, type
-        FROM cstudio_dependency
+        FROM dependency
         WHERE target_path = #{targetPath} AND site = #{site}
     </select>
 
     <delete id="deleteAllSourceDependencies" parameterType="java.util.Map">
         DELETE
-        FROM cstudio_dependency
+        FROM dependency
         WHERE source_path = #{path} AND site = #{site}
     </delete>
 
     <insert id="insertList" parameterType="java.util.Map">
-        INSERT INTO cstudio_dependency (site, source_path, target_path, type) VALUES
+        INSERT INTO dependency (site, source_path, target_path, type) VALUES
         <foreach collection="dependencies" item="element" index="index" separator="," >
             ( #{element.site}, #{element.sourcePath}, #{element.targetPath}, #{element.type} )
         </foreach>
@@ -63,17 +63,17 @@
 
     <select id="getDependenciesByType" parameterType="java.util.Map" resultMap="DependencyMap">
         SELECT site, source_path, target_path, type
-        FROM cstudio_dependency
+        FROM dependency
         WHERE source_path = #{sourcePath} AND site = #{site} AND type = #{type}
     </select>
 
     <delete id="deleteDependenciesForSite" parameterType="java.util.Map">
-        DELETE FROM cstudio_dependency
+        DELETE FROM dependency
         WHERE site = #{site}
     </delete>
 
     <delete id="deleteDependenciesForSiteAndPath" parameterType="java.util.Map">
-        DELETE FROM cstudio_dependency
+        DELETE FROM dependency
         WHERE site = #{site}
         AND (source_path = #{path} OR target_path = #{path})
     </delete>

@@ -20,8 +20,8 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="org.craftercms.studio.api.v1.dal.ObjectMetadataMapper">
-    <resultMap id="ObjectMetadataMap" type="org.craftercms.studio.api.v1.dal.ObjectMetadata">
+<mapper namespace="org.craftercms.studio.api.v1.dal.ItemMetadataMapper">
+    <resultMap id="ItemMetadataMap" type="org.craftercms.studio.api.v1.dal.ItemMetadata">
         <id property="id" column="id"/>
         <result property="site" column="site"/>
         <result property="path" column="path"/>
@@ -46,12 +46,12 @@
         <result property="commitId" column="commit_id"/>
     </resultMap>
 
-    <select id="getProperties" parameterType="java.util.Map" resultMap="ObjectMetadataMap">
-        SELECT * FROM cstudio_objectmetadata WHERE site=#{site} AND path=#{path}
+    <select id="getProperties" parameterType="java.util.Map" resultMap="ItemMetadataMap">
+        SELECT * FROM item_metadata WHERE site=#{site} AND path=#{path}
     </select>
 
     <update id="setProperties" parameterType="java.util.Map">
-        UPDATE cstudio_objectmetadata
+        UPDATE item_metadata
         <trim prefix="SET" suffixOverrides=",">
             <if test="newPath != null">path=#{newPath},</if>
             <if test="name != null">name=#{name},</if>
@@ -80,8 +80,8 @@
         AND path=#{path}
     </update>
 
-    <update id="updateObjectMetadata" parameterType="org.craftercms.studio.api.v1.dal.ObjectMetadata">
-        UPDATE cstudio_objectmetadata
+    <update id="updateObjectMetadata" parameterType="org.craftercms.studio.api.v1.dal.ItemMetadata">
+        UPDATE item_metadata
         SET
             path=path,
             name=#{name},
@@ -109,37 +109,37 @@
     </update>
 
     <update id="setLockOwner" parameterType="java.util.Map">
-        UPDATE cstudio_objectmetadata SET
+        UPDATE item_metadata SET
         lockowner=#{lockOwner}
         WHERE site=#{site}
         AND path=#{path}
     </update>
 
     <insert id="insertEntry" parameterType="java.util.Map" flushCache="true">
-        INSERT INTO cstudio_objectmetadata (site, path) VALUES (#{site}, #{path})
+        INSERT INTO item_metadata (site, path) VALUES (#{site}, #{path})
     </insert>
 
     <select id="countEntries" resultType="int" parameterType="java.util.Map">
-        SELECT count(1) FROM cstudio_objectmetadata WHERE site=#{site} AND path=#{path}
+        SELECT count(1) FROM item_metadata WHERE site=#{site} AND path=#{path}
     </select>
     <delete id="deleteEntry" parameterType="java.util.Map">
-        DELETE FROM cstudio_objectmetadata WHERE site=#{site} AND path=#{path}
+        DELETE FROM item_metadata WHERE site=#{site} AND path=#{path}
     </delete>
 
     <delete id="deleteObjectMetadataForSite" parameterType="java.util.Map">
-        DELETE FROM cstudio_objectmetadata
+        DELETE FROM item_metadata
         WHERE site = #{site}
     </delete>
 
     <update id="updateObjectPath" parameterType="java.util.Map">
-        UPDATE cstudio_objectmetadata
+        UPDATE item_metadata
         SET path = #{newPath}
         WHERE site = #{site}
         AND path = #{oldPath}
     </update>
 
     <update id="updateCommitId" parameterType="java.util.Map">
-        UPDATE cstudio_objectmetadata
+        UPDATE item_metadata
         SET commit_id = #{commitId}
         WHERE site = #{site}
         AND path = #{path}

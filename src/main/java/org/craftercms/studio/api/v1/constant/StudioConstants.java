@@ -99,6 +99,11 @@ package org.craftercms.studio.api.v1.constant;
     /**
      * Content types constants
      */
+    String CONTENT_TYPE_PAGE= "page";
+    String CONTENT_TYPE_ASSET= "asset";
+    String CONTENT_TYPE_COMPONENT= "component";
+    String CONTENT_TYPE_DOCUMENT= "document";
+    String CONTENT_TYPE_RENDERING_TEMPLATE= "renderingTemplate";
     String CONTENT_TYPE_UNKNOWN = "unknown";
     String CONTENT_TYPE_TAXONOMY = "taxonomy";
     String CONTENT_TYPE_TAXONOMY_REGEX = "/site/taxonomy/([^<]+)\\.xml";

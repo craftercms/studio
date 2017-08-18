@@ -17,7 +17,7 @@
  */
 package org.craftercms.studio.api.v1.service.deployment;
 
-import org.craftercms.studio.api.v1.dal.CopyToEnvironment;
+import org.craftercms.studio.api.v1.dal.PublishRequest;
 import org.craftercms.studio.api.v1.ebus.DeploymentItem;
 
 import java.util.List;
@@ -28,19 +28,19 @@ import java.util.Set;
  */
 public interface PublishingManager {
 
-    List<CopyToEnvironment> getItemsReadyForDeployment(String site, String environment);
+    List<PublishRequest> getItemsReadyForDeployment(String site, String environment);
 
-    DeploymentItem processItem(CopyToEnvironment item) throws DeploymentException;
+    DeploymentItem processItem(PublishRequest item) throws DeploymentException;
 
-    void markItemsCompleted(String site, String environment, List<CopyToEnvironment> processedItems) throws DeploymentException;
+    void markItemsCompleted(String site, String environment, List<PublishRequest> processedItems) throws DeploymentException;
 
-    void markItemsProcessing(String site, String environment, List<CopyToEnvironment> itemsToDeploy) throws DeploymentException;
+    void markItemsProcessing(String site, String environment, List<PublishRequest> itemsToDeploy) throws DeploymentException;
 
-    void markItemsReady(String site, String liveEnvironment, List<CopyToEnvironment> copyToEnvironmentItems) throws DeploymentException;
+    void markItemsReady(String site, String liveEnvironment, List<PublishRequest> copyToEnvironmentItems) throws DeploymentException;
 
-    void markItemsBlocked(String site, String environment, List<CopyToEnvironment> copyToEnvironmentItems) throws DeploymentException;
+    void markItemsBlocked(String site, String environment, List<PublishRequest> copyToEnvironmentItems) throws DeploymentException;
 
-    List<DeploymentItem> processMandatoryDependencies(CopyToEnvironment item, List<String> pathsToDeploy, Set<String> missingDependenciesPaths) throws DeploymentException;
+    List<DeploymentItem> processMandatoryDependencies(PublishRequest item, List<String> pathsToDeploy, Set<String> missingDependenciesPaths) throws DeploymentException;
 
     boolean isPublishingBlocked(String site);
 

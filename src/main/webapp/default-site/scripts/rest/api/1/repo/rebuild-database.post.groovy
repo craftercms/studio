@@ -17,17 +17,24 @@
  *
  */
 
+
+import groovy.json.JsonException
 import groovy.json.JsonSlurper
 import scripts.api.SiteServices
 
 def result = [:]
-def requestBody = request.reader.text
+try {
+    def requestBody = request.reader.text
 
-def slurper = new JsonSlurper()
-def parsedReq = slurper.parseText(requestBody)
+    def slurper = new JsonSlurper()
+    def parsedReq = slurper.parseText(requestBody)
 
-def siteId = parsedReq.site_id
+    def siteId = parsedReq.site_id
 
-def context = SiteServices.createContext(applicationContext, request);
-result = SiteServices.rebuildDatabase(context, siteId);
+    def context = SiteServices.createContext(applicationContext, request);
+    result = SiteServices.rebuildDatabase(context, siteId);
+} catch (JsonException e) {
+    response.setStatus(400)
+    result.message = "Bad Request"
+}
 return result;

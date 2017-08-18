@@ -20,9 +20,9 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="org.craftercms.studio.api.v1.dal.CopyToEnvironmentMapper">
+<mapper namespace="org.craftercms.studio.api.v1.dal.PublishRequestMapper">
 
-    <resultMap id="CopyToEnvironmentMap" type="org.craftercms.studio.api.v1.dal.CopyToEnvironment">
+    <resultMap id="PublishRequestMap" type="org.craftercms.studio.api.v1.dal.PublishRequest">
         <id property="id" column="id"/>
         <result property="site" column="site"/>
         <result property="environment" column="environment"/>
@@ -37,18 +37,18 @@
         <result property="commitId" column="commit_id"/>
     </resultMap>
 
-    <select id="getScheduledItems" resultMap="CopyToEnvironmentMap" parameterType="java.util.Map">
+    <select id="getScheduledItems" resultMap="PublishRequestMap" parameterType="java.util.Map">
         SELECT *
-        FROM cstudio_copytoenvironment
+        FROM publish_request
         WHERE site = #{site}
         AND state = #{state}
         AND scheduleddate &gt; #{now}
         ORDER BY scheduleddate ASC
     </select>
 
-    <select id="getItemsBySiteAndStates" resultMap="CopyToEnvironmentMap" parameterType="java.util.Map">
+    <select id="getItemsBySiteAndStates" resultMap="PublishRequestMap" parameterType="java.util.Map">
         SELECT *
-        FROM cstudio_copytoenvironment
+        FROM publish_request
         WHERE site = #{site}
         AND state in
         <foreach item="state" index="index" collection="states"
@@ -59,13 +59,13 @@
         ORDER BY scheduleddate ASC, id asc
     </select>
 
-    <insert id="insertItemForDeployment" parameterType="org.craftercms.studio.api.v1.dal.CopyToEnvironment">
-        INSERT INTO cstudio_copytoenvironment (site, environment, path, oldpath, username, scheduleddate, state, action, contenttypeclass, submissioncomment, commit_id)
+    <insert id="insertItemForDeployment" parameterType="org.craftercms.studio.api.v1.dal.PublishRequest">
+        INSERT INTO publish_request (site, environment, path, oldpath, username, scheduleddate, state, action, contenttypeclass, submissioncomment, commit_id)
         values (#{site}, #{environment}, #{path}, #{oldPath}, #{user}, #{scheduledDate}, #{state}, #{action}, #{contentTypeClass}, #{submissionComment}, #{commitId})
     </insert>
 
     <update id="cancelWorkflow" parameterType="java.util.Map">
-        UPDATE cstudio_copytoenvironment
+        UPDATE publish_request
         SET state = #{canceledState}
         WHERE site = #{site}
         AND path = #{path}
@@ -74,16 +74,16 @@
     </update>
 
     <update id="cancelDeployment" parameterType="java.util.Map">
-        UPDATE cstudio_copytoenvironment
+        UPDATE publish_request
         SET state = #{canceledState}
         WHERE id = #{id}
         AND site = #{site}
         AND path = #{path}
     </update>
 
-    <select id="getItemsReadyForDeployment" resultMap="CopyToEnvironmentMap">
+    <select id="getItemsReadyForDeployment" resultMap="PublishRequestMap">
         SELECT *
-        FROM cstudio_copytoenvironment
+        FROM publish_request
         WHERE site = #{site}
         AND state = #{state}
         AND environment = #{environment}
@@ -92,34 +92,34 @@
     </select>
 
     <select id="checkIfItemWasPublished" resultType="java.lang.Integer">
-        SELECT count(1) FROM cstudio_copytoenvironment
+        SELECT count(1) FROM publish_request
         WHERE site = #{site}
         AND path = #{path}
         AND state = #{state}
     </select>
 
     <select id="checkIfItemWasPublishedForEnvironment" resultType="java.lang.Integer">
-        SELECT count(1) FROM cstudio_copytoenvironment
+        SELECT count(1) FROM publish_request
         WHERE site = #{site}
         AND environment = #{environment}
         AND path = #{path}
         AND state = #{state}
     </select>
 
-    <update id="updateItemDeploymentState" parameterType="org.craftercms.studio.api.v1.dal.CopyToEnvironment">
-        UPDATE cstudio_copytoenvironment
+    <update id="updateItemDeploymentState" parameterType="org.craftercms.studio.api.v1.dal.PublishRequest">
+        UPDATE publish_request
         SET state = #{state}
         WHERE id = #{id}
     </update>
 
     <delete id="deleteDeploymentDataForSite" parameterType="java.util.Map">
-        DELETE FROM cstudio_copytoenvironment
+        DELETE FROM publish_request
         WHERE site = #{site}
     </delete>
 
-    <select id="checkPublishingStatus" resultMap="CopyToEnvironmentMap">
+    <select id="checkPublishingStatus" resultMap="PublishRequestMap">
         SELECT *
-        FROM cstudio_copytoenvironment
+        FROM publish_request
         WHERE site = #{site}
         AND scheduleddate &lt;= #{now}
         AND state in
@@ -133,7 +133,7 @@
 
     <select id="isPublishingBlocked" resultType="int">
         SELECT count(1)
-        FROM cstudio_copytoenvironment
+        FROM publish_request
         WHERE site = #{site}
         AND scheduleddate &lt;= #{now}
         AND state = #{state}
@@ -141,9 +141,9 @@
         LIMIT 0, 1
     </select>
 
-    <select id="getLastDeployedItem" resultMap="CopyToEnvironmentMap">
+    <select id="getLastDeployedItem" resultMap="PublishRequestMap">
         SELECT *
-        FROM cstudio_copytoenvironment
+        FROM publish_request
         WHERE site = #{site}
         AND state = #{state}
         AND scheduleddate &lt;= #{now}
