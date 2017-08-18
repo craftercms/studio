@@ -18,26 +18,15 @@
 
 package org.craftercms.studio.api.v1.dal;
 
-import java.io.Serializable;
+import java.util.Map;
 
-public class PageNavigationOrder implements Serializable {
+public interface NavigationOrderSequenceMapper {
 
-    private static final long serialVersionUID = 3646263089226872560L;
+    void insert(NavigationOrderSequence navigationOrderSequence);
 
-    public String getFolderId() { return folderId; }
-    public void setFolderId(String folderId) { this.folderId = folderId; }
+    void update(NavigationOrderSequence navigationOrderSequence);
 
-    public String getSite() { return site; }
-    public void setSite(String site) { this.site = site; }
+    NavigationOrderSequence getPageNavigationOrderForSiteAndPath(Map params);
 
-    public String getPath() { return path; }
-    public void setPath(String path) { this.path = path; }
-
-    public double getMaxCount() { return maxCount; }
-    public void setMaxCount(double maxCount) { this.maxCount = maxCount; }
-
-    protected String folderId;
-    protected String site;
-    protected String path;
-    protected double maxCount;
+    void deleteSequencesForSite(Map params);
 }

@@ -12,3 +12,6 @@ alter table cstudio_site modify column `site_id` VARCHAR(50) NOT NULL;
 
 -- 2017-06-30 CRAFTERCMS-981 Upsert groups from LDAP
 alter table cstudio_group add column `externally_managed` INT NOT NULL DEFAULT 0;
+
+-- 2017-08-15 CRAFTERCMS-1199 New dependency resolver
+alter table dependency modify column `type` VARCHAR(50) NOT NULL;

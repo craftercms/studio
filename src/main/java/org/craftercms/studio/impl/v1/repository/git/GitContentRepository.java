@@ -54,14 +54,12 @@ import org.craftercms.studio.api.v1.to.RepoOperationTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
-import org.craftercms.studio.impl.v1.util.git.CherryPickCommandEx;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.RefNotFoundException;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.internal.storage.file.LockFile;
 import org.eclipse.jgit.lib.*;
-import org.eclipse.jgit.merge.MergeStrategy;
 import org.eclipse.jgit.merge.ResolveMerger;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevSort;
@@ -839,14 +837,19 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                                 for (Map.Entry<String, IndexDiff.StageState> entry : conflicts.entrySet()) {
                                     String path = entry.getKey();
                                     IndexDiff.StageState stageState = entry.getValue();
-                                    if (stageState == IndexDiff.StageState.DELETED_BY_THEM) {
-                                        logger.debug("If conflict is caused by incoming delete, remove file from repository with rm command");
-                                        git.rm().addFilepattern(path).call();
-                                    } else {
-                                        logger.debug("Conflict is " + stageState.name() + " path " + path + "- not able to handle it. Throw error");
-                                        throw new DeploymentException("Conflict while cherry-pick commit id: " + commitId + " for site " + site);
+                                    switch (stageState) {
+                                        case BOTH_ADDED:
+                                            logger.debug("If conflict is caused by both added a file, do checkout on that path with option --ours");
+                                            git.checkout().addPath(path).setStage(CheckoutCommand.Stage.OURS).call();
+                                            break;
+                                        case DELETED_BY_THEM:
+                                            logger.debug("If conflict is caused by incoming delete, remove file from repository with rm command");
+                                            git.rm().addFilepattern(path).call();
+                                            break;
+                                        default:
+                                            logger.debug("Conflict is " + stageState.name() + " path " + path + "- not able to handle it. Throw error");
+                                            throw new DeploymentException("Conflict while cherry-pick commit id: " + commitId + " for site " + site);
                                     }
-
                                 }
                                 logger.debug("Add all changes to index with git add.");
                                 git.add().addFilepattern(GIT_COMMIT_ALL_ITEMS).call();

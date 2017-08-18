@@ -65,6 +65,26 @@ public class DeploymentServiceImpl implements DeploymentService {
 
     private static int CTED_AUTOINCREMENT = 0;
 
+    protected ServicesConfig servicesConfig;
+    protected ContentService contentService;
+    protected ActivityService activityService;
+    protected DmDependencyService dmDependencyService;
+    protected DmFilterWrapper dmFilterWrapper;
+    protected SiteService siteService;
+    protected ObjectStateService objectStateService;
+    protected ObjectMetadataManager objectMetadataManager;
+    protected ContentRepository contentRepository;
+    protected DmPublishService dmPublishService;
+    protected SecurityService securityService;
+    protected EventService eventService;
+    protected DeployContentToEnvironmentStore deployContentToEnvironmentStoreJob;
+    protected NotificationService notificationService;
+    protected DeploymentHistoryProvider deploymentHistoryProvider;
+    protected StudioConfiguration studioConfiguration;
+
+    @Autowired
+    protected PublishRequestMapper publishRequestMapper;
+
     public void deploy(String site, String environment, List<String> paths, Date scheduledDate, String approver, String submissionComment, final boolean scheduleDateNow) throws DeploymentException {
 
         if (scheduledDate != null && scheduledDate.after(new Date())) {
@@ -90,15 +110,15 @@ public class DeploymentServiceImpl implements DeploymentService {
             }
         }
 
-        groupedPaths.put(CopyToEnvironment.Action.NEW, newPaths);
-        groupedPaths.put(CopyToEnvironment.Action.MOVE, movedPaths);
-        groupedPaths.put(CopyToEnvironment.Action.UPDATE, updatedPaths);
+        groupedPaths.put(PublishRequest.Action.NEW, newPaths);
+        groupedPaths.put(PublishRequest.Action.MOVE, movedPaths);
+        groupedPaths.put(PublishRequest.Action.UPDATE, updatedPaths);
 
         environment = resolveEnvironment(site, environment);
 
-        List<CopyToEnvironment> items = createItems(site, environment, groupedPaths, scheduledDate, approver, submissionComment);
-        for (CopyToEnvironment item : items) {
-            copyToEnvironmentMapper.insertItemForDeployment(item);
+        List<PublishRequest> items = createItems(site, environment, groupedPaths, scheduledDate, approver, submissionComment);
+        for (PublishRequest item : items) {
+            publishRequestMapper.insertItemForDeployment(item);
         }
         // We need to pick up this on Inserting , not on execution!
         try {
@@ -120,14 +140,14 @@ public class DeploymentServiceImpl implements DeploymentService {
         return toRet;
     }
 
-    protected void sendContentApprovalEmail(List<CopyToEnvironment> itemList, boolean scheduleDateNow) {
-        for (CopyToEnvironment listItem : itemList) {
-            ObjectMetadata objectMetadata = objectMetadataManager.getProperties(listItem.getSite(), listItem.getPath());
-            if (objectMetadata != null) {
-                if (objectMetadata.getSendEmail() == 1) {
+    protected void sendContentApprovalEmail(List<PublishRequest> itemList, boolean scheduleDateNow) {
+        for (PublishRequest listItem : itemList) {
+            ItemMetadata itemMetadata = objectMetadataManager.getProperties(listItem.getSite(), listItem.getPath());
+            if (itemMetadata != null) {
+                if (itemMetadata.getSendEmail() == 1) {
                     // found the first item that needs to be sent
                     notificationService.notifyContentApproval(listItem.getSite(),
-                        objectMetadata.getSubmittedBy(),
+                        itemMetadata.getSubmittedBy(),
                         getPathRelativeToSite(itemList),
                         listItem.getUser(),
                         // Null == now, anything else is scheduled
@@ -140,26 +160,26 @@ public class DeploymentServiceImpl implements DeploymentService {
         }
     }
 
-    private List<String> getPathRelativeToSite(final List<CopyToEnvironment> itemList) {
+    private List<String> getPathRelativeToSite(final List<PublishRequest> itemList) {
         List<String> paths = new ArrayList<String>(itemList.size());
-        for (CopyToEnvironment copyToEnvironment : itemList) {
+        for (PublishRequest copyToEnvironment : itemList) {
             paths.add(copyToEnvironment.getPath());
         }
         return paths;
     }
 
-    private List<CopyToEnvironment> createItems(String site, String environment, Map<String, List<String>> paths, Date scheduledDate, String approver, String submissionComment) {
-        List<CopyToEnvironment> newItems = new ArrayList<CopyToEnvironment>(paths.size());
+    private List<PublishRequest> createItems(String site, String environment, Map<String, List<String>> paths, Date scheduledDate, String approver, String submissionComment) {
+        List<PublishRequest> newItems = new ArrayList<PublishRequest>(paths.size());
         for (String action : paths.keySet()) {
             for (String path : paths.get(action)) {
-                CopyToEnvironment item = new CopyToEnvironment();
-                ObjectMetadata metadata = objectMetadataManager.getProperties(site, path);
+                PublishRequest item = new PublishRequest();
+                ItemMetadata metadata = objectMetadataManager.getProperties(site, path);
                 item.setId(++CTED_AUTOINCREMENT);
                 item.setSite(site);
                 item.setEnvironment(environment);
                 item.setPath(path);
                 item.setScheduledDate(scheduledDate);
-                item.setState(CopyToEnvironment.State.READY_FOR_LIVE);
+                item.setState(PublishRequest.State.READY_FOR_LIVE);
                 item.setAction(action);
                 if (metadata != null) {
                     if (metadata.getRenamed() > 0) {
@@ -193,9 +213,9 @@ public class DeploymentServiceImpl implements DeploymentService {
         }
         Set<String> environments = getAllPublishingEnvironments(site);
         for (String environment : environments) {
-            List<CopyToEnvironment> items = createDeleteItems(site, environment, paths, approver, scheduledDate);
-            for (CopyToEnvironment item : items) {
-                copyToEnvironmentMapper.insertItemForDeployment(item);
+            List<PublishRequest> items = createDeleteItems(site, environment, paths, approver, scheduledDate);
+            for (PublishRequest item : items) {
+                publishRequestMapper.insertItemForDeployment(item);
             }
         }
     }
@@ -213,21 +233,21 @@ public class DeploymentServiceImpl implements DeploymentService {
         return environments;
     }
 
-    private List<CopyToEnvironment> createDeleteItems(String site, String environment, List<String> paths, String approver, Date scheduledDate) {
-        List<CopyToEnvironment> newItems = new ArrayList<CopyToEnvironment>(paths.size());
+    private List<PublishRequest> createDeleteItems(String site, String environment, List<String> paths, String approver, Date scheduledDate) {
+        List<PublishRequest> newItems = new ArrayList<PublishRequest>(paths.size());
         for (String path : paths) {
             if (contentService.contentExists(site, path)) {
                 ContentItemTO contentItem = contentService.getContentItem(site, path, 0);
                 if (!contentItem.isFolder()) {
-                    CopyToEnvironment item = new CopyToEnvironment();
-                    ObjectMetadata metadata = objectMetadataManager.getProperties(site, path);
+                    PublishRequest item = new PublishRequest();
+                    ItemMetadata metadata = objectMetadataManager.getProperties(site, path);
                     item.setId(++CTED_AUTOINCREMENT);
                     item.setSite(site);
                     item.setEnvironment(environment);
                     item.setPath(path);
                     item.setScheduledDate(scheduledDate);
-                    item.setState(CopyToEnvironment.State.READY_FOR_LIVE);
-                    item.setAction(CopyToEnvironment.Action.DELETE);
+                    item.setState(PublishRequest.State.READY_FOR_LIVE);
+                    item.setAction(PublishRequest.Action.DELETE);
                     if (metadata != null) {
                         if (metadata.getRenamed() > 0) {
                             String oldPath = metadata.getOldUrl();
@@ -277,7 +297,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         signalWorkersToStop();
         Map<String, String> params = new HashMap<String, String>();
         params.put("site", site);
-        copyToEnvironmentMapper.deleteDeploymentDataForSite(params);
+        publishRequestMapper.deleteDeploymentDataForSite(params);
         signalWorkersToContinue();
     }
 
@@ -298,12 +318,12 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     @Override
-    public List<CopyToEnvironment> getScheduledItems(String site) {
+    public List<PublishRequest> getScheduledItems(String site) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("site", site);
-        params.put("state", CopyToEnvironment.State.READY_FOR_LIVE);
+        params.put("state", PublishRequest.State.READY_FOR_LIVE);
         params.put("now", new Date());
-        return copyToEnvironmentMapper.getScheduledItems(params);
+        return publishRequestMapper.getScheduledItems(params);
     }
 
     @Override
@@ -314,7 +334,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         params.put("state", CopyToEnvironmentItem.State.READY_FOR_LIVE);
         params.put("canceledState", CopyToEnvironmentItem.State.CANCELED);
         params.put("now", new Date());
-        copyToEnvironmentMapper.cancelWorkflow(params);
+        publishRequestMapper.cancelWorkflow(params);
     }
 
     @Override
@@ -393,7 +413,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         ContentItemTO item = null;
         if (!contentService.contentExists(site, path)) {
             item = contentService.createDummyDmContentItemForDeletedNode(site, path);
-            ActivityFeed activity = activityService.getDeletedActivity(site, path);
+            AuditFeed activity = activityService.getDeletedActivity(site, path);
             if (activity != null) {
                 JSONObject summaryObject = JSONObject.fromObject(activity.getSummary());
                 if (summaryObject.containsKey(StudioConstants.CONTENT_TYPE)) {
@@ -432,10 +452,10 @@ public class DeploymentServiceImpl implements DeploymentService {
     protected List<ContentItemTO> getScheduledItems(String site, DmContentItemComparator comparator, DmContentItemComparator subComparator, String filterType) {
         List<ContentItemTO> results = new FastArrayList();
         List<String> displayPatterns = servicesConfig.getDisplayInWidgetPathPatterns(site);
-        List<CopyToEnvironment> deploying = getScheduledItems(site);
+        List<PublishRequest> deploying = getScheduledItems(site);
         SimpleDateFormat format = new SimpleDateFormat(StudioConstants.DATE_FORMAT_SCHEDULED);
         List<ContentItemTO> scheduledItems = new ArrayList<ContentItemTO>();
-        for (CopyToEnvironment deploymentItem : deploying) {
+        for (PublishRequest deploymentItem : deploying) {
             Set<String> permissions = securityService.getUserPermissions(site, deploymentItem.getPath(), securityService.getCurrentUser(), Collections.<String>emptyList());
             if (permissions.contains(StudioConstants.PERMISSION_VALUE_PUBLISH)) {
                 addScheduledItem(site, deploymentItem.getScheduledDate(), format, deploymentItem.getPath(), results, comparator, subComparator, displayPatterns, filterType);
@@ -651,15 +671,15 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     @Override
-    public List<CopyToEnvironment> getDeploymentQueue(String site) throws ServiceException {
+    public List<PublishRequest> getDeploymentQueue(String site) throws ServiceException {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("site", site);
         List<String> states = new ArrayList<String>();
-        states.add(CopyToEnvironment.State.READY_FOR_LIVE);
-        states.add(CopyToEnvironment.State.PROCESSING);
+        states.add(PublishRequest.State.READY_FOR_LIVE);
+        states.add(PublishRequest.State.PROCESSING);
         params.put("states", states);
         params.put("now", new Date());
-        return copyToEnvironmentMapper.getItemsBySiteAndStates(params);
+        return publishRequestMapper.getItemsBySiteAndStates(params);
     }
 
     protected Set<String> getEndpontEnvironments(String site, String endpoint) {
@@ -679,8 +699,8 @@ public class DeploymentServiceImpl implements DeploymentService {
         params.put("site", site);
         params.put("path", path);
         params.put("id", deploymentId);
-        params.put("canceledState", CopyToEnvironment.State.CANCELLED);
-        copyToEnvironmentMapper.cancelDeployment(params);
+        params.put("canceledState", PublishRequest.State.CANCELLED);
+        publishRequestMapper.cancelDeployment(params);
         return true;
     }
 
@@ -786,25 +806,5 @@ public class DeploymentServiceImpl implements DeploymentService {
 
     public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
-
-    protected ServicesConfig servicesConfig;
-    protected ContentService contentService;
-    protected ActivityService activityService;
-    protected DmDependencyService dmDependencyService;
-    protected DmFilterWrapper dmFilterWrapper;
-    protected SiteService siteService;
-    protected ObjectStateService objectStateService;
-    protected ObjectMetadataManager objectMetadataManager;
-    protected ContentRepository contentRepository;
-    protected DmPublishService dmPublishService;
-    protected SecurityService securityService;
-    protected EventService eventService;
-    protected DeployContentToEnvironmentStore deployContentToEnvironmentStoreJob;
-    protected NotificationService notificationService;
-    protected DeploymentHistoryProvider deploymentHistoryProvider;
-    protected StudioConfiguration studioConfiguration;
-
-    @Autowired
-    protected CopyToEnvironmentMapper copyToEnvironmentMapper;
 
 }

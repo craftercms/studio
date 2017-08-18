@@ -50,7 +50,8 @@ public interface StudioConfiguration {
     String DB_POOL_MAX_WAIT_TIME = "studio.db.pool.maxWaitTime";
     String DB_INITIALIZER_ENABLED = "studio.db.initializer.enabled";
     String DB_INITIALIZER_URL = "studio.db.initializer.url";
-    String DB_INITIALIZER_SCRIPT_LOCATION = "studio.db.initializer.scriptLocation";
+    String DB_INITIALIZER_CREATE_DB_SCRIPT_LOCATION = "studio.db.initializer.createDbscriptLocation";
+    String DB_INITIALIZER_UPGRADE_DB_SCRIPT_LOCATION = "studio.db.initializer.upgradeDbScriptLocation";
     String DB_TEST_ON_BORROW = "studio.db.testOnBorrow";
     String DB_VALIDATION_QUERY = "studio.db.validationQuery";
     String DB_VALIDATION_INTERVAL = "studio.db.validationInterval";
@@ -82,6 +83,8 @@ public interface StudioConfiguration {
     String CONFIGURATION_SITE_DATA_SOURCES_CONFIG_BASE_PATH = "studio.configuration.site.dataSources.configBasePath";
     String CONFIGURATION_SITE_DATA_SOURCES_CONFIG_FILE_NAME = "studio.configuration.site.dataSources.configFileName";
     String CONFIGURATION_SITE_PREVIEW_DESTROY_CONTEXT_URL = "studio.configuration.site.preview.destroy.sontext.url";
+    String CONFIGURATION_SITE_DEPENDENCY_RESOLVER_CONFIG_FILE_NAME = "studio.configuration.site.dependencyResolver.configFileName";
+    String CONFIGURATION_SITE_DEPENDENCY_RESOLVER_CONFIG_BASE_PATH = "studio.configuration.site.dependencyResolver.configBasePath";
 
     /** Import Service */
     String IMPORT_ASSIGNEE = "studio.import.assignee";

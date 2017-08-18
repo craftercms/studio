@@ -18,7 +18,7 @@
 package org.craftercms.studio.api.v1.service.activity;
 
 
-import org.craftercms.studio.api.v1.dal.ActivityFeed;
+import org.craftercms.studio.api.v1.dal.AuditFeed;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
@@ -82,7 +82,7 @@ public interface ActivityService {
 	 * @return list of JSON feed entries
 	 */
 
-	ActivityFeed getDeletedActivity(String site, String path);
+	AuditFeed getDeletedActivity(String site, String path);
 
 	void deleteActivitiesForSite(String site);
 
@@ -97,7 +97,7 @@ public interface ActivityService {
      * @return
      * @throws SiteNotFoundException
      */
-    List<ActivityFeed> getAuditLogForSite(String site, int start, int number, String user, List<String> actions) throws SiteNotFoundException;
+    List<AuditFeed> getAuditLogForSite(String site, int start, int number, String user, List<String> actions) throws SiteNotFoundException;
 
     long getAuditLogForSiteTotal(String site, String user, List<String> actions) throws SiteNotFoundException;
 }

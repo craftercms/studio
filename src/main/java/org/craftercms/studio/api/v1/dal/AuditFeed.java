@@ -7,7 +7,7 @@ import net.sf.json.JSONObject;
 import java.io.Serializable;
 import java.util.Date;
 
-public class ActivityFeed implements Serializable {
+public class AuditFeed implements Serializable {
 
     private static final long serialVersionUID = 4251603625791912910L;
     protected long id;

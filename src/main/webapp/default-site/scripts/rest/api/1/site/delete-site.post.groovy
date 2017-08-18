@@ -16,17 +16,23 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+
+import groovy.json.JsonException
 import groovy.json.JsonSlurper
 import scripts.api.SiteServices;
 
 def result = [:]
-def requestJson = request.reader.text
-def slurper = new JsonSlurper()
-def parsedReq = slurper.parseText(requestJson)
+try {
+    def requestJson = request.reader.text
+    def slurper = new JsonSlurper()
+    def parsedReq = slurper.parseText(requestJson)
 
-def siteId = parsedReq.siteId
+    def siteId = parsedReq.siteId
 
-def context = SiteServices.createContext(applicationContext, request)
-result = SiteServices.deleteSite(context, siteId)
- 
+    def context = SiteServices.createContext(applicationContext, request)
+    result = SiteServices.deleteSite(context, siteId)
+} catch (JsonException e) {
+    response.setStatus(400)
+    result.message = "Bad Request"
+}
 return result

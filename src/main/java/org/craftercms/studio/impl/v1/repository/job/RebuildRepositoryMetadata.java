@@ -19,7 +19,7 @@
 
 package org.craftercms.studio.impl.v1.repository.job;
 
-import org.craftercms.studio.api.v1.dal.CopyToEnvironmentMapper;
+import org.craftercms.studio.api.v1.dal.PublishRequestMapper;
 import org.craftercms.studio.api.v1.job.CronJobContext;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -44,6 +44,19 @@ public class RebuildRepositoryMetadata {
     private final static Logger logger = LoggerFactory.getLogger(RebuildRepositoryMetadata.class);
 
     private static ReentrantLock taskLock = new ReentrantLock();
+
+    @Autowired
+    protected PublishRequestMapper publishRequestMapper;
+
+    protected ObjectMetadataManager objectMetadataManager;
+    protected ObjectStateService objectStateService;
+    protected DmDependencyService dmDependencyService;
+    protected ContentService contentService;
+    protected SecurityService securityService;
+    protected TaskExecutor taskExecutor;
+    protected StudioConfiguration studioConfiguration;
+    protected SiteService siteService;
+    protected ContentRepository contentRepository;
 
     public void execute(String site) {
         if (taskLock.tryLock()) {
@@ -98,7 +111,7 @@ public class RebuildRepositoryMetadata {
         try {
             // Delete deployment queue
             logger.debug("Deleting deployment queue for site " + site);
-            copyToEnvironmentMapper.deleteDeploymentDataForSite(params);
+            publishRequestMapper.deleteDeploymentDataForSite(params);
         } catch (Exception error) {
             logger.error("Failed to delete deployment queue for site " + site);
         }
@@ -132,19 +145,6 @@ public class RebuildRepositoryMetadata {
         int toReturn = Integer.parseInt(studioConfiguration.getProperty(REPO_REBUILD_METADATA_BATCH_SIZE));
         return toReturn;
     }
-
-    @Autowired
-    protected CopyToEnvironmentMapper copyToEnvironmentMapper;
-
-    protected ObjectMetadataManager objectMetadataManager;
-    protected ObjectStateService objectStateService;
-    protected DmDependencyService dmDependencyService;
-    protected ContentService contentService;
-    protected SecurityService securityService;
-    protected TaskExecutor taskExecutor;
-    protected StudioConfiguration studioConfiguration;
-    protected SiteService siteService;
-    protected ContentRepository contentRepository;
 
     public ObjectMetadataManager getObjectMetadataManager() { return objectMetadataManager; }
     public void setObjectMetadataManager(ObjectMetadataManager objectMetadataManager) { this.objectMetadataManager = objectMetadataManager; }

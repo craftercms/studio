@@ -21,7 +21,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.content.pipeline.PipelineContent;
-import org.craftercms.studio.api.v1.dal.ObjectMetadata;
+import org.craftercms.studio.api.v1.dal.ItemMetadata;
 import org.craftercms.studio.api.v1.exception.ContentProcessException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -215,12 +215,12 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
         }
 
         Map<String, Object> properties = new HashMap<>();
-        properties.put(ObjectMetadata.PROP_MODIFIER, user);
-        properties.put(ObjectMetadata.PROP_MODIFIED, new Date());
+        properties.put(ItemMetadata.PROP_MODIFIER, user);
+        properties.put(ItemMetadata.PROP_MODIFIED, new Date());
         if (unlock) {
-            properties.put(ObjectMetadata.PROP_LOCK_OWNER, StringUtils.EMPTY);
+            properties.put(ItemMetadata.PROP_LOCK_OWNER, StringUtils.EMPTY);
         } else {
-            properties.put(ObjectMetadata.PROP_LOCK_OWNER, user);
+            properties.put(ItemMetadata.PROP_LOCK_OWNER, user);
         }
         if (!objectMetadataManager.metadataExist(site, relativePath)) {
             objectMetadataManager.insertNewObjectMetadata(site, relativePath);

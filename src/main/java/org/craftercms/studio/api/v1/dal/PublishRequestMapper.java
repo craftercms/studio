@@ -24,21 +24,21 @@ import java.util.Map;
 /**
  * @author Dejan Brkic
  */
-public interface CopyToEnvironmentMapper {
+public interface PublishRequestMapper {
 
-    List<CopyToEnvironment> getScheduledItems(Map params);
+    List<PublishRequest> getScheduledItems(Map params);
 
-    void insertItemForDeployment(CopyToEnvironment copyToEnvironment);
+    void insertItemForDeployment(PublishRequest copyToEnvironment);
 
     void cancelWorkflow(Map params);
 
-    List<CopyToEnvironment> getItemsReadyForDeployment(Map params);
+    List<PublishRequest> getItemsReadyForDeployment(Map params);
 
-    void updateItemDeploymentState(CopyToEnvironment item);
+    void updateItemDeploymentState(PublishRequest item);
 
     void deleteDeploymentDataForSite(Map params);
 
-    List<CopyToEnvironment> getItemsBySiteAndStates(Map params);
+    List<PublishRequest> getItemsBySiteAndStates(Map params);
 
     void cancelDeployment(Map params);
 
@@ -46,9 +46,9 @@ public interface CopyToEnvironmentMapper {
 
     int checkIfItemWasPublishedForEnvironment(Map params);
 
-    CopyToEnvironment checkPublishingStatus(Map params);
+    PublishRequest checkPublishingStatus(Map params);
 
     int isPublishingBlocked(Map params);
 
-    CopyToEnvironment getLastDeployedItem(Map params);
+    PublishRequest getLastDeployedItem(Map params);
 }

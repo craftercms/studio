@@ -21,7 +21,7 @@ package org.craftercms.studio.impl.v1.service.content;
 
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.DmConstants;
-import org.craftercms.studio.api.v1.dal.ObjectState;
+import org.craftercms.studio.api.v1.dal.ItemState;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -395,7 +395,7 @@ public class ImportServiceImpl implements ImportService {
                         objectStateService.transition(site, item, TransitionEvent.SAVE);
                         objectStateService.setSystemProcessing(site, currentPath, false);
                     } else {
-                        ObjectState state = objectStateService.getObjectState(site, currentPath);
+                        ItemState state = objectStateService.getObjectState(site, currentPath);
                         if (state == null) {
                             objectStateService.insertNewEntry(site, currentPath);
                         }

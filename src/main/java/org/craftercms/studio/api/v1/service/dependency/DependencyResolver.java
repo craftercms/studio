@@ -1,6 +1,6 @@
 /*
  * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2016 Crafter Software Corporation.
+ * Copyright (C) 2007-2017 Crafter Software Corporation.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,30 +16,23 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.api.v1.dal;
+package org.craftercms.studio.api.v1.service.dependency;
 
 import java.util.Map;
+import java.util.Set;
 
-public interface ObjectMetadataMapper {
+/**
+ * Resolves dependencies
+ */
+public interface DependencyResolver {
 
-    ObjectMetadata getProperties(Map params);
-
-    void setProperties(Map params);
-
-    void insertEntry(Map params);
-
-    int countEntries(Map params);
-
-    void deleteEntry(Map params);
-
-    void setLockOwner(Map params);
-
-    void deleteObjectMetadataForSite(Map params);
-
-    void updateObjectPath(Map params);
-
-    void updateObjectMetadata(ObjectMetadata objectMetadata);
-
-    void updateCommitId(Map params);
+    /**
+     * Resolves dependent files for given content of given mimetype
+     *
+     * @param site
+     * @param path
+     * @return set of paths of files that content is dependant on
+     */
+    Map<String, Set<String>> resolve(String site, String path);
 
 }

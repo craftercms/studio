@@ -39,7 +39,7 @@
     </appender>
 
     <appender name="default.file" class="org.apache.log4j.RollingFileAppender">
-        <param name="file" value="${catalina.home}/logs/studio.log" />
+        <param name="file" value="${application.logs}/studio.log" />
         <param name="append" value="false" />
         <param name="threshold" value="debug" />
         <layout class="org.apache.log4j.PatternLayout">
