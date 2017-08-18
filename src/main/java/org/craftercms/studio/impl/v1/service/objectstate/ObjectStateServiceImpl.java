@@ -18,7 +18,7 @@
 package org.craftercms.studio.impl.v1.service.objectstate;
 
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.dal.ItemState;
 import org.craftercms.studio.api.v1.dal.ItemStateMapper;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -398,13 +398,13 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     /**
      * get the object for a given set of states
      */
-    public List<ObjectState> getObjectStateByStates(String site, List<String> states) {
+    public List<ItemState> getObjectStateByStates(String site, List<String> states) {
 
         if (states != null && !states.isEmpty()) {
             Map<String, Object> params = new HashMap<String, Object>();
             params.put("states", states);
             params.put("site", site);
-            List<ObjectState> result = objectStateMapper.getObjectStateByStates(params);
+            List<ItemState> result = itemStateMapper.getObjectStateByStates(params);
             return result;
         } else {
             return new ArrayList<>(0);
@@ -416,14 +416,14 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
         Map<String, String> params = new HashMap<String, String>();
         params.put("site", site);
         params.put("path", path);
-        ObjectState objectState = objectStateMapper.getObjectStateBySiteAndPath(params);
+        ItemState objectState = itemStateMapper.getObjectStateBySiteAndPath(params);
         if (objectState == null) {
             insertNewEntry(site, path);
-            objectState = objectStateMapper.getObjectStateBySiteAndPath(params);
+            objectState = itemStateMapper.getObjectStateBySiteAndPath(params);
         }
         objectState.setState(state);
         objectState.setSystemProcessing(systemProcessing ? 1 : 0);
-        objectStateMapper.setObjectState(objectState);
+        itemStateMapper.setObjectState(objectState);
         return "Success";
     }
 
@@ -431,7 +431,7 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     public void deleteObjectStatesForSite(String site) {
         Map<String, String> params = new HashMap<String, String>();
         params.put("site", site);
-        objectStateMapper.deleteObjectStatesForSite(params);
+        itemStateMapper.deleteObjectStatesForSite(params);
     }
 
     public int getBulkOperationBatchSize() {
@@ -444,7 +444,7 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
         Map<String, String> params = new HashMap<String, String>();
         params.put("siteId", site);
         params.put("state", state.name());
-        objectStateMapper.setStateForSiteContent(params);
+        itemStateMapper.setStateForSiteContent(params);
     }
 
     @Override
@@ -454,9 +454,9 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
         params.put("path", path);
         params.put("likepath", path + (path.endsWith("/") ? "" : File.separator) + "%");
         params.put("states", State.CHANGE_SET_STATES);
-        List<ObjectState> result = objectStateMapper.getChangeSetForSubtree(params);
+        List<ItemState> result = itemStateMapper.getChangeSetForSubtree(params);
         List<String> toRet = new ArrayList<String>();
-        for (ObjectState state : result) {
+        for (ItemState state : result) {
             toRet.add(state.getPath());
         }
         return toRet;
@@ -492,7 +492,7 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     }
 
     @Autowired
-    protected ObjectStateMapper objectStateMapper;
+    protected ItemStateMapper itemStateMapper;
 
     protected GeneralLockService generalLockService;
     protected ContentService contentService;
