@@ -552,8 +552,7 @@ public class ContentServiceImpl implements ContentService {
                         Document copyDocument = updateContentOnCopy(fromDocument, copyPathFileName, copyPathFolder,
                                 copyObjectIds, copyPathModifier);
 
-                        copyContent = ContentUtils.convertDocumentToStream(copyDocument, StudioConstants
-                                .CONTENT_ENCODING);
+                        copyContent = ContentUtils.convertDocumentToStream(copyDocument, CONTENT_ENCODING);
 
                         // This code is very similar to what is in writeContent. Consolidate this code?
                         Map<String, String> params = new HashMap<String, String>();

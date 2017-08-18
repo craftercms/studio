@@ -44,6 +44,13 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
 
     protected State[][] transitionTable = null;
 
+    @Autowired
+    protected ItemStateMapper itemStateMapper;
+
+    protected GeneralLockService generalLockService;
+    protected ContentService contentService;
+    protected StudioConfiguration studioConfiguration;
+
     @Override
     public void register() {
         getServicesManager().registerService(ObjectStateService.class, this);
@@ -57,19 +64,19 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
 
     @Override
     public ItemState getObjectState(String site, String path, boolean insert) {
-        path = path.replace("//", "/");
-        String lockId = site + ":" + path;
+        String cleanPath = path.replace("//", "/");
+        String lockId = site + ":" + cleanPath;
         ItemState state = null;
         generalLockService.lock(lockId);
         try {
             Map<String, String> params = new HashMap<String, String>();
             params.put("site", site);
-            params.put("path", path);
+            params.put("path", cleanPath);
             state = itemStateMapper.getObjectStateBySiteAndPath(params);
 
             if (state == null && insert) {
-                if (contentService.contentExists(site, path)) {
-                    ContentItemTO item = contentService.getContentItem(site, path, 0);
+                if (contentService.contentExists(site, cleanPath)) {
+                    ContentItemTO item = contentService.getContentItem(site, cleanPath, 0);
                     if (!item.isFolder()) {
                         insertNewEntry(site, item);
                         state = itemStateMapper.getObjectStateBySiteAndPath(params);
@@ -84,16 +91,16 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
 
     @Override
     public void setSystemProcessing(String site, String path, boolean isSystemProcessing) {
-        path = path.replace("//", "/");
-        String lockId = site + ":" + path;
+        String cleanPath = path.replace("//", "/");
+        String lockId = site + ":" + cleanPath;
         logger.debug("Locking with ID: {0}", lockId);
         generalLockService.lock(lockId);
         try {
             Map<String, Object> params = new HashMap<String, Object>();
             params.put("site", site);
-            params.put("path", path);
+            params.put("path", cleanPath);
             params.put("systemProcessing", isSystemProcessing);
-            logger.debug("Updating system processing in DB: {0}:{1} - {2}", site, path, isSystemProcessing);
+            logger.debug("Updating system processing in DB: {0}:{1} - {2}", site, cleanPath, isSystemProcessing);
             itemStateMapper.setSystemProcessingBySiteAndPath(params);
         } finally {
             logger.debug("Unlocking with ID: {0}", lockId);
@@ -491,12 +498,6 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
         };
     }
 
-    @Autowired
-    protected ItemStateMapper itemStateMapper;
-
-    protected GeneralLockService generalLockService;
-    protected ContentService contentService;
-    protected StudioConfiguration studioConfiguration;
 
     public GeneralLockService getGeneralLockService() { return generalLockService; }
     public void setGeneralLockService(GeneralLockService generalLockService) { this.generalLockService = generalLockService; }

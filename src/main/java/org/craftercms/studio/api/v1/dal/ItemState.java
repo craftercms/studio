@@ -26,6 +26,12 @@ import java.io.Serializable;
 public class ItemState implements Serializable {
     private static final long serialVersionUID = -4858304001684851333L;
 
+    protected String objectId;
+    protected String site;
+    protected String path;
+    protected String state;
+    protected int systemProcessing;
+
     public String getObjectId() { return objectId; }
     public void setObjectId(String objectId) { this.objectId = objectId; }
 
@@ -40,10 +46,4 @@ public class ItemState implements Serializable {
 
     public int getSystemProcessing() { return systemProcessing; }
     public void setSystemProcessing(int systemProcessing) { this.systemProcessing = systemProcessing; }
-
-    protected String objectId;
-    protected String site;
-    protected String path;
-    protected String state;
-    protected int systemProcessing;
 }

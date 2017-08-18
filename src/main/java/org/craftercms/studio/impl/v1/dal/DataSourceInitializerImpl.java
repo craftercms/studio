@@ -26,6 +26,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.jdbc.RuntimeSqlException;
 import org.apache.ibatis.jdbc.ScriptRunner;
 import org.craftercms.studio.api.v1.dal.DataSourceInitializer;
+import org.craftercms.studio.api.v1.exception.DatabaseUpgradeUnsupportedVersionException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
@@ -54,7 +55,7 @@ public class DataSourceInitializerImpl implements DataSourceInitializer, Disposa
     private final static String DB_QUERY_USE_CRAFTER = "use crafter";
 
     @Override
-    public void initDataSource() {
+    public void initDataSource() throws DatabaseUpgradeUnsupportedVersionException {
         if (isEnabled()) {
             String createDbScriptPath = getCreateDBScriptPath();
 
@@ -93,7 +94,7 @@ public class DataSourceInitializerImpl implements DataSourceInitializer, Disposa
                                 dbVersion = rs.getString(1);
                             } else {
                                 // TODO: DB: Error ?
-                                throw new RuntimeException("Could not determine database version from _meta table");
+                                throw new DatabaseUpgradeUnsupportedVersionException("Could not determine database version from _meta table");
                             }
                         } else {
                             logger.debug("Check if group table exists.");
@@ -115,7 +116,7 @@ public class DataSourceInitializerImpl implements DataSourceInitializer, Disposa
                                 break;
                             case DB_VERSION_2_5_X:
                                 // TODO: DB: Migration not supported yet
-                                throw new RuntimeException("Automated migration from 2.5.x DB is not supported yet.");
+                                throw new DatabaseUpgradeUnsupportedVersionException("Automated migration from 2.5.x DB is not supported yet.");
                             default:
                                 logger.info("Database version is " + dbVersion + ", required version is " + CURRENT_DB_VERSION);
                                 String upgradeScriptPath = getUpgradeDBScriptPath();
@@ -133,6 +134,7 @@ public class DataSourceInitializerImpl implements DataSourceInitializer, Disposa
                                 } catch (RuntimeSqlException e) {
                                     logger.error("Error while running upgrade DB script", e);
                                 }
+                                break;
                         }
                     } else {
                         // Database does not exist
@@ -221,10 +223,6 @@ public class DataSourceInitializerImpl implements DataSourceInitializer, Disposa
 
     private String getUpgradeDBScriptPath() {
         return studioConfiguration.getProperty(DB_INITIALIZER_UPGRADE_DB_SCRIPT_LOCATION);
-    }
-
-    private String getCurrentDBVersion() {
-        return studioConfiguration.getProperty(DB_INITIALIZER_CURRENT_DB_VERSION);
     }
 
     public String getDelimiter() { return delimiter; }

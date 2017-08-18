@@ -75,15 +75,14 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 	/** activity feed format **/
 	protected static final String ACTIVITY_FEED_FORMAT = "json";
 
-	/**
-	 * activity post lookup
-	 */
-	//protected PostLookup _postLookup;
+    @Autowired
+    protected AuditFeedMapper auditFeedMapper;
 
-	/**
-	 * activity feed generator
-	 */
-	//protected FeedGenerator _feedGenerator;
+    protected SiteService siteService;
+    protected ContentService contentService;
+    protected SecurityService securityService;
+    protected StudioConfiguration studioConfiguration;
+    protected DeploymentService deploymentService;
 
     @Override
     public void register() {
@@ -191,15 +190,6 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 
 	}
 
-	private int getCountUserContentFeedEntries(String feedUserId, String siteId,String contentId) {
-		HashMap<String,String> params = new HashMap<String,String>();
-		params.put("userId",feedUserId);
-		params.put("contentId",contentId);
-		params.put("siteNetwork",siteId);
-
-		// where feed user is me and post user is not me
-		return auditFeedMapper.getCountUserContentFeedEntries(params);
-	}
 
 	private long insertFeedEntry(AuditFeed activityFeed) {
 		DebugUtils.addDebugStack(logger);
@@ -207,14 +197,6 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 		Long id = auditFeedMapper.insertActivityFeed(activityFeed);
 		return (id != null ? id : -1);
 	}
-
-	private void updateFeedEntry(AuditFeed activityFeed) {
-		DebugUtils.addDebugStack(logger);
-		logger.debug("Update activity " + activityFeed.getContentId());
-		auditFeedMapper.updateActivityFeed(activityFeed);
-
-	}
-
 
 	@Override
 	public void renameContentId(String site, String oldUrl, String newUrl) {
@@ -421,10 +403,7 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 	    return toReturn;
     }
 
-    @Autowired
-	protected AuditFeedMapper auditFeedMapper;
 
-	protected ContentService contentService;
 
 	public SiteService getSiteService() {
 		return siteService;
@@ -434,22 +413,16 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 		this.siteService = siteService;
 	}
 
-	protected SiteService siteService;
-
 	public void setContentService(ContentService contentService) {
 		this.contentService = contentService;
 	}
 
-    protected SecurityService securityService;
     public SecurityService getSecurityService() {return securityService; }
     public void setSecurityService(SecurityService securityService) { this.securityService = securityService; }
-
-    protected StudioConfiguration studioConfiguration;
 
     public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
 
-    protected DeploymentService deploymentService;
     public DeploymentService getDeploymentService() { return deploymentService; }
     public void setDeploymentService(DeploymentService deploymentService) { this.deploymentService = deploymentService; }
 }

@@ -68,6 +68,16 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
     protected static final String JSON_KEY_SUBMISSION_COMMENT = "submissionComment";
     protected static final String JSON_KEY_DEPENDENCIES = "dependencies";
 
+    protected ContentService contentService;
+    protected ServicesConfig servicesConfig;
+    protected org.craftercms.studio.api.v1.service.objectstate.ObjectStateService objectStateService;
+    protected SubmitToApproveDependencyRule submitToApproveDependencyRule;
+    protected StudioConfiguration studioConfiguration;
+    protected ObjectMetadataManager objectMetadataManager;
+    protected DependencyResolver dependencyResolver;
+
+    @Autowired
+    protected DependencyMapper dependencyMapper;
 
     @Override
     public void register() {
@@ -789,7 +799,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
             setDependencies(site, path, extractedDependencies);
             for (Set<String> values : extractedDependencies.values()) {
                 for (String value : values) {
-                    extractDirectDependenciesRecursively(site, path, processedPaths);
+                    extractDirectDependenciesRecursively(site, value, processedPaths);
                 }
             }
         }
@@ -1048,15 +1058,4 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
 
     public DependencyResolver getDependencyResolver() { return dependencyResolver; }
     public void setDependencyResolver(DependencyResolver dependencyResolver) { this.dependencyResolver = dependencyResolver; }
-
-    protected ContentService contentService;
-    protected ServicesConfig servicesConfig;
-    protected org.craftercms.studio.api.v1.service.objectstate.ObjectStateService objectStateService;
-    protected SubmitToApproveDependencyRule submitToApproveDependencyRule;
-    protected StudioConfiguration studioConfiguration;
-    protected ObjectMetadataManager objectMetadataManager;
-    protected DependencyResolver dependencyResolver;
-
-    @Autowired
-    protected DependencyMapper dependencyMapper;
 }

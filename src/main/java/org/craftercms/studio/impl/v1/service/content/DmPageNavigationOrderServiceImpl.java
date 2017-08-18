@@ -45,6 +45,13 @@ public class DmPageNavigationOrderServiceImpl extends AbstractRegistrableService
 
     private static final Logger logger = LoggerFactory.getLogger(DmPageNavigationOrderServiceImpl.class);
 
+    protected GeneralLockService generalLockService;
+    protected ContentService contentService;
+    protected StudioConfiguration studioConfiguration;
+
+    @Autowired
+    protected NavigationOrderSequenceMapper navigationOrderSequenceMapper;
+
     @Override
     public void register() {
         this._servicesManager.registerService(DmPageNavigationOrderService.class, this);
@@ -163,11 +170,4 @@ public class DmPageNavigationOrderServiceImpl extends AbstractRegistrableService
 
     public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
-
-    protected GeneralLockService generalLockService;
-    protected ContentService contentService;
-    protected StudioConfiguration studioConfiguration;
-
-    @Autowired
-    protected NavigationOrderSequenceMapper navigationOrderSequenceMapper;
 }

@@ -19,7 +19,6 @@
 package org.craftercms.studio.impl.v1.service.dependency;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.io.IOUtils;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -32,8 +31,6 @@ import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -47,45 +44,6 @@ public class RegexDependencyResolver implements DependencyResolver {
 
     protected ContentService contentService;
     protected StudioConfiguration studioConfiguration;
-/*
-    @Override
-    public Set<String> resolve(String site, String path, String dependencyType, String mimetype, InputStream content) throws IOException {
-        String contentString = IOUtils.toString(content);
-        return resolve(site, path, dependencyType, mimetype, contentString);
-    }
-
-    @Override
-    public Set<String> resolve(String site, String path, String dependencyType, String mimetype, String content) {
-        DependencyResolverConfigTO config = getConfiguraion(site);
-        Set<String> toRet = new HashSet<String>();
-        if (config != null) {
-            DependencyResolverConfigTO.DependencyType depType = config.getDependencyTypes().get(dependencyType);
-            if (depType != null) {
-                DependencyResolverConfigTO.MimeType mimeType = depType.getMimetypes().get(mimetype);
-                if (mimeType != null) {
-                    List<String> regexPatterns = mimeType.getPatterns();
-                    if (CollectionUtils.isNotEmpty(regexPatterns)) {
-                        for (String regexPattern : regexPatterns) {
-                            Pattern pattern = Pattern.compile(regexPattern);
-                            Matcher matcher = pattern.matcher(content);
-                            while (matcher.find()) {
-                                String matchedPath = matcher.group();
-                                if (contentService.contentExists(site, matchedPath)) {
-                                    toRet.add(matchedPath);
-                                } else {
-                                    logger.info("Found reference to " + matchedPath + " in content at " + path + " but content does not exist in referenced path for site " + site);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        } else {
-            logger.error("Could not find Dependency Resolver configuration.");
-        }
-        return toRet;
-    }
-*/
 
     @Override
     public Map<String, Set<String>> resolve(String site, String path) {

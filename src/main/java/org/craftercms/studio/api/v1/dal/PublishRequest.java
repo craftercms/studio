@@ -28,6 +28,19 @@ public class PublishRequest implements Serializable {
 
     private static final long serialVersionUID = 1287567542272432148L;
 
+    private long id;
+    private String site;
+    private String environment;
+    private String path;
+    private String oldPath;
+    private String user;
+    private Date scheduledDate;
+    private String state;
+    private String action;
+    private String contentTypeClass;
+    private String submissionComment;
+    private String commitId;
+
     public class State {
         public final static String READY_FOR_LIVE = "READY_FOR_LIVE";
         public final static String PROCESSING = "PROCESSING";
@@ -42,19 +55,6 @@ public class PublishRequest implements Serializable {
         public final static String DELETE = "DELETE";
         public final static String MOVE = "MOVE";
     }
-
-    private long id;
-    private String site;
-    private String environment;
-    private String path;
-    private String oldPath;
-    private String user;
-    private Date scheduledDate;
-    private String state;
-    private String action;
-    private String contentTypeClass;
-    private String submissionComment;
-    private String commitId;
 
     public long getId() { return id; }
     public void setId(long id) { this.id = id; }

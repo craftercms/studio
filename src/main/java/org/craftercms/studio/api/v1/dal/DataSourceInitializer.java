@@ -19,9 +19,11 @@
 
 package org.craftercms.studio.api.v1.dal;
 
+import org.craftercms.studio.api.v1.exception.DatabaseUpgradeUnsupportedVersionException;
+
 import java.util.Map;
 
 public interface DataSourceInitializer {
 
-    void initDataSource();
+    void initDataSource() throws DatabaseUpgradeUnsupportedVersionException;
 }

@@ -32,6 +32,9 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
 
     private final static Logger logger = LoggerFactory.getLogger(ObjectMetadataManagerImpl.class);
 
+    @Autowired
+    protected ItemMetadataMapper itemMetadataMapper;
+
     @Override
     public void insertNewObjectMetadata(String site, String path) {
         path = path.replace("//", "/");
@@ -58,10 +61,10 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
 
     @Override
     public ItemMetadata getProperties(String site, String path) {
-        path = path.replace("//", "/");
+        String cleanPath = path.replace("//", "/");
         Map<String, String> params = new HashMap<>();
         params.put("site", site);
-        params.put("path", path);
+        params.put("path", cleanPath);
         return itemMetadataMapper.getProperties(params);
     }
 
@@ -174,7 +177,4 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
         params.put("commitId", commitId);
         itemMetadataMapper.updateCommitId(params);
     }
-
-    @Autowired
-    protected ItemMetadataMapper itemMetadataMapper;
 }

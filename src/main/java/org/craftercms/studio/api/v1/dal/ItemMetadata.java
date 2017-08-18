@@ -49,6 +49,31 @@ public class ItemMetadata implements Serializable {
     public static final String PROP_LAUNCH_DATE = "launchDate";
     public static final String PROP_COMMIT_ID = "commitId";
 
+    protected int id;
+    protected String site;
+    protected String path;
+    protected String name;
+    protected Date modified;
+    protected String modifier;
+    protected String owner;
+    protected String creator;
+    protected String firstName;
+    protected String lastName;
+    protected String lockOwner;
+    protected String email;
+    protected int renamed;
+    protected String oldUrl;
+    protected String deleteUrl;
+    protected int imageWidth;
+    protected int imageHeight;
+    protected String approvedBy;
+    protected String submittedBy;
+    protected int submittedForDeletion;
+    protected int sendEmail;
+    protected String submissionComment;
+    protected Date launchDate;
+    protected String commitId;
+
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
 
@@ -121,28 +146,4 @@ public class ItemMetadata implements Serializable {
     public String getCommitId() { return commitId; }
     public void setCommitId(final String commitId) { this.commitId = commitId; }
 
-    protected int id;
-    protected String site;
-    protected String path;
-    protected String name;
-    protected Date modified;
-    protected String modifier;
-    protected String owner;
-    protected String creator;
-    protected String firstName;
-    protected String lastName;
-    protected String lockOwner;
-    protected String email;
-    protected int renamed;
-    protected String oldUrl;
-    protected String deleteUrl;
-    protected int imageWidth;
-    protected int imageHeight;
-    protected String approvedBy;
-    protected String submittedBy;
-    protected int submittedForDeletion;
-    protected int sendEmail;
-    protected String submissionComment;
-    protected Date launchDate;
-    protected String commitId;
 }

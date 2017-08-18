@@ -45,6 +45,19 @@ public class RebuildRepositoryMetadata {
 
     private static ReentrantLock taskLock = new ReentrantLock();
 
+    @Autowired
+    protected PublishRequestMapper publishRequestMapper;
+
+    protected ObjectMetadataManager objectMetadataManager;
+    protected ObjectStateService objectStateService;
+    protected DmDependencyService dmDependencyService;
+    protected ContentService contentService;
+    protected SecurityService securityService;
+    protected TaskExecutor taskExecutor;
+    protected StudioConfiguration studioConfiguration;
+    protected SiteService siteService;
+    protected ContentRepository contentRepository;
+
     public void execute(String site) {
         if (taskLock.tryLock()) {
             try {
@@ -132,19 +145,6 @@ public class RebuildRepositoryMetadata {
         int toReturn = Integer.parseInt(studioConfiguration.getProperty(REPO_REBUILD_METADATA_BATCH_SIZE));
         return toReturn;
     }
-
-    @Autowired
-    protected PublishRequestMapper publishRequestMapper;
-
-    protected ObjectMetadataManager objectMetadataManager;
-    protected ObjectStateService objectStateService;
-    protected DmDependencyService dmDependencyService;
-    protected ContentService contentService;
-    protected SecurityService securityService;
-    protected TaskExecutor taskExecutor;
-    protected StudioConfiguration studioConfiguration;
-    protected SiteService siteService;
-    protected ContentRepository contentRepository;
 
     public ObjectMetadataManager getObjectMetadataManager() { return objectMetadataManager; }
     public void setObjectMetadataManager(ObjectMetadataManager objectMetadataManager) { this.objectMetadataManager = objectMetadataManager; }

@@ -65,6 +65,26 @@ public class DeploymentServiceImpl implements DeploymentService {
 
     private static int CTED_AUTOINCREMENT = 0;
 
+    protected ServicesConfig servicesConfig;
+    protected ContentService contentService;
+    protected ActivityService activityService;
+    protected DmDependencyService dmDependencyService;
+    protected DmFilterWrapper dmFilterWrapper;
+    protected SiteService siteService;
+    protected ObjectStateService objectStateService;
+    protected ObjectMetadataManager objectMetadataManager;
+    protected ContentRepository contentRepository;
+    protected DmPublishService dmPublishService;
+    protected SecurityService securityService;
+    protected EventService eventService;
+    protected DeployContentToEnvironmentStore deployContentToEnvironmentStoreJob;
+    protected NotificationService notificationService;
+    protected DeploymentHistoryProvider deploymentHistoryProvider;
+    protected StudioConfiguration studioConfiguration;
+
+    @Autowired
+    protected PublishRequestMapper publishRequestMapper;
+
     public void deploy(String site, String environment, List<String> paths, Date scheduledDate, String approver, String submissionComment, final boolean scheduleDateNow) throws DeploymentException {
 
         if (scheduledDate != null && scheduledDate.after(new Date())) {
@@ -786,25 +806,5 @@ public class DeploymentServiceImpl implements DeploymentService {
 
     public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
-
-    protected ServicesConfig servicesConfig;
-    protected ContentService contentService;
-    protected ActivityService activityService;
-    protected DmDependencyService dmDependencyService;
-    protected DmFilterWrapper dmFilterWrapper;
-    protected SiteService siteService;
-    protected ObjectStateService objectStateService;
-    protected ObjectMetadataManager objectMetadataManager;
-    protected ContentRepository contentRepository;
-    protected DmPublishService dmPublishService;
-    protected SecurityService securityService;
-    protected EventService eventService;
-    protected DeployContentToEnvironmentStore deployContentToEnvironmentStoreJob;
-    protected NotificationService notificationService;
-    protected DeploymentHistoryProvider deploymentHistoryProvider;
-    protected StudioConfiguration studioConfiguration;
-
-    @Autowired
-    protected PublishRequestMapper publishRequestMapper;
 
 }

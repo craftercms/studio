@@ -63,6 +63,21 @@ public class PublishingManagerImpl implements PublishingManager {
     private static final String LIVE_ENVIRONMENT = "live";
     private static final String PRODUCTION_ENVIRONMENT = "Production";
 
+    protected SiteService siteService;
+    protected ObjectStateService objectStateService;
+    protected ContentService contentService;
+    protected DeploymentService deploymentService;
+    protected ContentRepository contentRepository;
+    protected ObjectMetadataManager objectMetadataManager;
+    protected ServicesConfig servicesConfig;
+    protected SecurityProvider securityProvider;
+    protected StudioConfiguration studioConfiguration;
+    protected DependencyRule deploymentDependencyRule;
+    protected DeploymentHistoryProvider deploymentHistoryProvider;
+
+    @Autowired
+    protected PublishRequestMapper publishRequestMapper;
+
     @Override
     public List<PublishRequest> getItemsReadyForDeployment(String site, String environment) {
         Map<String, Object> params = new HashMap<>();
@@ -377,19 +392,4 @@ public class PublishingManagerImpl implements PublishingManager {
 
     public DeploymentHistoryProvider getDeploymentHistoryProvider() { return deploymentHistoryProvider; }
     public void setDeploymentHistoryProvider(DeploymentHistoryProvider deploymentHistoryProvider) { this.deploymentHistoryProvider = deploymentHistoryProvider; }
-
-    protected SiteService siteService;
-    protected ObjectStateService objectStateService;
-    protected ContentService contentService;
-    protected DeploymentService deploymentService;
-    protected ContentRepository contentRepository;
-    protected ObjectMetadataManager objectMetadataManager;
-    protected ServicesConfig servicesConfig;
-    protected SecurityProvider securityProvider;
-    protected StudioConfiguration studioConfiguration;
-    protected DependencyRule deploymentDependencyRule;
-    protected DeploymentHistoryProvider deploymentHistoryProvider;
-
-    @Autowired
-    protected PublishRequestMapper publishRequestMapper;
 }
