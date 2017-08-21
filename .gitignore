@@ -21,3 +21,9 @@ data/*
 repos/*
 dbms/*
 derby.log
+
+# Eclipse
+.classpath
+.project
+.settings/
+/target/
