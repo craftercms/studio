@@ -15,38 +15,45 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+import groovy.json.JsonException
 import groovy.json.JsonSlurper
 import org.craftercms.studio.api.v1.exception.security.BadCredentialsException
 
 import scripts.api.SecurityServices
 
 def result = [:]
-def requestBody = request.reader.text
-
-def slurper = new JsonSlurper()
-def body = slurper.parseText(requestBody)
-def username = body.username
-def password = body.password
-
 try {
-    def context = SecurityServices.createContext(applicationContext, request)
-    def ticket = SecurityServices.authenticate(context, username, password)
+    def requestBody = request.reader.text
 
-    if(ticket != null) {
-        def profile = SecurityServices.getUserProfile(context, username)
+    def slurper = new JsonSlurper()
+    def body = slurper.parseText(requestBody)
+    def username = body.username
+    def password = body.password
 
-        response.setStatus(200)
-        result = ["username": username, "first_name": profile.first_name, "last_name": profile.last_name, "email": profile.email]
-    } else {
+    try {
+        def context = SecurityServices.createContext(applicationContext, request)
+        def ticket = SecurityServices.authenticate(context, username, password)
+
+        if (ticket != null) {
+            def profile = SecurityServices.getUserProfile(context, username)
+
+            response.setStatus(200)
+            result = ["username": username, "first_name": profile.first_name, "last_name": profile.last_name, "email": profile.email]
+        } else {
+            response.setStatus(500)
+            result.message = "Internal server error"
+        }
+    } catch (BadCredentialsException e) {
+        response.setStatus(401)
+        result.message = "Unauthorized"
+    } catch (Exception e) {
         response.setStatus(500)
-        result.message = "Internal server error"
+        result.message = "Internal server error: \n" + e
     }
-} catch (BadCredentialsException e) {
-    response.setStatus(401)
-    result.message = "Unauthorized"
-} catch (Exception e) {
-    response.setStatus(500)
-    result.message = "Internal server error: \n" + e
+} catch (JsonException e) {
+    response.setStatus(400)
+    result.message = "Bad Request"
 }
 
 return result
