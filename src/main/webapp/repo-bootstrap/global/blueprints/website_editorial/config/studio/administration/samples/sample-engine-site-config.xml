@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+    <!-- General properties -->
+    <indexFileName>index.xml</indexFileName>
+    <defaultLocale>en</defaultLocale>
+
+    <!-- Filter properties -->
+    <filters>
+        <filter>
+            <script>/scripts/filters/testFilter1.groovy</script>
+            <mapping>
+                <include>/**</include>
+            </mapping>
+        </filter>
+        <filter>
+            <script>/scripts/filters/testFilter2.groovy</script>
+            <mapping>
+                <include>/**</include>
+            </mapping>
+        </filter>
+        <filter>
+            <script>/scripts/filters/testFilter3.groovy</script>
+            <mapping>
+                <include>/**</include>
+                <exclude>/static-assets/**</exclude>
+            </mapping>
+        </filter>
+    </filters>
+
+    <!-- Content targeting properties -->
+    <targeting>
+        <enabled>true</enabled>
+        <rootFolders>/site/website</rootFolders>
+        <excludePatterns>/site/website/index\.xml</excludePatterns>
+        <availableTargetIds>en,ja,ja_JP,ja_JP_JP</availableTargetIds>
+        <fallbackTargetId>en</fallbackTargetId>
+        <mergeFolders>true</mergeFolders>
+        <redirectToTargetedUrl>false</redirectToTargetedUrl>
+    </targeting>
+
+    <!-- Profile properties -->
+    <profile>
+        <api>
+            <accessTokenId>${enc:q3l5YNoKH38RldAkg6EAGjxlI7+K7Cl4iEmMJNlemNOjcuhaaQNPLwAB824QcJKCbEeLfsg+QSfHCYNcNP/yMw==}</accessTokenId>
+        </api>
+    </profile>
+
+    <!-- Security properties -->
+    <security>
+        <login>
+            <formUrl>/signin</formUrl>
+            <defaultSuccessUrl>/home</defaultSuccessUrl>
+            <alwaysUseDefaultSuccessUrl>true</alwaysUseDefaultSuccessUrl>
+            <failureUrl>/signin?error=loginFailure</failureUrl>
+        </login>
+        <logout>
+            <successUrl>/home</successUrl>
+        </logout>
+        <accessDenied>
+            <errorPageUrl>/signin?error=accessDenied</errorPageUrl>
+        </accessDenied>
+        <urlRestrictions>
+            <restriction>
+                <url>/*</url>
+                <expression>hasRole('USER')</expression>
+            </restriction>
+        </urlRestrictions>
+    </security>
+
+    <!-- Social properties -->
+    <socialConnections>
+        <facebookConnectionFactory>
+            <appId>${enc:Nk4ZJWGGNIf9tt0X8BudixQhHekkBbG1AJE6myeqxp8=}</appId>
+            <appSecret>${enc:JOqVSAHHPYmIO8dC5VCz4KDBbKK466zKeAEowuDRqDammJ+07XmRbB+2ob5T8mg6gAEjDs5WxMuMiMPaDr4wOg==}</appSecret>
+        </facebookConnectionFactory>
+    </socialConnections>
+
+    <!-- Job properties -->
+    <jobs>
+        <jobFolder>
+            <path>/scripts/jobs/morejobs</path>
+            <cronExpression>0 0/15 * * * ?</cronExpression>
+        </jobFolder>
+        <job>
+            <path>/scripts/jobs/testJob.groovy</path>
+            <cronExpression>0 0/15 * * * ?</cronExpression>
+        </job>
+    </jobs>
+</site>
