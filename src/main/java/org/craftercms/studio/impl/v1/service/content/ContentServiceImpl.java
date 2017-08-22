@@ -1689,7 +1689,9 @@ public class ContentServiceImpl implements ContentService {
     @Override
     public String getContentTypeClass(String site, String uri) {
         // TODO: SJ: This reads: if can't guess what it is, it's a page. This is to be replaced in 3.1+
-        if (matchesPatterns(uri, servicesConfig.getComponentPatterns(site)) || uri.endsWith("/" + servicesConfig.getLevelDescriptorName(site))) {
+        if (matchesPatterns(uri, servicesConfig.getPagePatterns(site))) {
+            return CONTENT_TYPE_PAGE;
+        } else if (matchesPatterns(uri, servicesConfig.getComponentPatterns(site)) || uri.endsWith("/" + servicesConfig.getLevelDescriptorName(site))) {
             return CONTENT_TYPE_COMPONENT;
         } else if (matchesPatterns(uri, servicesConfig.getDocumentPatterns(site))) {
             return CONTENT_TYPE_DOCUMENT;
