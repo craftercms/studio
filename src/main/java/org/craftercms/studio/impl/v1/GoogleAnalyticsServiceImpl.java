@@ -18,19 +18,19 @@
 package org.craftercms.studio.impl.v1;
 
 
-import com.google.gdata.client.analytics.AnalyticsService;
 import com.google.gdata.client.analytics.*;
 import com.google.gdata.data.analytics.*;
 import com.google.gdata.util.*;
-import org.craftercms.studio.api.v1.service.AnalyticsQuery;
+import org.craftercms.studio.api.v1.service.analytics.AnalyticsQuery;
 import org.craftercms.studio.api.v1.to.AnalyticsReportTO;
+import org.craftercms.studio.api.v1.service.analytics.AnalyticsService;
 
 import java.io.*;
 import java.net.*;
 import java.text.*;
 import java.util.*;
 
-public class GoogleAnalyticsServiceImpl implements org.craftercms.studio.api.v1.service.AnalyticsService {
+public class GoogleAnalyticsServiceImpl implements AnalyticsService {
   public static final String ACCOUNTS_URL = "https://www.google.com/analytics/feeds/accounts/default";
   public static final String DATA_URL = "https://www.google.com/analytics/feeds/data";
 
@@ -286,6 +286,7 @@ public class GoogleAnalyticsServiceImpl implements org.craftercms.studio.api.v1.
 
   @Override
   public AnalyticsReportTO query(AnalyticsQuery query) {
+    /* Commenting this out until we review the analytics mechanics
     try {
       GoogleAnalyticsQueryImpl gaQuery = (GoogleAnalyticsQueryImpl) query;
       AnalyticsService service = new AnalyticsService("csga-service-v1.0");
@@ -317,7 +318,7 @@ public class GoogleAnalyticsServiceImpl implements org.craftercms.studio.api.v1.
       e.printStackTrace();
     } catch (ServiceException e) {
       e.printStackTrace();
-    }
+    } */
     return null;
   }
 

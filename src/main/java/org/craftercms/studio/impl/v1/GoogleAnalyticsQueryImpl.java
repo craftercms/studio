@@ -18,7 +18,8 @@
 package org.craftercms.studio.impl.v1;
 
 
-import org.craftercms.studio.api.v1.service.AnalyticsQuery;
+
+import org.craftercms.studio.api.v1.service.analytics.AnalyticsQuery;
 
 import java.util.*;
 
