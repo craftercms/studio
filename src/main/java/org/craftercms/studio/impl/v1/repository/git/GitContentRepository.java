@@ -839,6 +839,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                                     IndexDiff.StageState stageState = entry.getValue();
                                     switch (stageState) {
                                         case BOTH_ADDED:
+                                        case BOTH_MODIFIED:
                                             logger.debug("If conflict is caused by both added a file, do checkout on that path with option --ours");
                                             git.checkout().addPath(path).setStage(CheckoutCommand.Stage.OURS).call();
                                             break;
