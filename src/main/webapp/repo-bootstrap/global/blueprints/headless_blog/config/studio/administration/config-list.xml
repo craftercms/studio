@@ -110,5 +110,17 @@
             <description>mime Types</description>
             <samplePath>/studio/administration/samples/sample-mime-type.xml</samplePath>
         </file>
+        <file>
+            <path>/engine/site-config.xml</path>
+            <title>confTabEngineSiteConfiguration</title>
+            <description>confTabEngineSiteConfigurationDesc</description>
+            <samplePath>/studio/administration/samples/sample-engine-site-config.xml</samplePath>
+        </file>
+        <file>
+            <path>/engine/application-context.xml</path>
+            <title>confTabEngineSiteAppContextConfiguration</title>
+            <description>confTabEngineSiteAppContextConfigurationDesc</description>
+            <samplePath>/studio/administration/samples/sample-engine-application-context.xml</samplePath>
+        </file>
     </files>
 </config>
