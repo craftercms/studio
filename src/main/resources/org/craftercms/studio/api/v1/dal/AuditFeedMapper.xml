@@ -58,7 +58,7 @@
                 and cs1.content_type = #{contentType}
             </if>
         ) act
-        inner join cstudio_objectstate os on act.site_network=os.site and act.content_id=os.path
+        inner join item_state os on act.site_network=os.site and act.content_id=os.path
         where act.post_user_id = #{userId}
         and act.site_network = #{siteNetwork}
         and act.summary_format = #{summaryFormat}
