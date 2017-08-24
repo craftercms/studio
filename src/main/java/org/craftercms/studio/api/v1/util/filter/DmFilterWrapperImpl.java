@@ -17,8 +17,6 @@
  */
 package org.craftercms.studio.api.v1.util.filter;
 
-
-import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.service.ServicesManager;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
@@ -27,6 +25,8 @@ import org.craftercms.studio.impl.v1.util.ContentUtils;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+
+import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 
 public class DmFilterWrapperImpl implements DmFilterWrapper {
 
@@ -81,21 +81,21 @@ public class DmFilterWrapperImpl implements DmFilterWrapper {
     }
 
     protected List<String> getFilterPatterns(String site, String filterType) {
-        if (DmConstants.CONTENT_TYPE_COMPONENT.equalsIgnoreCase(filterType)) {
+        if (CONTENT_TYPE_COMPONENT.equalsIgnoreCase(filterType)) {
             List<String> toRet = servicesConfig.getComponentPatterns(site);
             List<String> levelConfig = servicesConfig.getLevelDescriptorPatterns(site);
             if(levelConfig!=null)
             	toRet.addAll(levelConfig);
             return toRet;
-        } else if (DmConstants.CONTENT_TYPE_ASSET.equalsIgnoreCase(filterType)) {
+        } else if (CONTENT_TYPE_ASSET.equalsIgnoreCase(filterType)) {
             return servicesConfig.getAssetPatterns(site);
-        }  else if (DmConstants.CONTENT_TYPE_RENDERING_TEMPLATE.equalsIgnoreCase(filterType)) {
+        }  else if (CONTENT_TYPE_RENDERING_TEMPLATE.equalsIgnoreCase(filterType)) {
             return servicesConfig.getRenderingTemplatePatterns(site);
-        } else if (DmConstants.CONTENT_TYPE_DOCUMENT.equalsIgnoreCase(filterType)) {
+        } else if (CONTENT_TYPE_DOCUMENT.equalsIgnoreCase(filterType)) {
             return servicesConfig.getDocumentPatterns(site);
-        } else if (DmConstants.CONTENT_TYPE_ALL.equalsIgnoreCase(filterType)) {
+        } else if (CONTENT_TYPE_ALL.equalsIgnoreCase(filterType)) {
             return Arrays.asList(".*");
-        } else if (DmConstants.CONTENT_TYPE_PAGE.equalsIgnoreCase(filterType)) {
+        } else if (CONTENT_TYPE_PAGE.equalsIgnoreCase(filterType)) {
             return servicesConfig.getPagePatterns(site);
         } else {
             return null;

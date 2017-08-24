@@ -1634,9 +1634,9 @@ public class ContentServiceImpl implements ContentService {
         //set content type based on the relative Path
         String contentTypeClass = getContentTypeClass(site, relativePath);
         item.contentType = contentTypeClass;
-        if (contentTypeClass.equals(DmConstants.CONTENT_TYPE_COMPONENT)) {
+        if (contentTypeClass.equals(CONTENT_TYPE_COMPONENT)) {
             item.component = true;
-        } else if (contentTypeClass.equals(DmConstants.CONTENT_TYPE_DOCUMENT)) {
+        } else if (contentTypeClass.equals(CONTENT_TYPE_DOCUMENT)) {
             item.document = true;
         }
         // set if the content is new
