@@ -37,6 +37,8 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+
 public class ExtractAssetDependencyProcessor extends PathMatchProcessor {
 
     private static final Logger logger = LoggerFactory.getLogger(ExtractAssetDependencyProcessor.class);
@@ -64,7 +66,7 @@ public class ExtractAssetDependencyProcessor extends PathMatchProcessor {
         String site = content.getProperty(DmConstants.KEY_SITE);
         String folderPath = content.getProperty(DmConstants.KEY_FOLDER_PATH);
         String fileName = content.getProperty(DmConstants.KEY_FILE_NAME);
-        String path = (folderPath.endsWith("/")) ? folderPath + fileName : folderPath + "/" + fileName;
+        String path = (folderPath.endsWith(FILE_SEPARATOR)) ? folderPath + fileName : folderPath + FILE_SEPARATOR + fileName;
         StringWriter sw = new StringWriter();
         boolean isCss = path.endsWith(DmConstants.CSS_PATTERN);
         boolean isJs = path.endsWith(DmConstants.JS_PATTERN);

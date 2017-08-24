@@ -18,6 +18,7 @@
 package org.craftercms.studio.impl.v1.service.objectstate;
 
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.dal.ItemState;
 import org.craftercms.studio.api.v1.dal.ItemStateMapper;
@@ -36,6 +37,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.io.File;
 import java.util.*;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.OBJECT_STATE_BULK_OPERATIONS_BATCH_SIZE;
 
 public class ObjectStateServiceImpl extends AbstractRegistrableService implements ObjectStateService {
@@ -64,7 +66,7 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
 
     @Override
     public ItemState getObjectState(String site, String path, boolean insert) {
-        String cleanPath = path.replace("//", "/");
+        String cleanPath = FilenameUtils.normalize(path, true);
         String lockId = site + ":" + cleanPath;
         ItemState state = null;
         generalLockService.lock(lockId);
@@ -91,7 +93,7 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
 
     @Override
     public void setSystemProcessing(String site, String path, boolean isSystemProcessing) {
-        String cleanPath = path.replace("//", "/");
+        String cleanPath = FilenameUtils.normalize(path, true);
         String lockId = site + ":" + cleanPath;
         logger.debug("Locking with ID: {0}", lockId);
         generalLockService.lock(lockId);
@@ -139,7 +141,7 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
 
     @Override
     public void transition(String site, ContentItemTO item, TransitionEvent event) {
-        String path = item.getUri().replace("//", "/");
+        String path = FilenameUtils.normalize(item.getUri(), true);
         transition(site, path, event);
     }
 
@@ -194,7 +196,7 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
 
     @Override
     public void insertNewEntry(String site, ContentItemTO item) {
-        String path = item.getUri().replace("//", "/");
+        String path = FilenameUtils.normalize(item.getUri(), true);
         ItemState newEntry = new ItemState();
         if (StringUtils.isEmpty(item.getNodeRef())) {
             newEntry.setObjectId(UUID.randomUUID().toString());
@@ -210,7 +212,7 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
 
     @Override
     public void insertNewEntry(String site, String path) {
-        path = path.replace("//", "/");
+        path = FilenameUtils.normalize(path, true);
         ItemState newEntry = new ItemState();
         newEntry.setObjectId(UUID.randomUUID().toString());
 
@@ -236,8 +238,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
 
     @Override
     public void updateObjectPath(String site, String oldPath, String newPath) {
-        oldPath = oldPath.replace("//", "/");
-        newPath = newPath.replace("//", "/");
+        oldPath = FilenameUtils.normalize(oldPath, true);
+        newPath = FilenameUtils.normalize(newPath, true);
         Map<String, Object> params = new HashMap<>();
         params.put("site", site);
         params.put("oldPath", oldPath);
@@ -247,7 +249,7 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
 
     @Override
     public boolean isUpdated(String site, String path) {
-        path = path.replace("//", "/");
+        path = FilenameUtils.normalize(path, true);
         ItemState state = getObjectState(site, path);
         if (state != null) {
             return State.isUpdated(State.valueOf(state.getState()));
@@ -258,7 +260,7 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
 
     @Override
     public boolean isUpdatedOrNew(String site, String path) {
-        path = path.replace("//", "/");
+        path = FilenameUtils.normalize(path, true);
         ItemState state = getObjectState(site, path);
         if (state != null) {
             return State.isUpdateOrNew(State.valueOf(state.getState()));
@@ -269,7 +271,7 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
 
     @Override
     public boolean isUpdatedOrSubmitted(String site, String path) {
-        path = path.replace("//", "/");
+        path = FilenameUtils.normalize(path, true);
         ItemState state = getObjectState(site, path);
         if (state != null) {
             return State.isUpdateOrSubmitted(State.valueOf(state.getState()));
@@ -280,7 +282,7 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
 
     @Override
     public boolean isSubmitted(String site, String path) {
-        path = path.replace("//", "/");
+        path = FilenameUtils.normalize(path, true);
         ItemState state = getObjectState(site, path);
         if (state != null) {
             return State.isSubmitted(State.valueOf(state.getState()));
@@ -291,7 +293,7 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
 
     @Override
     public boolean isNew(String site, String path) {
-        path = path.replace("//", "/");
+        path = FilenameUtils.normalize(path, true);
         ItemState state = getObjectState(site, path);
         if (state != null) {
             return State.isNew(State.valueOf(state.getState()));
@@ -302,7 +304,7 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
 
     @Override
     public boolean isFolderLive(String site, String folderPath) {
-        folderPath = folderPath.replace("//", "");
+        folderPath = FilenameUtils.normalize(folderPath, true);
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("site", site);
         params.put("folderPath", folderPath + "%");
@@ -311,7 +313,7 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
 
     @Override
     public boolean isScheduled(String site, String path) {
-        path = path.replace("//", "/");
+        path = FilenameUtils.normalize(path, true);
         ItemState state = getObjectState(site, path);
         if (state != null) {
             return State.isScheduled(State.valueOf(state.getState()));
@@ -322,7 +324,7 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
 
     @Override
     public boolean isInWorkflow(String site, String path) {
-        path = path.replace("//", "/");
+        path = FilenameUtils.normalize(path, true);
         ItemState state = getObjectState(site, path);
         if (state != null) {
             return State.isInWorkflow(State.valueOf(state.getState()));
@@ -357,7 +359,7 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
 
     @Override
     public void deleteObjectStateForPath(String site, String path) {
-        path = path.replace("//", "/");
+        path = FilenameUtils.normalize(path, true);
         Map<String, String> params = new HashMap<String, String>();
         params.put("site", site);
         params.put("path", path);
@@ -419,7 +421,7 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     }
 
     public String setObjectState(String site, String path, String state, boolean systemProcessing) {
-        path = path.replace("//", "/");
+        path = FilenameUtils.normalize(path, true);
         Map<String, String> params = new HashMap<String, String>();
         params.put("site", site);
         params.put("path", path);
@@ -459,7 +461,7 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("site", site);
         params.put("path", path);
-        params.put("likepath", path + (path.endsWith("/") ? "" : File.separator) + "%");
+        params.put("likepath", path + (path.endsWith(FILE_SEPARATOR) ? "" : FILE_SEPARATOR) + "%");
         params.put("states", State.CHANGE_SET_STATES);
         List<ItemState> result = itemStateMapper.getChangeSetForSubtree(params);
         List<String> toRet = new ArrayList<String>();

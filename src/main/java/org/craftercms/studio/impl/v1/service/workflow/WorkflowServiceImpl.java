@@ -17,6 +17,7 @@
  ******************************************************************************/
 package org.craftercms.studio.impl.v1.service.workflow;
 
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -84,6 +85,7 @@ import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.impl.v1.util.GoLiveQueueOrganizer;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.WORKFLOW_PUBLISHING_WITHOUT_DEPENDENCIES_ENABLED;
 
 /**
@@ -480,7 +482,7 @@ public class WorkflowServiceImpl implements WorkflowService {
             ContentItemTO found = null;
             String uri = item.getUri();
             for (ContentItemTO categoryItem : categoryItems) {
-                String categoryPath = categoryItem.getPath() + "/";
+                String categoryPath = categoryItem.getPath() + FILE_SEPARATOR;
                 if (uri.startsWith(categoryPath)) {
                     found = categoryItem;
                     break;
@@ -528,8 +530,6 @@ public class WorkflowServiceImpl implements WorkflowService {
         // remove submitted aspects from all dependent items
         if (!processedPaths.contains(path)) {
             processedPaths.add(path);
-            //if (contentService.contentExists(site, path)) {
-            //removeSubmittedAspect(site, fullPath, null, false, DmConstants.DM_STATUS_IN_PROGRESS);
             // cancel workflow if anything is pending
             long startTime = System.currentTimeMillis();
             if (cancelWorkflow) {
@@ -537,35 +537,6 @@ public class WorkflowServiceImpl implements WorkflowService {
             }
             long duration = System.currentTimeMillis() - startTime;
             logger.debug("_cancelWorkflow Duration 111: {0}", duration);
-/*
-                startTime = System.currentTimeMillis();
-				DmDependencyTO depItem = dmDependencyService.getDependencies(site, path, false, true);
-            duration = System.currentTimeMillis() - startTime;
-            logger.warn("getDependencies Duration 112: {0}", duration);
-				if (depItem != null) {
-					DependencyRules dependencyRules = new DependencyRules(site);
-					dependencyRules.setObjectStateService(objectStateService);
-					dependencyRules.setContentService(contentService);
-                    long startTime1 = System.currentTimeMillis();
-					Set<DmDependencyTO> submittedDeps = dependencyRules.applySubmitRule(depItem);
-                    duration = System.currentTimeMillis() - startTime1;
-                    logger.warn("applySubmitRule Duration 113: {0}", duration);
-					List<String> transitionNodes = new ArrayList<String>();
-					for (DmDependencyTO dependencyTO : submittedDeps) {
-						removeFromWorkflow(site, dependencyTO.getUri(), processedPaths, cancelWorkflow);
-						ObjectState state = objectStateService.getObjectState(site, dependencyTO.getUri());
-						if (State.isScheduled(State.valueOf(state.getState())) || State.isSubmitted(State.valueOf(state.getState()))) {
-							transitionNodes.add(dependencyTO.getUri());
-						}
-					}
-
-					if (!transitionNodes.isEmpty()) {
-						objectStateService.transitionBulk(site, transitionNodes, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.SAVE, State.NEW_UNPUBLISHED_UNLOCKED);
-					}
-				}
-                duration = System.currentTimeMillis() - startTime;
-                logger.warn("removeFromWorkflow - dependencies Duration 114: {0}", duration);*/
-            //}
         }
         return false;
     }
@@ -642,14 +613,6 @@ public class WorkflowServiceImpl implements WorkflowService {
         }
     }
 
-    private List<String> getDependencyCandidates(String site, List<String> affectedPaths) {
-        List<String> dependenciesPaths = new ArrayList<String>();
-        for (String path : affectedPaths) {
-            getAllDependenciesRecursive(site, path, dependenciesPaths);
-        }
-        return dependenciesPaths;
-    }
-
     protected void getAllDependenciesRecursive(String site, String path, List<String> dependecyPaths) {
         List<String> depPaths = dmDependencyService.getDependencyPaths(site, path);
         for (String depPath : depPaths) {
@@ -672,16 +635,7 @@ public class WorkflowServiceImpl implements WorkflowService {
 
     @Override
     public void updateWorkflowSandboxes(String site, String path) {
-        // TODO: copy to live repo node
-		/*
-		PersistenceManagerService persistenceManagerService = getService(PersistenceManagerService.class);
-		NodeRef node = persistenceManagerService.getNodeRef(fullPath);
-		if (node != null) {
-			NodeRef liveRepoNode = persistenceManagerService.getNodeRef(getPathFromLiveRepo(fullPath));
-			if (liveRepoNode != null) {
-				persistenceManagerService.copy(node, liveRepoNode);
-			}
-		}*/
+
     }
 
     /**
@@ -704,10 +658,8 @@ public class WorkflowServiceImpl implements WorkflowService {
         try {
             Map<String, String> map = new HashMap<String, String>();
             map.put(StudioConstants.USER, user);
-            //ThreadLocalContainer.set(map);
             return approve(site, request, Operation.DELETE);
         } finally {
-            //ThreadLocalContainer.remove();
             generalLockService.unlock(id);
         }
     }
@@ -1486,7 +1438,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                     }
                 }
                 if (submittedItem.getUri().endsWith(DmConstants.INDEX_FILE)) {
-                    submittedItem.setUri(submittedItem.getUri().replace("/" + DmConstants.INDEX_FILE, ""));
+                    submittedItem.setUri(submittedItem.getUri().replace(FILE_SEPARATOR + DmConstants.INDEX_FILE, ""));
                 }
                 itemsToDelete.add(uri);
             } else {
@@ -1501,7 +1453,7 @@ public class WorkflowServiceImpl implements WorkflowService {
             }
         }
         GoLiveContext context = new GoLiveContext(approver, site);
-        final String pathPrefix = "/wem-projects/" + site + "/" + site + "/work-area";
+        final String pathPrefix = FILE_SEPARATOR + "wem-projects" + FILE_SEPARATOR + site + FILE_SEPARATOR + site + FILE_SEPARATOR + "work-area";
         Map<Date, List<DmDependencyTO>> groupedPackages = groupByDate(deleteItems, now);
         if (groupedPackages.isEmpty()) {
             groupedPackages.put(now, Collections.<DmDependencyTO>emptyList());
@@ -1650,7 +1602,7 @@ public class WorkflowServiceImpl implements WorkflowService {
     }
 
     protected boolean checkParentExistsInSubmitPackForDelete(List<String> paths, String path) {
-        String split[] = path.split("/");
+        String split[] = path.split(FILE_SEPARATOR);
         for (int i = split.length - 1; i >= 0; i--) {
             int lastIndex = path.lastIndexOf(split[i]) - 1;
             if (lastIndex > 0) {

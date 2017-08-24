@@ -26,7 +26,10 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.to.ResultTO;
 
+import java.io.File;
 import java.util.Map;
+
+import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 
 /**
  * set the file folder path in params
@@ -64,10 +67,10 @@ public class FileFolderPathProcessor extends BaseContentProcessor {
         String folderPath = path;
         if (!StringUtils.isEmpty(fileName)) {
             if (path.endsWith(fileName)) {
-                folderPath = path.replace("/" + fileName, "");
+                folderPath = path.replace(FILE_SEPARATOR + fileName, "");
             } else {
                 if (path.endsWith(DmConstants.INDEX_FILE)) {
-                    folderPath = path.replace("/" + DmConstants.INDEX_FILE, "");
+                    folderPath = path.replace(FILE_SEPARATOR + DmConstants.INDEX_FILE, "");
                 } else {
                     // path could be a file path to indicate creating a leaf underneath a leaf node
                     if (path.endsWith(DmConstants.XML_PATTERN)) {

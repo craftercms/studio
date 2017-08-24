@@ -18,6 +18,7 @@
 
 package org.craftercms.studio.impl.v1.service.content;
 
+import org.apache.commons.io.FilenameUtils;
 import org.craftercms.studio.api.v1.dal.ItemMetadata;
 import org.craftercms.studio.api.v1.dal.ItemMetadataMapper;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -37,7 +38,7 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
 
     @Override
     public void insertNewObjectMetadata(String site, String path) {
-        path = path.replace("//", "/");
+        path = FilenameUtils.normalize(path, true);
         Map<String, String> params = new HashMap<>();
         params.put("site", site);
         params.put("path", path);
@@ -46,7 +47,7 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
 
     @Override
     public void setObjectMetadata(String site, String path, Map<String, Object> properties) {
-        path = path.replace("//", "/");
+        path = FilenameUtils.normalize(path, true);
         Map<String, Object> params = new HashMap<>();
         params.put("site", site);
         params.put("path", path);
@@ -61,7 +62,7 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
 
     @Override
     public ItemMetadata getProperties(String site, String path) {
-        String cleanPath = path.replace("//", "/");
+        String cleanPath = FilenameUtils.normalize(path, true);
         Map<String, String> params = new HashMap<>();
         params.put("site", site);
         params.put("path", cleanPath);
@@ -70,7 +71,7 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
 
     @Override
     public boolean metadataExist(String site, String path) {
-        path = path.replace("//", "/");
+        path = FilenameUtils.normalize(path, true);
         Map<String, String> params = new HashMap<>();
         params.put("site", site);
         params.put("path", path);
@@ -86,7 +87,7 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
 
     @Override
     public boolean isRenamed(String site, String path) {
-        path = path.replace("//", "/");
+        path = FilenameUtils.normalize(path, true);
         if (metadataExist(site, path)) {
             ItemMetadata metadata = getProperties(site, path);
             return metadata.getRenamed() > 0;
@@ -97,7 +98,7 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
 
     @Override
     public String getOldPath(String site, String path) {
-        path = path.replace("//", "/");
+        path = FilenameUtils.normalize(path, true);
         if (metadataExist(site, path)) {
             ItemMetadata metadata = getProperties(site, path);
             return metadata.getOldUrl();
@@ -108,7 +109,7 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
 
     @Override
     public void lockContent(String site, String path, String lockOwner) {
-        path = path.replace("//", "/");
+        path = FilenameUtils.normalize(path, true);
         if (!metadataExist(site, path)) {
             insertNewObjectMetadata(site, path);
         }
@@ -121,7 +122,7 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
 
     @Override
     public void unLockContent(String site, String path) {
-        path = path.replace("//", "/");
+        path = FilenameUtils.normalize(path, true);
         if (!metadataExist(site, path)) {
             insertNewObjectMetadata(site, path);
         }
@@ -141,7 +142,7 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
 
     @Override
     public void deleteObjectMetadata(String site, String path) {
-        path = path.replace("//", "/");
+        path = FilenameUtils.normalize(path, true);
         Map<String, String> params = new HashMap<>();
         params.put("site", site);
         params.put("path", path);
@@ -150,8 +151,8 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
 
     @Override
     public void updateObjectPath(String site, String oldPath, String newPath) {
-        newPath = newPath.replace("//", "/");
-        oldPath = oldPath.replace("//", "/");
+        newPath = FilenameUtils.normalize(newPath, true);
+        oldPath = FilenameUtils.normalize(oldPath, true);
         Map<String, Object> params = new HashMap<>();
         params.put("site", site);
         params.put("oldPath", oldPath);
@@ -161,7 +162,7 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
 
     @Override
     public void clearRenamed(String site, String path) {
-        path = path.replace("//", "/");
+        path = FilenameUtils.normalize(path, true);
         Map<String, Object> params = new HashMap<>();
         params.put("renamed", false);
         params.put(ItemMetadata.PROP_OLD_URL, "");
@@ -170,7 +171,7 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
 
     @Override
     public void updateCommitId(String site, String path, String commitId) {
-        path = path.replace("//", "/");
+        path = FilenameUtils.normalize(path, true);
         Map<String, Object> params = new HashMap<>();
         params.put("site", site);
         params.put("path", path);

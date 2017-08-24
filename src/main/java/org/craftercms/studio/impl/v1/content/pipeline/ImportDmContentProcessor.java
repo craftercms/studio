@@ -37,10 +37,10 @@ import org.craftercms.studio.api.v1.to.ResultTO;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.List;
+
+import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 
 /**
  * this class is the same as FormDmContentProcess but without adding versionable aspect
@@ -123,7 +123,7 @@ public class ImportDmContentProcessor extends PathMatchProcessor implements DmCo
                     return ActivityService.ActivityType.UPDATED;
                 } else {
                     // otherwise, create new one
-                    String filePath =  path + "/" + fileName;
+                    String filePath = path + FILE_SEPARATOR + fileName;
                     ContentItemTO contentItem = contentService.getContentItem(site, filePath, 0);
                     boolean exists = contentService.contentExists(site, filePath);
                     if (exists && overwrite) {
@@ -199,10 +199,10 @@ public class ImportDmContentProcessor extends PathMatchProcessor implements DmCo
                     // otherwise, create new one
                     String parentContentPath = path;
                     if (parentContentPath.endsWith(DmConstants.XML_PATTERN) && !parentContentPath.endsWith(DmConstants.INDEX_FILE)){
-                        parentContentPath = parentContentPath.substring(0, parentContentPath.lastIndexOf("/"));
+                        parentContentPath = parentContentPath.substring(0, parentContentPath.lastIndexOf(FILE_SEPARATOR));
                         parentContent = contentService.getContentItem(site, parentContentPath, 0);
                     }
-                    String filePath =  parentContentPath + "/" + fileName;
+                    String filePath = parentContentPath + FILE_SEPARATOR + fileName;
                     ContentItemTO fileItem = contentService.getContentItem(site, filePath, 0);
                     boolean exists = contentService.contentExists(site, filePath);
                     if (exists && overwrite) {
@@ -281,22 +281,22 @@ public class ImportDmContentProcessor extends PathMatchProcessor implements DmCo
             String folderPath = fileToFolder(site, parentItem.getPath());
             try {
 
-                contentService.writeContent(site, parentItem.getPath() + "/" + fileName, input);
+                contentService.writeContent(site, parentItem.getPath() + FILE_SEPARATOR + fileName, input);
             } catch (Exception e) {
                 logger.error("Error writing new file: " + fileName, e);
             } finally {
                 IOUtils.closeQuietly(input);
             }
-            contentService.lockContent(site, parentItem.getPath() + "/" + fileName);
+            contentService.lockContent(site, parentItem.getPath() + FILE_SEPARATOR + fileName);
 
             // unlock the content upon save
             if (unlock) {
                 // TODO: unlock content
-                contentService.unLockContent(site, parentItem.getPath() + "/" + fileName);
+                contentService.unLockContent(site, parentItem.getPath() + FILE_SEPARATOR + fileName);
             } else {
             }
 
-            ContentItemTO fileItem = contentService.getContentItem(site, parentItem.getPath() + "/" + fileName, 0);
+            ContentItemTO fileItem = contentService.getContentItem(site, parentItem.getPath() + FILE_SEPARATOR + fileName, 0);
             return fileItem;
         } else {
             throw new ContentNotFoundException(parentItem.getPath() + " does not exist in site: " + site);
@@ -306,11 +306,8 @@ public class ImportDmContentProcessor extends PathMatchProcessor implements DmCo
     /**
      * update the file at the given content node
      *
-     * @param contentNode
-     * @param fullPath
      * @param input
      * @param user
-     * @param isPreview
      * @param unlock
      * 			unlock the content upon update?
      * @throws ServiceException
@@ -382,12 +379,12 @@ public class ImportDmContentProcessor extends PathMatchProcessor implements DmCo
     @Override
     public ContentItemTO createMissingFoldersInPath(String site, String path, boolean isPreview) {
         // create parent folders if missing
-        String [] levels = path.split("/");
+        String [] levels = path.split(FILE_SEPARATOR);
         String parentPath = "";
         ContentItemTO lastItem = null;
         for (String level : levels) {
             if (!StringUtils.isEmpty(level) && !level.endsWith(DmConstants.XML_PATTERN)) {
-                String currentPath = parentPath + "/" + level;
+                String currentPath = parentPath + FILE_SEPARATOR + level;
                 lastItem = contentService.getContentItem(site, currentPath, 0);
                 if (lastItem == null) {
                     contentService.createFolder(site, parentPath, level);
@@ -403,14 +400,14 @@ public class ImportDmContentProcessor extends PathMatchProcessor implements DmCo
     @Override
     public String fileToFolder(String site, String path) {
         ContentItemTO itemTO = contentService.getContentItem(site, path, 0);
-        int index = path.lastIndexOf("/");
+        int index = path.lastIndexOf(FILE_SEPARATOR);
         String folderPath = path.substring(0, index);
         String parentFileName = itemTO.getName();
         String folderName = parentFileName.substring(0, parentFileName.indexOf("."));
 
         contentService.createFolder(site, folderPath, folderName);
-        folderPath = folderPath + "/" + folderName;
-        contentService.moveContent(site, path, folderPath + "/" + DmConstants.INDEX_FILE);
+        folderPath = folderPath + FILE_SEPARATOR + folderName;
+        contentService.moveContent(site, path, folderPath + FILE_SEPARATOR + DmConstants.INDEX_FILE);
         logger.debug("Changed file to folder from " + path + " to " + folderPath);
 
         return folderPath;

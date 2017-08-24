@@ -18,14 +18,13 @@
 package org.craftercms.studio.impl.v1.service.site;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import net.sf.json.JSON;
-import net.sf.json.JSONObject;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.params.HttpMethodParams;
@@ -85,6 +84,7 @@ import org.dom4j.Node;
 import org.dom4j.io.SAXReader;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_DEFAULT_GROUPS_DESCRIPTION;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.*;
 
@@ -112,16 +112,8 @@ public class SiteServiceImpl implements SiteService {
 	    // Write global configuration
         String commitId = contentRepository.writeContent("", path, content);
         boolean toReturn = StringUtils.isEmpty(commitId);
-        String site = extractSiteFromConfigurationPath(path);
         return toReturn;
 	}
-
-    private String extractSiteFromConfigurationPath(String configurationPath) {
-        String var = configurationPath.replace("/cstudio/config/sites/", "");
-        int idx = var.indexOf("/");
-        String site = var.substring(0, idx);
-        return site;
-    }
 
 	@Override
 	public Map<String, Object> getConfiguration(String path) {
@@ -157,22 +149,17 @@ public class SiteServiceImpl implements SiteService {
 		}
 		String configContent = contentService.getContentAsString(site, configPath);
 
-		JSON response = null;
 		Map<String, Object> toRet = null;
 		if (configContent != null) {
 			configContent = configContent.replaceAll("\\n([\\s]+)?+", "");
 			configContent = configContent.replaceAll("<!--(.*?)-->", "");
 			toRet = convertNodesFromXml(configContent);
-		} else {
-			response = new JSONObject();
 		}
 		return toRet;
 	}
 
 	private Map<String, Object> convertNodesFromXml(String xml) {
 		try {
-			InputStream is = new ByteArrayInputStream(xml.getBytes());
-
 			Document document = DocumentHelper.parseText(xml);
 			return createMap(document.getRootElement());
 
@@ -327,7 +314,6 @@ public class SiteServiceImpl implements SiteService {
 			    // initial deployment
                 List<String> commitIds = Arrays.asList(lastCommitId);
                 List<PublishingTargetTO> publishingTargets = getPublishingTargetsForSite(siteId);
-                Set<String> environments = new HashSet<String>();
                 if (publishingTargets != null && publishingTargets.size() > 0) {
                     for (PublishingTargetTO target : publishingTargets) {
                         if (StringUtils.isNotEmpty(target.getRepoBranchName())) {
@@ -402,10 +388,10 @@ public class SiteServiceImpl implements SiteService {
         // create site with git repo
         contentRepository.createSiteFromBlueprint(blueprintName, siteId);
 
-        String siteConfigFolder = "/config/studio";
-        replaceFileContentGit(siteId, siteConfigFolder + "/site-config.xml", "SITENAME", siteId);
-        replaceFileContentGit(siteId, siteConfigFolder + "/role-mappings-config.xml", "SITENAME", siteId);
-        replaceFileContentGit(siteId, siteConfigFolder + "/permission-mappings-config.xml", "SITENAME", siteId);
+        String siteConfigFolder = FILE_SEPARATOR + "config" + FILE_SEPARATOR + "studio";
+        replaceFileContentGit(siteId, siteConfigFolder + FILE_SEPARATOR + "site-config.xml", "SITENAME", siteId);
+        replaceFileContentGit(siteId, siteConfigFolder + FILE_SEPARATOR + "role-mappings-config.xml", "SITENAME", siteId);
+        replaceFileContentGit(siteId, siteConfigFolder + FILE_SEPARATOR + "permission-mappings-config.xml", "SITENAME", siteId);
 
         return success;
     }
@@ -433,48 +419,48 @@ public class SiteServiceImpl implements SiteService {
     }
 
 	protected void createObjectStatesforNewSite(String site) {
-		createObjectStateNewSiteObjectFolder(site, "/");
+		createObjectStateNewSiteObjectFolder(site, FILE_SEPARATOR);
 	}
 
 	protected void createObjectStateNewSiteObjectFolder(String site, String path) {
 		RepositoryItem[] children = contentRepository.getContentChildren(site, path);
 		for (RepositoryItem child : children) {
 			if (child.isFolder) {
-				createObjectStateNewSiteObjectFolder(site, child.path + "/" + child.name);
+				createObjectStateNewSiteObjectFolder(site, child.path + FILE_SEPARATOR + child.name);
 			} else {
-				objectStateService.insertNewEntry(site, child.path + "/" + child.name);
+				objectStateService.insertNewEntry(site, child.path + FILE_SEPARATOR + child.name);
 			}
 		}
 	}
 
     protected void createObjectMetadataforNewSite(String site, String lastCommitId) {
-        createObjectMetadataNewSiteObjectFolder(site, "/", lastCommitId);
+        createObjectMetadataNewSiteObjectFolder(site, FILE_SEPARATOR, lastCommitId);
     }
 
     protected void createObjectMetadataNewSiteObjectFolder(String site, String path, String lastCommitId) {
         RepositoryItem[] children = contentRepository.getContentChildren(site, path);
         for (RepositoryItem child : children) {
             if (child.isFolder) {
-                createObjectMetadataNewSiteObjectFolder(site, child.path + "/" + child.name, lastCommitId);
+                createObjectMetadataNewSiteObjectFolder(site, child.path + FILE_SEPARATOR + child.name, lastCommitId);
             } else {
-                objectMetadataManager.insertNewObjectMetadata(site, child.path + "/" + child.name);
-                objectMetadataManager.updateCommitId(site, child.path + "/" + child.name, lastCommitId);
+                objectMetadataManager.insertNewObjectMetadata(site, child.path + FILE_SEPARATOR + child.name);
+                objectMetadataManager.updateCommitId(site, child.path + FILE_SEPARATOR + child.name, lastCommitId);
             }
         }
     }
 
 	protected void extractDependenciesForNewSite(String site) {
         Map<String, Set<String>> globalDeps = new HashMap<String, Set<String>>();
-        extractDependenciesItemForNewSite(site, "/", globalDeps);
+        extractDependenciesItemForNewSite(site, FILE_SEPARATOR, globalDeps);
 	}
 
     private void extractDependenciesItemForNewSite(String site, String fullPath, Map<String, Set<String>> globalDeps) {
         RepositoryItem[] children = contentRepository.getContentChildren(site, fullPath);
         for (RepositoryItem child : children) {
             if (child.isFolder) {
-                extractDependenciesItemForNewSite(site, child.path + "/" + child.name, globalDeps);
+                extractDependenciesItemForNewSite(site, child.path + FILE_SEPARATOR + child.name, globalDeps);
             } else {
-                String childPath = child.path + "/" + child.name;
+                String childPath = child.path + FILE_SEPARATOR + child.name;
 
                 if (childPath.endsWith(DmConstants.XML_PATTERN)) {
                     try {

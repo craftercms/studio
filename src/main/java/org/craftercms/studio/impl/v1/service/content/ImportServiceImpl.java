@@ -51,6 +51,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.IMPORT_ASSET_CHAIN_NAME;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.IMPORT_ASSIGNEE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.IMPORT_XML_CHAIN_NAME;
@@ -76,7 +77,7 @@ public class ImportServiceImpl implements ImportService {
                     int chunkSize = (!StringUtils.isEmpty(publishSize) && StringUtils.isNumeric(publishSize))
                             ? Integer.valueOf(publishSize) : -1;
                     Node foldersNode = siteNode.selectSingleNode("folders");
-                    String sourceLocation = buildDataLocation + "/" + name;
+                    String sourceLocation = buildDataLocation + FILE_SEPARATOR + name;
                     String delayIntervalStr = siteNode.valueOf("delay-interval");
                     int delayInterval = (!StringUtils.isEmpty(delayIntervalStr) && StringUtils.isNumeric(delayIntervalStr))
                             ? Integer.valueOf(delayIntervalStr) : -1;
@@ -84,7 +85,7 @@ public class ImportServiceImpl implements ImportService {
                     int delayLength = (!StringUtils.isEmpty(delayLengthStr) && StringUtils.isNumeric(delayLengthStr))
                             ? Integer.valueOf(delayLengthStr) : -1;
 
-                    importFromConfigNode(name, publishingChannelGroup, foldersNode, sourceLocation, "/", publish, chunkSize, delayInterval, delayLength);
+                    importFromConfigNode(name, publishingChannelGroup, foldersNode, sourceLocation, FILE_SEPARATOR, publish, chunkSize, delayInterval, delayLength);
                 }
             }
         }
@@ -183,8 +184,8 @@ public class ImportServiceImpl implements ImportService {
                 boolean folderOverWrite = (StringUtils.isEmpty(value)) ? overWrite : ContentFormatUtils
                         .getBooleanValue(value);
                 if (!StringUtils.isEmpty(name)) {
-                    String currentFilePath = fileRoot + "/" + name;
-                    String currentPath = parentPath + "/" + name;
+                    String currentFilePath = fileRoot + FILE_SEPARATOR + name;
+                    String currentPath = parentPath + FILE_SEPARATOR + name;
                     // check if the parent node exists and create the folder if
                     // not
                     boolean folderExists = contentService.contentExists(site, currentPath);
@@ -193,7 +194,7 @@ public class ImportServiceImpl implements ImportService {
                     }
                     boolean importAll = ContentFormatUtils.getBooleanValue(node.valueOf("@import-all"));
                     if (importAll) {
-                        importRootFileList(site, importedPaths, importedFullPaths, fileRoot + "/" + name,
+                        importRootFileList(site, importedPaths, importedFullPaths, fileRoot + FILE_SEPARATOR + name,
                                 targetRoot, currentPath, folderOverWrite, user);
 
                     } else {
@@ -235,18 +236,18 @@ public class ImportServiceImpl implements ImportService {
                 String[] children = file.list();
                 if (children != null && children.length > 0) {
                     for (String childName : children) {
-                        File childFile = new File(resourcePath + "/" + childName);
+                        File childFile = new File(resourcePath + FILE_SEPARATOR + childName);
                         if (childFile.isDirectory()) {
-                            String currentPath = parentPath + "/" + childName;
+                            String currentPath = parentPath + FILE_SEPARATOR + childName;
                             boolean folderExists = contentService.contentExists(site, currentPath);
                             if (!folderExists) {
                                 contentService.createFolder(site, parentPath, childName);
                             }
-                            logger.info("[IMPORT] Importing " + parentPath + "/" + childName);
+                            logger.info("[IMPORT] Importing " + parentPath + FILE_SEPARATOR + childName);
 
-                            importFileList(site, importedPaths, importedFullPaths, fileRoot + "/" + childName,
-                                    targetRoot, parentPath + "/" + childName, overWrite, user);
-                            logger.info("[IMPORT] Finished Importing " + parentPath + "/" + childName);
+                            importFileList(site, importedPaths, importedFullPaths, fileRoot + FILE_SEPARATOR + childName,
+                                    targetRoot, parentPath + FILE_SEPARATOR + childName, overWrite, user);
+                            logger.info("[IMPORT] Finished Importing " + parentPath + FILE_SEPARATOR + childName);
                         } else {
                             writeContentInTransaction(site, importedPaths, importedFullPaths, fileRoot,
                                     targetRoot, parentPath, childName, overWrite, user);
@@ -301,15 +302,15 @@ public class ImportServiceImpl implements ImportService {
                 String[] children = file.list();
                 if (children != null && children.length > 0) {
                     for (String childName : children) {
-                        File childFile = new File(resourcePath + "/" + childName);
+                        File childFile = new File(resourcePath + FILE_SEPARATOR + childName);
                         if (childFile.isDirectory()) {
-                            String currentPath = parentPath + "/" + childName;
+                            String currentPath = parentPath + FILE_SEPARATOR + childName;
                             boolean folderExists = contentService.contentExists(site, currentPath);
                             if (!folderExists) {
                                 contentService.createFolder(site, parentPath, childName);
                             }
-                            importFileList(site, importedPaths, importedFullPaths, fileRoot + "/" + childName,
-                                    targetRoot, parentPath + "/" + childName, overWrite, user);
+                            importFileList(site, importedPaths, importedFullPaths, fileRoot + FILE_SEPARATOR + childName,
+                                    targetRoot, parentPath + FILE_SEPARATOR + childName, overWrite, user);
                         } else {
                             writeContentInTransaction(site, importedPaths, importedFullPaths, fileRoot,
                                     targetRoot, parentPath, childName, overWrite, user);
@@ -338,10 +339,10 @@ public class ImportServiceImpl implements ImportService {
                                              final List<String> importedFullPaths, final String fileRoot,
                                              final String targetRoot, final String parentPath, final String name, final boolean overWrite, final String user) {
         long startTimeWrite = System.currentTimeMillis();
-        logger.debug("[IMPORT] writing file in transaction: " + parentPath + "/" + name);
+        logger.debug("[IMPORT] writing file in transaction: " + parentPath + FILE_SEPARATOR + name);
         writeContent(site, importedPaths, importedFullPaths, fileRoot, targetRoot, parentPath, name,
                         overWrite);
-        logger.debug("[IMPORT] done writing file in transaction: " + parentPath + "/" + name
+        logger.debug("[IMPORT] done writing file in transaction: " + parentPath + FILE_SEPARATOR + name
                         + ", time: " + (System.currentTimeMillis() - startTimeWrite));
         pause();
     }
@@ -366,18 +367,18 @@ public class ImportServiceImpl implements ImportService {
             processChain = getAssetChainName();
         }
         InputStream in = null;
-        String filePath = parentPath + "/" + name;
-        String fileSystemPath = fileRoot + "/" + name;
+        String filePath = parentPath + FILE_SEPARATOR + name;
+        String fileSystemPath = fileRoot + FILE_SEPARATOR + name;
         logger.info("[IMPORT] writeContent: fileRoot [" + fileRoot + "] fullPath [" + filePath + "] overwrite["
                 + overWrite + "] process chain [ " + processChain + "]");
         long startTimeWrite = System.currentTimeMillis();
-        logger.debug("[IMPORT] writing file: " + parentPath + "/" + name);
+        logger.debug("[IMPORT] writing file: " + parentPath + FILE_SEPARATOR + name);
 
         try {
             File file = new File(fileSystemPath);
             if (file.exists()) {
                 in = new FileInputStream(file);
-                String currentPath = parentPath + "/" + name;
+                String currentPath = parentPath + FILE_SEPARATOR + name;
                 boolean contentExists = contentService.contentExists(site, currentPath);
                 // create parameters
                 Map<String, String> params = createParams(site, isXml, targetRoot, parentPath, name);
@@ -417,7 +418,7 @@ public class ImportServiceImpl implements ImportService {
         } finally {
             ContentUtils.release(in);
         }
-        logger.debug("[IMPORT] done writing file: " + parentPath + "/" + name
+        logger.debug("[IMPORT] done writing file: " + parentPath + FILE_SEPARATOR + name
                 + ", time: " + (System.currentTimeMillis() - startTimeWrite));
     }
 
@@ -433,7 +434,7 @@ public class ImportServiceImpl implements ImportService {
      */
     private Map<String, String> createParams(String site, boolean isXml, String targetRoot, String parentPath, String name) {
         Map<String, String> params = new HashMap<String, String>();
-        String filePath = parentPath + "/" + name;
+        String filePath = parentPath + FILE_SEPARATOR + name;
         String path = (isXml) ? filePath : parentPath;
         String fullPath = targetRoot + filePath;
         params.put(DmConstants.KEY_SITE, site);

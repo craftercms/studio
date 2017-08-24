@@ -18,12 +18,12 @@
 package org.craftercms.studio.api.v1.to;
 
 import java.io.Serializable;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.util.DmContentItemComparator;
+
+import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 
 /**
  * This class contains content item metadata
@@ -470,7 +470,7 @@ public class ContentItemTO implements Serializable {
 					// add the new item as a child of the item found
 
 					if (StringUtils.isNotEmpty(itemToAddUri)) {
-						if (itemToAddUri.startsWith(childUri + "/")) {
+						if (itemToAddUri.startsWith(childUri + FILE_SEPARATOR)) {
 							child.addChild(itemToAdd, comparator, recursive);
 							added = true;
 							break;
@@ -479,7 +479,7 @@ public class ContentItemTO implements Serializable {
 							// new item
 							// add the item to the new item add replace it with the
 							// new item
-							if (StringUtils.isNotEmpty(childUri) && childUri.startsWith(itemToAddUri + "/")) {
+							if (StringUtils.isNotEmpty(childUri) && childUri.startsWith(itemToAddUri + FILE_SEPARATOR)) {
 								if (childPositions.size() == 0) {
 									// add the itemToAdd to the first child location
 									// and add the first child to itemToAdd
@@ -579,7 +579,7 @@ public class ContentItemTO implements Serializable {
 					// item
 					// add the new item as a child of the item found
 
-					if (itemToAddUri.startsWith(childUri + "/")) {
+					if (itemToAddUri.startsWith(childUri + FILE_SEPARATOR)) {
 						child.addChild(itemToAdd, comparator, recursive);
 						added = true;
 						break;
@@ -588,7 +588,7 @@ public class ContentItemTO implements Serializable {
 						// new item
 						// add the item to the new item add replace it with the
 						// new item
-						if (childUri.startsWith(itemToAddUri + "/")) {
+						if (childUri.startsWith(itemToAddUri + FILE_SEPARATOR)) {
 							if (childPositions.size() == 0) {
 								// add the itemToAdd to the first child location
 								// and add the first child to itemToAdd

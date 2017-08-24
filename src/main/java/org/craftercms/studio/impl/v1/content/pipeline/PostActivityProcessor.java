@@ -17,7 +17,6 @@
  */
 package org.craftercms.studio.impl.v1.content.pipeline;
 
-
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.content.pipeline.PipelineContent;
 import org.craftercms.studio.api.v1.exception.ContentProcessException;
@@ -26,16 +25,15 @@ import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
 import org.craftercms.studio.api.v1.to.ContentAssetInfoTO;
-import org.craftercms.studio.api.v1.to.ContentItemTO;
-import org.craftercms.studio.api.v1.to.DmDependencyTO;
 import org.craftercms.studio.api.v1.to.ResultTO;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 
 public class PostActivityProcessor extends BaseContentProcessor {
 
@@ -70,37 +68,12 @@ public class PostActivityProcessor extends BaseContentProcessor {
             ContentAssetInfoTO assetInfoTO = (ContentAssetInfoTO)result.getItem();
             fileName = assetInfoTO.getFileName();
         }
-        //AuthenticationUtil.setFullyAuthenticatedUser(user);
-        String uri = (folderPath.endsWith("/")) ? folderPath + fileName : folderPath + "/" + fileName;
+        String uri = (folderPath.endsWith(FILE_SEPARATOR)) ? folderPath + fileName : folderPath + FILE_SEPARATOR + fileName;
         List<String> displayPatterns = servicesConfig.getDisplayInWidgetPathPatterns(site);
         if (ContentUtils.matchesPatterns(uri, displayPatterns)) {
             Map<String,String> extraInfo = new HashMap<String,String>();
             extraInfo.put(DmConstants.KEY_CONTENT_TYPE, contentService.getContentTypeClass(site, uri));
             activityService.postActivity(site, user, uri, activityType, ActivityService.ActivitySource.UI, extraInfo);
-            // disabled due to a performance issue (CRAFTER-655)
-            //updateDependenciesActivity(site, user, uri, activityType, extraInfo);
-        }
-    }
-
-
-    
-    protected void updateDependenciesActivity(String site, String user, String relativePath, ActivityService.ActivityType activityType, Map<String, String> extraInfo) {
-        DmDependencyTO dependencyTO = dmDependencyService.getDependencies(site, relativePath, false, true);
-        List<DmDependencyTO> dependencyList = new ArrayList<>();
-        if (dependencyTO != null) {
-            dependencyList = dependencyTO.flattenChildren();
-        }
-        for (DmDependencyTO dep : dependencyList) {
-            List<String> displayPatterns = servicesConfig.getDisplayInWidgetPathPatterns(site);
-            if(ContentUtils.matchesPatterns(dep.getUri(), displayPatterns)){
-                ContentItemTO item = contentService.getContentItem(site, dep.getUri(), 0);
-                extraInfo.put(DmConstants.KEY_CONTENT_TYPE, contentService.getContentTypeClass(site, dep.getUri()));
-                if (dep.getUri().startsWith(DmConstants.ROOT_PATTERN_SYSTEM_COMPONENTS)) {
-                    activityService.postActivity(site, user, dep.getUri(), ActivityService.ActivityType.CREATED, ActivityService.ActivitySource.UI, extraInfo);
-                } else {
-                    activityService.postActivity(site, user, dep.getUri(), activityType, ActivityService.ActivitySource.UI, extraInfo);
-                }
-            }
         }
     }
 

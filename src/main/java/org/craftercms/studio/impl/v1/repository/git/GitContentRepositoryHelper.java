@@ -37,6 +37,7 @@ import java.util.*;
 
 import com.google.gdata.util.common.base.StringUtil;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
@@ -60,6 +61,7 @@ import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 
 import static org.craftercms.studio.api.v1.constant.SecurityConstants.*;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.*;
 
 /**
@@ -161,7 +163,7 @@ public class GitContentRepositoryHelper {
         Path gitPath = Paths.get(path);
         gitPath = gitPath.normalize();
         try {
-            gitPath = Paths.get(File.separator).relativize(gitPath);
+            gitPath = Paths.get(FILE_SEPARATOR).relativize(gitPath);
         } catch (IllegalArgumentException e) {
             logger.debug("Path: " + path + " is already relative path.");
         }
@@ -169,7 +171,7 @@ public class GitContentRepositoryHelper {
             return ".";
         }
         String toRet = gitPath.toString();
-        toRet = StringUtils.replace(toRet, File.separator, "/");
+        toRet = FilenameUtils.separatorsToUnix(toRet);
         return toRet;
     }
 
@@ -629,9 +631,9 @@ public class GitContentRepositoryHelper {
                     List<DiffEntry> diffEntries = git.diff().setOldTree(prevCommitTreeParser).setNewTree(nextCommitTreeParser).call();
                     for (DiffEntry diffEntry : diffEntries) {
                         if (diffEntry.getChangeType() == DiffEntry.ChangeType.DELETE) {
-                            files.add(File.separator + diffEntry.getOldPath());
+                            files.add(FILE_SEPARATOR + diffEntry.getOldPath());
                         } else {
-                            files.add(File.separator + diffEntry.getNewPath());
+                            files.add(FILE_SEPARATOR + diffEntry.getNewPath());
                         }
                     }
                 } catch (IOException | GitAPIException e) {

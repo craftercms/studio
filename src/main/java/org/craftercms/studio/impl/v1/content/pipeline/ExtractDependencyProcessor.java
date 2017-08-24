@@ -31,6 +31,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+
 public class ExtractDependencyProcessor extends PathMatchProcessor {
 
     private static final Logger logger = LoggerFactory.getLogger(ExtractDependencyProcessor.class);
@@ -58,7 +60,7 @@ public class ExtractDependencyProcessor extends PathMatchProcessor {
         String site = content.getProperty(DmConstants.KEY_SITE);
         String folderPath = content.getProperty(DmConstants.KEY_FOLDER_PATH);
         String fileName = content.getProperty(DmConstants.KEY_FILE_NAME);
-        String path = (folderPath.endsWith("/")) ? folderPath + fileName : folderPath + "/" + fileName;
+        String path = (folderPath.endsWith(FILE_SEPARATOR)) ? folderPath + fileName : folderPath + FILE_SEPARATOR + fileName;
         Document document = content.getDocument();
         try {
             Map<String, Set<String>> globalDeps = new HashMap<>();

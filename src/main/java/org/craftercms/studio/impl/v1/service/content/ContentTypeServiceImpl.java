@@ -40,6 +40,7 @@ import org.dom4j.DocumentException;
 
 import java.util.*;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_CONTENT_TYPES_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_CONTENT_TYPES_CONFIG_FILE_NAME;
 
@@ -195,9 +196,9 @@ public class ContentTypeServiceImpl implements ContentTypeService {
 
         if (folders != null) {
             for (int i = 0; i < folders.length; i++) {
-                String configPath = folders[i].path + "/" + folders[i].name + "/" + getConfigFileName();
+                String configPath = folders[i].path + FILE_SEPARATOR + folders[i].name + FILE_SEPARATOR + getConfigFileName();
                 if (contentService.contentExists(site, configPath)) {
-                    ContentTypeConfigTO config = contentTypesConfig.reloadConfiguration(site, configPath.replace(contentTypesRootPath, "").replace("/" + getConfigFileName(), ""));
+                    ContentTypeConfigTO config = contentTypesConfig.reloadConfiguration(site, configPath.replace(contentTypesRootPath, "").replace(FILE_SEPARATOR + getConfigFileName(), ""));
                     if (config != null) {
                         contentTypes.add(config);
                     }
@@ -217,9 +218,9 @@ public class ContentTypeServiceImpl implements ContentTypeService {
 
         if (folders != null) {
             for (int i = 0; i < folders.length; i++) {
-                String configPath = folders[i].path + "/" + folders[i].name + "/" + getConfigFileName();
+                String configPath = folders[i].path + FILE_SEPARATOR + folders[i].name + FILE_SEPARATOR + getConfigFileName();
                 if (contentService.contentExists(site, configPath)) {
-                    ContentTypeConfigTO config = contentTypesConfig.reloadConfiguration(site, configPath.replace(contentTypesRootPath, "").replace("/" + getConfigFileName(), ""));
+                    ContentTypeConfigTO config = contentTypesConfig.reloadConfiguration(site, configPath.replace(contentTypesRootPath, "").replace(FILE_SEPARATOR + getConfigFileName(), ""));
                     if (config != null) {
                         contentTypes.add(config);
                     }
@@ -232,15 +233,15 @@ public class ContentTypeServiceImpl implements ContentTypeService {
 
     protected void reloadContentTypeConfigForChildren(String site, RepositoryItem node, List<ContentTypeConfigTO> contentTypes) {
         String contentTypesRootPath = getConfigPath().replaceAll(StudioConstants.PATTERN_SITE, site);
-        String fullPath = node.path + "/" + node.name;
+        String fullPath = node.path + FILE_SEPARATOR + node.name;
         logger.debug("Get Content Type Config fot Children path = {0}", fullPath );
         RepositoryItem[] folders = contentRepository.getContentChildren(site, fullPath);
         if (folders != null) {
             for (int i = 0; i < folders.length; i++) {
                 if (folders[i].isFolder) {
-                    String configPath = folders[i].path + "/" + folders[i].name + "/" + getConfigFileName();
+                    String configPath = folders[i].path + FILE_SEPARATOR + folders[i].name + FILE_SEPARATOR + getConfigFileName();
                     if (contentService.contentExists(site, configPath)) {
-                        ContentTypeConfigTO config = contentTypesConfig.reloadConfiguration(site, configPath.replace(contentTypesRootPath, "").replace("/" + getConfigFileName(), ""));
+                        ContentTypeConfigTO config = contentTypesConfig.reloadConfiguration(site, configPath.replace(contentTypesRootPath, "").replace(FILE_SEPARATOR + getConfigFileName(), ""));
                         if (config != null) {
                             contentTypes.add(config);
                         }

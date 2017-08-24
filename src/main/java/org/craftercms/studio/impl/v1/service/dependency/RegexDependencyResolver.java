@@ -35,6 +35,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_DEPENDENCY_RESOLVER_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_DEPENDENCY_RESOLVER_CONFIG_FILE_NAME;
 
@@ -171,7 +172,7 @@ public class RegexDependencyResolver implements DependencyResolver {
 
     private String getConfigLocation(String site) {
         String configLocation = getConfigPath().replaceFirst(StudioConstants.PATTERN_SITE, site);
-        configLocation = configLocation + "/" + getConfigFileName();
+        configLocation = configLocation + FILE_SEPARATOR + getConfigFileName();
         return configLocation;
     }
 
