@@ -23,9 +23,9 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.DmXmlConstants;
 import org.craftercms.studio.api.v1.dal.ItemMetadata;
@@ -228,7 +228,7 @@ public class ContentServiceImpl implements ContentService {
             String savedPath = params.get(DmConstants.KEY_PATH);
             relativePath = savedPath;
             if (!savedPath.endsWith(savedFileName)) {
-                relativePath = savedPath + "/" + savedFileName;
+                relativePath = savedPath + FILE_SEPARATOR + savedFileName;
             }
 
             // TODO: SJ: Why is the item being loaded again? Why is the state being set to system not processing
@@ -330,14 +330,14 @@ public class ContentServiceImpl implements ContentService {
         params.put(DmConstants.KEY_UNLOCK, unlock);
         params.put(DmConstants.KEY_SYSTEM_ASSET, String.valueOf(isSystemAsset));
 
-        boolean exists = contentExists(site, path+ File.separator + assetName);
+        boolean exists = contentExists(site, path+ FILE_SEPARATOR + assetName);
         params.put(DmConstants.KEY_ACTIVITY_TYPE, (exists ? ActivityService.ActivityType.UPDATED.toString() : ActivityService.ActivityType.CREATED.toString()));
 
         String id = site + ":" + path + ":" + assetName + ":" + "";
         // processContent will close the input stream
         ContentItemTO item = null;
         try {
-            path = path + "/" + assetName;
+            path = path + FILE_SEPARATOR + assetName;
             item = getContentItem(site, path);
 
             if (item != null) {
@@ -501,8 +501,8 @@ public class ContentServiceImpl implements ContentService {
             String copyPathFileName = copyPathMap.get("FILE_NAME");
             String copyPathFolder = copyPathMap.get("FILE_FOLDER");
 
-            String copyPathOnly = copyPath.substring(0, copyPath.lastIndexOf("/"));
-            String copyFileName = copyPath.substring(copyPath.lastIndexOf("/")+1);
+            String copyPathOnly = copyPath.substring(0, copyPath.lastIndexOf(FILE_SEPARATOR));
+            String copyFileName = copyPath.substring(copyPath.lastIndexOf(FILE_SEPARATOR)+1);
 
             if(!processedPaths.contains(copyPath)) {
                 ContentItemTO fromItem = getContentItem(site, fromPath, 0);
@@ -628,13 +628,13 @@ public class ContentServiceImpl implements ContentService {
         String movePath = null;
 
         try {
-            String sourcePath = (fromPath.indexOf("" + File.separator + DmConstants.INDEX_FILE) != -1) ? fromPath.substring(0, fromPath.lastIndexOf("/")) : fromPath;
-            String sourcePathOnly = fromPath.substring(0, fromPath.lastIndexOf("/"));
+            String sourcePath = (fromPath.indexOf("" + FILE_SEPARATOR + DmConstants.INDEX_FILE) != -1) ? fromPath.substring(0, fromPath.lastIndexOf(FILE_SEPARATOR)) : fromPath;
+            String sourcePathOnly = fromPath.substring(0, fromPath.lastIndexOf(FILE_SEPARATOR));
 
             Map<String, String> movePathMap = constructNewPathforCutCopy(site, fromPath, toPath, true);
             movePath = movePathMap.get("FILE_PATH");
             String moveFileName = movePathMap.get("FILE_NAME");
-            String movePathOnly = movePath.substring(0, movePath.lastIndexOf("/"));
+            String movePathOnly = movePath.substring(0, movePath.lastIndexOf(FILE_SEPARATOR));
             boolean moveAltFileName = "true".equals(movePathMap.get("ALT_NAME"));
             boolean targetIsIndex = DmConstants.INDEX_FILE.equals(moveFileName);
             boolean sourceIsIndex = DmConstants.INDEX_FILE.equals(fromPath);
@@ -658,7 +658,7 @@ public class ContentServiceImpl implements ContentService {
                 updateDatabaseOnMove(site, fromPath, movePath);
                 updateChildrenOnMove(site, fromPath, movePath);
                 for (Map.Entry<String, String> entry : commitIds.entrySet()) {
-                    objectMetadataManager.updateCommitId(site, "/" + entry.getKey(), entry.getValue());
+                    objectMetadataManager.updateCommitId(site, FILE_SEPARATOR + entry.getKey(), entry.getValue());
                 }
                 siteService.updateLastCommitId(site, _contentRepository.getRepoLastCommitId(site));
             }
@@ -813,25 +813,25 @@ public class ContentServiceImpl implements ContentService {
         Map<String, String> result = new HashMap<String, String>();
 
         // The following rules apply to content under the site folder
-        String fromPathOnly = fromPath.substring(0, fromPath.lastIndexOf("/"));
-        String fromFileNameOnly = fromPath.substring(fromPath.lastIndexOf("/")+1);
+        String fromPathOnly = fromPath.substring(0, fromPath.lastIndexOf(FILE_SEPARATOR));
+        String fromFileNameOnly = fromPath.substring(fromPath.lastIndexOf(FILE_SEPARATOR)+1);
         boolean fromFileIsIndex = ("index.xml".equals(fromFileNameOnly));
         logger.debug("Cut/copy name rules from path: '{0}' name: '{1}'", fromPathOnly, fromFileNameOnly);
 
         if(fromFileIsIndex==true) {
-            fromFileNameOnly = fromPathOnly.substring(fromPathOnly.lastIndexOf("/")+1);
-            fromPathOnly = fromPathOnly.substring(0, fromPathOnly.lastIndexOf("/"));
+            fromFileNameOnly = fromPathOnly.substring(fromPathOnly.lastIndexOf(FILE_SEPARATOR)+1);
+            fromPathOnly = fromPathOnly.substring(0, fromPathOnly.lastIndexOf(FILE_SEPARATOR));
             logger.debug("Cut/copy name rules index from path: '{0}' name: '{1}'", fromPathOnly, fromFileNameOnly);
         }
 
-        String newPathOnly = (toPath.contains(".xml")) ? toPath.substring(0, toPath.lastIndexOf("/")) : toPath;
-        String newFileNameOnly = (toPath.contains(".xml")) ? toPath.substring(toPath.lastIndexOf("/")+1) : fromFileNameOnly;
+        String newPathOnly = (toPath.contains(".xml")) ? toPath.substring(0, toPath.lastIndexOf(FILE_SEPARATOR)) : toPath;
+        String newFileNameOnly = (toPath.contains(".xml")) ? toPath.substring(toPath.lastIndexOf(FILE_SEPARATOR)+1) : fromFileNameOnly;
         boolean newFileIsIndex = ("index.xml".equals(newFileNameOnly));
         logger.debug("Cut/copy name rules to path: '{0}' name: '{1}'", newPathOnly, newFileNameOnly);
 
         if(newFileIsIndex==true) {
-            newFileNameOnly = newPathOnly.substring(newPathOnly.lastIndexOf("/")+1);
-            newPathOnly = newPathOnly.substring(0, newPathOnly.lastIndexOf("/"));
+            newFileNameOnly = newPathOnly.substring(newPathOnly.lastIndexOf(FILE_SEPARATOR)+1);
+            newPathOnly = newPathOnly.substring(0, newPathOnly.lastIndexOf(FILE_SEPARATOR));
             logger.debug("Cut/copy name rules index to path: '{0}' name: '{1}'", newPathOnly, newFileNameOnly);
         }
 
@@ -854,14 +854,14 @@ public class ContentServiceImpl implements ContentService {
             // newPath:  "/site/website/en/services-updated/index.xml
             if(newPathOnly.equals(fromPathOnly) && !targetPathExistsPriorToOp) {
                 // this is a rename
-                proposedDestPath = newPathOnly + "/" + newFileNameOnly +  "/index.xml";
-                proposedDestPath_filename = "index.xml";
+                proposedDestPath = newPathOnly + FILE_SEPARATOR + newFileNameOnly + FILE_SEPARATOR + DmConstants.INDEX_FILE;
+                proposedDestPath_filename = DmConstants.INDEX_FILE;
                 proposedDestPath_folder = newFileNameOnly;
             }
             else {
                 // this is a location move
-                proposedDestPath = newPathOnly + "/" + newFileNameOnly + "/" + fromFileNameOnly +  "/index.xml";
-                proposedDestPath_filename = "index.xml";
+                proposedDestPath = newPathOnly + FILE_SEPARATOR + newFileNameOnly + FILE_SEPARATOR + fromFileNameOnly + FILE_SEPARATOR + DmConstants.INDEX_FILE;
+                proposedDestPath_filename = DmConstants.INDEX_FILE;
                 proposedDestPath_folder = fromFileNameOnly;
             }
         }
@@ -870,12 +870,12 @@ public class ContentServiceImpl implements ContentService {
             // fromPath: "/site/website/search/index.xml"
             // toPath:   "/site/website/a-folder"
             // newPath:  "/site/website/a-folder/search/index.xml"
-            proposedDestPath = newPathOnly + "/" + fromFileNameOnly +  "/index.xml";
-            proposedDestPath_filename = "index.xml";
+            proposedDestPath = newPathOnly + FILE_SEPARATOR + fromFileNameOnly + FILE_SEPARATOR + DmConstants.INDEX_FILE;
+            proposedDestPath_filename = DmConstants.INDEX_FILE;
             proposedDestPath_folder = fromFileNameOnly;
         }
         else if(!fromFileIsIndex && newFileIsIndex) {
-            proposedDestPath = newPathOnly + "/" + newFileNameOnly + "/" + fromFileNameOnly;
+            proposedDestPath = newPathOnly + FILE_SEPARATOR + newFileNameOnly + FILE_SEPARATOR + fromFileNameOnly;
             proposedDestPath_filename = fromFileNameOnly;
             proposedDestPath_folder = newFileNameOnly;
         }
@@ -891,15 +891,15 @@ public class ContentServiceImpl implements ContentService {
             // newPath:  "/site/website/products/search.xml"
             if(fromFileNameOnly.equals(newFileNameOnly)) {
                 // Move location
-                proposedDestPath = newPathOnly + "/" + fromFileNameOnly;
+                proposedDestPath = newPathOnly + FILE_SEPARATOR + fromFileNameOnly;
                 proposedDestPath_filename = fromFileNameOnly;
-                proposedDestPath_folder = newPathOnly.substring(0, newPathOnly.lastIndexOf("/"));
+                proposedDestPath_folder = newPathOnly.substring(0, newPathOnly.lastIndexOf(FILE_SEPARATOR));
             }
             else {
                 // rename
-                proposedDestPath = newPathOnly + "/" + newFileNameOnly;
+                proposedDestPath = newPathOnly + FILE_SEPARATOR + newFileNameOnly;
                 proposedDestPath_filename = newFileNameOnly;
-                proposedDestPath_folder = newPathOnly.substring(0, newPathOnly.lastIndexOf("/"));
+                proposedDestPath_folder = newPathOnly.substring(0, newPathOnly.lastIndexOf(FILE_SEPARATOR));
             }
 
         }
@@ -925,9 +925,7 @@ public class ContentServiceImpl implements ContentService {
                 Map<String,String> ids = contentItemIdGenerator.getIds();
                 String id = ids.get(DmConstants.KEY_PAGE_GROUP_ID);
 
-                //proposedDestPath = getNextAvailableName(site, proposedDestPath);
-
-                if(proposedDestPath.indexOf("/index.xml") == -1) {
+                if(proposedDestPath.indexOf(FILE_SEPARATOR + DmConstants.INDEX_FILE) == -1) {
                     int pdpli = proposedDestPath.lastIndexOf(".");
                     if (pdpli == -1) pdpli = proposedDestPath.length();
                     proposedDestPath =
@@ -935,18 +933,18 @@ public class ContentServiceImpl implements ContentService {
                                     proposedDestPath.substring(pdpli);
 
                     // a regex would be better
-                    proposedDestPath_filename = proposedDestPath.substring(proposedDestPath.lastIndexOf("/")+1);
-                    proposedDestPath_folder = proposedDestPath.substring(0, proposedDestPath.lastIndexOf("/"));
-                    proposedDestPath_folder = proposedDestPath_folder.substring(proposedDestPath_folder.lastIndexOf("/")+1);
+                    proposedDestPath_filename = proposedDestPath.substring(proposedDestPath.lastIndexOf(FILE_SEPARATOR)+1);
+                    proposedDestPath_folder = proposedDestPath.substring(0, proposedDestPath.lastIndexOf(FILE_SEPARATOR));
+                    proposedDestPath_folder = proposedDestPath_folder.substring(proposedDestPath_folder.lastIndexOf(FILE_SEPARATOR)+1);
                 }
                 else {
                     proposedDestPath =
-                            proposedDestPath.substring(0, proposedDestPath.indexOf("/index.xml")) + "-" + id +
-                                    proposedDestPath.substring(proposedDestPath.lastIndexOf("/index.xml"));
+                            proposedDestPath.substring(0, proposedDestPath.indexOf(FILE_SEPARATOR + DmConstants.INDEX_FILE)) + "-" + id +
+                                    proposedDestPath.substring(proposedDestPath.lastIndexOf(FILE_SEPARATOR + DmConstants.INDEX_FILE));
 
-                    proposedDestPath_filename = "index.xml";
-                    proposedDestPath_folder = proposedDestPath.replace("/index.xml","");
-                    proposedDestPath_folder = proposedDestPath_folder.substring(proposedDestPath_folder.lastIndexOf("/")+1);
+                    proposedDestPath_filename = DmConstants.INDEX_FILE;
+                    proposedDestPath_folder = proposedDestPath.replace(FILE_SEPARATOR + DmConstants.INDEX_FILE,"");
+                    proposedDestPath_folder = proposedDestPath_folder.substring(proposedDestPath_folder.lastIndexOf(FILE_SEPARATOR)+1);
                 }
 
                 result.put("FILE_PATH", proposedDestPath);
@@ -1087,11 +1085,11 @@ public class ContentServiceImpl implements ContentService {
 
     protected ContentItemTO createNewContentItemTO(String site, String contentPath) {
         ContentItemTO item = new ContentItemTO();
-        contentPath = contentPath.replace("//", "/");   // FIXME: SJ: This is another workaround for UI issues
+        contentPath = FilenameUtils.normalize(contentPath, true);   // FIXME: SJ: This is another workaround for UI issues
 
         item.uri = contentPath;
-        item.path = contentPath.substring(0, contentPath.lastIndexOf("/"));
-        item.name = contentPath.substring(contentPath.lastIndexOf("/") + 1);
+        item.path = contentPath.substring(0, contentPath.lastIndexOf(FILE_SEPARATOR));
+        item.name = contentPath.substring(contentPath.lastIndexOf(FILE_SEPARATOR) + 1);
 
         item.asset = true;
         item.site = site;
@@ -1145,13 +1143,13 @@ public class ContentServiceImpl implements ContentService {
         item.isDocument = item.document;
 
         item.uri = contentPath;
-        item.path = contentPath.substring(0, contentPath.lastIndexOf("/")); // TODO: SJ: This is hokey, fix in 3.1+
-        item.name = contentPath.substring(contentPath.lastIndexOf("/") + 1);// TODO: SJ: This is hokey, fix in 3.1+
+        item.path = contentPath.substring(0, contentPath.lastIndexOf(FILE_SEPARATOR)); // TODO: SJ: This is hokey, fix in 3.1+
+        item.name = contentPath.substring(contentPath.lastIndexOf(FILE_SEPARATOR) + 1);// TODO: SJ: This is hokey, fix in 3.1+
         item.browserUri = contentPath;
 
         if(item.page) {
             // TODO: SJ: This is hokey, fix in 4.x
-            item.browserUri = contentPath.replace("/site/website", "").replace("/index.xml", "");
+            item.browserUri = contentPath.replace(FILE_SEPARATOR + "site" + FILE_SEPARATOR + "website", "").replace(FILE_SEPARATOR + DmConstants.INDEX_FILE, "");
         }
 
         Document contentDoc = this.getContentAsDocument(site, contentPath);
@@ -1249,11 +1247,11 @@ public class ContentServiceImpl implements ContentService {
         item.children = new ArrayList<ContentItemTO>();
         item.numOfChildren = 0;
 
-        if(contentPath.indexOf("/index.xml") != -1
+        if(contentPath.indexOf(FILE_SEPARATOR + DmConstants.INDEX_FILE) != -1
                 || contentPath.indexOf(".") == -1 ) { // item.isFolder?
 
-            if (contentPath.indexOf("/index.xml") != -1) {
-                contentPath = contentPath.replace("/index.xml", "");
+            if (contentPath.indexOf(FILE_SEPARATOR + DmConstants.INDEX_FILE) != -1) {
+                contentPath = contentPath.replace(FILE_SEPARATOR + DmConstants.INDEX_FILE, "");
             }
 
 
@@ -1271,18 +1269,18 @@ public class ContentServiceImpl implements ContentService {
                 logger.debug("Checking if {0} has index", contentPath);
                 for (int j = 0; j < childRepoItems.length; j++) {
                     if ("index.xml".equals(childRepoItems[j].name)) {
-                        if (!item.uri.contains("/index.xml")) {
+                        if (!item.uri.contains(FILE_SEPARATOR + DmConstants.INDEX_FILE)) {
                             item.path = item.uri;
-                            item.uri = item.uri + "/index.xml";
+                            item.uri = item.uri + FILE_SEPARATOR + DmConstants.INDEX_FILE;
                         }
                         item.numOfChildren--;
                         indexFound = true;
                     }
                     else {
                         if (depth > 1) {
-                            String childPath = childRepoItems[j].path + "/" + childRepoItems[j].name;
-                            if (childPath.startsWith("/site/website/") && childRepoItems[j].isFolder && contentExists(item.site, childPath + "/index.xml")) {
-                                children.add(getContentItem(item.site, childPath + "/index.xml", depth - 1));
+                            String childPath = childRepoItems[j].path + FILE_SEPARATOR + childRepoItems[j].name;
+                            if (childPath.startsWith(FILE_SEPARATOR + "site" + FILE_SEPARATOR + "website" + FILE_SEPARATOR) && childRepoItems[j].isFolder && contentExists(item.site, childPath + FILE_SEPARATOR + DmConstants.INDEX_FILE )) {
+                                children.add(getContentItem(item.site, childPath + FILE_SEPARATOR + DmConstants.INDEX_FILE, depth - 1));
                             } else {
                                 children.add(getContentItem(item.site, childPath, depth - 1));
                             }
@@ -1536,14 +1534,14 @@ public class ContentServiceImpl implements ContentService {
         DebugUtils.addDebugStack(logger);
 
         long startTime = System.currentTimeMillis();
-        boolean isPages = (path.contains("/site/website"));
+        boolean isPages = (path.contains(FILE_SEPARATOR + "site" + FILE_SEPARATOR + "website"));
         ContentItemTO root = null;
 
-        if (isPages && contentExists(site, path + "/index.xml")) {
+        if (isPages && contentExists(site, path + FILE_SEPARATOR + DmConstants.INDEX_FILE)) {
             if (depth > 1) {
-                root = getContentItem(site, path + "/index.xml", depth);
+                root = getContentItem(site, path + FILE_SEPARATOR + DmConstants.INDEX_FILE, depth);
             } else {
-                root = getContentItem(site, path + "/index.xml");
+                root = getContentItem(site, path + FILE_SEPARATOR + DmConstants.INDEX_FILE);
             }
         }
         else {
@@ -1617,13 +1615,13 @@ public class ContentServiceImpl implements ContentService {
         String timeZone = servicesConfig.getDefaultTimezone(site);
         item.timezone = timeZone;
         String name = ContentUtils.getPageName(relativePath);
-        String folderPath = (name.equals(DmConstants.INDEX_FILE)) ? relativePath.replace("/" + name, "") : relativePath;
+        String folderPath = (name.equals(DmConstants.INDEX_FILE)) ? relativePath.replace(FILE_SEPARATOR + name, "") : relativePath;
         item.path = folderPath;
         /**
          * Internal name should be just folder name
          */
         String internalName = folderPath;
-        int index = folderPath.lastIndexOf('/');
+        int index = folderPath.lastIndexOf(FILE_SEPARATOR);
         if (index != -1)
             internalName = folderPath.substring(index + 1);
 
@@ -1636,9 +1634,9 @@ public class ContentServiceImpl implements ContentService {
         //set content type based on the relative Path
         String contentTypeClass = getContentTypeClass(site, relativePath);
         item.contentType = contentTypeClass;
-        if (contentTypeClass.equals(DmConstants.CONTENT_TYPE_COMPONENT)) {
+        if (contentTypeClass.equals(CONTENT_TYPE_COMPONENT)) {
             item.component = true;
-        } else if (contentTypeClass.equals(DmConstants.CONTENT_TYPE_DOCUMENT)) {
+        } else if (contentTypeClass.equals(CONTENT_TYPE_DOCUMENT)) {
             item.document = true;
         }
         // set if the content is new
@@ -1675,9 +1673,9 @@ public class ContentServiceImpl implements ContentService {
 
     protected static String getBrowserUri(String uri, String replacePattern, boolean isPage) {
         String browserUri = uri.replaceFirst(replacePattern, "");
-        browserUri = browserUri.replaceFirst("/" + DmConstants.INDEX_FILE, "");
+        browserUri = browserUri.replaceFirst(FILE_SEPARATOR + DmConstants.INDEX_FILE, "");
         if (browserUri.length() == 0) {
-            browserUri = "/";
+            browserUri = FILE_SEPARATOR;
         }
         // TODO: come up with a better way of doing this.
         if (isPage) {
@@ -1691,7 +1689,7 @@ public class ContentServiceImpl implements ContentService {
         // TODO: SJ: This reads: if can't guess what it is, it's a page. This is to be replaced in 3.1+
         if (matchesPatterns(uri, servicesConfig.getPagePatterns(site))) {
             return CONTENT_TYPE_PAGE;
-        } else if (matchesPatterns(uri, servicesConfig.getComponentPatterns(site)) || uri.endsWith("/" + servicesConfig.getLevelDescriptorName(site))) {
+        } else if (matchesPatterns(uri, servicesConfig.getComponentPatterns(site)) || uri.endsWith(FILE_SEPARATOR + servicesConfig.getLevelDescriptorName(site))) {
             return CONTENT_TYPE_COMPONENT;
         } else if (matchesPatterns(uri, servicesConfig.getDocumentPatterns(site))) {
             return CONTENT_TYPE_DOCUMENT;
@@ -1739,7 +1737,7 @@ public class ContentServiceImpl implements ContentService {
     @Override
     public String getNextAvailableName(String site, String path) {
         // TODO: SJ: Refactor to be faster, and make it work regardless (seems to fail above 10) in 3.1+
-        String[] levels = path.split("/");
+        String[] levels = path.split(FILE_SEPARATOR);
         int length = levels.length;
         if (length > 0) {
             ContentItemTO item = getContentItem(site, path, 0);
@@ -1852,12 +1850,12 @@ public class ContentServiceImpl implements ContentService {
         // otherwise remove the file name only
         if (!StringUtils.isEmpty(relativePath)) {
             if (relativePath.endsWith(DmConstants.XML_PATTERN)) {
-                int index = relativePath.lastIndexOf("/");
+                int index = relativePath.lastIndexOf(FILE_SEPARATOR);
                 if (index > 0) {
                     String fileName = relativePath.substring(index + 1);
                     String path = relativePath.substring(0, index);
                     if (DmConstants.INDEX_FILE.equals(fileName)) {
-                        int secondIndex = path.lastIndexOf("/");
+                        int secondIndex = path.lastIndexOf(FILE_SEPARATOR);
                         if (secondIndex > 0) {
                             path = path.substring(0, secondIndex);
                         }
@@ -1870,7 +1868,7 @@ public class ContentServiceImpl implements ContentService {
         ContentItemTO item = getContentItem(site, relativePath);
         if (item.getChildren() != null) {
             List<DmOrderTO> orders = new ArrayList<DmOrderTO>(item.getChildren().size());
-            String pathIndex = relativePath + "/" + DmConstants.INDEX_FILE;
+            String pathIndex = relativePath + FILE_SEPARATOR + DmConstants.INDEX_FILE;
             for (ContentItemTO child : item.getChildren()) {
                 // exclude index.xml, the level descriptor and floating pages at the path
                 if (!(pathIndex.equals(child.getUri()) || child.isLevelDescriptor() || child.isDeleted()) && (!child.isFloating() || includeFloating)) {
@@ -1932,12 +1930,12 @@ public class ContentServiceImpl implements ContentService {
 
         // if no after and before provided, the initial value is ORDER_INCREMENT
         if (afterOrder == null && beforeOrder == null) {
-            return dmPageNavigationOrderService.getNewNavOrder(site, ContentUtils.getParentUrl(relativePath.replace("/" + DmConstants.INDEX_FILE, "")));
+            return dmPageNavigationOrderService.getNewNavOrder(site, ContentUtils.getParentUrl(relativePath.replace(FILE_SEPARATOR + DmConstants.INDEX_FILE, "")));
         } else if (beforeOrder == null) {
             return (0 + afterOrder) / 2;
         } else if (afterOrder == null) {
             logger.info("afterOrder == null");
-            return dmPageNavigationOrderService.getNewNavOrder(site, ContentUtils.getParentUrl(relativePath.replace("/" + DmConstants.INDEX_FILE, "")), beforeOrder);
+            return dmPageNavigationOrderService.getNewNavOrder(site, ContentUtils.getParentUrl(relativePath.replace(FILE_SEPARATOR + DmConstants.INDEX_FILE, "")), beforeOrder);
         } else {
             //return (beforeOrder + afterOrder) / 2;
             return computeReorder(site, relativePath, beforeOrderTO, afterOrderTO, orderName);

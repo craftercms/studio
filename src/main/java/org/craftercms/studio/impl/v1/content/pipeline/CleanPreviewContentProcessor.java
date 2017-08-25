@@ -47,21 +47,5 @@ public class CleanPreviewContentProcessor extends BaseContentProcessor {
 
 
     public void process(PipelineContent content, ResultTO result) throws ContentProcessException {
-        /*
-        String site = (String) content.getProperty(DmConstants.KEY_SITE);
-        String folderPath = (String) content.getProperty(DmConstants.KEY_FOLDER_PATH);
-        String fileName = (String) content.getProperty(DmConstants.KEY_FILE_NAME);
-        String path = folderPath + "/" + fileName;
-        String skipPreview = content.getProperty(DmConstants.KEY_SKIP_CLEAN_PREVIEW);
-        Boolean skipClean = Boolean.valueOf(skipPreview);
-        if (!skipClean) {
-            try {
-                DmPreviewService dmPreviewService = getServicesManager().getService(DmPreviewService.class);
-                dmPreviewService.cleanContent(site, path);
-            } catch (ServiceException e) {
-                logger.error("Could not clean to");
-                throw new ContentProcessException("Failed to clean up preview for " + content.getId(), e);
-            }
-        }*/
     }
 }

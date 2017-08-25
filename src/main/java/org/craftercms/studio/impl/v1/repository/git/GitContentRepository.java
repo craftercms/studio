@@ -77,6 +77,7 @@ import static org.craftercms.studio.api.v1.constant.GitRepositories.PUBLISHED;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.BOOTSTRAP_REPO_GLOBAL_PATH;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.BOOTSTRAP_REPO_PATH;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.*;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.EMPTY_FILE;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_COMMIT_ALL_ITEMS;
@@ -259,7 +260,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         if (children != null && children.length < 2) {
             if (children.length == 1 || children[0].equals(".keep")) {
                 Path ancestor = parentFolder.getParent();
-                git.rm().addFilepattern(helper.getGitPath(folderToDelete + File.separator + ".keep")).setCached(false).call();
+                git.rm().addFilepattern(helper.getGitPath(folderToDelete + FILE_SEPARATOR + ".keep")).setCached(false).call();
                 toRet = deleteParentFolder(git, ancestor);
             } else {
                 Path ancestor = parentFolder.getParent();
@@ -288,7 +289,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             if (StringUtils.isEmpty(newName)) {
                 gitToPath = helper.getGitPath(toPath);
             } else {
-                gitToPath = helper.getGitPath(toPath + File.separator + newName);
+                gitToPath = helper.getGitPath(toPath + FILE_SEPARATOR + newName);
             }
 
             try (Git git = new Git(repo)) {
@@ -410,10 +411,10 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                                 RepositoryItem item = new RepositoryItem();
                                 item.name = tw.getNameString();
 
-                                String visitFolderPath = File.separator + tw.getPathString();
+                                String visitFolderPath = FILE_SEPARATOR + tw.getPathString();
                                 loader = repo.open(tw.getObjectId(0));
                                 item.isFolder = loader.getType() == Constants.OBJ_TREE;
-                                int lastIdx = visitFolderPath.lastIndexOf(File.separator + item.name);
+                                int lastIdx = visitFolderPath.lastIndexOf(FILE_SEPARATOR + item.name);
                                 if (lastIdx > 0) {
                                     item.path = visitFolderPath.substring(0, lastIdx);
                                 }
@@ -440,10 +441,10 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                                 RepositoryItem item = new RepositoryItem();
                                 item.name = treeWalk.getNameString();
 
-                                String visitFolderPath = File.separator + treeWalk.getPathString();
+                                String visitFolderPath = FILE_SEPARATOR + treeWalk.getPathString();
                                 loader = repo.open(treeWalk.getObjectId(0));
                                 item.isFolder = loader.getType() == Constants.OBJ_TREE;
-                                int lastIdx = visitFolderPath.lastIndexOf(File.separator + item.name);
+                                int lastIdx = visitFolderPath.lastIndexOf(FILE_SEPARATOR + item.name);
                                 if (lastIdx > 0) {
                                     item.path = visitFolderPath.substring(0, lastIdx);
                                 } else {
@@ -675,8 +676,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             if (helper.createGlobalRepo()) {
                 // Copy the global config defaults to the global site
                 // Build a path to the bootstrap repo (the repo that ships with Studio)
-                String bootstrapFolderPath = this.ctx.getRealPath(File.separator + BOOTSTRAP_REPO_PATH + File
-                        .separator + BOOTSTRAP_REPO_GLOBAL_PATH);
+                String bootstrapFolderPath = this.ctx.getRealPath(FILE_SEPARATOR + BOOTSTRAP_REPO_PATH + FILE_SEPARATOR + BOOTSTRAP_REPO_GLOBAL_PATH);
                 Path source = java.nio.file.FileSystems.getDefault().getPath(bootstrapFolderPath);
 
                 logger.info("Bootstrapping with baseline @ " + source.toFile().toString());
@@ -1078,8 +1078,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         for (DiffEntry diffEntry : diffEntries) {
 
             // Update the paths to have a preceding separator
-            String pathNew = File.separator + diffEntry.getNewPath();
-            String pathOld = File.separator + diffEntry.getOldPath();
+            String pathNew = FILE_SEPARATOR + diffEntry.getNewPath();
+            String pathOld = FILE_SEPARATOR + diffEntry.getOldPath();
 
             RepoOperationTO repoOperation = null;
             switch (diffEntry.getChangeType()) {

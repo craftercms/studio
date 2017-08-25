@@ -20,6 +20,7 @@ package org.craftercms.studio.impl.v1.service.dependency;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import net.sf.json.JSONSerializer;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
@@ -57,6 +58,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.DEPENDENCIES_IGNORE_DEPENDENCIES_RULES;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.DEPENDENCIES_MANUAL_DEPENDENCY_APPROVING_ENABLED;
 
@@ -211,29 +213,6 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
             DmDependencyTO item = new DmDependencyTO();
             item.setUri(path);
             if (recursive) {
-                if (ContentUtils.matchesPatterns(path, servicesConfig.getPagePatterns(site))
-                        || ContentUtils.matchesPatterns(path, servicesConfig.getComponentPatterns(site))) {
-                    /*try {
-                        Document document = this.getDocument(site, null, path);
-                        if (document == null) {
-                            return items;
-                        }
-
-                        // Check for skipDependencies flag
-                        Element root = document.getRootElement();
-                        boolean skipDependencies = false;
-                        String isSkipDependenciesValue = root.valueOf("//" + DmXmlConstants.ELM_SKIP_DEPENDENCIES);
-                        if (isSkipDependenciesValue != null && !"".equals(isSkipDependenciesValue)) {
-                            skipDependencies = ContentFormatUtils.getBooleanValue(isSkipDependenciesValue);
-                        }
-                        if (skipDependencies) {
-                            return items;
-                        }
-                    } catch (ContentNotFoundException e) {
-                        logger.error("Error while getting dependent file names for " + path + " in " + site, e);
-                    }*/
-                }
-
                 String cleanPath = getCleanPath(path);
                 Map<String, Object> params = new HashMap<>();
                 params.put("site", site);
@@ -368,10 +347,6 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
                     List<String> templates = getDependentFileNames(site, buffer, populateUpdatedDependecinesOnly, servicesConfig.getRenderingTemplatePatterns(site));
                     List<DmDependencyTO> templateItems = getDependencyItems(site, templates, processedDependencies, populateUpdatedDependecinesOnly, recursive, false);
                     item.setRenderingTemplates(templateItems);
-                    /*
-                    List<String> levelDescriptors = getDependentLevelDescriptors(site, path, populateUpdatedDependecinesOnly, _servicesConfig.getLevelDescriptorName(site));
-                    List<DmDependencyTO> levelDescriptorItems = getDependencyItems(site, sub,sandbox, levelDescriptors, populateUpdatedDependecinesOnly, recursive);
-                    item.setLevelDescriptors(levelDescriptorItems);*/
 
                     /**
                      * get Page dependency as well
@@ -401,7 +376,6 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
                 if (isCss || isJs || isTemplate) {
                     try {
                         InputStream is = contentService.getContent(site, path);
-                        //is.reset();
                         int size = is.available();
                         char[] theChars = new char[size];
                         byte[] bytes    = new byte[size];
@@ -424,10 +398,6 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
                         List<String> templates = getDependentFileNames(site, buffer, populateUpdatedDependecinesOnly, servicesConfig.getRenderingTemplatePatterns(site));
                         List<DmDependencyTO> templateItems = getDependencyItems(site, templates, processedDependencies, populateUpdatedDependecinesOnly, recursive, false);
                         item.setRenderingTemplates(templateItems);
-                        /*
-                        List<String> levelDescriptors = getDependentLevelDescriptors(site, path, populateUpdatedDependecinesOnly, _servicesConfig.getLevelDescriptorName(site));
-                        List<DmDependencyTO> levelDescriptorItems = getDependencyItems(site, sub,sandbox, levelDescriptors, populateUpdatedDependecinesOnly, recursive);
-                        item.setLevelDescriptors(levelDescriptorItems);*/
 
                         /**
                          * get Page dependency as well
@@ -494,11 +464,9 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
                 Matcher matcher = pattern.matcher(buffer);
                 while (matcher.find()) {
                     String match = matcher.group();
-                    //if (!populateUpdatedDependecinesOnly || contentService.isUpdatedOrNew(site, match)) {
-                        if (!files.contains(match)) {
-                            files.add(match);
-                        }
-                    //}
+                    if (!files.contains(match)) {
+                        files.add(match);
+                    }
                 }
             }
         }
@@ -537,7 +505,6 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
             List<ContentItemTO> items = new ArrayList<>(submittedItems.size());
             Set<String> includedItems = new HashSet<>();
             Set<String> includedDependencies = new HashSet<>();
-            //Set<String> includedLvlDescs = new FastSet<String>();
             for (String submittedItem : submittedItems) {
                 boolean deleteDependencies = delDep;
                 if (!StringUtils.isEmpty(submittedItem) && !includedItems.contains(submittedItem)) {
@@ -564,8 +531,6 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
                         if (!delDep) {
                             List<String> levelDescs = getDependentLevelDescriptors(site, submittedItem, false, servicesConfig.getLevelDescriptorName(site));
                             for (String levelDesc : levelDescs) {
-                                //String lvlDescFullPath = servicesConfig.getRepositoryRootPath(site) + levelDesc;
-                                //ObjectState lvlDescState = objectStateService.getObjectState(site, levelDesc);
                                 if (objectStateService.isNew(site, levelDesc)) {
                                     if (!submittedItems.contains(levelDesc) && !includedItems.contains(levelDesc)) {
                                         includedItems.add(levelDesc);
@@ -669,15 +634,15 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
                 // if the current page is the index page, then the parent page is one level above
                 // remove /index.xml
                 String uri = item.getPath();
-                String [] levels = uri.split("/");
+                String [] levels = uri.split(FILE_SEPARATOR);
                 int last = levels.length - 1;
                 for (int index = 0; index < last; index++) {
-                    parentUri += levels[index] + "/";
+                    parentUri += levels[index] + FILE_SEPARATOR;
                 }
                 parentUri += DmConstants.INDEX_FILE;
             } else {
                 // if the current page is not an index page, then the parent page is the index page at the same level
-                parentUri = item.getPath() + "/" + DmConstants.INDEX_FILE;
+                parentUri = item.getPath() + FILE_SEPARATOR + DmConstants.INDEX_FILE;
             }
             // add parent to the dependencies if the parent is new
             if (!includedItems.contains(parentUri) && parentUri.startsWith(DmConstants.ROOT_PATTERN_PAGES)) {
@@ -780,15 +745,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
         if (globalDeps == null) {
             globalDeps = new HashMap<String, Set<String>>();
         }
-
         extractDirectDependenciesRecursively(site, path, new HashSet<>());
-        /*
-        Map<String, List<String>> dependencies = extractDirectDependency(site, path, document, globalDeps);
-        int size = 0;
-        for (List<String> vals : dependencies.values()) {
-            size += (vals == null) ? 0 : vals.size();
-        }
-        setDependencies(site, path, dependencies);*/
     }
 
 
@@ -810,9 +767,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
         if (globalDeps == null) {
             globalDeps = new HashMap<>();
         }
-
         extractDirectDependenciesRecursively(site, path, new HashSet<>());
-
     }
 
     @Override
@@ -830,9 +785,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
         if (globalDeps == null) {
             globalDeps = new HashMap<>();
         }
-
         extractDirectDependenciesRecursively(site, path, new HashSet<>());
-
     }
 
     protected List<String> getDependentLevelDescriptors(String site, String path, boolean b, String levelDescriptorName) {
@@ -877,7 +830,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
     }
 
     private String getCleanPath(String path) {
-        String cleanPath = path.replaceAll("//", "/");
+        String cleanPath = FilenameUtils.normalize(path, true);
         return cleanPath;
     }
 

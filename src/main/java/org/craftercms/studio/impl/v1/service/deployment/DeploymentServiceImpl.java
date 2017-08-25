@@ -50,11 +50,13 @@ import org.craftercms.studio.impl.v1.service.deployment.job.DeployContentToEnvir
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC;
 
 /**
@@ -480,8 +482,8 @@ public class DeploymentServiceImpl implements DeploymentService {
         try {
             addToScheduledDateList(site, launchDate, format, path,
                 scheduledItems, comparator, subComparator, displayPatterns, filterType);
-            if(!(path.endsWith("/" + DmConstants.INDEX_FILE) || path.endsWith(DmConstants.XML_PATTERN))) {
-                path = path + "/" + DmConstants.INDEX_FILE;
+            if(!(path.endsWith(FILE_SEPARATOR + DmConstants.INDEX_FILE) || path.endsWith(DmConstants.XML_PATTERN))) {
+                path = path + FILE_SEPARATOR + DmConstants.INDEX_FILE;
             }
             addDependendenciesToSchdeuleList(site,launchDate,format,scheduledItems,comparator,subComparator,displayPatterns,filterType,path);
         } catch (ServiceException e) {
@@ -663,9 +665,9 @@ public class DeploymentServiceImpl implements DeploymentService {
 
         for (RepositoryItem item : children) {
             if (item.isFolder) {
-                syncFolder(site, item.path + "/" + item.name, deployer);
+                syncFolder(site, item.path + FILE_SEPARATOR + item.name, deployer);
             } else {
-                deployer.deployFile(site, item.path + "/" + item.name);
+                deployer.deployFile(site, item.path + FILE_SEPARATOR + item.name);
             }
         }
     }
@@ -680,17 +682,6 @@ public class DeploymentServiceImpl implements DeploymentService {
         params.put("states", states);
         params.put("now", new Date());
         return publishRequestMapper.getItemsBySiteAndStates(params);
-    }
-
-    protected Set<String> getEndpontEnvironments(String site, String endpoint) {
-        List<PublishingTargetTO> publishingTargets = siteService.getPublishingTargetsForSite(site);
-        Set<String> environments = new HashSet<String>();
-        if (publishingTargets != null && publishingTargets.size() > 0) {
-            for (PublishingTargetTO target : publishingTargets) {
-                environments.add(target.getRepoBranchName());
-            }
-        }
-        return environments;
     }
 
     @Override

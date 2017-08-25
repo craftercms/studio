@@ -70,6 +70,7 @@ import javax.servlet.http.HttpSession;
 
 import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_EMAIL;
 import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_EXTERNALLY_MANAGED;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.*;
 
 /**
@@ -343,7 +344,7 @@ public class SecurityServiceImpl implements SecurityService {
 
     protected PermissionsConfigTO loadConfiguration(String site, String filename) {
         String siteConfigPath = getConfigPath().replaceFirst(StudioConstants.PATTERN_SITE, site);
-        String siteConfigFullPath = siteConfigPath + "/" + filename;
+        String siteConfigFullPath = siteConfigPath + FILE_SEPARATOR + filename;
         Document document = null;
         PermissionsConfigTO config = null;
         try {
@@ -436,7 +437,7 @@ public class SecurityServiceImpl implements SecurityService {
 
 
     protected PermissionsConfigTO loadGlobalPermissionsConfiguration() {
-        String globalPermissionsConfigPath = getGlobalConfigPath() + "/" + getGlobalPermissionsFileName();
+        String globalPermissionsConfigPath = getGlobalConfigPath() + FILE_SEPARATOR + getGlobalPermissionsFileName();
         Document document = null;
         PermissionsConfigTO config = null;
         try {
@@ -463,7 +464,7 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     protected PermissionsConfigTO loadGlobalRolesConfiguration() {
-        String globalRolesConfigPath = getGlobalConfigPath() + "/" + getGlobalRoleMappingsFileName();
+        String globalRolesConfigPath = getGlobalConfigPath() + FILE_SEPARATOR + getGlobalRoleMappingsFileName();
         Document document = null;
         PermissionsConfigTO config = null;
         try {

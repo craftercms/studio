@@ -57,14 +57,5 @@ public class InvalidateCacheProcessor extends BaseContentProcessor {
 
     public void process(PipelineContent content, ResultTO result) throws ContentProcessException {
         result.setInvalidateCache(true);
-        /** Disabled **/
-        /*
-        String site = content.getProperty(DmConstants.KEY_SITE);
-        String folderPath = content.getProperty(DmConstants.KEY_FOLDER_PATH);
-        String fileName = content.getProperty(DmConstants.KEY_FILE_NAME);
-        String path = (folderPath.endsWith("/")) ? folderPath + fileName : folderPath + "/" + fileName;
-        String fullPath = _dmContentService.getContentFullPath(site, path);
-        _cache.invalidate(Scope.DM_CONTENT_ITEM, fullPath);
-        */
     }
 }

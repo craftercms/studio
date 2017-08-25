@@ -20,6 +20,7 @@
 package org.craftercms.studio.impl.v1.deployment;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.deployment.Deployer;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -45,6 +46,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Set;
+
+import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 
 public class EnvironmentStoreGitBranchDeployer implements Deployer {
 
@@ -253,8 +256,8 @@ public class EnvironmentStoreGitBranchDeployer implements Deployer {
     }
 
     private String getGitPath(String path) {
-        String gitPath = path.replaceAll("/+", "/");
-        gitPath = gitPath.replaceAll("^/", "");
+        String gitPath = FilenameUtils.normalize(path, true);
+        gitPath = gitPath.replaceAll("^" + FILE_SEPARATOR, "");
         return gitPath;
     }
 

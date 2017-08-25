@@ -55,6 +55,7 @@ import java.nio.channels.ReadableByteChannel;
 import java.nio.file.*;
 import java.util.*;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_DATA_SOURCES_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_DATA_SOURCES_CONFIG_FILE_NAME;
 
@@ -305,7 +306,7 @@ public class CmisServiceImpl implements CmisService {
                     } else if (BaseTypeId.CMIS_DOCUMENT.equals(cmisObject.getBaseTypeId())) {
                         org.apache.chemistry.opencmis.client.api.Document cmisDoc = (org.apache.chemistry.opencmis.client.api.Document)cmisObject;
                         String fileName = cmisDoc.getName();
-                        String savePath = studioPath + File.separator + fileName;
+                        String savePath = studioPath + FILE_SEPARATOR + fileName;
                         ContentStream cs = cmisDoc.getContentStream();
                         logger.debug("Save CMIS file to: " + savePath);
                         contentService.writeContent(siteId, savePath, cs.getStream());

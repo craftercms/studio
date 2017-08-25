@@ -38,6 +38,7 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_UNKNOWN;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_CONTENT_TYPES_CONFIG_FILE_NAME;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_CONTENT_TYPES_CONFIG_PATH;
 
@@ -60,7 +61,7 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
     public ContentTypeConfigTO loadConfiguration(String site, String contentType) {
         String siteConfigPath = getConfigPath().replaceAll(StudioConstants.PATTERN_SITE, site)
                 .replaceAll(StudioConstants.PATTERN_CONTENT_TYPE, contentType);
-        String configFileFullPath = siteConfigPath + "/" + getConfigFileName();
+        String configFileFullPath = siteConfigPath + FILE_SEPARATOR + getConfigFileName();
         Document document = null;
         try {
             if (contentService.contentExists(site, configFileFullPath)) {

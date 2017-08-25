@@ -18,6 +18,7 @@
 package org.craftercms.studio.impl.v1.service.deployment;
 
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -52,7 +53,7 @@ import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.PUBLISHING_MANAGER_IMPORT_MODE_ENABLED;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.PUBLISHING_MANAGER_INDEX_FILE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.PUBLISHING_MANAGER_PUBLISHING_WITHOUT_DEPENDENCIES_ENABLED;
 
@@ -99,13 +100,6 @@ public class PublishingManagerImpl implements PublishingManager {
         deploymentItem.setSite(item.getSite());
         deploymentItem.setPath(item.getPath());
         deploymentItem.setCommitId(item.getCommitId());
-        /*
-        ObjectMetadata itemMetadata = objectMetadataManager.getProperties(item.getSite(), item.getPath());
-        if (itemMetadata != null) {
-            deploymentItem.setCommitId(itemMetadata.getCommitId());
-        } else {
-            deploymentItem.setCommitId(contentRepository.getRepoLastCommitId(item.getSite()));
-        }*/
         deploymentItem.setLastPublishedCommitId(deploymentHistoryProvider.getLastPublishedCommitId(item.getSite(), item.getEnvironment(), item.getPath()));
 
         String site = item.getSite();
@@ -132,17 +126,17 @@ public class PublishingManagerImpl implements PublishingManager {
                 contentService.deleteContent(site, oldPath, user);
                 boolean hasRenamedChildren = false;
 
-                if (oldPath.endsWith("/" + DmConstants.INDEX_FILE)) {
-                    if (contentService.contentExists(site, oldPath.replace("/" + DmConstants.INDEX_FILE, ""))) {
+                if (oldPath.endsWith(FILE_SEPARATOR + DmConstants.INDEX_FILE)) {
+                    if (contentService.contentExists(site, oldPath.replace(FILE_SEPARATOR + DmConstants.INDEX_FILE, ""))) {
                         // TODO: SJ: This bypasses the Content Service, fix
-                        RepositoryItem[] children = contentRepository.getContentChildren(site, oldPath.replace("/" + DmConstants.INDEX_FILE, ""));
+                        RepositoryItem[] children = contentRepository.getContentChildren(site, oldPath.replace(FILE_SEPARATOR + DmConstants.INDEX_FILE, ""));
 
                         if (children.length > 1) {
                             hasRenamedChildren = true;
                         }
                     }
                     if (!hasRenamedChildren) {
-                        deleteFolder(site, oldPath.replace("/" + DmConstants.INDEX_FILE, ""), user);
+                        deleteFolder(site, oldPath.replace(FILE_SEPARATOR + DmConstants.INDEX_FILE, ""), user);
                     }
                 }
 
@@ -152,10 +146,10 @@ public class PublishingManagerImpl implements PublishingManager {
 
             boolean haschildren = false;
 
-            if (item.getPath().endsWith("/" + DmConstants.INDEX_FILE)) {
-                if (contentService.contentExists(site, path.replace("/" + DmConstants.INDEX_FILE, ""))) {
+            if (item.getPath().endsWith(FILE_SEPARATOR + DmConstants.INDEX_FILE)) {
+                if (contentService.contentExists(site, path.replace(FILE_SEPARATOR + DmConstants.INDEX_FILE, ""))) {
                     // TODO: SJ: This bypasses the Content Service, fix
-                    RepositoryItem[] children = contentRepository.getContentChildren(site, path.replace("/" + DmConstants.INDEX_FILE, ""));
+                    RepositoryItem[] children = contentRepository.getContentChildren(site, path.replace(FILE_SEPARATOR + DmConstants.INDEX_FILE, ""));
 
                     if (children.length > 1) {
                         haschildren = true;
@@ -167,7 +161,7 @@ public class PublishingManagerImpl implements PublishingManager {
                 contentService.deleteContent(site, path, user);
 
                 if (!haschildren) {
-                    deleteFolder(site, path.replace("/" + DmConstants.INDEX_FILE, ""), user);
+                    deleteFolder(site, path.replace(FILE_SEPARATOR + DmConstants.INDEX_FILE, ""), user);
                 }
             }
         } else {
@@ -268,9 +262,9 @@ public class PublishingManagerImpl implements PublishingManager {
 
         if (StringUtils.equals(item.getAction(), PublishRequest.Action.NEW) || StringUtils.equals(item.getAction(), PublishRequest.Action.MOVE)) {
             if (ContentUtils.matchesPatterns(path, servicesConfig.getPagePatterns(site))) {
-                String helpPath = path.replace("/" + getIndexFile(), "");
-                int idx = helpPath.lastIndexOf("/");
-                String parentPath = helpPath.substring(0, idx) + "/" + getIndexFile();
+                String helpPath = path.replace(FILE_SEPARATOR + getIndexFile(), "");
+                int idx = helpPath.lastIndexOf(FILE_SEPARATOR);
+                String parentPath = helpPath.substring(0, idx) + FILE_SEPARATOR + getIndexFile();
                 if (objectStateService.isNew(site, parentPath) || objectMetadataManager.isRenamed(site, parentPath)) {
                     if (!missingDependenciesPaths.contains(parentPath) && !pathsToDeploy.contains(parentPath)) {
                         deploymentService.cancelWorkflow(site, parentPath);
@@ -348,11 +342,6 @@ public class PublishingManagerImpl implements PublishingManager {
 
     public String getIndexFile() {
         return studioConfiguration.getProperty(PUBLISHING_MANAGER_INDEX_FILE);
-    }
-
-    public boolean isImportModeEnabled() {
-        boolean toReturn = Boolean.parseBoolean(studioConfiguration.getProperty(PUBLISHING_MANAGER_IMPORT_MODE_ENABLED));
-        return toReturn;
     }
 
     public boolean isEnablePublishingWithoutDependencies() {

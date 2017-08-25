@@ -24,7 +24,10 @@ import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.util.DmContentItemComparator;
 
+import java.io.File;
 import java.util.List;
+
+import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 
 
 public class GoLiveQueueOrganizer {
@@ -73,7 +76,7 @@ public class GoLiveQueueOrganizer {
         ContentItemTO found = null;
         String uri = itemToAdd.getUri();
         for (ContentItemTO categoryItem : categoryItems) {
-            String categoryPath = categoryItem.getPath() + "/";
+            String categoryPath = categoryItem.getPath() + FILE_SEPARATOR;
             if (uri.startsWith(categoryPath)) {
                 found = categoryItem;
                 break;

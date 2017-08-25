@@ -36,6 +36,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_GENERAL_CONFIG_FILE_NAME;
 
@@ -231,7 +232,7 @@ public class ServicesConfigImpl implements ServicesConfig {
          Document document = null;
          SiteConfigTO siteConfig = null;
          try {
-             document = contentService.getContentAsDocument(site, siteConfigPath + "/" + getConfigFileName());
+             document = contentService.getContentAsDocument(site, siteConfigPath + FILE_SEPARATOR +  getConfigFileName());
          } catch (DocumentException e) {
              LOGGER.error("Error while loading configuration for " + site + " at " + siteConfigPath, e);
          }

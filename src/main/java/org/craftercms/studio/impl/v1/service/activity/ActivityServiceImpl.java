@@ -44,6 +44,7 @@ import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_PAGE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.ACTIVITY_USERNAME_CASE_SENSITIVE;
 
 public class ActivityServiceImpl extends AbstractRegistrableService implements ActivityService {
@@ -152,7 +153,7 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 
 
 			if (contentType == null) {
-				contentType = DmConstants.CONTENT_TYPE_PAGE;
+				contentType = CONTENT_TYPE_PAGE;
 			}
 		} catch (ServiceException e) {
 			// log error and throw exception

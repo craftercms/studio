@@ -17,13 +17,14 @@
  */
 package org.craftercms.studio.impl.v1.content.pipeline;
 
-
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.content.pipeline.PipelineContent;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 
 import java.util.List;
+
+import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 
 public class PathMatchProcessor extends BaseContentProcessor {
 
@@ -70,7 +71,7 @@ public class PathMatchProcessor extends BaseContentProcessor {
     public boolean isProcessable(PipelineContent content) {
         String folderPath = content.getProperty(DmConstants.KEY_FOLDER_PATH);
         String fileName = content.getProperty(DmConstants.KEY_FILE_NAME);
-        String path = folderPath + "/" + fileName;
+        String path = folderPath + FILE_SEPARATOR + fileName;
         boolean result = false;
         // if at least one match path provided, and it does not match, not processable
         if ((_matchPaths != null && _matchPaths.size() > 0)) {

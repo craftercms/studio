@@ -46,6 +46,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+
 public class FormDmContentProcessor extends PathMatchProcessor implements DmContentProcessor {
 
     private static final Logger logger = LoggerFactory.getLogger(FormDmContentProcessor.class);
@@ -123,7 +125,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                     return ActivityService.ActivityType.UPDATED;
                 } else {
                     // otherwise, create new one
-                    String filePath =  path + "/" + fileName;
+                    String filePath = path + FILE_SEPARATOR + fileName;
                     boolean contentExists = contentService.contentExists(site, filePath);
                     ContentItemTO fileItem = contentService.getContentItem(site, filePath, 0);
                     if (contentExists && overwrite) {
@@ -162,10 +164,10 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 
         //String fullPath = contentService.expandRelativeSitePath(site, path);
         String parentContentPath = path;
-        if (parentContentPath.endsWith("/" + fileName)) {
-            parentContentPath = parentContentPath.replace("/" + fileName, "");
+        if (parentContentPath.endsWith(FILE_SEPARATOR + fileName)) {
+            parentContentPath = parentContentPath.replace(FILE_SEPARATOR + fileName, "");
         } else {
-            path = path + "/" + fileName;
+            path = path + FILE_SEPARATOR + fileName;
         }
         try {
             // look up the path content first
@@ -208,7 +210,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                 } else {
                     // otherwise, create new one
                     if (path.endsWith(DmConstants.XML_PATTERN) && !path.endsWith(DmConstants.INDEX_FILE)){
-                        parentContentPath = path.substring(0, path.lastIndexOf("/"));
+                        parentContentPath = path.substring(0, path.lastIndexOf(FILE_SEPARATOR));
                         parentItem = contentService.getContentItem(site, parentContentPath, 0);
                     }
 
@@ -278,8 +280,6 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
      *
      * @param site
      *            Site name
-     * @param parentNode
-     *            Parent node
      * @param fileName
      *            new file name
      * @param contentType
@@ -299,9 +299,9 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
             // convert file to folder if target path is a file
             String folderPath = fileToFolder(site, parentItem.getUri());
             try {
-                contentService.writeContent(site, parentItem.getUri() + "/" + fileName, input);
-                if (!objectMetadataManager.metadataExist(site, parentItem.getUri() + "/" + fileName)) {
-                    objectMetadataManager.insertNewObjectMetadata(site, parentItem.getUri() + "/" + fileName);
+                contentService.writeContent(site, parentItem.getUri() + FILE_SEPARATOR + fileName, input);
+                if (!objectMetadataManager.metadataExist(site, parentItem.getUri() + FILE_SEPARATOR + fileName)) {
+                    objectMetadataManager.insertNewObjectMetadata(site, parentItem.getUri() + FILE_SEPARATOR + fileName);
                 }
                 Map<String, Object> properties = new HashMap<>();
                 properties.put(ItemMetadata.PROP_NAME, fileName);
@@ -314,7 +314,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                 } else {
                     properties.put(ItemMetadata.PROP_LOCK_OWNER, user);
                 }
-                objectMetadataManager.setObjectMetadata(site, parentItem.getUri() + "/" + fileName, properties);
+                objectMetadataManager.setObjectMetadata(site, parentItem.getUri() + FILE_SEPARATOR + fileName, properties);
             } catch (Exception e) {
                 logger.error("Error writing new file: " + fileName, e);
             } finally {
@@ -323,11 +323,11 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 
             // unlock the content upon save
             if (unlock) {
-                contentRepository.unLockItem(site, parentItem.getUri() + "/" + fileName);
+                contentRepository.unLockItem(site, parentItem.getUri() + FILE_SEPARATOR + fileName);
             } else {
             }
 
-            fileItem = contentService.getContentItem(site, parentItem.getUri() + "/" + fileName, 0);
+            fileItem = contentService.getContentItem(site, parentItem.getUri() + FILE_SEPARATOR + fileName, 0);
             return fileItem;
         } else {
             throw new ContentNotFoundException(parentItem.getUri() + " does not exist in site: " + site);
@@ -338,8 +338,6 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
     /**
      * update the file at the given content node
      *
-     * @param contentNode
-     * @param fullPath
      * @param input
      * @param user
      * @param isPreview
@@ -436,12 +434,12 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
     @Override
     public ContentItemTO createMissingFoldersInPath(String site, String path, boolean isPreview) {
         // create parent folders if missing
-        String [] levels = path.split("/");
+        String [] levels = path.split(FILE_SEPARATOR);
         String parentPath = "";
         ContentItemTO lastItem = null;
         for (String level : levels) {
             if (!StringUtils.isEmpty(level) && !level.endsWith(DmConstants.XML_PATTERN)) {
-                String currentPath = parentPath + "/" + level;
+                String currentPath = parentPath + FILE_SEPARATOR + level;
                 if (!contentService.contentExists(site, currentPath)) {
                     contentService.createFolder(site, parentPath, level);
                 }
@@ -462,14 +460,14 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
             if (itemTO.isFolder() || itemTO.isDeleted()) {
                 return  path;
             }
-            int index = path.lastIndexOf("/");
+            int index = path.lastIndexOf(FILE_SEPARATOR);
             String folderPath = path.substring(0, index);
             String parentFileName = itemTO.getName();
             int dotIndex = parentFileName.indexOf(".");
             String folderName = (dotIndex > 0) ? parentFileName.substring(0, parentFileName.indexOf(".")) : parentFileName;
             contentService.createFolder(site, folderPath, folderName);
-            folderPath = folderPath + "/" + folderName;
-            contentService.moveContent(site, path, folderPath + "/" + DmConstants.INDEX_FILE);
+            folderPath = folderPath + FILE_SEPARATOR + folderName;
+            contentService.moveContent(site, path, folderPath + FILE_SEPARATOR + DmConstants.INDEX_FILE);
             logger.debug("Changed file to folder from " + path + " to " + folderPath);
 
             return folderPath;

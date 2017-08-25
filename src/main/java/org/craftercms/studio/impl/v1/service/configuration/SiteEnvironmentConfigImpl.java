@@ -17,7 +17,6 @@
  */
 package org.craftercms.studio.impl.v1.service.configuration;
 
-
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -35,6 +34,7 @@ import org.dom4j.Node;
 
 import java.util.*;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_ENVIRONMENT;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_ENVIRONMENT_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_ENVIRONMENT_CONFIG_FILE_NAME;
@@ -111,7 +111,7 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
 	protected EnvironmentConfigTO loadConfiguration(String key) {
 		String configLocation = getConfigPath().replaceFirst(StudioConstants.PATTERN_SITE, key)
 				.replaceFirst(StudioConstants.PATTERN_ENVIRONMENT, getEnvironment());
-		configLocation = configLocation + "/" + getConfigFileName();
+		configLocation = configLocation + FILE_SEPARATOR + getConfigFileName();
         EnvironmentConfigTO config = null;
 		Document document = null;
 		try {

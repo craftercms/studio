@@ -38,6 +38,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONTENT_PROCESSOR_ASSETS_SYSTEM_PATH;
 
 public class AssetDmContentProcessor extends FormDmContentProcessor {
@@ -137,7 +138,7 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
         if (isSystemAsset) {
             assetName = ContentUtils.getMd5ForFile(in) + "." + ext;
         }
-        String contentPath = path + "/" + assetName;
+        String contentPath = path + FILE_SEPARATOR + assetName;
 
         try {
             // look up the path content first
@@ -148,10 +149,10 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
                 parentExists = contentService.contentExists(site, path);
             }
             if (parentExists && parentContentItem.isFolder()) {
-                boolean exists = contentService.contentExists(site, path + "/" + assetName);
+                boolean exists = contentService.contentExists(site, path + FILE_SEPARATOR + assetName);
                 ContentItemTO contentItem = null;
                 if (exists) {
-                    contentItem = contentService.getContentItem(site, path + "/" + assetName, 0);
+                    contentItem = contentService.getContentItem(site, path + FILE_SEPARATOR + assetName, 0);
                     updateFile(site, contentItem, contentPath, in, user, isPreview, unlock);
                 } else {
                     // TODO: define content type
@@ -160,7 +161,7 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
                 }
                 ContentAssetInfoTO assetInfo = new ContentAssetInfoTO();
                 assetInfo.setFileName(assetName);
-                InputStream is = contentService.getContent(site, path + "/" + assetName);
+                InputStream is = contentService.getContent(site, path + FILE_SEPARATOR + assetName);
                 long sizeInBytes = 0;
                 double convertedSize = 0;
                 try {
@@ -196,8 +197,6 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
     /**
      * update the file at the given content node
      *
-     * @param contentNode
-     * @param fullPath
      * @param input
      * @param user
      * @param isPreview

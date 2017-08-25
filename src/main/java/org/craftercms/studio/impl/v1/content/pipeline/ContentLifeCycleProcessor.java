@@ -27,6 +27,8 @@ import org.craftercms.studio.api.v1.service.activity.ActivityService;
 import org.craftercms.studio.api.v1.service.content.DmContentLifeCycleService;
 import org.craftercms.studio.api.v1.to.ResultTO;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+
 /**
  * 
  * @author hyanghee
@@ -44,11 +46,10 @@ public class ContentLifeCycleProcessor extends PathMatchProcessor {
     	// do not run on preview write
     	if (StringUtils.isEmpty(preview) || !preview.equalsIgnoreCase("true")) {
 			String site = content.getProperty(DmConstants.KEY_SITE);
-			//String sandbox = content.getProperty(DmConstants.KEY_SANDBOX);
 			String folderPath = content.getProperty(DmConstants.KEY_FOLDER_PATH);
 			String contentType = content.getProperty(DmConstants.KEY_CONTENT_TYPE);
 			String fileName = content.getProperty(DmConstants.KEY_FILE_NAME);
-			String path = (folderPath.endsWith("/")) ? folderPath + fileName : folderPath + "/" + fileName;
+			String path = (folderPath.endsWith(FILE_SEPARATOR)) ? folderPath + fileName : folderPath + FILE_SEPARATOR + fileName;
 			String user = content.getProperty(DmConstants.KEY_USER);
 			String operValue = content.getProperty(DmConstants.CONTENT_LIFECYCLE_OPERATION);
 			DmContentLifeCycleService.ContentLifeCycleOperation operation = (DmContentLifeCycleService.ContentLifeCycleOperation.getOperation(operValue));

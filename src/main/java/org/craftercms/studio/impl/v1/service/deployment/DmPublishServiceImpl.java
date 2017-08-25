@@ -44,6 +44,8 @@ import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.service.workflow.context.MultiChannelPublishingContext;
 import org.craftercms.studio.api.v1.to.PublishingTargetTO;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+
 public class DmPublishServiceImpl extends AbstractRegistrableService implements DmPublishService {
 
     private static final Logger logger = LoggerFactory.getLogger(DmPublishServiceImpl.class);
@@ -125,8 +127,8 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
         logger.info("Starting Bulk Go Live for path " + path + " site " + site);
 
         String queryPath = path;
-        if (queryPath.startsWith(File.separator + DmConstants.INDEX_FILE)) {
-            queryPath = queryPath.replace(File.separator + DmConstants.INDEX_FILE, "");
+        if (queryPath.startsWith(FILE_SEPARATOR + DmConstants.INDEX_FILE)) {
+            queryPath = queryPath.replace(FILE_SEPARATOR + DmConstants.INDEX_FILE, "");
         }
 
         logger.debug("Get change set for subtree for site: " + site + " root path: " + queryPath);

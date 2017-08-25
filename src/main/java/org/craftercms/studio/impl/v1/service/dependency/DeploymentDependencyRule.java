@@ -30,12 +30,15 @@ import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 
 public class DeploymentDependencyRule implements DependencyRule {
 
@@ -69,7 +72,7 @@ public class DeploymentDependencyRule implements DependencyRule {
     }
 
     protected void getMandatoryParent(String site, String path, List<String> dependecyPaths) {
-        int idx = path.lastIndexOf("/" + DmConstants.INDEX_FILE);
+        int idx = path.lastIndexOf(FILE_SEPARATOR + DmConstants.INDEX_FILE);
         if (idx > 0) {
             path = path.substring(0, idx);
         }
