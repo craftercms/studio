@@ -27,10 +27,11 @@
     <#else>
     	<#assign additionalModel = {} />
     </#if>
-    <#list contentModel.widgets.item as widget>
-      <@renderComponent component = widget additionalModel = additionalModel />
-    </#list>
-
+    <#if contentModel.widgets.item?has_content>
+      <#list contentModel.widgets.item as widget>
+        <@renderComponent component = widget additionalModel = additionalModel />
+      </#list>
+    </#if>
     <!-- Footer -->
     <footer id="footer">
       <p class="copyright">&copy; Untitled. All rights reserved. Demo Images: <a href="https://unsplash.com">Unsplash</a>. Design: <a href="https://html5up.net">HTML5 UP</a>.</p>
