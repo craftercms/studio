@@ -54,7 +54,7 @@
 								</section>
 
 							<!-- Section -->
-								<section <@studio.iceAttr iceGroup="articles"/>>
+								<section>
 									<header class="major">
 										<h2>Featured Articles</h2>
 									</header>
