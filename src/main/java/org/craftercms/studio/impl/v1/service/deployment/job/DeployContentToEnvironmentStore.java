@@ -208,17 +208,7 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
         logger.debug("Deploying " + items.size() + " item(s)");
         List<String> commitIds = new ArrayList<String>(items.size());
         for (DeploymentItem item : items) {
-            logger.debug("Getting commit ids from sandbox for item " + item.getPath() + " site: " + item.getSite() + " <commitId = " + item.getCommitId() + ">");
-            List<String> itemCommitIds = contentRepository.getEditCommitIds(item.getSite(), item.getPath(), item.getLastPublishedCommitId(), item.getCommitId());
-            if (itemCommitIds.size() < 1) {
-                throw new DeploymentException("Commit ids not found in sandbox for " + item.getPath() + " site: " + item.getSite() + " (commit ID: " + item.getCommitId() + ", last published commit ID: " + item.getLastPublishedCommitId() + ")");
-            }
-            String logMessage = "Found " + itemCommitIds.size() + " since last published commit id";
-            for (String itemCID : itemCommitIds) {
-                logMessage += "\n\t\t" + itemCID;
-            }
-            logger.debug(logMessage);
-            commitIds.addAll(itemCommitIds);
+            commitIds.add(item.getCommitId());
         }
         contentRepository.publish(site, commitIds, environment, author, comment);
     }

@@ -60,6 +60,7 @@ import org.eclipse.jgit.api.errors.RefNotFoundException;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.internal.storage.file.LockFile;
 import org.eclipse.jgit.lib.*;
+import org.eclipse.jgit.merge.MergeStrategy;
 import org.eclipse.jgit.merge.ResolveMerger;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevSort;
@@ -756,8 +757,22 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         synchronized (helper.getRepository(site, GitRepositories.PUBLISHED)) {
             try (Git git = new Git(repo)) {
 
+                // fetch "origin/master"
+                logger.debug("Fetch from sandbox for site " + site);
+                FetchResult fetchResult = git.fetch().call();
+
+                // checkout master and pull from sandbox
+                logger.debug("Checkout published/master branch for site " + site);
+                try {
+                    Ref checkoutMasterResult = git.checkout().setName(Constants.MASTER).call();
+                    PullResult pullResult = git.pull().setRemote(Constants.DEFAULT_REMOTE_NAME).setRemoteBranchName(Constants.MASTER).setStrategy(MergeStrategy.THEIRS).call();
+                } catch (RefNotFoundException e) {
+                    // TODO: DB: Log this errors
+                }
+
                 // checkout environment branch
                 logger.debug("Checkout environment branch " + environment + " for site " + site);
+                boolean newBranch = false;
                 try {
                     Ref checkoutResult = git.checkout()
                             .setName(environment)
@@ -765,107 +780,125 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 } catch (RefNotFoundException e) {
                     logger.info("Not able to find branch " + environment + " for site " + site + ". Creating new branch");
                     // checkout environment branch
+                    newBranch = true;
                     Ref checkoutResult = git.checkout().setCreateBranch(true).setForce(true).setStartPoint("master")
                             .setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK)
                             .setName(environment)
                             .call();
                 }
 
-                // fetch "origin/master"
-                logger.debug("Fetch from sandbox for site " + site);
-                FetchResult fetchResult = git.fetch().call();
+                if (!newBranch) {
+                    // cherry pick all commit ids
+                    for (String cId :
+                            commitIds) {
+                        commitId = cId;
+                        logger.debug("Cherry-picking commit id " + commitId);
+                        String message = studioConfiguration.getProperty(REPO_PUBLISHED_CHERRY_PICK_MESSAGE);
+                        message = message.replace(studioConfiguration.getProperty(REPO_PUBLISHED_CHERRY_PICK_MESSAGE_REPLACE), commitId);
 
-                // cherry pick all commit ids
-                for (String cId:
-                     commitIds) {
-                    commitId = cId;
-                    logger.debug("Cherry-picking commit id " + commitId);
-                    String message = studioConfiguration.getProperty(REPO_PUBLISHED_CHERRY_PICK_MESSAGE);
-                    message = message.replace(studioConfiguration.getProperty(REPO_PUBLISHED_CHERRY_PICK_MESSAGE_REPLACE), commitId);
+                        ObjectId objCommitId = repo.resolve(commitId);
+                        RevWalk rw = new RevWalk(repo);
+                        RevCommit rc = rw.parseCommit(objCommitId);
+                        int pc = rc.getParentCount();
 
-                    ObjectId objCommitId = repo.resolve(commitId);
-                    RevWalk rw = new RevWalk(repo);
-                    RevCommit rc = rw.parseCommit(objCommitId);
-                    int pc = rc.getParentCount();
+                        CherryPickCommand cherryPickCommand = git
+                                .cherryPick()
+                                .setMainlineParentNumber(pc)
+                                .setOurCommitName(message)
+                                .setNoCommit(false)
+                                .include(objCommitId);
 
-                    CherryPickCommand cherryPickCommand = git
-                            .cherryPick()
-                            .setMainlineParentNumber(pc)
-                            .setOurCommitName(message)
-                            .setNoCommit(false);
+                        CherryPickResult cherryPickResult = cherryPickCommand.call();
 
-                    if (StringUtils.isNotEmpty(commitId)) {
-                        String initialCommit = getRepoFirstCommitId(site);
-                        if (!StringUtils.equals(initialCommit, commitId)) {
-                            ObjectId objectId = ObjectId.fromString(commitId);
-                            cherryPickCommand.include(objectId);
-                        }
-                    }
-
-                    CherryPickResult cherryPickResult = cherryPickCommand.call();
-
-                    switch (cherryPickResult.getStatus()) {
-                        case FAILED:
-                            // TODO: DB: what to do if cherry pick failed ?
-                            logger.error("Cherry-pick failed.");
-                            String errorMessage = "Failing paths:\n";
-                            Map<String, ResolveMerger.MergeFailureReason> failPaths = cherryPickResult.getFailingPaths();
-                            if (failPaths != null){
-                                for (String key : failPaths.keySet()) {
-                                    errorMessage += "\t" + key + " -> " + failPaths.get(key).toString() + "\n";
-                                }
-                            }
-                            logger.error(errorMessage);
-                            break;
-
-                        case CONFLICTING:
-                            // TODO: DB: what to do if cherry pick has conflict ?
-                            logger.debug("Conflict executing cherry-pick with default merge strategy for site " + site + ".");
-                            String errorMessage2 = "Failing paths:\n";
-                            Map<String, ResolveMerger.MergeFailureReason> failPaths2 =  cherryPickResult.getFailingPaths();
-                            if (failPaths2 != null) {
-                                for (String key : failPaths2.keySet()) {
-                                    errorMessage2 += "\t" + key + " -> " + failPaths2.get(key).toString() + "\n";
-                                }
-                                logger.error(errorMessage2);
-                            } else {
-                                logger.debug("Cherry pick in conflict state without failing paths. Get status to check repository.");
-                                Status gitStatus = git.status().call();
-                                Set<String> removed =  gitStatus.getRemoved();
-                                logger.debug("Get all conflicts for cherry-pick command");
-                                Map<String, IndexDiff.StageState> conflicts = gitStatus.getConflictingStageState();
-                                for (Map.Entry<String, IndexDiff.StageState> entry : conflicts.entrySet()) {
-                                    String path = entry.getKey();
-                                    IndexDiff.StageState stageState = entry.getValue();
-                                    switch (stageState) {
-                                        case BOTH_ADDED:
-                                        case BOTH_MODIFIED:
-                                            logger.debug("If conflict is caused by both added a file, do checkout on that path with option --ours");
-                                            git.checkout().addPath(path).setStage(CheckoutCommand.Stage.OURS).call();
-                                            break;
-                                        case DELETED_BY_THEM:
-                                            logger.debug("If conflict is caused by incoming delete, remove file from repository with rm command");
-                                            git.rm().addFilepattern(path).call();
-                                            break;
-                                        default:
-                                            logger.debug("Conflict is " + stageState.name() + " path " + path + "- not able to handle it. Throw error");
-                                            throw new DeploymentException("Conflict while cherry-pick commit id: " + commitId + " for site " + site);
+                        switch (cherryPickResult.getStatus()) {
+                            case FAILED:
+                                // TODO: DB: what to do if cherry pick failed ?
+                                logger.error("Cherry-pick failed.");
+                                String errorMessage = "Failing paths:\n";
+                                Map<String, ResolveMerger.MergeFailureReason> failPaths = cherryPickResult.getFailingPaths();
+                                if (failPaths != null) {
+                                    for (String key : failPaths.keySet()) {
+                                        errorMessage += "\t" + key + " -> " + failPaths.get(key).toString() + "\n";
                                     }
                                 }
-                                logger.debug("Add all changes to index with git add.");
-                                git.add().addFilepattern(GIT_COMMIT_ALL_ITEMS).call();
-                                logger.debug("Remove all removed files with git rm.");
-                                for(String rm : removed) {
+                                logger.error(errorMessage);
+                                break;
 
-                                    git.rm().addFilepattern(rm).call();
+                            case CONFLICTING:
+                                // TODO: DB: what to do if cherry pick has conflict ?
+                                logger.debug("Conflict executing cherry-pick with default merge strategy for site " + site + ".");
+                                String errorMessage2 = "Failing paths:\n";
+                                Map<String, ResolveMerger.MergeFailureReason> failPaths2 = cherryPickResult.getFailingPaths();
+                                if (failPaths2 != null) {
+                                    for (String key : failPaths2.keySet()) {
+                                        errorMessage2 += "\t" + key + " -> " + failPaths2.get(key).toString() + "\n";
+                                    }
+                                    logger.error(errorMessage2);
+                                } else {
+                                    logger.debug("Cherry pick in conflict state without failing paths. Get status to check repository.");
+                                    Status gitStatus = git.status().call();
+                                    Set<String> removed = gitStatus.getRemoved();
+                                    logger.debug("Get all conflicts for cherry-pick command");
+                                    Map<String, IndexDiff.StageState> conflicts = gitStatus.getConflictingStageState();
+                                    for (Map.Entry<String, IndexDiff.StageState> entry : conflicts.entrySet()) {
+                                        String path = entry.getKey();
+                                        IndexDiff.StageState stageState = entry.getValue();
+                                        switch (stageState) {
+                                            case BOTH_ADDED:
+                                            case BOTH_MODIFIED:
+                                                logger.debug("If conflict is caused by both added a file, do checkout on that path with option --ours");
+                                                git.checkout().setStartPoint(rc).addPath(path).call();
+                                                break;
+                                            case DELETED_BY_THEM:
+                                                logger.debug("If conflict is caused by incoming delete, remove file from repository with rm command");
+                                                git.rm().addFilepattern(path).call();
+                                                break;
+                                            default:
+                                                logger.debug("Conflict is " + stageState.name() + " path " + path + "- not able to handle it. Throw error");
+                                                throw new DeploymentException("Conflict while cherry-pick commit id: " + commitId + " for site " + site);
+                                        }
+                                    }
+                                    logger.debug("Add all changes to index with git add.");
+                                    git.add().addFilepattern(GIT_COMMIT_ALL_ITEMS).call();
+                                    logger.debug("Remove all removed files with git rm.");
+                                    for (String rm : removed) {
+                                        git.rm().addFilepattern(rm).call();
+                                    }
+
+                                    logger.debug("Conflict resolved - execute commit and finish deployment");
+                                    String commitMessage = rc.getFullMessage();
+                                    git.commit().setMessage(commitMessage).call();
+
+                                    String newCommitMessage = StringUtils.EMPTY;
+                                    long commitTime = 0l;
+                                    Iterable<RevCommit> logs = git.log()
+                                            .add(repo.resolve(environment))
+                                            .setMaxCount(1)
+                                            .call();
+                                    Iterator<RevCommit> iter = logs.iterator();
+                                    if (iter.hasNext()) {
+                                        RevCommit revCommit = iter.next();
+                                        newCommitMessage += revCommit.getFullMessage() + "\n";
+                                        commitTime = 1000l * revCommit.getCommitTime();
+                                    }
+                                    newCommitMessage += message;
+                                    git.commit().setAmend(true).setMessage(newCommitMessage).call();
+
+                                    // tag
+                                    Date tagDate2 = new Date(commitTime);
+                                    Date publishDate = new Date();
+                                    SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy-MM-dd'T'HHmmssSSSX");
+                                    String tagName2 = sdf2.format(tagDate2) + "_published_on_" + sdf2.format(publishDate);
+                                    PersonIdent authorIdent2 = helper.getAuthorIdent(author);
+                                    Ref tagResult2 = git.tag().setTagger(authorIdent2).setName(tagName2).setMessage(newCommitMessage).call();
+                                    break;
                                 }
+                                break;
 
-                                logger.debug("Conflict resolved - execute commit and finish deployment");
-                                String commitMessage = rc.getFullMessage();
-                                git.commit().setMessage(commitMessage).call();
+                            case OK:
+                                logger.debug("Cherry-pick completed successfully.");
 
                                 String newCommitMessage = StringUtils.EMPTY;
-                                long commitTime = 0l;
                                 Iterable<RevCommit> logs = git.log()
                                         .add(repo.resolve(environment))
                                         .setMaxCount(1)
@@ -874,11 +907,11 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                                 if (iter.hasNext()) {
                                     RevCommit revCommit = iter.next();
                                     newCommitMessage += revCommit.getFullMessage() + "\n";
-                                    commitTime = 1000l * revCommit.getCommitTime();
                                 }
                                 newCommitMessage += message;
                                 git.commit().setAmend(true).setMessage(newCommitMessage).call();
 
+                                long commitTime = 1000l * cherryPickResult.getNewHead().getCommitTime();
                                 // tag
                                 Date tagDate2 = new Date(commitTime);
                                 Date publishDate = new Date();
@@ -887,34 +920,10 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                                 PersonIdent authorIdent2 = helper.getAuthorIdent(author);
                                 Ref tagResult2 = git.tag().setTagger(authorIdent2).setName(tagName2).setMessage(newCommitMessage).call();
                                 break;
-                            }
-                            break;
-
-                        case OK:
-                            logger.debug("Cherry-pick completed successfully.");
-                            String newCommitMessage = StringUtils.EMPTY;
-                            Iterable<RevCommit> logs = git.log()
-                                    .add(repo.resolve(environment))
-                                    .setMaxCount(1)
-                                    .call();
-                            Iterator<RevCommit> iter = logs.iterator();
-                            if (iter.hasNext()) {
-                                RevCommit revCommit = iter.next();
-                                newCommitMessage += revCommit.getFullMessage() + "\n";
-                            }
-                            newCommitMessage += message;
-                            git.commit().setAmend(true).setMessage(newCommitMessage).call();
-
-                            long commitTime = 1000l * cherryPickResult.getNewHead().getCommitTime();
-                            // tag
-                            Date tagDate2 = new Date(commitTime);
-                            Date publishDate = new Date();
-                            SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy-MM-dd'T'HHmmssSSSX");
-                            String tagName2 = sdf2.format(tagDate2) + "_published_on_" + sdf2.format(publishDate);
-                            PersonIdent authorIdent2 = helper.getAuthorIdent(author);
-                            Ref tagResult2 = git.tag().setTagger(authorIdent2).setName(tagName2).setMessage(newCommitMessage).call();
-                            break;
+                        }
                     }
+
+                    // TODO: DB: Bulk commit all cherry-picks here
                 }
             } catch (Exception e) {
                 logger.error("Error when publishing site " + site + " to environment " + environment, e);
