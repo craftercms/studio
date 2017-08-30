@@ -17,8 +17,6 @@
  ******************************************************************************/
 package org.craftercms.studio.impl.v1.service.site;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
@@ -312,7 +310,8 @@ public class SiteServiceImpl implements SiteService {
 			    // environment overrides
 
 			    // initial deployment
-                List<String> commitIds = Arrays.asList(lastCommitId);
+                List<String> commitIds = new ArrayList<String>();
+                commitIds.add(lastCommitId);
                 List<PublishingTargetTO> publishingTargets = getPublishingTargetsForSite(siteId);
                 if (publishingTargets != null && publishingTargets.size() > 0) {
                     for (PublishingTargetTO target : publishingTargets) {

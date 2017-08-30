@@ -195,13 +195,31 @@ public interface ContentRepository {
     void lockItem(String site, String path); // TODO: SJ: Change to have a return
 
     /**
-     * unlock an item
+     * lock an item
+     * NOTE: site will be removed from this interface
+     *
+     * @param site site id where the operation will be executed
+     * @param path
+     */
+    void lockItemForPublishing(String site, String path); // TODO: SJ: Change to have a return
+
+    /**
+     * unlock an item for publishing
      * NOTE: site will be removed from this interface
      *
      * @param site site id where the operation will be executed
      * @param path
      */
     void unLockItem(String site, String path); // TODO: SJ: Change to have a return
+
+    /**
+     * unlock an item for publishing
+     * NOTE: site will be removed from this interface
+     *
+     * @param site site id where the operation will be executed
+     * @param path
+     */
+    void unLockItemForPublishing(String site, String path); // TODO: SJ: Change to have a return
 
     /**
      * Create a new site based on a blueprint

@@ -92,6 +92,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
     private final static Map<String, ReentrantLock> repositoryLocks = new HashMap<String, ReentrantLock>();
 
+    private final static String IN_PROGRESS_BRANCH_NAME_SUFIX = "_in_progress";
+
     @Override
     public boolean contentExists(String site, String path) {
         boolean toReturn = false;
@@ -637,11 +639,69 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     @Override
+    public void lockItemForPublishing(String site, String path) {
+        Repository repo = helper.getRepository(site, PUBLISHED);
+
+        synchronized (repo) {
+            try (TreeWalk tw = new TreeWalk(repo)) {
+                RevTree tree = helper.getTreeForLastCommit(repo);
+                tw.addTree(tree); // tree ‘0’
+                tw.setRecursive(false);
+                tw.setFilter(PathFilter.create(path));
+
+                if (!tw.next()) {
+                    return;
+                }
+
+                File repoRoot = repo.getWorkTree();
+                Paths.get(repoRoot.getPath(), tw.getPathString());
+                File file = new File(tw.getPathString());
+                LockFile lock = new LockFile(file);
+                lock.lock();
+
+                tw.close();
+
+            } catch (IOException e) {
+                logger.error("Error while locking file for site: " + site + " path: " + path, e);
+            }
+        }
+    }
+
+    @Override
     public void unLockItem(String site, String path) {
         Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GitRepositories.GLOBAL :
                 SANDBOX);
 
         synchronized (helper.getRepository(site, StringUtils.isEmpty(site) ? GitRepositories.GLOBAL : SANDBOX)) {
+            try (TreeWalk tw = new TreeWalk(repo)) {
+                RevTree tree = helper.getTreeForLastCommit(repo);
+                tw.addTree(tree); // tree ‘0’
+                tw.setRecursive(false);
+                tw.setFilter(PathFilter.create(path));
+
+                if (!tw.next()) {
+                    return;
+                }
+
+                File repoRoot = repo.getWorkTree();
+                Paths.get(repoRoot.getPath(), tw.getPathString());
+                File file = new File(tw.getPathString());
+                LockFile lock = new LockFile(file);
+                lock.unlock();
+
+                tw.close();
+
+            } catch (IOException e) {
+                logger.error("Error while unlocking file for site: " + site + " path: " + path, e);
+            }
+        }
+    }
+
+    @Override
+    public void unLockItemForPublishing(String site, String path) {
+        Repository repo = helper.getRepository(site, PUBLISHED);
+
+        synchronized (repo) {
             try (TreeWalk tw = new TreeWalk(repo)) {
                 RevTree tree = helper.getTreeForLastCommit(repo);
                 tw.addTree(tree); // tree ‘0’
@@ -767,7 +827,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     Ref checkoutMasterResult = git.checkout().setName(Constants.MASTER).call();
                     PullResult pullResult = git.pull().setRemote(Constants.DEFAULT_REMOTE_NAME).setRemoteBranchName(Constants.MASTER).setStrategy(MergeStrategy.THEIRS).call();
                 } catch (RefNotFoundException e) {
-                    // TODO: DB: Log this errors
+                    logger.error("Failed to checkout published master and to pull content from sandbox for site " + site, e);
+                    throw new DeploymentException("Failed to checkout published master and to pull content from sandbox for site " + site);
                 }
 
                 // checkout environment branch
@@ -787,10 +848,34 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                             .call();
                 }
 
+                // check if it is new branch
+                // if true nothing to do, already pulled everything
+                // otherwise do cherry-picking
                 if (!newBranch) {
                     // cherry pick all commit ids
-                    for (String cId :
-                            commitIds) {
+
+                    String inProgressBranchName = environment + IN_PROGRESS_BRANCH_NAME_SUFIX;
+                    // Create in progress branch
+                    try {
+                        // First delete it in case it already exists (ignored if does not exist)
+                        logger.debug("Delete in-progress branch, in case it was not cleaned up for site " + site);
+                        git.branchDelete().setBranchNames(inProgressBranchName).setForce(true).call();
+
+                        // Create in progress branch
+                        logger.debug("Create in-progress branch for site " + site);
+                        Ref checkoutResult = git.checkout()
+                                .setCreateBranch(true)
+                                .setForce(true)
+                                .setStartPoint(environment)
+                                .setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK)
+                                .setName(inProgressBranchName)
+                                .call();
+                    } catch (GitAPIException e) {
+                        // TODO: DB: Error ?
+                        logger.error("Failed to create in-progress published branch for site " + site);
+                    }
+
+                    for (String cId : commitIds) {
                         commitId = cId;
                         logger.debug("Cherry-picking commit id " + commitId);
                         String message = studioConfiguration.getProperty(REPO_PUBLISHED_CHERRY_PICK_MESSAGE);
@@ -799,16 +884,11 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         ObjectId objCommitId = repo.resolve(commitId);
                         RevWalk rw = new RevWalk(repo);
                         RevCommit rc = rw.parseCommit(objCommitId);
-                        int pc = rc.getParentCount();
 
-                        CherryPickCommand cherryPickCommand = git
+                        CherryPickResult cherryPickResult = git
                                 .cherryPick()
-                                .setMainlineParentNumber(pc)
-                                .setOurCommitName(message)
                                 .setNoCommit(false)
-                                .include(objCommitId);
-
-                        CherryPickResult cherryPickResult = cherryPickCommand.call();
+                                .include(objCommitId).call();
 
                         switch (cherryPickResult.getStatus()) {
                             case FAILED:
@@ -832,6 +912,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                                 if (failPaths2 != null) {
                                     for (String key : failPaths2.keySet()) {
                                         errorMessage2 += "\t" + key + " -> " + failPaths2.get(key).toString() + "\n";
+                                        git.checkout().setStartPoint(commitId).addPath(key).call();
                                     }
                                     logger.error(errorMessage2);
                                 } else {
@@ -847,7 +928,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                                             case BOTH_ADDED:
                                             case BOTH_MODIFIED:
                                                 logger.debug("If conflict is caused by both added a file, do checkout on that path with option --ours");
-                                                git.checkout().setStartPoint(rc).addPath(path).call();
+                                                git.checkout().setStartPoint(commitId).addPath(path).call();
                                                 break;
                                             case DELETED_BY_THEM:
                                                 logger.debug("If conflict is caused by incoming delete, remove file from repository with rm command");
@@ -872,7 +953,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                                     String newCommitMessage = StringUtils.EMPTY;
                                     long commitTime = 0l;
                                     Iterable<RevCommit> logs = git.log()
-                                            .add(repo.resolve(environment))
+                                            .add(repo.resolve(inProgressBranchName))
                                             .setMaxCount(1)
                                             .call();
                                     Iterator<RevCommit> iter = logs.iterator();
@@ -900,7 +981,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
                                 String newCommitMessage = StringUtils.EMPTY;
                                 Iterable<RevCommit> logs = git.log()
-                                        .add(repo.resolve(environment))
+                                        .add(repo.resolve(inProgressBranchName))
                                         .setMaxCount(1)
                                         .call();
                                 Iterator<RevCommit> iter = logs.iterator();
@@ -923,7 +1004,21 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         }
                     }
 
-                    // TODO: DB: Bulk commit all cherry-picks here
+                    // checkout environment
+                    logger.debug("Checkout environment " + environment + " branch for site " + site);
+                    Ref checkoutResult = git.checkout()
+                            .setName(environment)
+                            .call();
+
+                    Ref branchRef = repo.findRef(inProgressBranchName);
+
+                    // merge in-progress branch
+                    logger.debug("Merge in-progress branch into environment " + environment + " for site " + site);
+                    git.merge().setCommit(true).include(branchRef).call();
+
+                    // clean up
+                    logger.debug("Delete in-progress branch (clean up) for site " + site);
+                    git.branchDelete().setBranchNames(inProgressBranchName).setForce(true).call();
                 }
             } catch (Exception e) {
                 logger.error("Error when publishing site " + site + " to environment " + environment, e);
