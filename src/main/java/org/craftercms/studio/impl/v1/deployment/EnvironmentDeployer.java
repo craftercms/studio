@@ -44,15 +44,14 @@ public class EnvironmentDeployer {
     @EventListener(EVENT_PUBLISH_TO_ENVIRONMENT)
     public void onEnvironmentDeploymentEvent(DeploymentEventContext context) {
         List<DeploymentItem> items = context.getItems();
-        List<String> commitIds = new ArrayList<String>(items.size());
+        List<String> commitIds = new ArrayList<String>();
         for (DeploymentItem item : items) {
-            List<String> itemCommitIds = contentRepository.getEditCommitIds(item.getSite(), item.getPath(), item.getLastPublishedCommitId(), item.getCommitId());
-            commitIds.addAll(itemCommitIds);
+            commitIds.add(item.getCommitId());
         }
         try {
             contentRepository.publish(context.getSite(), commitIds, context.getEnvironment(), context.getAuthor(), context.getComment());
         } catch (DeploymentException e) {
-            e.printStackTrace();logger.error("Error when publishing site " + context.getSite() + " to environment " + context.getEnvironment(), e);
+            logger.error("Error when publishing site " + context.getSite() + " to environment " + context.getEnvironment(), e);
         }
     }
 

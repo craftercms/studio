@@ -18,7 +18,6 @@
 package org.craftercms.studio.impl.v1.service.deployment;
 
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -100,7 +99,6 @@ public class PublishingManagerImpl implements PublishingManager {
         deploymentItem.setSite(item.getSite());
         deploymentItem.setPath(item.getPath());
         deploymentItem.setCommitId(item.getCommitId());
-        deploymentItem.setLastPublishedCommitId(deploymentHistoryProvider.getLastPublishedCommitId(item.getSite(), item.getEnvironment(), item.getPath()));
 
         String site = item.getSite();
         String path = item.getPath();
