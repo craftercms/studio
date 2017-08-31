@@ -123,6 +123,12 @@
         AND path = #{path}
     </delete>
 
+    <delete id="deleteObjectStateForSiteAndFolder" parameterType="java.util.Map" flushCache="true">
+        DELETE FROM item_state
+        WHERE site = #{site}
+        AND path like  #{path}
+    </delete>
+
     <select id="isFolderLive" parameterType="java.util.Map" resultType="java.lang.Integer">
         SELECT count(*) FROM item_state where site=#{site} and path like #{folderPath} and state like 'EXISTING%'
     </select>

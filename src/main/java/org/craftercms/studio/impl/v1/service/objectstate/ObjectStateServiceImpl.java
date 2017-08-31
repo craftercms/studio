@@ -367,6 +367,15 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     }
 
     @Override
+    public void deleteObjectStatesForFolder(String site, String path) {
+        path = FilenameUtils.normalize(path, true);
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("site", site);
+        params.put("path", path + "/%");
+        itemStateMapper.deleteObjectStateForSiteAndFolder(params);
+    }
+
+    @Override
     public void transitionBulk(String site, List<String> paths, TransitionEvent event, State defaultTargetState) {
         if (paths != null && !paths.isEmpty()) {
             Map<String, Object> params = new HashMap<>();

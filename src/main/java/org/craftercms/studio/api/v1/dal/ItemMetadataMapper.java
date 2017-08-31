@@ -32,6 +32,8 @@ public interface ItemMetadataMapper {
 
     void deleteEntry(Map params);
 
+    void deleteFolder(Map params);
+
     void setLockOwner(Map params);
 
     void deleteObjectMetadataForSite(Map params);
