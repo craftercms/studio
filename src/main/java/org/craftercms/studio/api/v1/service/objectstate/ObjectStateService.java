@@ -59,6 +59,8 @@ public interface ObjectStateService {
 
     void deleteObjectStateForPath(String site, String path);
 
+    void deleteObjectStatesForFolder(String site, String path);
+
     void transitionBulk(String site, List<String> paths, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent event, org.craftercms.studio.api.v1.service.objectstate.State defaultTargetState);
 
     /**

@@ -150,6 +150,15 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
     }
 
     @Override
+    public void deleteObjectMetadataForFolder(String site, String path) {
+        path = FilenameUtils.normalize(path, true);
+        Map<String, String> params = new HashMap<>();
+        params.put("site", site);
+        params.put("path", path + "/%");
+        itemMetadataMapper.deleteFolder(params);
+    }
+
+    @Override
     public void updateObjectPath(String site, String oldPath, String newPath) {
         newPath = FilenameUtils.normalize(newPath, true);
         oldPath = FilenameUtils.normalize(oldPath, true);

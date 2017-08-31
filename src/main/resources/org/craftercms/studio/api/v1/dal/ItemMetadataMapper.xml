@@ -122,8 +122,13 @@
     <select id="countEntries" resultType="int" parameterType="java.util.Map">
         SELECT count(1) FROM item_metadata WHERE site=#{site} AND path=#{path}
     </select>
+
     <delete id="deleteEntry" parameterType="java.util.Map">
         DELETE FROM item_metadata WHERE site=#{site} AND path=#{path}
+    </delete>
+
+    <delete id="deleteFolder" parameterType="java.util.Map">
+        DELETE FROM item_metadata WHERE site=#{site} AND path like #{path}
     </delete>
 
     <delete id="deleteObjectMetadataForSite" parameterType="java.util.Map">

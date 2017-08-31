@@ -208,15 +208,21 @@ public class PublishingManagerImpl implements PublishingManager {
     }
 
     private void deleteFolder(String site, String path, String user) {
+        String folderPath = path.replace(FILE_SEPARATOR + DmConstants.INDEX_FILE, "");
         if (contentService.contentExists(site, path)) {
             // TODO: SJ: This bypasses the Content Service, fix
             RepositoryItem[] children = contentRepository.getContentChildren(site, path);
 
             if (children.length < 1) {
                 contentService.deleteContent(site, path, false, user);
+                objectStateService.deleteObjectStatesForFolder(site, folderPath);
+                objectMetadataManager.deleteObjectMetadataForFolder(site, folderPath);
                 String parentPath = ContentUtils.getParentUrl(path);
                 deleteFolder(site, parentPath, user);
             }
+        } else {
+            objectStateService.deleteObjectStatesForFolder(site, folderPath);
+            objectMetadataManager.deleteObjectMetadataForFolder(site, folderPath);
         }
     }
 

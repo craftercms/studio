@@ -275,6 +275,12 @@ public class DeploymentServiceImpl implements DeploymentService {
                         item.setCommitId(lastRepoCommitId);
                     }
                 } else {
+                    RepositoryItem[] children = contentRepository.getContentChildren(site, path);
+                    List<String> childPaths = new ArrayList<String>();
+                    for (RepositoryItem child : children) {
+                        childPaths.add(child.path + FILE_SEPARATOR + child.name);
+                    }
+                    newItems.addAll(createDeleteItems(site, environment, childPaths, approver, scheduledDate));
                     deleteFolder(site, path, approver);
                 }
             }
@@ -283,14 +289,20 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     private void deleteFolder(String site, String path, String user) {
+        String folderPath = path.replace(FILE_SEPARATOR + DmConstants.INDEX_FILE, "");
         if (contentService.contentExists(site, path)) {
             RepositoryItem[] children = contentRepository.getContentChildren(site, path);
 
             if (children.length < 1) {
                 contentService.deleteContent(site, path, false, user);
+                objectStateService.deleteObjectStatesForFolder(site, folderPath);
+                objectMetadataManager.deleteObjectMetadataForFolder(site, folderPath);
                 String parentPath = ContentUtils.getParentUrl(path);
                 deleteFolder(site, parentPath, user);
             }
+        } else {
+            objectStateService.deleteObjectStatesForFolder(site, folderPath);
+            objectMetadataManager.deleteObjectMetadataForFolder(site, folderPath);
         }
     }
 
@@ -767,8 +779,8 @@ public class DeploymentServiceImpl implements DeploymentService {
     public SiteService getSiteService() { return siteService; }
     public void setSiteService(SiteService siteService) { this.siteService = siteService; }
 
-    public org.craftercms.studio.api.v1.service.objectstate.ObjectStateService getObjectStateService() { return objectStateService; }
-    public void setObjectStateService(org.craftercms.studio.api.v1.service.objectstate.ObjectStateService objectStateService) { this.objectStateService = objectStateService; }
+    public ObjectStateService getObjectStateService() { return objectStateService; }
+    public void setObjectStateService(ObjectStateService objectStateService) { this.objectStateService = objectStateService; }
 
     public ObjectMetadataManager getObjectMetadataManager() { return objectMetadataManager; }
     public void setObjectMetadataManager(ObjectMetadataManager objectMetadataManager) { this.objectMetadataManager = objectMetadataManager; }
