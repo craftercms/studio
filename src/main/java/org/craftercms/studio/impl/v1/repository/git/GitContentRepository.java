@@ -1230,29 +1230,31 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             for (int i = 0; i < environments.size() && counter < numberOfItems; i++) {
                 Ref env = environments.get(i);
                 String environment = env.getName();
-                Iterable<RevCommit> branchLog = git.log()
-                        .add(env.getObjectId())
-                        .setRevFilter(AndRevFilter.create(CommitTimeRevFilter.after(fromDate), CommitTimeRevFilter.before(toDate)))
-                        .call();
+                if (!environment.equals(Constants.MASTER) && !environment.equals(Constants.R_HEADS + Constants.MASTER)) {
+                    Iterable<RevCommit> branchLog = git.log()
+                            .add(env.getObjectId())
+                            .setRevFilter(AndRevFilter.create(CommitTimeRevFilter.after(fromDate), CommitTimeRevFilter.before(toDate)))
+                            .call();
 
-                Iterator<RevCommit> iterator = branchLog.iterator();
-                while (iterator.hasNext() && counter < numberOfItems) {
-                    RevCommit revCommit = iterator.next();
-                    List<String> files = helper.getFilesInCommit(publishedRepo, revCommit);
-                    for (int j = 0; j < files.size() && counter < numberOfItems; j++) {
-                        String file = files.get(j);
-                        Path path = Paths.get(file);
-                        String fileName = path.getFileName().toString();
-                        if (!ArrayUtils.contains(IGNORE_FILES, fileName)) {
-                            if (dmFilterWrapper.accept(site, file, filterType)) {
-                                DeploymentSyncHistory dsh = new DeploymentSyncHistory();
-                                dsh.setSite(site);
-                                dsh.setPath(file);
-                                dsh.setSyncDate(new Date(1000l * revCommit.getCommitTime()));
-                                dsh.setUser(revCommit.getAuthorIdent().getName());
-                                dsh.setEnvironment(environment);
-                                toRet.add(dsh);
-                                counter++;
+                    Iterator<RevCommit> iterator = branchLog.iterator();
+                    while (iterator.hasNext() && counter < numberOfItems) {
+                        RevCommit revCommit = iterator.next();
+                        List<String> files = helper.getFilesInCommit(publishedRepo, revCommit);
+                        for (int j = 0; j < files.size() && counter < numberOfItems; j++) {
+                            String file = files.get(j);
+                            Path path = Paths.get(file);
+                            String fileName = path.getFileName().toString();
+                            if (!ArrayUtils.contains(IGNORE_FILES, fileName)) {
+                                if (dmFilterWrapper.accept(site, file, filterType)) {
+                                    DeploymentSyncHistory dsh = new DeploymentSyncHistory();
+                                    dsh.setSite(site);
+                                    dsh.setPath(file);
+                                    dsh.setSyncDate(new Date(1000l * revCommit.getCommitTime()));
+                                    dsh.setUser(revCommit.getAuthorIdent().getName());
+                                    dsh.setEnvironment(environment);
+                                    toRet.add(dsh);
+                                    counter++;
+                                }
                             }
                         }
                     }
