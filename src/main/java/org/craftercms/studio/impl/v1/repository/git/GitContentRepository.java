@@ -817,6 +817,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         synchronized (helper.getRepository(site, GitRepositories.PUBLISHED)) {
             try (Git git = new Git(repo)) {
 
+                String inProgressBranchName = environment + IN_PROGRESS_BRANCH_NAME_SUFIX;
+
                 // fetch "origin/master"
                 logger.debug("Fetch from sandbox for site " + site);
                 FetchResult fetchResult = git.fetch().call();
@@ -824,7 +826,17 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 // checkout master and pull from sandbox
                 logger.debug("Checkout published/master branch for site " + site);
                 try {
+                    // First delete it in case it already exists (ignored if does not exist)
+                    String currentBranch = repo.getBranch();
+                    if (currentBranch.endsWith(IN_PROGRESS_BRANCH_NAME_SUFIX)) {
+                        git.reset().setMode(ResetCommand.ResetType.HARD).call();
+                    }
+
                     Ref checkoutMasterResult = git.checkout().setName(Constants.MASTER).call();
+
+                    logger.debug("Delete in-progress branch, in case it was not cleaned up for site " + site);
+                    git.branchDelete().setBranchNames(inProgressBranchName).setForce(true).call();
+
                     PullResult pullResult = git.pull().setRemote(Constants.DEFAULT_REMOTE_NAME).setRemoteBranchName(Constants.MASTER).setStrategy(MergeStrategy.THEIRS).call();
                 } catch (RefNotFoundException e) {
                     logger.error("Failed to checkout published master and to pull content from sandbox for site " + site, e);
@@ -854,12 +866,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 if (!newBranch) {
                     // cherry pick all commit ids
 
-                    String inProgressBranchName = environment + IN_PROGRESS_BRANCH_NAME_SUFIX;
                     // Create in progress branch
                     try {
-                        // First delete it in case it already exists (ignored if does not exist)
-                        logger.debug("Delete in-progress branch, in case it was not cleaned up for site " + site);
-                        git.branchDelete().setBranchNames(inProgressBranchName).setForce(true).call();
 
                         // Create in progress branch
                         logger.debug("Create in-progress branch for site " + site);
