@@ -927,12 +927,16 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                                         switch (stageState) {
                                             case BOTH_ADDED:
                                             case BOTH_MODIFIED:
-                                                logger.debug("If conflict is caused by both added a file, do checkout on that path with option --ours");
+                                                logger.debug("If conflict is caused by both added a file, do checkout on that path with option --theirs");
                                                 git.checkout().setStartPoint(commitId).addPath(path).call();
                                                 break;
                                             case DELETED_BY_THEM:
                                                 logger.debug("If conflict is caused by incoming delete, remove file from repository with rm command");
                                                 git.rm().addFilepattern(path).call();
+                                                break;
+                                            case DELETED_BY_US:
+                                                logger.debug("If conflict is caused by file being deleted in our repo but exists in base and origin, do checkout on that path");
+                                                git.checkout().setStartPoint(commitId).addPath(path).call();
                                                 break;
                                             default:
                                                 logger.debug("Conflict is " + stageState.name() + " path " + path + "- not able to handle it. Throw error");
