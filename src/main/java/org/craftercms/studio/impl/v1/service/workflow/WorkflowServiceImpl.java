@@ -423,6 +423,8 @@ public class WorkflowServiceImpl implements WorkflowService {
 
     public Map<String, Object> getInProgressItems(String site, String sort, boolean ascending, boolean inProgressOnly) throws ServiceException {
         DmContentItemComparator comparator = new DmContentItemComparator(sort, ascending, true, true);
+        comparator.setSecondLevelCompareRequired(true);
+        comparator.setSecondLevelSortBy(DmContentItemComparator.SORT_PATH);
         List<ContentItemTO> items = getInProgressItems(site, comparator, inProgressOnly);
         JSONObject jsonObject = new JSONObject();
         int total = 0;
