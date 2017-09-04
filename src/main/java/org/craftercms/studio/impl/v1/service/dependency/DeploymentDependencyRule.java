@@ -24,6 +24,7 @@ import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.content.ContentService;
+import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
 import org.craftercms.studio.api.v1.service.dependency.DependencyRule;
 import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
@@ -80,7 +81,8 @@ public class DeploymentDependencyRule implements DependencyRule {
         if (StringUtils.isNotEmpty(parentPath)) {
             if (contentService.contentExists(site, parentPath)) {
                 ContentItemTO item = contentService.getContentItem(site, parentPath);
-                if (item.isNew()) {
+
+                if (item.isNew() || objectMetadataManager.isRenamed(site, item.getUri())) {
                     dependecyPaths.add(item.getUri());
                     getMandatoryParent(site, item.getUri(), dependecyPaths);
                 }
@@ -110,8 +112,12 @@ public class DeploymentDependencyRule implements DependencyRule {
     public ContentService getContentService() { return contentService; }
     public void setContentService(ContentService contentService) { this.contentService = contentService; }
 
+    public ObjectMetadataManager getObjectMetadataManager() { return objectMetadataManager; }
+    public void setObjectMetadataManager(ObjectMetadataManager objectMetadataManager) { this.objectMetadataManager = objectMetadataManager; }
+
     protected DmDependencyService dmDependencyService;
     protected ObjectStateService objectStateService;
     protected ContentService contentService;
     protected List<String> contentSpecificDependencies;
+    protected ObjectMetadataManager objectMetadataManager;
 }
