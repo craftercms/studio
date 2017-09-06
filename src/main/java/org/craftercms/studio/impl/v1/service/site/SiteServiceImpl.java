@@ -96,14 +96,19 @@ public class SiteServiceImpl implements SiteService {
 
 	private final static Logger logger = LoggerFactory.getLogger(SiteServiceImpl.class);
 
-	@Override
-	public boolean writeConfiguration(String site, String path, InputStream content) throws ServiceException {
-	    // Write site configuration
-		String commitId = contentRepository.writeContent(site, path, content);
+    @Override
+    public boolean writeConfiguration(String site, String path, InputStream content) throws ServiceException {
+        // Write site configuration
+        String commitId = contentRepository.writeContent(site, path, content);
+        objectStateService.transition(site, path, TransitionEvent.SAVE);
+        if (!objectMetadataManager.metadataExist(site, path)) {
+            objectMetadataManager.insertNewObjectMetadata(site, path);
+        }
+        objectMetadataManager.updateCommitId(site, path, commitId);
         boolean toRet = StringUtils.isEmpty(commitId);
 
         return toRet;
-	}
+    }
 
 	@Override
 	public boolean writeConfiguration(String path, InputStream content) throws ServiceException {
