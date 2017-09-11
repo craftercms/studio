@@ -22,6 +22,7 @@ import groovy.json.JsonSlurper
 import org.apache.chemistry.opencmis.commons.exceptions.CmisUnauthorizedException
 import org.apache.commons.lang3.StringUtils
 import org.craftercms.studio.api.v1.exception.CmisPathNotFoundException
+import org.craftercms.studio.api.v1.exception.CmisRepositoryNotFoundException
 import org.craftercms.studio.api.v1.exception.CmisTimeoutException
 import org.craftercms.studio.api.v1.exception.CmisUnavailableException
 import org.craftercms.studio.api.v1.exception.StudioPathNotFoundException;
@@ -101,6 +102,9 @@ try {
         } catch (CmisPathNotFoundException e) {
             response.setStatus(404)
             result.message = "CMIS path not found: \n" + e
+        } catch (CmisRepositoryNotFoundException e) {
+            response.setStatus(404)
+            result.message = "CMIS Repository " + cmisRepo + " not found"
         } catch (StudioPathNotFoundException e) {
             response.setStatus(404)
             result.message = "Studio path not found: \n" + e

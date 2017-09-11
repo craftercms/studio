@@ -28,13 +28,13 @@ import java.util.List;
 /** Cmis Service **/
 public interface CmisService {
 
-    int listTotal(String site, String cmisRepo, String path) throws CmisUnavailableException, CmisTimeoutException;
+    int listTotal(String site, String cmisRepo, String path) throws CmisUnavailableException, CmisTimeoutException, CmisRepositoryNotFoundException;
 
-    List<CmisContentItemTO> list(String site, String cmisRepo, String path, int start, int number) throws CmisUnavailableException, CmisTimeoutException;
+    List<CmisContentItemTO> list(String site, String cmisRepo, String path, int start, int number) throws CmisUnavailableException, CmisTimeoutException, CmisRepositoryNotFoundException;
 
-    long searchTotal(String site, String cmisRepo, String searchTerm, String path) throws CmisUnavailableException, CmisTimeoutException;
+    long searchTotal(String site, String cmisRepo, String searchTerm, String path) throws CmisUnavailableException, CmisTimeoutException, CmisRepositoryNotFoundException;
 
-    List<CmisContentItemTO> search(String site, String cmisRepo, String searchTerm, String path, int start, int number) throws CmisUnavailableException, CmisTimeoutException;
+    List<CmisContentItemTO> search(String site, String cmisRepo, String searchTerm, String path, int start, int number) throws CmisUnavailableException, CmisTimeoutException, CmisRepositoryNotFoundException;
 
-    void cloneContent(String siteId, String cmisRepoId, String cmisPath, String studioPath) throws CmisUnavailableException, CmisTimeoutException, CmisPathNotFoundException, ServiceException, StudioPathNotFoundException;
+    void cloneContent(String siteId, String cmisRepoId, String cmisPath, String studioPath) throws CmisUnavailableException, CmisTimeoutException, CmisPathNotFoundException, ServiceException, StudioPathNotFoundException, CmisRepositoryNotFoundException;
 }

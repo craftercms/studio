@@ -82,7 +82,7 @@ public class CmisServiceImpl implements CmisService {
     private static final String CMIS_SEARCH_QUERY_SEARCH_TERM_VARIABLE = "{searchTerm}";
 
     @Override
-    public int listTotal(String site, String cmisRepo, String path) throws CmisUnavailableException, CmisTimeoutException {
+    public int listTotal(String site, String cmisRepo, String path) throws CmisUnavailableException, CmisTimeoutException, CmisRepositoryNotFoundException {
         int toRet = 0;
         DataSourceRepositoryTO repositoryConfig = getConfiguration(site, cmisRepo);
         if (repositoryConfig != null) {
@@ -107,7 +107,7 @@ public class CmisServiceImpl implements CmisService {
     }
 
     @Override
-    public List<CmisContentItemTO> list(String site, String cmisRepo, String path, int start, int number) throws CmisUnavailableException, CmisTimeoutException {
+    public List<CmisContentItemTO> list(String site, String cmisRepo, String path, int start, int number) throws CmisUnavailableException, CmisTimeoutException, CmisRepositoryNotFoundException {
         List<CmisContentItemTO> toRet = new ArrayList<CmisContentItemTO>();
         DataSourceRepositoryTO repositoryConfig = getConfiguration(site, cmisRepo);
         if (repositoryConfig != null) {
@@ -159,7 +159,7 @@ public class CmisServiceImpl implements CmisService {
         return toRet;
     }
 
-    private DataSourceRepositoryTO getConfiguration(String site, String cmisRepo) {
+    private DataSourceRepositoryTO getConfiguration(String site, String cmisRepo) throws CmisRepositoryNotFoundException {
         String configPath = Paths.get(getConfigLocation(), getConfigFileName()).toString();
         Document document =  null;
         DataSourceRepositoryTO repositoryConfig = null;
@@ -175,6 +175,8 @@ public class CmisServiceImpl implements CmisService {
                 repositoryConfig.setPassword(getPropertyValue(node, PASSWORD_PROPERTY));
                 repositoryConfig.setBasePath(getPropertyValue(node, BASE_PATH_PROPERTY));
                 repositoryConfig.setDownloadUrlRegex(getPropertyValue(node, DOWNLOAD_URL_REGEX_PROPERTY));
+            } else {
+                throw new CmisRepositoryNotFoundException();
             }
         } catch (DocumentException e) {
             logger.error("Error while getting configuration for site: " + site + " cmis: " + cmisRepo + " (config path: " + configPath + ")");
@@ -223,7 +225,7 @@ public class CmisServiceImpl implements CmisService {
     }
 
     @Override
-    public long searchTotal(String site, String cmisRepo, String searchTerm, String path) throws CmisUnavailableException, CmisTimeoutException {
+    public long searchTotal(String site, String cmisRepo, String searchTerm, String path) throws CmisUnavailableException, CmisTimeoutException, CmisRepositoryNotFoundException {
         long toRet = 0;
         DataSourceRepositoryTO repositoryConfig = getConfiguration(site, cmisRepo);
         if (repositoryConfig != null) {
@@ -244,7 +246,7 @@ public class CmisServiceImpl implements CmisService {
     }
 
     @Override
-    public List<CmisContentItemTO> search(String site, String cmisRepo, String searchTerm, String path, int start, int number) throws CmisUnavailableException, CmisTimeoutException {
+    public List<CmisContentItemTO> search(String site, String cmisRepo, String searchTerm, String path, int start, int number) throws CmisUnavailableException, CmisTimeoutException, CmisRepositoryNotFoundException {
         List<CmisContentItemTO> toRet = new ArrayList<CmisContentItemTO>();
         DataSourceRepositoryTO repositoryConfig = getConfiguration(site, cmisRepo);
         if (repositoryConfig != null) {
@@ -289,7 +291,7 @@ public class CmisServiceImpl implements CmisService {
     }
 
     @Override
-    public void cloneContent(String siteId, String cmisRepoId, String cmisPath, String studioPath) throws CmisUnavailableException, CmisTimeoutException, CmisPathNotFoundException, ServiceException, StudioPathNotFoundException {
+    public void cloneContent(String siteId, String cmisRepoId, String cmisPath, String studioPath) throws CmisUnavailableException, CmisTimeoutException, CmisPathNotFoundException, ServiceException, StudioPathNotFoundException, CmisRepositoryNotFoundException {
         if (!contentService.contentExists(siteId, studioPath)) throw new StudioPathNotFoundException();
         List<CmisContentItemTO> toRet = new ArrayList<CmisContentItemTO>();
         DataSourceRepositoryTO repositoryConfig = getConfiguration(siteId, cmisRepoId);
