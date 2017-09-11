@@ -9,7 +9,7 @@
     <url>https://github.com/craftercms/studio2</url>
 
     <packaging>war</packaging>
-    <version>3.0.1-SNAPSHOT</version>
+    <version>3.0.2-SNAPSHOT</version>
     <organization>
         <name>CrafterCMS</name>
         <url>http://craftercms.org</url>
@@ -91,7 +91,7 @@
         <dependency>
             <groupId>org.craftercms</groupId>
             <artifactId>crafter-engine</artifactId>
-            <version>3.0.1-SNAPSHOT</version>
+            <version>3.0.2-SNAPSHOT</version>
             <type>war</type>
             <exclusions>
                 <exclusion>
@@ -116,7 +116,7 @@
         <dependency>
             <groupId>org.craftercms</groupId>
             <artifactId>crafter-engine</artifactId>
-            <version>3.0.1-SNAPSHOT</version>
+            <version>3.0.2-SNAPSHOT</version>
             <classifier>classes</classifier>
             <scope>provided</scope>
         </dependency>
