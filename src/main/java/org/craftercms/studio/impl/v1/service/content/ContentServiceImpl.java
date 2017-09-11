@@ -699,6 +699,7 @@ public class ContentServiceImpl implements ContentService {
             // change the path of this object in the object state database
             objectStateService.updateObjectPath(site, fromPath, movePath);
             objectStateService.transition(site, renamedItem, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.SAVE);
+            renamedItem = getContentItem(site, movePath, 0);
         }
         // update metadata
         if (!objectMetadataManager.isRenamed(site, fromPath)) {
