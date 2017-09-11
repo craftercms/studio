@@ -19,6 +19,7 @@
 
 import org.apache.chemistry.opencmis.commons.exceptions.CmisUnauthorizedException
 import org.apache.commons.lang3.StringUtils
+import org.craftercms.studio.api.v1.exception.CmisRepositoryNotFoundException
 import org.craftercms.studio.api.v1.exception.CmisTimeoutException
 import org.craftercms.studio.api.v1.exception.CmisUnavailableException;
 import scripts.api.CmisServices
@@ -119,6 +120,9 @@ if (invalidParams) {
     } catch (CmisUnauthorizedException e) {
         response.setStatus(401)
         result.message = "CMIS Unauthorized: \n" + e
+    } catch (CmisRepositoryNotFoundException e) {
+        response.setStatus(404)
+        result.message = "CMIS Repository " + cmisRepo + " not found"
     } catch (CmisTimeoutException e) {
         response.setStatus(408)
         result.message = "CMIS Timeout: \n" + e
