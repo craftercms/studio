@@ -406,7 +406,7 @@ public class GitContentRepositoryHelper {
             // Built a path for the site/published
             Path sitePublishedPath = buildRepoPath(GitRepositories.PUBLISHED, site);
             try (Git publishedGit = Git.cloneRepository()
-                    .setURI(siteSandboxPath.normalize().toAbsolutePath().toString())
+                    .setURI(sitePublishedPath.relativize(siteSandboxPath).toString())
                     .setDirectory(sitePublishedPath.normalize().toAbsolutePath().toFile())
                     .call()) {
                 Repository publishedRepo = publishedGit.getRepository();
