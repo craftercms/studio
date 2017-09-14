@@ -1,8 +1,9 @@
 (function($) {
 
    $(function() {
-     var queryParam = decodeURI($.urlParam('q')).trim();
+     var queryParam = $.urlParam('q');
      if (queryParam) {
+       queryParam = decodeURI(queryParam).trim();
        $('#query').val(queryParam);
      }
 
