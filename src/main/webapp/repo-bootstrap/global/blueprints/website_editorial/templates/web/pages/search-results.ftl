@@ -34,26 +34,16 @@
 										<h1>Search Results</h1>
 										<h3>Refine by</h3>
 									</header>
-                  <form id="categories">
-                  	<div class="row uniform">
+									<form id="categories">
+										<div class="row uniform">
+										<#list categories as category>
 											<div class="3u 6u(medium) 12u$(small)">
-												<input type="checkbox" id="style" name="style" value="style">
-												<label for="style">Style</label>
+												<input type="checkbox" id="${category.key}" name="${category.key}" value="${category.key}">
+												<label for="${category.key}">${category.value}</label>
 											</div>
-											<div class="3u 6u$(medium) 12u$(small)">
-												<input type="checkbox" id="health" name="health" value="health">
-												<label for="health">Health</label>
-											</div>
-											<div class="3u 6u(medium) 12u$(small)">
-												<input type="checkbox" id="entertainment" name="entertainment" value="entertainment">
-												<label for="entertainment">Entertainment</label>
-											</div>
-											<div class="3u 6u$(medium) 12u$(small)">
-												<input type="checkbox" id="technology" name="technology" value="technology">
-												<label for="technology">Technology</label>
-											</div>
+										</#list>
 										</div>
-                  </form>
+									</form>
 									<hr class="major"/>
 									<div id="search-results">
 									</div>
