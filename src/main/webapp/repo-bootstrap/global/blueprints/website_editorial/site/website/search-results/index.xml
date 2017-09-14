@@ -18,4 +18,10 @@
 	<createdDate_dt>3/23/2017 23:47:15</createdDate_dt>
 	<lastModifiedDate>5/18/2017 19:52:59</lastModifiedDate>
 	<lastModifiedDate_dt>5/18/2017 19:52:59</lastModifiedDate_dt>
+	<disabled>false</disabled>
+	<categories>	<item>	<key>/site/taxonomy/categories.xml</key>
+	<value>Categories</value>
+	<include>/site/taxonomy/categories.xml</include>
+	<disableFlattening>false</disableFlattening>
+	</item></categories>
 </page>
