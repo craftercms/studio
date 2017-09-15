@@ -19,6 +19,8 @@
 
 import groovy.json.JsonException
 import groovy.json.JsonSlurper
+import org.apache.chemistry.opencmis.commons.exceptions.CmisConnectionException
+import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException
 import org.apache.chemistry.opencmis.commons.exceptions.CmisUnauthorizedException
 import org.apache.commons.lang3.StringUtils
 import org.craftercms.studio.api.v1.exception.CmisPathNotFoundException
@@ -108,9 +110,15 @@ try {
         } catch (StudioPathNotFoundException e) {
             response.setStatus(404)
             result.message = "Studio path not found: \n" + e
+        } catch (CmisObjectNotFoundException e) {
+            response.setStatus(404)
+            result.message = "CMIS Path Not Found.\n" + e
         } catch (CmisUnauthorizedException e) {
             response.setStatus(401)
-            result.message = "CMIS Unauthorized.: \n" + e
+            result.message = "CMIS Unauthorized: \nInvalid username or password in CMIS data source configuration, please contact your site administrator.\n" + e
+        } catch (CmisConnectionException e) {
+            response.setStatus(400)
+            result.message = "Invalid CMIS parameter(s). Invalid CMIS data source configuration (hostname, port number, etc.), please contact your site administrator.\n" + e
         } catch (CmisTimeoutException e) {
             response.setStatus(408)
             result.message = "CMIS Timeout: \n" + e
