@@ -22,7 +22,7 @@ import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.to.*;
 
-import java.util.Date;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -32,10 +32,10 @@ import java.util.Map;
 public interface DeploymentService {
 
     // document
-    void deploy(String site, String environment, List<String> paths, Date scheduledDate, String approver, String submissionComment, final boolean scheduleDateNow) throws DeploymentException;
+    void deploy(String site, String environment, List<String> paths, ZonedDateTime scheduledDate, String approver, String submissionComment, final boolean scheduleDateNow) throws DeploymentException;
 
     // document
-    void delete(String site, List<String> paths, String approver, Date scheduledDate) throws DeploymentException;
+    void delete(String site, List<String> paths, String approver, ZonedDateTime scheduledDate) throws DeploymentException;
 
     List<PublishRequest> getScheduledItems(String site);
 
@@ -81,7 +81,7 @@ public interface DeploymentService {
      * @param path path
      * @return last deployment date or null if never deployed
      */
-    Date getLastDeploymentDate(String site, String path);
+    ZonedDateTime getLastDeploymentDate(String site, String path);
 
     /**
      * Get publish status for given site

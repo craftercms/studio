@@ -41,7 +41,8 @@ import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 
 import java.io.InputStream;
-import java.util.Date;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -264,7 +265,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
     private void updateLastEditedProperties(String site, String relativePath, String user) {
         Map<String, Object> properties = new HashMap<>();
         properties.put(ItemMetadata.PROP_MODIFIER, user);
-        properties.put(ItemMetadata.PROP_MODIFIED, new Date());
+        properties.put(ItemMetadata.PROP_MODIFIED, ZonedDateTime.now(ZoneOffset.UTC));
         if (!objectMetadataManager.metadataExist(site, relativePath)) {
             objectMetadataManager.insertNewObjectMetadata(site, relativePath);
         }
@@ -305,7 +306,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                 }
                 Map<String, Object> properties = new HashMap<>();
                 properties.put(ItemMetadata.PROP_NAME, fileName);
-                properties.put(ItemMetadata.PROP_MODIFIED, new Date());
+                properties.put(ItemMetadata.PROP_MODIFIED, ZonedDateTime.now(ZoneOffset.UTC));
                 properties.put(ItemMetadata.PROP_CREATOR, user);
                 properties.put(ItemMetadata.PROP_MODIFIER, user);
                 properties.put(ItemMetadata.PROP_OWNER, user);
@@ -356,7 +357,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 
         Map<String, Object> properties = new HashMap<>();
         properties.put(ItemMetadata.PROP_MODIFIER, user);
-        properties.put(ItemMetadata.PROP_MODIFIED, new Date());
+        properties.put(ItemMetadata.PROP_MODIFIED, ZonedDateTime.now(ZoneOffset.UTC));
         if (unlock) {
             properties.put(ItemMetadata.PROP_LOCK_OWNER, StringUtils.EMPTY);
         } else {

@@ -17,13 +17,12 @@
  ******************************************************************************/
 package org.craftercms.studio.api.v1.to;
 
-import org.craftercms.studio.api.v1.constant.StudioConstants;
-import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
-
 import java.io.Serializable;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Scanner;
+
+import static org.craftercms.studio.api.v1.constant.StudioConstants.DATE_PATTERN_WORKFLOW_WITH_TZ;
 
 /**
  * a version record
@@ -31,7 +30,7 @@ import java.util.Scanner;
 public class VersionTO implements Comparable<VersionTO>, Serializable {
 
     private static final long serialVersionUID = 2451314126621963140L;
-    protected Date lastModifiedDate;
+    protected ZonedDateTime lastModifiedDate;
     protected String lastModifier;
     protected String versionNumber;
     protected String _timezone;
@@ -52,15 +51,14 @@ public class VersionTO implements Comparable<VersionTO>, Serializable {
      */
     public String getLastModifiedDate() {
         if (lastModifiedDate != null) {
-            SimpleDateFormat format = new SimpleDateFormat(StudioConstants.DATE_PATTERN_WORKFLOW_WITH_TZ);
-            String dateStr = ContentFormatUtils.formatDate(format, lastModifiedDate, _timezone);
+            String dateStr = lastModifiedDate.format(DateTimeFormatter.ofPattern(DATE_PATTERN_WORKFLOW_WITH_TZ));
             return dateStr;
         } else {
             return null;
         }
     }
 
-    public void setLastModifiedDate(Date lastModifiedDate) {
+    public void setLastModifiedDate(ZonedDateTime lastModifiedDate) {
         this.lastModifiedDate = lastModifiedDate;
     }
 

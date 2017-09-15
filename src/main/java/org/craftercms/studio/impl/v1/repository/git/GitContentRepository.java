@@ -29,6 +29,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Matcher;
@@ -496,7 +500,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         VersionTO versionTO = new VersionTO();
                         versionTO.setVersionNumber(revCommit.getName());
                         versionTO.setLastModifier(revCommit.getAuthorIdent().getName());
-                        versionTO.setLastModifiedDate(new Date(revCommit.getCommitTime() * 1000l));
+                        versionTO.setLastModifiedDate(Instant.ofEpochSecond(revCommit.getCommitTime()).atZone(ZoneOffset.UTC));
                         versionTO.setComment(revCommit.getFullMessage());
                         versionHistory.add(versionTO);
                     }
@@ -601,11 +605,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         }
 
         return toReturn;
-    }
-
-    @Override
-    public Date getModifiedDate(String site, String path) {
-        throw new RuntimeException("Method not implemented.");
     }
 
     @Override
@@ -972,16 +971,15 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                                     if (iter.hasNext()) {
                                         RevCommit revCommit = iter.next();
                                         newCommitMessage += revCommit.getFullMessage() + "\n";
-                                        commitTime = 1000l * revCommit.getCommitTime();
+                                        commitTime = revCommit.getCommitTime();
                                     }
                                     newCommitMessage += message;
                                     git.commit().setAmend(true).setMessage(newCommitMessage).call();
 
                                     // tag
-                                    Date tagDate2 = new Date(commitTime);
-                                    Date publishDate = new Date();
-                                    SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy-MM-dd'T'HHmmssSSSX");
-                                    String tagName2 = sdf2.format(tagDate2) + "_published_on_" + sdf2.format(publishDate);
+                                    ZonedDateTime tagDate2 = Instant.ofEpochSecond(commitTime).atZone(ZoneOffset.UTC);
+                                    ZonedDateTime publishDate = ZonedDateTime.now(ZoneOffset.UTC);
+                                    String tagName2 = tagDate2.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX")) + "_published_on_" + publishDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX"));
                                     PersonIdent authorIdent2 = helper.getAuthorIdent(author);
                                     Ref tagResult2 = git.tag().setTagger(authorIdent2).setName(tagName2).setMessage(newCommitMessage).call();
                                     break;
@@ -1004,12 +1002,11 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                                 newCommitMessage += message;
                                 git.commit().setAmend(true).setMessage(newCommitMessage).call();
 
-                                long commitTime = 1000l * cherryPickResult.getNewHead().getCommitTime();
+                                long commitTime = cherryPickResult.getNewHead().getCommitTime();
                                 // tag
-                                Date tagDate2 = new Date(commitTime);
-                                Date publishDate = new Date();
-                                SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy-MM-dd'T'HHmmssSSSX");
-                                String tagName2 = sdf2.format(tagDate2) + "_published_on_" + sdf2.format(publishDate);
+                                ZonedDateTime tagDate2 = Instant.ofEpochSecond(commitTime).atZone(ZoneOffset.UTC);
+                                ZonedDateTime publishDate = ZonedDateTime.now(ZoneOffset.UTC);
+                                String tagName2 = tagDate2.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX")) + "_published_on_" + publishDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX"));
                                 PersonIdent authorIdent2 = helper.getAuthorIdent(author);
                                 Ref tagResult2 = git.tag().setTagger(authorIdent2).setName(tagName2).setMessage(newCommitMessage).call();
                                 break;
@@ -1077,8 +1074,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                                 // and add them to the list of RepoOperations to return to the caller
                                 // also include date/time of commit by taking number of seconds and multiply by 1000 and
                                 // convert to java date before sending over
-                                operations.addAll(processDiffEntry(diffEntries, firstCommit.getId(), firstCommit.getCommitterIdent().getName(), new Date(firstCommit.getCommitTime() *
-                                        1000L)));
+                                operations.addAll(processDiffEntry(diffEntries, firstCommit.getId(), firstCommit.getCommitterIdent().getName(), Instant.ofEpochSecond(firstCommit.getCommitTime()).atZone(ZoneOffset.UTC)));
                             }
                         }
                     }
@@ -1130,8 +1126,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                                 // and add them to the list of RepoOperations to return to the caller
                                 // also include date/time of commit by taking number of seconds and multiply by 1000 and
                                 // convert to java date before sending over
-                                operations.addAll(processDiffEntry(diffEntries, nextCommitId, author, new Date(commit.getCommitTime() *
-                                        1000l)));
+                                operations.addAll(processDiffEntry(diffEntries, nextCommitId, author, Instant.ofEpochSecond(commit.getCommitTime()).atZone(ZoneOffset.UTC)));
                                 prevCommitId = nextCommitId;
                             }
                         }
@@ -1188,7 +1183,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         return toReturn;
     }
 
-    private List<RepoOperationTO> processDiffEntry(List<DiffEntry> diffEntries, ObjectId commitId, String author, Date commitTime) {
+    private List<RepoOperationTO> processDiffEntry(List<DiffEntry> diffEntries, ObjectId commitId, String author, ZonedDateTime commitTime) {
         List<RepoOperationTO> toReturn = new ArrayList<RepoOperationTO>();
 
         for (DiffEntry diffEntry : diffEntries) {
@@ -1232,7 +1227,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     @Override
-    public List<DeploymentSyncHistory> getDeploymentHistory(String site, Date fromDate, Date toDate, DmFilterWrapper dmFilterWrapper, String filterType, int numberOfItems) {
+    public List<DeploymentSyncHistory> getDeploymentHistory(String site, ZonedDateTime fromDate, ZonedDateTime toDate, DmFilterWrapper dmFilterWrapper, String filterType, int numberOfItems) {
         List<DeploymentSyncHistory> toRet = new ArrayList<DeploymentSyncHistory>();
         Repository publishedRepo = helper.getRepository(site, PUBLISHED);
         int counter = 0;
@@ -1245,7 +1240,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 if (!environment.equals(Constants.MASTER) && !environment.equals(Constants.R_HEADS + Constants.MASTER)) {
                     Iterable<RevCommit> branchLog = git.log()
                             .add(env.getObjectId())
-                            .setRevFilter(AndRevFilter.create(CommitTimeRevFilter.after(fromDate), CommitTimeRevFilter.before(toDate)))
+                            .setRevFilter(AndRevFilter.create(CommitTimeRevFilter.after(fromDate.toInstant().toEpochMilli()), CommitTimeRevFilter.before(toDate.toInstant().toEpochMilli())))
                             .call();
 
                     Iterator<RevCommit> iterator = branchLog.iterator();
@@ -1261,7 +1256,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                                     DeploymentSyncHistory dsh = new DeploymentSyncHistory();
                                     dsh.setSite(site);
                                     dsh.setPath(file);
-                                    dsh.setSyncDate(new Date(1000l * revCommit.getCommitTime()));
+                                    dsh.setSyncDate(Instant.ofEpochSecond(revCommit.getCommitTime()).atZone(ZoneOffset.UTC));
                                     dsh.setUser(revCommit.getAuthorIdent().getName());
                                     dsh.setEnvironment(environment);
                                     toRet.add(dsh);
@@ -1279,8 +1274,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     @Override
-    public Date getLastDeploymentDate(String site, String path) {
-        Date toRet = null;
+    public ZonedDateTime getLastDeploymentDate(String site, String path) {
+        ZonedDateTime toRet = null;
         Repository publishedRepo = helper.getRepository(site, PUBLISHED);
         try (Git git = new Git(publishedRepo)) {
             Iterable<RevCommit> log = git.log()
@@ -1291,7 +1286,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             Iterator<RevCommit> iter = log.iterator();
             if (iter.hasNext()) {
                 RevCommit commit = iter.next();
-                toRet = new Date(1000l * commit.getCommitTime());
+                toRet = Instant.ofEpochMilli(1000l * commit.getCommitTime()).atZone(ZoneOffset.UTC);
             }
         } catch (IOException | GitAPIException e) {
             logger.error("Error while getting last deployment date for site " + site + ", path " + path, e);

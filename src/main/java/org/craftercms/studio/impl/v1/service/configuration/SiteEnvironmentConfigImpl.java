@@ -32,6 +32,8 @@ import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.Node;
 
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.*;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
@@ -167,7 +169,7 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
             String previewDeploymentEndpoint = root.valueOf("preview-deployment-endpoint");
             config.setPreviewDeploymentEndpoint(previewDeploymentEndpoint);
 
-			config.setLastUpdated(new Date());
+			config.setLastUpdated(ZonedDateTime.now(ZoneOffset.UTC));
 		}
         return config;
 	}

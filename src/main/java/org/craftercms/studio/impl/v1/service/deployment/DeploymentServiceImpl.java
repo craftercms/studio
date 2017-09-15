@@ -47,15 +47,20 @@ import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.impl.v1.service.deployment.job.DeployContentToEnvironmentStore;
-import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalUnit;
 import java.util.*;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.DATE_FORMAT_DEPLOYED;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.DATE_PATTERN_WORKFLOW_WITH_TZ;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC;
 
@@ -87,9 +92,9 @@ public class DeploymentServiceImpl implements DeploymentService {
     @Autowired
     protected PublishRequestMapper publishRequestMapper;
 
-    public void deploy(String site, String environment, List<String> paths, Date scheduledDate, String approver, String submissionComment, final boolean scheduleDateNow) throws DeploymentException {
+    public void deploy(String site, String environment, List<String> paths, ZonedDateTime scheduledDate, String approver, String submissionComment, final boolean scheduleDateNow) throws DeploymentException {
 
-        if (scheduledDate != null && scheduledDate.after(new Date())) {
+        if (scheduledDate != null && scheduledDate.isAfter(ZonedDateTime.now(ZoneOffset.UTC))) {
             objectStateService.transitionBulk(site, paths, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.SUBMIT_WITHOUT_WORKFLOW_SCHEDULED, org.craftercms.studio.api.v1.service.objectstate.State.NEW_SUBMITTED_NO_WF_SCHEDULED);
             objectStateService.setSystemProcessingBulk(site, paths, false);
         } else {
@@ -170,7 +175,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         return paths;
     }
 
-    private List<PublishRequest> createItems(String site, String environment, Map<String, List<String>> paths, Date scheduledDate, String approver, String submissionComment) {
+    private List<PublishRequest> createItems(String site, String environment, Map<String, List<String>> paths, ZonedDateTime scheduledDate, String approver, String submissionComment) {
         List<PublishRequest> newItems = new ArrayList<PublishRequest>(paths.size());
         for (String action : paths.keySet()) {
             for (String path : paths.get(action)) {
@@ -206,8 +211,8 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     @Override
-    public void delete(String site, List<String> paths, String approver, Date scheduledDate) throws DeploymentException {
-        if (scheduledDate != null && scheduledDate.after(new Date())) {
+    public void delete(String site, List<String> paths, String approver, ZonedDateTime scheduledDate) throws DeploymentException {
+        if (scheduledDate != null && scheduledDate.isAfter(ZonedDateTime.now(ZoneOffset.UTC))) {
             objectStateService.transitionBulk(site, paths, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.DELETE, org.craftercms.studio.api.v1.service.objectstate.State.NEW_DELETED);
             objectStateService.setSystemProcessingBulk(site, paths, false);
         } else {
@@ -235,7 +240,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         return environments;
     }
 
-    private List<PublishRequest> createDeleteItems(String site, String environment, List<String> paths, String approver, Date scheduledDate) {
+    private List<PublishRequest> createDeleteItems(String site, String environment, List<String> paths, String approver, ZonedDateTime scheduledDate) {
         List<PublishRequest> newItems = new ArrayList<PublishRequest>(paths.size());
         for (String path : paths) {
             if (contentService.contentExists(site, path)) {
@@ -336,7 +341,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("site", site);
         params.put("state", PublishRequest.State.READY_FOR_LIVE);
-        params.put("now", new Date());
+        params.put("now", ZonedDateTime.now(ZoneOffset.UTC));
         return publishRequestMapper.getScheduledItems(params);
     }
 
@@ -347,22 +352,20 @@ public class DeploymentServiceImpl implements DeploymentService {
         params.put("path", path);
         params.put("state", CopyToEnvironmentItem.State.READY_FOR_LIVE);
         params.put("canceledState", CopyToEnvironmentItem.State.CANCELED);
-        params.put("now", new Date());
+        params.put("now", ZonedDateTime.now(ZoneOffset.UTC));
         publishRequestMapper.cancelWorkflow(params);
     }
 
     @Override
     public List<DmDeploymentTaskTO> getDeploymentHistory(String site, int daysFromToday, int numberOfItems, String sort, boolean ascending, String filterType) {
         // get the filtered list of attempts in a specific date range
-        Date toDate = new Date();
-        Date fromDate = new Date(toDate.getTime() - (1000L * 60L * 60L * 24L * daysFromToday));
-        List<DeploymentSyncHistory> deployReports = deploymentHistoryProvider.getDeploymentHistory(site, fromDate, toDate, dmFilterWrapper, filterType, numberOfItems); //findDeploymentReports(site, fromDate, toDate);
+        ZonedDateTime toDate = ZonedDateTime.now(ZoneOffset.UTC);
+        ZonedDateTime fromDate = toDate.minusDays(daysFromToday);
+        List<DeploymentSyncHistory> deployReports = deploymentHistoryProvider.getDeploymentHistory(site, fromDate, toDate, dmFilterWrapper, filterType, numberOfItems);
         List<DmDeploymentTaskTO> tasks = new ArrayList<DmDeploymentTaskTO>();
 
         if (deployReports != null) {
             int count = 0;
-            SimpleDateFormat deployedFormat = new SimpleDateFormat(StudioConstants.DATE_FORMAT_DEPLOYED);
-            deployedFormat.setTimeZone(TimeZone.getTimeZone(servicesConfig.getDefaultTimezone(site)));
             String timezone = servicesConfig.getDefaultTimezone(site);
             Set<String> processedItems = new HashSet<String>();
             for (int index = 0; index < deployReports.size() && count < numberOfItems; index++) {
@@ -372,7 +375,7 @@ public class DeploymentServiceImpl implements DeploymentService {
                     if (deployedItem != null) {
                         deployedItem.eventDate = entry.getSyncDate();
                         deployedItem.endpoint = entry.getTarget();
-                        String deployedLabel = ContentFormatUtils.formatDate(deployedFormat, entry.getSyncDate(), timezone);
+                        String deployedLabel = entry.getSyncDate().format(DateTimeFormatter.ofPattern(DATE_FORMAT_DEPLOYED));
                         if (tasks.size() > 0) {
                             DmDeploymentTaskTO lastTask = tasks.get(tasks.size() - 1);
                             String lastDeployedLabel = lastTask.getInternalName();
@@ -488,7 +491,7 @@ public class DeploymentServiceImpl implements DeploymentService {
      * @param comparator
      * @param displayPatterns
      */
-    protected void addScheduledItem(String site, Date launchDate, SimpleDateFormat format, String path,
+    protected void addScheduledItem(String site, ZonedDateTime launchDate, SimpleDateFormat format, String path,
                                     List<ContentItemTO> scheduledItems, DmContentItemComparator comparator,
                                     DmContentItemComparator subComparator, List<String> displayPatterns, String filterType) {
         try {
@@ -515,11 +518,11 @@ public class DeploymentServiceImpl implements DeploymentService {
      * @param displayPatterns
      * @throws ServiceException
      */
-    protected void addToScheduledDateList(String site, Date launchDate, SimpleDateFormat format, String path,
+    protected void addToScheduledDateList(String site, ZonedDateTime launchDate, SimpleDateFormat format, String path,
                                           List<ContentItemTO> scheduledItems, DmContentItemComparator comparator,
                                           DmContentItemComparator subComparator, List<String> displayPatterns, String filterType) throws ServiceException {
         String timeZone = servicesConfig.getDefaultTimezone(site);
-        String dateLabel = ContentFormatUtils.formatDate(format, launchDate, timeZone);
+        String dateLabel = launchDate.format(DateTimeFormatter.ofPattern(format.toPattern()));
         // add only if the current node is a file (directories are
         // deployed with index.xml)
         // display only if the path matches one of display patterns
@@ -558,7 +561,7 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     protected void addDependendenciesToSchdeuleList(String site,
-                                                    Date launchDate,
+                                                    ZonedDateTime launchDate,
                                                     SimpleDateFormat format,
                                                     List<ContentItemTO>scheduledItems,
                                                     DmContentItemComparator comparator,
@@ -595,7 +598,7 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     protected void _addDependendenciesToSchdeuleList(String site,
-                                                     Date launchDate,
+                                                     ZonedDateTime launchDate,
                                                      SimpleDateFormat format,
                                                      List<ContentItemTO>scheduledItems,
                                                      DmContentItemComparator comparator,
@@ -692,7 +695,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         states.add(PublishRequest.State.READY_FOR_LIVE);
         states.add(PublishRequest.State.PROCESSING);
         params.put("states", states);
-        params.put("now", new Date());
+        params.put("now", ZonedDateTime.now(ZoneOffset.UTC));
         return publishRequestMapper.getItemsBySiteAndStates(params);
     }
 
@@ -737,7 +740,7 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     @Override
-    public Date getLastDeploymentDate(String site, String path) {
+    public ZonedDateTime getLastDeploymentDate(String site, String path) {
         return deploymentHistoryProvider.getLastDeploymentDate(site, path);
     }
 
@@ -745,13 +748,12 @@ public class DeploymentServiceImpl implements DeploymentService {
     public boolean enablePublishing(String site, boolean enabled) throws SiteNotFoundException {
         boolean toRet = siteService.enablePublishing(site, enabled);
         String message = StringUtils.EMPTY;
-        SimpleDateFormat sdf = new SimpleDateFormat(StudioConstants.DATE_PATTERN_WORKFLOW_WITH_TZ);
         if (enabled) {
             message = studioConfiguration.getProperty(StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STARTED_USER);
         } else {
             message = studioConfiguration.getProperty(StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED_USER);
         }
-        message = message.replace("{username}", securityService.getCurrentUser()).replace("{datetime}",sdf.format(new Date()));
+        message = message.replace("{username}", securityService.getCurrentUser()).replace("{datetime}", ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern(DATE_PATTERN_WORKFLOW_WITH_TZ)));
         siteService.updatePublishingStatusMessage(site, message);
         return toRet;
     }

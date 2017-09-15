@@ -34,6 +34,8 @@ import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.Node;
 
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -99,7 +101,7 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
             loadRoles(contentTypeConfig, root.selectNodes("allowed-roles/role"));
             loadDeleteDependencies(contentTypeConfig, root.selectNodes("delete-dependencies/delete-dependency"));
             loadCopyDependencyPatterns(contentTypeConfig, root.selectNodes("copy-dependencies/copy-dependency"));
-            contentTypeConfig.setLastUpdated(new Date());
+            contentTypeConfig.setLastUpdated(ZonedDateTime.now(ZoneOffset.UTC));
             contentTypeConfig.setType(getContentTypeTypeByName(name));
             return contentTypeConfig;
         } else {

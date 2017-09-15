@@ -17,10 +17,9 @@
  */
 package org.craftercms.studio.impl.v1.service.deployment;
 
-
-import java.io.File;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -57,15 +56,15 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
     }
 
     @Override
-    public void publish(final String site, List<String> paths, Date launchDate,
+    public void publish(final String site, List<String> paths, ZonedDateTime launchDate,
                         final MultiChannelPublishingContext mcpContext) {
         boolean scheduledDateIsNow = false;
         if (launchDate == null) {
             scheduledDateIsNow=true;
-            launchDate = new Date();
+            launchDate = ZonedDateTime.now(ZoneOffset.UTC);
         }
         final String approver = securityService.getCurrentUser();
-        final Date ld = launchDate;
+        final ZonedDateTime ld = launchDate;
 
 
         try {
@@ -83,9 +82,9 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
     }
 
     @Override
-    public void unpublish(String site, List<String> paths,  String approver, Date scheduleDate) {
+    public void unpublish(String site, List<String> paths,  String approver, ZonedDateTime scheduleDate) {
         if (scheduleDate == null) {
-            scheduleDate = new Date();
+            scheduleDate = ZonedDateTime.now(ZoneOffset.UTC);
         }
         try {
             deploymentService.delete(site, paths, approver, scheduleDate);
@@ -138,7 +137,7 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
 
         logger.debug("Collected " + childrenPaths.size() + " content items for site " + site + " and root path " + queryPath);
         Set<String> processedPaths = new HashSet<String>();
-        Date launchDate = new Date();
+        ZonedDateTime launchDate = ZonedDateTime.now(ZoneOffset.UTC);
         for (String childPath : childrenPaths) {
             String childHash = DigestUtils.md2Hex(childPath);
             logger.debug("Processing dependencies for site " + site + " path " + childPath);

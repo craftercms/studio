@@ -19,6 +19,9 @@ package org.craftercms.studio.impl.v1.service.deployment.job;
 
 
 import java.text.SimpleDateFormat;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -116,7 +119,7 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
                                                 for (PublishRequest item : itemsToDeploy) {
                                                     messagePath = item.getPath();
                                                     statusMessage = studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_BUSY);
-                                                    statusMessage = statusMessage.replace("{item_path}", messagePath).replace("{datetime}", sdf.format(new Date()));
+                                                    statusMessage = statusMessage.replace("{item_path}", messagePath).replace("{datetime}", ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern(sdf.toPattern())));
                                                     siteService.updatePublishingStatusMessage(site, statusMessage);
                                                     publishingManager.markItemsProcessing(site, environment, Arrays.asList(item));
                                                     String lockKey2 = item.getSite() + ":" + item.getPath();
@@ -148,13 +151,13 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
                                                         deploymentItemList.addAll(missingDependencies);
                                                         completeDeploymentItemList.addAll(deploymentItemList);
                                                         statusMessage = studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_IDLE);
-                                                        statusMessage = statusMessage.replace("{item_path}", messagePath).replace("{datetime}", sdf.format(new Date()));
+                                                        statusMessage = statusMessage.replace("{item_path}", messagePath).replace("{datetime}", ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern(sdf.toPattern())));
                                                     } catch (DeploymentException err) {
                                                         logger.error("Error while executing deployment to environment store for site \"{0}\", number of items \"{1}\"", err, site, itemsToDeploy.size());
                                                         publishingManager.markItemsReady(site, environment, Arrays.asList(item));
                                                         siteService.enablePublishing(site, false);
                                                         statusMessage = studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED_ERROR);
-                                                        statusMessage = statusMessage.replace("{item_path}", messagePath).replace("{datetime}", sdf.format(new Date()));
+                                                        statusMessage = statusMessage.replace("{item_path}", messagePath).replace("{datetime}", ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern(sdf.toPattern())));
                                                         siteService.updatePublishingStatusMessage(site, statusMessage);
                                                         throw err;
                                                     } catch (Exception err){
@@ -163,7 +166,7 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
                                                         publishingManager.markItemsReady(site, environment, Arrays.asList(item));
                                                         siteService.enablePublishing(site, false);
                                                         statusMessage = studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED_ERROR);
-                                                        statusMessage = statusMessage.replace("{item_path}", messagePath).replace("{datetime}", sdf.format(new Date()));
+                                                        statusMessage = statusMessage.replace("{item_path}", messagePath).replace("{datetime}", ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern(sdf.toPattern())));
                                                         siteService.updatePublishingStatusMessage(site, statusMessage);
                                                         throw err;
                                                     } finally {
@@ -181,7 +184,7 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
                                                 publishingManager.markItemsReady(site, environment, itemsToDeploy);
                                                 siteService.enablePublishing(site, false);
                                                 statusMessage = studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED_ERROR);
-                                                statusMessage = statusMessage.replace("{item_path}", messagePath).replace("{datetime}", sdf.format(new Date()));
+                                                statusMessage = statusMessage.replace("{item_path}", messagePath).replace("{datetime}", ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern(sdf.toPattern())));
                                                 siteService.updatePublishingStatusMessage(site, statusMessage);
                                                 throw err;
                                             } catch (Exception err){
@@ -190,7 +193,7 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
                                                 publishingManager.markItemsReady(site, environment, itemsToDeploy);
                                                 siteService.enablePublishing(site, false);
                                                 statusMessage = studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED_ERROR);
-                                                statusMessage = statusMessage.replace("{item_path}", messagePath).replace("{datetime}", sdf.format(new Date()));
+                                                statusMessage = statusMessage.replace("{item_path}", messagePath).replace("{datetime}", ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern(sdf.toPattern())));
                                                 siteService.updatePublishingStatusMessage(site, statusMessage);
                                                 throw err;
                                             }

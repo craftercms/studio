@@ -1,6 +1,6 @@
 package org.craftercms.studio.api.v1.to;
 
-import java.util.Date;
+import java.time.ZonedDateTime;
 
 import org.craftercms.studio.api.v1.constant.RepoOperation;
 
@@ -10,14 +10,14 @@ import org.craftercms.studio.api.v1.constant.RepoOperation;
 public class RepoOperationTO {
 	protected RepoOperation operation;
 	protected String path;
-	protected Date dateTime;
+	protected ZonedDateTime dateTime;
 	protected String moveToPath;
 	protected String author;
 	protected String publisher;
 	protected String comment;
 	protected String commitId;
 
-	public RepoOperationTO(final RepoOperation operation, final String path, final Date dateTime, final String
+	public RepoOperationTO(final RepoOperation operation, final String path, final ZonedDateTime dateTime, final String
 		moveToPath, String commitId) {
 		this.operation = operation;
 		this.path = path;
@@ -34,11 +34,11 @@ public class RepoOperationTO {
 		this.path = path;
 	}
 
-	public Date getDateTime() {
+	public ZonedDateTime getDateTime() {
 		return dateTime;
 	}
 
-	public void setDateTime(final Date dateTime) {
+	public void setDateTime(final ZonedDateTime dateTime) {
 		this.dateTime = dateTime;
 	}
 

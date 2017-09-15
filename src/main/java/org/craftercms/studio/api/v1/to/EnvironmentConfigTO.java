@@ -18,6 +18,7 @@
 package org.craftercms.studio.api.v1.to;
 
 import java.io.Serializable;
+import java.time.ZonedDateTime;
 import java.util.*;
 
 public class EnvironmentConfigTO implements TimeStamped,Serializable {
@@ -32,7 +33,7 @@ public class EnvironmentConfigTO implements TimeStamped,Serializable {
 	/** admin email address **/
 	protected String adminEmailAddress;
 	/** the last updated date of this configuration **/
-	protected Date lastUpdated;
+	protected ZonedDateTime lastUpdated;
     /** publisihng targets configuration **/
     protected List<PublishingTargetTO> publishingTargets = new ArrayList<PublishingTargetTO>();
 
@@ -65,11 +66,11 @@ public class EnvironmentConfigTO implements TimeStamped,Serializable {
 		this.liveServerUrl = liveServerUrl;
 	}
 
-	public Date getLastUpdated() {
+	public ZonedDateTime getLastUpdated() {
 		return lastUpdated;
 	}
 
-	public void setLastUpdated(Date lastUpdated) {
+	public void setLastUpdated(ZonedDateTime lastUpdated) {
 		this.lastUpdated = lastUpdated;
 	}
 

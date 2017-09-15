@@ -25,7 +25,6 @@ import org.craftercms.studio.api.v1.to.RepoOperationTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
 
 import java.io.InputStream;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -175,15 +174,6 @@ public interface ContentRepository {
      * @return input stream
      */
     InputStream getContentVersion(String site, String path, String version) throws ContentNotFoundException;
-    /**
-     * get the modified date for an oject at path
-     * NOTE: THis should be move to a get metadata of some sort that returns a structure with additional data
-     *
-     * @param site site id where the operation will be executed
-     * @param path
-     * @return document
-     */
-    Date getModifiedDate(String site, String path);
 
     /**
      * lock an item

@@ -19,7 +19,7 @@ package org.craftercms.studio.api.v1.to;
 
 
 import java.io.Serializable;
-import java.util.Date;
+import java.time.ZonedDateTime;
 
 /**
  * This class stores Site Configuration
@@ -50,30 +50,11 @@ public class SiteConfigTO implements Serializable {
 	 */
 	protected String name = null;
 
-	/**
-	 * default content type
-	 */
-	//protected String _defaultContentType = null;
-
-	/** URL to download content assets */
-	//protected String _assetUrl = null;
-
-	/**
-	 * site model configuration mapping that is used to generate model data
-	 */
-	//protected Map<QName, ModelConfigTO> _modelConfig;
-
-	/** a map of namespaces and types **/
-	//protected Map<String, QName> _namespaceToTypeMap = null;
-
 	/** the last updated date of site configuration **/
-	protected Date lastUpdated = null;
+	protected ZonedDateTime lastUpdated = null;
 
     /** web project configuration if the site is dm-based **/
     protected RepositoryConfigTO repositoryConfig = null;
-
-	/** default search configuration for all content type **/
-	//protected SearchConfigTO _defaultSearchConfig = null;
 
 	/** default timezone **/
 	protected String timezone = null;
@@ -100,15 +81,6 @@ public class SiteConfigTO implements Serializable {
         return siteName;
     }
 
-    /**
-     * @param siteName
-     *            the name to set
-     */
-	/*
-    public void setSiteName(String siteName) {
-        this.siteName = siteName;
-    }*/
-
 	/**
 	 * @return the name
 	 */
@@ -125,51 +97,17 @@ public class SiteConfigTO implements Serializable {
 	}
 
 	/**
-	 * @return the modelConfig
-	 */
-	/*
-	public Map<QName, ModelConfigTO> getModelConfig() {
-		return _modelConfig;
-	}*/
-
-	/**
-	 * @param modelConfig
-	 *            the modelConfig to set
-	 */
-	/*
-	public void setModelConfig(Map<QName, ModelConfigTO> modelConfig) {
-		this._modelConfig = modelConfig;
-	}*/
-
-	/**
-	 * @param defaultContentType
-	 *            the defaultContentType to set
-	 */
-	/*
-	public void setDefaultContentType(String defaultContentType) {
-		this._defaultContentType = defaultContentType;
-	}*/
-
-	/**
-	 * @return the defaultContentType
-	 */
-	/*
-	public String getDefaultContentType() {
-		return _defaultContentType;
-	}*/
-
-	/**
 	 * @param lastUpdated
 	 *            the lastUpdated to set
 	 */
-	public void setLastUpdated(Date lastUpdated) {
+	public void setLastUpdated(ZonedDateTime lastUpdated) {
 		this.lastUpdated = lastUpdated;
 	}
 
 	/**
 	 * @return the lastUpdated
 	 */
-	public Date getLastUpdated() {
+	public ZonedDateTime getLastUpdated() {
 		return lastUpdated;
 	}
 
@@ -186,70 +124,6 @@ public class SiteConfigTO implements Serializable {
     public void setRepositoryConfig(RepositoryConfigTO repositoryConfig) {
         this.repositoryConfig = repositoryConfig;
     }
-
-	/**
-	 * @param assetUrl the assetUrl to set
-	 */
-	/*
-	public void setAssetUrl(String assetUrl) {
-		this._assetUrl = assetUrl;
-	}*/
-
-	/**
-	 * @return the assetUrl
-	 */
-	/*
-	public String getAssetUrl() {
-		return _assetUrl;
-	}*/
-
-	/**
-	 * get the content asset download URL template
-	 *
-	 * @param site
-	 * @param id
-	 * @param contentType
-	 * @return the content asset download URL
-	 *//*
-	public String getAssetUrlTemplate(String site, Long id, String contentType) {
-		if (!StringUtils.isEmpty(_assetUrl)) {
-			return _assetUrl.replaceFirst(StudioConstants.PATTERN_SITE, site)
-					.replaceFirst(StudioConstants.PATTERN_ID, String.valueOf(id))
-					.replaceFirst(StudioConstants.PATTERN_CONTENT_TYPE, contentType);
-		}
-		return null;
-	}*/
-
-	/**
-	 * @param defaultSearchConfig the defaultSearchConfig to set
-	 *//*
-	public void setDefaultSearchConfig(SearchConfigTO defaultSearchConfig) {
-		this._defaultSearchConfig = defaultSearchConfig;
-	}*/
-
-	/**
-	 * @return the defaultSearchConfig
-	 */
-	/*
-	public SearchConfigTO getDefaultSearchConfig() {
-		return _defaultSearchConfig;
-	}*/
-
-	/**
-	 * @param namespaceToTypeMap the namespaceToTypeMap to set
-	 */
-	/*
-	public void setNamespaceToTypeMap(Map<String, QName> namespaceToTypeMap) {
-		this._namespaceToTypeMap = namespaceToTypeMap;
-	}*/
-
-	/**
-	 * @return the namespaceToTypeMap
-	 */
-	/*
-	public Map<String, QName> getNamespaceToTypeMap() {
-		return _namespaceToTypeMap;
-	}*/
 
 	/**
 	 * @param timezone the timezone to set

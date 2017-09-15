@@ -18,7 +18,7 @@
 package org.craftercms.studio.api.v1.to;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Set;
 
@@ -40,18 +40,6 @@ public class ContentTypeConfigTO implements TimeStamped, Serializable {
 	 * site content name 
 	 */
 	protected String name = null;
-	
-	/**
-	 * site content type
-	 */
-	//protected QName _contentType = null;
-
-	/**
-	 * is this WCM content type?
-	 * this is default to true as it is no longer being set 
-	 * from content type configuration file
-	 */
-	//protected boolean _isWcm = true;
 	
 	/**
 	 * content type display name 
@@ -87,11 +75,8 @@ public class ContentTypeConfigTO implements TimeStamped, Serializable {
 	
 	/** list of roles allowed **/
 	protected Set<String> allowedRoles = null;
-
-	/** content type search configuration **/
-	//protected SearchConfigTO _searchConfig = null;
 	
-	protected Date lastUpdated;
+	protected ZonedDateTime lastUpdated;
 	
 	/** list of delete association patterns that this content type is dependent on for deleting indexes in webproject**/
 	protected List<DeleteDependencyConfigTO> deleteDependencies = null;
@@ -129,20 +114,6 @@ public class ContentTypeConfigTO implements TimeStamped, Serializable {
 		this.imageThumbnail = imageThumbnail;
 	}
 
-	/**
-	 * @return the contentType
-	 *//*
-	public QName getContentType() {
-		return _contentType;
-	}*/
-
-	/**
-	 * @param contentType the contentType to set
-	 *//*
-	public void setContentType(QName contentType) {
-		_contentType = contentType;
-	}
-	*/
 	/**
 	 * @return the label
 	 */
@@ -226,20 +197,6 @@ public class ContentTypeConfigTO implements TimeStamped, Serializable {
 	public String getModelInstancePath() {
 		return modelInstancePath;
 	}
-
-	/**
-	 * @param isWcm the isWcm to set
-	 */
-	/*public void setWcm(boolean isWcm) {
-		this._isWcm = isWcm;
-	}*/
-
-	/**
-	 * @return the isWcm
-	 *//*
-	public boolean isWcm() {
-		return _isWcm;
-	}*/
 	
 	/**
 	 * @param deleteAssociations the deleteAssociations to set
@@ -254,32 +211,18 @@ public class ContentTypeConfigTO implements TimeStamped, Serializable {
 	public List<DeleteDependencyConfigTO> getDeleteDependencyPattern() {
 		return deleteDependencies;
 	}
-	
-	/**
-	 * @param searchConfig the searchConfig to set
-	 *//*
-	public void setSearchConfig(SearchConfigTO searchConfig) {
-		this._searchConfig = searchConfig;
-	}*/
-
-	/**
-	 * @return the searchConfig
-	 *//*
-	public SearchConfigTO getSearchConfig() {
-		return _searchConfig;
-	}*/
 
 	/**
 	 * @param lastUpdated the lastUpdated to set
 	 */
-	public void setLastUpdated(Date lastUpdated) {
+	public void setLastUpdated(ZonedDateTime lastUpdated) {
 		this.lastUpdated = lastUpdated;
 	}
 
 	/**
 	 * @return the lastUpdated
 	 */
-	public Date getLastUpdated() {
+	public ZonedDateTime getLastUpdated() {
 		return lastUpdated;
 	}
 

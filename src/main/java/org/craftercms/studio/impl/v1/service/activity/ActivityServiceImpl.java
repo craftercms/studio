@@ -17,6 +17,8 @@
  */
 package org.craftercms.studio.impl.v1.service.activity;
 
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.*;
 
 import net.sf.json.JSONObject;
@@ -40,7 +42,6 @@ import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.util.DebugUtils;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
-import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 
@@ -161,7 +162,7 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 		}
 
 		try {
-			Date postDate = new Date();
+			ZonedDateTime postDate = ZonedDateTime.now(ZoneOffset.UTC);
 			AuditFeed activityPost = new AuditFeed();
 			activityPost.setUserId(currentUser);
 			activityPost.setSiteNetwork(siteNetwork);
@@ -174,7 +175,7 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 			activityPost.setContentType(contentType);
 			activityPost.setSource(activitySource);
 			try {
-                activityPost.setCreationDate(new Date());
+                activityPost.setCreationDate(ZonedDateTime.now(ZoneOffset.UTC));
 				long postId = insertFeedEntry(activityPost);
 				activityPost.setId(postId);
 				logger.debug("Posted: " + activityPost);
@@ -259,7 +260,7 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 				ContentItemTO item = createActivityItem(site, feedObject, id);
 				item.published = true;
 				item.setPublished(true);
-				Date pubDate = deploymentService.getLastDeploymentDate(site, id);
+				ZonedDateTime pubDate = deploymentService.getLastDeploymentDate(site, id);
 				item.publishedDate = pubDate;
 				item.setPublishedDate(pubDate);
 				contentItems.add(item);
@@ -312,7 +313,8 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
                 item.setLockOwner("");
 			}
 			String postDate = (feedObject.containsKey(ACTIVITY_PROP_POST_DATE)) ? feedObject.getString(ACTIVITY_PROP_POST_DATE) : "";
-			Date editedDate = ContentUtils.getEditedDate(postDate);
+			//Date editedDate = ContentUtils.getEditedDate(postDate);
+            ZonedDateTime editedDate = ZonedDateTime.parse(postDate);
 			item.eventDate = editedDate;
 
 			return item;

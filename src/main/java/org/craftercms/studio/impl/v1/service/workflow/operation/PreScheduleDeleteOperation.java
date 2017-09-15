@@ -22,14 +22,14 @@ import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.service.workflow.WorkflowService;
 import org.craftercms.studio.api.v1.service.workflow.context.GoLiveContext;
 
-import java.util.Date;
+import java.time.ZonedDateTime;
 import java.util.Set;
 
 public class PreScheduleDeleteOperation extends SubmitLifeCycleOperation {
-    protected Date date;
+    protected ZonedDateTime date;
 
 
-    public PreScheduleDeleteOperation(WorkflowService dmWorkflowService, Set<String> uris, Date date, GoLiveContext context, Set<String> rescheduledUris) {
+    public PreScheduleDeleteOperation(WorkflowService dmWorkflowService, Set<String> uris, ZonedDateTime date, GoLiveContext context, Set<String> rescheduledUris) {
         super(dmWorkflowService, uris,context,rescheduledUris);
         this.date = date;
     }

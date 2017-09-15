@@ -17,14 +17,14 @@
 package org.craftercms.studio.api.v1.dal;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.time.ZonedDateTime;
 
 public class DeploymentSyncHistory implements Serializable {
 
     private static final long serialVersionUID = 1546577631929363169L;
 
     protected String id;
-    protected Date syncDate;
+    protected ZonedDateTime syncDate;
     protected String site;
     protected String environment;
     protected String path;
@@ -35,8 +35,8 @@ public class DeploymentSyncHistory implements Serializable {
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
 
-    public Date getSyncDate() { return syncDate; }
-    public void setSyncDate(Date syncDate) { this.syncDate = syncDate; }
+    public ZonedDateTime getSyncDate() { return syncDate; }
+    public void setSyncDate(ZonedDateTime syncDate) { this.syncDate = syncDate; }
 
     public String getSite() { return site; }
     public void setSite(String site) { this.site = site; }

@@ -21,6 +21,7 @@ package org.craftercms.studio.impl.v1.service.workflow;
 import org.craftercms.studio.api.v1.service.workflow.context.MultiChannelPublishingContext;
 import org.craftercms.studio.impl.v1.service.workflow.operation.SubmitLifeCycleOperation;
 
+import java.time.ZonedDateTime;
 import java.util.*;
 
 public class WorkflowBatch {
@@ -29,7 +30,7 @@ public class WorkflowBatch {
 
     protected List<SubmitLifeCycleOperation> preSubmitOperations = new ArrayList<SubmitLifeCycleOperation>();
 
-    protected Date launchDate;
+    protected ZonedDateTime launchDate;
 
     protected String label;
 
@@ -37,7 +38,7 @@ public class WorkflowBatch {
 
     protected MultiChannelPublishingContext mcpContext;
 
-    public WorkflowBatch(Date launchDate, String label, String approvedBy, MultiChannelPublishingContext mcpContext) {
+    public WorkflowBatch(ZonedDateTime launchDate, String label, String approvedBy, MultiChannelPublishingContext mcpContext) {
         this.launchDate = launchDate;
         this.label=label;
         this.approvedBy = approvedBy;
@@ -56,7 +57,7 @@ public class WorkflowBatch {
         paths.addAll(path);
     }
 
-    public Date getLaunchDate() {
+    public ZonedDateTime getLaunchDate() {
         return launchDate;
     }
 

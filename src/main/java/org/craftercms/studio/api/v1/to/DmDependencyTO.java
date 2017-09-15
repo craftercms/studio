@@ -18,8 +18,8 @@
 package org.craftercms.studio.api.v1.to;
 
 import java.io.Serializable;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 
@@ -55,7 +55,7 @@ public class DmDependencyTO implements Serializable {
     protected boolean _inProgress;
     protected boolean _sendEmail;
 
-    protected Date _scheduledDate;
+    protected ZonedDateTime _scheduledDate;
 	protected boolean _deleteEmptyParentFolder;
 
     /**
@@ -223,7 +223,7 @@ public class DmDependencyTO implements Serializable {
     /**
      * @return the scheduledDate
      */
-    public Date getScheduledDate() {
+    public ZonedDateTime getScheduledDate() {
         return _scheduledDate;
     }
 
@@ -231,7 +231,7 @@ public class DmDependencyTO implements Serializable {
      * @param scheduledDate
      *            the scheduledDate to set
      */
-    public void setScheduledDate(Date scheduledDate) {
+    public void setScheduledDate(ZonedDateTime scheduledDate) {
         this._scheduledDate = scheduledDate;
     }
 
