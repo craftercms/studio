@@ -25,6 +25,8 @@ import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -364,7 +366,7 @@ public class SecurityServiceImpl implements SecurityService {
             loadPermissions(root, config);
 
             config.setKey(site + ":" + filename);
-            config.setLastUpdated(new Date());
+            config.setLastUpdated(ZonedDateTime.now(ZoneOffset.UTC));
 
         } else {
             logger.error("Permission mapping not found for " + site + ":" + filename);
@@ -455,7 +457,7 @@ public class SecurityServiceImpl implements SecurityService {
 
             String globalPermissionsKey = "###GLOBAL###:" + getGlobalPermissionsFileName();
             config.setKey(globalPermissionsKey);
-            config.setLastUpdated(new Date());
+            config.setLastUpdated(ZonedDateTime.now(ZoneOffset.UTC));
 
         } else {
             logger.error("Global permission mapping not found (path: {0})", globalPermissionsConfigPath);
@@ -482,7 +484,7 @@ public class SecurityServiceImpl implements SecurityService {
 
             String globalRolesKey = "###GLOBAL###:" + getGlobalRoleMappingsFileName();
             config.setKey(globalRolesKey);
-            config.setLastUpdated(new Date());
+            config.setLastUpdated(ZonedDateTime.now(ZoneOffset.UTC));
 
         } else {
             logger.error("Global roles mapping not found (path: {0})", globalRolesConfigPath);

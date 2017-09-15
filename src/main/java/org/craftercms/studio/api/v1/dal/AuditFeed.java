@@ -1,18 +1,17 @@
 package org.craftercms.studio.api.v1.dal;
 
-import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
 import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.time.ZonedDateTime;
 
 public class AuditFeed implements Serializable {
 
     private static final long serialVersionUID = 4251603625791912910L;
     protected long id;
-    protected Date modifiedDate;
-    protected Date creationDate;
+    protected ZonedDateTime modifiedDate;
+    protected ZonedDateTime creationDate;
     protected String summary;
     protected String summaryFormat;
     protected String contentId;
@@ -25,11 +24,11 @@ public class AuditFeed implements Serializable {
     public long getId() { return id; }
     public void setId(long id) { this.id = id; }
 
-    public Date getModifiedDate() { return modifiedDate; }
-    public void setModifiedDate(Date modifiedDate) { this.modifiedDate = modifiedDate; }
+    public ZonedDateTime getModifiedDate() { return modifiedDate; }
+    public void setModifiedDate(ZonedDateTime modifiedDate) { this.modifiedDate = modifiedDate; }
 
-    public Date getCreationDate() { return creationDate; }
-    public void setCreationDate(Date creationDate) { this.creationDate = creationDate; }
+    public ZonedDateTime getCreationDate() { return creationDate; }
+    public void setCreationDate(ZonedDateTime creationDate) { this.creationDate = creationDate; }
 
     public String getSummary() { return summary; }
     public void setSummary(String summary) { this.summary = summary; }
@@ -61,7 +60,7 @@ public class AuditFeed implements Serializable {
         jo.put("id", id);
         jo.put("postUserId", userId);
         if (modifiedDate != null) {
-            jo.put("postDate", (new ISO8601DateFormat()).format(modifiedDate));
+            jo.put("postDate", modifiedDate.toString());
         }
         if (userId != null) {
             jo.put("feedUserId", userId);

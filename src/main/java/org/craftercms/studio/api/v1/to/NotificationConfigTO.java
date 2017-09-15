@@ -18,8 +18,8 @@
 package org.craftercms.studio.api.v1.to;
 
 import java.io.Serializable;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,7 +50,7 @@ public class NotificationConfigTO implements TimeStamped, Serializable {
     
     protected Map<String, String> errorMessages = null;
 	/** configuration time stamp **/
-	protected Date _lastUpdated = null;
+	protected ZonedDateTime _lastUpdated = null;
 
     protected Map<String, String> submitNotificationsMapping = null;
 
@@ -124,7 +124,7 @@ public class NotificationConfigTO implements TimeStamped, Serializable {
 	/**
 	 * @return the lastUpdated
 	 */
-	public Date getLastUpdated() {
+	public ZonedDateTime getLastUpdated() {
 		return _lastUpdated;
 	}
 
@@ -132,7 +132,7 @@ public class NotificationConfigTO implements TimeStamped, Serializable {
 	 * @param lastUpdated
 	 *            the lastUpdated to set
 	 */
-	public void setLastUpdated(Date lastUpdated) {
+	public void setLastUpdated(ZonedDateTime lastUpdated) {
 		this._lastUpdated = lastUpdated;
 	}
 

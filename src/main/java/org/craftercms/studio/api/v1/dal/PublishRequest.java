@@ -19,7 +19,7 @@
 package org.craftercms.studio.api.v1.dal;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.time.ZonedDateTime;
 
 /**
  * @author Dejan Brkic
@@ -34,7 +34,7 @@ public class PublishRequest implements Serializable {
     private String path;
     private String oldPath;
     private String user;
-    private Date scheduledDate;
+    private ZonedDateTime scheduledDate;
     private String state;
     private String action;
     private String contentTypeClass;
@@ -74,8 +74,8 @@ public class PublishRequest implements Serializable {
     public String getUser() { return user; }
     public void setUser(String user) { this.user = user; }
 
-    public Date getScheduledDate() { return scheduledDate; }
-    public void setScheduledDate(Date scheduledDate) { this.scheduledDate = scheduledDate; }
+    public ZonedDateTime getScheduledDate() { return scheduledDate; }
+    public void setScheduledDate(ZonedDateTime scheduledDate) { this.scheduledDate = scheduledDate; }
 
     public String getState() { return state; }
     public void setState(String state) { this.state = state; }

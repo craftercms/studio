@@ -20,18 +20,18 @@ package org.craftercms.studio.api.v1.service.deployment;
 
 import org.craftercms.studio.api.v1.service.workflow.context.MultiChannelPublishingContext;
 
-import java.util.Date;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 public interface DmPublishService {
 
-    void publish(String site, List<String> paths, Date launchDate, MultiChannelPublishingContext mcpContext);
+    void publish(String site, List<String> paths, ZonedDateTime launchDate, MultiChannelPublishingContext mcpContext);
 
-    public void unpublish(String site, List<String> paths, String approver);
+    void unpublish(String site, List<String> paths, String approver);
 
-    public void unpublish(String site, List<String> paths, String approver, Date scheduleDate);
+    void unpublish(String site, List<String> paths, String approver, ZonedDateTime scheduleDate);
 
-    public void cancelScheduledItem(String site, String path);
+    void cancelScheduledItem(String site, String path);
 
     boolean hasChannelsConfigure(String site, MultiChannelPublishingContext mcpContext);
 

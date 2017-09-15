@@ -3,10 +3,10 @@ package org.craftercms.studio.impl.v2.service.notification;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -98,7 +98,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public void notifyContentApproval(final String site, final String submitter, final List<String> itemsSubmitted,
-                                      final String approver, final Date scheduleDate, final Locale locale) {
+                                      final String approver, final ZonedDateTime scheduleDate, final Locale locale) {
         try {
             final Map<String, Object> submitterUser = securityService.getUserProfile(submitter);
             Map<String, Object> templateModel = new HashMap<>();
@@ -165,7 +165,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public void notifyApprovesContentSubmission(final String site, final List<String> usersToNotify, final
-    List<String> itemsSubmitted, final String submitter, final Date scheduleDate, final boolean isADelete, final
+    List<String> itemsSubmitted, final String submitter, final ZonedDateTime scheduleDate, final boolean isADelete, final
     String submissionComments, final Locale locale) {
         try {
             final NotificationConfigTO notificationConfig = getNotificationConfig(site, locale);

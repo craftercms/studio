@@ -18,7 +18,7 @@
 package org.craftercms.studio.api.v1.to;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -41,18 +41,18 @@ public class PermissionsConfigTO implements TimeStamped, Serializable {
 	/** complete messages used for displaying complete pop-ups **/
 
 	/** configuration time stamp **/
-	protected Date lastUpdated = null;
+	protected ZonedDateTime lastUpdated = null;
 	
 	protected Map<String, List<String>> roles = null;
 	protected Map<String, Map<String, List<Node>>> permissions = null;
 	
 	@Override
-	public void setLastUpdated(Date lastUpdated) {
+	public void setLastUpdated(ZonedDateTime lastUpdated) {
 		this.lastUpdated = lastUpdated;
 	}
 
 	@Override
-	public Date getLastUpdated() {
+	public ZonedDateTime getLastUpdated() {
 		return lastUpdated;
 	}
 

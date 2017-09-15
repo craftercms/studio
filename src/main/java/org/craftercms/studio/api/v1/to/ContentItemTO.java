@@ -18,6 +18,7 @@
 package org.craftercms.studio.api.v1.to;
 
 import java.io.Serializable;
+import java.time.ZonedDateTime;
 import java.util.*;
 
 import org.apache.commons.lang3.StringUtils;
@@ -94,16 +95,16 @@ public class ContentItemTO implements Serializable {
     public boolean isInFlight;
 
 	// Added by Dejan needs of services porting and UI
-	public Date eventDate;
+	public ZonedDateTime eventDate;
 	public String endpoint;
 	public String timezone;
 	public int numOfChildren;
-	public Date scheduledDate;
-    public Date publishedDate;
+	public ZonedDateTime scheduledDate;
+    public ZonedDateTime publishedDate;
 	public String mandatoryParent;
 	public boolean isLevelDescriptor = false;
 	public String categoryRoot;
-	public Date lastEditDate;
+	public ZonedDateTime lastEditDate;
 	public String form;
 	public String formPagePath;
 	public List<RenderingTemplateTO> renderingTemplates = new ArrayList<RenderingTemplateTO>();
@@ -282,8 +283,8 @@ public class ContentItemTO implements Serializable {
 	public boolean isAsset() { return asset; }
 	public void setAsset(boolean asset) { this.asset = asset; }
 
-	public Date getEventDate() { return eventDate; }
-	public void setEventDate(Date eventDate) { this.eventDate = eventDate; }
+	public ZonedDateTime getEventDate() { return eventDate; }
+	public void setEventDate(ZonedDateTime eventDate) { this.eventDate = eventDate; }
 
 	public String getEndpoint() { return endpoint; }
 	public void setEndpoint(String endpoint) { this.endpoint = endpoint; }
@@ -294,11 +295,11 @@ public class ContentItemTO implements Serializable {
 	public int getNumOfChildren() { return numOfChildren; }
 	public void setNumOfChildren(int numOfChildren) { this.numOfChildren = numOfChildren; }
 
-	public Date getScheduledDate() { return scheduledDate; }
-	public void setScheduledDate(Date scheduledDate) { this.scheduledDate = scheduledDate; }
+	public ZonedDateTime getScheduledDate() { return scheduledDate; }
+	public void setScheduledDate(ZonedDateTime scheduledDate) { this.scheduledDate = scheduledDate; }
 
-    public Date getPublishedDate() { return publishedDate; }
-    public void setPublishedDate(Date publishedDate) { this.publishedDate = publishedDate; }
+    public ZonedDateTime getPublishedDate() { return publishedDate; }
+    public void setPublishedDate(ZonedDateTime publishedDate) { this.publishedDate = publishedDate; }
 
 	public String getMandatoryParent() { return mandatoryParent; }
 	public void setMandatoryParent(String mandatoryParent) { this.mandatoryParent = mandatoryParent; }
@@ -342,8 +343,8 @@ public class ContentItemTO implements Serializable {
 	public String getCategoryRoot() { return categoryRoot; }
 	public void setCategoryRoot(String categoryRoot) { this.categoryRoot = categoryRoot; }
 
-	public Date getLastEditDate() { return lastEditDate; }
-	public void setLastEditDate(Date lastEditDate) { this.lastEditDate = lastEditDate; }
+	public ZonedDateTime getLastEditDate() { return lastEditDate; }
+	public void setLastEditDate(ZonedDateTime lastEditDate) { this.lastEditDate = lastEditDate; }
 
 	public String getForm() { return form; }
 	public void setForm(String form) { this.form = form; }

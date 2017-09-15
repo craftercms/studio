@@ -18,8 +18,9 @@
 package org.craftercms.studio.impl.v1.service.deployment;
 
 
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -84,7 +85,7 @@ public class PublishingManagerImpl implements PublishingManager {
         params.put("site", site);
         params.put("state", PublishRequest.State.READY_FOR_LIVE);
         params.put("environment", environment);
-        params.put("now", new Date());
+        params.put("now", ZonedDateTime.now(ZoneOffset.UTC));
         return publishRequestMapper.getItemsReadyForDeployment(params);
     }
 
@@ -329,7 +330,7 @@ public class PublishingManagerImpl implements PublishingManager {
     public boolean isPublishingBlocked(String site) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("site", site);
-        params.put("now", new Date());
+        params.put("now", ZonedDateTime.now(ZoneOffset.UTC));
         params.put("state", PublishRequest.State.BLOCKED);
         Integer result = publishRequestMapper.isPublishingBlocked(params);
         return result > 0;
@@ -339,7 +340,7 @@ public class PublishingManagerImpl implements PublishingManager {
     public String getPublishingStatus(String site) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("site", site);
-        params.put("now", new Date());
+        params.put("now", ZonedDateTime.now(ZoneOffset.UTC));
         PublishRequest result = publishRequestMapper.checkPublishingStatus(params);
         return result.getState();
     }

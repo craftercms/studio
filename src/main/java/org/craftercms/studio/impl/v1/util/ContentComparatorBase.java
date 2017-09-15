@@ -17,8 +17,8 @@
  ******************************************************************************/
 package org.craftercms.studio.impl.v1.util;
 
+import java.time.ZonedDateTime;
 import java.util.Comparator;
-import java.util.Date;
 
 
 /**
@@ -55,7 +55,7 @@ public abstract class ContentComparatorBase<T> implements Comparator<T> {
 	 * @param ascending
 	 * @return sorting result
 	 */
-	protected int compareDates(Date value1, Date value2, boolean ascending) {
+	protected int compareDates(ZonedDateTime value1, ZonedDateTime value2, boolean ascending) {
 		if (value1 == null && value2 == null) {
 			return 0;
 		} else if (value1 == null) {

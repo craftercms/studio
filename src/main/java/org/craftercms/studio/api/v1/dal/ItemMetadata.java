@@ -19,7 +19,7 @@
 package org.craftercms.studio.api.v1.dal;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.time.ZonedDateTime;
 
 public class ItemMetadata implements Serializable {
     private static final long serialVersionUID = 8859492095343542092L;
@@ -53,7 +53,7 @@ public class ItemMetadata implements Serializable {
     protected String site;
     protected String path;
     protected String name;
-    protected Date modified;
+    protected ZonedDateTime modified;
     protected String modifier;
     protected String owner;
     protected String creator;
@@ -71,7 +71,7 @@ public class ItemMetadata implements Serializable {
     protected int submittedForDeletion;
     protected int sendEmail;
     protected String submissionComment;
-    protected Date launchDate;
+    protected ZonedDateTime launchDate;
     protected String commitId;
 
     public int getId() { return id; }
@@ -86,8 +86,8 @@ public class ItemMetadata implements Serializable {
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
 
-    public Date getModified() { return modified; }
-    public void setModified(Date modified) { this.modified = modified; }
+    public ZonedDateTime getModified() { return modified; }
+    public void setModified(ZonedDateTime modified) { this.modified = modified; }
 
     public String getModifier() { return modifier; }
     public void setModifier(String modifier) { this.modifier = modifier; }
@@ -140,8 +140,8 @@ public class ItemMetadata implements Serializable {
     public String getSubmissionComment() { return submissionComment; }
     public void setSubmissionComment(String submissionComment) { this.submissionComment = submissionComment; }
 
-    public Date getLaunchDate() { return launchDate; }
-    public void setLaunchDate(Date launchDate) { this.launchDate = launchDate; }
+    public ZonedDateTime getLaunchDate() { return launchDate; }
+    public void setLaunchDate(ZonedDateTime launchDate) { this.launchDate = launchDate; }
 
     public String getCommitId() { return commitId; }
     public void setCommitId(final String commitId) { this.commitId = commitId; }

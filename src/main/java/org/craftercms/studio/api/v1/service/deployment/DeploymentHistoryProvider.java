@@ -21,7 +21,7 @@ package org.craftercms.studio.api.v1.service.deployment;
 import org.craftercms.studio.api.v1.dal.DeploymentSyncHistory;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 
-import java.util.Date;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 public interface DeploymentHistoryProvider {
@@ -36,7 +36,7 @@ public interface DeploymentHistoryProvider {
      *@param filterType filter items by type
      * @param numberOfItems number of items in result set   @return
      */
-    List<DeploymentSyncHistory> getDeploymentHistory(String site, Date fromDate, Date toDate, DmFilterWrapper dmFilterWrapper, String filterType, int numberOfItems);
+    List<DeploymentSyncHistory> getDeploymentHistory(String site, ZonedDateTime fromDate, ZonedDateTime toDate, DmFilterWrapper dmFilterWrapper, String filterType, int numberOfItems);
 
     /**
      * Get last deployment date time for given site and path
@@ -45,7 +45,7 @@ public interface DeploymentHistoryProvider {
      * @param path path
      * @return last deployment date or null if never deployed
      */
-    Date getLastDeploymentDate(String site, String path);
+    ZonedDateTime getLastDeploymentDate(String site, String path);
 
     /**
      * Get last commit id that was published for given site and path on given environment

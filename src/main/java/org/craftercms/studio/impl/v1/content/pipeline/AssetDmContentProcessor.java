@@ -34,7 +34,8 @@ import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 
 import java.io.InputStream;
-import java.util.Date;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -215,7 +216,7 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
 
         Map<String, Object> properties = new HashMap<>();
         properties.put(ItemMetadata.PROP_MODIFIER, user);
-        properties.put(ItemMetadata.PROP_MODIFIED, new Date());
+        properties.put(ItemMetadata.PROP_MODIFIED, ZonedDateTime.now(ZoneOffset.UTC));
         if (unlock) {
             properties.put(ItemMetadata.PROP_LOCK_OWNER, StringUtils.EMPTY);
         } else {

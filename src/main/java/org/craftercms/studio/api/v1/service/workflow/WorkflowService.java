@@ -17,7 +17,7 @@
  ******************************************************************************/
 package org.craftercms.studio.api.v1.service.workflow;
 
-import java.util.Date;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -40,7 +40,7 @@ public interface WorkflowService {
 	 * @param sendApprovedNotice true triggers email to submitter on approval
 	 * @param submitter the one submitted the job.
 	 */
-	void submitToGoLive(String site, List<String> paths, Date scheduledDate, boolean sendApprovedNotice, String submitter);
+	void submitToGoLive(String site, List<String> paths, ZonedDateTime scheduledDate, boolean sendApprovedNotice, String submitter);
 
 	ResultTO submitToGoLive(String site, String username, String request) throws ServiceException;
 
@@ -82,16 +82,16 @@ public interface WorkflowService {
      */
     ResultTO goDelete(String site, String request, String user);
 
-    Map<Date, List<DmDependencyTO>> groupByDate(List<DmDependencyTO> submittedItems, Date now);
+    Map<ZonedDateTime, List<DmDependencyTO>> groupByDate(List<DmDependencyTO> submittedItems, ZonedDateTime now);
 
-    void preScheduleDelete(Set<String> uris, Date _date,
+    void preScheduleDelete(Set<String> uris, ZonedDateTime _date,
                            GoLiveContext context, Set rescheduledUris) throws ServiceException;
 
     List<String> preDelete(Set<String> urisToDelete, GoLiveContext context,Set<String> rescheduledUris) throws ServiceException;
 
     boolean isRescheduleRequest(DmDependencyTO dependencyTO, String site);
 
-    void preSchedule(Set<String> uris, Date date, GoLiveContext context,Set<String> rescheduledUris);
+    void preSchedule(Set<String> uris, ZonedDateTime date, GoLiveContext context,Set<String> rescheduledUris);
 
     /**
      * approve workflows and schedule them as specified in the request

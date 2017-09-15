@@ -17,7 +17,7 @@
  ******************************************************************************/
 package org.craftercms.studio.api.v1.service.workflow;
 
-import java.util.Date;
+import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,14 +44,14 @@ public class WorkflowJob {
 	public void setSite(String site) { _site = site; }
 
 	/** create date property getter */
-	public Date getCreateDate() { return _createDate; }
+	public ZonedDateTime getCreateDate() { return _createDate; }
 	/** create date property setter */
-	public void setCreateDate(Date createDate) { _createDate = createDate; }
+	public void setCreateDate(ZonedDateTime createDate) { _createDate = createDate; }
 	
 	/** modified date property getter */
-	public Date getModifiedDate() { return _modifiedDate; }
+	public ZonedDateTime getModifiedDate() { return _modifiedDate; }
 	/** modified date property setter */
-	public void setModifiedDate(Date modified) { _modifiedDate = modified; }
+	public void setModifiedDate(ZonedDateTime modified) { _modifiedDate = modified; }
 	
 	/** current status property getter */
 	public String getCurrentStatus() { return _currentStatus; }
@@ -81,8 +81,8 @@ public class WorkflowJob {
 	protected String _id;
 	protected String _site;
 	protected String _processName;
-	protected Date _createDate;
-	protected Date _modifiedDate;
+	protected ZonedDateTime _createDate;
+	protected ZonedDateTime _modifiedDate;
 	protected String _currentStatus;
 	protected List<WorkflowItem> _items;
 	protected Map<String, String> _properties;

@@ -26,6 +26,7 @@ import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.workflow.context.MultiChannelPublishingContext;
 import org.craftercms.studio.impl.v1.service.workflow.operation.SubmitLifeCycleOperation;
 
+import java.time.ZonedDateTime;
 import java.util.*;
 
 public class WorkflowProcessor {
@@ -51,14 +52,14 @@ public class WorkflowProcessor {
      * @param operation
      * @param approvedBy
      */
-    public synchronized void addToWorkflow(String site, List<String> paths, Date launchDate,
+    public synchronized void addToWorkflow(String site, List<String> paths, ZonedDateTime launchDate,
                                            String label, SubmitLifeCycleOperation operation, String approvedBy, MultiChannelPublishingContext mcpContext) {
         inflightItems.addAll(paths);
         WorkflowBatch workflowBatch = createBatch(paths, launchDate,  label, operation, approvedBy, mcpContext);
         execute(site, workflowBatch);
     }
 
-    protected WorkflowBatch createBatch(Collection<String> paths, Date launchDate,  String label,
+    protected WorkflowBatch createBatch(Collection<String> paths, ZonedDateTime launchDate, String label,
                                         SubmitLifeCycleOperation preSubmitOperation, String approvedBy, MultiChannelPublishingContext mcpContext) {
 
         WorkflowBatch batch = new WorkflowBatch(launchDate, label, approvedBy, mcpContext);

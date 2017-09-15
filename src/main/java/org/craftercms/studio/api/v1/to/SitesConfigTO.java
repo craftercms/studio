@@ -18,7 +18,7 @@
 package org.craftercms.studio.api.v1.to;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -41,13 +41,13 @@ public class SitesConfigTO implements TimeStamped, Serializable {
 	/** the path to where all sites are stored **/
 	protected String _sitesLocation = "";
 	/** last updated date **/
-	protected Date _lastUpdated;
+	protected ZonedDateTime _lastUpdated;
 
-	public Date getLastUpdated() {
+	public ZonedDateTime getLastUpdated() {
 		return this._lastUpdated;
 	}
 
-	public void setLastUpdated(Date lastUpdated) {
+	public void setLastUpdated(ZonedDateTime lastUpdated) {
 		this._lastUpdated = lastUpdated;
 	}
 

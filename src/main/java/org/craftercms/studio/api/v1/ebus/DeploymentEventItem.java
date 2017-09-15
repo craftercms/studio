@@ -23,7 +23,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.time.ZonedDateTime;
 
 public class DeploymentEventItem implements Serializable {
 
@@ -36,7 +36,7 @@ public class DeploymentEventItem implements Serializable {
 
     @JsonCreator
     public DeploymentEventItem(@JsonProperty String site, @JsonProperty String path, @JsonProperty String oldPath,
-                               @JsonProperty String user, @JsonProperty Date dateTime, @JsonProperty String state) {
+                               @JsonProperty String user, @JsonProperty ZonedDateTime dateTime, @JsonProperty String state) {
         this.site = site;
         this.path = path;
         this.oldPath = oldPath;
@@ -49,7 +49,7 @@ public class DeploymentEventItem implements Serializable {
     protected String path;
     protected String oldPath;
     protected String user;
-    protected Date dateTime;
+    protected ZonedDateTime dateTime;
     protected String state;
 
     public String getSite() { return site; }
@@ -64,8 +64,8 @@ public class DeploymentEventItem implements Serializable {
     public String getUser() { return user; }
     public void setUser(String user) { this.user = user; }
 
-    public Date getDateTime() { return dateTime; }
-    public void setDateTime(Date dateTime) { this.dateTime = dateTime; }
+    public ZonedDateTime getDateTime() { return dateTime; }
+    public void setDateTime(ZonedDateTime dateTime) { this.dateTime = dateTime; }
 
     public String getState() { return state; }
     public void setState(String state) { this.state = state; }

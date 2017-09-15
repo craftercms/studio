@@ -17,11 +17,12 @@
  ******************************************************************************/
 package org.craftercms.studio.impl.v1.service.workflow;
 
-import java.io.File;
 import java.text.SimpleDateFormat;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -144,7 +145,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                 }
             }
             boolean isNow = (requestObject.containsKey(JSON_KEY_IS_NOW)) ? requestObject.getBoolean(JSON_KEY_IS_NOW) : false;
-            Date scheduledDate = null;
+            ZonedDateTime scheduledDate = null;
             if (!isNow) {
                 scheduledDate = (requestObject.containsKey(JSON_KEY_SCHEDULED_DATE)) ? getScheduledDate(site, format, requestObject.getString(JSON_KEY_SCHEDULED_DATE)) : null;
             }
@@ -202,7 +203,7 @@ public class WorkflowServiceImpl implements WorkflowService {
 
     }
 
-    protected List<DmError> submitToGoLive(List<DmDependencyTO> submittedItems, Date scheduledDate, boolean sendEmail, boolean submitForDeletion, RequestContext requestContext, String submissionComment) throws ServiceException {
+    protected List<DmError> submitToGoLive(List<DmDependencyTO> submittedItems, ZonedDateTime scheduledDate, boolean sendEmail, boolean submitForDeletion, RequestContext requestContext, String submissionComment) throws ServiceException {
         List<DmError> errors = new ArrayList<DmError>();
         String site = requestContext.getSite();
         String submittedBy = requestContext.getUser();
@@ -237,7 +238,7 @@ public class WorkflowServiceImpl implements WorkflowService {
         return paths;
     }
 
-    protected void submitThisAndReferredComponents(DmDependencyTO submittedItem, String site, Date scheduledDate,
+    protected void submitThisAndReferredComponents(DmDependencyTO submittedItem, String site, ZonedDateTime scheduledDate,
                                                    boolean sendEmail, boolean submitForDeletion, String submittedBy,
                                                    DependencyRules rule, String submissionComment) throws
                                                    ServiceException {
@@ -263,7 +264,7 @@ public class WorkflowServiceImpl implements WorkflowService {
         }
     }
 
-    protected void doSubmit(final String site, final DmDependencyTO dependencyTO, final Date scheduledDate, final boolean sendEmail, final boolean submitForDeletion, final String user, final boolean notifyAdmin, final String submissionComment) {
+    protected void doSubmit(final String site, final DmDependencyTO dependencyTO, final ZonedDateTime scheduledDate, final boolean sendEmail, final boolean submitForDeletion, final String user, final boolean notifyAdmin, final String submissionComment) {
         //first remove from workflow
         removeFromWorkflow(site, dependencyTO.getUri(), true);
         ContentItemTO item = contentService.getContentItem(site, dependencyTO.getUri());
@@ -291,7 +292,7 @@ public class WorkflowServiceImpl implements WorkflowService {
     }
 
     @Override
-    public void submitToGoLive(String site, List<String> paths, Date scheduledDate, boolean sendApprovedNotice, String submitter) {
+    public void submitToGoLive(String site, List<String> paths, ZonedDateTime scheduledDate, boolean sendApprovedNotice, String submitter) {
 		/*
 		// this needs to be gutted an re-written as workflow handlers that rely on services like dependency, state, content repository
 		// that use the appropriate DAL objects.  Now is not the time to pull the thread on that sweater :-/
@@ -779,7 +780,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                         //Set proper information of all renameItems before send them to GoLive
                         for(int i=0;i<renameItems.size();i++){
                             DmDependencyTO renamedItem = renameItems.get(i);
-                            if (renamedItem.getScheduledDate() != null && renamedItem.getScheduledDate().after(new Date())) {
+                            if (renamedItem.getScheduledDate() != null && renamedItem.getScheduledDate().isAfter(ZonedDateTime.now(ZoneOffset.UTC))) {
                                 renamedItem.setNow(false);
                             } else {
                                 renamedItem.setNow(true);
@@ -938,7 +939,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                         //Set proper information of all renameItems before send them to GoLive
                         for(int i=0;i<renameItems.size();i++){
                             DmDependencyTO renamedItem = renameItems.get(i);
-                            if (renamedItem.getScheduledDate() != null && renamedItem.getScheduledDate().after(new Date())) {
+                            if (renamedItem.getScheduledDate() != null && renamedItem.getScheduledDate().isAfter(ZonedDateTime.now(ZoneOffset.UTC))) {
                                 renamedItem.setNow(false);
                             } else {
                                 renamedItem.setNow(true);
@@ -1099,7 +1100,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                         //Set proper information of all renameItems before send them to GoLive
                         for(int i=0;i<renameItems.size();i++){
                             DmDependencyTO renamedItem = renameItems.get(i);
-                            if (renamedItem.getScheduledDate() != null && renamedItem.getScheduledDate().after(new Date())) {
+                            if (renamedItem.getScheduledDate() != null && renamedItem.getScheduledDate().isAfter(ZonedDateTime.now(ZoneOffset.UTC))) {
                                 renamedItem.setNow(false);
                             } else {
                                 renamedItem.setNow(true);
@@ -1171,7 +1172,7 @@ public class WorkflowServiceImpl implements WorkflowService {
         submittedItem.setInProgress(inProgress);
         // TODO: check scheduled date to make sure it is not null when isNow =
         // true and also it is not past
-        Date scheduledDate = null;
+        ZonedDateTime scheduledDate = null;
         if (globalSchDate != null && !StringUtils.isEmpty(globalSchDate)) {
             scheduledDate = getScheduledDate(site, format, globalSchDate);
         } else {
@@ -1258,12 +1259,12 @@ public class WorkflowServiceImpl implements WorkflowService {
         DmDependencyTO submittedItem = dmDependencyService.getDependenciesNoCalc(site, itemPath, false, true, processedDependencies);
         // TODO: check scheduled date to make sure it is not null when isNow =
         // true and also it is not past
-        Date scheduledDate = null;
+        ZonedDateTime scheduledDate = null;
         if (globalSchDate != null && !StringUtils.isEmpty(globalSchDate)) {
             scheduledDate = getScheduledDate(site, format, globalSchDate);
         } else {
             if (submittedItem.getScheduledDate() != null) {
-                scheduledDate = getScheduledDate(site, format, format.format(submittedItem.getScheduledDate()));
+                scheduledDate = getScheduledDate(site, format, submittedItem.getScheduledDate().format(DateTimeFormatter.ofPattern(format.toPattern())));
             }
         }
         if (scheduledDate == null) {
@@ -1328,12 +1329,12 @@ public class WorkflowServiceImpl implements WorkflowService {
         DmDependencyTO submittedItem = dmDependencyService.getDependenciesNoCalc(site, itemPath, false, true, null);
         // TODO: check scheduled date to make sure it is not null when isNow =
         // true and also it is not past
-        Date scheduledDate = null;
+        ZonedDateTime scheduledDate = null;
         if (globalSchDate != null && !StringUtils.isEmpty(globalSchDate)) {
             scheduledDate = getScheduledDate(site, format, globalSchDate);
         } else {
             if (submittedItem.getScheduledDate() != null) {
-                scheduledDate = getScheduledDate(site, format, format.format(submittedItem.getScheduledDate()));
+                scheduledDate = getScheduledDate(site, format, submittedItem.getScheduledDate().format(DateTimeFormatter.ofPattern(format.toPattern())));
             }
         }
         if (scheduledDate == null) {
@@ -1349,12 +1350,12 @@ public class WorkflowServiceImpl implements WorkflowService {
         submittedItem.setUri(itemPath);
         // TODO: check scheduled date to make sure it is not null when isNow =
         // true and also it is not past
-        Date scheduledDate = null;
+        ZonedDateTime scheduledDate = null;
         if (globalSchDate != null && !StringUtils.isEmpty(globalSchDate)) {
             scheduledDate = getScheduledDate(site, format, globalSchDate);
         } else {
             if (submittedItem.getScheduledDate() != null) {
-                scheduledDate = getScheduledDate(site, format, format.format(submittedItem.getScheduledDate()));
+                scheduledDate = getScheduledDate(site, format, submittedItem.getScheduledDate().format(DateTimeFormatter.ofPattern(format.toPattern())));
             }
         }
         if (scheduledDate == null) {
@@ -1423,15 +1424,15 @@ public class WorkflowServiceImpl implements WorkflowService {
         // get web project information
         //String assignee = getAssignee(site, sub);
         // Don't make go live an item if it is new and to be deleted
-        final Date now = new Date();
+        final ZonedDateTime now = ZonedDateTime.now(ZoneOffset.UTC);
         List<String> itemsToDelete = new ArrayList<>();
         List<DmDependencyTO> deleteItems = new ArrayList<>();
         List<DmDependencyTO> scheItems = new ArrayList<>();
         for (DmDependencyTO submittedItem : submittedItems) {
             String uri = submittedItem.getUri();
-            Date schDate = submittedItem.getScheduledDate();
+            ZonedDateTime schDate = submittedItem.getScheduledDate();
             boolean isItemForSchedule = false;
-            if (schDate == null || schDate.before(now)) {
+            if (schDate == null || schDate.isBefore(now)) {
                 // Sending Notification
                 if (StringUtils.isNotEmpty(approver)) {
                     // immediate delete
@@ -1456,16 +1457,16 @@ public class WorkflowServiceImpl implements WorkflowService {
         }
         GoLiveContext context = new GoLiveContext(approver, site);
         final String pathPrefix = FILE_SEPARATOR + "wem-projects" + FILE_SEPARATOR + site + FILE_SEPARATOR + site + FILE_SEPARATOR + "work-area";
-        Map<Date, List<DmDependencyTO>> groupedPackages = groupByDate(deleteItems, now);
+        Map<ZonedDateTime, List<DmDependencyTO>> groupedPackages = groupByDate(deleteItems, now);
         if (groupedPackages.isEmpty()) {
             groupedPackages.put(now, Collections.<DmDependencyTO>emptyList());
         }
-        for (Date scheduledDate : groupedPackages.keySet()) {
+        for (ZonedDateTime scheduledDate : groupedPackages.keySet()) {
             List<DmDependencyTO> deletePackage = groupedPackages.get(scheduledDate);
             SubmitPackage submitpackage = new SubmitPackage(pathPrefix);
             Set<String> rescheduledUris = new HashSet<String>();
             if (deletePackage != null) {
-                Date launchDate = scheduledDate.equals(now) ? null : scheduledDate;
+                ZonedDateTime launchDate = scheduledDate.equals(now) ? null : scheduledDate;
                 for (DmDependencyTO dmDependencyTO : deletePackage) {
                     if (launchDate != null) {
                         handleReferences(site, submitpackage, dmDependencyTO, true, null, "", rescheduledUris);
@@ -1509,12 +1510,12 @@ public class WorkflowServiceImpl implements WorkflowService {
     }
 
     @Override
-    public Map<Date, List<DmDependencyTO>> groupByDate(List<DmDependencyTO> submittedItems, Date now) {
-        Map<Date, List<DmDependencyTO>> groupedPackages = new HashMap<>();
+    public Map<ZonedDateTime, List<DmDependencyTO>> groupByDate(List<DmDependencyTO> submittedItems, ZonedDateTime now) {
+        Map<ZonedDateTime, List<DmDependencyTO>> groupedPackages = new HashMap<>();
         for (DmDependencyTO submittedItem : submittedItems) {
 
-            Date scheduledDate = (submittedItem.isNow()) ? null : submittedItem.getScheduledDate();
-            if (scheduledDate == null || scheduledDate.before(now)) {
+            ZonedDateTime scheduledDate = (submittedItem.isNow()) ? null : submittedItem.getScheduledDate();
+            if (scheduledDate == null || scheduledDate.isBefore(now)) {
                 scheduledDate = now;
             }
             List<DmDependencyTO> goLivePackage = groupedPackages.get(scheduledDate);
@@ -1529,7 +1530,7 @@ public class WorkflowServiceImpl implements WorkflowService {
 
     protected void handleReferences(String site, SubmitPackage submitpackage, DmDependencyTO dmDependencyTO, boolean isNotScheduled, SubmitPackage dependencyPackage, String approver, Set<String> rescheduledUris) {//,boolean isReferencePage) {
         ItemMetadata properties = objectMetadataManager.getProperties(site, dmDependencyTO.getUri());
-        Date scheduledDate = null;
+        ZonedDateTime scheduledDate = null;
         if (properties != null) {
             scheduledDate = properties.getLaunchDate();
         }
@@ -1560,7 +1561,7 @@ public class WorkflowServiceImpl implements WorkflowService {
         }
     }
 
-    protected boolean areEqual(Date oldDate, Date newDate) {
+    protected boolean areEqual(ZonedDateTime oldDate, ZonedDateTime newDate) {
         if (oldDate == null && newDate == null) {
             return true;
         }
@@ -1589,7 +1590,7 @@ public class WorkflowServiceImpl implements WorkflowService {
      * @param dateStr
      * @return date
      */
-    protected Date getScheduledDate(String site, SimpleDateFormat format, String dateStr) {
+    protected ZonedDateTime getScheduledDate(String site, SimpleDateFormat format, String dateStr) {
         return ContentFormatUtils.parseDate(format, dateStr, servicesConfig.getDefaultTimezone(site));
     }
 
@@ -1643,16 +1644,16 @@ public class WorkflowServiceImpl implements WorkflowService {
         List<DmDependencyTO> childAndReferences = new ArrayList<>();
         for (DmDependencyTO submittedItem : submittedItems) {
             List<DmDependencyTO> children = submittedItem.getChildren();
-            Date date = submittedItem.getScheduledDate();
+            ZonedDateTime date = submittedItem.getScheduledDate();
             if (children != null) {
                 Iterator<DmDependencyTO> childItr = children.iterator();
                 while (childItr.hasNext()) {
                     DmDependencyTO child = childItr.next();
-                    Date pageDate = child.getScheduledDate();
+                    ZonedDateTime pageDate = child.getScheduledDate();
                     if ((date == null && pageDate != null) || (date != null && !date.equals(pageDate))) {
                         if (!submittedItem.isNow()) {
                             child.setNow(false);
-                            if (date != null && (pageDate != null && pageDate.before(date))) {
+                            if (date != null && (pageDate != null && pageDate.isBefore(date))) {
                                 child.setScheduledDate(date);
                             }
                         }
@@ -1694,16 +1695,16 @@ public class WorkflowServiceImpl implements WorkflowService {
         List<DmDependencyTO> childAndReferences = new ArrayList<>();
         for (DmDependencyTO submittedItem : submittedItems) {
             List<DmDependencyTO> children = submittedItem.getChildren();
-            Date date = submittedItem.getScheduledDate();
+            ZonedDateTime date = submittedItem.getScheduledDate();
             if (children != null) {
                 Iterator<DmDependencyTO> childItr = children.iterator();
                 while (childItr.hasNext()) {
                     DmDependencyTO child = childItr.next();
-                    Date pageDate = child.getScheduledDate();
+                    ZonedDateTime pageDate = child.getScheduledDate();
                     if ((date == null && pageDate != null) || (date != null && !date.equals(pageDate))) {
                         if (!submittedItem.isNow()) {
                             child.setNow(false);
-                            if (date != null && (pageDate != null && pageDate.before(date))) {
+                            if (date != null && (pageDate != null && pageDate.isBefore(date))) {
                                 child.setScheduledDate(date);
                             }
                         }
@@ -1784,16 +1785,16 @@ public class WorkflowServiceImpl implements WorkflowService {
     protected List<DmDependencyTO> getChildrenForRenamedItem(String site, DmDependencyTO renameItem) {
         List<DmDependencyTO> toRet = new ArrayList<>();
         List<DmDependencyTO> children = renameItem.getChildren();
-        Date date = renameItem.getScheduledDate();
+        ZonedDateTime date = renameItem.getScheduledDate();
         if (children != null) {
             Iterator<DmDependencyTO> childItr = children.iterator();
             while (childItr.hasNext()) {
                 DmDependencyTO child = childItr.next();
-                Date pageDate = child.getScheduledDate();
+                ZonedDateTime pageDate = child.getScheduledDate();
                 if ((date == null && pageDate != null) || (date != null && !date.equals(pageDate))) {
                     if (!renameItem.isNow()) {
                         child.setNow(false);
-                        if (date != null && (pageDate != null && pageDate.before(date))) {
+                        if (date != null && (pageDate != null && pageDate.isBefore(date))) {
                             child.setScheduledDate(date);
                         }
                     }
@@ -1813,7 +1814,7 @@ public class WorkflowServiceImpl implements WorkflowService {
     }
 
     @Override
-    public void preScheduleDelete(Set<String> urisToDelete, final Date scheduleDate, final GoLiveContext context, Set rescheduledUris)
+    public void preScheduleDelete(Set<String> urisToDelete, final ZonedDateTime scheduleDate, final GoLiveContext context, Set rescheduledUris)
             throws ServiceException {
         final String site = context.getSite();
         final List<String> itemsToDelete = new ArrayList<String>(urisToDelete);
@@ -1900,15 +1901,15 @@ public class WorkflowServiceImpl implements WorkflowService {
             throws ServiceException {
         long start = System.currentTimeMillis();
         // get web project information
-        final Date now = new Date();
+        final ZonedDateTime now = ZonedDateTime.now(ZoneOffset.UTC);
         if (submittedItems != null) {
             // group submitted items into packages by their scheduled date
-            Map<Date, List<DmDependencyTO>> groupedPackages = groupByDate(submittedItems, now);
+            Map<ZonedDateTime, List<DmDependencyTO>> groupedPackages = groupByDate(submittedItems, now);
 
-            for (Date scheduledDate : groupedPackages.keySet()) {
+            for (ZonedDateTime scheduledDate : groupedPackages.keySet()) {
                 List<DmDependencyTO> goLivePackage = groupedPackages.get(scheduledDate);
                 if (goLivePackage != null) {
-                    Date launchDate = scheduledDate.equals(now) ? null : scheduledDate;
+                    ZonedDateTime launchDate = scheduledDate.equals(now) ? null : scheduledDate;
 
                     final boolean isNotScheduled = (launchDate == null);
                     // for submit direct, package them together and submit them
@@ -1977,99 +1978,6 @@ public class WorkflowServiceImpl implements WorkflowService {
     }
 
     /**
-     * prepare the content for workflow submission by attaching submitted aspect
-     *
-     * @param site
-     * @param user
-     * @param submittedItem
-     * @param launchDate
-     * @param sendEmail
-     * @return
-     * @throws ServiceException
-     */
-    protected List<String> prepareWorkflowSubmission(String site, String user, DmDependencyTO submittedItem,
-                                                     Date launchDate, boolean sendEmail, boolean submittedForDeletion) throws ServiceException {
-        List<String> paths = new ArrayList<>();
-        ContentItemTO contentItem = contentService.getContentItem(site, submittedItem.getUri());
-
-        if (contentItem != null) {
-            if (!submittedItem.isDeleted()) {
-                /* TODO: set properties
-                persistenceManagerService.setProperty(node, CStudioContentModel.PROP_WEB_WF_SUBMITTED_BY, user);
-                persistenceManagerService.setProperty(node, CStudioContentModel.PROP_WEB_WF_SEND_EMAIL, sendEmail);
-                persistenceManagerService.setProperty(node, CStudioContentModel.PROP_WEB_WF_SUBMITTEDFORDELETION, submittedForDeletion);
-                */
-                List<String> includedItems = new ArrayList<>();
-                addSubmittedAspect(site, user, null, submittedItem, launchDate, includedItems);
-
-                for (String includedItem : includedItems) {
-                    paths.add(includedItem);
-                }
-            } else {
-                // do nothing if deleted
-                String topLevelItem = submittedItem.getUri();
-                paths.add(topLevelItem);
-            }
-        } else {
-            logger.error(submittedItem.getUri() + " does not exist.");
-        }
-
-        return paths;
-    }
-
-    /**
-     * add the submitted aspect to each item submitted and set properties
-     *
-     * @param site
-     * @param user
-     * @param parentUri
-     * @param submittedItem
-     * @param scheduledDate
-     * @param includedItems
-     * @throws ServiceException
-     */
-    @SuppressWarnings("unchecked")
-    protected void addSubmittedAspect(String site, String user, String parentUri, DmDependencyTO submittedItem,
-                                      Date scheduledDate, List<String> includedItems) throws ServiceException {
-        ContentItemTO node = contentService.getContentItem(site, submittedItem.getUri());
-        if (node != null) {
-            // add submitted aspect
-                /* TODO: Submitted aspectreplacement
-                if (!persistenceManagerService.hasAspect(node, CStudioContentModel.ASPECT_WORKFLOW_SUBMITTED)) {
-                    // add submitted aspect
-                    persistenceManagerService.addAspect(node, CStudioContentModel.ASPECT_WORKFLOW_SUBMITTED, null);
-
-                }*/
-
-            // set direct child items
-                /* TODO: set properties
-                List<String> childDependencies = getDependencies(site, user, submittedItem.getUri(), submittedItem,
-                        scheduledDate, includedItems);
-
-                persistenceManagerService.setProperty(node, CStudioContentModel.PROP_WEB_WF_CHILDREN, (Serializable) childDependencies);
-                // set a scheduled date
-
-                persistenceManagerService.setProperty(node, WCMWorkflowModel.PROP_LAUNCH_DATE, scheduledDate);
-
-                Map<QName, Serializable> properties = persistenceManagerService.getProperties(node);
-                // add parent URI if not null
-                if (!StringUtils.isEmpty(parentUri)) {
-                    Serializable parentValue = properties.get(CStudioContentModel.PROP_WEB_WF_PARENT_URI);
-                    List<String> parents = (parentValue == null) ? new ArrayList<String>(1) : (List<String>) parentValue;
-                    if (!parents.contains(parentUri)) {
-                        parents.add(parentUri);
-                    }
-                    persistenceManagerService.setProperty(node, CStudioContentModel.PROP_WEB_WF_PARENT_URI, (Serializable) parents);
-                }
-                */
-            includedItems.add(submittedItem.getUri());
-        } else {
-            includedItems.add(submittedItem.getUri());
-        }
-
-    }
-
-    /**
      * submit the given list of paths to workflow
      *
      * @param site
@@ -2078,7 +1986,7 @@ public class WorkflowServiceImpl implements WorkflowService {
      * @param paths
      */
     @SuppressWarnings("deprecation")
-    protected void submitToWorkflow(final String site, final Date launchDate, final String label, final List<String> paths) throws ServiceException {
+    protected void submitToWorkflow(final String site, final ZonedDateTime launchDate, final String label, final List<String> paths) throws ServiceException {
         submitToWorkflow(site, launchDate, label, paths, null);
     }
 
@@ -2091,11 +1999,11 @@ public class WorkflowServiceImpl implements WorkflowService {
      * @param paths
      */
     @SuppressWarnings("deprecation")
-    protected void submitToWorkflow(final String site, final Date launchDate, final String label, final List<String> paths, final MultiChannelPublishingContext mcpContext) throws ServiceException {
+    protected void submitToWorkflow(final String site, final ZonedDateTime launchDate, final String label, final List<String> paths, final MultiChannelPublishingContext mcpContext) throws ServiceException {
         _submit(site, launchDate, label, paths, mcpContext);
     }
 
-    protected void _submit(String site, Date launchDate, String label, List<String> paths, MultiChannelPublishingContext mcpContext) {
+    protected void _submit(String site, ZonedDateTime launchDate, String label, List<String> paths, MultiChannelPublishingContext mcpContext) {
         if (label.length() > 255) {
             label = label.substring(0, 252) + "..";
         }
@@ -2112,8 +2020,8 @@ public class WorkflowServiceImpl implements WorkflowService {
     public boolean isRescheduleRequest(DmDependencyTO dependencyTO, String site) {
         if ((dependencyTO.isDeleted() || (!dependencyTO.isSubmitted() && !dependencyTO.isInProgress()))) {
             ContentItemTO to = contentService.getContentItem(site, dependencyTO.getUri());
-            Date newDate = dependencyTO.getScheduledDate();
-            Date oldDate = to.getScheduledDate();
+            ZonedDateTime newDate = dependencyTO.getScheduledDate();
+            ZonedDateTime oldDate = to.getScheduledDate();
             return !areEqual(oldDate, newDate);
         }
         return false;
@@ -2142,7 +2050,7 @@ public class WorkflowServiceImpl implements WorkflowService {
     }
 
     @Override
-    public void preSchedule(Set<String> uris, final Date date, final GoLiveContext context, Set<String> rescheduledUris) {
+    public void preSchedule(Set<String> uris, final ZonedDateTime date, final GoLiveContext context, Set<String> rescheduledUris) {
         /* TODO: do we need this?
         preGoLive(uris, context, rescheduledUris);
         DmContentService dmContentService = getService(DmContentService.class);

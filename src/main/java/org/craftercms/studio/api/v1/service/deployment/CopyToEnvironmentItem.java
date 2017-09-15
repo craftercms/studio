@@ -18,8 +18,7 @@
 package org.craftercms.studio.api.v1.service.deployment;
 
 import java.io.Serializable;
-import java.util.Date;
-
+import java.time.ZonedDateTime;
 // implementation detail
 public class CopyToEnvironmentItem implements Serializable {
 
@@ -55,8 +54,8 @@ public class CopyToEnvironmentItem implements Serializable {
     public String getUser() { return _user; }
     public void setUser(String user) { this._user = user; }
 
-    public Date getScheduledDate() { return _scheduledDate; }
-    public void setScheduledDate(Date scheduledDate) { this._scheduledDate = scheduledDate; }
+    public ZonedDateTime getScheduledDate() { return _scheduledDate; }
+    public void setScheduledDate(ZonedDateTime scheduledDate) { this._scheduledDate = scheduledDate; }
 
     public State getState() { return _state; }
     public void setState(State state) { this._state = state; }
@@ -78,7 +77,7 @@ public class CopyToEnvironmentItem implements Serializable {
     protected String _environment;
     protected String _path;
     protected String _user;
-    protected Date _scheduledDate;
+    protected ZonedDateTime _scheduledDate;
     protected State _state;
     protected Action _action;
     protected String _oldPath;

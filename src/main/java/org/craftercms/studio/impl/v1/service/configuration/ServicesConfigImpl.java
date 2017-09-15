@@ -34,6 +34,8 @@ import org.dom4j.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.*;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
@@ -246,7 +248,7 @@ public class ServicesConfigImpl implements ServicesConfig {
              siteConfig.setTimezone(configNode.valueOf("default-timezone"));
              loadSiteRepositoryConfiguration(siteConfig, configNode.selectSingleNode("repository"));
              // set the last updated date
-             siteConfig.setLastUpdated(new Date());
+             siteConfig.setLastUpdated(ZonedDateTime.now(ZoneOffset.UTC));
          } else {
              LOGGER.error("No site configuration found for " + site + " at " + siteConfigPath);
          }

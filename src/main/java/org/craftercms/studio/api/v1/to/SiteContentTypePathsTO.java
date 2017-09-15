@@ -18,7 +18,7 @@
 package org.craftercms.studio.api.v1.to;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 
@@ -28,13 +28,13 @@ public class SiteContentTypePathsTO implements TimeStamped, Serializable {
     /** content type path configuration **/
 	protected List<ContentTypePathTO> _configs = null;
 	/** last updated date of this configuration **/
-	protected Date _lastUpdated = null;
+	protected ZonedDateTime _lastUpdated = null;
 
-	public Date getLastUpdated() {
+	public ZonedDateTime getLastUpdated() {
 		return _lastUpdated;
 	}
 
-	public void setLastUpdated(Date lastUpdated) {
+	public void setLastUpdated(ZonedDateTime lastUpdated) {
 		this._lastUpdated = lastUpdated;
 	}
 

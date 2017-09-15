@@ -17,14 +17,11 @@
  ******************************************************************************/
 package org.craftercms.studio.impl.v1.util;
 
-import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v1.service.activity.ActivityService;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.io.SAXReader;
@@ -32,8 +29,6 @@ import org.dom4j.io.SAXReader;
 import java.io.*;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.text.ParseException;
-import java.util.Date;
 import java.util.List;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
@@ -117,20 +112,6 @@ public class ContentUtils {
             ContentUtils.release(is);
             ContentUtils.release(isReader);
         }
-	}
-
-	public static Date getEditedDate(String str) {
-		if (!StringUtils.isEmpty(str)) {
-			try {
-				return (new ISO8601DateFormat()).parse(str);
-			} catch (ParseException e) {
-				logger.error("No activity post date provided.");
-				return null;
-			}
-		} else {
-			logger.error("No activity post date provided.");
-			return null;
-		}
 	}
 
 	public static boolean matchesPatterns(String uri, List<String> patterns) {

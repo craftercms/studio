@@ -1,6 +1,6 @@
 package org.craftercms.studio.api.v2.service.notification;
 
-import java.util.Date;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Locale;
 
@@ -66,7 +66,7 @@ public interface NotificationService {
      * @param scheduleDate
      * @param locale Language of the notification ,if null defaults to English.
      */
-    void notifyContentApproval(final String site, final String submitterUser, final List<String> itemsSubmitted, final String approver, final Date scheduleDate, Locale locale);
+    void notifyContentApproval(final String site, final String submitterUser, final List<String> itemsSubmitted, final String approver, final ZonedDateTime scheduleDate, Locale locale);
 
     /**
      * Gets and process notification message
@@ -92,7 +92,7 @@ public interface NotificationService {
      * @param isADelete Is this submission a delete one.
      */
     void notifyApprovesContentSubmission(final String site, final List<String> usersToNotify, final List<String>
-        itemsSubmitted, final String submitter, final Date scheduleDate,final boolean isADelete,final String
+        itemsSubmitted, final String submitter, final ZonedDateTime scheduleDate,final boolean isADelete,final String
         submissionComments,final Locale locale);
 
     /**
