@@ -819,7 +819,7 @@ public class ContentServiceImpl implements ContentService {
         boolean fromFileIsIndex = ("index.xml".equals(fromFileNameOnly));
         logger.debug("Cut/copy name rules from path: '{0}' name: '{1}'", fromPathOnly, fromFileNameOnly);
 
-        if(fromFileIsIndex==true) {
+        if(fromFileIsIndex) {
             fromFileNameOnly = fromPathOnly.substring(fromPathOnly.lastIndexOf(FILE_SEPARATOR)+1);
             fromPathOnly = fromPathOnly.substring(0, fromPathOnly.lastIndexOf(FILE_SEPARATOR));
             logger.debug("Cut/copy name rules index from path: '{0}' name: '{1}'", fromPathOnly, fromFileNameOnly);
@@ -830,7 +830,7 @@ public class ContentServiceImpl implements ContentService {
         boolean newFileIsIndex = ("index.xml".equals(newFileNameOnly));
         logger.debug("Cut/copy name rules to path: '{0}' name: '{1}'", newPathOnly, newFileNameOnly);
 
-        if(newFileIsIndex==true) {
+        if(newFileIsIndex) {
             newFileNameOnly = newPathOnly.substring(newPathOnly.lastIndexOf(FILE_SEPARATOR)+1);
             newPathOnly = newPathOnly.substring(0, newPathOnly.lastIndexOf(FILE_SEPARATOR));
             logger.debug("Cut/copy name rules index to path: '{0}' name: '{1}'", newPathOnly, newFileNameOnly);
@@ -1960,6 +1960,39 @@ public class ContentServiceImpl implements ContentService {
             beforeOrderTO = orderTO.get(afterIndex - 1);
         }
         return (beforeOrderTO.getOrder() + afterOrderTO.getOrder()) / 2;
+    }
+
+    @Override
+    public boolean renameFolder(String site, String path, String name) {
+        boolean toRet = false;
+        String parentPath = FILE_SEPARATOR + FilenameUtils.getPathNoEndSeparator(path);
+
+        String targetPath = parentPath + FILE_SEPARATOR + name;
+
+        logger.debug("Rename folder for site {0} sourcePath {3} to target path {4}", site, path, targetPath);
+
+        // NOTE: IN WRITE SCENARIOS the repository OP IS PART of this PIPELINE, for some reason, historically with MOVE it is not
+        Map<String, String> commitIds = _contentRepository.moveContent(site, path, targetPath);
+
+        if (commitIds != null) {
+            // Update the database with the commitId for the target item
+            updateDatabaseOnMove(site, path, targetPath);
+            updateChildrenOnMove(site, path, targetPath);
+            for (Map.Entry<String, String> entry : commitIds.entrySet()) {
+                objectMetadataManager.updateCommitId(site, FILE_SEPARATOR + entry.getKey(), entry.getValue());
+            }
+            siteService.updateLastCommitId(site, _contentRepository.getRepoLastCommitId(site));
+
+            PreviewEventContext context = new PreviewEventContext();
+            context.setSite(site);
+            eventService.publish(EVENT_PREVIEW_SYNC, context);
+             toRet = true;
+
+        } else {
+            logger.error("Repository move failed site {0} from {1} to {2}", site, path, targetPath);
+        }
+
+        return toRet;
     }
 
     private ContentRepository _contentRepository;

@@ -227,4 +227,14 @@ public interface ContentService {
     List<DmOrderTO> getItemOrders(String site, String path) throws ContentNotFoundException;
 
     double reorderItems(String site, String relativePath, String before, String after, String orderName) throws ServiceException;
+
+    /**
+     * rename a folder
+     *
+     * @param site - the project ID
+     * @param path path to a folder to rename
+     * @param name a new folder name
+     * @return return the reference to the folder renamed
+     */
+    boolean renameFolder(String site, String path, String name);
 }
