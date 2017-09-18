@@ -300,4 +300,16 @@ class ContentServices {
         def contentServicesImpl = ServiceFactory.getContentServices(context);
         return contentServicesImpl.reorderItems(site, path, before, after);
     }
+
+    /**
+     * rename a folder
+     * @param site - the project ID
+     * @param path - the folder path to rename
+     * @param name - the new folder name
+     * @oaran context - container for passing request, token and other values that may be needed by the implementation
+     */
+    static renameFolder(site, path, name, context){
+        def contentServicesImpl = ServiceFactory.getContentServices(context)
+        return contentServicesImpl.renameFolder(site, path, name)
+    }
 }	

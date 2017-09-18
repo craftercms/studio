@@ -255,4 +255,15 @@ class SpringContentServices {
         def springBackendService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN);
         return springBackendService.reorderItems(site, path, before, after, "default");
     }
+
+    /**
+     * rename folder
+     * @param site - the project ID
+     * @param path - the folder path to rename
+     * @param name - the new folder name
+     */
+    def renameFolder(site, path, name){
+        def springBackedService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN)
+        return springBackedService.renameFolder(site, path, name)
+    }
 }
