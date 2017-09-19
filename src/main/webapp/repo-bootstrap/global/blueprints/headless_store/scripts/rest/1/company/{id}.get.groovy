@@ -2,7 +2,7 @@ import org.craftercms.blueprints.headless.CompanySearchHelper
 
 def id = pathVars.id
 
-def companies = new CompanySearchHelper(searchService)
+def companies = new CompanySearchHelper(searchService, siteItemService)
 						.filter("objectId: $id")
 						.getItems()
 

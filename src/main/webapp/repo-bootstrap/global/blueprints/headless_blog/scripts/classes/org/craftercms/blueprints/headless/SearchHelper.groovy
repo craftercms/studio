@@ -6,11 +6,13 @@ import groovy.util.logging.Slf4j
 class SearchHelper {
 	
 	protected def searchService
+	protected def siteItemService
 	protected def queryStr = "*:*"
 	protected def query
 	
-	def SearchHelper(searchService) {
+	def SearchHelper(searchService, siteItemService) {
 		this.searchService = searchService
+		this.siteItemService = siteItemService
 		query = searchService.createQuery()
 	}
 	
@@ -57,7 +59,7 @@ class SearchHelper {
 	
 	def processItem(document) {
 		// Returns all fields by default.
-		document
+		siteItemService.getSiteItem(document.localId)
 	}
 	
 	def getTaxonomyValues(doc, field) {
