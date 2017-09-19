@@ -315,7 +315,7 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 			String postDate = (feedObject.containsKey(ACTIVITY_PROP_POST_DATE)) ? feedObject.getString(ACTIVITY_PROP_POST_DATE) : "";
 			//Date editedDate = ContentUtils.getEditedDate(postDate);
             ZonedDateTime editedDate = ZonedDateTime.parse(postDate);
-			item.eventDate = editedDate;
+			item.eventDate = editedDate.withZoneSameInstant(ZoneOffset.UTC);
 
 			return item;
 		} catch (Exception e) {
