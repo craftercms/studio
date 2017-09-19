@@ -7,7 +7,7 @@ def categories = params.categories?.split(",")
 def tags = params.tags?.split(",")
 def q = params.q
 
-def helper = new PostSearchHelper(searchService)
+def helper = new PostSearchHelper(searchService, siteItemService)
 
 if(q) {
 	helper.query("body_html: $q")

@@ -5,8 +5,8 @@ import groovy.util.logging.Slf4j
 @Slf4j
 class ProductSearchHelper extends SearchHelper {
 	
-	def ProductSearchHelper(searchService) {
-		super(searchService)
+	def ProductSearchHelper(searchService, siteItemService) {
+		super(searchService, siteItemService)
 		filter("content-type:\"/component/product\"")
 		sortBy("createdDate_dt desc")
 	}	
@@ -20,16 +20,17 @@ class ProductSearchHelper extends SearchHelper {
 	}
 	
 	def processItem(doc) {
+		def item = super.processItem(doc)
 		[
 			id: doc.objectId,
-			name: doc.name_s,
+			name: item.name_s.text,
 			company: doc["company.item.component.name_s"],
 			categories: getCategories(doc),
 			tags: getTags(doc),
-			date: doc.createdDate_dt,
-			description: doc.description_html,
-			image: doc.image_s,
-			price: doc.price_d,
+			date: item.createdDate_dt.text,
+			description: item.description_html.text,
+			image: item.image_s.text,
+			price: item.price_d,
             itemUrl: doc.localId
 		]
 	}

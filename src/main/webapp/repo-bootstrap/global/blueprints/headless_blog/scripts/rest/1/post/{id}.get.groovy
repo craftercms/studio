@@ -2,7 +2,7 @@ import org.craftercms.blueprints.headless.PostSearchHelper
 
 def id = pathVars.id
 
-def posts = new PostSearchHelper(searchService)
+def posts = new PostSearchHelper(searchService, siteItemService)
 						.filter("objectId: $id")
 						.getItems()
 

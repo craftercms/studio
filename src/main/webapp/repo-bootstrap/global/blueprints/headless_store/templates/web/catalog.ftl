@@ -63,7 +63,7 @@
 							</div>
 							<div class="col-sm-10 text-center">
 								<h2><a v-bind:href="selectedCompany.website">{{ selectedCompany.name }}</a></h2>
-								<p>{{ selectedCompany.description }}</p>
+								<div v-html="selectedCompany.description"></div>
 							</div>
 						</div>
 					</div>
@@ -92,7 +92,7 @@
 				<div class="col-md-3" v-for="product in products.items">
 					<div class="panel panel-default" v-bind:data-studio-component-path="product.itemUrl" v-bind:data-studio-component="product.itemUrl" data-studio-ice="" v-bind:data-studio-ice-path="product.itemUrl">
 						<div class="panel-body">
-							<img v-bind:src="product.image" data-toggle="popover" data-trigger="hover" v-bind:data-content="product.description" class="img-responsive img-thumbnail center-block"/>
+							<img v-bind:src="product.image" data-toggle="popover" data-trigger="hover" v-bind:data-content="product.description" data-html="true" class="img-responsive img-thumbnail center-block"/>
 							<h4>{{ product.name }}<small> by {{ product.company }}<small></h4>
 							<span class="badge pull-right">&#36;{{ product.price }}</span>
 						</div>
@@ -207,7 +207,10 @@
 							self.pagination.total = Math.ceil(parseInt(response.body.total) / self.pagination.rows);
 							self.pagination.hasNext = self.pagination.current < self.pagination.total;
                            	self.$nextTick(function(){
-								studioICERepaint();
+								if(window.studioICERepaint) {
+									studioICERepaint();
+								}
+                                $('[data-toggle="popover"]').popover();
 							});
 						});
 					}

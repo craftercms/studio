@@ -5,8 +5,8 @@ import groovy.util.logging.Slf4j
 @Slf4j
 class TaxonomySearchHelper extends SearchHelper {
 	
-	def TaxonomySearchHelper(String name, searchService) {
-		super(searchService)
+	def TaxonomySearchHelper(String name, searchService, siteItemService) {
+		super(searchService, siteItemService)
 		filter("file-name: \"${name}.xml\"")
 		filter("content-type:\"/taxonomy\"")
 	}
