@@ -198,6 +198,11 @@ public class ContentServiceImpl implements ContentService {
                             + "path {1} fileName {2} contentType {3}"
                             + ".", site, path, fileName, contentType);
                 }
+            } else {
+                // Content does not exist; check for moved content and deleted content
+                if (objectStateService.deletedPathExists(site, path) || objectMetadataManager.movedPathExists(site, path)) {
+                    throw new ServiceException("Moved or deleted content existed for site " + site + " on path " + path + ". New content can not be created on that path before change is published.");
+                }
             }
 
             // TODO: SJ: Item processing pipeline needs to be configurable without hardcoded paths
@@ -349,6 +354,10 @@ public class ContentServiceImpl implements ContentService {
                     }
                     objectStateService.setSystemProcessing(site, path, true);
                 }
+            }
+
+            if (objectStateService.deletedPathExists(site, path) || objectMetadataManager.movedPathExists(site, path)) {
+                throw new ServiceException("Moved or deleted content existed for site " + site + " on path " + path + ". New content can not be created on that path before change is published.");
             }
             ResultTO result = processContent(id, in, false, params, DmConstants.CONTENT_CHAIN_ASSET);
             ContentAssetInfoTO assetInfoTO = (ContentAssetInfoTO)result.getItem();

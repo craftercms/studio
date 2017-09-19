@@ -44,4 +44,5 @@ public interface ItemMetadataMapper {
 
     void updateCommitId(Map params);
 
+    int movedPathExists(Map params);
 }

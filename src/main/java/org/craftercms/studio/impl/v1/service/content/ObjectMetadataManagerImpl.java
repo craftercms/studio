@@ -187,4 +187,12 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
         params.put("commitId", commitId);
         itemMetadataMapper.updateCommitId(params);
     }
+
+    @Override
+    public boolean movedPathExists(String site, String path) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("siteId", site);
+        params.put("path", path);
+        return itemMetadataMapper.movedPathExists(params) > 0;
+    }
 }

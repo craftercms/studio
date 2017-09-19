@@ -57,4 +57,6 @@ public interface ItemStateMapper {
     void setStateForSiteContent(Map params);
 
     List<ItemState> getChangeSetForSubtree(Map params);
+
+    int deletedPathExists(Map params);
 }

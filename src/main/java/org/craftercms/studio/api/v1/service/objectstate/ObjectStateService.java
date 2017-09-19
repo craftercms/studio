@@ -81,4 +81,6 @@ public interface ObjectStateService {
     void setStateForSiteContent(String site, State state);
 
     List<String> getChangeSetForSubtree(String site, String path);
+
+    boolean deletedPathExists(String site, String path);
 }
