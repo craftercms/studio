@@ -18,6 +18,7 @@
 package org.craftercms.studio.api.v1.to;
 
 import java.io.Serializable;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.*;
 
@@ -187,16 +188,16 @@ public class ContentItemTO implements Serializable {
         this.isDocument = item.isDocument;
         this.isAsset = item.isAsset;
         this.isInFlight = item.isInFlight;
-        this.eventDate = item.eventDate;
+        this.eventDate = item.eventDate.withZoneSameInstant(ZoneOffset.UTC);
         this.endpoint = item.endpoint;
         this.timezone = item.timezone;
         this.numOfChildren = item.numOfChildren;
-        this.scheduledDate = item.scheduledDate;
-        this.publishedDate = item.publishedDate;
+        this.scheduledDate = item.scheduledDate.withZoneSameInstant(ZoneOffset.UTC);
+        this.publishedDate = item.publishedDate.withZoneSameInstant(ZoneOffset.UTC);
         this.mandatoryParent = item.mandatoryParent;
         this.isLevelDescriptor = item.isLevelDescriptor;
         this.categoryRoot = item.categoryRoot;
-        this.lastEditDate = item.lastEditDate;
+        this.lastEditDate = item.lastEditDate.withZoneSameInstant(ZoneOffset.UTC);
         this.form = item.form;
         this.formPagePath = item.formPagePath;
         this.renderingTemplates = item.renderingTemplates;
@@ -284,7 +285,7 @@ public class ContentItemTO implements Serializable {
 	public void setAsset(boolean asset) { this.asset = asset; }
 
 	public ZonedDateTime getEventDate() { return eventDate; }
-	public void setEventDate(ZonedDateTime eventDate) { this.eventDate = eventDate; }
+	public void setEventDate(ZonedDateTime eventDate) { this.eventDate = eventDate.withZoneSameInstant(ZoneOffset.UTC); }
 
 	public String getEndpoint() { return endpoint; }
 	public void setEndpoint(String endpoint) { this.endpoint = endpoint; }
@@ -296,10 +297,10 @@ public class ContentItemTO implements Serializable {
 	public void setNumOfChildren(int numOfChildren) { this.numOfChildren = numOfChildren; }
 
 	public ZonedDateTime getScheduledDate() { return scheduledDate; }
-	public void setScheduledDate(ZonedDateTime scheduledDate) { this.scheduledDate = scheduledDate; }
+	public void setScheduledDate(ZonedDateTime scheduledDate) { this.scheduledDate = scheduledDate.withZoneSameInstant(ZoneOffset.UTC); }
 
     public ZonedDateTime getPublishedDate() { return publishedDate; }
-    public void setPublishedDate(ZonedDateTime publishedDate) { this.publishedDate = publishedDate; }
+    public void setPublishedDate(ZonedDateTime publishedDate) { this.publishedDate = publishedDate.withZoneSameInstant(ZoneOffset.UTC); }
 
 	public String getMandatoryParent() { return mandatoryParent; }
 	public void setMandatoryParent(String mandatoryParent) { this.mandatoryParent = mandatoryParent; }
@@ -344,7 +345,7 @@ public class ContentItemTO implements Serializable {
 	public void setCategoryRoot(String categoryRoot) { this.categoryRoot = categoryRoot; }
 
 	public ZonedDateTime getLastEditDate() { return lastEditDate; }
-	public void setLastEditDate(ZonedDateTime lastEditDate) { this.lastEditDate = lastEditDate; }
+	public void setLastEditDate(ZonedDateTime lastEditDate) { this.lastEditDate = lastEditDate.withZoneSameInstant(ZoneOffset.UTC); }
 
 	public String getForm() { return form; }
 	public void setForm(String form) { this.form = form; }
