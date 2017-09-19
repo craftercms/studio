@@ -151,4 +151,15 @@
             #{state}
         </foreach>
     </select>
+
+    <select id="deletedPathExists" resultType="int" parameterType="java.util.Map">
+        SELECT COUNT(1) FROM item_state
+        WHERE site = #{siteId}
+        AND path = #{path}
+        AND state IN
+        <foreach item="state" index="index" collection="states"
+                 open="(" separator="," close=")">
+            #{state}
+        </foreach>
+    </select>
 </mapper>

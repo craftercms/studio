@@ -53,4 +53,6 @@ public interface ObjectMetadataManager {
     void updateObjectMetadata(ItemMetadata itemMetadata);
 
     void updateCommitId(String site, String path, String commitId);
+
+    boolean movedPathExists(String site, String path);
 }

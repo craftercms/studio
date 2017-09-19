@@ -149,4 +149,11 @@
         WHERE site = #{site}
         AND path = #{path}
     </update>
+
+    <select id="movedPathExists" parameterType="java.util.Map" resultType="int">
+        SELECT COUNT(1) FROM item_metadata
+        WHERE site = #{siteId}
+        AND renamed = 1
+        AND oldurl = #{path}
+    </select>
 </mapper>
