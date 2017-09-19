@@ -7,7 +7,7 @@ def categories = params.categories?.split(",")
 def tags = params.tags?.split(",")
 def q = params.q
 
-def helper = new ProductSearchHelper(searchService)
+def helper = new ProductSearchHelper(searchService, siteItemService)
 
 if(q) {
 	helper.query("description_html: $q")

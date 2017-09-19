@@ -56,6 +56,9 @@
 										<td v-else-if="field == 'categories' || field == 'tags'">
 											<span class="label label-primary" style="margin-right:5px" v-for="val in value">{{ val.label }}</span>
 										</td>
+										<td v-else-if="field == 'body' || field == 'biography'">
+											<div v-html="value"></div>
+										</td>
 										<td v-else-if="Array.isArray(value)">{{ value.join(', ') }}</td>
 										<td v-else>{{ value }}</td>
 									</tr>
@@ -113,7 +116,9 @@
 					setItem: function(item) {
 						this.selectedItem = item;
                         this.$nextTick(function(){
-                            studioICERepaint();
+                            if(window.studioICERepaint) {
+								studioICERepaint();
+							}
                         });
 					}
 				}

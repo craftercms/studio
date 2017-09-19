@@ -5,8 +5,8 @@ import groovy.util.logging.Slf4j
 @Slf4j
 class PostSearchHelper extends SearchHelper {
 	
-	def PostSearchHelper(searchService) {
-		super(searchService)
+	def PostSearchHelper(searchService, siteItemService) {
+		super(searchService, siteItemService)
 		filter("content-type:\"/component/post\"")
 		sortBy("createdDate_dt desc")
 	}
@@ -33,15 +33,16 @@ class PostSearchHelper extends SearchHelper {
 	}
 	
 	def processItem(doc) {
-		[
-			id: doc.objectId,
-			title: doc.title_s,
+		def item = super.processItem(doc)
+		return [
+			id: item.objectId.text,
+			title: item.title_s.text,
 			authors: getAuthors(doc),
 			categories: getCategories(doc),
 			tags: getTags(doc),
-			date: doc.createdDate_dt,
-			body: doc.body_html,
-			featuredImage: doc.featuredImage_s,
+			date: item.createdDate_dt.text,
+			body: item.body_html.text,
+			featuredImage: item.featuredImage_s.text,
 			itemUrl: doc.localId
 		]
 	}

@@ -5,21 +5,22 @@ import groovy.util.logging.Slf4j
 @Slf4j
 class CompanySearchHelper extends SearchHelper {
 	
-	def CompanySearchHelper(searchService) {
-		super(searchService)
+	def CompanySearchHelper(searchService, siteItemService) {
+		super(searchService, siteItemService)
 		filter("content-type:\"/component/company\"")
 		sortBy("name_s asc")
 	}
 	
 	def processItem(doc) {
+		def item = super.processItem(doc)
 		[
-			id: doc.objectId,
-			name: doc.name_s,
-			logo: doc.logo_s,
-			website: doc.website_s,
-			email: doc.email_s,
-			phone: doc.phone_s,
-			description: doc.description_html,
+			id: item.objectId.text,
+			name: item.name_s.text,
+			logo: item.logo_s.text,
+			website: item.website_s.text,
+			email: item.email_s.text,
+			phone: item.phone_s.text,
+			description: item.description_html.text,
             itemUrl: doc.localId
 		]
 	}
