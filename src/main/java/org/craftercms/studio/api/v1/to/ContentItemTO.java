@@ -188,16 +188,33 @@ public class ContentItemTO implements Serializable {
         this.isDocument = item.isDocument;
         this.isAsset = item.isAsset;
         this.isInFlight = item.isInFlight;
-        this.eventDate = item.eventDate.withZoneSameInstant(ZoneOffset.UTC);
+        if (item.eventDate != null) {
+            this.eventDate = item.eventDate.withZoneSameInstant(ZoneOffset.UTC);
+        } else {
+            this.eventDate = item.eventDate;
+        }
         this.endpoint = item.endpoint;
         this.timezone = item.timezone;
         this.numOfChildren = item.numOfChildren;
-        this.scheduledDate = item.scheduledDate.withZoneSameInstant(ZoneOffset.UTC);
-        this.publishedDate = item.publishedDate.withZoneSameInstant(ZoneOffset.UTC);
+        if (item.scheduledDate != null ) {
+            this.scheduledDate = item.scheduledDate.withZoneSameInstant(ZoneOffset.UTC);
+        } else {
+            this.scheduledDate = item.scheduledDate;
+        }
+        if (item.publishedDate != null) {
+            this.publishedDate = item.publishedDate.withZoneSameInstant(ZoneOffset.UTC);
+        } else {
+            this.publishedDate = item.publishedDate;
+        }
+
         this.mandatoryParent = item.mandatoryParent;
         this.isLevelDescriptor = item.isLevelDescriptor;
         this.categoryRoot = item.categoryRoot;
-        this.lastEditDate = item.lastEditDate.withZoneSameInstant(ZoneOffset.UTC);
+        if (item.lastEditDate != null) {
+            this.lastEditDate = item.lastEditDate.withZoneSameInstant(ZoneOffset.UTC);
+        } else {
+            this.lastEditDate = item.lastEditDate;
+        }
         this.form = item.form;
         this.formPagePath = item.formPagePath;
         this.renderingTemplates = item.renderingTemplates;
@@ -285,8 +302,13 @@ public class ContentItemTO implements Serializable {
 	public void setAsset(boolean asset) { this.asset = asset; }
 
 	public ZonedDateTime getEventDate() { return eventDate; }
-	public void setEventDate(ZonedDateTime eventDate) { this.eventDate = eventDate.withZoneSameInstant(ZoneOffset.UTC); }
-
+	public void setEventDate(ZonedDateTime eventDate) {
+        if (eventDate != null) {
+            this.eventDate = eventDate.withZoneSameInstant(ZoneOffset.UTC);
+        } else {
+            this.eventDate = eventDate;
+        }
+    }
 	public String getEndpoint() { return endpoint; }
 	public void setEndpoint(String endpoint) { this.endpoint = endpoint; }
 
@@ -297,10 +319,22 @@ public class ContentItemTO implements Serializable {
 	public void setNumOfChildren(int numOfChildren) { this.numOfChildren = numOfChildren; }
 
 	public ZonedDateTime getScheduledDate() { return scheduledDate; }
-	public void setScheduledDate(ZonedDateTime scheduledDate) { this.scheduledDate = scheduledDate.withZoneSameInstant(ZoneOffset.UTC); }
+	public void setScheduledDate(ZonedDateTime scheduledDate) {
+	    if (scheduledDate != null) {
+            this.scheduledDate = scheduledDate.withZoneSameInstant(ZoneOffset.UTC);
+        } else {
+	        this.scheduledDate = scheduledDate;
+        }
+	}
 
     public ZonedDateTime getPublishedDate() { return publishedDate; }
-    public void setPublishedDate(ZonedDateTime publishedDate) { this.publishedDate = publishedDate.withZoneSameInstant(ZoneOffset.UTC); }
+    public void setPublishedDate(ZonedDateTime publishedDate) {
+	    if (publishedDate != null) {
+            this.publishedDate = publishedDate.withZoneSameInstant(ZoneOffset.UTC);
+        } else {
+	        this.publishedDate = publishedDate;
+        }
+	}
 
 	public String getMandatoryParent() { return mandatoryParent; }
 	public void setMandatoryParent(String mandatoryParent) { this.mandatoryParent = mandatoryParent; }
@@ -345,7 +379,13 @@ public class ContentItemTO implements Serializable {
 	public void setCategoryRoot(String categoryRoot) { this.categoryRoot = categoryRoot; }
 
 	public ZonedDateTime getLastEditDate() { return lastEditDate; }
-	public void setLastEditDate(ZonedDateTime lastEditDate) { this.lastEditDate = lastEditDate.withZoneSameInstant(ZoneOffset.UTC); }
+	public void setLastEditDate(ZonedDateTime lastEditDate) {
+	    if (lastEditDate != null) {
+            this.lastEditDate = lastEditDate.withZoneSameInstant(ZoneOffset.UTC);
+        } else {
+	        this.lastEditDate = lastEditDate;
+        }
+	}
 
 	public String getForm() { return form; }
 	public void setForm(String form) { this.form = form; }
