@@ -1232,7 +1232,7 @@ public class ContentServiceImpl implements ContentService {
      * get WCM content item order metadata
      *
      * @param nodes
-     * @return
+     * @return item orders metadata
      */
     protected List<DmOrderTO> getItemOrders(List<Node> nodes) {
         // TODO: SJ: Rewrite this and the whole order/sort system; 3.1+

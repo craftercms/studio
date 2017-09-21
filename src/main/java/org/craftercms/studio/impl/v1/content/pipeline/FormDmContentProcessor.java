@@ -163,7 +163,6 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
         String unlockValue = content.getProperty(DmConstants.KEY_UNLOCK);
         boolean unlock = (!StringUtils.isEmpty(unlockValue) && unlockValue.equalsIgnoreCase("false")) ? false : true;
 
-        //String fullPath = contentService.expandRelativeSitePath(site, path);
         String parentContentPath = path;
         if (parentContentPath.endsWith(FILE_SEPARATOR + fileName)) {
             parentContentPath = parentContentPath.replace(FILE_SEPARATOR + fileName, "");
@@ -392,7 +391,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
      *
      * @param site
      * @param path
-     * @return
+     * @return true if workflow needs to be canceled
      */
     protected boolean cancelWorkflow(String site, String path) {
         // don't cancel if the content is a level descriptor

@@ -163,7 +163,7 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
      *
      * @param root
      * @param path
-     * @return
+     * @return get paths
      */
     private List<String> getPaths(Element root, String path) {
         List<String> paths = null;
@@ -204,26 +204,9 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
     }
 
     /**
-     * create a new path configuration
-     *
-     * @param pathInclude
-     * @param key
-     * @param config
-     * @return
-     */
-    private ContentTypePathTO createNewPathConfig(String pathInclude, String key, ContentTypeConfigTO config) {
-        ContentTypePathTO pathTO = new ContentTypePathTO();
-        pathTO.setPathInclude(pathInclude);
-        pathTO.addToAllowedContentTypes(key);
-        return pathTO;
-    }
-
-
-    /**
      *
      * @param config
      * @param copyDependencyNodes
-     * @return
      */
     protected void loadCopyDependencyPatterns(ContentTypeConfigTO config, List<Node> copyDependencyNodes) {
         List<CopyDependencyConfigTO> copyConfig = new ArrayList<CopyDependencyConfigTO>();

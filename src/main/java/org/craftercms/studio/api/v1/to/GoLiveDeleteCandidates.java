@@ -47,18 +47,16 @@ public class GoLiveDeleteCandidates implements Serializable {
 
     protected String _site;
 
-    //protected String _sub;
 
     public GoLiveDeleteCandidates(String site, ContentService contentService){
         this.contentService = contentService;
         this._site = site;
-        //this._sub = sub;
     }
 
     /**
      * Returns all the page paths and dependencies
      *
-     * @return
+     * @return return all paths and dependencies
      */
     public Set<String> getAllItems(){
         Set<String> all = new HashSet<String>();
@@ -75,7 +73,7 @@ public class GoLiveDeleteCandidates implements Serializable {
      * Update the dependency collection with the given dependency uri
      *
      * @param uri
-     * @return
+     * @return true if dependency added
      */
     public boolean addDependency(String uri){
 

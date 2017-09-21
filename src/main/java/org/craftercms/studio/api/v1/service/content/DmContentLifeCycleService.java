@@ -29,16 +29,16 @@ public interface DmContentLifeCycleService {
      * @author hyanghee
      *
      */
-    public enum ContentLifeCycleOperation {
+    enum ContentLifeCycleOperation {
 
         // cut is rename and duplicate is copy
         COPY, DELETE, DUPLICATE, NEW, RENAME, REVERT, UPDATE;
 
         /**
-         * get the enum type of the opration given
+         * get the enum type of the operation given
          *
          * @param operation
-         * @return
+         * @return enum type of the operation
          */
         public static ContentLifeCycleOperation getOperation(String operation) {
             if (!StringUtils.isEmpty(operation)) {
@@ -60,6 +60,6 @@ public interface DmContentLifeCycleService {
      * @param operation
      * @param params
      */
-    public void process(String site, String user, String path, String contentType, ContentLifeCycleOperation operation,
+    void process(String site, String user, String path, String contentType, ContentLifeCycleOperation operation,
                         Map<String, String> params);
 }

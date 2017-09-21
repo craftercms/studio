@@ -19,11 +19,9 @@ package org.craftercms.studio.api.v1.service.configuration;
 
 
 import org.craftercms.studio.api.v1.to.EnvironmentConfigTO;
-import org.craftercms.studio.api.v1.to.PublishingChannelGroupConfigTO;
 import org.craftercms.studio.api.v1.to.PublishingTargetTO;
 
 import java.util.List;
-import java.util.Map;
 
 public interface SiteEnvironmentConfig {
 
@@ -43,7 +41,7 @@ public interface SiteEnvironmentConfig {
 	 * get the live site url 
 	 * 
 	 * @param site
-	 * @return
+	 * @return live site url
 	 */
 	String getLiveServerUrl(String site);
 	
@@ -51,7 +49,7 @@ public interface SiteEnvironmentConfig {
 	 * get admin email address
 	 * 
 	 * @param site
-	 * @return
+	 * @return admin email address
 	 */
 	String getAdminEmailAddress(String site);
 	
@@ -67,7 +65,7 @@ public interface SiteEnvironmentConfig {
 	 * get the environment config for the given site
 	 * 
 	 * @param site
-	 * @return
+	 * @return environment configuration
 	 */
 	EnvironmentConfigTO getEnvironmentConfig(String site);
 

@@ -260,8 +260,6 @@ public class ImportDmContentProcessor extends PathMatchProcessor implements DmCo
      *
      * @param site
      *            Site name
-     * @param parentNode
-     *            Parent node
      * @param fileName
      *            new file name
      * @param contentType
@@ -343,7 +341,7 @@ public class ImportDmContentProcessor extends PathMatchProcessor implements DmCo
      *
      * @param site
      * @param path
-     * @return
+     * @return true if workflow needds to be canceled
      */
     protected boolean cancelWorkflow(String site, String path) {
         // don't cancel if the content is a level descriptor

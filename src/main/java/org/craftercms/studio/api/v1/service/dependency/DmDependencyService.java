@@ -46,7 +46,6 @@ public interface DmDependencyService {
      * get dependent items as WCM content items from the content at the given path
      *
      * @param site
-     * @param sub (optional)
      * @param path
      * @param populateUpdatedDependecinesOnly
      * @param recursive
@@ -83,7 +82,7 @@ public interface DmDependencyService {
      * @param site
      * @param document
      * @param dependencies
-     * @return
+     * @return document after dependencies were replaced
      * @throws ServiceException
      */
     InputStream replaceDependencies(String site, Document document, Map<String,String> dependencies) throws ServiceException;

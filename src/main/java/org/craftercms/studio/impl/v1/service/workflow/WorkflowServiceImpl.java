@@ -501,9 +501,9 @@ public class WorkflowServiceImpl implements WorkflowService {
      * add the current item to the queue?
      *
      * @param inProgressOnly
+     * @param submitted
      * @param includeInProgress
-     * @param includeInProgress
-     * @return
+     * @return true if added to queue
      */
     protected boolean addToQueue(boolean submitted, boolean inProgressOnly, boolean includeInProgress) {
         // excluded approved or scheduled items if in-progress items are
@@ -1148,7 +1148,7 @@ public class WorkflowServiceImpl implements WorkflowService {
      * @param site
      * @param item
      * @param format
-     * @return
+     * @return submitted item
      * @throws net.sf.json.JSONException
      */
     protected DmDependencyTO getSubmittedItem(String site, JSONObject item, SimpleDateFormat format, String globalSchDate) throws JSONException {
@@ -1398,7 +1398,6 @@ public class WorkflowServiceImpl implements WorkflowService {
      *
      * @param dependencyTO
      * @param operation
-     * @return
      */
     protected List<DmDependencyTO> removeSubmitToDeleteChildrenForGoLive(DmDependencyTO dependencyTO, Operation operation) {
         List<DmDependencyTO> submitForDeleteChilds = new ArrayList<>();
@@ -1882,7 +1881,6 @@ public class WorkflowServiceImpl implements WorkflowService {
      * approve workflows and schedule them as specified in the request
      *
      * @param site
-     * @return call result
      * @throws ServiceException
      */
     protected void goLive(final String site, final List<DmDependencyTO> submittedItems, String approver)
@@ -1894,7 +1892,6 @@ public class WorkflowServiceImpl implements WorkflowService {
      * approve workflows and schedule them as specified in the request
      *
      * @param site
-     * @return call result
      * @throws ServiceException
      */
     protected void goLive(final String site, final List<DmDependencyTO> submittedItems, String approver, MultiChannelPublishingContext mcpContext)

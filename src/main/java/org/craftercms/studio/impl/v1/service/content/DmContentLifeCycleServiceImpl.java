@@ -98,6 +98,7 @@ public class DmContentLifeCycleServiceImpl extends AbstractRegistrableService im
     /**
      * get the content metadata extraction script
      *
+     * @param site
      * @param contentType
      * @return path of the script
      */
@@ -116,7 +117,7 @@ public class DmContentLifeCycleServiceImpl extends AbstractRegistrableService im
      * @param contentType
      * @param operation
      * @param params
-     * @return
+     * @return script model
      */
     protected Map<String, Object> buildModel(String site, String user, String path, String contentType, String operation, Map<String, String> params) {
         Map<String, Object> model = new HashMap<String,Object>();
@@ -163,8 +164,9 @@ public class DmContentLifeCycleServiceImpl extends AbstractRegistrableService im
         /**
          * return XML document
          *
-         * @param fullPath
-         * @return
+         * @param site
+         * @param path
+         * @return content document
          */
         public Document getContent(String site, String path) {
             InputStream is = null;

@@ -93,7 +93,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
      * @param parentUri
      * @param dependencies
      * @param populateUpdatedDependecinesOnly
-     * @return
+     * @return list of dependent items
      */
     protected List<ContentItemTO> getDependentItems(String site, String parentUri, List<DependencyEntity> dependencies, boolean populateUpdatedDependecinesOnly) {
         List<ContentItemTO> items = null;
@@ -454,7 +454,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
      * @param buffer
      * @param populateUpdatedDependecinesOnly
      * @param patterns
-     * @return
+     * @return list of dependent file names
      */
     protected List<String> getDependentFileNames(String site, StringBuffer buffer, boolean populateUpdatedDependecinesOnly, List<String> patterns) {
         List<String> files = new ArrayList<>();

@@ -44,7 +44,7 @@ public class EmailMessageTemplateTO implements Serializable {
 	}
 
 	/**
-	 * @param title
+	 * @param subject
 	 *            the title to set
 	 */
 	public void setSubject(final String subject) {
@@ -59,7 +59,7 @@ public class EmailMessageTemplateTO implements Serializable {
 	}
 
 	/**
-	 * @param body
+	 * @param message
 	 *            the body to set
 	 */
 	public void setMessage(final String message) {

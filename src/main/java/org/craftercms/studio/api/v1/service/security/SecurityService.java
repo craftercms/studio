@@ -32,7 +32,7 @@ import java.util.Map;
  */
 public interface SecurityService {
 
-    final static String STUDIO_SESSION_TOKEN_ATRIBUTE = "studioSessionToken";
+    String STUDIO_SESSION_TOKEN_ATRIBUTE = "studioSessionToken";
 
 	/**
 	 * authenticate a user. returns ticket
@@ -70,7 +70,7 @@ public interface SecurityService {
      * Check if user exists
      *
      * @param username username
-     * @return
+     * @return true if user exists
      */
     boolean userExists(String username);
 
@@ -90,7 +90,7 @@ public interface SecurityService {
      * Delete user with given username
      *
      * @param username
-     * @return
+     * @return true if user is successfully deleted
      */
     boolean deleteUser(String username) throws UserNotFoundException, DeleteUserNotAllowedException;
 
@@ -101,7 +101,7 @@ public interface SecurityService {
      * @param firstName
      * @param lastName
      * @param email
-     * @return
+     * @return true if user is successfully updated
      */
     boolean updateUser(String username, String firstName, String lastName, String email) throws UserNotFoundException, UserExternallyManagedException;
 
@@ -110,7 +110,7 @@ public interface SecurityService {
      *
      * @param username username
      * @param enabled true: enable user; false: disable user
-     * @return
+     * @return true if user is successfully enabled/disabled
      */
     boolean enableUser(String username, boolean enabled) throws UserNotFoundException, UserExternallyManagedException;
 
@@ -120,7 +120,7 @@ public interface SecurityService {
      * @param groupName
      * @param description
      * @param siteId
-     * @return
+     * @return true if group is successfully created
      */
     boolean createGroup(String groupName, String description, String siteId) throws GroupAlreadyExistsException, SiteNotFoundException;
 
@@ -128,7 +128,7 @@ public interface SecurityService {
      * Get status for given user
      *
      * @param username username
-     * @return
+     * @return user status
      */
     Map<String, Object> getUserStatus(String username) throws UserNotFoundException;
 
@@ -152,14 +152,14 @@ public interface SecurityService {
      * @param site
      * @param start
      * @param number
-     * @return
+     * @return get list of users per site, paginated
      */
     List<Map<String, Object>> getUsersPerSite(String site, int start, int number) throws SiteNotFoundException;
     /**
      * Get number of all users for given site
      *
      * @param site
-     * @return
+     * @return total number of users for site
      */
     int getUsersPerSiteTotal(String site) throws SiteNotFoundException;
 
@@ -169,7 +169,7 @@ public interface SecurityService {
      *
      * @param site site id
      * @param group group name
-     * @return
+     * @return group details
      */
     Map<String, Object> getGroup(String site, String group) throws GroupNotFoundException;
 
@@ -187,7 +187,7 @@ public interface SecurityService {
      * @param site site id
      * @param start start index
      * @param number number of records to retrieve in the result set
-     * @return
+     * @return list of groups per site, paginated
      */
     List<Map<String, Object>> getGroupsPerSite(String site, int start, int number) throws SiteNotFoundException;
 
@@ -195,7 +195,7 @@ public interface SecurityService {
      * Get number of all groups for given site
      *
      * @param site site id
-     * @return
+     * @return total number of groups for site
      */
     int getGroupsPerSiteTotal(String site) throws SiteNotFoundException;
 
@@ -227,7 +227,7 @@ public interface SecurityService {
      * @param groupName
      * @param description
      * @param siteId
-     * @return
+     * @return true if group is successfully updated
      */
     boolean updateGroup(String siteId, String groupName, String description) throws GroupNotFoundException;
 
@@ -236,7 +236,7 @@ public interface SecurityService {
      *
      * @param site site id
      * @param group group name
-     * @return
+     * @return true if group is successfully deleted
      */
     boolean deleteGroup(String site, String group) throws GroupNotFoundException;
 
@@ -246,7 +246,7 @@ public interface SecurityService {
      * @param siteId site id
      * @param groupName group name
      * @param username username
-     * @return
+     * @return true if user is successfully added to the group
      */
     boolean addUserToGroup(String siteId, String groupName, String username) throws UserAlreadyExistsException,
 	    UserNotFoundException, GroupNotFoundException;
@@ -257,7 +257,7 @@ public interface SecurityService {
      * @param siteId site id
      * @param groupName group name
      * @param username username
-     * @return
+     * @return true if user is successfully removed from the group
      */
     boolean removeUserFromGroup(String siteId, String groupName, String username) throws UserNotFoundException,
 	    GroupNotFoundException;
@@ -266,15 +266,15 @@ public interface SecurityService {
      * Forgot password for given user
      *
      * @param username username
-     * @return
+     * @return forgot password
      */
     Map<String, Object> forgotPassword(String username) throws ServiceException, UserNotFoundException, UserExternallyManagedException;
 
     /**
      * Forgot password token to validate
      *
-     * @param username token
-     * @return
+     * @param token token
+     * @return true if given token is valid
      */
     boolean validateToken(String token) throws UserNotFoundException, UserExternallyManagedException;
 
@@ -284,7 +284,7 @@ public interface SecurityService {
      * @param username username
      * @param current current password
      * @param newPassword new password
-     * @return
+     * @return true if user's password is successfully changed
      */
     boolean changePassword(String username, String current, String newPassword) throws UserNotFoundException, PasswordDoesNotMatchException, UserExternallyManagedException;
 
@@ -293,7 +293,7 @@ public interface SecurityService {
      *
      * @param token forgot password token
      * @param newPassword new password
-     * @return
+     * @return true if uses's password is successfully set
      */
     Map<String, Object> setUserPassword(String token, String newPassword) throws UserNotFoundException, UserExternallyManagedException;
 
@@ -302,7 +302,7 @@ public interface SecurityService {
      *
      * @param username username
      * @param newPassword new password
-     * @return
+     * @return true if user's password is successfully reset
      */
     boolean resetPassword(String username, String newPassword) throws UserNotFoundException, UserExternallyManagedException;
 
@@ -310,7 +310,7 @@ public interface SecurityService {
      * Validate user's active session
      *
      * @param request
-     * @return
+     * @return true if user session is valid
      */
     boolean validateSession(HttpServletRequest request);
 }

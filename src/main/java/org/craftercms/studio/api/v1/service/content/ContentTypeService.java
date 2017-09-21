@@ -43,7 +43,7 @@ public interface ContentTypeService {
      *
      * @param userRoles
      * @param item
-     * @return
+     * @return true if user has permissions to access the content type
      */
     boolean isUserAllowed(Set<String> userRoles, ContentTypeConfigTO item);
 

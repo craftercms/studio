@@ -108,7 +108,7 @@ public interface SecurityProvider {
      * Delete user with given username
      *
      * @param username
-     * @return
+     * @return true if user is deleted
      */
     boolean deleteUser(String username) throws UserNotFoundException;
 
@@ -119,7 +119,7 @@ public interface SecurityProvider {
      * @param firstName
      * @param lastName
      * @param email
-     * @return
+     * @return true if user details are successfully updated
      */
     boolean updateUser(String username, String firstName, String lastName,
                        String email) throws UserNotFoundException, UserExternallyManagedException;
@@ -129,7 +129,7 @@ public interface SecurityProvider {
      *
      * @param username username
      * @param enabled true: enable user; false: disable user
-     * @return
+     * @return true if user is successfully enabled
      */
     boolean enableUser(String username, boolean enabled) throws UserNotFoundException, UserExternallyManagedException;
 
@@ -137,7 +137,7 @@ public interface SecurityProvider {
      * Get status for given user
      *
      * @param username
-     * @return
+     * @return user status
      */
     Map<String, Object> getUserStatus(String username) throws UserNotFoundException;
 
@@ -148,7 +148,7 @@ public interface SecurityProvider {
      * @param description
      * @param siteId
      * @param externallyManaged true if externally managed, otherwise false
-     * @return
+     * @return true if group is successfully created
      */
     boolean createGroup(String groupName, String description, String siteId, boolean externallyManaged) throws GroupAlreadyExistsException, SiteNotFoundException;
 
@@ -171,7 +171,7 @@ public interface SecurityProvider {
      *
      * @param site
      * @param start
-     *@param number @return
+     * @param number @return
      */
     List<Map<String, Object>> getUsersPerSite(String site, int start, int number) throws SiteNotFoundException;
 
@@ -179,7 +179,7 @@ public interface SecurityProvider {
      * Get number of all users for given site
      *
      * @param site
-     * @return
+     * @return total number of users per site
      */
     int getUsersPerSiteTotal(String site) throws SiteNotFoundException;
 
@@ -188,7 +188,7 @@ public interface SecurityProvider {
      *
      * @param site site id
      * @param group group name
-     * @return
+     * @return group details
      */
     Map<String, Object> getGroup(String site, String group) throws GroupNotFoundException;
 
@@ -196,7 +196,7 @@ public interface SecurityProvider {
      * Get all groups
      * @param start start index
      * @param number Number of records to retrieve in the result set
-     * @return
+     * @return list of all groups and its details
      */
     List<Map<String, Object>> getAllGroups(int start, int number);
 
@@ -206,7 +206,7 @@ public interface SecurityProvider {
      * @param site site id
      * @param start
      * @param number
-     * @return
+     * @return list of groups per site
      */
     List<Map<String, Object>> getGroupsPerSite(String site, int start, int number) throws SiteNotFoundException;
 
@@ -214,7 +214,7 @@ public interface SecurityProvider {
      * Get number of all groups for given site
      *
      * @param site site id
-     * @return
+     * @return total number of groups
      */
     int getGroupsPerSiteTotal(String site) throws SiteNotFoundException;
 
@@ -224,7 +224,7 @@ public interface SecurityProvider {
      * @param group group name
      * @param start start index
      * @param number number of records to retrieve in the result set
-     * @return
+     * @return list of users of the group paginated
      */
     List<Map<String, Object>> getUsersPerGroup(String site, String group, int start, int number) throws GroupNotFoundException;
 
@@ -232,7 +232,7 @@ public interface SecurityProvider {
      * Get number of all users for given site and group
      * @param site site id
      * @param group group name
-     * @return
+     * @return total number of users for given group
      */
     int getUsersPerGroupTotal(String site, String group) throws
             GroupNotFoundException;
@@ -243,7 +243,7 @@ public interface SecurityProvider {
      * @param groupName
      * @param description
      * @param siteId
-     * @return
+     * @return true if group is successfully updated
      */
     boolean updateGroup(String siteId, String groupName, String description) throws GroupNotFoundException;
 
@@ -251,9 +251,8 @@ public interface SecurityProvider {
      * Delete group with given site id and group name
      *
      * @param groupName
-     * @param description
      * @param siteId
-     * @return
+     * @return true if group is successfully deleted
      */
     boolean deleteGroup(String siteId, String groupName) throws GroupNotFoundException;
 
@@ -270,7 +269,7 @@ public interface SecurityProvider {
      * @param username username
      * @param current current password
      * @param newPassword new password
-     * @return
+     * @return true if password is succcessfully changed
      */
     boolean changePassword(String username, String current,
                            String newPassword) throws UserNotFoundException, PasswordDoesNotMatchException, UserExternallyManagedException;
@@ -279,7 +278,7 @@ public interface SecurityProvider {
      * Set user password
      * @param username username
      * @param newPassword new password
-     * @return
+     * @return true if password is successfully set
      */
     boolean setUserPassword(String username, String newPassword) throws UserNotFoundException, UserExternallyManagedException;
 
@@ -287,7 +286,7 @@ public interface SecurityProvider {
      * Check if given user is a system user
      *
      * @param username username
-     * @return
+     * @return true if user is system user
      */
     boolean isSystemUser(String username) throws UserNotFoundException;
 }

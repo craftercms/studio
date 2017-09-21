@@ -65,7 +65,6 @@ public class CheckImageSizeProcessor extends PathMatchProcessor {
         String name = content.getProperty(DmConstants.KEY_FILE_NAME);
         MimetypesFileTypeMap mimeTypesMap = new MimetypesFileTypeMap();
         String mimetype = mimeTypesMap.getContentType(name);
-        //String isImage = content.getProperty(WcmConstants.KEY_IS_IMAGE);
         boolean process = (StringUtils.isEmpty(mimetype)) ? false : mimetype.startsWith("image/") && !StringUtils.equalsIgnoreCase(mimetype, "image/svg+xml");
         if (process) {
             String allowLessSize = content.getProperty(DmConstants.KEY_ALLOW_LESS_SIZE);
@@ -93,9 +92,9 @@ public class CheckImageSizeProcessor extends PathMatchProcessor {
      * @param allowedHeight
      * @param lessSize
      * @param assetInfo
-     * @return
+     * @return image as input stream
      */
-    protected InputStream checkForImageSize(InputStream in, int allowedWidth, int allowedHeight, boolean lessSize, ContentAssetInfoTO assetInfo) throws ContentNotAllowedException, ContentProcessException {
+    protected InputStream checkForImageSize(InputStream in, int allowedWidth, int allowedHeight, boolean lessSize, ContentAssetInfoTO assetInfo) throws ContentProcessException {
         ByteArrayOutputStream byteOutput = null;
         try {
             byteOutput = new ByteArrayOutputStream();
