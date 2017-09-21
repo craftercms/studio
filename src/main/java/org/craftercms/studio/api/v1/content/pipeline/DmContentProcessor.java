@@ -17,12 +17,8 @@
  */
 package org.craftercms.studio.api.v1.content.pipeline;
 
-
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 
-/**
- * @author Dejan Brkic
- */
 public interface DmContentProcessor {
 
     /**
@@ -33,14 +29,15 @@ public interface DmContentProcessor {
      * @param isPreview
      * @return last child folder in the path
      */
-    public abstract ContentItemTO createMissingFoldersInPath(String site, String path, boolean isPreview);
+    ContentItemTO createMissingFoldersInPath(String site, String path, boolean isPreview);
 
     /**
      * change file to folder content. See WcmClipboardServiceImpl when updating this logic.
      * Duplicate exists due to prevent circular dependency
      *
-     * @param fileNode
+     * @param site site id
+     * @param path content path
      * @return new content path
      */
-    public abstract String fileToFolder(String site, String path);
+    String fileToFolder(String site, String path);
 }
