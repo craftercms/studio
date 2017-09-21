@@ -70,7 +70,7 @@ public interface ClipboardService {
      * @param destination
      *          the root folder of all items' destination
      * @return a list of pasted items (new paths)
-     * @throws org.craftercms.cstudio.alfresco.service.exception.ServiceException
+     * @throws org.craftercms.studio.api.v1.exception.ServiceException
      */
     public Set<String> paste(String site, String destination, HttpSession session) throws ServiceException;
 
