@@ -127,7 +127,6 @@ public interface ContentRepository {
     /**
      * get the version history for an item
      *
-     * @param site site id where the operation will be executed
      * @param site - the project ID
      * @param path - the path of the item
      * @return a list of versions
@@ -270,7 +269,7 @@ public interface ContentRepository {
      * @param path path
      * @param commitIdFrom range from commit id (inclusive)
      * @param commitIdTo range to commit id (inclusive)
-     * @return
+     * @return list of edit commit ids
      */
     List<String> getEditCommitIds(String site, String path, String commitIdFrom, String commitIdTo);
 

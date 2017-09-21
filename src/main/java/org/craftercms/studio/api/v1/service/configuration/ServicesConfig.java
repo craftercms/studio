@@ -141,7 +141,7 @@ public interface ServicesConfig {
 	 * 
 	 * @param site
 	 * @param contentType
-	 * @return
+	 * @return copy dependencies patterns
 	 */
 	List<CopyDependencyConfigTO> getCopyDependencyPatterns(String site, String contentType);
 
