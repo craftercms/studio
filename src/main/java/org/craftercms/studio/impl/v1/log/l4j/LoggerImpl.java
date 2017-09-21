@@ -100,7 +100,7 @@ public class LoggerImpl extends AbstractLogger {
 	/**
 	 * log error message
 	 * @param msg the message or message format to log
-	 * @param exception with error
+	 * @param err with error
 	 * @param args argument for the log
 	 */
 	public void error(String msg, Exception err, Object ... args) {

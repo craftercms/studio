@@ -46,12 +46,13 @@ public interface DeploymentService {
     /**
      * get deployment history given a specified date range
      *
-     * @param daysFromToday
-     * @param numberOfItems
      * @param site
+     * @param days
+     * @param number
      * @param sort
      *            the sort key to sort items within each deployed date
      * @param ascending
+     * @param filterType
      *
      * @return list of deployment items
      */

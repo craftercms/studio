@@ -343,7 +343,7 @@ public class DmDependencyTO implements Serializable {
     /**
      * Return Component, Documents and Assets direct dependencies unlike the _flattenChildren
      * 
-     * @return
+     * @return list of direct dependencies
      */
     
 	public List<DmDependencyTO> getDirectDependencies() {

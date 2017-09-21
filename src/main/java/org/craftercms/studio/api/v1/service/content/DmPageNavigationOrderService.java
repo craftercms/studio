@@ -42,7 +42,7 @@ public interface DmPageNavigationOrderService {
      * Always adds/overwrites the Document element with new unique nav order
      *
      * @param doc
-     * @return
+     * @return true if document was updated with new nav order
      */
     boolean addNavOrder(String site, String path, Document doc);
 
@@ -50,7 +50,7 @@ public interface DmPageNavigationOrderService {
      * Updates the Document element with new unique nav order if one does not exist
      *
      * @param document
-     * @return
+     * @return true if document was updated with new nav order
      */
     boolean updateNavOrder(String site, String path, Document document);
 

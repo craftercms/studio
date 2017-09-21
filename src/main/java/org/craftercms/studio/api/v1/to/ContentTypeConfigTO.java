@@ -199,7 +199,7 @@ public class ContentTypeConfigTO implements TimeStamped, Serializable {
 	}
 	
 	/**
-	 * @param deleteAssociations the deleteAssociations to set
+	 * @param deleteDependencies the deleteAssociations to set
 	 */
 	public void setDeleteDependencies(List<DeleteDependencyConfigTO> deleteDependencies) {
 		this.deleteDependencies = deleteDependencies;

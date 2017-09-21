@@ -273,7 +273,6 @@ public class SecurityServiceImpl implements SecurityService {
      * @param site
      * @param groups
      * @param rolesConfig
-     * @return
      */
     protected void addGroupRoles(Set<String> roles, String site, List<String> groups, PermissionsConfigTO rolesConfig) {
         if (groups != null) {

@@ -54,15 +54,14 @@ public interface WorkflowService {
 	 * cancel the workflow pending on the given item.
 	 *
 	 * @param site
-	 * @param sub
 	 * @param path
 	 * @param cancelWorkflow
 	 * 			cancel the pending workflow instance this content belongs to?
 	 * @throws ServiceException
 	 */
-	public boolean removeFromWorkflow(String site, String path, boolean cancelWorkflow);
+	boolean removeFromWorkflow(String site, String path, boolean cancelWorkflow);
 
-	public List<ContentItemTO> getWorkflowAffectedPaths(String site, String path);
+	List<ContentItemTO> getWorkflowAffectedPaths(String site, String path);
 
 	/**
 	 * update workflow sandboxes if the content at the given path is in workflow
@@ -70,7 +69,7 @@ public interface WorkflowService {
 	 * @param site
 	 * @param path
 	 */
-	public void updateWorkflowSandboxes(String site, String path);
+	void updateWorkflowSandboxes(String site, String path);
 
     /**
      * approve workflows and schedule them as specified in the request

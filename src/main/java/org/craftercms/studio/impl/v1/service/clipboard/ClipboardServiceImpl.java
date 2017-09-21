@@ -26,7 +26,6 @@ import org.craftercms.studio.api.v1.service.AbstractRegistrableService;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.clipboard.ClipboardService;
 
-import java.util.Map;
 import java.util.Set;
 import java.util.HashSet;
 
@@ -136,7 +135,7 @@ implements ClipboardService {
      *
      * @param site - the project ID
      * @param session - request session
-     * @param path to be clipped - items in JSON
+     * @param item to be clipped - items in JSON
      * @param cut - cut?
      */
     protected boolean clip(String site, ClipboardItem item, boolean cut, HttpSession session) {

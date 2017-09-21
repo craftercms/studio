@@ -174,7 +174,7 @@ public class ContentUtils {
 	 * Returns the page name part (eg.index.xml) of a given URL
 	 *
 	 * @param url
-	 * @return
+	 * @return page name
 	 */
 	public static String getPageName(String url) {
 		int lastIndex = url.lastIndexOf(FILE_SEPARATOR);

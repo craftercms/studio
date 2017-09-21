@@ -74,7 +74,7 @@ public class L4jLogProvider implements LogProvider {
 	
 	/**
 	 * return a logger implementation
-	 * @param target ther target class for the logger
+	 * @param targetClass ther target class for the logger
 	 */
 	public Logger getLogger(Class targetClass) {
 		Logger retLogger = null;

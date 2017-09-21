@@ -70,9 +70,7 @@ public interface SiteService {
 	/**
 	 * get configuraiton content as XML string at the given path
 	 *
-	 * @param site
 	 * @param path
-	 * @param applyEnv
 	 * 			find from the environment overrides location?
 	 * @return configuration as XML string
 	 */
@@ -187,7 +185,7 @@ public interface SiteService {
     /**
      * Get site details
      * @param siteId site id
-     * @return
+     * @return site details
      */
     SiteFeed getSite(String siteId) throws SiteNotFoundException;
 
@@ -209,7 +207,7 @@ public interface SiteService {
      * Update publishing status message for given site
      * @param siteId site id
      * @param message new publishing status message
-     * @return
+     * @return true if publishing status message is successfully updated
      * @throws SiteNotFoundException
      */
     boolean updatePublishingStatusMessage(String siteId, String message) throws SiteNotFoundException;

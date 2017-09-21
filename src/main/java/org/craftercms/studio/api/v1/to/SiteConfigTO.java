@@ -25,7 +25,7 @@ import java.time.ZonedDateTime;
  * This class stores Site Configuration
  *
  * @author hyanghee
- * @autho Dejan Brkic
+ * @author Dejan Brkic
  *
  */
 public class SiteConfigTO implements Serializable {

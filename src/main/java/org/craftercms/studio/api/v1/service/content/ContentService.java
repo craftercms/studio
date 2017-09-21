@@ -42,9 +42,9 @@ public interface ContentService {
     /**
      * get document from wcm content
      *
+     * @param site
      * @param path
      * @return document
-     * @oaram site
      */
     InputStream getContent(String site, String path) throws ContentNotFoundException;
 
