@@ -23,14 +23,14 @@ package org.craftercms.studio.api.v1.log;
  */
 public interface Logger {
 
-	static final String LEVEL_OFF = "off";
-	static final String LEVEL_DEBUG = "debug";
-	static final String LEVEL_WARN = "warn";
-	static final String LEVEL_ERROR = "error";
-	static final String LEVEL_INFO = "info";
+	String LEVEL_OFF = "off";
+	String LEVEL_DEBUG = "debug";
+	String LEVEL_WARN = "warn";
+	String LEVEL_ERROR = "error";
+	String LEVEL_INFO = "info";
 	
-	static final String LEVEL_FATAL = "fatal";
-	static final String LEVEL_TRACE = "trace";
+	String LEVEL_FATAL = "fatal";
+	String LEVEL_TRACE = "trace";
 
 	/**
 	 * return the name for the logger
@@ -73,7 +73,7 @@ public interface Logger {
 	/**
 	 * log warn message
 	 * @param msg the message or message format to log
-	 * @param exception with error
+	 * @param err with error
 	 * @param args argument for the log
 	 */
 	void error(String msg, Exception err, Object ... args);

@@ -17,10 +17,7 @@
  */
 package org.craftercms.studio.api.v1.service.configuration;
 
-
-import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
-import org.craftercms.studio.api.v1.to.SiteContentTypePathsTO;
 
 /**
  * provides content type configuration
@@ -29,16 +26,7 @@ import org.craftercms.studio.api.v1.to.SiteContentTypePathsTO;
  *
  */
 public interface ContentTypesConfig {
-	
-	/**
-	 * load search configuration from the given XML node
-	 * 
-	 * @param node
-	 * @return search configuration
-	 */
-	//public SearchConfigTO loadSearchConfig(Node node);
 
-	
 	/**
 	 * get content type configuration for the given site and the content type
 	 * @param site
@@ -51,8 +39,8 @@ public interface ContentTypesConfig {
 	 * load configuration from the noderRef given
 	 * 
 	 * @param site
-	 * @param nodeRef
-	 * @return 
+	 * @param contentType
+	 * @return content type configuration
 	 */
 	ContentTypeConfigTO loadConfiguration(String site, String contentType);
 

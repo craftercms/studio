@@ -735,6 +735,5 @@
         <property name="configLocation" value="crafter/studio/studio-config.yaml"/>
     </bean>
 
-    <import resource="classpath:crafter/studio/cache/studio-cache-context.xml"/>
     <import resource="classpath:crafter/studio/studio-security-context.xml"/>
 </beans>

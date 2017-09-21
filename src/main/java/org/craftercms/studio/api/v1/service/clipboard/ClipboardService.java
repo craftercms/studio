@@ -18,11 +18,9 @@
 package org.craftercms.studio.api.v1.service.clipboard;
 
 import org.craftercms.studio.api.v1.exception.ServiceException;
-import org.craftercms.studio.api.v1.to.DmPasteItemTO;
 
 import javax.servlet.http.HttpSession;
 
-import java.util.Map;
 import java.util.Set;
 import java.util.HashSet;
 
@@ -43,7 +41,7 @@ public interface ClipboardService {
      * @param path - path of item to be cut
      * @return true if item is properly placed on clipboard
      */
-    public boolean cut(String site, String path, HttpSession session) throws ServiceException;
+    boolean cut(String site, String path, HttpSession session) throws ServiceException;
 
     /**
      * copy a set of items and store on clipboard
@@ -52,27 +50,27 @@ public interface ClipboardService {
      * @param path - path of item to be copied
      * @return true if item is properly placed on clipboard
      */
-    public boolean copy(String site, String path, HttpSession session) throws ServiceException;
+    boolean copy(String site, String path, HttpSession session) throws ServiceException;
 
     /**
      * copy a set of items and store on clipboard
      *
      * @param site - the project ID
-     * @param path - path of item to be copied
+     * @param clipItem - item to be copied
      * @return true if item is properly placed on clipboard
      */
-    public boolean copy(String site, ClipboardItem clipItem, HttpSession session) throws ServiceException;
+    boolean copy(String site, ClipboardItem clipItem, HttpSession session) throws ServiceException;
 
     /**
      * paste a list of items provided to the specified destination
      *
-     * @param site
+     * @param site the project id
      * @param destination
      *          the root folder of all items' destination
      * @return a list of pasted items (new paths)
      * @throws org.craftercms.studio.api.v1.exception.ServiceException
      */
-    public Set<String> paste(String site, String destination, HttpSession session) throws ServiceException;
+    Set<String> paste(String site, String destination, HttpSession session) throws ServiceException;
 
     /**
      * get the items on clipboard
@@ -80,13 +78,13 @@ public interface ClipboardService {
      * @param site - the project ID
      * @return clipped item or null
      */
-    public ClipboardItem getItems(String site, HttpSession session) throws ServiceException;
+    ClipboardItem getItems(String site, HttpSession session) throws ServiceException;
 
     /**
      * A ClipboardItem is a record for clip board opearation (CUT/COPY)
      * A clipboard contains a list of ops until a paste is called
      */
-    public class ClipboardItem {
+    class ClipboardItem {
         public ClipboardItem(String path, boolean cut) {
             this.isCut = cut;
             this.path = path;   

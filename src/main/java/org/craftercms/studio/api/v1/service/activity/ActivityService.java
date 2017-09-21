@@ -74,11 +74,10 @@ public interface ActivityService {
 	List<ContentItemTO> getActivities(String site, String user, int num, String sort, boolean ascending, boolean excludeLive, String filterType) throws ServiceException;
 
 	/**
-	 * Retrieve user feed
+	 * Get activity for deleted content
 	 *
-	 * @param userId - required
-	 * @param format - required
-	 * @param siteId - optional, if set then will filter by given siteId else return all sites
+	 * @param site - site id
+	 * @param path - path of the content
 	 * @return list of JSON feed entries
 	 */
 
@@ -94,7 +93,7 @@ public interface ActivityService {
      * @param number
      * @param user
      * @param actions
-     * @return
+     * @return audit list
      * @throws SiteNotFoundException
      */
     List<AuditFeed> getAuditLogForSite(String site, int start, int number, String user, List<String> actions) throws SiteNotFoundException;
