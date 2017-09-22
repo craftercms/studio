@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <page>
-    <display-template xsi:nil="false">/templates/system/common/component.ftl</display-template>
+    <display-template>/templates/system/common/component.ftl</display-template>
     <merge-strategy>inherit-levels</merge-strategy>
     <hideInAuthoring>true</hideInAuthoring>
 </page>
