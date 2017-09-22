@@ -60,6 +60,7 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
         }
     }
 
+    @SuppressWarnings("unchecked")
     public ContentTypeConfigTO loadConfiguration(String site, String contentType) {
         String siteConfigPath = getConfigPath().replaceAll(StudioConstants.PATTERN_SITE, site)
                 .replaceAll(StudioConstants.PATTERN_CONTENT_TYPE, contentType);
@@ -165,6 +166,7 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
      * @param path
      * @return get paths
      */
+    @SuppressWarnings("unchecked")
     private List<String> getPaths(Element root, String path) {
         List<String> paths = null;
         List<Node> nodes = root.selectNodes(path);

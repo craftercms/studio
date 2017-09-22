@@ -25,6 +25,7 @@ import org.craftercms.studio.api.v1.service.workflow.context.GoLiveContext;
 import java.time.ZonedDateTime;
 import java.util.Set;
 
+@SuppressWarnings("unchecked")
 public class PreScheduleDeleteOperation extends SubmitLifeCycleOperation {
     protected ZonedDateTime date;
 
@@ -35,6 +36,7 @@ public class PreScheduleDeleteOperation extends SubmitLifeCycleOperation {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public Object execute() throws ServiceException {
         workflowService.preScheduleDelete(uris, date, context, rescheduledUris);
         return null;

@@ -37,6 +37,7 @@ public class StudioAccessDecisionManager extends AbstractAccessDecisionManager {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void decide(Authentication authentication, Object object, Collection<ConfigAttribute> configAttributes) throws AccessDeniedException, InsufficientAuthenticationException {
         int granted = 0;
 

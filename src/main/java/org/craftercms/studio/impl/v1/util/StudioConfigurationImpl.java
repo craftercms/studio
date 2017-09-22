@@ -42,6 +42,7 @@ public class StudioConfigurationImpl implements StudioConfiguration {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void loadConfig() {
         Map<String, Object> baseProperties = new HashMap<String, Object>();;
         Map<String, Object> overrideProperties = new HashMap<String, Object>();

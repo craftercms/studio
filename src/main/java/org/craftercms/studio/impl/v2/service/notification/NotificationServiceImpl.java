@@ -92,6 +92,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void notifyDeploymentError(final String name, final Throwable throwable) {
         notifyDeploymentError(name, throwable, Collections.EMPTY_LIST, Locale.ENGLISH);
     }
@@ -114,6 +115,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public String getNotificationMessage(final String site, final NotificationMessageType type, final String key,
                                          final Locale locale, final Pair<String, Object>... params) {
         try {
@@ -188,6 +190,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void notify(final String site, final List<String> toUsers, final String key, final Locale locale, final
     Pair<String, Object>... params) {
         try {
@@ -213,6 +216,7 @@ public class NotificationServiceImpl implements NotificationService {
         }
     }
 
+    @SuppressWarnings("unchecked")
     protected void notify(final String site, final List<String> toUsers, final String key, final Locale locale, final
     Map<String, Object> params) {
         try {
@@ -244,6 +248,7 @@ public class NotificationServiceImpl implements NotificationService {
         }
     }
 
+    @SuppressWarnings("unchecked")
     protected void loadConfig(final String site) {
         if (notificationConfiguration == null) {
             notificationConfiguration = new HashMap<String, Map<String, NotificationConfigTO>>();
@@ -290,6 +295,7 @@ public class NotificationServiceImpl implements NotificationService {
         notificationConfiguration.put(site, siteNotificationConfig);
     }
 
+    @SuppressWarnings("unchecked")
     private void loadEmailList(final String site, final Element emailList, final List<String>
         deploymentFailureNotifications) {
         if (emailList != null) {
@@ -309,6 +315,7 @@ public class NotificationServiceImpl implements NotificationService {
         }
     }
 
+    @SuppressWarnings("unchecked")
     protected void loadGenericMessage(final Element emailTemplates, final Map<String, String> messageContainer) {
         if (emailTemplates != null) {
             List<Element> messages = emailTemplates.elements();
@@ -326,7 +333,7 @@ public class NotificationServiceImpl implements NotificationService {
         }
     }
 
-
+    @SuppressWarnings("unchecked")
     protected void loadEmailTemplates(final Element emailTemplates, final Map<String, EmailMessageTemplateTO>
         messageContainer) {
         if (emailTemplates != null) {
@@ -352,6 +359,7 @@ public class NotificationServiceImpl implements NotificationService {
         }
     }
 
+    @SuppressWarnings("unchecked")
     protected void loadCannedMessages(final Element completedMessages, final Map<String, List<MessageTO>>
         messageContainer) {
         if (completedMessages != null) {

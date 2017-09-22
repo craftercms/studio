@@ -42,6 +42,7 @@ public class L4jLogProvider implements LogProvider {
 	/** 
 	 * return a list of active loggers
 	 */
+    @SuppressWarnings("unchecked")
 	public Map<String, Logger> getLoggers() {
         HashMap retLoggers = new HashMap();
 		Enumeration loggers = org.apache.log4j.LogManager.getCurrentLoggers();

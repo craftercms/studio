@@ -167,11 +167,12 @@ public class SiteServiceImpl implements SiteService {
 			return createMap(document.getRootElement());
 
 		} catch (DocumentException e) {
-			e.printStackTrace();
+            logger.error("Error reading xml string:\n" + xml);
 		}
 		return null;
 	}
 
+    @SuppressWarnings("unchecked")
 	private  Map<String, Object> createMap(Element element) {
 		Map<String, Object> map = new HashMap<String, Object>();
 		for ( int i = 0, size = element.nodeCount(); i < size; i++ ) {

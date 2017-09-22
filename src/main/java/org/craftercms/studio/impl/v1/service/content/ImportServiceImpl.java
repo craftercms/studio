@@ -61,6 +61,7 @@ public class ImportServiceImpl implements ImportService {
     private final static Logger logger = LoggerFactory.getLogger(ImportServiceImpl.class);
 
     @Override
+    @SuppressWarnings("unchecked")
     public void importSite(String configLocation) {
         Document document = loadConfiguration(configLocation);
         if (document != null) {
@@ -111,6 +112,7 @@ public class ImportServiceImpl implements ImportService {
         return null;
     }
 
+    @SuppressWarnings("unchecked")
     private void importFromConfigNode(final String site, String publishChannelGroup, final Node node,
                                       final String fileRoot, final String targetRoot,
                                       boolean publish, int chunkSize, int delayInterval, int delayLength) {

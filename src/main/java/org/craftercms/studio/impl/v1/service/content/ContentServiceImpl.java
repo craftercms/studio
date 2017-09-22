@@ -973,6 +973,7 @@ public class ContentServiceImpl implements ContentService {
         return result;
     }
 
+    @SuppressWarnings("unchecked")
     protected Map<String, String> getItemSpecificDependencies(Document document, Map<String, String> copyDependencies) {
         // TODO: RD: This should move to the dependency service to be fully computed there
         //update pageId and groupId with the new one
@@ -1023,6 +1024,7 @@ public class ContentServiceImpl implements ContentService {
         return ids;
     }
 
+    @SuppressWarnings("unchecked")
     protected Document updateContentOnCopy(Document document, String filename, String folder, Map<String,
         String> params, String modifier)
             throws ServiceException {
@@ -1131,6 +1133,7 @@ public class ContentServiceImpl implements ContentService {
         return item;
     }
 
+    @SuppressWarnings("unchecked")
     protected ContentItemTO populateContentDrivenProperties(String site, ContentItemTO item)
             throws Exception {
         // This method load an XML content item and populates properties in the TO from the XML

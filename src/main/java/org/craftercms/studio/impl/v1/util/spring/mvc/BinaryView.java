@@ -56,15 +56,9 @@ public class BinaryView extends AbstractView {
     private boolean disableCaching;
 
     public BinaryView() {
-        //gson = JsonUtils.getDefaultGsonBuilder().create();
-
         setContentType(DEFAULT_CONTENT_TYPE);
     }
-/*
-    public void setGson(Gson gson) {
-        this.gson = gson;
-    }
-*/
+
 
 
     /**
@@ -87,10 +81,10 @@ public class BinaryView extends AbstractView {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     protected void renderMergedOutputModel(Map<String, Object> model, HttpServletRequest request,
                                            HttpServletResponse response) throws Exception {
 
-        //Writer output = response.getWriter();
         OutputStream out = response.getOutputStream();
         Map<String, Object> responseModelMap = (Map<String, Object>)model.get(RestScriptsController.DEFAULT_RESPONSE_BODY_MODEL_ATTR_NAME);
         if (responseModelMap != null) {

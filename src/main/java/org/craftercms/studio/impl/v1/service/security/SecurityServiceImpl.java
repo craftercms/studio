@@ -173,6 +173,7 @@ public class SecurityServiceImpl implements SecurityService {
         }
     }
 
+    @SuppressWarnings("unchecked")
     protected Set<String> populateUserGlobalPermissions(String path, Set<String> roles,
                                                   PermissionsConfigTO permissionsConfig) {
         Set<String> permissions = new HashSet<String>();
@@ -295,6 +296,7 @@ public class SecurityServiceImpl implements SecurityService {
      * @param roles
      * @param permissionsConfig
      */
+    @SuppressWarnings("unchecked")
     protected Set<String> populateUserPermissions(String site, String path, Set<String> roles,
                                                   PermissionsConfigTO permissionsConfig) {
         Set<String> permissions = new HashSet<String>();

@@ -46,6 +46,7 @@ public interface NotificationService {
      * @param locale Language of the message ,if null defaults to English.
      * @param params parameters of the message this params will be use to process the message string.
      */
+    @SuppressWarnings("unchecked")
     void notify(final String site , final List<String> toUsers ,final String key, final Locale
         locale, final Pair<String,Object>...params);
 
@@ -76,6 +77,7 @@ public interface NotificationService {
      * @return <p>the message in the given locale and processed with the given variables. </p><p>If message not found
      * either by key/locale it will <b>return a default string</b>) </p>
      */
+    @SuppressWarnings("unchecked")
     String getNotificationMessage(final String site , final NotificationMessageType type, final String key, final Locale
         locale, final Pair<String,Object>...params);
 

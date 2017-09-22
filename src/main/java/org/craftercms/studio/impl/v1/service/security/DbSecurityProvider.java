@@ -113,6 +113,7 @@ public class DbSecurityProvider implements SecurityProvider {
         return securityMapper.getAllUsersQueryTotal(params);
     }
 
+    @SuppressWarnings("unchecked")
     private List<Map<String, Object>> parseUserResultSet(List<UserProfileResult> usersResultSet) {
         List<Map<String, Object>> toRet = new ArrayList<Map<String, Object>>();
         Map<String, Object> userProfile = new HashMap<String, Object>();
@@ -186,7 +187,6 @@ public class DbSecurityProvider implements SecurityProvider {
             throw new SiteNotFoundException();
         } else {
             Map<String, Object> params = new HashMap<String, Object>();
-            params = new HashMap<String, Object>();
             params.put("siteId", site);
             params.put("start", start);
             params.put("number", number);
@@ -240,7 +240,6 @@ public class DbSecurityProvider implements SecurityProvider {
             throw new SiteNotFoundException();
         } else {
             Map<String, Object> params = new HashMap<String, Object>();
-            params = new HashMap<String, Object>();
             params.put("siteId", site);
             return securityMapper.getUsersPerSiteQueryTotal(params);
         }

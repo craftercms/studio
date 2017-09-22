@@ -69,22 +69,18 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
 	}
 
 	public String getPreviewServerUrl(String site) {
-		//checkForUpdate(site);
 		EnvironmentConfigTO config = getEnvironmentConfig(site);
 		if (config != null) {
 			String previewServerUrl = config.getPreviewServerUrl();
 			if (!StringUtils.isEmpty(previewServerUrl)) {
-				String sandbox = null;//_servicesConfig.getSandbox(site);
 				String webProject = servicesConfig.getWemProject(site);
-				return previewServerUrl.replaceAll(StudioConstants.PATTERN_WEB_PROJECT, webProject)
-									.replaceAll(StudioConstants.PATTERN_SANDBOX, sandbox);
+				return previewServerUrl.replaceAll(StudioConstants.PATTERN_WEB_PROJECT, webProject);
 			}
 		}
 		return "";
 	}
 
 	public String getLiveServerUrl(String site) {
-		//checkForUpdate(site);
 		EnvironmentConfigTO config = getEnvironmentConfig(site);
 		if (config != null) {
 			return config.getLiveServerUrl();
@@ -93,7 +89,6 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
 	}
 
 	public String getAdminEmailAddress(String site) {
-		//checkForUpdate(site);
 		EnvironmentConfigTO config = getEnvironmentConfig(site);
 		if (config != null) {
 			return config.getAdminEmailAddress();
@@ -102,7 +97,6 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
 	}
 
 	public String getAuthoringServerUrl(String site) {
-		//checkForUpdate(site);
 		EnvironmentConfigTO config = getEnvironmentConfig(site);
 		if (config != null) {
 			return config.getAuthoringServerUrl();
@@ -110,6 +104,7 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
 		return "";
 	}
 
+    @SuppressWarnings("unchecked")
 	protected EnvironmentConfigTO loadConfiguration(String key) {
 		String configLocation = getConfigPath().replaceFirst(StudioConstants.PATTERN_SITE, key)
 				.replaceFirst(StudioConstants.PATTERN_ENVIRONMENT, getEnvironment());
@@ -119,7 +114,7 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
 		try {
 			document = contentService.getContentAsDocument(key, configLocation);
 		} catch (DocumentException e) {
-			e.printStackTrace();
+			logger.error("Error reading environment configuration for site " + key + " from path " + configLocation);
 		}
 		if (document != null) {
             Element root = document.getRootElement();
