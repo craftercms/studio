@@ -61,6 +61,7 @@ public class PreviewDeployerImpl implements PreviewDeployer {
         }
     }
 
+    @SuppressWarnings("deprecation")
     @EventListener(EVENT_PREVIEW_SYNC)
     public void onPreviewSync(PreviewEventContext context) {
         String site = context.getSite();
@@ -119,6 +120,7 @@ public class PreviewDeployerImpl implements PreviewDeployer {
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public boolean createTarget(String site) {
         boolean toReturn = true;
         String requestUrl = getCreateTargetUrl();

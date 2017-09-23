@@ -137,6 +137,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public Map<String, Object> getDependencies(String site, String request, Boolean deleteDependencies) throws ServiceException {
 
         if(deleteDependencies == null)

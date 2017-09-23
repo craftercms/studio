@@ -466,6 +466,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         return items;
     }
 
+    @SuppressWarnings("unchecked")
     protected List<ContentItemTO> getScheduledItems(String site, DmContentItemComparator comparator, DmContentItemComparator subComparator, String filterType) {
         List<ContentItemTO> results = new FastArrayList();
         List<String> displayPatterns = servicesConfig.getDisplayInWidgetPathPatterns(site);

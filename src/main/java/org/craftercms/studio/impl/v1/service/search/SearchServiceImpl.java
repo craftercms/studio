@@ -29,6 +29,7 @@ public class SearchServiceImpl implements SearchService {
 	private final static Logger logger = LoggerFactory.getLogger(SearchServiceImpl.class);
 
 	@Override
+    @SuppressWarnings("deprecation")
 	public void createIndex(final String siteId) throws ServiceException {
 		logger.info("Creating search index for site:" + siteId);
 		String requestUrl = studioConfiguration.getProperty(PREVIEW_SEARCH_CREATE_URL);
@@ -67,6 +68,7 @@ public class SearchServiceImpl implements SearchService {
 	}
 
 	@Override
+    @SuppressWarnings("deprecation")
 	public void deleteIndex(final String siteId) throws ServiceException {
 		logger.debug("Deleting search index for site:" + siteId);
 

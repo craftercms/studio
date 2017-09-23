@@ -98,6 +98,7 @@ public class RegexDependencyResolver implements DependencyResolver {
         return toRet;
     }
 
+    @SuppressWarnings("unchecked")
     private DependencyResolverConfigTO getConfiguraion(String site) {
         DependencyResolverConfigTO config = null;
         String configLocation = getConfigLocation(site);

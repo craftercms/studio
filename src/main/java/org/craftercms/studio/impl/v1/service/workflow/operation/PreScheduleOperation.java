@@ -25,6 +25,7 @@ import org.craftercms.studio.api.v1.service.workflow.context.GoLiveContext;
 import java.time.ZonedDateTime;
 import java.util.Set;
 
+@SuppressWarnings("unchecked")
 public class PreScheduleOperation extends SubmitLifeCycleOperation{
     protected ZonedDateTime launchDate;
 

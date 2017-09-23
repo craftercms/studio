@@ -23,6 +23,7 @@ import org.craftercms.studio.api.v1.service.workflow.context.GoLiveContext;
 
 import java.util.Set;
 
+@SuppressWarnings("unchecked")
 public class PreGoLiveOperation extends SubmitLifeCycleOperation {
 
     public PreGoLiveOperation(WorkflowService workflowService, Set<String> paths, GoLiveContext context, Set<String> rescheduledUris) {
@@ -31,6 +32,7 @@ public class PreGoLiveOperation extends SubmitLifeCycleOperation {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public Object execute() throws ServiceException {
         workflowService.preGoLive(uris, context, rescheduledUris);
         return null;

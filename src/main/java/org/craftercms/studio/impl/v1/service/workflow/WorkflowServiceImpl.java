@@ -131,6 +131,7 @@ public class WorkflowServiceImpl implements WorkflowService {
         return submitForApproval(site, username, request, false);
     }
 
+    @SuppressWarnings("unchecked")
     protected ResultTO submitForApproval(final String site, String submittedBy, final String request, final boolean delete) throws ServiceException {
         RequestContext requestContext = RequestContextBuilder.buildSubmitContext(site, submittedBy);
         ResultTO result = new ResultTO();
@@ -675,6 +676,7 @@ public class WorkflowServiceImpl implements WorkflowService {
      * @return call result
      * @throws ServiceException
      */
+    @SuppressWarnings("unchecked")
     protected ResultTO approve(String site, String request, Operation operation) {
         String approver = securityService.getCurrentUser();
         ResultTO result = new ResultTO();
@@ -830,6 +832,7 @@ public class WorkflowServiceImpl implements WorkflowService {
      * @return call result
      * @throws ServiceException
      */
+    @SuppressWarnings("unchecked")
     protected ResultTO approve_new(String site, String request, Operation operation) {
         String approver = securityService.getCurrentUser();
         ResultTO result = new ResultTO();
@@ -991,6 +994,7 @@ public class WorkflowServiceImpl implements WorkflowService {
      * @return call result
      * @throws ServiceException
      */
+    @SuppressWarnings("unchecked")
     protected ResultTO approveWithoutDependencies(String site, String request, Operation operation) {
         String approver = securityService.getCurrentUser();
         ResultTO result = new ResultTO();
@@ -2065,6 +2069,7 @@ public class WorkflowServiceImpl implements WorkflowService {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public ResultTO reject(String site, String user, String request) throws ServiceException {
         ResultTO result = new ResultTO();
         try {
