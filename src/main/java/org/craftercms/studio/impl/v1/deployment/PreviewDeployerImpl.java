@@ -19,12 +19,15 @@
 package org.craftercms.studio.impl.v1.deployment;
 
 import net.sf.json.JSONObject;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.methods.PostMethod;
-import org.apache.commons.httpclient.methods.RequestEntity;
-import org.apache.commons.httpclient.methods.StringRequestEntity;
-import org.apache.commons.httpclient.params.HttpMethodParams;
+import org.apache.http.HttpEntity;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.deployment.PreviewDeployer;
 import org.craftercms.studio.api.v1.ebus.EBusConstants;
@@ -37,9 +40,7 @@ import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.springframework.http.HttpStatus;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -52,6 +53,16 @@ public class PreviewDeployerImpl implements PreviewDeployer {
 
     private final static String METHOD_PREVIEW_SYNC_LISTENER = "onPreviewSync";
 
+    protected CloseableHttpClient httpClient;
+
+    public PreviewDeployerImpl() {
+        RequestConfig requestConfig = RequestConfig.custom().setExpectContinueEnabled(true).build();
+        httpClient = HttpClientBuilder.create()
+                        .setConnectionManager(new PoolingHttpClientConnectionManager())
+                        .setDefaultRequestConfig(requestConfig)
+                        .build();
+    }
+
     public void subscribeToPreviewSyncEvents() {
         try {
             Method subscribeMethod = PreviewDeployerImpl.class.getMethod(METHOD_PREVIEW_SYNC_LISTENER, PreviewEventContext.class);
@@ -61,37 +72,22 @@ public class PreviewDeployerImpl implements PreviewDeployer {
         }
     }
 
-    @SuppressWarnings("deprecation")
     @EventListener(EVENT_PREVIEW_SYNC)
     public void onPreviewSync(PreviewEventContext context) {
         String site = context.getSite();
         String requestUrl = getDeployTargetUrl(site);
-        PostMethod postMethod = new PostMethod(requestUrl);
-        postMethod.getParams().setBooleanParameter(HttpMethodParams.USE_EXPECT_CONTINUE, true);
+        HttpPost postRequest = new HttpPost(requestUrl);
 
         if (context.isWaitTillDeploymentIsDone()) {
             String requestBody = getDeployTargetRequestBody(true);
-            RequestEntity requestEntity = null;
-            try {
-                requestEntity = new StringRequestEntity(requestBody, ContentType.APPLICATION_JSON.toString(),
-                                                        StandardCharsets.UTF_8.displayName());
-
-            } catch (UnsupportedEncodingException e) {
-                logger.info("Unsupported encoding for request body. Using deprecated method instead.");
-            }
-            if (requestEntity != null) {
-                postMethod.setRequestEntity(requestEntity);
-            } else {
-                postMethod.setRequestBody(requestBody);
-            }
+            HttpEntity requestEntity = new StringEntity(requestBody, ContentType.APPLICATION_JSON);
+            postRequest.setEntity(requestEntity);
         }
 
         // TODO: DB: add all required params to post method
-
-        HttpClient client = new HttpClient();
         try {
-            int status = client.executeMethod(postMethod);
-            HttpStatus httpStatus = HttpStatus.valueOf(status);
+            CloseableHttpResponse response = httpClient.execute(postRequest);
+            HttpStatus httpStatus = HttpStatus.valueOf(response.getStatusLine().getStatusCode());
             if (!httpStatus.is2xxSuccessful()) {
                 logger.error("Preview sync request for site " + site + " returned status " + httpStatus + " (" +
                              httpStatus.getReasonPhrase() + ")");
@@ -99,7 +95,7 @@ public class PreviewDeployerImpl implements PreviewDeployer {
         } catch (IOException e) {
             logger.error("Error while sending preview sync request for site " + site, e);
         } finally {
-            postMethod.releaseConnection();
+            postRequest.releaseConnection();
         }
     }
 
@@ -125,34 +121,21 @@ public class PreviewDeployerImpl implements PreviewDeployer {
         boolean toReturn = true;
         String requestUrl = getCreateTargetUrl();
 
-        PostMethod postMethod = new PostMethod(requestUrl);
-        postMethod.getParams().setBooleanParameter(HttpMethodParams.USE_EXPECT_CONTINUE, true);
-
+        HttpPost postRequest = new HttpPost(requestUrl);
         String requestBody = getCreateTargetRequestBody(site);
-        RequestEntity requestEntity = null;
-        try {
-            requestEntity = new StringRequestEntity(requestBody, ContentType.APPLICATION_JSON.toString(),
-                                                    StandardCharsets.UTF_8.displayName());
-        } catch (UnsupportedEncodingException e) {
-            logger.info("Unsupported encoding for request body. Using deprecated method instead.");
-        }
-        if (requestEntity != null) {
-            postMethod.setRequestEntity(requestEntity);
-        } else {
-            postMethod.setRequestBody(requestBody);
-        }
+        HttpEntity requestEntity = new StringEntity(requestBody, ContentType.APPLICATION_JSON);
+        postRequest.setEntity(requestEntity);
 
-        HttpClient client = new HttpClient();
         try {
-            int status = client.executeMethod(postMethod);
-            if (HttpStatus.valueOf(status) != HttpStatus.CREATED) {
+            CloseableHttpResponse response = httpClient.execute(postRequest);
+            if (HttpStatus.valueOf(response.getStatusLine().getStatusCode()) != HttpStatus.CREATED) {
                 toReturn = false;
             }
         } catch (IOException e) {
             logger.error("Error while sending preview sync request for site " + site, e);
             toReturn = false;
         } finally {
-            postMethod.releaseConnection();
+            postRequest.releaseConnection();
         }
         return toReturn;
     }
@@ -185,20 +168,18 @@ public class PreviewDeployerImpl implements PreviewDeployer {
         boolean toReturn = true;
         String requestUrl = getDeleteTargetUrl(site);
 
-        PostMethod postMethod = new PostMethod(requestUrl);
-        postMethod.getParams().setBooleanParameter(HttpMethodParams.USE_EXPECT_CONTINUE, true);
+        HttpPost postRequest = new HttpPost(requestUrl);
 
-        HttpClient client = new HttpClient();
         try {
-            int status = client.executeMethod(postMethod);
-            if (status != 200) {
+            CloseableHttpResponse response = httpClient.execute(postRequest);
+            if (response.getStatusLine().getStatusCode() != 200) {
                 toReturn = false;
             }
         } catch (IOException e) {
             logger.error("Error while sending delete preview target request for site " + site, e);
             toReturn = false;
         } finally {
-            postMethod.releaseConnection();
+            postRequest.releaseConnection();
         }
         return toReturn;
     }
