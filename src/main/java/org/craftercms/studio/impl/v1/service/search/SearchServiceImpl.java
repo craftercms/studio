@@ -30,6 +30,9 @@ public class SearchServiceImpl implements SearchService {
 
 	private final static Logger logger = LoggerFactory.getLogger(SearchServiceImpl.class);
 
+	protected StudioConfiguration studioConfiguration;
+	protected CloseableHttpClient httpClient;
+
 	public SearchServiceImpl() {
 		RequestConfig requestConfig = RequestConfig.custom().setExpectContinueEnabled(true).build();
 		httpClient = HttpClientBuilder.create()
@@ -107,6 +110,4 @@ public class SearchServiceImpl implements SearchService {
 	public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
 	public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
 
-	protected StudioConfiguration studioConfiguration;
-	protected CloseableHttpClient httpClient;
 }
