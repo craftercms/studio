@@ -28,6 +28,7 @@ import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.DmXmlConstants;
+import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.dal.ItemMetadata;
 import org.craftercms.studio.api.v1.dal.ItemState;
 import org.craftercms.studio.api.v1.ebus.PreviewEventContext;
@@ -419,6 +420,11 @@ public class ContentServiceImpl implements ContentService {
         boolean toRet = false;
         String commitId = _contentRepository.createFolder(site, path, name);
         if (commitId != null) {
+            ActivityService.ActivityType activityType = ActivityService.ActivityType.CREATED;
+            String user = securityService.getCurrentUser();
+            Map<String, String> extraInfo = new HashMap<String, String>();
+            extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_FOLDER);
+            activityService.postActivity(site, user, path + FILE_SEPARATOR + name, activityType, ActivityService.ActivitySource.UI, extraInfo);
             // TODO: SJ: we're currently not keeping meta-data for folders and therefore nothing to update
             // TODO: SJ: rethink this for 3.1+
             toRet = true;

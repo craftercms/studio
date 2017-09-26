@@ -102,7 +102,19 @@ public class SiteServiceImpl implements SiteService {
     @Override
     public boolean writeConfiguration(String site, String path, InputStream content) throws ServiceException {
         // Write site configuration
+        ActivityService.ActivityType activityType = ActivityService.ActivityType.UPDATED;
+        if (!contentRepository.contentExists(site, path)) {
+            activityType = ActivityService.ActivityType.CREATED;
+        }
         String commitId = contentRepository.writeContent(site, path, content);
+        String user = securityService.getCurrentUser();
+        Map<String, String> extraInfo = new HashMap<String, String>();
+        if (StringUtils.startsWith(path, contentTypeService.getConfigPath())) {
+            extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_CONTENT_TYPE);
+        } else {
+            extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_CONFIGURATION);
+        }
+        activityService.postActivity(site, user, path, activityType, ActivityService.ActivitySource.UI, extraInfo);
         objectStateService.transition(site, path, TransitionEvent.SAVE);
         if (!objectMetadataManager.metadataExist(site, path)) {
             objectMetadataManager.insertNewObjectMetadata(site, path);
