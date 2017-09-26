@@ -437,7 +437,7 @@ public class GitContentRepositoryHelper {
                     if (buildSiteRepo(site)) {
                         repo = sandboxes.get(site);
                     } else {
-                        logger.error("error getting the repository for site: " + site);
+                        logger.error("error getting the sandbox repository for site: " + site);
                     }
                 }
                 break;
@@ -447,7 +447,7 @@ public class GitContentRepositoryHelper {
                     if (buildSiteRepo(site)) {
                         repo = published.get(site);
                     } else {
-                        logger.error("error getting the repository for site: " + site);
+                        logger.error("error getting the published repository for site: " + site);
                     }
                 }
                 break;
