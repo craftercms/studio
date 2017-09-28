@@ -23,11 +23,14 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.dal.ItemMetadata;
@@ -583,20 +586,21 @@ public class SiteServiceImpl implements SiteService {
         boolean toReturn = true;
         String requestUrl = getDestroySitePreviewContextUrl(site);
 
-        GetMethod getMethod = new GetMethod(requestUrl);
-        getMethod.getParams().setBooleanParameter(HttpMethodParams.USE_EXPECT_CONTINUE, true);
+        HttpGet getRequest = new HttpGet(requestUrl);
+		RequestConfig requestConfig = RequestConfig.custom().setExpectContinueEnabled(true).build();
+		getRequest.setConfig(requestConfig);
 
-        HttpClient client = new HttpClient();
+        CloseableHttpClient client = HttpClientBuilder.create().build();
         try {
-            int status = client.executeMethod(getMethod);
-            if (status != 200) {
+            CloseableHttpResponse response = client.execute(getRequest);
+            if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
                 toReturn = false;
             }
         } catch (IOException e) {
             logger.error("Error while sending destroy preview context request for site " + site, e);
             toReturn = false;
         } finally {
-            getMethod.releaseConnection();
+            getRequest.releaseConnection();
         }
         return toReturn;
     }
