@@ -30,12 +30,27 @@
 
     <cache/>
 
+    <select id="getPageNavigationOrderForSiteAndPath" databaseId="oracle" parameterType="java.util.HashMap"
+            resultMap="PageNavigationOrderMap">
+        SELECT folder_id, site, path, max_count
+        FROM cstudio_pagenavordersequence
+        WHERE site = #{site} AND path = #{path}
+    </select>
+
     <select id="getPageNavigationOrderForSiteAndPath" parameterType="java.util.HashMap"
             resultMap="PageNavigationOrderMap">
         SELECT folder_id, site, path, max_count
         FROM cstudio_pagenavigationordersequence
         WHERE site = #{site} AND path = #{path}
     </select>
+
+    <insert id="insert" databaseId="oracle" parameterType="org.craftercms.studio.api.v1.dal.PageNavigationOrder">
+        INSERT INTO
+        cstudio_pagenavordersequence
+        (folder_id, site, path, max_count)
+        VALUES
+        (#{folderId}, #{site}, #{path}, #{maxCount})
+    </insert>
 
     <insert id="insert" parameterType="org.craftercms.studio.api.v1.dal.PageNavigationOrder">
         INSERT INTO
@@ -45,12 +60,25 @@
         (#{folderId}, #{site}, #{path}, #{maxCount})
     </insert>
 
+    <update id="update" databaseId="oracle" parameterType="org.craftercms.studio.api.v1.dal.PageNavigationOrder">
+        UPDATE
+        cstudio_pagenavordersequence
+        SET site= #{site}, path = #{path}, max_count = #{maxCount}
+        WHERE folder_id = #{folderId}
+    </update>
+
     <update id="update" parameterType="org.craftercms.studio.api.v1.dal.PageNavigationOrder">
         UPDATE
         cstudio_pagenavigationordersequence
         SET site= #{site}, path = #{path}, max_count = #{maxCount}
         WHERE folder_id = #{folderId}
     </update>
+
+    <delete id="deleteSequencesForSite" databaseId="oracle" parameterType="java.util.Map">
+        DELETE FROM
+        cstudio_pagenavordersequence
+        WHERE site = #{site}
+    </delete>
 
     <delete id="deleteSequencesForSite" parameterType="java.util.Map">
         DELETE FROM
