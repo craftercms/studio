@@ -633,6 +633,7 @@
         <property name="urlsToExclude" value="${crafter.studio.security.urlsToExclude}"/>
         <property name="exceptionUrls" value="${crafter.studio.security.exceptionUrls}"/>
         <property name="sessionTimeout" value="${crafter.studio.security.sessionTimeout}"/>
+        <property name="securityService" ref="cstudioSecurityService" />
     </bean>
 
     <bean id="securityProvider" class="org.craftercms.studio.impl.v1.service.security.MappedSecurityProvider">
