@@ -23,6 +23,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.craftercms.commons.http.HttpUtils;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
+import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.impl.v1.util.SessionTokenUtils;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.PathMatcher;
@@ -151,10 +152,14 @@ public class StudioSecurityFilter extends GenericFilterBean {
     public int getSessionTimeout() { return sessionTimeout; }
     public void setSessionTimeout(int sessionTimeout) { this.sessionTimeout = sessionTimeout; }
 
+    public SecurityService getSecurityService() { return securityService; }
+    public void setSecurityService(SecurityService securityService) { this.securityService = securityService; }
+
     protected String[] urlsToInclude;
     protected String[] urlsToExclude;
     protected String[] exceptionUrls;
     protected SecurityProvider securityProvider;
+    protected SecurityService securityService;
     protected int sessionTimeout;
 
     protected PathMatcher pathMatcher;
