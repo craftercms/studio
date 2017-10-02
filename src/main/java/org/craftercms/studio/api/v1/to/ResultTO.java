@@ -17,9 +17,10 @@
  ******************************************************************************/
 package org.craftercms.studio.api.v1.to;
 
+import org.apache.http.HttpStatus;
+
 import java.io.Serializable;
 
-import org.apache.commons.httpclient.HttpStatus;
 
 /**
  * Service call result object to be used in javascript API

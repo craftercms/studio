@@ -20,6 +20,7 @@ package org.craftercms.studio.api.v1.service.content;
 
 import org.craftercms.studio.api.v1.dal.ItemMetadata;
 
+import java.util.List;
 import java.util.Map;
 
 public interface ObjectMetadataManager {
@@ -55,4 +56,6 @@ public interface ObjectMetadataManager {
     void updateCommitId(String site, String path, String commitId);
 
     boolean movedPathExists(String site, String path);
+
+    List<String> getSameCommitItems(String site, String path);
 }

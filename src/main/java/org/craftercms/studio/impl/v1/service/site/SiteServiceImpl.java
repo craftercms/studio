@@ -23,11 +23,13 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.params.CoreProtocolPNames;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.dal.ItemMetadata;
@@ -316,7 +318,7 @@ public class SiteServiceImpl implements SiteService {
 			    // environment overrides
 
 			    // initial deployment
-                List<String> commitIds = new ArrayList<String>();
+                Set<String> commitIds = new HashSet<String>();
                 commitIds.add(lastCommitId);
                 List<PublishingTargetTO> publishingTargets = getPublishingTargetsForSite(siteId);
                 if (publishingTargets != null && publishingTargets.size() > 0) {
@@ -583,13 +585,14 @@ public class SiteServiceImpl implements SiteService {
         boolean toReturn = true;
         String requestUrl = getDestroySitePreviewContextUrl(site);
 
-        GetMethod getMethod = new GetMethod(requestUrl);
-        getMethod.getParams().setBooleanParameter(HttpMethodParams.USE_EXPECT_CONTINUE, true);
+        HttpGet getMethod = new HttpGet(requestUrl);
+        getMethod.getParams().setBooleanParameter(CoreProtocolPNames.USE_EXPECT_CONTINUE, true);
 
-        HttpClient client = new HttpClient();
+        CloseableHttpClient client = HttpClients.createDefault();
+        CloseableHttpResponse response = null;
         try {
-            int status = client.executeMethod(getMethod);
-            if (status != 200) {
+            response = client.execute(getMethod);
+            if (response.getStatusLine().getStatusCode() != 200) {
                 toReturn = false;
             }
         } catch (IOException e) {
@@ -597,6 +600,18 @@ public class SiteServiceImpl implements SiteService {
             toReturn = false;
         } finally {
             getMethod.releaseConnection();
+            try {
+                if (response != null) {
+                    response.close();
+                }
+            } catch (IOException e) {
+                logger.info("Error while closing http response", e );
+            }
+            try {
+                client.close();
+            } catch (IOException e) {
+                logger.info("Error while closing http client", e );
+            }
         }
         return toReturn;
     }

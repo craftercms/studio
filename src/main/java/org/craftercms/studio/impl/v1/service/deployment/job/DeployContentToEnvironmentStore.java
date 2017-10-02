@@ -233,7 +233,7 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
 
     private void deploy(String site, String environment, List<DeploymentItem> items, String author, String comment) throws DeploymentException {
         logger.debug("Deploying " + items.size() + " item(s)");
-        List<String> commitIds = new ArrayList<String>(items.size());
+        Set<String> commitIds = new HashSet<String>(items.size());
         for (DeploymentItem item : items) {
             contentRepository.lockItemForPublishing(site, item.getPath());
             commitIds.add(item.getCommitId());
