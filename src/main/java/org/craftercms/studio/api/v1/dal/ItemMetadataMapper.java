@@ -18,6 +18,7 @@
 
 package org.craftercms.studio.api.v1.dal;
 
+import java.util.List;
 import java.util.Map;
 
 public interface ItemMetadataMapper {
@@ -45,4 +46,6 @@ public interface ItemMetadataMapper {
     void updateCommitId(Map params);
 
     int movedPathExists(Map params);
+
+    List<String> getSameCommitItems(Map params);
 }

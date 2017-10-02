@@ -810,7 +810,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     @Override
-    public void publish(String site, List<String> commitIds, String environment, String author, String comment) throws DeploymentException {
+    public void publish(String site, Set<String> commitIds, String environment, String author, String comment) throws DeploymentException {
         Repository repo = helper.getRepository(site, GitRepositories.PUBLISHED);
         String commitId = StringUtils.EMPTY;
         synchronized (helper.getRepository(site, GitRepositories.PUBLISHED)) {

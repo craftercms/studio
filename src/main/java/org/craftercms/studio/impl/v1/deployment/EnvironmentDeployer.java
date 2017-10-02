@@ -30,8 +30,9 @@ import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.event.EventService;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PUBLISH_TO_ENVIRONMENT;
 
@@ -44,7 +45,7 @@ public class EnvironmentDeployer {
     @EventListener(EVENT_PUBLISH_TO_ENVIRONMENT)
     public void onEnvironmentDeploymentEvent(DeploymentEventContext context) {
         List<DeploymentItem> items = context.getItems();
-        List<String> commitIds = new ArrayList<String>();
+        Set<String> commitIds = new HashSet<String>();
         for (DeploymentItem item : items) {
             commitIds.add(item.getCommitId());
         }
