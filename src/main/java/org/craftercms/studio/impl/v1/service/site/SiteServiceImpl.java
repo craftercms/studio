@@ -25,11 +25,12 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.params.CoreProtocolPNames;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.dal.ItemMetadata;
@@ -318,7 +319,7 @@ public class SiteServiceImpl implements SiteService {
 			    // environment overrides
 
 			    // initial deployment
-                Set<String> commitIds = new HashSet<String>();
+                List<String> commitIds = new ArrayList<String>();
                 commitIds.add(lastCommitId);
                 List<PublishingTargetTO> publishingTargets = getPublishingTargetsForSite(siteId);
                 if (publishingTargets != null && publishingTargets.size() > 0) {
@@ -585,33 +586,21 @@ public class SiteServiceImpl implements SiteService {
         boolean toReturn = true;
         String requestUrl = getDestroySitePreviewContextUrl(site);
 
-        HttpGet getMethod = new HttpGet(requestUrl);
-        getMethod.getParams().setBooleanParameter(CoreProtocolPNames.USE_EXPECT_CONTINUE, true);
+        HttpGet getRequest = new HttpGet(requestUrl);
+		RequestConfig requestConfig = RequestConfig.custom().setExpectContinueEnabled(true).build();
+		getRequest.setConfig(requestConfig);
 
-        CloseableHttpClient client = HttpClients.createDefault();
-        CloseableHttpResponse response = null;
+        CloseableHttpClient client = HttpClientBuilder.create().build();
         try {
-            response = client.execute(getMethod);
-            if (response.getStatusLine().getStatusCode() != 200) {
+            CloseableHttpResponse response = client.execute(getRequest);
+            if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
                 toReturn = false;
             }
         } catch (IOException e) {
             logger.error("Error while sending destroy preview context request for site " + site, e);
             toReturn = false;
         } finally {
-            getMethod.releaseConnection();
-            try {
-                if (response != null) {
-                    response.close();
-                }
-            } catch (IOException e) {
-                logger.info("Error while closing http response", e );
-            }
-            try {
-                client.close();
-            } catch (IOException e) {
-                logger.info("Error while closing http client", e );
-            }
+            getRequest.releaseConnection();
         }
         return toReturn;
     }

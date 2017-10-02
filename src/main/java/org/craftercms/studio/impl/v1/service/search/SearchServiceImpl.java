@@ -1,18 +1,18 @@
 package org.craftercms.studio.impl.v1.service.search;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.nio.charset.StandardCharsets;
 
+import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpStatus;
-import org.apache.http.client.entity.EntityBuilder;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.params.CoreProtocolPNames;
-import org.apache.http.util.EntityUtils;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -30,53 +30,46 @@ public class SearchServiceImpl implements SearchService {
 
 	private final static Logger logger = LoggerFactory.getLogger(SearchServiceImpl.class);
 
+	protected StudioConfiguration studioConfiguration;
+	protected CloseableHttpClient httpClient;
+
+	public SearchServiceImpl() {
+		RequestConfig requestConfig = RequestConfig.custom().setExpectContinueEnabled(true).build();
+		httpClient = HttpClientBuilder.create()
+			.setConnectionManager(new PoolingHttpClientConnectionManager())
+			.setDefaultRequestConfig(requestConfig)
+			.build();
+	}
+
 	@Override
-    @SuppressWarnings("deprecation")
 	public void createIndex(final String siteId) throws ServiceException {
 		logger.info("Creating search index for site:" + siteId);
 		String requestUrl = studioConfiguration.getProperty(PREVIEW_SEARCH_CREATE_URL);
 
-		HttpPost postMethod = new HttpPost(requestUrl);
-		postMethod.getParams().setBooleanParameter(CoreProtocolPNames.USE_EXPECT_CONTINUE, true);
+		HttpPost postRequest = new HttpPost(requestUrl);
 		String rqBody = "{ \"id\" : \"" + siteId + "\" }";  // TODO: SJ: Replace this with something better
-		EntityBuilder requestEntity = EntityBuilder.create();
-        requestEntity.setText(rqBody)
-                .setContentType(ContentType.APPLICATION_JSON)
-                .setContentEncoding(StandardCharsets.UTF_8.displayName());
-		postMethod.setEntity(requestEntity.build());
+		HttpEntity requestEntity = null;
+
+		requestEntity = new StringEntity(rqBody, ContentType.APPLICATION_JSON);
+		postRequest.setEntity(requestEntity);
 
 		// TODO: SJ: Review exception handling
-		CloseableHttpClient client = HttpClients.createDefault();
-        CloseableHttpResponse response = null;
 		try {
-			response = client.execute(postMethod);
+			CloseableHttpResponse response = httpClient.execute(postRequest);
 			if (response.getStatusLine().getStatusCode() != HttpStatus.SC_CREATED) {
 				throw new ServiceException("Error while creating search index for site " + siteId + ". Request URL: "
 					+ requestUrl + ". Request Body: " + rqBody + ". Response: "
-					+ EntityUtils.toString(response.getEntity()));
+					+ IOUtils.toString(response.getEntity().getContent()));
 			}
 		} catch (IOException e) {
 			logger.error("Error while creating search index for site " + siteId, e);
 			throw new ServiceException("Error while creating search index for site " + siteId, e);
 		} finally {
-			postMethod.releaseConnection();
-            try {
-                if (response != null) {
-                    response.close();
-                }
-            } catch (IOException e) {
-                logger.info("Error while closing http response", e );
-            }
-            try {
-                client.close();
-            } catch (IOException e) {
-                logger.info("Error while closing http client", e );
-            }
+			postRequest.releaseConnection();
 		}
 	}
 
 	@Override
-    @SuppressWarnings("deprecation")
 	public void deleteIndex(final String siteId) throws ServiceException {
 		logger.debug("Deleting search index for site:" + siteId);
 
@@ -85,53 +78,36 @@ public class SearchServiceImpl implements SearchService {
 
 		logger.debug("Deleting search index for site:" + siteId + "URL: " + requestUrl);
 
-		HttpPost postMethod = new HttpPost(requestUrl);
-		postMethod.getParams().setBooleanParameter(CoreProtocolPNames.USE_EXPECT_CONTINUE, true);
+		HttpPost postRequest = new HttpPost(requestUrl);
 		String rqBody = "{ \"delete_mode\": \"ALL_DATA_AND_CONFIG\" }";  // TODO: SJ: Replace this with something better
-		EntityBuilder requestEntity = EntityBuilder.create();
+		HttpEntity requestEntity = null;
 
 		logger.debug("Deleting search index for site:" + siteId + " using URL: " + requestUrl + " with body: " +
 			rqBody);
 
-        requestEntity.setText(rqBody)
-                .setContentType(ContentType.APPLICATION_JSON)
-                .setContentEncoding(StandardCharsets.UTF_8.displayName());
-        postMethod.setEntity(requestEntity.build());
+		requestEntity = new StringEntity(rqBody, ContentType.APPLICATION_JSON);
+		postRequest.setEntity(requestEntity);
 
 		// TODO: SJ: Review exception handling
-		CloseableHttpClient client = HttpClients.createDefault();
-		CloseableHttpResponse response = null;
 		try {
-			response = client.execute(postMethod);
+			CloseableHttpResponse response = httpClient.execute(postRequest);
 			if (response.getStatusLine().getStatusCode() != HttpStatus.SC_NO_CONTENT) {
 				throw new ServiceException("Error while deleting search index for site " + siteId + ". Request URL: "
 					+ requestUrl + ". Request Body: " + rqBody + ". Response: "
-					+ EntityUtils.toString(response.getEntity()));
+					+ IOUtils.toString(response.getEntity().getContent()));
 			}
 
-			logger.info("Deleted search index for site:" + siteId + ". HTTP Status Code: " + response.getStatusLine().getStatusCode());
+			logger.info("Deleted search index for site:" + siteId + ". HTTP Status Code: " +
+				response.getStatusLine().getStatusCode());
 		} catch (IOException e) {
 			logger.error("Error while deleting search index for site " + siteId, e);
 			throw new ServiceException("Error while deleting search index for site " + siteId, e);
 		} finally {
-			postMethod.releaseConnection();
-            try {
-                if (response != null) {
-                    response.close();
-                }
-            } catch (IOException e) {
-                logger.info("Error while closing http response", e );
-            }
-            try {
-                client.close();
-            } catch (IOException e) {
-                logger.info("Error while closing http client", e );
-            }
+			postRequest.releaseConnection();
 		}
 	}
 
 	public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
 	public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
 
-	protected StudioConfiguration studioConfiguration;
 }

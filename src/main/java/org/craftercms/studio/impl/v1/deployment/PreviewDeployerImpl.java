@@ -19,13 +19,15 @@
 package org.craftercms.studio.impl.v1.deployment;
 
 import net.sf.json.JSONObject;
-import org.apache.http.client.entity.EntityBuilder;
+import org.apache.http.HttpEntity;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.params.CoreProtocolPNames;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.deployment.PreviewDeployer;
 import org.craftercms.studio.api.v1.ebus.EBusConstants;
@@ -39,7 +41,6 @@ import org.springframework.http.HttpStatus;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -52,6 +53,16 @@ public class PreviewDeployerImpl implements PreviewDeployer {
 
     private final static String METHOD_PREVIEW_SYNC_LISTENER = "onPreviewSync";
 
+    protected CloseableHttpClient httpClient;
+
+    public PreviewDeployerImpl() {
+        RequestConfig requestConfig = RequestConfig.custom().setExpectContinueEnabled(true).build();
+        httpClient = HttpClientBuilder.create()
+                        .setConnectionManager(new PoolingHttpClientConnectionManager())
+                        .setDefaultRequestConfig(requestConfig)
+                        .build();
+    }
+
     public void subscribeToPreviewSyncEvents() {
         try {
             Method subscribeMethod = PreviewDeployerImpl.class.getMethod(METHOD_PREVIEW_SYNC_LISTENER, PreviewEventContext.class);
@@ -61,29 +72,21 @@ public class PreviewDeployerImpl implements PreviewDeployer {
         }
     }
 
-    @SuppressWarnings("deprecation")
     @EventListener(EVENT_PREVIEW_SYNC)
     public void onPreviewSync(PreviewEventContext context) {
         String site = context.getSite();
         String requestUrl = getDeployTargetUrl(site);
-        HttpPost postMethod = new HttpPost(requestUrl);
-        postMethod.getParams().setBooleanParameter(CoreProtocolPNames.USE_EXPECT_CONTINUE, true);
+        HttpPost postRequest = new HttpPost(requestUrl);
 
         if (context.isWaitTillDeploymentIsDone()) {
             String requestBody = getDeployTargetRequestBody(true);
-            EntityBuilder entityBuilder = EntityBuilder.create();
-            entityBuilder.setText(requestBody)
-                    .setContentType(ContentType.APPLICATION_JSON)
-                    .setContentEncoding(StandardCharsets.UTF_8.displayName());
-            postMethod.setEntity(entityBuilder.build());
+            HttpEntity requestEntity = new StringEntity(requestBody, ContentType.APPLICATION_JSON);
+            postRequest.setEntity(requestEntity);
         }
 
         // TODO: DB: add all required params to post method
-
-        CloseableHttpClient client = HttpClients.createDefault();
-        CloseableHttpResponse response = null;
         try {
-            response = client.execute(postMethod);
+            CloseableHttpResponse response = httpClient.execute(postRequest);
             HttpStatus httpStatus = HttpStatus.valueOf(response.getStatusLine().getStatusCode());
             if (!httpStatus.is2xxSuccessful()) {
                 logger.error("Preview sync request for site " + site + " returned status " + httpStatus + " (" +
@@ -92,19 +95,7 @@ public class PreviewDeployerImpl implements PreviewDeployer {
         } catch (IOException e) {
             logger.error("Error while sending preview sync request for site " + site, e);
         } finally {
-            postMethod.releaseConnection();
-            try {
-                if (response != null) {
-                    response.close();
-                }
-            } catch (IOException e) {
-                logger.info("Error while closing http response", e );
-            }
-            try {
-                client.close();
-            } catch (IOException e) {
-                logger.info("Error while closing http client", e );
-            }
+            postRequest.releaseConnection();
         }
     }
 
@@ -130,20 +121,13 @@ public class PreviewDeployerImpl implements PreviewDeployer {
         boolean toReturn = true;
         String requestUrl = getCreateTargetUrl();
 
-        HttpPost postMethod = new HttpPost(requestUrl);
-        postMethod.getParams().setBooleanParameter(CoreProtocolPNames.USE_EXPECT_CONTINUE, true);
-
+        HttpPost postRequest = new HttpPost(requestUrl);
         String requestBody = getCreateTargetRequestBody(site);
-        EntityBuilder requestEntity = EntityBuilder.create();
-        requestEntity.setText(requestBody)
-                    .setContentType(ContentType.APPLICATION_JSON)
-                    .setContentEncoding(StandardCharsets.UTF_8.displayName());
-        postMethod.setEntity(requestEntity.build());
+        HttpEntity requestEntity = new StringEntity(requestBody, ContentType.APPLICATION_JSON);
+        postRequest.setEntity(requestEntity);
 
-        CloseableHttpClient client = HttpClients.createDefault();
-        CloseableHttpResponse response = null;
         try {
-            response = client.execute(postMethod);
+            CloseableHttpResponse response = httpClient.execute(postRequest);
             if (HttpStatus.valueOf(response.getStatusLine().getStatusCode()) != HttpStatus.CREATED) {
                 toReturn = false;
             }
@@ -151,19 +135,7 @@ public class PreviewDeployerImpl implements PreviewDeployer {
             logger.error("Error while sending preview sync request for site " + site, e);
             toReturn = false;
         } finally {
-            postMethod.releaseConnection();
-            try {
-                if (response != null) {
-                    response.close();
-                }
-            } catch (IOException e) {
-                logger.info("Error while closing http response", e );
-            }
-            try {
-                client.close();
-            } catch (IOException e) {
-                logger.info("Error while closing http client", e );
-            }
+            postRequest.releaseConnection();
         }
         return toReturn;
     }
@@ -191,19 +163,15 @@ public class PreviewDeployerImpl implements PreviewDeployer {
         return requestBody.toJson();
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     public boolean deleteTarget(String site) {
         boolean toReturn = true;
         String requestUrl = getDeleteTargetUrl(site);
 
-        HttpPost postMethod = new HttpPost(requestUrl);
-        postMethod.getParams().setBooleanParameter(CoreProtocolPNames.USE_EXPECT_CONTINUE, true);
+        HttpPost postRequest = new HttpPost(requestUrl);
 
-        CloseableHttpClient client = HttpClients.createDefault();
-        CloseableHttpResponse response = null;
         try {
-            response = client.execute(postMethod);
+            CloseableHttpResponse response = httpClient.execute(postRequest);
             if (response.getStatusLine().getStatusCode() != 200) {
                 toReturn = false;
             }
@@ -211,19 +179,7 @@ public class PreviewDeployerImpl implements PreviewDeployer {
             logger.error("Error while sending delete preview target request for site " + site, e);
             toReturn = false;
         } finally {
-            postMethod.releaseConnection();
-            try {
-                if (response != null) {
-                    response.close();
-                }
-            } catch (IOException e) {
-                logger.info("Error while closing http response", e );
-            }
-            try {
-                client.close();
-            } catch (IOException e) {
-                logger.info("Error while closing http client", e );
-            }
+            postRequest.releaseConnection();
         }
         return toReturn;
     }
