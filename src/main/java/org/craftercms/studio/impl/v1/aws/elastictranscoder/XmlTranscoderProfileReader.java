@@ -3,7 +3,6 @@ package org.craftercms.studio.impl.v1.aws.elastictranscoder;
 import com.amazonaws.auth.BasicAWSCredentials;
 
 import java.io.InputStream;
-import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
 

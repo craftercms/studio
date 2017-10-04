@@ -2,7 +2,6 @@ package org.craftercms.studio.api.v1.aws.elastictranscoder;
 
 import java.io.InputStream;
 
-import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.craftercms.studio.api.v1.exception.TranscoderConfigurationException;
 
 /**
