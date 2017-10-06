@@ -80,6 +80,36 @@
         AND path=#{path}
     </update>
 
+    <update id="setPropertiesForCommit" parameterType="java.util.Map">
+        UPDATE item_metadata
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="newPath != null">path=#{newPath},</if>
+            <if test="name != null">name=#{name},</if>
+            <if test="modified != null">modified=#{modified},</if>
+            <if test="modifier != null">modifier=#{modifier},</if>
+            <if test="owner != null">owner=#{owner},</if>
+            <if test="creator != null">creator=#{creator},</if>
+            <if test="firstName != null">firstname=#{firstName},</if>
+            <if test="lastName != null">lastname=#{lastName},</if>
+            <if test="lockOwner != null">lockowner=#{lockOwner},</if>
+            <if test="email != null">email=#{email},</if>
+            <if test="renamed != null">renamed=#{renamed},</if>
+            <if test="oldUrl != null">oldurl=#{oldUrl},</if>
+            <if test="deleteUrl != null">deleteurl=#{deleteUrl},</if>
+            <if test="imageWidth != null">imagewidth=#{imageWidth},</if>
+            <if test="imageHeight != null">imageheight=#{imageHeight},</if>
+            <if test="approvedBy != null">approvedby=#{approvedBy},</if>
+            <if test="submittedBy != null">submittedby=#{submittedBy},</if>
+            <if test="submittedForDeletion != null">submittedfordeletion=#{submittedForDeletion},</if>
+            <if test="sendEmail != null">sendemail=#{sendEmail},</if>
+            <if test="submissionComment != null">submissioncomment=#{submissionComment},</if>
+            <if test="launchDate != null">launchdate=#{launchDate}</if>
+            <if test="commitId != null">commit_id=#{commitId}</if>
+        </trim>
+        WHERE site=#{site}
+        AND commit_id=#{commitId}
+    </update>
+
     <update id="updateObjectMetadata" parameterType="org.craftercms.studio.api.v1.dal.ItemMetadata">
         UPDATE item_metadata
         SET

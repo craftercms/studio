@@ -28,6 +28,7 @@ import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.DmConstants;
+import org.craftercms.studio.api.v1.constant.RepoOperation;
 import org.craftercms.studio.api.v1.dal.PublishRequest;
 import org.craftercms.studio.api.v1.dal.PublishRequestMapper;
 import org.craftercms.studio.api.v1.dal.ItemMetadata;
@@ -49,6 +50,7 @@ import org.craftercms.studio.api.v1.service.objectstate.TransitionEvent;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
+import org.craftercms.studio.api.v1.to.RepoOperationTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -208,6 +210,66 @@ public class PublishingManagerImpl implements PublishingManager {
         return deploymentItem;
     }
 
+    @Override
+    public DeploymentItem processCommit(PublishRequest item) throws DeploymentException {
+
+        if (item == null) {
+            throw new DeploymentException("Cannot process item, item is null.");
+        }
+
+        DeploymentItem deploymentItem = new DeploymentItem();
+        deploymentItem.setSite(item.getSite());
+        deploymentItem.setPath(item.getPath());
+        deploymentItem.setCommitId(item.getCommitId());
+
+        String site = item.getSite();
+        String path = item.getPath();
+        String oldPath = item.getOldPath();
+        String environment = item.getEnvironment();
+        String action = item.getAction();
+        String user = item.getUser();
+        String commitId = item.getCommitId();
+
+        String liveEnvironment = LIVE_ENVIRONMENT;
+        boolean isLive = false;
+
+        if (StringUtils.isNotEmpty(liveEnvironment)) {
+            if (liveEnvironment.equals(environment)) {
+                isLive = true;
+            }
+        }
+        else if (StringUtils.equalsIgnoreCase(LIVE_ENVIRONMENT, item.getEnvironment()) || StringUtils.equalsIgnoreCase(PRODUCTION_ENVIRONMENT, environment)) {
+            isLive = true;
+        }
+
+        List<RepoOperationTO> operations = contentRepository.getOperations(site, commitId + "~1", commitId);
+        for (RepoOperationTO operation : operations) {
+            switch (operation.getOperation()) {
+                case DELETE:
+                    objectMetadataManager.deleteObjectMetadata(site, operation.getPath());
+                    objectStateService.deleteObjectStateForPath(site, operation.getPath());
+                    break;
+                case MOVE:
+                    if (isLive) {
+                        objectMetadataManager.clearRenamed(site, operation.getMoveToPath());
+                    }
+                    break;
+            }
+        }
+
+        if (isLive) {
+            objectStateService.deployCommitId(site, commitId);
+
+            Map<String, Object> props = new HashMap<String, Object>();
+            props.put(ItemMetadata.PROP_SUBMITTED_BY, StringUtils.EMPTY);
+            props.put(ItemMetadata.PROP_SEND_EMAIL, 0);
+            props.put(ItemMetadata.PROP_SUBMITTED_FOR_DELETION, 0);
+            props.put(ItemMetadata.PROP_SUBMISSION_COMMENT, StringUtils.EMPTY);
+            objectMetadataManager.setObjectMetadataForCommitId(site, commitId, props);
+        }
+        return deploymentItem;
+    }
+
     private void deleteFolder(String site, String path, String user) {
         String folderPath = path.replace(FILE_SEPARATOR + DmConstants.INDEX_FILE, "");
         if (contentService.contentExists(site, path)) {
@@ -294,6 +356,62 @@ public class PublishingManagerImpl implements PublishingManager {
                             DeploymentItem dependentDeploymentItem = processItem(dependentItem);
                             mandatoryDependencies.add(dependentDeploymentItem);
                             mandatoryDependencies.addAll(processMandatoryDependencies(dependentItem, pathsToDeploy, missingDependenciesPaths));
+                        }
+                    }
+                }
+            }
+        }
+
+        return mandatoryDependencies;
+    }
+
+    @Override
+    public List<DeploymentItem> processMandatoryDependenciesForCommit(PublishRequest item, Set<String> processedPaths) throws DeploymentException {
+        List<DeploymentItem> mandatoryDependencies = new ArrayList<DeploymentItem>();
+        String site = item.getSite();
+        String path = item.getPath();
+        String commitId = item.getCommitId();
+        List<RepoOperationTO> operations = contentRepository.getOperations(site, commitId + "~1", commitId);
+
+        for (RepoOperationTO operation : operations) {
+            switch (operation.getOperation()) {
+                case CREATE:
+                    path = operation.getPath();
+                    break;
+                case MOVE:
+                    path = operation.getMoveToPath();
+                    break;
+                default:
+                    continue;
+            }
+            if (ContentUtils.matchesPatterns(path, servicesConfig.getPagePatterns(site))) {
+                String helpPath = path.replace(FILE_SEPARATOR + getIndexFile(), "");
+                int idx = helpPath.lastIndexOf(FILE_SEPARATOR);
+                String parentPath = helpPath.substring(0, idx) + FILE_SEPARATOR + getIndexFile();
+                if (objectStateService.isNew(site, parentPath) || objectMetadataManager.isRenamed(site, parentPath)) {
+                    if (!processedPaths.contains(parentPath)) {
+                        deploymentService.cancelWorkflow(site, parentPath);
+                        processedPaths.add(parentPath);
+                        PublishRequest parentItem = createMissingItem(site, parentPath, item);
+                        DeploymentItem parentDeploymentItem = processItem(parentItem);
+                        mandatoryDependencies.add(parentDeploymentItem);
+                        mandatoryDependencies.addAll(processMandatoryDependenciesForCommit(parentItem, processedPaths));
+                    }
+                }
+            }
+
+            if (!isEnablePublishingWithoutDependencies()) {
+                Set<String> dependentPaths = deploymentDependencyRule.applyRule(site, path);
+                for (String dependentPath : dependentPaths) {
+                    // TODO: SJ: This bypasses the Content Service, fix
+                    if (objectStateService.isNew(site, dependentPath) || objectMetadataManager.isRenamed(site, dependentPath)) {
+                        if (!processedPaths.contains(dependentPath) ) {
+                            deploymentService.cancelWorkflow(site, dependentPath);
+                            processedPaths.add(dependentPath);
+                            PublishRequest dependentItem = createMissingItem(site, dependentPath, item);
+                            DeploymentItem dependentDeploymentItem = processItem(dependentItem);
+                            mandatoryDependencies.add(dependentDeploymentItem);
+                            mandatoryDependencies.addAll(processMandatoryDependenciesForCommit(dependentItem, processedPaths));
                         }
                     }
                 }

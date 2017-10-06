@@ -83,4 +83,6 @@ public interface ObjectStateService {
     List<String> getChangeSetForSubtree(String site, String path);
 
     boolean deletedPathExists(String site, String path);
+
+    void deployCommitId(String site, String commitId);
 }

@@ -55,4 +55,6 @@ public interface ObjectMetadataManager {
     void updateCommitId(String site, String path, String commitId);
 
     boolean movedPathExists(String site, String path);
+
+    void setObjectMetadataForCommitId(String site, String commitId, Map<String, Object> props);
 }
