@@ -81,4 +81,9 @@ class DeploymentServices {
         def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context);
         return deploymentServicesImpl.enablePublishing(siteId, enabled);
     }
+
+    static publishCommits(context, siteId, environment, commitIds) {
+        def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context);
+        return deploymentServicesImpl.publishCommits(siteId, environment, commitIds);
+    }
 }

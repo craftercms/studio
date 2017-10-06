@@ -83,4 +83,9 @@ class SpringDeploymentServices {
         def springBackedService = this.context.applicationContext.get("cstudioDeploymentService")
         return springBackedService.enablePublishing(siteId, enabled)
     }
+
+    def publishCommits(siteId, environment, commitIds) {
+        def springBackedService = this.context.applicationContext.get("cstudioDeploymentService")
+        return springBackedService.publishCommits(siteId, environment, commitIds)
+    }
 }

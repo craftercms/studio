@@ -1,6 +1,6 @@
 /*
  * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2016 Crafter Software Corporation.
+ * Copyright (C) 2007-2017 Crafter Software Corporation.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,36 +15,23 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+package org.craftercms.studio.api.v1.exception;
 
-package org.craftercms.studio.api.v1.dal;
+public class EnvironmentNotFoundException extends ServiceException {
 
-import java.util.Map;
+    private static final long serialVersionUID = 6176134353135084107L;
 
-public interface ItemMetadataMapper {
+    public EnvironmentNotFoundException() {}
 
-    ItemMetadata getProperties(Map params);
+	public EnvironmentNotFoundException(Exception e) {
+		super(e);
+	}
 
-    void setProperties(Map params);
+	public EnvironmentNotFoundException(String message) {
+		super(message);
+	}
 
-    void insertEntry(Map params);
-
-    int countEntries(Map params);
-
-    void deleteEntry(Map params);
-
-    void deleteFolder(Map params);
-
-    void setLockOwner(Map params);
-
-    void deleteObjectMetadataForSite(Map params);
-
-    void updateObjectPath(Map params);
-
-    void updateObjectMetadata(ItemMetadata itemMetadata);
-
-    void updateCommitId(Map params);
-
-    int movedPathExists(Map params);
-
-    void setPropertiesForCommit(Map params);
+	public EnvironmentNotFoundException(String message, Exception e) {
+		super(message, e);
+	}
 }
