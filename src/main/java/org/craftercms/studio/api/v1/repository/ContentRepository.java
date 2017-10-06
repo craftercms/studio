@@ -274,6 +274,14 @@ public interface ContentRepository {
      */
     List<String> getEditCommitIds(String site, String path, String commitIdFrom, String commitIdTo);
 
+    /**
+     * Check if given commit id exists
+     * @param site site id
+     * @param commitId commit id to check
+     * @return true if it exists in site repository, otherwise false
+     */
+    boolean commitIdExists(String site, String commitId);
+
     /*
     List<PublishTO> getPublishEvents(String site, String commitIdFrom, String commitIdTo);
     List<PublishTO> getPublishEvents(String site, String commitIdFrom);

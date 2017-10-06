@@ -25,6 +25,8 @@ import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.*;
 import org.craftercms.studio.api.v1.deployment.Deployer;
 import org.craftercms.studio.api.v1.ebus.PreviewEventContext;
+import org.craftercms.studio.api.v1.exception.CommitNotFoundException;
+import org.craftercms.studio.api.v1.exception.EnvironmentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -757,6 +759,51 @@ public class DeploymentServiceImpl implements DeploymentService {
         message = message.replace("{username}", securityService.getCurrentUser()).replace("{datetime}", ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern(DATE_PATTERN_WORKFLOW_WITH_TZ)));
         siteService.updatePublishingStatusMessage(site, message);
         return toRet;
+    }
+
+    @Override
+    public void publishCommits(String site, String environment, List<String> commitIds) throws SiteNotFoundException, EnvironmentNotFoundException, CommitNotFoundException {
+        if (!siteService.exists(site)) {
+            throw new SiteNotFoundException();
+        }
+        Set<String> environements = getAllPublishingEnvironments(site);
+        if (!environements.contains(environment)) {
+            throw new EnvironmentNotFoundException();
+        }
+        if (!checkCommitIds(site, commitIds)) {
+            throw new CommitNotFoundException();
+        }
+        List<PublishRequest> publishRequests = createCommitItems(site, environment, commitIds, ZonedDateTime.now(ZoneOffset.UTC), securityService.getCurrentUser());
+        for (PublishRequest request : publishRequests) {
+            publishRequestMapper.insertItemForDeployment(request);
+        }
+    }
+
+    private boolean checkCommitIds(String site, List<String> commitIds) {
+        boolean toRet = true;
+        for (String commitId : commitIds) {
+            toRet = toRet && contentRepository.commitIdExists(site, commitId);
+        }
+        return toRet;
+    }
+
+    private List<PublishRequest> createCommitItems(String site, String environment, List<String> commitIds, ZonedDateTime scheduledDate, String approver) {
+        List<PublishRequest> newItems = new ArrayList<PublishRequest>(commitIds.size());
+        for (String commitId : commitIds) {
+            PublishRequest item = new PublishRequest();
+            item.setId(++CTED_AUTOINCREMENT);
+            item.setSite(site);
+            item.setEnvironment(environment);
+            item.setPath("N/A");
+            item.setScheduledDate(scheduledDate);
+            item.setState(PublishRequest.State.READY_FOR_LIVE);
+            item.setAction("N/A");
+            item.setCommitId(commitId);
+            item.setContentTypeClass("N/A");
+            item.setUser(approver);
+            newItems.add(item);
+        }
+        return newItems;
     }
 
     public void setServicesConfig(ServicesConfig servicesConfig) {

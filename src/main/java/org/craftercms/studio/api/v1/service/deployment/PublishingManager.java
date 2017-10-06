@@ -32,6 +32,8 @@ public interface PublishingManager {
 
     DeploymentItem processItem(PublishRequest item) throws DeploymentException;
 
+    DeploymentItem processCommit(PublishRequest item) throws DeploymentException;
+
     void markItemsCompleted(String site, String environment, List<PublishRequest> processedItems) throws DeploymentException;
 
     void markItemsProcessing(String site, String environment, List<PublishRequest> itemsToDeploy) throws DeploymentException;
@@ -41,6 +43,8 @@ public interface PublishingManager {
     void markItemsBlocked(String site, String environment, List<PublishRequest> copyToEnvironmentItems) throws DeploymentException;
 
     List<DeploymentItem> processMandatoryDependencies(PublishRequest item, List<String> pathsToDeploy, Set<String> missingDependenciesPaths) throws DeploymentException;
+
+    List<DeploymentItem> processMandatoryDependenciesForCommit(PublishRequest item, Set<String> processedPaths) throws DeploymentException;
 
     boolean isPublishingBlocked(String site);
 

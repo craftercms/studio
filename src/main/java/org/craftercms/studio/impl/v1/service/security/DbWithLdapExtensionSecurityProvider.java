@@ -119,7 +119,7 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
                                 user.getGroups().add(g);
                             }
                         } else {
-                            logger.warn("No LDAP attribute " + lastNameAttribName + " found for username " + username);
+                            logger.warn("No LDAP attribute " + groupNameAttribName + " found for username " + username);
                         }
                     } else {
                         logger.warn("No LDAP attribute " + siteIdAttribName + " found for username " + username);
