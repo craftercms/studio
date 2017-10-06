@@ -62,6 +62,8 @@ import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.RefNotFoundException;
 import org.eclipse.jgit.diff.DiffEntry;
+import org.eclipse.jgit.errors.AmbiguousObjectException;
+import org.eclipse.jgit.errors.IncorrectObjectTypeException;
 import org.eclipse.jgit.internal.storage.file.LockFile;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.merge.MergeStrategy;
@@ -1369,6 +1371,23 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         }
 
         return commitIds;
+    }
+
+    @Override
+    public boolean commitIdExists(String site, String commitId) {
+        boolean toRet = false;
+        try (Repository repo = helper.getRepository(site, SANDBOX)) {
+            ObjectId objCommitId = repo.resolve(commitId);
+            if (objCommitId != null) {
+                RevCommit revCommit = repo.parseCommit(objCommitId);
+                if (revCommit != null) {
+                    toRet = true;
+                }
+            }
+        } catch (IOException e) {
+            logger.info("Commit ID " + commitId + " does not exist in sandbox for site " + site);
+        }
+        return toRet;
     }
 
     public void setServletContext(ServletContext ctx) {

@@ -57,6 +57,15 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
     }
 
     @Override
+    public void setObjectMetadataForCommitId(String site, String commitId, Map<String, Object> properties) {
+        Map<String, Object> params = new HashMap<>();
+        params.put("site", site);
+        params.put("commitId", commitId);
+        params.putAll(properties);
+        itemMetadataMapper.setPropertiesForCommit(params);
+    }
+
+    @Override
     public void updateObjectMetadata(ItemMetadata itemMetadata) {
         itemMetadataMapper.updateObjectMetadata(itemMetadata);
     }

@@ -48,4 +48,6 @@ public interface ItemMetadataMapper {
     int movedPathExists(Map params);
 
     List<String> getSameCommitItems(Map params);
+
+    void setPropertiesForCommit(Map params);
 }

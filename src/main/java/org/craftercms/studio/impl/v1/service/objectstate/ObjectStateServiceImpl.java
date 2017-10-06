@@ -195,6 +195,15 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     }
 
     @Override
+    public void deployCommitId(String site, String commitId) {
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("siteId", site);
+        params.put("commitId", commitId);
+        params.put("state", State.EXISTING_UNEDITED_UNLOCKED.name());
+        itemStateMapper.deployCommitId(params);
+    }
+
+    @Override
     public void insertNewEntry(String site, ContentItemTO item) {
         String path = FilenameUtils.normalize(item.getUri(), true);
         ItemState newEntry = new ItemState();

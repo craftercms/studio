@@ -58,4 +58,6 @@ public interface ObjectMetadataManager {
     boolean movedPathExists(String site, String path);
 
     List<String> getSameCommitItems(String site, String path);
+
+    void setObjectMetadataForCommitId(String site, String commitId, Map<String, Object> props);
 }

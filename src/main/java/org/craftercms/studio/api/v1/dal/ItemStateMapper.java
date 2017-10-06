@@ -59,4 +59,6 @@ public interface ItemStateMapper {
     List<ItemState> getChangeSetForSubtree(Map params);
 
     int deletedPathExists(Map params);
+
+    void deployCommitId(Map params);
 }

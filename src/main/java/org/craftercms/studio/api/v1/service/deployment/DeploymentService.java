@@ -18,6 +18,8 @@
 package org.craftercms.studio.api.v1.service.deployment;
 
 import org.craftercms.studio.api.v1.dal.PublishRequest;
+import org.craftercms.studio.api.v1.exception.CommitNotFoundException;
+import org.craftercms.studio.api.v1.exception.EnvironmentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.to.*;
@@ -98,4 +100,12 @@ public interface DeploymentService {
      * @throws SiteNotFoundException
      */
     boolean enablePublishing(String site, boolean enabled) throws SiteNotFoundException;
+
+    /**
+     * Publish given commit IDs on given environment for given site
+     * @param site site id to use for publishing
+     * @param environment environment to use for publishing
+     * @param commitIds commit IDs to publish
+     */
+    void publishCommits(String site, String environment, List<String> commitIds) throws SiteNotFoundException, EnvironmentNotFoundException, CommitNotFoundException;
 }

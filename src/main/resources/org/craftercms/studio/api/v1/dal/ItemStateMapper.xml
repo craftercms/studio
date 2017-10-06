@@ -162,4 +162,11 @@
             #{state}
         </foreach>
     </select>
+
+    <update id="deployCommitId" parameterType="java.util.Map" flushCache="true">
+        UPDATE item_state itstate INNER JOIN item_metadata itmeta ON (itstate.site = itmeta.site AND itstate.path = itmeta.path)
+        SET itstate.state = #{state}, itstate.system_processing = 0
+        WHERE itstate.site = #{siteId}
+        AND itmeta.commit_id = #{commitId}
+    </update>
 </mapper>
