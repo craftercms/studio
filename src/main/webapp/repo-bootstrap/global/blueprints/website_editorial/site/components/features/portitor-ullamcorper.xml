@@ -10,8 +10,8 @@
 	<title>One</title>
 	<icon>fa-diamond</icon>
 	<body_html>&lt;p&gt;&lt;span&gt;Aenean ornare velit lacus, ac varius enim lorem ullamcorper dolore. Proin aliquam facilisis ante interdum. Sed nulla amet lorem feugiat tempus aliquam.&lt;/span&gt;&lt;/p&gt;</body_html>
-	<createdDate>3/23/2017 20:45:45</createdDate>
-	<createdDate_dt>3/23/2017 20:45:45</createdDate_dt>
-	<lastModifiedDate>3/23/2017 20:46:20</lastModifiedDate>
-	<lastModifiedDate_dt>3/23/2017 20:46:20</lastModifiedDate_dt>
+	<createdDate>2017-3-23T20:45:45.000Z</createdDate>
+	<createdDate_dt>2017-3-23T20:45:45.000Z</createdDate_dt>
+	<lastModifiedDate>2017-3-23T20:46:20.000Z</lastModifiedDate>
+	<lastModifiedDate_dt>2017-3-23T20:46:20.000Z</lastModifiedDate_dt>
 </component>

@@ -12,8 +12,8 @@
 	<include>/site/components/left-rails/left-rail-with-related-articles.xml</include>
 	<disableFlattening>false</disableFlattening>
 	</item></left-rail>
-	<createdDate>3/17/2017 18:56:59</createdDate>
-	<createdDate_dt>3/17/2017 18:56:59</createdDate_dt>
-	<lastModifiedDate>5/18/2017 15:38:1</lastModifiedDate>
-	<lastModifiedDate_dt>5/18/2017 15:38:1</lastModifiedDate_dt>
+	<createdDate>2017-3-17T18:56:59.000Z</createdDate>
+	<createdDate_dt>2017-3-17T18:56:59.000Z</createdDate_dt>
+	<lastModifiedDate>2017-5-18T15:38:1.000Z</lastModifiedDate>
+	<lastModifiedDate_dt>2017-5-18T15:38:1.000Z</lastModifiedDate_dt>
 </component>
