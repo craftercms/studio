@@ -27,22 +27,22 @@
 					<iceId></iceId>
 					<title>File Name</title>
 					<description></description>
-					<defaultValue></defaultValue>
+					<defaultValue>crafter-level-descriptor.level</defaultValue>
 					<help></help>
 					<properties>
 						<property>
 							<name>size</name>
-							<value>100</value>
-							<type>int</type>
-						</property>
-						<property>
-							<name>maxlength</name>
 							<value>50</value>
 							<type>int</type>
 						</property>
 						<property>
+							<name>maxlength</name>
+							<value>100</value>
+							<type>int</type>
+						</property>
+						<property>
 							<name>readonly</name>
-							<value>false</value>
+							<value>true</value>
 							<type>boolean</type>
 						</property>
 					</properties>
