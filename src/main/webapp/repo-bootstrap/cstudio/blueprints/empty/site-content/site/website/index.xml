@@ -1,15 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <page>
-  <content-type>/page/entry</content-type>
-  <file-name valid="true">index.xml</file-name>
-  <internal-name>Home</internal-name>
-  <title>A Page</title>
-  <meta-description>example</meta-description>
-  <corporateKeywords/>
-  <meta-keywords>example</meta-keywords>
-  <display-template>/templates/web/entry.ftl</display-template>
-  <merge-strategy>inherit-levels</merge-strategy>
-  <placeInNav>false</placeInNav>
-<orderDefault_f>-1</orderDefault_f>
-   <body>Hello World!</body>
+	<content-type>/page/entry</content-type>	<display-template>/templates/web/entry.ftl</display-template>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<file-name>index.xml</file-name>
+	<internal-name>Home</internal-name>
+	<placeInNav>false</placeInNav>
+	<orderDefault_f>-1</orderDefault_f>
+	<body>&lt;p&gt;Hello World!&lt;/p&gt;</body>
+	<objectGroupId>aa95</objectGroupId>
+	<objectId>aa953325-ad37-f534-27eb-5f81f8c7aea8</objectId>
+	<folder-name/>
+	<createdDate>10/9/2017 17:24:31</createdDate>
+	<createdDate_dt>10/9/2017 17:24:31</createdDate_dt>
+	<lastModifiedDate>10/9/2017 17:24:31</lastModifiedDate>
+	<lastModifiedDate_dt>10/9/2017 17:24:31</lastModifiedDate_dt>
 </page>
