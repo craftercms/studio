@@ -1218,7 +1218,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     logger.error("Error: Unknown git operation " + diffEntry.getChangeType());
                     break;
             }
-            if (repoOperation != null) {
+            if ((repoOperation != null) && (!repoOperation.getPath().endsWith(".keep"))) {
                 repoOperation.setAuthor(StringUtils.isEmpty(author) ? "N/A" : author);
                 toReturn.add(repoOperation);
             }
