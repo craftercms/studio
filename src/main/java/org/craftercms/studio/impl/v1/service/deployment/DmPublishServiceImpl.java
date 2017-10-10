@@ -145,6 +145,7 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
                 List<String> pathsToPublish = new ArrayList<String>();
                 List<String> candidatesToPublish = new ArrayList<String>();
                 pathsToPublish.add(childPath);
+                candidatesToPublish.addAll(objectMetadataManager.getSameCommitItems(site, childPath));
                 candidatesToPublish.addAll(deploymentDependencyRule.applyRule(site, childPath));
                 for (String pathToAdd : candidatesToPublish) {
                     String hash = DigestUtils.md2Hex(pathToAdd);
@@ -154,7 +155,7 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
                 }
                 String aprover = securityService.getCurrentUser();
                 String comment = "Bulk Go Live invoked by " + aprover;
-                logger.debug("Deploying package of " + pathsToPublish.size() + " items for site " + site + " path " +
+                logger.error("Deploying package of " + pathsToPublish.size() + " items for site " + site + " path " +
                              childPath);
                 try {
                     deploymentService.deploy(site, environment, pathsToPublish, launchDate, aprover, comment, true);

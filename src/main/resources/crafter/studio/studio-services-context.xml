@@ -699,6 +699,19 @@
         <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
+    <!-- ////////////////////////////////////// -->
+    <!--         AWS                            -->
+    <!-- ////////////////////////////////////// -->
+    <bean id="studioTranscoderProfileReader" class="org.craftercms.studio.impl.v1.aws.elastictranscoder.XmlTranscoderProfileReader"/>
+
+    <bean id="studioElasticTranscoder" class="org.craftercms.studio.impl.v1.aws.elastictranscoder.ElasticTranscoderImpl"/>
+
+    <bean id="studioElasticTranscoderService" class="org.craftercms.studio.impl.v1.service.aws.ElasticTranscoderServiceImpl">
+        <property name="contentService" ref="cstudioContentService"/>
+        <property name="profileReader" ref="studioTranscoderProfileReader"/>
+        <property name="transcoder" ref="studioElasticTranscoder"/>
+    </bean>
+
     <!-- Utilities -->
     <bean id="studioApplicationContextProvider" class="org.craftercms.studio.impl.v1.util.spring.context.ApplicationContextProvider"></bean>
 

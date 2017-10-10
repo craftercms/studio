@@ -27,6 +27,7 @@ import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
@@ -203,5 +204,13 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
         params.put("siteId", site);
         params.put("path", path);
         return itemMetadataMapper.movedPathExists(params) > 0;
+    }
+
+    @Override
+    public List<String> getSameCommitItems(String site, String path) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("siteId", site);
+        params.put("path", path);
+        return itemMetadataMapper.getSameCommitItems(params);
     }
 }

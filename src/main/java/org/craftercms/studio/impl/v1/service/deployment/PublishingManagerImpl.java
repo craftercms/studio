@@ -28,7 +28,6 @@ import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.DmConstants;
-import org.craftercms.studio.api.v1.constant.RepoOperation;
 import org.craftercms.studio.api.v1.dal.PublishRequest;
 import org.craftercms.studio.api.v1.dal.PublishRequestMapper;
 import org.craftercms.studio.api.v1.dal.ItemMetadata;
@@ -223,11 +222,7 @@ public class PublishingManagerImpl implements PublishingManager {
         deploymentItem.setCommitId(item.getCommitId());
 
         String site = item.getSite();
-        String path = item.getPath();
-        String oldPath = item.getOldPath();
         String environment = item.getEnvironment();
-        String action = item.getAction();
-        String user = item.getUser();
         String commitId = item.getCommitId();
 
         String liveEnvironment = LIVE_ENVIRONMENT;
@@ -253,6 +248,8 @@ public class PublishingManagerImpl implements PublishingManager {
                     if (isLive) {
                         objectMetadataManager.clearRenamed(site, operation.getMoveToPath());
                     }
+                    break;
+                default:
                     break;
             }
         }
@@ -388,15 +385,13 @@ public class PublishingManagerImpl implements PublishingManager {
                 String helpPath = path.replace(FILE_SEPARATOR + getIndexFile(), "");
                 int idx = helpPath.lastIndexOf(FILE_SEPARATOR);
                 String parentPath = helpPath.substring(0, idx) + FILE_SEPARATOR + getIndexFile();
-                if (objectStateService.isNew(site, parentPath) || objectMetadataManager.isRenamed(site, parentPath)) {
-                    if (!processedPaths.contains(parentPath)) {
-                        deploymentService.cancelWorkflow(site, parentPath);
-                        processedPaths.add(parentPath);
-                        PublishRequest parentItem = createMissingItem(site, parentPath, item);
-                        DeploymentItem parentDeploymentItem = processItem(parentItem);
-                        mandatoryDependencies.add(parentDeploymentItem);
-                        mandatoryDependencies.addAll(processMandatoryDependenciesForCommit(parentItem, processedPaths));
-                    }
+                if ((objectStateService.isNew(site, parentPath) || objectMetadataManager.isRenamed(site, parentPath)) && (!processedPaths.contains(parentPath))) {
+                    deploymentService.cancelWorkflow(site, parentPath);
+                    processedPaths.add(parentPath);
+                    PublishRequest parentItem = createMissingItem(site, parentPath, item);
+                    DeploymentItem parentDeploymentItem = processItem(parentItem);
+                    mandatoryDependencies.add(parentDeploymentItem);
+                    mandatoryDependencies.addAll(processMandatoryDependenciesForCommit(parentItem, processedPaths));
                 }
             }
 
@@ -404,15 +399,13 @@ public class PublishingManagerImpl implements PublishingManager {
                 Set<String> dependentPaths = deploymentDependencyRule.applyRule(site, path);
                 for (String dependentPath : dependentPaths) {
                     // TODO: SJ: This bypasses the Content Service, fix
-                    if (objectStateService.isNew(site, dependentPath) || objectMetadataManager.isRenamed(site, dependentPath)) {
-                        if (!processedPaths.contains(dependentPath) ) {
-                            deploymentService.cancelWorkflow(site, dependentPath);
-                            processedPaths.add(dependentPath);
-                            PublishRequest dependentItem = createMissingItem(site, dependentPath, item);
-                            DeploymentItem dependentDeploymentItem = processItem(dependentItem);
-                            mandatoryDependencies.add(dependentDeploymentItem);
-                            mandatoryDependencies.addAll(processMandatoryDependenciesForCommit(dependentItem, processedPaths));
-                        }
+                    if ((objectStateService.isNew(site, dependentPath) || objectMetadataManager.isRenamed(site, dependentPath)) && (!processedPaths.contains(dependentPath))) {
+                        deploymentService.cancelWorkflow(site, dependentPath);
+                        processedPaths.add(dependentPath);
+                        PublishRequest dependentItem = createMissingItem(site, dependentPath, item);
+                        DeploymentItem dependentDeploymentItem = processItem(dependentItem);
+                        mandatoryDependencies.add(dependentDeploymentItem);
+                        mandatoryDependencies.addAll(processMandatoryDependenciesForCommit(dependentItem, processedPaths));
                     }
                 }
             }
@@ -432,10 +425,13 @@ public class PublishingManagerImpl implements PublishingManager {
             missingItem.setAction(PublishRequest.Action.NEW);
         }
         ItemMetadata metadata = objectMetadataManager.getProperties(site, itemPath);
-        if ((metadata != null) && (metadata.getRenamed() != 0)) {
-            String oldPath = metadata.getOldUrl();
-            missingItem.setOldPath(oldPath);
-            missingItem.setAction(PublishRequest.Action.MOVE);
+        if (metadata != null) {
+            if (metadata.getRenamed() != 0) {
+                String oldPath = metadata.getOldUrl();
+                missingItem.setOldPath(oldPath);
+                missingItem.setAction(PublishRequest.Action.MOVE);
+            }
+            missingItem.setCommitId(metadata.getCommitId());
         }
         String contentTypeClass = contentService.getContentTypeClass(site, itemPath);
         missingItem.setContentTypeClass(contentTypeClass);
