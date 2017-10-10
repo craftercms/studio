@@ -425,10 +425,13 @@ public class PublishingManagerImpl implements PublishingManager {
             missingItem.setAction(PublishRequest.Action.NEW);
         }
         ItemMetadata metadata = objectMetadataManager.getProperties(site, itemPath);
-        if ((metadata != null) && (metadata.getRenamed() != 0)) {
-            String oldPath = metadata.getOldUrl();
-            missingItem.setOldPath(oldPath);
-            missingItem.setAction(PublishRequest.Action.MOVE);
+        if (metadata != null) {
+            if (metadata.getRenamed() != 0) {
+                String oldPath = metadata.getOldUrl();
+                missingItem.setOldPath(oldPath);
+                missingItem.setAction(PublishRequest.Action.MOVE);
+            }
+            missingItem.setCommitId(metadata.getCommitId());
         }
         String contentTypeClass = contentService.getContentTypeClass(site, itemPath);
         missingItem.setContentTypeClass(contentTypeClass);
