@@ -27,6 +27,7 @@ import org.craftercms.studio.api.v1.to.VersionTO;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * This interface represents the repository layer of Crafter Studio.  All interaction with the backend
@@ -235,7 +236,7 @@ public interface ContentRepository {
      * @param author
      * @param comment
      */
-    void publish(String site, List<String> commitIds, String environment, String author, String comment) throws DeploymentException;
+    void publish(String site, Set<String> commitIds, String environment, String author, String comment) throws DeploymentException;
 
     /**
      * Get a list of operations since the commit ID provided (compare that commit to HEAD)
