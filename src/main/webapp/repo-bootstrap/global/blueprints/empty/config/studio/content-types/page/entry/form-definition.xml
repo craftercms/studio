@@ -3,22 +3,17 @@
 	<description>A Simple Page</description>
 	<objectType>page</objectType>
 	<content-type>/page/entry</content-type>
+	<imageThumbnail>undefined</imageThumbnail>
 	<properties>		<property>
-			<name>placeInNav</name>
-			<label>Show In Nav</label>
-			<value>true</value>
-			<type>boolean</type>
-		</property>
-		<property>
 			<name>display-template</name>
 			<label>Display Template</label>
 			<value>/templates/web/entry.ftl</value>
 			<type>template</type>
 		</property>
 		<property>
-			<name>descriptor-mapper</name>
-			<label>Descriptor Mapper</label>
-			<value>hierarchical-mapper</value>
+			<name>merge-strategy</name>
+			<label>Merge Strategy</label>
+			<value>inherit-levels</value>
 			<type>string</type>
 		</property>
 	</properties>
@@ -45,11 +40,6 @@
 							<name>maxlength</name>
 							<value>50</value>
 							<type>int</type>
-						</property>
-						<property>
-							<name>path</name>
-							<value></value>
-							<type>string</type>
 						</property>
 						<property>
 							<name>readonly</name>
@@ -94,7 +84,30 @@
 						<constraint>
 							<name>required</name>
 							<value><![CDATA[true]]></value>
-							<type>int</type>
+							<type>boolean</type>
+						</constraint>
+					</constraints>
+				</field>
+				<field>
+					<type>page-nav-order</type>
+					<id>placeInNav</id>
+					<iceId></iceId>
+					<title>Place in Nav</title>
+					<description></description>
+					<defaultValue></defaultValue>
+					<help></help>
+					<properties>
+						<property>
+							<name>readonly</name>
+							<value></value>
+							<type>boolean</type>
+						</property>
+					</properties>
+					<constraints>
+						<constraint>
+							<name>required</name>
+							<value><![CDATA[]]></value>
+							<type>boolean</type>
 						</constraint>
 					</constraints>
 				</field>
@@ -175,19 +188,19 @@
 					<type>rte</type>
 					<id>body</id>
 					<iceId>main</iceId>
-					<title>Body Copy</title>
+					<title>Body</title>
 					<description></description>
 					<defaultValue></defaultValue>
 					<help></help>
 					<properties>
 						<property>
-							<name>cols</name>
-							<value></value>
+							<name>width</name>
+							<value>600</value>
 							<type>int</type>
 						</property>
 						<property>
-							<name>rows</name>
-							<value></value>
+							<name>height</name>
+							<value>200</value>
 							<type>int</type>
 						</property>
 						<property>
@@ -199,26 +212,6 @@
 							<name>allowResize</name>
 							<value>true</value>
 							<type>boolean</type>
-						</property>
-						<property>
-							<name>imageManager</name>
-							<value>desktopImages</value>
-							<type>image</type>
-						</property>
-						<property>
-							<name>supportedChannels</name>
-							<value>[{ value: &quot;&quot;, key: &quot;&quot;, size: &quot;&quot; }]</value>
-							<type>string</type>
-						</property>
-						<property>
-							<name>width</name>
-							<value>600</value>
-							<type>int</type>
-						</property>
-						<property>
-							<name>height</name>
-							<value>200</value>
-							<type>int</type>
 						</property>
 						<property>
 							<name>forceRootBlockPTag</name>
@@ -241,16 +234,26 @@
 							<type>boolean</type>
 						</property>
 						<property>
+							<name>supportedChannels</name>
+							<value></value>
+							<type>supportedChannels</type>
+						</property>
+						<property>
 							<name>rteConfiguration</name>
 							<value>generic</value>
 							<type>string</type>
+						</property>
+						<property>
+							<name>imageManager</name>
+							<value>desktopImages</value>
+							<type>datasource:image</type>
 						</property>
 					</properties>
 					<constraints>
 						<constraint>
 							<name>required</name>
 							<value><![CDATA[true]]></value>
-							<type>int</type>
+							<type>boolean</type>
 						</constraint>
 					</constraints>
 				</field>
