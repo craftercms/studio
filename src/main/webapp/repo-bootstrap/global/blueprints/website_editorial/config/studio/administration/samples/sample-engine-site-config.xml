@@ -22,6 +22,17 @@
         </filter>
     </filters>
 
+    (CORS Properties)
+    <cors>
+        <enable>true</enable> (Enable/disable CORS headers, default is false)
+        (Values for each of the headers that will be added to responses)
+        <accessControlMaxAge>3600</accessControlMaxAge>
+        <accessControlAllowOrigin>*</accessControlAllowOrigin>
+        <accessControlAllowMethods>GET\, POST\, PUT</accessControlAllowMethods>
+        <accessControlAllowHeaders>Content-Type</accessControlAllowHeaders>
+        <accessControlAllowCredentials>true</accessControlAllowCredentials>
+    </cors>
+
     (Content Targeting Properties)
     <targeting>
         <enabled /> (Enable/disable content targeting, default is false)
@@ -114,6 +125,16 @@
             </mapping>
         </filter>
     </filters>
+
+    <!-- CORS Properties -->
+    <cors>
+        <enable>true</enable>
+        <accessControlMaxAge>3600</accessControlMaxAge>
+        <accessControlAllowOrigin>*</accessControlAllowOrigin>
+        <accessControlAllowMethods>GET\, POST\, PUT</accessControlAllowMethods>
+        <accessControlAllowHeaders>Content-Type</accessControlAllowHeaders>
+        <accessControlAllowCredentials>true</accessControlAllowCredentials>
+    </cors>
 
     <!-- Content targeting properties -->
     <targeting>
