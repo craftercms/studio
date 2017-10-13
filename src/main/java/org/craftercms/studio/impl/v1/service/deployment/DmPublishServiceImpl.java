@@ -155,7 +155,7 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
                 }
                 String aprover = securityService.getCurrentUser();
                 String comment = "Bulk Go Live invoked by " + aprover;
-                logger.error("Deploying package of " + pathsToPublish.size() + " items for site " + site + " path " +
+                logger.info("Deploying package of " + pathsToPublish.size() + " items for site " + site + " path " +
                              childPath);
                 try {
                     deploymentService.deploy(site, environment, pathsToPublish, launchDate, aprover, comment, true);
