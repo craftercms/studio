@@ -35,6 +35,7 @@ import freemarker.template.TemplateException;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.http.RequestContext;
+import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.StudioXmlConstants;
 import org.craftercms.studio.api.v1.exception.ServiceException;
@@ -43,6 +44,7 @@ import org.craftercms.studio.api.v1.exception.security.*;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
+import org.craftercms.studio.api.v1.service.activity.ActivityService;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.ContentTypeService;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
@@ -81,6 +83,17 @@ import static org.craftercms.studio.api.v1.util.StudioConfiguration.*;
 public class SecurityServiceImpl implements SecurityService {
 
     private static final Logger logger = LoggerFactory.getLogger(SecurityServiceImpl.class);
+
+    protected SecurityProvider securityProvider;
+    protected ContentTypeService contentTypeService;
+    protected ActivityService activityService;
+    protected ContentService contentService;
+    protected GeneralLockService generalLockService;
+    protected StudioConfiguration studioConfiguration;
+    protected JavaMailSender emailService;
+    protected JavaMailSender emailServiceNoAuth;
+    protected UserDetailsManager userDetailsManager;
+    protected ObjectFactory<FreeMarkerConfig> freeMarkerConfig;
 
     @Override
     public String authenticate(String username, String password) throws BadCredentialsException, AuthenticationSystemException {
@@ -520,7 +533,15 @@ public class SecurityServiceImpl implements SecurityService {
 
     @Override
     public boolean createUser(String username, String password, String firstName, String lastName, String email) throws UserAlreadyExistsException {
-        return securityProvider.createUser(username, password, firstName, lastName, email, false);
+        boolean toRet = securityProvider.createUser(username, password, firstName, lastName, email, false);
+        if (toRet) {
+            ActivityService.ActivityType activityType = ActivityService.ActivityType.CREATED;
+            String user = getCurrentUser();
+            Map<String, String> extraInfo = new HashMap<String, String>();
+            extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
+            activityService.postActivity("N/A", user, "N/A", activityType, ActivityService.ActivitySource.UI, extraInfo);
+        }
+        return toRet;
     }
 
     @Override
@@ -528,7 +549,15 @@ public class SecurityServiceImpl implements SecurityService {
         if (!isDeleteUserAllowed(username)) {
             throw new DeleteUserNotAllowedException();
         } else {
-            return securityProvider.deleteUser(username);
+            boolean toRet = securityProvider.deleteUser(username);
+            if (toRet) {
+                ActivityService.ActivityType activityType = ActivityService.ActivityType.DELETED;
+                String user = getCurrentUser();
+                Map<String, String> extraInfo = new HashMap<String, String>();
+                extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
+                activityService.postActivity("N/A", user, "N/A", activityType, ActivityService.ActivitySource.UI, extraInfo);
+            }
+            return toRet;
         }
     }
 
@@ -555,7 +584,15 @@ public class SecurityServiceImpl implements SecurityService {
 
     @Override
     public boolean updateUser(String username, String firstName, String lastName, String email) throws UserNotFoundException, UserExternallyManagedException {
-        return securityProvider.updateUser(username, firstName, lastName, email);
+        boolean toRet = securityProvider.updateUser(username, firstName, lastName, email);
+        if (toRet) {
+            ActivityService.ActivityType activityType = ActivityService.ActivityType.UPDATED;
+            String user = getCurrentUser();
+            Map<String, String> extraInfo = new HashMap<String, String>();
+            extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
+            activityService.postActivity("N/A", user, "N/A", activityType, ActivityService.ActivitySource.UI, extraInfo);
+        }
+        return toRet;
     }
 
     @Override
@@ -937,13 +974,6 @@ public class SecurityServiceImpl implements SecurityService {
     public ObjectFactory<FreeMarkerConfig> getFreeMarkerConfig() { return freeMarkerConfig; }
     public void setFreeMarkerConfig(ObjectFactory<FreeMarkerConfig> freeMarkerConfig) { this.freeMarkerConfig = freeMarkerConfig; }
 
-    protected SecurityProvider securityProvider;
-    protected ContentTypeService contentTypeService;
-    protected ContentService contentService;
-    protected GeneralLockService generalLockService;
-    protected StudioConfiguration studioConfiguration;
-    protected JavaMailSender emailService;
-    protected JavaMailSender emailServiceNoAuth;
-    protected UserDetailsManager userDetailsManager;
-    protected ObjectFactory<FreeMarkerConfig> freeMarkerConfig;
+    public ActivityService getActivityService() { return activityService; }
+    public void setActivityService(ActivityService activityService) { this.activityService = activityService; }
 }

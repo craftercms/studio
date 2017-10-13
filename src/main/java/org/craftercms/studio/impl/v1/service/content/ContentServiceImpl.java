@@ -419,6 +419,11 @@ public class ContentServiceImpl implements ContentService {
         boolean toRet = false;
         String commitId = _contentRepository.createFolder(site, path, name);
         if (commitId != null) {
+            ActivityService.ActivityType activityType = ActivityService.ActivityType.CREATED;
+            String user = securityService.getCurrentUser();
+            Map<String, String> extraInfo = new HashMap<String, String>();
+            extraInfo.put(DmConstants.KEY_CONTENT_TYPE, CONTENT_TYPE_FOLDER);
+            activityService.postActivity(site, user, path + FILE_SEPARATOR + name, activityType, ActivityService.ActivitySource.UI, extraInfo);
             // TODO: SJ: we're currently not keeping meta-data for folders and therefore nothing to update
             // TODO: SJ: rethink this for 3.1+
             toRet = true;
