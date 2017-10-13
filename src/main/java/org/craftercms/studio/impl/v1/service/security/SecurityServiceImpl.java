@@ -84,6 +84,17 @@ public class SecurityServiceImpl implements SecurityService {
 
     private static final Logger logger = LoggerFactory.getLogger(SecurityServiceImpl.class);
 
+    protected SecurityProvider securityProvider;
+    protected ContentTypeService contentTypeService;
+    protected ActivityService activityService;
+    protected ContentService contentService;
+    protected GeneralLockService generalLockService;
+    protected StudioConfiguration studioConfiguration;
+    protected JavaMailSender emailService;
+    protected JavaMailSender emailServiceNoAuth;
+    protected UserDetailsManager userDetailsManager;
+    protected ObjectFactory<FreeMarkerConfig> freeMarkerConfig;
+
     @Override
     public String authenticate(String username, String password) throws BadCredentialsException, AuthenticationSystemException {
         String toRet = securityProvider.authenticate(username, password);
@@ -965,15 +976,4 @@ public class SecurityServiceImpl implements SecurityService {
 
     public ActivityService getActivityService() { return activityService; }
     public void setActivityService(ActivityService activityService) { this.activityService = activityService; }
-
-    protected SecurityProvider securityProvider;
-    protected ContentTypeService contentTypeService;
-    protected ActivityService activityService;
-    protected ContentService contentService;
-    protected GeneralLockService generalLockService;
-    protected StudioConfiguration studioConfiguration;
-    protected JavaMailSender emailService;
-    protected JavaMailSender emailServiceNoAuth;
-    protected UserDetailsManager userDetailsManager;
-    protected ObjectFactory<FreeMarkerConfig> freeMarkerConfig;
 }
