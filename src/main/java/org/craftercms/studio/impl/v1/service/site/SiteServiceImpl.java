@@ -744,6 +744,7 @@ public class SiteServiceImpl implements SiteService {
 	    for (RepoOperationTO repoOperation: repoOperations) {
             Map<String, String> activityInfo = new HashMap<String, String>();
             String contentClass;
+            Map<String, Object> properties;
 		    switch (repoOperation.getOperation()) {
 			    case CREATE:
 			    case COPY:
@@ -758,7 +759,12 @@ public class SiteServiceImpl implements SiteService {
 				    if (!objectMetadataManager.metadataExist(site, repoOperation.getPath())) {
 					    objectMetadataManager.insertNewObjectMetadata(site, repoOperation.getPath());
 				    }
-                    objectMetadataManager.updateCommitId(site,repoOperation.getPath(), repoOperation.getCommitId());
+                    properties = new HashMap<String, Object>();
+                    properties.put(ItemMetadata.PROP_SITE, site);
+                    properties.put(ItemMetadata.PROP_PATH, repoOperation.getPath());
+                    properties.put(ItemMetadata.PROP_MODIFIED, repoOperation.getDateTime());
+                    properties.put(ItemMetadata.PROP_COMMIT_ID, repoOperation.getCommitId());
+                    objectMetadataManager.setObjectMetadata(site, repoOperation.getMoveToPath(), properties);
 				    toReturn = toReturn && extractDependenciesForItem(site, repoOperation.getPath());
                     contentClass = contentService.getContentTypeClass(site, repoOperation.getPath());
                     if( repoOperation.getPath().endsWith(DmConstants.XML_PATTERN)) {
@@ -774,7 +780,12 @@ public class SiteServiceImpl implements SiteService {
 				    if (!objectMetadataManager.metadataExist(site, repoOperation.getPath())) {
 					    objectMetadataManager.insertNewObjectMetadata(site, repoOperation.getPath());
 				    }
-                    objectMetadataManager.updateCommitId(site, repoOperation.getPath(), repoOperation.getCommitId());
+                    properties = new HashMap<String, Object>();
+                    properties.put(ItemMetadata.PROP_SITE, site);
+                    properties.put(ItemMetadata.PROP_PATH, repoOperation.getPath());
+                    properties.put(ItemMetadata.PROP_MODIFIED, repoOperation.getDateTime());
+                    properties.put(ItemMetadata.PROP_COMMIT_ID, repoOperation.getCommitId());
+                    objectMetadataManager.setObjectMetadata(site, repoOperation.getMoveToPath(), properties);
 				    toReturn = toReturn && extractDependenciesForItem(site, repoOperation.getPath());
                     contentClass = contentService.getContentTypeClass(site, repoOperation.getPath());
                     if( repoOperation.getPath().endsWith(DmConstants.XML_PATTERN)) {
@@ -812,12 +823,13 @@ public class SiteServiceImpl implements SiteService {
 					    } else {
 						    if (!objectMetadataManager.isRenamed(site, repoOperation.getMoveToPath())) {
 							    // set renamed and old path
-							    Map<String, Object> properties = new HashMap<String, Object>();
+							    properties = new HashMap<String, Object>();
 							    properties.put(ItemMetadata.PROP_SITE, site);
 							    properties.put(ItemMetadata.PROP_PATH, repoOperation.getMoveToPath());
 							    properties.put(ItemMetadata.PROP_RENAMED, 1);
 							    properties.put(ItemMetadata.PROP_OLD_URL, repoOperation.getPath());
                                 properties.put(ItemMetadata.PROP_COMMIT_ID, repoOperation.getCommitId());
+                                properties.put(ItemMetadata.PROP_MODIFIED, repoOperation.getDateTime());
 							    objectMetadataManager.setObjectMetadata(site, repoOperation.getMoveToPath(), properties);
 						    }
 					    }
@@ -825,7 +837,7 @@ public class SiteServiceImpl implements SiteService {
 					    if (!objectMetadataManager.metadataExist(site, repoOperation.getMoveToPath())) {
 						    // preform move: update path, set renamed, set old url
 						    objectMetadataManager.updateObjectPath(site, repoOperation.getPath(), repoOperation.getMoveToPath());
-						    Map<String, Object> properties = new HashMap<String, Object>();
+						    properties = new HashMap<String, Object>();
 						    properties.put(ItemMetadata.PROP_SITE, site);
 						    properties.put(ItemMetadata.PROP_PATH, repoOperation.getMoveToPath());
 						    properties.put(ItemMetadata.PROP_RENAMED, 1);
@@ -836,7 +848,7 @@ public class SiteServiceImpl implements SiteService {
 						    // if not already renamed set renamed and old url
 						    if (!objectMetadataManager.isRenamed(site, repoOperation.getMoveToPath())) {
 							    // set renamed and old path
-							    Map<String, Object> properties = new HashMap<String, Object>();
+							    properties = new HashMap<String, Object>();
 							    properties.put(ItemMetadata.PROP_SITE, site);
 							    properties.put(ItemMetadata.PROP_PATH, repoOperation.getMoveToPath());
 							    properties.put(ItemMetadata.PROP_RENAMED, 1);
