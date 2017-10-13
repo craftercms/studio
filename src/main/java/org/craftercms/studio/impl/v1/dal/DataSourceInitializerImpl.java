@@ -173,7 +173,9 @@ public class DataSourceInitializerImpl implements DataSourceInitializer, Disposa
 
 
             try {
-                conn.close();
+                if (conn != null) {
+                    conn.close();
+                }
             } catch (SQLException e) {
                 logger.error("Error while closing connection with database", e);
             }
