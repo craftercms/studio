@@ -28,6 +28,7 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.ldap.AuthenticationException;
+import org.springframework.ldap.CommunicationException;
 import org.springframework.ldap.core.AuthenticatedLdapEntryContextMapper;
 import org.springframework.ldap.core.DirContextOperations;
 import org.springframework.ldap.core.LdapEntryIdentification;
@@ -139,7 +140,7 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
         User user;
         try {
             user = ldapTemplate.authenticate(ldapQuery, password, mapper);
-        } catch (EmptyResultDataAccessException e) {
+        } catch (EmptyResultDataAccessException | CommunicationException e) {
             logger.error("User " + username + " not found with external security provider. Trying to authenticate against studio database");
             // When user not found try to authenticate against studio database
             return super.authenticate(username, password);
