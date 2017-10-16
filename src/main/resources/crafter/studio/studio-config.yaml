@@ -177,9 +177,9 @@ studio.security.ldap.userAttribute.lastName: sn
 # LDAP email attribute
 studio.security.ldap.userAttribute.email: mail
 # LDAP site ID attribute
-studio.security.ldap.userAttribute.siteId: o
+studio.security.ldap.userAttribute.siteId: crafterSite
 # LDAP groups attribute
-studio.security.ldap.userAttribute.groupName: ou
+studio.security.ldap.userAttribute.groupName: crafterGroup
 # Global admin group
 studio.security.global.adminGroup: crafter-admin
 
