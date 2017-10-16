@@ -26,6 +26,7 @@ import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.*;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.eclipse.jgit.lib.ObjectId;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.ldap.AuthenticationException;
 import org.springframework.ldap.CommunicationException;
@@ -100,27 +101,36 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
                     String siteId;
                     SiteFeed siteFeed;
                     if (siteIdAttrib != null && siteIdAttrib.get() != null) {
-                        siteId = siteIdAttrib.get().toString();
                         Map<String, Object> params = new HashMap<>();
-                        params.put("siteId", siteId);
-                        siteFeed = siteFeedMapper.getSite(params);
-                        if (groupNameAttrib != null && groupNameAttrib.size() > 0) {
-                            NamingEnumeration groupAttribValues = groupNameAttrib.getAll();
-                            while (groupAttribValues.hasMore()) {
-                                String groupName = groupAttribValues.next().toString();
-                                Group g = new Group();
-                                g.setName(groupName);
-                                g.setExternallyManaged(1);
-                                g.setDescription("Externally managed group");
-                                g.setSiteId(siteFeed.getId());
-                                g.setSite(siteFeed.getSiteId());
-                                if (user.getGroups() == null) {
-                                    user.setGroups(new ArrayList<>());
+                        NamingEnumeration siteIdValues = siteIdAttrib.getAll();
+                        while (siteIdValues.hasMore()) {
+                            Object siteIdObj = siteIdValues.next();
+                            if (siteIdObj != null) {
+                                siteId = siteIdObj.toString();
+                                params.put("siteId", siteId);
+                                siteFeed = siteFeedMapper.getSite(params);
+                                if (groupNameAttrib != null && groupNameAttrib.size() > 0) {
+                                    NamingEnumeration groupAttribValues = groupNameAttrib.getAll();
+                                    while (groupAttribValues.hasMore()) {
+                                        Object groupNameObj = groupAttribValues.next();
+                                        if (groupNameObj != null ) {
+                                            String groupName = groupNameObj.toString();
+                                            Group g = new Group();
+                                            g.setName(groupName);
+                                            g.setExternallyManaged(1);
+                                            g.setDescription("Externally managed group");
+                                            g.setSiteId(siteFeed.getId());
+                                            g.setSite(siteFeed.getSiteId());
+                                            if (user.getGroups() == null) {
+                                                user.setGroups(new ArrayList<>());
+                                            }
+                                            user.getGroups().add(g);
+                                        }
+                                    }
+                                } else {
+                                    logger.warn("No LDAP attribute " + groupNameAttribName + " found for username " + username);
                                 }
-                                user.getGroups().add(g);
                             }
-                        } else {
-                            logger.warn("No LDAP attribute " + groupNameAttribName + " found for username " + username);
                         }
                     } else {
                         logger.warn("No LDAP attribute " + siteIdAttribName + " found for username " + username);
