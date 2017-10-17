@@ -12,10 +12,10 @@
 	<include>/site/components/headers/header.xml</include>
 	<disableFlattening>false</disableFlattening>
 	</item></header>
-	<createdDate>3/13/2017 20:26:50</createdDate>
-	<createdDate_dt>3/13/2017 20:26:50</createdDate_dt>
-	<lastModifiedDate>5/18/2017 15:38:58</lastModifiedDate>
-	<lastModifiedDate_dt>5/18/2017 15:38:58</lastModifiedDate_dt>
+	<createdDate>2017-3-13T20:26:50.000Z</createdDate>
+	<createdDate_dt>2017-3-13T20:26:50.000Z</createdDate_dt>
+	<lastModifiedDate>2017-5-18T15:38:58.000Z</lastModifiedDate>
+	<lastModifiedDate_dt>2017-5-18T15:38:58.000Z</lastModifiedDate_dt>
 	<left-rail>	<item>	<key>/site/components/left-rails/left-rail-with-no-articles.xml</key>
 	<value>Left Rail with No Articles</value>
 	<include>/site/components/left-rails/left-rail-with-no-articles.xml</include>

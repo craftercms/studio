@@ -11,10 +11,10 @@
 	<internal-name>Health</internal-name>
 	<title>Health</title>
 	<header/>
-	<createdDate>3/14/2017 15:21:57</createdDate>
-	<createdDate_dt>3/14/2017 15:21:57</createdDate_dt>
-	<lastModifiedDate>3/28/2017 14:30:44</lastModifiedDate>
-	<lastModifiedDate_dt>3/28/2017 14:30:44</lastModifiedDate_dt>
+	<createdDate>2017-3-14T15:21:57.000Z</createdDate>
+	<createdDate_dt>2017-3-14T15:21:57.000Z</createdDate_dt>
+	<lastModifiedDate>2017-3-28T14:30:44.000Z</lastModifiedDate>
+	<lastModifiedDate_dt>2017-3-28T14:30:44.000Z</lastModifiedDate_dt>
 	<left-rail/>
 	<category>health</category>
 	<max_articles>10</max_articles>

@@ -23,11 +23,11 @@
 	<segments>	<item>	<key>gal</key>
 	<value_smv>Gal</value_smv>
 	</item></segments>
-	<createdDate>3/3/2017 21:7:20</createdDate>
-	<createdDate_dt>3/3/2017 21:7:20</createdDate_dt>
-	<lastModifiedDate>3/13/2017 20:33:12</lastModifiedDate>
-	<lastModifiedDate_dt>3/13/2017 20:33:12</lastModifiedDate_dt>
-	<date_dt>01/03/2017 05:00:00</date_dt>
+	<createdDate>2017-3-3T21:7:20.000Z</createdDate>
+	<createdDate_dt>2017-3-3T21:7:20.000Z</createdDate_dt>
+	<lastModifiedDate>2017-3-13T20:33:12.000Z</lastModifiedDate>
+	<lastModifiedDate_dt>2017-3-13T20:33:12.000Z</lastModifiedDate_dt>
+	<date_dt>2017-01-03T05:00:00.000Z</date_dt>
 	<featured_b>true</featured_b>
 	<summary>Donec quis justo ligula. Ut commodo nibh sit amet ultrices ultricies. Curabitur tempus venenatis vulputate. Quisque dignissim interdum tempus. Pellentesque luctus justo augue, vel gravida orci rutrum a. Sed elementum est sapien.</summary>
 	<image>/static-assets/images/winter-woman-pic.jpg</image>
