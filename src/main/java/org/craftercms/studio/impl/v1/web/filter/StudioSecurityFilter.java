@@ -59,7 +59,7 @@ public class StudioSecurityFilter extends GenericFilterBean {
                     chain.doFilter(request, response);
                 }
             } else {
-                securityProvider.logout();
+                securityService.logout();
                 httpReponse.sendRedirect(httpRequest.getContextPath() + "/");
             }
         }
