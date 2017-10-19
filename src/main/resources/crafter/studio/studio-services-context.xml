@@ -636,6 +636,12 @@
         <property name="securityService" ref="cstudioSecurityService" />
     </bean>
 
+    <bean id="crafter.studioAuthenticationFilter" class="org.craftercms.studio.impl.v1.web.filter.StudioAuthenticationFilter" >
+        <property name="publicUrls" value="${crafter.studio.security.publicUrls}"/>
+        <property name="securityService" ref="cstudioSecurityService" />
+        <property name="sessionTimeout" value="${crafter.studio.security.sessionTimeout}"/>
+    </bean>
+
     <bean id="securityProvider" class="org.craftercms.studio.impl.v1.service.security.MappedSecurityProvider">
         <property name="providerType" value="${securityType}"/>
     </bean>
