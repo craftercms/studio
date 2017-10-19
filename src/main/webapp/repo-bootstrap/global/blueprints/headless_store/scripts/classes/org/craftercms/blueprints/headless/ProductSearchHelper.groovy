@@ -27,7 +27,7 @@ class ProductSearchHelper extends SearchHelper {
 			company: doc["company.item.component.name_s"],
 			categories: getCategories(doc),
 			tags: getTags(doc),
-			date: item.createdDate_dt.text,
+			date: item.createdDate_dt.toInstant() as String,
 			description: item.description_html.text,
 			image: item.image_s.text,
 			price: item.price_d,
