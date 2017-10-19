@@ -40,7 +40,7 @@ class PostSearchHelper extends SearchHelper {
 			authors: getAuthors(doc),
 			categories: getCategories(doc),
 			tags: getTags(doc),
-			date: item.createdDate_dt.text,
+			date: item.createdDate_dt.toInstant() as String,
 			body: item.body_html.text,
 			featuredImage: item.featuredImage_s.text,
 			itemUrl: doc.localId
