@@ -80,4 +80,6 @@ public interface CStudioConstants {
 
     // Locking constants
     public static final String LOCKING_CACHE_CREATE_SCOPE = "lockingCacheCreateScope";
+
+    String STUDIO_SESSION_TOKEN_ATRIBUTE = "studioSessionToken";
 }
