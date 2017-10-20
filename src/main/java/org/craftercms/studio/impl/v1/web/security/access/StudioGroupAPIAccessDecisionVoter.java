@@ -18,14 +18,22 @@
 
 package org.craftercms.studio.impl.v1.web.security.access;
 
+import net.sf.json.JSONException;
+import net.sf.json.JSONObject;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.dal.User;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.FilterInvocation;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Collection;
 
 public class StudioGroupAPIAccessDecisionVoter extends StudioAbstractAccessDecisionVoter {
@@ -56,6 +64,7 @@ public class StudioGroupAPIAccessDecisionVoter extends StudioAbstractAccessDecis
             HttpServletRequest request = filterInvocation.getRequest();
             requestUri = request.getRequestURI().replace(request.getContextPath(), "");
             String siteParam = request.getParameter("site_id");
+            String userParam = request.getParameter("username");
             User currentUser = null;
             try {
                 currentUser = (User)authentication.getPrincipal();
@@ -66,6 +75,28 @@ public class StudioGroupAPIAccessDecisionVoter extends StudioAbstractAccessDecis
                     return ACCESS_ABSTAIN;
                 }
             }
+            if (StringUtils.isEmpty(userParam)
+                    && StringUtils.equalsIgnoreCase(request.getMethod(), HttpMethod.POST.name())
+                    && !ServletFileUpload.isMultipartContent(request)) {
+                try {
+                    InputStream is = request.getInputStream();
+                    is.mark(0);
+                    String jsonString = IOUtils.toString(is);
+                    if (StringUtils.isNoneEmpty(jsonString)) {
+                        JSONObject jsonObject = JSONObject.fromObject(jsonString);
+                        if (jsonObject.has("username")) {
+                            userParam = jsonObject.getString("username");
+                        }
+                        if (jsonObject.has("site_id")) {
+                            siteParam = jsonObject.getString("site_id");
+                        }
+                    }
+                    is.reset();
+                } catch (IOException | JSONException e) {
+                    // TODO: ??
+                    logger.debug("Failed to extract username from POST request");
+                }
+            }
             switch (requestUri) {
                 case ADD_USER:
                 case CREATE:
@@ -73,7 +104,7 @@ public class StudioGroupAPIAccessDecisionVoter extends StudioAbstractAccessDecis
                 case GET_ALL:
                 case REMOVE_USER:
                 case UPDATE:
-                    if (currentUser != null && isAdmin(currentUser)) {
+                    if (currentUser != null && (isAdmin(currentUser) || isSiteAdmin(siteParam, currentUser))) {
                         toRet = ACCESS_GRANTED;
                     } else {
                         toRet = ACCESS_DENIED;
