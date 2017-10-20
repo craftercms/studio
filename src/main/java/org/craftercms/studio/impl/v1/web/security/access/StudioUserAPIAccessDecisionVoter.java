@@ -74,6 +74,7 @@ public class StudioUserAPIAccessDecisionVoter extends StudioAbstractAccessDecisi
             HttpServletRequest  request = filterInvocation.getRequest();
             requestUri = request.getRequestURI().replace(request.getContextPath(), "");
             String userParam = request.getParameter("username");
+            String siteParam = request.getParameter("site_id");
             if (StringUtils.isEmpty(userParam)
                 && StringUtils.equalsIgnoreCase(request.getMethod(), HttpMethod.POST.name())
                 && !ServletFileUpload.isMultipartContent(request)) {
@@ -85,6 +86,9 @@ public class StudioUserAPIAccessDecisionVoter extends StudioAbstractAccessDecisi
                         JSONObject jsonObject = JSONObject.fromObject(jsonString);
                         if (jsonObject.has("username")) {
                             userParam = jsonObject.getString("username");
+                        }
+                        if (jsonObject.has("site_id")) {
+                            siteParam = jsonObject.getString("site_id");
                         }
                     }
                     is.reset();
@@ -122,10 +126,16 @@ public class StudioUserAPIAccessDecisionVoter extends StudioAbstractAccessDecisi
                 case DELETE:
                 case DISABLE:
                 case ENABLE:
-                case GET_ALL:
                 case RESET_PASSWORD:
                 case STATUS:
                     if (currentUser != null && isAdmin(currentUser)) {
+                        toRet = ACCESS_GRANTED;
+                    } else {
+                        toRet = ACCESS_DENIED;
+                    }
+                    break;
+                case GET_ALL:
+                    if (currentUser != null) {
                         toRet = ACCESS_GRANTED;
                     } else {
                         toRet = ACCESS_DENIED;
