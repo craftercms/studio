@@ -26,6 +26,7 @@ import org.craftercms.commons.http.HttpUtils;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
+import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.SessionTokenUtils;
 import org.springframework.util.AntPathMatcher;
@@ -68,7 +69,7 @@ public class StudioSecurityFilter extends GenericFilterBean {
                     chain.doFilter(request, response);
                 }
             } else {
-                securityProvider.logout();
+                securityService.logout();
                 httpReponse.sendRedirect(httpRequest.getContextPath() + "/");
             }
         }
@@ -169,8 +170,12 @@ public class StudioSecurityFilter extends GenericFilterBean {
     public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
 
+    public SecurityService getSecurityService() { return securityService; }
+    public void setSecurityService(SecurityService securityservice) { this.securityService = securityservice; }
+
     protected SecurityProvider securityProvider;
     protected StudioConfiguration studioConfiguration;
+    protected SecurityService securityService;
 
     protected PathMatcher pathMatcher;
 }
