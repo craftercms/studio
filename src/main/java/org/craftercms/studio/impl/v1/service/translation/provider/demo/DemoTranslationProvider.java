@@ -32,6 +32,7 @@ import org.dom4j.Document;
 import org.dom4j.Node;
 
 import org.apache.commons.io.IOUtils;
+import org.xml.sax.SAXException;
 
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
@@ -109,7 +110,14 @@ public class DemoTranslationProvider implements TranslationProvider {
 			if(path.endsWith(".xml") || path.endsWith(".XML")) {
 				try {
 					InputStream docInputStream = new ByteArrayInputStream(contentBytes);
-					SAXReader saxReader = new SAXReader();    		
+					SAXReader saxReader = new SAXReader();
+					try {
+						saxReader.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+						saxReader.setFeature("http://xml.org/sax/features/external-general-entities", false);
+						saxReader.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+					}catch (SAXException ex){
+						logger.error("Unable to turn off external entity loading, This could be a security risk.", ex);
+					}
 		    		Document document = saxReader.read(docInputStream);
 		    		
 					for(String element : _translateElements) {

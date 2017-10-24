@@ -28,6 +28,7 @@ import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
+import org.xml.sax.SAXException;
 
 import java.io.File;
 import java.util.*;
@@ -49,7 +50,7 @@ public class DemoSecurityProvider implements SecurityProvider {
     private final static String CONST_FAKETICKET = "_FAKETICKET";
 
     private final static String PROVIDER_TYPE = "file";
-
+    private static final Logger LOGGER = LoggerFactory.getLogger(DemoSecurityProvider.class);
     public void init() {
         if (configuredProviderType.equals(PROVIDER_TYPE)) {
             logger.debug("Demo security provider is configured for use. Loading configuration from " + configLocation);
@@ -63,6 +64,13 @@ public class DemoSecurityProvider implements SecurityProvider {
         try {
             File file = new File(configLocation);
             SAXReader reader = new SAXReader();
+            try {
+                reader.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+                reader.setFeature("http://xml.org/sax/features/external-general-entities", false);
+                reader.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+            }catch (SAXException ex){
+                LOGGER.error("Unable to turn off external entity loading, This could be a security risk.", ex);
+            }
             document = reader.read(file);
         } catch (DocumentException e) {
             e.printStackTrace();

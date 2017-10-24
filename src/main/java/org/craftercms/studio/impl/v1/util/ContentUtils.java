@@ -28,6 +28,7 @@ import org.craftercms.studio.api.v1.service.activity.ActivityService;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.io.SAXReader;
+import org.xml.sax.SAXException;
 
 import java.io.*;
 import java.security.MessageDigest;
@@ -178,6 +179,13 @@ public class ContentUtils {
 		try {
             isReader = new InputStreamReader(is, CStudioConstants.CONTENT_ENCODING);
 			SAXReader saxReader = new SAXReader();
+			try {
+				saxReader.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+				saxReader.setFeature("http://xml.org/sax/features/external-general-entities", false);
+				saxReader.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+			}catch (SAXException ex){
+				logger.error("Unable to turn off external entity loading, This could be a security risk.", ex);
+			}
 			return saxReader.read(isReader);
 		} catch (DocumentException e) {
 				logger.error("Error while coverting stream to XML", e);

@@ -22,6 +22,7 @@ import org.outerj.daisy.diff.html.TextNodeComparator
 import org.outerj.daisy.diff.html.dom.DomTreeBuilder
 import org.xml.sax.InputSource
 import org.xml.sax.helpers.AttributesImpl
+import javax.xml.XMLConstants;
 
 class HTMLCompareTools {
 		static CONTENT_XML_TO_HTML_XSL = 
@@ -51,7 +52,8 @@ class HTMLCompareTools {
 	static String xmlToHtml(InputStream xml) {
 		try {
 			SAXTransformerFactory tf = TransformerFactory.newInstance()
-
+			tf.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+			tf.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "");
 			StreamSource xslSource = new StreamSource(IOUtils.toInputStream(HTMLCompareTools.CONTENT_XML_TO_HTML_XSL))
 			Transformer transformer = tf.newTransformer(xslSource)
 			StreamSource xmlSource = new StreamSource(xml)
@@ -77,7 +79,8 @@ class HTMLCompareTools {
 	static String diff(InputStream html1, InputStream html2) {
 		try {
 			SAXTransformerFactory tf = (SAXTransformerFactory) TransformerFactory.newInstance();
-
+			tf.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+			tf.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "");
 			TransformerHandler result = tf.newTransformerHandler();
 			StringWriter resultWriter = new StringWriter();
 			result.setResult(new StreamResult(resultWriter));
