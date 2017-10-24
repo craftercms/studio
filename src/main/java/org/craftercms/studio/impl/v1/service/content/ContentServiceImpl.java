@@ -67,6 +67,7 @@ import org.dom4j.Element;
 import org.dom4j.DocumentException;
 
 import org.apache.commons.io.IOUtils;
+import org.xml.sax.SAXException;
 import reactor.core.Reactor;
 import reactor.event.Event;
 
@@ -145,7 +146,14 @@ public class ContentServiceImpl implements ContentService {
 
         if(is != null) {
             try {
-                SAXReader saxReader = new SAXReader();          
+                SAXReader saxReader = new SAXReader();
+                try {
+                    saxReader.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+                    saxReader.setFeature("http://xml.org/sax/features/external-general-entities", false);
+                    saxReader.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+                }catch (SAXException ex){
+                    logger.error("Unable to turn off external entity loading, This could be a security risk.", ex);
+                }
                 retDocument = saxReader.read(is);
             } 
             finally {

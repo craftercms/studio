@@ -33,6 +33,7 @@ import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.io.SAXReader;
+import org.xml.sax.SAXException;
 
 import java.io.InputStream;
 import java.io.Serializable;
@@ -175,6 +176,13 @@ public class DmContentLifeCycleServiceImpl extends AbstractRegistrableService im
             try {
                 is = contentService.getContent(fullPath);
                 SAXReader saxReader = new SAXReader();
+                try {
+                    saxReader.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+                    saxReader.setFeature("http://xml.org/sax/features/external-general-entities", false);
+                    saxReader.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+                }catch (SAXException ex){
+                    logger.error("Unable to turn off external entity loading, This could be a security risk.", ex);
+                }
                 Document content = saxReader.read(is);
                 return content;
             } catch (DocumentException e) {

@@ -18,24 +18,13 @@
 package org.craftercms.studio.impl.v1.util;
 
 
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringReader;
-import java.io.StringWriter;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-
 import org.dom4j.Document;
-import org.dom4j.DocumentException;
-import org.dom4j.io.SAXReader;
 import org.dom4j.io.XMLWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
+
+import java.io.IOException;
+import java.io.StringWriter;
 
 /**
  * This class provides common methods for handling XML
@@ -46,18 +35,6 @@ import org.xml.sax.SAXException;
 public class XmlUtils {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(XmlUtils.class);
-	/**
-	 * load XML from the given input stream
-	 * 
-	 * @param in
-	 * @return Document
-	 * @throws org.dom4j.DocumentException
-	 *//*
-	public static Document loadXml(InputStream in) throws DocumentException {
-		SAXReader reader = new SAXReader();
-		Document document = reader.read(in);
-		return document;
-	}*/
 
 	/**
 	 * convert document to string
@@ -78,32 +55,4 @@ public class XmlUtils {
 			writer.close();
 		}
 	}
-	
-	/**
-	 * convert xml string to document
-	 * 
-	 * @param xmlString
-	 * @return document
-	 *//*
-	public static org.w3c.dom.Document convertStringToW3cDocument(String xmlString) {		
-		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-		StringReader reader = null;
-		try {
-			DocumentBuilder builder = factory.newDocumentBuilder();
-	        reader = new StringReader(xmlString);
-	        org.w3c.dom.Document document = builder.parse(new InputSource(reader));
-	        reader.close();
-	        return document;
-		} catch (ParserConfigurationException e) {
-			LOGGER.error("failed to parse string to document: " + xmlString, e);
-		} catch (SAXException e) {
-			LOGGER.error("failed to parse string to document: " + xmlString, e);
-		} catch (IOException e) {
-			LOGGER.error("failed to parse string to document: " + xmlString, e);
-		} finally {
-			reader.close();
-		}
-		return null;
-	}*/
-
 }

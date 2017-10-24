@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
+import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -80,7 +81,11 @@ public class DomUtils {
         try {
 
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-
+            dbf.setFeature("http://xml.org/sax/features/external-general-entities", false);
+            dbf.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+            dbf.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+            dbf.setXIncludeAware(false);
+            dbf.setExpandEntityReferences(false);
             dbf.setValidating(false);
             dbf.setIgnoringComments(false);
             dbf.setIgnoringElementContentWhitespace(true);
@@ -108,7 +113,11 @@ public class DomUtils {
         InputStream is) throws SAXException, IOException, ParserConfigurationException {
 
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-
+        dbf.setFeature("http://xml.org/sax/features/external-general-entities", false);
+        dbf.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+        dbf.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+        dbf.setXIncludeAware(false);
+        dbf.setExpandEntityReferences(false);
         dbf.setValidating(false);
         dbf.setIgnoringComments(false);
         dbf.setIgnoringElementContentWhitespace(true);
@@ -149,9 +158,10 @@ public class DomUtils {
             StringWriter stringWriter = new StringWriter();
             Result result = new StreamResult(stringWriter);
             TransformerFactory factory = TransformerFactory.newInstance();
+            factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+            factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "");
             Transformer transformer = factory.newTransformer();
             transformer.setOutputProperty(OutputKeys.ENCODING, encoding);
-
             transformer.transform(source, result);
             retXmlAsString = stringWriter.toString();
 
