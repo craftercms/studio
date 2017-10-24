@@ -675,13 +675,29 @@ public class SecurityServiceImpl implements SecurityService {
     @Override
     public boolean addUserToGroup(String siteId, String groupName, String username) throws
 	    UserAlreadyExistsException, UserNotFoundException, GroupNotFoundException {
-        return securityProvider.addUserToGroup(siteId, groupName, username);
+        boolean toRet = securityProvider.addUserToGroup(siteId, groupName, username);
+        if (toRet) {
+            ActivityService.ActivityType activityType = ActivityService.ActivityType.ADD_USER_TO_GROUP;
+            String user = getCurrentUser();
+            Map<String, String> extraInfo = new HashMap<String, String>();
+            extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
+            activityService.postActivity(siteId, user, username + " > " + groupName , activityType, ActivityService.ActivitySource.UI, extraInfo);
+        }
+        return toRet;
     }
 
     @Override
     public boolean removeUserFromGroup(String siteId, String groupName, String username) throws
 	    UserNotFoundException, GroupNotFoundException {
-        return securityProvider.removeUserFromGroup(siteId, groupName, username);
+        boolean toRet = securityProvider.removeUserFromGroup(siteId, groupName, username);
+        if (toRet) {
+            ActivityService.ActivityType activityType = ActivityService.ActivityType.REMOVE_USER_FROM_GROUP;
+            String user = getCurrentUser();
+            Map<String, String> extraInfo = new HashMap<String, String>();
+            extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
+            activityService.postActivity(siteId, user, username + " X " + groupName , activityType, ActivityService.ActivitySource.UI, extraInfo);
+        }
+        return toRet;
     }
 
     @Override

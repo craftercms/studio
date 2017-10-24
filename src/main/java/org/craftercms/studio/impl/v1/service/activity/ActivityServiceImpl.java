@@ -335,6 +335,7 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 		params.put("siteNetwork",siteId);
 		params.put("startPos", startPos);
 		params.put("feedSize", feedSize);
+		params.put("activities", Arrays.asList(ActivityType.CREATED, ActivityType.DELETED, ActivityType.UPDATED));
 		if(StringUtils.isNotEmpty(contentType) && !contentType.toLowerCase().equals("all")){
 			params.put("contentType",contentType.toLowerCase());
 		}

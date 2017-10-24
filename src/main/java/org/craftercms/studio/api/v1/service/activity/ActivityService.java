@@ -37,7 +37,9 @@ public interface ActivityService {
 	enum ActivityType {
 		CREATED,
 		UPDATED,
-		DELETED
+		DELETED,
+        ADD_USER_TO_GROUP,
+        REMOVE_USER_FROM_GROUP
 	}
 
 	enum ActivitySource {
