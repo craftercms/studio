@@ -30,12 +30,22 @@
         select cs1.*
         from audit cs1
             inner join (select MAX(modified_date) as mdate, content_id from audit where post_user_id = #{userId} and site_network = #{siteNetwork} and summary_format = #{summaryFormat}
+            and activity_type in
+            <foreach item="activity" index="index" collection="activities"
+                 open="(" separator="," close=")">
+                #{activity}
+            </foreach>
             <if test="contentType != null and contentType != 'all' ">
               and content_type = #{contentType}
             </if>
             group by content_id) as cs2
             on (cs1.content_id = cs2.content_id and cs1.modified_date = cs2.mdate)
         where cs1.post_user_id = #{userId} and cs1.site_network = #{siteNetwork} and cs1.summary_format = #{summaryFormat}
+        and cs1.activity_type in
+        <foreach item="activity" index="index" collection="activities"
+                 open="(" separator="," close=")">
+            #{activity}
+        </foreach>
         <if test="contentType != null and contentType != 'all' ">
             and cs1.content_type = #{contentType}
         </if>
@@ -48,12 +58,22 @@
             select cs1.*
             from audit cs1
             inner join (select MAX(modified_date) as mdate, content_id from audit where post_user_id = #{userId} and site_network = #{siteNetwork} and summary_format = #{summaryFormat}
+            and activity_type in
+            <foreach item="activity" index="index" collection="activities"
+                     open="(" separator="," close=")">
+                #{activity}
+            </foreach>
             <if test="contentType != null and contentType != 'all' ">
                 and content_type = #{contentType}
             </if>
             group by content_id) as cs2
             on (cs1.content_id = cs2.content_id and cs1.modified_date = cs2.mdate)
             where cs1.post_user_id = #{userId} and cs1.site_network = #{siteNetwork} and cs1.summary_format = #{summaryFormat}
+            and cs1.activity_type in
+            <foreach item="activity" index="index" collection="activities"
+                     open="(" separator="," close=")">
+                #{activity}
+            </foreach>
             <if test="contentType != null and contentType != 'all' ">
                 and cs1.content_type = #{contentType}
             </if>
@@ -62,6 +82,11 @@
         where act.post_user_id = #{userId}
         and act.site_network = #{siteNetwork}
         and act.summary_format = #{summaryFormat}
+        and act.activity_type in
+        <foreach item="activity" index="index" collection="activities"
+                 open="(" separator="," close=")">
+            #{activity}
+        </foreach>
         <if test="contentType != null and contentType != 'all' ">
             and act.content_type = #{contentType}
         </if>
