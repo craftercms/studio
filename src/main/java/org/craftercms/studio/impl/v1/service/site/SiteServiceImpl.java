@@ -544,7 +544,12 @@ public class SiteServiceImpl implements SiteService {
    	public boolean deleteSite(String siteId) {
  		boolean success = true;
         logger.debug("Deleting site:" + siteId);
-
+        try {
+            enablePublishing(siteId, false);
+        } catch (SiteNotFoundException e) {
+            success = false;
+            logger.error("Failed to stop publishing for site:" + siteId, e);
+        }
         try {
 	        logger.debug("Deleting search index");
 	        searchService.deleteIndex(siteId);

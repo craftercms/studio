@@ -230,12 +230,9 @@ public class GitContentRepositoryHelper {
     public boolean createSiteGitRepo(String site) {
         boolean toReturn;
         Repository sandboxRepo = null;
-        Repository publishedRepo = null;
 
         // Build a path for the site/sandbox
         Path siteSandboxPath = buildRepoPath(GitRepositories.SANDBOX, site);
-        // Built a path for the site/published
-        Path sitePublishedPath = buildRepoPath(GitRepositories.PUBLISHED, site);
 
         // Create Sandbox
         sandboxRepo = createGitRepository(siteSandboxPath);
@@ -308,9 +305,15 @@ public class GitContentRepositoryHelper {
         File siteFolder = sitePath.toFile();
 
         try {
-            FileUtils.deleteDirectory(siteFolder);
+            Repository sboxRepo = sandboxes.get(site);
+            sboxRepo.close();
             sandboxes.remove(site);
+            sboxRepo = null;
+            Repository pubRepo = published.get(site);
+            pubRepo.close();
             published.remove(site);
+            pubRepo = null;
+            FileUtils.deleteDirectory(siteFolder);
 
             toReturn = true;
 
@@ -409,10 +412,6 @@ public class GitContentRepositoryHelper {
                     .setURI(sitePublishedPath.relativize(siteSandboxPath).toString())
                     .setDirectory(sitePublishedPath.normalize().toAbsolutePath().toFile())
                     .call()) {
-                Repository publishedRepo = publishedGit.getRepository();
-                if (publishedRepo != null) {
-                    published.put(site, publishedRepo);
-                }
             } catch (GitAPIException e) {
                 logger.error("Error adding origin (sandbox) to published repository", e);
             }

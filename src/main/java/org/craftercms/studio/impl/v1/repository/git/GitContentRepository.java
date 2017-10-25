@@ -803,7 +803,9 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         boolean toReturn;
 
         synchronized (helper.getRepository(site, StringUtils.isEmpty(site) ? GitRepositories.GLOBAL : SANDBOX)) {
-            toReturn = helper.deleteSiteGitRepo(site);
+            synchronized (helper.getRepository(site, GitRepositories.PUBLISHED)) {
+                toReturn = helper.deleteSiteGitRepo(site);
+            }
         }
 
         return toReturn;
