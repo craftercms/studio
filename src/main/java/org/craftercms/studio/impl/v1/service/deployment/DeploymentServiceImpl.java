@@ -98,11 +98,7 @@ public class DeploymentServiceImpl implements DeploymentService {
 
         if (scheduledDate != null && scheduledDate.isAfter(ZonedDateTime.now(ZoneOffset.UTC))) {
             objectStateService.transitionBulk(site, paths, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.SUBMIT_WITHOUT_WORKFLOW_SCHEDULED, org.craftercms.studio.api.v1.service.objectstate.State.NEW_SUBMITTED_NO_WF_SCHEDULED);
-            objectStateService.setSystemProcessingBulk(site, paths, false);
-        } else {
-            objectStateService.setSystemProcessingBulk(site, paths, true);
         }
-
         List<String> newPaths = new ArrayList<String>();
         List<String> updatedPaths = new ArrayList<String>();
         List<String> movedPaths = new ArrayList<String>();
@@ -129,6 +125,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         for (PublishRequest item : items) {
             publishRequestMapper.insertItemForDeployment(item);
         }
+        objectStateService.setSystemProcessingBulk(site, paths, false);
         // We need to pick up this on Inserting , not on execution!
         try {
             sendContentApprovalEmail(items, scheduleDateNow);
@@ -216,9 +213,7 @@ public class DeploymentServiceImpl implements DeploymentService {
     public void delete(String site, List<String> paths, String approver, ZonedDateTime scheduledDate) throws DeploymentException {
         if (scheduledDate != null && scheduledDate.isAfter(ZonedDateTime.now(ZoneOffset.UTC))) {
             objectStateService.transitionBulk(site, paths, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.DELETE, org.craftercms.studio.api.v1.service.objectstate.State.NEW_DELETED);
-            objectStateService.setSystemProcessingBulk(site, paths, false);
-        } else {
-            objectStateService.setSystemProcessingBulk(site, paths, true);
+
         }
         Set<String> environments = getAllPublishingEnvironments(site);
         for (String environment : environments) {
@@ -227,6 +222,7 @@ public class DeploymentServiceImpl implements DeploymentService {
                 publishRequestMapper.insertItemForDeployment(item);
             }
         }
+        objectStateService.setSystemProcessingBulk(site, paths, false);
     }
 
     protected Set<String> getAllPublishingEnvironments(String site) {
