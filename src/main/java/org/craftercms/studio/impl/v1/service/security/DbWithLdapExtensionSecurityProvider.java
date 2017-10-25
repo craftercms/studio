@@ -109,26 +109,28 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
                                 siteId = siteIdObj.toString();
                                 params.put("siteId", siteId);
                                 siteFeed = siteFeedMapper.getSite(params);
-                                if (groupNameAttrib != null && groupNameAttrib.size() > 0) {
-                                    NamingEnumeration groupAttribValues = groupNameAttrib.getAll();
-                                    while (groupAttribValues.hasMore()) {
-                                        Object groupNameObj = groupAttribValues.next();
-                                        if (groupNameObj != null ) {
-                                            String groupName = groupNameObj.toString();
-                                            Group g = new Group();
-                                            g.setName(groupName);
-                                            g.setExternallyManaged(1);
-                                            g.setDescription("Externally managed group");
-                                            g.setSiteId(siteFeed.getId());
-                                            g.setSite(siteFeed.getSiteId());
-                                            if (user.getGroups() == null) {
-                                                user.setGroups(new ArrayList<>());
+                                if (siteFeed != null) {
+                                    if (groupNameAttrib != null && groupNameAttrib.size() > 0) {
+                                        NamingEnumeration groupAttribValues = groupNameAttrib.getAll();
+                                        while (groupAttribValues.hasMore()) {
+                                            Object groupNameObj = groupAttribValues.next();
+                                            if (groupNameObj != null) {
+                                                String groupName = groupNameObj.toString();
+                                                Group g = new Group();
+                                                g.setName(groupName);
+                                                g.setExternallyManaged(1);
+                                                g.setDescription("Externally managed group");
+                                                g.setSiteId(siteFeed.getId());
+                                                g.setSite(siteFeed.getSiteId());
+                                                if (user.getGroups() == null) {
+                                                    user.setGroups(new ArrayList<>());
+                                                }
+                                                user.getGroups().add(g);
                                             }
-                                            user.getGroups().add(g);
                                         }
+                                    } else {
+                                        logger.warn("No LDAP attribute " + groupNameAttribName + " found for username " + username);
                                     }
-                                } else {
-                                    logger.warn("No LDAP attribute " + groupNameAttribName + " found for username " + username);
                                 }
                             }
                         }
