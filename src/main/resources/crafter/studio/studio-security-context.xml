@@ -74,6 +74,7 @@
     <bean id="cstudioLdapSecurityProvider" class="org.craftercms.studio.impl.v1.service.security.DbWithLdapExtensionSecurityProvider">
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="ldapTemplate" ref="ldapTemplate" />
+        <property name="activityService" ref="cstudioActivityService" />
     </bean>
 
     <bean id="cstudioLdapSecurityProviderRegistration"

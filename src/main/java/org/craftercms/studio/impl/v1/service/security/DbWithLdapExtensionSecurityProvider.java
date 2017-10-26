@@ -18,7 +18,8 @@
 
 package org.craftercms.studio.impl.v1.service.security;
 
-import org.apache.commons.lang3.StringUtils;
+import org.craftercms.studio.api.v1.constant.DmConstants;
+import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.dal.Group;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.dal.User;
@@ -26,7 +27,7 @@ import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.*;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.eclipse.jgit.lib.ObjectId;
+import org.craftercms.studio.api.v1.service.activity.ActivityService;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.ldap.AuthenticationException;
 import org.springframework.ldap.CommunicationException;
@@ -77,6 +78,7 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
 
 
                     User user = new User();
+                    user.setGroups(new ArrayList<>());
                     user.setActive(1);
                     user.setUsername(username);
 
@@ -122,9 +124,6 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
                                                 g.setDescription("Externally managed group");
                                                 g.setSiteId(siteFeed.getId());
                                                 g.setSite(siteFeed.getSiteId());
-                                                if (user.getGroups() == null) {
-                                                    user.setGroups(new ArrayList<>());
-                                                }
                                                 user.getGroups().add(g);
                                             }
                                         }
@@ -175,7 +174,13 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
             boolean toRet = true;
             if (super.userExists(username)) {
                 try {
-                    updateUserInternal(user.getUsername(), user.getFirstname(), user.getLastname(), user.getEmail());
+                    boolean success = updateUserInternal(user.getUsername(), user.getFirstname(), user.getLastname(), user.getEmail());
+                    if (success) {
+                        ActivityService.ActivityType activityType = ActivityService.ActivityType.UPDATED;
+                        Map<String, String> extraInfo = new HashMap<String, String>();
+                        extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
+                        activityService.postActivity("N/A", user.getUsername(), "N/A", activityType, ActivityService.ActivitySource.UI, extraInfo);
+                    }
                 } catch (UserNotFoundException e) {
                     logger.error("Error updating user " + username + " with data from external authentication provider", e);
 
@@ -184,7 +189,13 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
                 }
             } else {
                 try {
-                    createUser(user.getUsername(), password, user.getFirstname(), user.getLastname(), user.getEmail(), true);
+                    boolean success = createUser(user.getUsername(), password, user.getFirstname(), user.getLastname(), user.getEmail(), true);
+                    if (success) {
+                        ActivityService.ActivityType activityType = ActivityService.ActivityType.CREATED;
+                        Map<String, String> extraInfo = new HashMap<String, String>();
+                        extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
+                        activityService.postActivity("N/A", user.getUsername(), "N/A", activityType, ActivityService.ActivitySource.UI, extraInfo);
+                    }
                 } catch (UserAlreadyExistsException e) {
                     logger.error("Error adding user " + username + " from external authentication provider", e);
 
@@ -241,5 +252,9 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
     public LdapTemplate getLdapTemplate() { return ldapTemplate; }
     public void setLdapTemplate(LdapTemplate ldapTemplate) { this.ldapTemplate = ldapTemplate; }
 
+    public ActivityService getActivityService() { return activityService; }
+    public void setActivityService(ActivityService activityService) { this.activityService = activityService; }
+
     protected LdapTemplate ldapTemplate;
+    protected ActivityService activityService;
 }
