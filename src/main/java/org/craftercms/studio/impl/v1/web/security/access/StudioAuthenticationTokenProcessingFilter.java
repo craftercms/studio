@@ -18,6 +18,7 @@
 
 package org.craftercms.studio.impl.v1.web.security.access;
 
+import org.craftercms.commons.http.HttpUtils;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
@@ -36,6 +37,8 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 import static org.craftercms.studio.api.v1.service.security.SecurityService.STUDIO_SESSION_TOKEN_ATRIBUTE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.*;
@@ -62,7 +65,7 @@ public class StudioAuthenticationTokenProcessingFilter extends GenericFilterBean
                             new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                     SecurityContextHolder.getContext().setAuthentication(authentication);
 
-                    if (httpRequest.getRequestURI().startsWith(httpRequest.getContextPath() + "/api/1") && !httpRequest.getRequestURI().contains("/validate-session.json")) {
+                    if (httpRequest.getRequestURI().startsWith(httpRequest.getContextPath() + "/api/1") && !getIgnoreRenewTokenUrls().contains(HttpUtils.getRequestUriWithoutContextPath(httpRequest))) {
                         int timeout = Integer.parseInt(studioConfiguration.getProperty(SECURITY_SESSION_TIMEOUT));
                         String newToken = SessionTokenUtils.createToken(userDetails.getUsername(), timeout);
                         httpSession.setAttribute(STUDIO_SESSION_TOKEN_ATRIBUTE, newToken);
@@ -83,7 +86,9 @@ public class StudioAuthenticationTokenProcessingFilter extends GenericFilterBean
         return (HttpServletRequest) request;
     }
 
-
+    public List<String> getIgnoreRenewTokenUrls() {
+        return Arrays.asList(studioConfiguration.getProperty(SECURITY_IGNORE_RENEW_TOKEN_URLS).split(","));
+    }
 
     private UserDetailsManager userDetailsManager;
     private SecurityService securityService;
