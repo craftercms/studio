@@ -165,9 +165,6 @@ public class PublishingManagerImpl implements PublishingManager {
                 }
             }
         } else {
-            LOGGER.debug("Setting system processing for {0}:{1}", site, path);
-            objectStateService.setSystemProcessing(site, path, true);
-
             if (StringUtils.equals(action, PublishRequest.Action.MOVE)) {
                 if (oldPath != null && oldPath.length() > 0) {
                     if (isLive) {
@@ -202,9 +199,6 @@ public class PublishingManagerImpl implements PublishingManager {
                     objectMetadataManager.setObjectMetadata(site, path, props);
                 }
             }
-
-            LOGGER.debug("Resetting system processing for {0}:{1}", site, path);
-            objectStateService.setSystemProcessing(site, path, false);
         }
         return deploymentItem;
     }
