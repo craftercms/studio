@@ -376,12 +376,6 @@
     <!--         Security layer               -->
     <!-- ////////////////////////////////////// -->
 
-    <bean id="crafter.studioSecurityFilter" class="org.craftercms.studio.impl.v1.web.filter.StudioSecurityFilter">
-        <property name="securityProvider" ref="securityProvider"/>
-        <property name="studioConfiguration" ref="studioConfiguration" />
-        <property name="securityService" ref="cstudioSecurityService" />
-    </bean>
-
     <bean id="securityProvider" class="org.craftercms.studio.impl.v1.service.security.MappedSecurityProvider">
         <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
