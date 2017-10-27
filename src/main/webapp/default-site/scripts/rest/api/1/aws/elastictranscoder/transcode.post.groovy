@@ -8,8 +8,9 @@ def filename = null
 def file = null
 def elasticTranscoderService = applicationContext["studioElasticTranscoderService"]
 
+response.setHeader("Content-Type", "text/html")
+
 def sendError = { msg ->
-    response.setHeader("Content-Type", "text/html")
 
     def writer = response.writer
         writer.println("<script>document.domain = \"${request.serverName}\";</script>")
