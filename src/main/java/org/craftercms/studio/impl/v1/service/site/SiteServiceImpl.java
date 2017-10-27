@@ -84,6 +84,7 @@ import org.dom4j.Element;
 import org.dom4j.Node;
 import org.dom4j.io.SAXReader;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.xml.sax.SAXException;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_DEFAULT_GROUPS_DESCRIPTION;
@@ -915,7 +916,15 @@ public class SiteServiceImpl implements SiteService {
 		    InputStream content = contentRepository.getContent(site, path);
 		    if (path.endsWith(DmConstants.XML_PATTERN)) {
 			    SAXReader saxReader = new SAXReader();
+				try {
+					saxReader.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+					saxReader.setFeature("http://xml.org/sax/features/external-general-entities", false);
+					saxReader.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+				}catch (SAXException ex){
+					logger.error("Unable to turn off external entity loading, This could be a security risk.", ex);
+				}
 			    Document doc = saxReader.read(content);
+
 			    dmDependencyService.extractDependencies(site, path, doc, new HashMap<>());
 		    } else {
 			    boolean isCss = path.endsWith(DmConstants.CSS_PATTERN);
