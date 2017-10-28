@@ -44,20 +44,7 @@ import org.xml.sax.SAXException;
  * 
  */
 public class XmlUtils {
-
 	private static final Logger LOGGER = LoggerFactory.getLogger(XmlUtils.class);
-	/**
-	 * load XML from the given input stream
-	 * 
-	 * @param in
-	 * @return Document
-	 * @throws org.dom4j.DocumentException
-	 *//*
-	public static Document loadXml(InputStream in) throws DocumentException {
-		SAXReader reader = new SAXReader();
-		Document document = reader.read(in);
-		return document;
-	}*/
 
 	/**
 	 * convert document to string
@@ -78,32 +65,4 @@ public class XmlUtils {
 			writer.close();
 		}
 	}
-	
-	/**
-	 * convert xml string to document
-	 * 
-	 * @param xmlString
-	 * @return document
-	 *//*
-	public static org.w3c.dom.Document convertStringToW3cDocument(String xmlString) {		
-		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-		StringReader reader = null;
-		try {
-			DocumentBuilder builder = factory.newDocumentBuilder();
-	        reader = new StringReader(xmlString);
-	        org.w3c.dom.Document document = builder.parse(new InputSource(reader));
-	        reader.close();
-	        return document;
-		} catch (ParserConfigurationException e) {
-			LOGGER.error("failed to parse string to document: " + xmlString, e);
-		} catch (SAXException e) {
-			LOGGER.error("failed to parse string to document: " + xmlString, e);
-		} catch (IOException e) {
-			LOGGER.error("failed to parse string to document: " + xmlString, e);
-		} finally {
-			reader.close();
-		}
-		return null;
-	}*/
-
 }
