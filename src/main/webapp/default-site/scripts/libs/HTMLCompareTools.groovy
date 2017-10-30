@@ -9,7 +9,7 @@ import javax.xml.transform.TransformerFactory
 import javax.xml.transform.sax.SAXTransformerFactory
 import javax.xml.transform.sax.TransformerHandler
 import javax.xml.transform.stream.StreamResult
-import javax.xml.XMLConstant 
+import javax.xml.XMLConstants
 
 import org.outerj.daisy.diff.HtmlCleaner
 import org.outerj.daisy.diff.html.HTMLDiffer
