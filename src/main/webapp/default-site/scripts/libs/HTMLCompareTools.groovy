@@ -9,6 +9,7 @@ import javax.xml.transform.TransformerFactory
 import javax.xml.transform.sax.SAXTransformerFactory
 import javax.xml.transform.sax.TransformerHandler
 import javax.xml.transform.stream.StreamResult
+import javax.xml.XMLConstant 
 
 import org.outerj.daisy.diff.HtmlCleaner
 import org.outerj.daisy.diff.html.HTMLDiffer
@@ -17,6 +18,7 @@ import org.outerj.daisy.diff.html.TextNodeComparator
 import org.outerj.daisy.diff.html.dom.DomTreeBuilder
 import org.xml.sax.InputSource
 import org.apache.commons.lang3.StringEscapeUtils
+
 
 class HTMLCompareTools {
 		static CONTENT_XML_TO_HTML_XSL =
