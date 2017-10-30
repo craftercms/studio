@@ -21,25 +21,25 @@ import org.apache.commons.lang3.StringEscapeUtils
 
 
 class HTMLCompareTools {
-		static CONTENT_XML_TO_HTML_XSL =
+	static CONTENT_XML_TO_HTML_XSL =
 			"<xsl:stylesheet version=\"1.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\" xmlns:fo=\"http://www.w3.org/1999/XSL/Format\">"+
-  				"<xsl:template match=\"//\">" +
-  				    "<html><body><table>"+
-	      				"<xsl:apply-templates/>" +
-	      			"</table></body></html>" +
-  				"</xsl:template>" +
-  				"<xsl:template match='*'>" +
+					"<xsl:template match=\"//\">" +
+					"<html><body><table>"+
+					"<xsl:apply-templates/>" +
+					"</table></body></html>" +
+					"</xsl:template>" +
+					"<xsl:template match='*'>" +
 					"<xsl:for-each select='./*'>" +
-			     	"<tr>" +
-			    		"<td style='font-weight:bold;'>" +
-			    			"<xsl:attribute name='data-var'><xsl:value-of select='local-name()'/></xsl:attribute>"+
-				      		"<xsl:value-of select='local-name()'/>" +
-			      		"</td>" +
-				        "<td><xsl:value-of select='.'></xsl:value-of></td>" +
-				       "</tr>" +
-				  "</xsl:for-each>" +
-  				"</xsl:template>" +
-			"</xsl:stylesheet>"
+					"<tr>" +
+					"<td style='font-weight:bold;'>" +
+					"<xsl:attribute name='data-var'><xsl:value-of select='local-name()'/></xsl:attribute>"+
+					"<xsl:value-of select='local-name()'/>" +
+					"</td>" +
+					"<td><xsl:value-of select='.'></xsl:value-of></td>" +
+					"</tr>" +
+					"</xsl:for-each>" +
+					"</xsl:template>" +
+					"</xsl:stylesheet>"
 
 	static String xmlAsStringToHtml(String xml) {
 		return xmlToHtml(IOUtils.toInputStream(xml))
@@ -48,8 +48,7 @@ class HTMLCompareTools {
 	static String xmlToHtml(InputStream xml) {
 		try {
 			SAXTransformerFactory tf = TransformerFactory.newInstance()
-			tf.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
-			tf.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "");
+			tf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
 			StreamSource xslSource = new StreamSource(IOUtils.toInputStream(HTMLCompareTools.CONTENT_XML_TO_HTML_XSL))
 			Transformer transformer = tf.newTransformer(xslSource)
 			StreamSource xmlSource = new StreamSource(xml)
@@ -69,7 +68,7 @@ class HTMLCompareTools {
 	}
 
 	static String xmlEscapedFormatted(String xml){
-		def formattedXml = ''	
+		def formattedXml = ''
 		def spacesCount = 0
 
 		for(String s : xml.split("(?=<)|(?<=>)")){
@@ -78,13 +77,13 @@ class HTMLCompareTools {
 
 			for(i; i < spacesCount; i++){
 				spaces += '&nbsp;'
-			} 
+			}
 
-	    	if(s.trim().length() > 0){
-	    		formattedXml += spaces + StringEscapeUtils.escapeXml(s) +  '<br/>'
-	 	  	}else{
-	 	  		spacesCount = s.length();
-	 	  	}
+			if(s.trim().length() > 0){
+				formattedXml += spaces + StringEscapeUtils.escapeXml(s) +  '<br/>'
+			}else{
+				spacesCount = s.length();
+			}
 		}
 
 		return formattedXml
@@ -96,9 +95,8 @@ class HTMLCompareTools {
 
 	static String diff(InputStream html1, InputStream html2) {
 		try {
-			SAXTransformerFactory tf = (SAXTransformerFactory) TransformerFactory.newInstance();
-			tf.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
-			tf.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "");
+			SAXTransformerFactory tf =  TransformerFactory.newInstance();
+			tf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
 			TransformerHandler result = tf.newTransformerHandler()
 			StringWriter resultWriter = new StringWriter()
 			result.setResult(new StreamResult(resultWriter))
