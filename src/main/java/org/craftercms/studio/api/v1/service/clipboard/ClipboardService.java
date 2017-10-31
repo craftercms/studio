@@ -91,4 +91,31 @@ public interface ClipboardService {
         public String path = null;
         public Set<ClipboardItem> children;
     }
+
+    /**
+     * wrapper around a map used to store clipboard opearations
+     */
+    public class ClipboardStore {
+
+        public ClipboardStore() {
+            this.op = null;
+        };
+
+        public void clear() {
+            this.op = null;
+        };
+
+        public boolean addOp(ClipboardItem op) {
+            this.op = op;
+            return true;
+        };
+
+        public ClipboardItem getOps() {
+            return this.op;
+        };
+
+        protected ClipboardItem op;
+    }
+
+    ClipboardStore getClipboardStore(String site,  HttpSession session);
 }

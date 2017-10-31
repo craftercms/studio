@@ -20,13 +20,11 @@ package org.craftercms.studio.api.v1.service.deployment;
 import org.craftercms.studio.api.v1.dal.CopyToEnvironment;
 import org.craftercms.studio.api.v1.dal.PublishToTarget;
 import org.craftercms.studio.api.v1.exception.ServiceException;
-import org.craftercms.studio.api.v1.to.ContentItemTO;
-import org.craftercms.studio.api.v1.to.DeploymentEndpointConfigTO;
-import org.craftercms.studio.api.v1.to.DeploymentJobTO;
-import org.craftercms.studio.api.v1.to.DmDeploymentTaskTO;
+import org.craftercms.studio.api.v1.to.*;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 	// document
@@ -85,4 +83,6 @@ public interface DeploymentService {
     void bulkDelete(String site, String path);
 
     List<DeploymentJobTO> getDeploymentJobs();
+
+    Map<String, List<PublishingChannelTO>> getAvailablePublishingChannelGroups(String site, String path);
 }

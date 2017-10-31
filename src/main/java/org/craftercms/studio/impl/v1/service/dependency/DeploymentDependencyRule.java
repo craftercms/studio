@@ -19,6 +19,9 @@
 
 package org.craftercms.studio.impl.v1.service.dependency;
 
+import org.craftercms.commons.validation.annotations.param.ValidateParams;
+import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
+import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.dependency.DependencyRule;
@@ -37,7 +40,8 @@ public class DeploymentDependencyRule implements DependencyRule {
     private final static Logger logger = LoggerFactory.getLogger(DeploymentDependencyRule.class);
 
     @Override
-    public Set<String> applyRule(String site, String path) {
+    @ValidateParams
+    public Set<String> applyRule(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
         Set<String> dependencies = new HashSet<String>();
         List<String> allDependencies = new ArrayList<String>();
         getAllDependenciesRecursive(site, path, allDependencies);

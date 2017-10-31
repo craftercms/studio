@@ -29,6 +29,9 @@ import java.util.Set;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.commons.http.RequestContext;
 import org.craftercms.commons.lang.Callback;
+import org.craftercms.commons.validation.annotations.param.ValidateParams;
+import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
+import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.core.service.CacheService;
 import org.craftercms.core.util.cache.CacheTemplate;
 import org.craftercms.studio.api.v1.constant.CStudioConstants;
@@ -62,7 +65,8 @@ public class SecurityServiceImpl implements SecurityService {
     private final static String STUDIO_SESSION_TOKEN_ATRIBUTE = "studioSessionToken";
 
     @Override
-    public String authenticate(String username, String password) {
+    @ValidateParams
+    public String authenticate(@ValidateStringParam(name = "username") String username, @ValidateStringParam(name = "password") String password) {
         String toRet = securityProvider.authenticate(username, password);
         String sessionToken = SessionTokenUtils.createToken(username, sessionTimeout);
         RequestContext context = RequestContext.getCurrent();
@@ -74,7 +78,8 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
-    public boolean validateTicket(String token) {
+    @ValidateParams
+    public boolean validateTicket(@ValidateStringParam(name = "token") String token) {
         return securityProvider.validateTicket(token);
     }
 
@@ -89,12 +94,14 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
-    public Map<String,String> getUserProfile(String user) {
+    @ValidateParams
+    public Map<String,String> getUserProfile(@ValidateStringParam(name = "user") String user) {
         return securityProvider.getUserProfile(user);
     }
 
     @Override
-    public Set<String> getUserPermissions(final String site, String path, String user, List<String> groups) {
+    @ValidateParams
+    public Set<String> getUserPermissions(@ValidateStringParam(name = "site") final String site, @ValidateSecurePathParam(name = "psth") String path, @ValidateStringParam(name = "user") String user, List<String> groups) {
 
         Set<String> permissions = new HashSet<String>();
 
@@ -267,7 +274,8 @@ public class SecurityServiceImpl implements SecurityService {
 	 * (java.lang.String, java.lang.String)
 	 */
     @Override
-    public Set<String> getUserRoles(final String site, String user) {
+    @ValidateParams
+    public Set<String> getUserRoles(@ValidateStringParam(name = "site") final String site, @ValidateStringParam(name = "user") String user) {
 
         Set<String> groups = securityProvider.getUserGroups(user);
         if (groups != null && groups.size() > 0) {
@@ -470,17 +478,20 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
-    public void addUserGroup(String groupName) {
+    @ValidateParams
+    public void addUserGroup(@ValidateStringParam(name = "groupName") String groupName) {
         securityProvider.addUserGroup(groupName);
     }
 
     @Override
-    public void addUserGroup(String parentGroup, String groupName) {
+    @ValidateParams
+    public void addUserGroup(@ValidateStringParam(name = "parentGroup") String parentGroup, @ValidateStringParam(name = "groupName") String groupName) {
         securityProvider.addUserGroup(parentGroup, groupName);
     }
 
     @Override
-    public void addUserToGroup(String groupName, String user) {
+    @ValidateParams
+    public void addUserToGroup(@ValidateStringParam(name = "groupName") String groupName, @ValidateStringParam(name = "user") String user) {
         securityProvider.addUserToGroup(groupName, user);
     }
 
@@ -541,7 +552,8 @@ public class SecurityServiceImpl implements SecurityService {
 
 
     @Override
-    public void reloadConfiguration(String site) {
+    @ValidateParams
+    public void reloadConfiguration(@ValidateStringParam(name = "site") String site) {
         CacheService cacheService = cacheTemplate.getCacheService();
         StudioCacheContext cacheContext = new StudioCacheContext(site, true);
         Object permissionsKey = cacheTemplate.getKey(site, configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site), permissionsFileName);

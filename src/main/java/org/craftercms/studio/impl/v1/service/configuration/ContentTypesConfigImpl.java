@@ -20,6 +20,8 @@ package org.craftercms.studio.impl.v1.service.configuration;
 
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.commons.lang.Callback;
+import org.craftercms.commons.validation.annotations.param.ValidateParams;
+import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.core.service.CacheService;
 import org.craftercms.core.util.cache.CacheTemplate;
 import org.craftercms.studio.api.v1.constant.CStudioConstants;
@@ -63,7 +65,8 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
     }
 
     @Override
-    public ContentTypeConfigTO getContentTypeConfig(final String site, final String contentType) {
+    @ValidateParams
+    public ContentTypeConfigTO getContentTypeConfig(@ValidateStringParam(name = "site") final String site, @ValidateStringParam(name = "contentType") final String contentType) {
         if (StringUtils.isNotEmpty(contentType)) {
             CacheService cacheService = cacheTemplate.getCacheService();
             StudioCacheContext cacheContext = new StudioCacheContext(site, true);
@@ -90,7 +93,9 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
         }
     }
 
-    public ContentTypeConfigTO loadConfiguration(String site, String contentType) {
+    @Override
+    @ValidateParams
+    public ContentTypeConfigTO loadConfiguration(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "contentType") String contentType) {
         String siteConfigPath = configPath.replaceAll(CStudioConstants.PATTERN_SITE, site)
                 .replaceAll(CStudioConstants.PATTERN_CONTENT_TYPE, contentType);
         String configFileFullPath = siteConfigPath + "/" + configFileName;
@@ -353,7 +358,8 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
 
 
     @Override
-    public ContentTypeConfigTO reloadConfiguration(String site, String contentType) {
+    @ValidateParams
+    public ContentTypeConfigTO reloadConfiguration(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "contentType") String contentType) {
         CacheService cacheService = cacheTemplate.getCacheService();
         StudioCacheContext cacheContext = new StudioCacheContext(site, true);
         String siteConfigPath = configPath.replaceAll(CStudioConstants.PATTERN_SITE, site)

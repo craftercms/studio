@@ -24,6 +24,9 @@ import java.io.InputStream;
 import java.io.ByteArrayInputStream;
 import java.util.List;
 
+import org.craftercms.commons.validation.annotations.param.ValidateParams;
+import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
+import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -44,12 +47,14 @@ public class TranslationServiceImpl implements TranslationService {
 	protected final String MSG_ERR_TRANSLATION_CLOSE_STREAM_ON_SOURCE_CONTENT = "err_close_stream_on_translation_source_content";
 
 	@Override
-	public List<String> calculateTargetTranslationSet(String srcSite, List<String> srcPaths, String targetSite) {
+    @ValidateParams
+	public List<String> calculateTargetTranslationSet(@ValidateStringParam(name = "srcSite") String srcSite, List<String> srcPaths, @ValidateStringParam(name = "targetSite") String targetSite) {
 		return _translationContentDAL.calculateTargetTranslationSet(srcSite, srcPaths, targetSite);
 	}
 
 	@Override
-	public void translate(String sourceSite, String sourceLanguage, String targetLanguage, String path) {
+    @ValidateParams
+	public void translate(@ValidateStringParam(name = "sourceSite") String sourceSite, @ValidateStringParam(name = "sourceLanguage") String sourceLanguage, @ValidateStringParam(name = "targetLanguage") String targetLanguage, @ValidateSecurePathParam(name = "path") String path) {
 		InputStream untranslatedContentStream = null;
 		try {
 			untranslatedContentStream = _translationContentDAL.getContent(sourceSite, path);

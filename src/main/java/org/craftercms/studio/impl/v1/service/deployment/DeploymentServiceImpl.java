@@ -21,6 +21,7 @@ import net.sf.json.JSONObject;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.FastArrayList;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.validation.annotations.param.*;
 import org.craftercms.studio.api.v1.constant.CStudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.*;
@@ -76,7 +77,8 @@ public class DeploymentServiceImpl implements DeploymentService {
     private static int CTED_AUTOINCREMENT = 0;
     private static int PSD_AUTOINCREMENT = 0;
 
-    public void deploy(String site, String environment, List<String> paths, Date scheduledDate, String approver, String submissionComment, final boolean scheduleDateNow) throws DeploymentException {
+    @ValidateParams
+    public void deploy(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "environment") String environment, List<String> paths, Date scheduledDate, @ValidateStringParam(name = "approver") String approver, @ValidateStringParam(name = "submissionComment") String submissionComment, final boolean scheduleDateNow) throws DeploymentException {
 
         if (scheduledDate != null && scheduledDate.after(new Date())) {
             objectStateService.transitionBulk(site, paths, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.SUBMIT_WITHOUT_WORKFLOW_SCHEDULED, org.craftercms.studio.api.v1.service.objectstate.State.NEW_SUBMITTED_NO_WF_SCHEDULED);
@@ -174,7 +176,8 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     @Override
-    public void delete(String site, List<String> paths, String approver, Date scheduledDate) throws DeploymentException {
+    @ValidateParams
+    public void delete(@ValidateStringParam(name = "site") String site, List<String> paths, @ValidateStringParam(name = "approver") String approver, Date scheduledDate) throws DeploymentException {
         if (scheduledDate != null && scheduledDate.after(new Date())) {
             objectStateService.transitionBulk(site, paths, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.DELETE, org.craftercms.studio.api.v1.service.objectstate.State.NEW_DELETED);
             objectStateService.setSystemProcessingBulk(site, paths, false);
@@ -281,7 +284,8 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     @Override
-    public void deleteDeploymentDataForSite(final String site) {
+    @ValidateParams
+    public void deleteDeploymentDataForSite(@ValidateStringParam(name = "site") final String site) {
         signalWorkersToStop();
         Map<String, String> params = new HashMap<String, String>();
         params.put("site", site);
@@ -310,7 +314,8 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     @Override
-    public List<CopyToEnvironment> getScheduledItems(String site) {
+    @ValidateParams
+    public List<CopyToEnvironment> getScheduledItems(@ValidateStringParam(name = "site") String site) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("site", site);
         params.put("state", CopyToEnvironment.State.READY_FOR_LIVE);
@@ -319,7 +324,8 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     @Override
-    public void cancelWorkflow(String site, String path) throws DeploymentException {
+    @ValidateParams
+    public void cancelWorkflow(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) throws DeploymentException {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("site", site);
         params.put("path", path);
@@ -330,7 +336,8 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     @Override
-    public List<DmDeploymentTaskTO> getDeploymentHistory(String site, int daysFromToday, int numberOfItems, String sort, boolean ascending, String filterType) {
+    @ValidateParams
+    public List<DmDeploymentTaskTO> getDeploymentHistory(@ValidateStringParam(name = "site") String site, @ValidateIntegerParam(name = "daysFromToday") int daysFromToday, @ValidateIntegerParam(name = "numberOfItems") int numberOfItems, @ValidateStringParam(name = "sort") String sort, boolean ascending, @ValidateStringParam(name = "filterType") String filterType) {
         // get the filtered list of attempts in a specific date range
         Date toDate = new Date();
         Date fromDate = new Date(toDate.getTime() - (1000L * 60L * 60L * 24L * daysFromToday));
@@ -446,7 +453,8 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     @Override
-    public List<ContentItemTO> getScheduledItems(String site, String sort, boolean ascending, String subSort, boolean subAscending, String filterType) throws ServiceException {
+    @ValidateParams
+    public List<ContentItemTO> getScheduledItems(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "sort") String sort, boolean ascending, @ValidateStringParam(name = "subSort") String subSort, boolean subAscending, @ValidateStringParam(name = "filterType") String filterType) throws ServiceException {
         if (StringUtils.isEmpty(sort)) {
             sort = DmContentItemComparator.SORT_EVENT_DATE;
         }
@@ -620,8 +628,9 @@ public class DeploymentServiceImpl implements DeploymentService {
         }
     }
 
-
-    public Map<String, List<PublishingChannelTO>> getAvailablePublishingChannelGroups(String site, String path) {
+    @Override
+    @ValidateParams
+    public Map<String, List<PublishingChannelTO>> getAvailablePublishingChannelGroups(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
         List<PublishingChannelTO> channelsTO = getAvailablePublishingChannelGroupsForSite(site, path);
         List<PublishingChannelTO> publishChannels = new ArrayList<PublishingChannelTO>();
         List<PublishingChannelTO> updateStatusChannels = new ArrayList<PublishingChannelTO>();
@@ -687,7 +696,8 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     @Override
-    public void setupItemsForPublishingSync(String site, String environment, List<CopyToEnvironment> itemsToDeploy) throws DeploymentException {
+    @ValidateParams
+    public void setupItemsForPublishingSync(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "environment") String environment, List<CopyToEnvironment> itemsToDeploy) throws DeploymentException {
         List<PublishToTarget> items = createItems(site, environment, itemsToDeploy);
         for (PublishToTarget item : items) {
             publishToTargetMapper.insertItemForTargetSync(item);
@@ -724,7 +734,8 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     @Override
-    public List<PublishToTarget> getItemsToSync(String site, long targetVersion, List<String> environments) {
+    @ValidateParams
+    public List<PublishToTarget> getItemsToSync(@ValidateStringParam(name = "site") String site, @ValidateLongParam(name = "targetVersion") long targetVersion, List<String> environments) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("site", site);
         params.put("version", targetVersion);
@@ -760,7 +771,8 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     @Override
-    public void syncAllContentToPreview(String site) throws ServiceException {
+    @ValidateParams
+    public void syncAllContentToPreview(@ValidateStringParam(name = "site") String site) throws ServiceException {
         RepositoryEventMessage message = new RepositoryEventMessage();
         message.setSite(site);
 
@@ -787,7 +799,8 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     @Override
-    public List<CopyToEnvironment> getDeploymentQueue(String site) throws ServiceException {
+    @ValidateParams
+    public List<CopyToEnvironment> getDeploymentQueue(@ValidateStringParam(name = "site") String site) throws ServiceException {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("site", site);
         List<String> states = new ArrayList<String>();
@@ -799,7 +812,8 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     @Override
-    public List<PublishToTarget> getSyncTargetQueue(String site, String endpoint, long targetVersion) {
+    @ValidateParams
+    public List<PublishToTarget> getSyncTargetQueue(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "endpoint") String endpoint, @ValidateLongParam(name = "targetVersion") long targetVersion) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("site", site);
         params.put("version", targetVersion);
@@ -828,13 +842,15 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     @Override
-    public List<DeploymentEndpointConfigTO> getDeploymentEndpoints(String site) {
+    @ValidateParams
+    public List<DeploymentEndpointConfigTO> getDeploymentEndpoints(@ValidateStringParam(name = "site") String site) {
         DeploymentConfigTO config = deploymentEndpointConfig.getSiteDeploymentConfig(site);
         return new ArrayList<>(config.getEndpointMapping().values());
     }
 
     @Override
-    public boolean cancelDeployment(String site, String path, long deploymentId) throws ServiceException {
+    @ValidateParams
+    public boolean cancelDeployment(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, @ValidateLongParam(name = "deploymentId") long deploymentId) throws ServiceException {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("site", site);
         params.put("path", path);
@@ -845,7 +861,8 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     @Override
-    public void bulkGoLive(String site, String environment, String path) {
+    @ValidateParams
+    public void bulkGoLive(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "environment") String environment, @ValidateSecurePathParam(name = "path") String path) {
         dmPublishService.bulkGoLive(site, environment, path);
     }
 
@@ -881,7 +898,8 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     @Override
-    public void bulkDelete(String site, String path) {
+    @ValidateParams
+    public void bulkDelete(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
         dmPublishService.bulkDelete(site, path);
     }
 

@@ -20,6 +20,8 @@ package org.craftercms.studio.impl.v1.service.configuration;
 
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.commons.lang.Callback;
+import org.craftercms.commons.validation.annotations.param.ValidateParams;
+import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.core.service.CacheService;
 import org.craftercms.core.service.Context;
 import org.craftercms.core.store.ContentStoreAdapter;
@@ -141,8 +143,8 @@ public class DeploymentEndpointConfigImpl implements DeploymentEndpointConfig {
     }
 
     @Override
-    public DeploymentEndpointConfigTO getDeploymentConfig(final String site, final String endpoint) {
-        //checkForUpdate(site);
+    @ValidateParams
+    public DeploymentEndpointConfigTO getDeploymentConfig(@ValidateStringParam(name = "site") final String site, @ValidateStringParam(name = "endpoint") final String endpoint) {
         StudioCacheContext cacheContext = new StudioCacheContext(site, true);
         CacheService cacheService = cacheTemplate.getCacheService();
         generalLockService.lock(cacheContext.getId());
@@ -167,8 +169,8 @@ public class DeploymentEndpointConfigImpl implements DeploymentEndpointConfig {
 
 
     @Override
-    public DeploymentConfigTO getSiteDeploymentConfig(final String site) {
-        //checkForUpdate(site);
+    @ValidateParams
+    public DeploymentConfigTO getSiteDeploymentConfig(@ValidateStringParam(name = "site") final String site) {
         StudioCacheContext cacheContext = new StudioCacheContext(site, true);
         DeploymentConfigTO config = cacheTemplate.getObject(cacheContext, new Callback<DeploymentConfigTO>() {
             @Override
@@ -180,7 +182,8 @@ public class DeploymentEndpointConfigImpl implements DeploymentEndpointConfig {
     }
 
     @Override
-    public void reloadConfiguration(String site) {
+    @ValidateParams
+    public void reloadConfiguration(@ValidateStringParam(name = "site") String site) {
         CacheService cacheService = cacheTemplate.getCacheService();
         StudioCacheContext cacheContext = new StudioCacheContext(site, true);
         Object cacheKey = cacheTemplate.getKey(site, configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site), configFileName);

@@ -24,6 +24,9 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.commons.ebus.annotations.EventHandler;
 import org.craftercms.commons.ebus.annotations.EventSelectorType;
+import org.craftercms.commons.validation.annotations.param.ValidateParams;
+import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
+import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.core.service.CacheService;
 import org.craftercms.core.util.cache.CacheTemplate;
 import org.craftercms.studio.api.v1.constant.CStudioConstants;
@@ -81,14 +84,16 @@ public class SiteServiceImpl implements SiteService {
     private final static String CACHE_KEY_PATH = "/cstudio/config/sites/{site}";
 	
 	@Override
-	public boolean writeConfiguration(String site, String path, InputStream content) throws ServiceException {
+    @ValidateParams
+	public boolean writeConfiguration(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, InputStream content) throws ServiceException {
 		boolean toRet = contentRepository.writeContent("/cstudio/config/sites/"+site+"/"+path, content);
         clearConfigurationCache.clearConfigurationCache(site);
         return toRet;
 	}
 
-	@Override	
-	public boolean writeConfiguration(String path, InputStream content) throws ServiceException {
+	@Override
+    @ValidateParams
+	public boolean writeConfiguration(@ValidateSecurePathParam(name = "path") String path, InputStream content) throws ServiceException {
 		boolean toReturn = contentRepository.writeContent(path, content);
         String site = extractSiteFromConfigurationPath(path);
         clearConfigurationCache.clearConfigurationCache(site);
@@ -103,7 +108,8 @@ public class SiteServiceImpl implements SiteService {
     }
 
 	@Override
-	public Map<String, Object> getConfiguration(String path) {
+    @ValidateParams
+	public Map<String, Object> getConfiguration(@ValidateSecurePathParam(name = "path") String path) {
 		return null;
 	}
 
@@ -115,13 +121,16 @@ public class SiteServiceImpl implements SiteService {
 	 * @param site the name of the site
 	 * @return a Document containing the entire site configuration
 	 */
-	public Document getSiteConfiguration(String site) 
+	@Override
+	@ValidateParams
+	public Document getSiteConfiguration(@ValidateStringParam(name = "site") String site)
 	throws SiteConfigNotFoundException {
 		return _siteServiceDAL.getSiteConfiguration(site);
 	}
 
 	@Override
-	public Map<String, Object> getConfiguration(String site, String path, boolean applyEnv) {
+    @ValidateParams
+	public Map<String, Object> getConfiguration(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, boolean applyEnv) {
 		String configPath = "";
 		if (StringUtils.isEmpty(site)) {
 			configPath = this.configRoot + path;
@@ -249,17 +258,20 @@ public class SiteServiceImpl implements SiteService {
 	}
 
     @Override
-    public DeploymentEndpointConfigTO getDeploymentEndpoint(String site, String endpoint) {
+    @ValidateParams
+    public DeploymentEndpointConfigTO getDeploymentEndpoint(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "endpoint") String endpoint) {
         return deploymentEndpointConfig.getDeploymentConfig(site, endpoint);
     }
 
     @Override
-    public Map<String, PublishingChannelGroupConfigTO> getPublishingChannelGroupConfigs(String site) {
+    @ValidateParams
+    public Map<String, PublishingChannelGroupConfigTO> getPublishingChannelGroupConfigs(@ValidateStringParam(name = "site") String site) {
         return environmentConfig.getPublishingChannelGroupConfigs(site);
     }
 
 	@Override
-	public List<SiteFeed> getUserSites(String user) {
+    @ValidateParams
+	public List<SiteFeed> getUserSites(@ValidateStringParam(name = "user") String user) {
         String username = user;
         if (StringUtils.isEmpty(username)) {
             username = securityService.getCurrentUser();
@@ -277,7 +289,8 @@ public class SiteServiceImpl implements SiteService {
 	}
 
     @Override
-    public DeploymentEndpointConfigTO getPreviewDeploymentEndpoint(String site) {
+    @ValidateParams
+    public DeploymentEndpointConfigTO getPreviewDeploymentEndpoint(@ValidateStringParam(name = "site") String site) {
         String endpoint = environmentConfig.getPreviewDeploymentEndpoint(site);
         return getDeploymentEndpoint(site, endpoint);
     }
@@ -293,7 +306,8 @@ public class SiteServiceImpl implements SiteService {
     }
 
     @Override
-    public String getLiveEnvironmentName(String site) {
+    @ValidateParams
+    public String getLiveEnvironmentName(@ValidateStringParam(name = "site") String site) {
         PublishingChannelGroupConfigTO pcgcTO = environmentConfig.getLiveEnvironmentPublishingGroup(site);
         if (pcgcTO != null) {
             return pcgcTO.getName();
@@ -303,7 +317,8 @@ public class SiteServiceImpl implements SiteService {
     }
 
    	@Override
-   	public boolean createSiteFromBlueprint(String blueprintName, String siteName, String siteId, String desc) {
+    @ValidateParams
+   	public boolean createSiteFromBlueprint(@ValidateStringParam(name = "blueprintName") String blueprintName, @ValidateStringParam(name = "siteName") String siteName, @ValidateStringParam(name = "siteId") String siteId, @ValidateStringParam(name = "desc") String desc) {
  		boolean success = true;
  		try {
 			contentRepository.createFolder("/wem-projects/"+siteId+"/"+siteId, "work-area");
@@ -457,7 +472,8 @@ public class SiteServiceImpl implements SiteService {
     }
 
 	@Override
-   	public boolean deleteSite(String siteId) {
+    @ValidateParams
+   	public boolean deleteSite(@ValidateStringParam(name = "siteId") String siteId) {
  		boolean success = true;
  		try {
  			contentRepository.deleteContent("/wem-projects/"+siteId);
@@ -506,22 +522,26 @@ public class SiteServiceImpl implements SiteService {
 	}
 
     @Override
-    public String getPreviewServerUrl(String site) {
+    @ValidateParams
+    public String getPreviewServerUrl(@ValidateStringParam(name = "site") String site) {
         return environmentConfig.getPreviewServerUrl(site);
     }
 
     @Override
-    public String getLiveServerUrl(String site) {
+    @ValidateParams
+    public String getLiveServerUrl(@ValidateStringParam(name = "site") String site) {
         return environmentConfig.getLiveServerUrl(site);
     }
 
     @Override
-    public String getAuthoringServerUrl(String site) {
+    @ValidateParams
+    public String getAuthoringServerUrl(@ValidateStringParam(name = "site") String site) {
         return environmentConfig.getAuthoringServerUrl(site);
     }
 
     @Override
-    public String getAdminEmailAddress(String site) {
+    @ValidateParams
+    public String getAdminEmailAddress(@ValidateStringParam(name = "site") String site) {
         return environmentConfig.getAdminEmailAddress(site);
     }
 
@@ -541,7 +561,8 @@ public class SiteServiceImpl implements SiteService {
     }
 
     @Override
-    public void reloadSiteConfiguration(String site) {
+    @ValidateParams
+    public void reloadSiteConfiguration(@ValidateStringParam(name = "site") String site) {
         reloadSiteConfiguration(site, true);
     }
 
@@ -557,7 +578,8 @@ public class SiteServiceImpl implements SiteService {
     }
 
     @Override
-    public void reloadSiteConfiguration(String site, boolean triggerEvent) {
+    @ValidateParams
+    public void reloadSiteConfiguration(@ValidateStringParam(name = "site") String site, boolean triggerEvent) {
         CacheService cacheService = cacheTemplate.getCacheService();
         StudioCacheContext cacheContext = new StudioCacheContext(site, true);
         Object cacheKey = cacheTemplate.getKey(site, CACHE_KEY_PATH.replaceFirst(CStudioConstants.PATTERN_SITE, site), "SiteTO");
@@ -607,13 +629,15 @@ public class SiteServiceImpl implements SiteService {
     }
 
     @Override
-    public boolean exists(String site) {
+    @ValidateParams
+    public boolean exists(@ValidateStringParam(name = "site") String site) {
 	    boolean toRet = siteFeedMapper.exists(site) > 0 ? true : false;
         return toRet;
     }
 
     @Override
-    public void rebuildRepositoryMetadata(String site) {
+    @ValidateParams
+    public void rebuildRepositoryMetadata(@ValidateStringParam(name = "site") String site) {
         rebuildRepositoryMetadata.execute(site);
     }
 
