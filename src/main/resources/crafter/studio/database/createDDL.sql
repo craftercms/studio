@@ -216,6 +216,21 @@ CREATE TABLE IF NOT EXISTS group_user
   DEFAULT CHARSET = utf8
   ROW_FORMAT = DYNAMIC ;
 
+CREATE TABLE IF NOT EXISTS gitlog
+(
+  `id`          BIGINT(20)    NOT NULL AUTO_INCREMENT,
+  `site_id`     VARCHAR(50)   NOT NULL,
+  `commit_id`   VARCHAR(50)   NOT NULL,
+  `commit_date` DATETIME      NOT NULL,
+  `processed`   INT           NOT NULL DEFAULT 0,
+  `verified`   INT           NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`),
+  UNIQUE `uq_siteid_commitid` (`site_id`, `commit_id`)
+)
+  ENGINE = InnoDB
+  DEFAULT CHARSET = utf8
+  ROW_FORMAT = DYNAMIC ;
+
 INSERT IGNORE INTO site (site_id, name, description, system)
 VALUES ('studio_root', 'Studio Root', 'Studio Root for global permissions', 1) ;
 

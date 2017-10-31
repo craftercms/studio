@@ -259,6 +259,10 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
         return environments;
     }
 
+    private void syncRepository(String site) {
+
+    }
+
     public boolean isMasterPublishingNode() {
         boolean toReturn = Boolean.parseBoolean(studioConfiguration.getProperty(JOB_DEPLOYMENT_MASTER_PUBLISHING_NODE));
         return toReturn;
