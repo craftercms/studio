@@ -23,6 +23,9 @@ import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.craftercms.commons.validation.annotations.param.ValidateLongParam;
+import org.craftercms.commons.validation.annotations.param.ValidateParams;
+import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.CopyToEnvironment;
 import org.craftercms.studio.api.v1.dal.CopyToEnvironmentMapper;
@@ -119,7 +122,8 @@ public class PublishingManagerImpl implements PublishingManager {
     }
 
     @Override
-    public long getTargetVersion(DeploymentEndpointConfigTO target, String site) {
+    @ValidateParams
+    public long getTargetVersion(DeploymentEndpointConfigTO target, @ValidateStringParam(name = "site") String site) {
         long version = -1;
         if (target.getVersionUrl() != null && !target.getVersionUrl().isEmpty()) {
             LOGGER.debug(String.format("Get deployment agent version for target ", target.getName()));
@@ -173,12 +177,14 @@ public class PublishingManagerImpl implements PublishingManager {
     }
 
     @Override
-    public List<PublishToTarget> getItemsToSync(String site, long targetVersion, List<String> environments) {
+    @ValidateParams
+    public List<PublishToTarget> getItemsToSync(@ValidateStringParam(name = "site") String site, @ValidateLongParam(name = "targetVersion") long targetVersion, List<String> environments) {
         return deploymentService.getItemsToSync(site, targetVersion, environments);
     }
 
     @Override
-    public void deployItemsToTarget(String site, List<PublishToTarget> filteredItems, DeploymentEndpointConfigTO target) throws ContentNotFoundForPublishingException, UploadFailedException {
+    @ValidateParams
+    public void deployItemsToTarget(@ValidateStringParam(name = "site") String site, List<PublishToTarget> filteredItems, DeploymentEndpointConfigTO target) throws ContentNotFoundForPublishingException, UploadFailedException {
         LOGGER.debug("Start deploying items for site \"{0}\", target \"{1}\", number of items \"{2}\"", site, target.getName(), filteredItems.size());
 
         int numberOfBuckets = filteredItems.size() / target.getBucketSize() + 1;
@@ -290,7 +296,8 @@ public class PublishingManagerImpl implements PublishingManager {
     }
 
     @Override
-    public long setTargetVersion(DeploymentEndpointConfigTO target, long newVersion, String site) {
+    @ValidateParams
+    public long setTargetVersion(DeploymentEndpointConfigTO target, @ValidateLongParam(name = "newVersion") long newVersion, @ValidateStringParam(name = "site") String site) {
         long resoponseVersion = -1;
         if (target.getVersionUrl() != null && !target.getVersionUrl().isEmpty()) {
             LOGGER.debug("Set deployment agent version for target {0}", target.getName());
@@ -346,7 +353,8 @@ public class PublishingManagerImpl implements PublishingManager {
     }
 
     @Override
-    public List<CopyToEnvironment> getItemsReadyForDeployment(String site, String environment) {
+    @ValidateParams
+    public List<CopyToEnvironment> getItemsReadyForDeployment(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "environment") String environment) {
         Map<String, Object> params = new HashMap<>();
         params.put("site", site);
         params.put("state", CopyToEnvironment.State.READY_FOR_LIVE);
@@ -579,7 +587,8 @@ public class PublishingManagerImpl implements PublishingManager {
     }
 
     @Override
-    public void setupItemsForPublishingSync(String site, String environment, List<CopyToEnvironment> itemsToDeploy) throws DeploymentException {
+    @ValidateParams
+    public void setupItemsForPublishingSync(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "environment") String environment, List<CopyToEnvironment> itemsToDeploy) throws DeploymentException {
         deploymentService.setupItemsForPublishingSync(site, environment, itemsToDeploy);
     }
 
@@ -589,7 +598,8 @@ public class PublishingManagerImpl implements PublishingManager {
     }
 
     @Override
-    public void markItemsCompleted(String site, String environment, List<CopyToEnvironment> processedItems) throws DeploymentException {
+    @ValidateParams
+    public void markItemsCompleted(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "environment") String environment, List<CopyToEnvironment> processedItems) throws DeploymentException {
         for (CopyToEnvironment item : processedItems) {
             item.setState(CopyToEnvironment.State.COMPLETED);
             copyToEnvironmentMapper.updateItemDeploymentState(item);
@@ -597,7 +607,8 @@ public class PublishingManagerImpl implements PublishingManager {
     }
 
     @Override
-    public void markItemsProcessing(String site, String environment, List<CopyToEnvironment> itemsToDeploy) throws DeploymentException {
+    @ValidateParams
+    public void markItemsProcessing(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "environment") String environment, List<CopyToEnvironment> itemsToDeploy) throws DeploymentException {
         for (CopyToEnvironment item : itemsToDeploy) {
             item.setState(CopyToEnvironment.State.PROCESSING);
             copyToEnvironmentMapper.updateItemDeploymentState(item);
@@ -605,7 +616,8 @@ public class PublishingManagerImpl implements PublishingManager {
     }
 
     @Override
-    public void markItemsReady(String site, String environment, List<CopyToEnvironment> copyToEnvironmentItems) throws DeploymentException {
+    @ValidateParams
+    public void markItemsReady(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "environment") String environment, List<CopyToEnvironment> copyToEnvironmentItems) throws DeploymentException {
         for (CopyToEnvironment item : copyToEnvironmentItems) {
             item.setState(CopyToEnvironment.State.READY_FOR_LIVE);
             copyToEnvironmentMapper.updateItemDeploymentState(item);

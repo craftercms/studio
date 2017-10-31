@@ -31,6 +31,9 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.craftercms.commons.lang.Callback;
+import org.craftercms.commons.validation.annotations.param.ValidateParams;
+import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
+import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.core.service.CacheService;
 import org.craftercms.core.util.cache.CacheTemplate;
 import org.craftercms.studio.api.v1.constant.CStudioConstants;
@@ -143,7 +146,8 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public boolean sendNotice(String site, String action) {
+    @ValidateParams
+    public boolean sendNotice(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "action") String action) {
         
         NotificationConfigTO config = getNotificationConfig(site);
         if (config != null) {
@@ -177,7 +181,8 @@ public class NotificationServiceImpl implements NotificationService {
     }
     
     @Override
-    public String getGeneralMessage(String site, String key) {
+    @ValidateParams
+    public String getGeneralMessage(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "key") String key) {
         
         NotificationConfigTO config = getNotificationConfig(site);
         if (config != null) {
@@ -190,7 +195,8 @@ public class NotificationServiceImpl implements NotificationService {
     }
     
     @Override
-    public List<MessageTO> getCannedRejectionReasons(final String site) {
+    @ValidateParams
+    public List<MessageTO> getCannedRejectionReasons(@ValidateStringParam(name = "site") final String site) {
         
         NotificationConfigTO config = getNotificationConfig(site);
         if (config != null) {
@@ -201,8 +207,10 @@ public class NotificationServiceImpl implements NotificationService {
         }
         return null;
     }
-    
-    public EmailMessageTemplateTO getRejectionEmailMessageTemplate(final String site) {
+
+    @Override
+    @ValidateParams
+    public EmailMessageTemplateTO getRejectionEmailMessageTemplate(@ValidateStringParam(name = "site") final String site) {
         
         NotificationConfigTO config = getNotificationConfig(site);
         if (config != null) {
@@ -213,8 +221,10 @@ public class NotificationServiceImpl implements NotificationService {
         }
         return null;
     }
-    
-    public EmailMessageTemplateTO getRejectionNonPreviewableEmailMessageTemplate(final String site) {
+
+    @Override
+    @ValidateParams
+    public EmailMessageTemplateTO getRejectionNonPreviewableEmailMessageTemplate(@ValidateStringParam(name = "site") final String site) {
         
         NotificationConfigTO config = getNotificationConfig(site);
         if (config != null) {
@@ -225,8 +235,10 @@ public class NotificationServiceImpl implements NotificationService {
         }
         return null;
     }
-    
-    public EmailMessageTemplateTO getApprovalEmailMessageTemplate(final String site) {
+
+    @Override
+    @ValidateParams
+    public EmailMessageTemplateTO getApprovalEmailMessageTemplate(@ValidateStringParam(name = "site") final String site) {
         
         NotificationConfigTO config = getNotificationConfig(site);
         if (config != null) {
@@ -237,8 +249,10 @@ public class NotificationServiceImpl implements NotificationService {
         }
         return null;
     }
-    
-    public EmailMessageTemplateTO getApprovalNonPreviewableEmailMessageTemplate(final String site) {
+
+    @Override
+    @ValidateParams
+    public EmailMessageTemplateTO getApprovalNonPreviewableEmailMessageTemplate(@ValidateStringParam(name = "site") final String site) {
         
         NotificationConfigTO config = getNotificationConfig(site);
         if (config != null) {
@@ -249,8 +263,10 @@ public class NotificationServiceImpl implements NotificationService {
         }
         return null;
     }
-    
-    public EmailMessageTemplateTO getDeleteApprovalEmailMessageTemplate(final String site) {
+
+    @Override
+    @ValidateParams
+    public EmailMessageTemplateTO getDeleteApprovalEmailMessageTemplate(@ValidateStringParam(name = "site") final String site) {
         
         NotificationConfigTO config = getNotificationConfig(site);
         if (config != null) {
@@ -261,8 +277,10 @@ public class NotificationServiceImpl implements NotificationService {
         }
         return null;
     }
-    
-    public EmailMessageTemplateTO getContentSubmissionEmailMessageTemplate(final String site) {
+
+    @Override
+    @ValidateParams
+    public EmailMessageTemplateTO getContentSubmissionEmailMessageTemplate(@ValidateStringParam(name = "site") final String site) {
         
         NotificationConfigTO config = getNotificationConfig(site);
         if (config != null) {
@@ -273,8 +291,10 @@ public class NotificationServiceImpl implements NotificationService {
         }
         return null;
     }
-    
-    public EmailMessageTemplateTO getContentSubmissionNoPreviewableEmailMessageTemplate(final String site) {
+
+    @Override
+    @ValidateParams
+    public EmailMessageTemplateTO getContentSubmissionNoPreviewableEmailMessageTemplate(@ValidateStringParam(name = "site") final String site) {
         
         NotificationConfigTO config = getNotificationConfig(site);
         if (config != null) {
@@ -285,8 +305,10 @@ public class NotificationServiceImpl implements NotificationService {
         }
         return null;
     }
-    
-    public EmailMessageTemplateTO getContentSubmissionForDeleteEmailMessageTemplate(final String site) {
+
+    @Override
+    @ValidateParams
+    public EmailMessageTemplateTO getContentSubmissionForDeleteEmailMessageTemplate(@ValidateStringParam(name = "site") final String site) {
         
         NotificationConfigTO config = getNotificationConfig(site);
         if (config != null) {
@@ -297,8 +319,10 @@ public class NotificationServiceImpl implements NotificationService {
         }
         return null;
     }
-    
-    public EmailMessageTemplateTO getContentSubmissionForDeleteNoPreviewableEmailMessageTemplate(final String site) {
+
+    @Override
+    @ValidateParams
+    public EmailMessageTemplateTO getContentSubmissionForDeleteNoPreviewableEmailMessageTemplate(@ValidateStringParam(name = "site") final String site) {
         
         NotificationConfigTO config = getNotificationConfig(site);
         if (config != null) {
@@ -311,7 +335,8 @@ public class NotificationServiceImpl implements NotificationService {
     }
     
     @Override
-    public String getCompleteMessage(final String site, final String key) {
+    @ValidateParams
+    public String getCompleteMessage(@ValidateStringParam(name = "site") final String site, @ValidateStringParam(name = "key") final String key) {
         
         NotificationConfigTO config = getNotificationConfig(site);
         if (config != null) {
@@ -324,7 +349,8 @@ public class NotificationServiceImpl implements NotificationService {
     }
     
     @Override
-    public String getErrorMessage(String site, String key, Map<String, String> params) {
+    @ValidateParams
+    public String getErrorMessage(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "key") String key, Map<String, String> params) {
         
         NotificationConfigTO config = getNotificationConfig(site);
         if (config != null) {
@@ -339,8 +365,10 @@ public class NotificationServiceImpl implements NotificationService {
         }
         return "";
     }
-    
-    public EmailMessageTemplateTO getDeploymentFailureMessage(final String site) {
+
+    @Override
+    @ValidateParams
+    public EmailMessageTemplateTO getDeploymentFailureMessage(@ValidateStringParam(name = "site") final String site) {
         
         NotificationConfigTO config = getNotificationConfig(site);
         if (config != null) {
@@ -353,7 +381,8 @@ public class NotificationServiceImpl implements NotificationService {
     }
     
     @Override
-    public void sendContentSubmissionNotification(String site,String to,String browserUrl,String from,Date scheduledDate,boolean isPreviewable,boolean isDelete) {
+    @ValidateParams
+    public void sendContentSubmissionNotification(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "to") String to, @ValidateStringParam(name = "browserUrl") String browserUrl, @ValidateStringParam(name = "from") String from, Date scheduledDate, boolean isPreviewable, boolean isDelete) {
         
         String subject =  DEFAULT_CONTENT_SUBJECT;
         String message = DEFAULT_CONTENT_BODY;
@@ -393,7 +422,8 @@ public class NotificationServiceImpl implements NotificationService {
     }
     
     @Override
-    public void sendContentSubmissionNotificationToApprovers(String site, String to, String browserUrl, String from, Date scheduledDate, boolean isPreviewable, boolean isDelete) {
+    @ValidateParams
+    public void sendContentSubmissionNotificationToApprovers(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "to") String to, @ValidateStringParam(name = "browserUrl") String browserUrl, @ValidateStringParam(name = "from") String from, Date scheduledDate, boolean isPreviewable, boolean isDelete) {
         if(!isNewNotificationEnable) {
             String subject = DEFAULT_CONTENT_SUBJECT;
             String message = DEFAULT_CONTENT_BODY;
@@ -530,7 +560,8 @@ public class NotificationServiceImpl implements NotificationService {
     }
     
     @Override
-    public void sendDeleteApprovalNotification(String site, String to, String browserUrl, String from) {
+    @ValidateParams
+    public void sendDeleteApprovalNotification(@ValidateStringParam(name = "site") String site, @ValidateStringParam String to, @ValidateStringParam(name = "browserUrl") String browserUrl, @ValidateStringParam(name = "from") String from) {
         
         String subject =  DEFAULT_CONTENT_SUBJECT;
         String message = DEFAULT_CONTENT_BODY;
@@ -555,7 +586,8 @@ public class NotificationServiceImpl implements NotificationService {
     }
     
     @Override
-    public void sendGenericNotification(String site, String path, String to, String from, String key, Map<String,String> params) {
+    @ValidateParams
+    public void sendGenericNotification(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, @ValidateStringParam(name = "to") String to, @ValidateStringParam(name = "from") String from, @ValidateStringParam(name = "key") String key, Map<String,String> params) {
         try {
             EmailMessageTemplateTO template = null;
             NotificationConfigTO config = getNotificationConfig(site);
@@ -583,7 +615,8 @@ public class NotificationServiceImpl implements NotificationService {
     }
     
     @Override
-    public void sendDeploymentFailureNotification(String site, Throwable error) {
+    @ValidateParams
+    public void sendDeploymentFailureNotification(@ValidateStringParam(name = "site") String site, Throwable error) {
         try {
             EmailMessageTemplateTO template = getDeploymentFailureMessage(site);
             if (template == null) {
@@ -796,7 +829,8 @@ public class NotificationServiceImpl implements NotificationService {
     
     
     @Override
-    public void sendRejectionNotification(String site,String to,String browserUrl,String reason,String from, boolean isPreviewable) {
+    @ValidateParams
+    public void sendRejectionNotification(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "to") String to, @ValidateStringParam(name = "browserUrl") String browserUrl, @ValidateStringParam(name = "reason") String reason, @ValidateStringParam(name = "from") String from, boolean isPreviewable) {
         
         String subject =  DEFAULT_CONTENT_SUBJECT;
         String message = DEFAULT_CONTENT_BODY;
@@ -831,7 +865,8 @@ public class NotificationServiceImpl implements NotificationService {
     
     
     @Override
-    public void sendApprovalNotification(String site, String to, String browserUrl, String from) {
+    @ValidateParams
+    public void sendApprovalNotification(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "to") String to, @ValidateStringParam(name = "browserUrl") String browserUrl, @ValidateStringParam(name = "from") String from) {
         
         String subject =  DEFAULT_CONTENT_SUBJECT;
         String message = DEFAULT_CONTENT_BODY;
@@ -982,7 +1017,8 @@ public class NotificationServiceImpl implements NotificationService {
     }
     
     @Override
-    public void reloadConfiguration(String site) {
+    @ValidateParams
+    public void reloadConfiguration(@ValidateStringParam(name = "site") String site) {
         CacheService cacheService = cacheTemplate.getCacheService();
         StudioCacheContext cacheContext = new StudioCacheContext(site, true);
         Object cacheKey = cacheTemplate.getKey(site, configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site), configFileName);

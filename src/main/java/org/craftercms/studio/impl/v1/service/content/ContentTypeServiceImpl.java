@@ -20,6 +20,9 @@ package org.craftercms.studio.impl.v1.service.content;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.craftercms.commons.validation.annotations.param.ValidateParams;
+import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
+import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.CStudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
@@ -49,7 +52,8 @@ public class ContentTypeServiceImpl implements ContentTypeService {
     private static final Logger logger = LoggerFactory.getLogger(ContentTypeServiceImpl.class);
 
     @Override
-    public ContentTypeConfigTO getContentTypeForContent(String site, String path) throws ServiceException {
+    @ValidateParams
+    public ContentTypeConfigTO getContentTypeForContent(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) throws ServiceException {
         ContentItemTO itemTO = contentService.getContentItem(site, path, 0);
         if (itemTO != null) {
             String type = itemTO.getContentType();
@@ -90,7 +94,8 @@ public class ContentTypeServiceImpl implements ContentTypeService {
     }
 
     @Override
-    public ContentTypeConfigTO getContentTypeByRelativePath(String site, String relativePath) throws ServiceException {
+    @ValidateParams
+    public ContentTypeConfigTO getContentTypeByRelativePath(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "relativePath") String relativePath) throws ServiceException {
         ContentItemTO item = contentService.getContentItem(site, relativePath, 0);
         if (item != null) {
             String type = item.getContentType();
@@ -105,12 +110,14 @@ public class ContentTypeServiceImpl implements ContentTypeService {
     }
 
     @Override
-    public ContentTypeConfigTO getContentType(String site, String type) {
+    @ValidateParams
+    public ContentTypeConfigTO getContentType(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "type") String type) {
         return servicesConfig.getContentTypeConfig(site, type);
     }
 
     @Override
-    public List<ContentTypeConfigTO> getAllContentTypes(String site, boolean searchable) {
+    @ValidateParams
+    public List<ContentTypeConfigTO> getAllContentTypes(@ValidateStringParam(name = "site") String site, boolean searchable) {
         return getAllContentTypes(site);
     }
 
@@ -147,7 +154,8 @@ public class ContentTypeServiceImpl implements ContentTypeService {
 
 
     @Override
-    public List<ContentTypeConfigTO> getAllowedContentTypesForPath(String site, String relativePath) throws ServiceException {
+    @ValidateParams
+    public List<ContentTypeConfigTO> getAllowedContentTypesForPath(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "relative") String relativePath) throws ServiceException {
         String user = securityService.getCurrentUser();
         Set<String> userRoles = securityService.getUserRoles(site, user);
         SiteContentTypePathsTO pathsConfig = contentTypesConfig.getPathMapping(site);
@@ -210,7 +218,9 @@ public class ContentTypeServiceImpl implements ContentTypeService {
         }
     }
 
-    public boolean changeContentType(String site, String path, String contentType) throws ServiceException {
+    @Override
+    @ValidateParams
+    public boolean changeContentType(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, @ValidateStringParam(name = "contentType") String contentType) throws ServiceException {
         ContentTypeConfigTO contentTypeConfigTO = getContentType(site, contentType);
         if (contentTypeConfigTO.getFormPath().equalsIgnoreCase(DmConstants.CONTENT_TYPE_CONFIG_FORM_PATH_SIMPLE)){
             // Simple form engine is not using templates - skip copying template and merging content
@@ -245,7 +255,8 @@ public class ContentTypeServiceImpl implements ContentTypeService {
     }
 
     @Override
-    public void reloadConfiguration(String site) {
+    @ValidateParams
+    public void reloadConfiguration(@ValidateStringParam(name = "site") String site) {
         String contentTypesRootPath = configPath.replaceAll(CStudioConstants.PATTERN_SITE, site);
         RepositoryItem[] folders = contentRepository.getContentChildren(contentTypesRootPath);
         List<ContentTypeConfigTO> contentTypes = new ArrayList<>();

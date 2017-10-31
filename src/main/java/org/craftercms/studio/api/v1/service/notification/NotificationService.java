@@ -17,6 +17,7 @@
  ******************************************************************************/
 package org.craftercms.studio.api.v1.service.notification;
 
+import org.craftercms.studio.api.v1.to.EmailMessageTemplateTO;
 import org.craftercms.studio.api.v1.to.MessageTO;
 
 import java.util.List;
@@ -139,4 +140,24 @@ public interface NotificationService {
 	public void sendGenericNotification(String site, String path, String to, String from, String key, Map<String,String> params);
 
     void reloadConfiguration(String site);
+
+    EmailMessageTemplateTO getApprovalEmailMessageTemplate(final String site);
+
+    EmailMessageTemplateTO getApprovalNonPreviewableEmailMessageTemplate(final String site);
+
+    EmailMessageTemplateTO getContentSubmissionEmailMessageTemplate(final String site);
+
+    EmailMessageTemplateTO getContentSubmissionForDeleteEmailMessageTemplate(final String site);
+
+    EmailMessageTemplateTO getContentSubmissionForDeleteNoPreviewableEmailMessageTemplate(final String site);
+
+    EmailMessageTemplateTO getContentSubmissionNoPreviewableEmailMessageTemplate(final String site);
+
+    EmailMessageTemplateTO getDeleteApprovalEmailMessageTemplate(final String site);
+
+    EmailMessageTemplateTO getDeploymentFailureMessage(final String site);
+
+    EmailMessageTemplateTO getRejectionEmailMessageTemplate(final String site);
+
+    EmailMessageTemplateTO getRejectionNonPreviewableEmailMessageTemplate(final String site);
 }

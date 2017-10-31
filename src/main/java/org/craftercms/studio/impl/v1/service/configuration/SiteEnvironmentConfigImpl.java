@@ -20,6 +20,8 @@ package org.craftercms.studio.impl.v1.service.configuration;
 
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.commons.lang.Callback;
+import org.craftercms.commons.validation.annotations.param.ValidateParams;
+import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.core.service.CacheService;
 import org.craftercms.core.util.cache.CacheTemplate;
 import org.craftercms.studio.api.v1.constant.CStudioConstants;
@@ -72,7 +74,8 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
               * @see org.craftercms.cstudio.alfresco.service.api.SiteEnvironmentConfig#getEnvironmentConfig(java.lang.String)
               */
 	@Override
-	public EnvironmentConfigTO getEnvironmentConfig(final String site) {
+    @ValidateParams
+	public EnvironmentConfigTO getEnvironmentConfig(@ValidateStringParam(name = "site") final String site) {
         CacheService cacheService = cacheTemplate.getCacheService();
         StudioCacheContext cacheContext = new StudioCacheContext(site, true);
         Object cacheKey = cacheTemplate.getKey(site, configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site).replaceFirst(CStudioConstants.PATTERN_ENVIRONMENT, environment), configFileName);
@@ -98,7 +101,9 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
 	 * (non-Javadoc)
 	 * @see org.craftercms.cstudio.alfresco.service.api.SiteEnvironmentConfig#getPreviewServerUrl(java.lang.String)
 	 */
-	public String getPreviewServerUrl(String site) {
+	@Override
+	@ValidateParams
+	public String getPreviewServerUrl(@ValidateStringParam(name = "site") String site) {
 		//checkForUpdate(site);
 		EnvironmentConfigTO config = getEnvironmentConfig(site);
 		if (config != null) {
@@ -112,8 +117,10 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
 		}
 		return "";
 	}
-	
-	public String getLiveServerUrl(String site) {
+
+	@Override
+	@ValidateParams
+	public String getLiveServerUrl(@ValidateStringParam(name = "site") String site) {
 		//checkForUpdate(site);
 		EnvironmentConfigTO config = getEnvironmentConfig(site);
 		if (config != null) {
@@ -121,8 +128,10 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
 		}
 		return "";
 	}
-	
-	public String getAdminEmailAddress(String site) {
+
+	@Override
+	@ValidateParams
+	public String getAdminEmailAddress(@ValidateStringParam(name = "site") String site) {
 		//checkForUpdate(site);
 		EnvironmentConfigTO config = getEnvironmentConfig(site);
 		if (config != null) {
@@ -136,7 +145,9 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
 	 * (non-Javadoc)
 	 * @see org.craftercms.cstudio.alfresco.service.api.SiteEnvironmentConfig#getPreviewServerUrl(java.lang.String)
 	 */
-	public String getAuthoringServerUrl(String site) {
+	@Override
+	@ValidateParams
+	public String getAuthoringServerUrl(@ValidateStringParam(name = "site") String site) {
 		//checkForUpdate(site);
 		EnvironmentConfigTO config = getEnvironmentConfig(site);
 		if (config != null) {
@@ -149,7 +160,9 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
 	 * (non-Javadoc)
 	 * @see org.craftercms.cstudio.alfresco.service.api.SiteEnvironmentConfig#getFormServerUrl(java.lang.String)
 	 */
-	public String getFormServerUrl(String site) {
+	@Override
+	@ValidateParams
+	public String getFormServerUrl(@ValidateStringParam(name = "site") String site) {
 		//checkForUpdate(site);
 		EnvironmentConfigTO config = getEnvironmentConfig(site);
 		if (config != null) {
@@ -159,7 +172,8 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
 	}
 
 	@Override
-	public String getCookieDomain(String site) {
+    @ValidateParams
+	public String getCookieDomain(@ValidateStringParam(name = "site") String site) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -268,7 +282,8 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
 	}
 
     @Override
-    public void reloadConfiguration(String site) {
+    @ValidateParams
+    public void reloadConfiguration(@ValidateStringParam(name = "site") String site) {
         CacheService cacheService = cacheTemplate.getCacheService();
         StudioCacheContext cacheContext = new StudioCacheContext(site, true);
         Object cacheKey = cacheTemplate.getKey(site, configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site).replaceFirst(CStudioConstants.PATTERN_ENVIRONMENT, environment), configFileName);
@@ -301,7 +316,8 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
 	}
 
     @Override
-    public Map<String, PublishingChannelGroupConfigTO> getPublishingChannelGroupConfigs(String site) {
+    @ValidateParams
+    public Map<String, PublishingChannelGroupConfigTO> getPublishingChannelGroupConfigs(@ValidateStringParam(name = "site") String site) {
         EnvironmentConfigTO config = getEnvironmentConfig(site);
         if (config != null) {
             return config.getPublishingChannelGroupConfigs();
@@ -310,7 +326,8 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
     }
 
     @Override
-    public PublishingChannelGroupConfigTO getLiveEnvironmentPublishingGroup(String site) {
+    @ValidateParams
+    public PublishingChannelGroupConfigTO getLiveEnvironmentPublishingGroup(@ValidateStringParam(name = "site") String site) {
         EnvironmentConfigTO config = getEnvironmentConfig(site);
         if (config != null) {
             return config.getLiveEnvironmentPublishingGroup();
@@ -319,13 +336,15 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
     }
 
     @Override
-    public boolean exists(String site) {
+    @ValidateParams
+    public boolean exists(@ValidateStringParam(name = "site") String site) {
         EnvironmentConfigTO config = getEnvironmentConfig(site);
         return config != null;
     }
 
     @Override
-    public String getPreviewDeploymentEndpoint(String site) {
+    @ValidateParams
+    public String getPreviewDeploymentEndpoint(@ValidateStringParam(name = "site") String site) {
         EnvironmentConfigTO config = getEnvironmentConfig(site);
         if (config != null) {
             return config.getPreviewDeploymentEndpoint();

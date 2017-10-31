@@ -19,6 +19,9 @@ package org.craftercms.studio.impl.v1.service.content;
 
 import org.apache.commons.collections.ListUtils;
 import org.apache.commons.lang.StringUtils;
+import org.craftercms.commons.validation.annotations.param.ValidateParams;
+import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
+import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.CStudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.DmXmlConstants;
@@ -58,7 +61,8 @@ public class DmMetadataServiceImpl extends AbstractRegistrableService implements
     }
 
     @Override
-    public void extractMetadata(String site, String user, String path, String contentType, Document content) throws ServiceException {
+    @ValidateParams
+    public void extractMetadata(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "user") String user, @ValidateSecurePathParam(name = "path") String path, @ValidateStringParam(name = "contentType") String contentType, Document content) throws ServiceException {
         user = (StringUtils.isEmpty(user)) ? securityService.getCurrentUser() : user;
         String fullPath = contentService.expandRelativeSitePath(site, path);
         if (content == null) {

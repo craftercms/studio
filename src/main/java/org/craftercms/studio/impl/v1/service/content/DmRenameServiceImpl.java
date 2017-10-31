@@ -18,6 +18,8 @@
 package org.craftercms.studio.impl.v1.service.content;
 
 import org.apache.commons.lang.StringUtils;
+import org.craftercms.commons.validation.annotations.param.ValidateParams;
+import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.core.service.CacheService;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.ObjectMetadata;
@@ -64,7 +66,8 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
      *
      */
     @Override
-    public boolean isItemRenamed(String site, DmDependencyTO item) {
+    @ValidateParams
+    public boolean isItemRenamed(@ValidateStringParam(name = "site") String site, DmDependencyTO item) {
         if (item.getUri().endsWith(DmConstants.XML_PATTERN) || !item.getUri().contains(".")) {
             return isItemRenamed(site, item.getUri());
         } else {
@@ -77,7 +80,8 @@ public class DmRenameServiceImpl extends AbstractRegistrableService implements D
      * GoLive on the renamed node
      */
     @Override
-    public void goLive(String site, List<DmDependencyTO> submittedItems, String approver, MultiChannelPublishingContext mcpContext) throws ServiceException {
+    @ValidateParams
+    public void goLive(@ValidateStringParam(name = "site") String site, List<DmDependencyTO> submittedItems, @ValidateStringParam(name = "approver") String approver, MultiChannelPublishingContext mcpContext) throws ServiceException {
                 long start = System.currentTimeMillis();
 
         try {

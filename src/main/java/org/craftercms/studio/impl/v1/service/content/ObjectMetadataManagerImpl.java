@@ -18,6 +18,9 @@
 
 package org.craftercms.studio.impl.v1.service.content;
 
+import org.craftercms.commons.validation.annotations.param.ValidateParams;
+import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
+import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.dal.ObjectMetadata;
 import org.craftercms.studio.api.v1.dal.ObjectMetadataMapper;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -34,7 +37,8 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
     private final static Logger logger = LoggerFactory.getLogger(ObjectMetadataManagerImpl.class);
 
     @Override
-    public void insertNewObjectMetadata(String site, String path) {
+    @ValidateParams
+    public void insertNewObjectMetadata(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
         path = path.replace("//", "/");
         Map<String, String> params = new HashMap<>();
         params.put("site", site);
@@ -43,7 +47,8 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
     }
 
     @Override
-    public void setObjectMetadata(String site, String path, Map<String, Object> properties) {
+    @ValidateParams
+    public void setObjectMetadata(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, Map<String, Object> properties) {
         path = path.replace("//", "/");
         Map<String, Object> params = new HashMap<>();
         params.put("site", site);
@@ -58,7 +63,8 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
     }
 
     @Override
-    public ObjectMetadata getProperties(String site, String path) {
+    @ValidateParams
+    public ObjectMetadata getProperties(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
         path = path.replace("//", "/");
         Map<String, String> params = new HashMap<>();
         params.put("site", site);
@@ -67,7 +73,8 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
     }
 
     @Override
-    public boolean metadataExist(String site, String path) {
+    @ValidateParams
+    public boolean metadataExist(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
         path = path.replace("//", "/");
         Map<String, String> params = new HashMap<>();
         params.put("site", site);
@@ -83,7 +90,8 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
     }
 
     @Override
-    public boolean isRenamed(String site, String path) {
+    @ValidateParams
+    public boolean isRenamed(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
         path = path.replace("//", "/");
         if (metadataExist(site, path)) {
             ObjectMetadata metadata = getProperties(site, path);
@@ -94,7 +102,8 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
     }
 
     @Override
-    public String getOldPath(String site, String path) {
+    @ValidateParams
+    public String getOldPath(@ValidateStringParam(name = "path") String site, @ValidateSecurePathParam(name = "path") String path) {
         path = path.replace("//", "/");
         if (metadataExist(site, path)) {
             ObjectMetadata metadata = getProperties(site, path);
@@ -105,7 +114,8 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
     }
 
     @Override
-    public void lockContent(String site, String path, String lockOwner) {
+    @ValidateParams
+    public void lockContent(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, @ValidateStringParam(name = "lockOwner") String lockOwner) {
         path = path.replace("//", "/");
         if (!metadataExist(site, path)) {
             insertNewObjectMetadata(site, path);
@@ -118,7 +128,8 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
     }
 
     @Override
-    public void unLockContent(String site, String path) {
+    @ValidateParams
+    public void unLockContent(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
         path = path.replace("//", "/");
         if (!metadataExist(site, path)) {
             insertNewObjectMetadata(site, path);
@@ -131,14 +142,16 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
     }
 
     @Override
-    public void deleteObjectMetadataForSite(String site) {
+    @ValidateParams
+    public void deleteObjectMetadataForSite(@ValidateStringParam(name = "site") String site) {
         Map<String, String> params = new HashMap<>();
         params.put("site", site);
         objectMetadataMapper.deleteObjectMetadataForSite(params);
     }
 
     @Override
-    public void deleteObjectMetadata(String site, String path) {
+    @ValidateParams
+    public void deleteObjectMetadata(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
         path = path.replace("//", "/");
         Map<String, String> params = new HashMap<>();
         params.put("site", site);
@@ -147,7 +160,8 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
     }
 
     @Override
-    public void updateObjectPath(String site, String oldPath, String newPath) {
+    @ValidateParams
+    public void updateObjectPath(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "oldPath") String oldPath, @ValidateSecurePathParam(name = "newPath") String newPath) {
         newPath = newPath.replace("//", "/");
         oldPath = oldPath.replace("//", "/");
         Map<String, Object> params = new HashMap<>();
@@ -158,7 +172,8 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
     }
 
     @Override
-    public void clearRenamed(String site, String path) {
+    @ValidateParams
+    public void clearRenamed(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
         path = path.replace("//", "/");
         Map<String, Object> params = new HashMap<>();
         params.put("renamed", false);

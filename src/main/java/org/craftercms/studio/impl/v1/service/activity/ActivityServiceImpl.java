@@ -23,6 +23,10 @@ import javolution.util.FastList;
 import net.sf.json.JSONObject;
 
 import org.apache.commons.lang.StringUtils;
+import org.craftercms.commons.validation.annotations.param.ValidateIntegerParam;
+import org.craftercms.commons.validation.annotations.param.ValidateParams;
+import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
+import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.CStudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.ActivityFeed;
@@ -79,7 +83,10 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
       * (non-Javadoc)
       * @see org.craftercms.cstudio.alfresco.service.api.AcitivityService#postActivity(java.lang.String, java.lang.String, java.lang.String, org.craftercms.cstudio.alfresco.service.api.AcitivityService.ActivityType)
       */
-	public void postActivity(String site, String user, String contentId, ActivityType activity, Map<String,String> extraInfo) {
+
+    @Override
+    @ValidateParams
+	public void postActivity(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "user") String user, @ValidateSecurePathParam(name = "contentId") String contentId, ActivityType activity, Map<String,String> extraInfo) {
 		
 		JSONObject activityPost = new JSONObject();
 		activityPost.put(ACTIVITY_PROP_USER, user);
@@ -216,7 +223,8 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 	}
 
 	@Override
-	public void renameContentId(String site, String oldUrl, String newUrl) {
+    @ValidateParams
+	public void renameContentId(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "oldUrl") String oldUrl, @ValidateSecurePathParam(name = "newUrl") String newUrl) {
 		DebugUtils.addDebugStack(logger);
 		logger.debug("Rename " + oldUrl + " to " + newUrl);
 		Map<String, String> params = new HashMap<String, String>();
@@ -227,7 +235,8 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 	}
 
 	@Override
-	public List<ContentItemTO> getActivities(String site, String user, int num, String sort, boolean ascending, boolean excludeLive, String filterType) throws ServiceException {
+    @ValidateParams
+	public List<ContentItemTO> getActivities(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "user") String user, @ValidateIntegerParam(name = "num") int num, String sort, boolean ascending, boolean excludeLive, @ValidateStringParam(name = "filterType") String filterType) throws ServiceException {
 		int startPos = 0;
 		List<ContentItemTO> contentItems = new FastList<ContentItemTO>();
 		boolean hasMoreItems = true;
@@ -356,7 +365,8 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 	}
 
 	@Override
-	public ActivityFeed getDeletedActivity(String site, String path) {
+    @ValidateParams
+	public ActivityFeed getDeletedActivity(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
 		HashMap<String,String> params = new HashMap<String,String>();
 		params.put("contentId", path);
 		params.put("siteNetwork", site);
@@ -366,7 +376,8 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 	}
 
 	@Override
-	public void deleteActivitiesForSite(String site) {
+    @ValidateParams
+	public void deleteActivitiesForSite(@ValidateStringParam(name = "site") String site) {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("site", site);
 		activityFeedMapper.deleteActivitiesForSite(params);

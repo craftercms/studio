@@ -24,6 +24,8 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.craftercms.commons.lang.Callback;
 import org.craftercms.commons.mail.EmailUtils;
+import org.craftercms.commons.validation.annotations.param.ValidateParams;
+import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.core.service.CacheService;
 import org.craftercms.core.util.cache.CacheTemplate;
 import org.craftercms.engine.exception.ConfigurationException;
@@ -81,7 +83,8 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public void notifyDeploymentError(final String site, final Throwable throwable, final List<String>
+    @ValidateParams
+    public void notifyDeploymentError(@ValidateStringParam(name = "site") final String site, final Throwable throwable, final List<String>
         filesUnableToPublish, final Locale locale) {
         try {
             if (enable) {
@@ -100,18 +103,21 @@ public class NotificationServiceImpl implements NotificationService {
 
 
     @Override
-    public void notifyDeploymentError(final String name, final Throwable throwable) {
+    @ValidateParams
+    public void notifyDeploymentError(@ValidateStringParam(name = "name") final String name, final Throwable throwable) {
         notifyDeploymentError(name, throwable, Collections.EMPTY_LIST, Locale.ENGLISH);
     }
 
     @Override
-    public void notifyDeploymentError(final String name) {
+    @ValidateParams
+    public void notifyDeploymentError(@ValidateStringParam(name = "name") final String name) {
         notifyDeploymentError(name, null);
     }
 
     @Override
-    public void notifyContentApproval(final String site, final String submitter, final List<String> itemsSubmitted,
-                                      final String approver, final Date scheduleDate, final Locale locale) {
+    @ValidateParams
+    public void notifyContentApproval(@ValidateStringParam(name = "site") final String site, @ValidateStringParam(name = "submitter") final String submitter, final List<String> itemsSubmitted,
+                                      @ValidateStringParam(name = "approver") final String approver, final Date scheduleDate, final Locale locale) {
         try {
             if (enable) {
                 final Map<String, String> submitterUser = securityService.getUserProfile(submitter);
@@ -129,7 +135,8 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public String getNotificationMessage(final String site, final NotificationMessageType type, final String key,
+    @ValidateParams
+    public String getNotificationMessage(@ValidateStringParam(name = "site") final String site, final NotificationMessageType type, @ValidateStringParam(name = "key") final String key,
                                          final Locale locale, final Pair<String, Object>... params) {
         try {
             if (enable) {
@@ -178,8 +185,9 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public void notifyApprovesContentSubmission(final String site, final List<String> usersToNotify, final
-    List<String> itemsSubmitted, final String submitter, final Date scheduleDate, final boolean isADelete, final
+    @ValidateParams
+    public void notifyApprovesContentSubmission(@ValidateStringParam(name = "site") final String site, final List<String> usersToNotify, final
+    List<String> itemsSubmitted, @ValidateStringParam(name = "submitter") final String submitter, final Date scheduleDate, final boolean isADelete, @ValidateStringParam(name = "submissionComments") final
     String submissionComments, final Locale locale) {
         try {
             if (enable) {
@@ -205,7 +213,8 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public void notify(final String site, final List<String> toUsers, final String key, final Locale locale, final
+    @ValidateParams
+    public void notify(@ValidateStringParam(name = "site") final String site, final List<String> toUsers, @ValidateStringParam(name = "key") final String key, final Locale locale, final
     Pair<String, Object>... params) {
         try {
             if (enable) {
@@ -246,8 +255,9 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public void notifyContentRejection(final String site, final String submittedBy, final List<String> rejectedItems,
-                                       final String rejectionReason, final String userThatRejects, final Locale
+    @ValidateParams
+    public void notifyContentRejection(@ValidateStringParam(name = "site") final String site, @ValidateStringParam(name = "submittedBy") final String submittedBy, final List<String> rejectedItems,
+                                       @ValidateStringParam(name = "rejectionReason") final String rejectionReason, @ValidateStringParam(name = "userThatRejects") final String userThatRejects, final Locale
                                                locale) {
         try {
             if (enable) {
@@ -397,7 +407,8 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public void reloadConfiguration(final String site) {
+    @ValidateParams
+    public void reloadConfiguration(@ValidateStringParam(name = "site") final String site) {
         if (enable) {
             CacheService cacheService = cacheTemplate.getCacheService();
             StudioCacheContext cacheContext = new StudioCacheContext(site, true);

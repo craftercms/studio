@@ -20,6 +20,8 @@
 package org.craftercms.studio.impl.v1.service.content;
 
 import org.apache.commons.lang.StringUtils;
+import org.craftercms.commons.validation.annotations.param.ValidateParams;
+import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.ObjectState;
 import org.craftercms.studio.api.v1.exception.ServiceException;
@@ -58,7 +60,8 @@ public class ImportServiceImpl implements ImportService {
     private final static Logger logger = LoggerFactory.getLogger(ImportServiceImpl.class);
 
     @Override
-    public void importSite(String configLocation) {
+    @ValidateParams
+    public void importSite(@ValidateSecurePathParam(name = "configLocation") String configLocation) {
         Document document = loadConfiguration(configLocation);
         if (document != null) {
             Element root = document.getRootElement();

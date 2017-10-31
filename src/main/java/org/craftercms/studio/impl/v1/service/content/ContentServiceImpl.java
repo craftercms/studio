@@ -25,6 +25,10 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.commons.lang.Callback;
+import org.craftercms.commons.validation.annotations.param.ValidateIntegerParam;
+import org.craftercms.commons.validation.annotations.param.ValidateParams;
+import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
+import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.core.service.CacheService;
 import org.craftercms.core.util.cache.CacheTemplate;
 import org.craftercms.studio.api.v1.constant.DmConstants;
@@ -90,7 +94,8 @@ public class ContentServiceImpl implements ContentService {
     public final static Pattern COPY_FOLDER_PATTERN = Pattern.compile("(.+)-([0-9]+)");
 
     @Override
-    public boolean contentExists(String site, String path) {
+    @ValidateParams
+    public boolean contentExists(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
         CacheService cacheService = cacheTemplate.getCacheService();
         StudioCacheContext cacheContext = new StudioCacheContext(site, false);
         if (cacheService.hasScope(cacheContext)) {
@@ -104,22 +109,26 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public boolean contentExists(String fullPath) {
+    @ValidateParams
+    public boolean contentExists(@ValidateSecurePathParam(name = "fullPath") String fullPath) {
         return this._contentRepository.contentExists(fullPath);
     }
 
     @Override
-    public InputStream getContent(String path) throws ContentNotFoundException {
+    @ValidateParams
+    public InputStream getContent(@ValidateSecurePathParam(name = "path") String path) throws ContentNotFoundException {
        return this._contentRepository.getContent(path);
     }
 
     @Override
-    public InputStream getContent(String site, String path) throws ContentNotFoundException {
+    @ValidateParams
+    public InputStream getContent(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) throws ContentNotFoundException {
        return this._contentRepository.getContent(expandRelativeSitePath(site, path));
     }
 
     @Override
-    public String getContentAsString(String path)  {
+    @ValidateParams
+    public String getContentAsString(@ValidateSecurePathParam(name = "path") String path)  {
         String content = null;
 
         try {
@@ -134,7 +143,8 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public Document getContentAsDocument(String path)
+    @ValidateParams
+    public Document getContentAsDocument(@ValidateSecurePathParam(name = "path") String path)
     throws DocumentException {
         Document retDocument = null;
         InputStream is = null;
@@ -173,7 +183,8 @@ public class ContentServiceImpl implements ContentService {
 
 
     @Override
-    public boolean writeContent(String path, InputStream content) throws ServiceException {
+    @ValidateParams
+    public boolean writeContent(@ValidateSecurePathParam(name = "path") String path, InputStream content) throws ServiceException {
 
        boolean writeSuccess = false;
 
@@ -191,7 +202,8 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public void writeContent(String site, String path, String fileName, String contentType, InputStream input,
+    @ValidateParams
+    public void writeContent(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, @ValidateStringParam(name = "fileName") String fileName, @ValidateStringParam(name = "contentType") String contentType, InputStream input,
                              String createFolders, String edit, String unlock) throws ServiceException {
         Map<String, String> params = new HashMap<String, String>();
         params.put(DmConstants.KEY_SITE, site);
@@ -291,7 +303,8 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public void writeContentAndRename(final String site, final String path, final String targetPath, final String fileName, final String contentType, final InputStream input,
+    @ValidateParams
+    public void writeContentAndRename(@ValidateStringParam(name = "site") final String site, @ValidateSecurePathParam(name = "path") final String path, @ValidateSecurePathParam(name = "targetPath") final String targetPath, @ValidateStringParam(name = "fileName") final String fileName, @ValidateStringParam(name = "contentType") final String contentType, final InputStream input,
                                       final String createFolders, final  String edit, final String unlock, final boolean createFolder) throws ServiceException {
         String id = site + ":" + path + ":" + fileName + ":" + contentType;
         if (!generalLockService.tryLock(id)) {
@@ -328,7 +341,8 @@ public class ContentServiceImpl implements ContentService {
      * @throws ServiceException
      */
     @Override
-    public Map<String, Object> writeContentAsset(String site, String path, String assetName, InputStream in,
+    @ValidateParams
+    public Map<String, Object> writeContentAsset(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, @ValidateStringParam(name = "assetName") String assetName, InputStream in,
                                                  String isImage, String allowedWidth, String allowedHeight, String allowLessSize, String draft, String unlock, String systemAsset) throws ServiceException {
         if(assetName != null) {
             assetName = assetName.replace(" ","_");
@@ -409,24 +423,28 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public boolean writeContent(String site, String path, InputStream content) throws ServiceException {
+    @ValidateParams
+    public boolean writeContent(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, InputStream content) throws ServiceException {
         return writeContent(expandRelativeSitePath(site, path), content);
     }
 
     @Override
-    public boolean createFolder(String site, String path, String name) {
+    @ValidateParams
+    public boolean createFolder(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, @ValidateStringParam(name = "name") String name) {
         boolean toRet = _contentRepository.createFolder(expandRelativeSitePath(site, path), name);
         removeItemFromCache(site, path + "/" + name);
         return toRet;
     }
 
     @Override
-    public boolean deleteContent(String site, String path, String approver) {
+    @ValidateParams
+    public boolean deleteContent(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, @ValidateStringParam(name = "approver") String approver) {
         return deleteContent(site, path, true, approver);
     }
 
     @Override
-    public boolean deleteContent(String site, String path, boolean generateActivity, String approver) {
+    @ValidateParams
+    public boolean deleteContent(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, boolean generateActivity, @ValidateStringParam(name = "approver") String approver) {
         if (generateActivity) {
             generateDeleteActivity(site, path, approver);
         }
@@ -474,7 +492,8 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public String copyContent(String site, String fromPath, String toPath) {
+    @ValidateParams
+    public String copyContent(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "fromPath") String fromPath, @ValidateSecurePathParam(name = "toPath") String toPath) {
         return copyContent(site, fromPath, toPath, new HashSet<String>());
     }
 
@@ -638,7 +657,8 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public String moveContent(String site, String fromPath, String toPath) {
+    @ValidateParams
+    public String moveContent(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "fromPath") String fromPath, @ValidateSecurePathParam(name = "toPath") String toPath) {
         String retNewFileName = null;
         boolean opSuccess = false;
         String movePath = null;
@@ -1379,13 +1399,15 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public ContentItemTO getContentItem(String site, String path) {
+    @ValidateParams
+    public ContentItemTO getContentItem(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
         return getContentItem(site, path, 2);
     }
 
 
     @Override
-    public ContentItemTO getContentItem(String site, String path, int depth) {
+    @ValidateParams
+    public ContentItemTO getContentItem(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, @ValidateIntegerParam(name = "depth", minValue = 0) int depth) {
         logger.debug("Loading content item ... should be cached {0}, {1}, {2}", site, path, depth);
         ContentItemTO item = null;
         String fullContentPath = expandRelativeSitePath(site, path);
@@ -1492,7 +1514,8 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public ContentItemTO getContentItem(String fullPath) {
+    @ValidateParams
+    public ContentItemTO getContentItem(@ValidateSecurePathParam(name = "fullPath") String fullPath) {
         String site = getSiteFromFullPath(fullPath);
         String relativePath = getRelativeSitePath(site, fullPath);
 
@@ -1600,7 +1623,8 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public ContentItemTO getContentItemTree(String site, String path, int depth) {
+    @ValidateParams
+    public ContentItemTO getContentItemTree(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, @ValidateIntegerParam(name = "depth") int depth) {
         logger.debug("Getting content item  tree for {0}:{1} depth {2}", site, path, depth);
 
         long startTime = System.currentTimeMillis();
@@ -1621,7 +1645,8 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public ContentItemTO getContentItemTree(String fullPath, int depth) {
+    @ValidateParams
+    public ContentItemTO getContentItemTree(@ValidateSecurePathParam(name = "fullPath") String fullPath, @ValidateIntegerParam(name = "depth") int depth) {
         String site = getSiteFromFullPath(fullPath);
         String relativePath = getRelativeSitePath(site, fullPath);
 
@@ -1629,12 +1654,14 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public VersionTO[] getContentItemVersionHistory(String site, String path) {
+    @ValidateParams
+    public VersionTO[] getContentItemVersionHistory(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
         return _contentRepository.getContentVersionHistory(expandRelativeSitePath(site, path));
     }
 
     @Override
-    public boolean revertContentItem(String site, String path, String version, boolean major, String comment) {
+    @ValidateParams
+    public boolean revertContentItem(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, @ValidateStringParam(name = "version") String version, boolean major, @ValidateStringParam(name = "comment") String comment) {
         boolean success = false;
 
         if(path.startsWith("/site")) {
@@ -1763,7 +1790,9 @@ public class ContentServiceImpl implements ContentService {
      * @param path    - the path item
      * @param version - version
      */
- 	public InputStream getContentVersion(String site, String path, String version) 	
+	@Override
+	@ValidateParams
+ 	public InputStream getContentVersion(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, @ValidateStringParam(name = "version") String version)
  	throws ContentNotFoundException {
  		String repositoryPath = expandRelativeSitePath(site, path);
  		
@@ -1777,7 +1806,9 @@ public class ContentServiceImpl implements ContentService {
      * @param path    - the path item
      * @param version - version
      */
- 	public String getContentVersionAsString(String site, String path, String version) 
+	@Override
+	@ValidateParams
+ 	public String getContentVersionAsString(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, @ValidateStringParam(name = "path") String version)
 	throws ContentNotFoundException { 		
  		String content = null;
 
@@ -1791,9 +1822,10 @@ public class ContentServiceImpl implements ContentService {
 
         return content;
  	}
- 
- 
-    public ContentItemTO createDummyDmContentItemForDeletedNode(String site, String relativePath){
+
+ 	@Override
+    @ValidateParams
+    public ContentItemTO createDummyDmContentItemForDeletedNode(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "relativePath") String relativePath){
         String absolutePath = expandRelativeSitePath(site, relativePath);
         DmPathTO path = new DmPathTO(absolutePath);
         ContentItemTO item = new ContentItemTO();
@@ -1848,7 +1880,8 @@ public class ContentServiceImpl implements ContentService {
      * @return
      */
     @Override
-    public String expandRelativeSitePath(String site, String relativePath) {
+    @ValidateParams
+    public String expandRelativeSitePath(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "relativePath") String relativePath) {
         return "/wem-projects/" + site + "/" + site + "/work-area" + relativePath;
     }
 
@@ -1861,7 +1894,8 @@ public class ContentServiceImpl implements ContentService {
      * @return
      */
     @Override
-    public String getRelativeSitePath(String site, String fullPath) {
+    @ValidateParams
+    public String getRelativeSitePath(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "fullPath") String fullPath) {
         return fullPath.replace("/wem-projects/" + site + "/" + site + "/work-area", "");
     }
 
@@ -1906,7 +1940,8 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public String getContentTypeClass(String site, String uri) {
+    @ValidateParams
+    public String getContentTypeClass(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "uri") String uri) {
         if (matchesPatterns(uri, servicesConfig.getComponentPatterns(site)) || uri.endsWith("/" + servicesConfig.getLevelDescriptorName(site))) {
             return DmConstants.CONTENT_TYPE_COMPONENT;
         } else if (matchesPatterns(uri, servicesConfig.getDocumentPatterns(site))) {
@@ -1937,7 +1972,8 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public ResultTO processContent(String id, InputStream input, boolean isXml, Map<String, String> params, String contentChainForm) throws ServiceException {
+    @ValidateParams
+    public ResultTO processContent(@ValidateStringParam(name = "id") String id, InputStream input, boolean isXml, Map<String, String> params, String contentChainForm) throws ServiceException {
         // get sandbox if not provided
         long start = System.currentTimeMillis();
         try {
@@ -1957,7 +1993,8 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public String getNextAvailableName(String site, String path) {
+    @ValidateParams
+    public String getNextAvailableName(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
         String[] levels = path.split("/");
         int length = levels.length;
         if (length > 0) {
@@ -2009,7 +2046,8 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public GoLiveDeleteCandidates getDeleteCandidates(String site, String relativePath) throws ServiceException {
+    @ValidateParams
+    public GoLiveDeleteCandidates getDeleteCandidates(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "relativePath") String relativePath) throws ServiceException {
         List<String> items = new ArrayList<>();
         ContentItemTO contentItem = getContentItem(site, relativePath);
         GoLiveDeleteCandidates deletedItems = new GoLiveDeleteCandidates(site, this);
@@ -2038,13 +2076,15 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public void lockContent(String site, String path) {
+    @ValidateParams
+    public void lockContent(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
         _contentRepository.lockItem(site, path);
         objectMetadataManager.lockContent(site, path, securityService.getCurrentUser());
     }
 
     @Override
-    public void unLockContent(String site, String path) {
+    @ValidateParams
+    public void unLockContent(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
         ContentItemTO item = getContentItem(site, path, 0);
         objectStateService.transition(site, item, TransitionEvent.CANCEL_EDIT);
         _contentRepository.unLockItem(site, path);
@@ -2052,7 +2092,8 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public List<DmOrderTO> getItemOrders(String site, String path) throws ContentNotFoundException {
+    @ValidateParams
+    public List<DmOrderTO> getItemOrders(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) throws ContentNotFoundException {
         List<DmOrderTO> dmOrderTOs = getOrders(site, path, "default", false);
         for (DmOrderTO dmOrderTO : dmOrderTOs) {
             dmOrderTO.setName(StringUtils.escape(dmOrderTO.getName()));
@@ -2114,7 +2155,8 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public double reorderItems(String site, String relativePath, String before, String after, String orderName) throws ServiceException {
+    @ValidateParams
+    public double reorderItems(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "relativePath") String relativePath, @ValidateSecurePathParam(name = "before") String before, @ValidateSecurePathParam(name = "after") String after, @ValidateStringParam(name = "orderName") String orderName) throws ServiceException {
         Double beforeOrder = null;
         Double afterOrder = null;
         DmOrderTO beforeOrderTO = null;
@@ -2177,7 +2219,8 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public boolean renameBulk(String site, String path, String targetPath, boolean createFolder) {
+    @ValidateParams
+    public boolean renameBulk(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, @ValidateSecurePathParam(name = "targetPath") String targetPath, boolean createFolder) {
         generalLockService.lock(site + ":" + path);
         boolean result = false;
         try {

@@ -19,6 +19,9 @@ package org.craftercms.studio.impl.v1.service.objectstate;
 
 
 import org.apache.commons.lang.StringUtils;
+import org.craftercms.commons.validation.annotations.param.ValidateParams;
+import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
+import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.dal.ObjectState;
 import org.craftercms.studio.api.v1.dal.ObjectStateMapper;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -48,12 +51,14 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     }
 
     @Override
-    public ObjectState getObjectState(String site, String path) {
+    @ValidateParams
+    public ObjectState getObjectState(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
         return getObjectState(site, path, true);
     }
 
     @Override
-    public ObjectState getObjectState(String site, String path, boolean insert) {
+    @ValidateParams
+    public ObjectState getObjectState(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, boolean insert) {
         path = path.replace("//", "/");
         String lockId = site + ":" + path;
         ObjectState state = null;
@@ -80,7 +85,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     }
 
     @Override
-    public void setSystemProcessing(String site, String path, boolean isSystemProcessing) {
+    @ValidateParams
+    public void setSystemProcessing(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, boolean isSystemProcessing) {
         path = path.replace("//", "/");
         String lockId = site + ":" + path;
         logger.debug("Locking with ID: {0}", lockId);
@@ -99,7 +105,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     }
 
     @Override
-    public void setSystemProcessingBulk(String site, List<String> paths, boolean isSystemProcessing) {
+    @ValidateParams
+    public void setSystemProcessingBulk(@ValidateStringParam(name = "site") String site, List<String> paths, boolean isSystemProcessing) {
         if (paths == null || paths.isEmpty()) {
             return;
         }
@@ -128,7 +135,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     }
 
     @Override
-    public void transition(String site, ContentItemTO item, TransitionEvent event) {
+    @ValidateParams
+    public void transition(@ValidateStringParam(name = "site") String site, ContentItemTO item, TransitionEvent event) {
         String path = item.getUri().replace("//", "/");
         String lockId = site + ":" + path;
         generalLockService.lock(lockId);
@@ -182,7 +190,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     }
 
     @Override
-    public void insertNewEntry(String site, ContentItemTO item) {
+    @ValidateParams
+    public void insertNewEntry(@ValidateStringParam(name = "site") String site, ContentItemTO item) {
         String path = item.getUri().replace("//", "/");
         ObjectState newEntry = new ObjectState();
         if (StringUtils.isEmpty(item.getNodeRef())) {
@@ -198,7 +207,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     }
 
     @Override
-    public void insertNewEntry(String site, String path) {
+    @ValidateParams
+    public void insertNewEntry(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
         path = path.replace("//", "/");
         ObjectState newEntry = new ObjectState();
         newEntry.setObjectId(UUID.randomUUID().toString());
@@ -211,7 +221,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     }
 
     @Override
-    public List<ObjectState> getSubmittedItems(String site) {
+    @ValidateParams
+    public List<ObjectState> getSubmittedItems(@ValidateStringParam(name = "site") String site) {
         Map<String, Object> params = new HashMap<String, Object>();
         List<String> statesValues = new ArrayList<String>();
         for (State state : State.SUBMITTED_STATES) {
@@ -224,7 +235,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     }
 
     @Override
-    public void updateObjectPath(String site, String oldPath, String newPath) {
+    @ValidateParams
+    public void updateObjectPath(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "oldPath") String oldPath, @ValidateSecurePathParam(name = "newPath") String newPath) {
         oldPath = oldPath.replace("//", "/");
         newPath = newPath.replace("//", "/");
         Map<String, Object> params = new HashMap<>();
@@ -235,7 +247,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     }
 
     @Override
-    public boolean isUpdated(String site, String path) {
+    @ValidateParams
+    public boolean isUpdated(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
         path = path.replace("//", "/");
         ObjectState state = getObjectState(site, path);
         if (state != null) {
@@ -246,7 +259,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     }
 
     @Override
-    public boolean isUpdatedOrNew(String site, String path) {
+    @ValidateParams
+    public boolean isUpdatedOrNew(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
         path = path.replace("//", "/");
         ObjectState state = getObjectState(site, path);
         if (state != null) {
@@ -257,7 +271,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     }
 
     @Override
-    public boolean isUpdatedOrSubmitted(String site, String path) {
+    @ValidateParams
+    public boolean isUpdatedOrSubmitted(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
         path = path.replace("//", "/");
         ObjectState state = getObjectState(site, path);
         if (state != null) {
@@ -268,7 +283,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     }
 
     @Override
-    public boolean isSubmitted(String site, String path) {
+    @ValidateParams
+    public boolean isSubmitted(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
         path = path.replace("//", "/");
         ObjectState state = getObjectState(site, path);
         if (state != null) {
@@ -279,7 +295,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     }
 
     @Override
-    public boolean isNew(String site, String path) {
+    @ValidateParams
+    public boolean isNew(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
         path = path.replace("//", "/");
         ObjectState state = getObjectState(site, path);
         if (state != null) {
@@ -290,7 +307,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     }
 
     @Override
-    public boolean isFolderLive(String site, String folderPath) {
+    @ValidateParams
+    public boolean isFolderLive(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "folderPath") String folderPath) {
         folderPath = folderPath.replace("//", "");
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("site", site);
@@ -299,7 +317,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     }
 
     @Override
-    public boolean isScheduled(String site, String path) {
+    @ValidateParams
+    public boolean isScheduled(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
         path = path.replace("//", "/");
         ObjectState state = getObjectState(site, path);
         if (state != null) {
@@ -310,7 +329,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     }
 
     @Override
-    public boolean isInWorkflow(String site, String path) {
+    @ValidateParams
+    public boolean isInWorkflow(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
         path = path.replace("//", "/");
         ObjectState state = getObjectState(site, path);
         if (state != null) {
@@ -321,7 +341,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     }
 
     @Override
-    public List<ObjectState> getChangeSet(String site) {
+    @ValidateParams
+    public List<ObjectState> getChangeSet(@ValidateStringParam(name = "site") String site) {
         Map<String, Object> params = new HashMap<String, Object>();
         List<String> statesValues = new ArrayList<String>();
         for (State state : State.CHANGE_SET_STATES) {
@@ -334,7 +355,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     }
 
     @Override
-    public void deleteObjectState(String objectId) {
+    @ValidateParams
+    public void deleteObjectState(@ValidateStringParam(name = "objectId") String objectId) {
         GeneralLockService nodeLockService = getService(GeneralLockService.class);
         nodeLockService.lock(objectId);
         try {
@@ -345,7 +367,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     }
 
     @Override
-    public void deleteObjectStateForPath(String site, String path) {
+    @ValidateParams
+    public void deleteObjectStateForPath(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "path") String path) {
         path = path.replace("//", "/");
         Map<String, String> params = new HashMap<String, String>();
         params.put("site", site);
@@ -354,7 +377,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     }
 
     @Override
-    public void transitionBulk(String site, List<String> paths, TransitionEvent event, State defaultTargetState) {
+    @ValidateParams
+    public void transitionBulk(@ValidateStringParam(name = "site") String site, List<String> paths, TransitionEvent event, State defaultTargetState) {
         if (paths != null && !paths.isEmpty()) {
             Map<String, Object> params = new HashMap<>();
             params.put("site", site);
@@ -394,7 +418,9 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     /**
      * get the object for a given set of states
      */
-    public List<ObjectState> getObjectStateByStates(String site, List<String> states) {
+    @Override
+    @ValidateParams
+    public List<ObjectState> getObjectStateByStates(@ValidateStringParam(name = "site") String site, List<String> states) {
 
         if (states != null && !states.isEmpty()) {
             Map<String, Object> params = new HashMap<String, Object>();
@@ -407,7 +433,9 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
         }
     }
 
-    public String setObjectState(String site, String path, String state, boolean systemProcessing) {
+    @Override
+    @ValidateParams
+    public String setObjectState(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, @ValidateStringParam(name = "state") String state, boolean systemProcessing) {
         path = path.replace("//", "/");
         Map<String, String> params = new HashMap<String, String>();
         params.put("site", site);
@@ -424,7 +452,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     }
 
     @Override
-    public void deleteObjectStatesForSite(String site) {
+    @ValidateParams
+    public void deleteObjectStatesForSite(@ValidateStringParam(name = "site") String site) {
         Map<String, String> params = new HashMap<String, String>();
         params.put("site", site);
         objectStateMapper.deleteObjectStatesForSite(params);

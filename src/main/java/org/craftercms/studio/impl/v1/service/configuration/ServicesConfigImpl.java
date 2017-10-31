@@ -21,6 +21,8 @@ package org.craftercms.studio.impl.v1.service.configuration;
 import javolution.util.FastList;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.commons.lang.Callback;
+import org.craftercms.commons.validation.annotations.param.ValidateParams;
+import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.core.service.CacheService;
 import org.craftercms.core.util.cache.CacheTemplate;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
@@ -135,7 +137,9 @@ public class ServicesConfigImpl implements ServicesConfig {
 	 * (non-Javadoc)
 	 * @see org.craftercms.cstudio.alfresco.service.api.ServicesConfig#getWebProject(java.lang.String)
 	 */
-	public String getWemProject(String site) {
+	@Override
+	@ValidateParams
+	public String getWemProject(@ValidateStringParam(name = "site") String site) {
 		SiteConfigTO config = getSiteConfig(site);
 		if (config != null && config.getWemProject() != null) {
 			return config.getWemProject();
@@ -144,7 +148,8 @@ public class ServicesConfigImpl implements ServicesConfig {
 	}
 
     @Override
-    public List<DmFolderConfigTO> getFolders(String site) {
+    @ValidateParams
+    public List<DmFolderConfigTO> getFolders(@ValidateStringParam(name = "site") String site) {
         SiteConfigTO config = getSiteConfig(site);
         if (config != null && config.getRepositoryConfig() != null) {
             return config.getRepositoryConfig().getFolders();
@@ -156,7 +161,9 @@ public class ServicesConfigImpl implements ServicesConfig {
       * (non-Javadoc)
       * @see org.craftercms.cstudio.alfresco.wcm.service.api.WcmServicesConfig#getRootPrefix(java.lang.String)
       */
-	public String getRootPrefix(String site) {
+    @Override
+    @ValidateParams
+	public String getRootPrefix(@ValidateStringParam(name = "site") String site) {
 		SiteConfigTO config = getSiteConfig(site);
 		if (config != null && config.getRepositoryConfig() != null) {
 			return config.getRepositoryConfig().getRootPrefix();
@@ -168,7 +175,9 @@ public class ServicesConfigImpl implements ServicesConfig {
 	 * (non-Javadoc)
 	 * @see org.craftercms.cstudio.alfresco.service.api.ServicesConfig#getContentType(java.lang.String, java.lang.String)
 	 */
-	public ContentTypeConfigTO getContentTypeConfig(String site, String name) {
+	@Override
+	@ValidateParams
+	public ContentTypeConfigTO getContentTypeConfig(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "name") String name) {
 		return contentTypesConfig.getContentTypeConfig(site, name);
 	}
 
@@ -176,16 +185,19 @@ public class ServicesConfigImpl implements ServicesConfig {
 	 * (non-Javadoc)
 	 * @see org.craftercms.cstudio.alfresco.service.api.ServicesConfig#getAssetPatterns(java.lang.String)
 	 */
-	public List<String> getAssetPatterns(String site) {
+	@Override
+	@ValidateParams
+	public List<String> getAssetPatterns(@ValidateStringParam(name = "site") String site) {
 		SiteConfigTO config = getSiteConfig(site);
 		if (config != null && config.getRepositoryConfig() != null) {
 			return config.getRepositoryConfig().getAssetPatterns();
 		}
 		return null;
 	}
-	
 
-	public List<DeleteDependencyConfigTO> getDeleteDependencyPatterns(String site,String contentType) {
+	@Override
+    @ValidateParams
+	public List<DeleteDependencyConfigTO> getDeleteDependencyPatterns(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "contentType") String contentType) {
         if(contentType==null){
              return Collections.emptyList();
         }
@@ -196,8 +208,9 @@ public class ServicesConfigImpl implements ServicesConfig {
         return Collections.emptyList();
 	}
 
-
-	public List<CopyDependencyConfigTO> getCopyDependencyPatterns(String site,String contentType) {
+	@Override
+    @ValidateParams
+	public List<CopyDependencyConfigTO> getCopyDependencyPatterns(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "contentType") String contentType) {
         if(contentType==null){
              return Collections.emptyList();
         }
@@ -212,7 +225,9 @@ public class ServicesConfigImpl implements ServicesConfig {
 	 * (non-Javadoc)
 	 * @see org.craftercms.cstudio.alfresco.service.api.ServicesConfig#getComponentPatterns(java.lang.String)
 	 */
-	public List<String> getComponentPatterns(String site) {
+	@Override
+	@ValidateParams
+	public List<String> getComponentPatterns(@ValidateStringParam(name = "site") String site) {
 		SiteConfigTO config = getSiteConfig(site);
 		if (config != null && config.getRepositoryConfig() != null) {
 			return config.getRepositoryConfig().getComponentPatterns();
@@ -224,7 +239,9 @@ public class ServicesConfigImpl implements ServicesConfig {
 	 * (non-Javadoc)
 	 * @see org.craftercms.cstudio.alfresco.service.api.ServicesConfig#getPagePatterns(java.lang.String)
 	 */
-	public List<String> getPagePatterns(String site) {
+	@Override
+	@ValidateParams
+	public List<String> getPagePatterns(@ValidateStringParam(name = "site") String site) {
 		SiteConfigTO config = getSiteConfig(site);
 		if (config != null && config.getRepositoryConfig() != null) {
 			return config.getRepositoryConfig().getPagePatterns();
@@ -236,7 +253,9 @@ public class ServicesConfigImpl implements ServicesConfig {
       * (non-Javadoc)
       * @see org.craftercms.cstudio.alfresco.service.api.ServicesConfig#getRenderingTemplatePatterns(java.lang.String)
       */
-    public List<String> getRenderingTemplatePatterns(String site) {
+    @Override
+    @ValidateParams
+    public List<String> getRenderingTemplatePatterns(@ValidateStringParam(name = "site") String site) {
         SiteConfigTO config = getSiteConfig(site);
         if (config != null && config.getRepositoryConfig() != null) {
             return config.getRepositoryConfig().getRenderingTemplatePatterns();
@@ -248,7 +267,9 @@ public class ServicesConfigImpl implements ServicesConfig {
       * (non-Javadoc)
       * @see org.craftercms.cstudio.alfresco.service.api.ServicesConfig#getLevelDescriptorPatterns(java.lang.String)
       */
-    public List<String> getLevelDescriptorPatterns(String site) {
+    @Override
+    @ValidateParams
+    public List<String> getLevelDescriptorPatterns(@ValidateStringParam(name = "site") String site) {
         SiteConfigTO config = getSiteConfig(site);
         if (config != null && config.getRepositoryConfig() != null) {
             return config.getRepositoryConfig().getLevelDescriptorPatterns();
@@ -261,7 +282,9 @@ public class ServicesConfigImpl implements ServicesConfig {
 	 * (non-Javadoc)
 	 * @see org.craftercms.cstudio.alfresco.service.api.ServicesConfig#getDocumentPatterns(java.lang.String)
 	 */
-	public List<String> getDocumentPatterns(String site) {
+	@Override
+	@ValidateParams
+	public List<String> getDocumentPatterns(@ValidateStringParam(name = "site") String site) {
 		SiteConfigTO config = getSiteConfig(site);
 		if (config != null && config.getRepositoryConfig() != null) {
 			return config.getRepositoryConfig().getDocumentPatterns();
@@ -273,7 +296,9 @@ public class ServicesConfigImpl implements ServicesConfig {
 	 * (non-Javadoc)
 	 * @see org.craftercms.cstudio.alfresco.service.api.ServicesConfig#getLevelDescriptorName(java.lang.String)
 	 */
-	public String getLevelDescriptorName(String site) {
+	@Override
+	@ValidateParams
+	public String getLevelDescriptorName(@ValidateStringParam(name = "site") String site) {
 		SiteConfigTO config = getSiteConfig(site);
 		if (config != null && config.getRepositoryConfig() != null) {
 			return config.getRepositoryConfig().getLevelDescriptorName();
@@ -285,7 +310,9 @@ public class ServicesConfigImpl implements ServicesConfig {
 	 * (non-Javadoc)
 	 * @see org.craftercms.cstudio.alfresco.service.api.ServicesConfig#getDisplayInWidgetPathPatterns(java.lang.String)
 	 */
-	public List<String> getDisplayInWidgetPathPatterns(String site) {
+	@Override
+	@ValidateParams
+	public List<String> getDisplayInWidgetPathPatterns(@ValidateStringParam(name = "site") String site) {
 		SiteConfigTO config = getSiteConfig(site);
 		if (config != null && config.getRepositoryConfig() != null) {
 			return config.getRepositoryConfig().getDisplayPatterns();
@@ -297,7 +324,9 @@ public class ServicesConfigImpl implements ServicesConfig {
 	 * (non-Javadoc)
 	 * @see org.craftercms.cstudio.alfresco.service.api.ServicesConfig#getDefaultTimezone(java.lang.String)
 	 */
-	public String getDefaultTimezone(String site) {
+	@Override
+	@ValidateParams
+	public String getDefaultTimezone(@ValidateStringParam(name = "site") String site) {
 		SiteConfigTO config = getSiteConfig(site);
 		if (config != null) {
 			return config.getTimezone();
@@ -470,7 +499,9 @@ public class ServicesConfigImpl implements ServicesConfig {
         }
     }
 
-    public List<String> getPreviewableMimetypesPaterns(String site) {
+    @Override
+    @ValidateParams
+    public List<String> getPreviewableMimetypesPaterns(@ValidateStringParam(name = "site") String site) {
         SiteConfigTO config = getSiteConfig(site);
         if (config != null && config.getRepositoryConfig() != null) {
             return config.getRepositoryConfig().getPreviewableMimetypesPaterns();
@@ -479,7 +510,8 @@ public class ServicesConfigImpl implements ServicesConfig {
     }
 
     @Override
-    public void reloadConfiguration(String site) {
+    @ValidateParams
+    public void reloadConfiguration(@ValidateStringParam(name = "site") String site) {
         CacheService cacheService = cacheTemplate.getCacheService();
         StudioCacheContext cacheContext = new StudioCacheContext(site, true);
         Object cacheKey = cacheTemplate.getKey(site, configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site), configFileName);

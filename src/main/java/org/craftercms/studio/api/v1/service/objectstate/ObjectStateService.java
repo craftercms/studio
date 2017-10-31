@@ -74,4 +74,6 @@ public interface ObjectStateService {
     boolean isFolderLive(String site, String uri);
 
     boolean isSubmitted(String site, String dep);
+
+    String setObjectState(String site, String path, String state, boolean systemProcessing);
 }

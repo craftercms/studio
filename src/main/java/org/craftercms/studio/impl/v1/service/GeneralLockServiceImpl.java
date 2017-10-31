@@ -18,6 +18,8 @@
 package org.craftercms.studio.impl.v1.service;
 
 import javolution.util.FastMap;
+import org.craftercms.commons.validation.annotations.param.ValidateParams;
+import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.service.AbstractRegistrableService;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.slf4j.Logger;
@@ -38,7 +40,8 @@ public class GeneralLockServiceImpl extends AbstractRegistrableService implement
     }
 
     @Override
-    public void lock(String objectId) {
+    @ValidateParams
+    public void lock(@ValidateStringParam(name = "objectId") String objectId) {
         ReentrantLock nodeLock;
         if (logger.isDebugEnabled()) {
             logger.debug("[" + Thread.currentThread().getName() + "]" + " Obtaining lock for id " + objectId);
@@ -67,7 +70,8 @@ public class GeneralLockServiceImpl extends AbstractRegistrableService implement
     }
 
     @Override
-    public boolean tryLock(String objectId) {
+    @ValidateParams
+    public boolean tryLock(@ValidateStringParam(name = "objectId") String objectId) {
         ReentrantLock nodeLock;
         if (logger.isDebugEnabled()) {
             logger.debug("[" + Thread.currentThread().getName() + "]" + " Trying to get lock for id " + objectId);
@@ -97,7 +101,8 @@ public class GeneralLockServiceImpl extends AbstractRegistrableService implement
     }
 
     @Override
-    public void unlock(String objectId) {
+    @ValidateParams
+    public void unlock(@ValidateStringParam(name = "objectId") String objectId) {
         ReentrantLock nodeLock = null;
         if (logger.isDebugEnabled()) {
             logger.debug("[" + Thread.currentThread().getName() + "]" + " Unlocking id " + objectId);
