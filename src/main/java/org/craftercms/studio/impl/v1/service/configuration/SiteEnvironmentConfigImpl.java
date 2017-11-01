@@ -18,6 +18,8 @@
 package org.craftercms.studio.impl.v1.service.configuration;
 
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.validation.annotations.param.ValidateParams;
+import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -64,11 +66,14 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
 	}
 
 	@Override
-	public EnvironmentConfigTO getEnvironmentConfig(final String site) {
+    @ValidateParams
+	public EnvironmentConfigTO getEnvironmentConfig(@ValidateStringParam(name = "site") final String site) {
         return loadConfiguration(site);
 	}
 
-	public String getPreviewServerUrl(String site) {
+	@Override
+    @ValidateParams
+	public String getPreviewServerUrl(@ValidateStringParam(name = "site") String site) {
 		EnvironmentConfigTO config = getEnvironmentConfig(site);
 		if (config != null) {
 			String previewServerUrl = config.getPreviewServerUrl();
@@ -80,7 +85,9 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
 		return "";
 	}
 
-	public String getLiveServerUrl(String site) {
+	@Override
+    @ValidateParams
+	public String getLiveServerUrl(@ValidateStringParam(name = "site") String site) {
 		EnvironmentConfigTO config = getEnvironmentConfig(site);
 		if (config != null) {
 			return config.getLiveServerUrl();
@@ -88,7 +95,9 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
 		return "";
 	}
 
-	public String getAdminEmailAddress(String site) {
+	@Override
+    @ValidateParams
+	public String getAdminEmailAddress(@ValidateStringParam(name = "site") String site) {
 		EnvironmentConfigTO config = getEnvironmentConfig(site);
 		if (config != null) {
 			return config.getAdminEmailAddress();
@@ -96,7 +105,9 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
 		return "";
 	}
 
-	public String getAuthoringServerUrl(String site) {
+	@Override
+    @ValidateParams
+	public String getAuthoringServerUrl(@ValidateStringParam(name = "site") String site) {
 		EnvironmentConfigTO config = getEnvironmentConfig(site);
 		if (config != null) {
 			return config.getAuthoringServerUrl();
@@ -170,7 +181,8 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
 	}
 
     @Override
-    public void reloadConfiguration(String site) {
+    @ValidateParams
+    public void reloadConfiguration(@ValidateStringParam(name = "site") String site) {
         EnvironmentConfigTO config = loadConfiguration(site);
     }
 
@@ -182,13 +194,15 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
 	}
 
     @Override
-    public boolean exists(String site) {
+    @ValidateParams
+    public boolean exists(@ValidateStringParam(name = "site") String site) {
         EnvironmentConfigTO config = getEnvironmentConfig(site);
         return config != null;
     }
 
     @Override
-    public String getPreviewDeploymentEndpoint(String site) {
+    @ValidateParams
+    public String getPreviewDeploymentEndpoint(@ValidateStringParam(name = "site") String site) {
         EnvironmentConfigTO config = getEnvironmentConfig(site);
         if (config != null) {
             return config.getPreviewDeploymentEndpoint();
@@ -197,7 +211,8 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
     }
 
     @Override
-    public List<PublishingTargetTO> getPublishingTargetsForSite(String site) {
+    @ValidateParams
+    public List<PublishingTargetTO> getPublishingTargetsForSite(@ValidateStringParam(name = "site") String site) {
         EnvironmentConfigTO config = getEnvironmentConfig(site);
         if (config != null) {
             return config.getPublishingTargets();

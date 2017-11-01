@@ -22,6 +22,9 @@ import net.sf.json.JSONObject;
 import net.sf.json.JSONSerializer;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.validation.annotations.param.ValidateParams;
+import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
+import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.DmXmlConstants;
@@ -116,7 +119,9 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
         return items;
     }
 
-    public Set<ContentItemTO> getDependantItems(String site, String path){
+    @Override
+    @ValidateParams
+    public Set<ContentItemTO> getDependantItems(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path){
         Set<ContentItemTO> dependents = new HashSet<>();
         List<String> rawDependentItems = getDependantPaths(site, path);
         for (String dependentItem : rawDependentItems) {
@@ -126,7 +131,9 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
         return Collections.unmodifiableSet(dependents);
     }
 
-    public Set<ContentItemTO> getDependenciesItems(String site, String path){
+    @Override
+    @ValidateParams
+    public Set<ContentItemTO> getDependenciesItems(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path){
         Set<ContentItemTO> dependents = new HashSet<>();
         List<String> rawDependentItems = getDependencyPaths(site, path);
         for (String dependentItem : rawDependentItems) {
@@ -138,7 +145,8 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
 
     @Override
     @SuppressWarnings("unchecked")
-    public Map<String, Object> getDependencies(String site, String request, Boolean deleteDependencies) throws ServiceException {
+    @ValidateParams
+    public Map<String, Object> getDependencies(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "request") String request, Boolean deleteDependencies) throws ServiceException {
 
         if(deleteDependencies == null)
             deleteDependencies=false;
@@ -189,7 +197,8 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
     }
 
     @Override
-    public DmDependencyTO getDependenciesNoCalc(String site, String path, boolean populateUpdatedDependenciesOnly, boolean recursive, Set<String> processedDependencies) {
+    @ValidateParams
+    public DmDependencyTO getDependenciesNoCalc(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, boolean populateUpdatedDependenciesOnly, boolean recursive, Set<String> processedDependencies) {
         List<String> paths = new ArrayList<String>();
         paths.add(path);
 
@@ -285,7 +294,8 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
     }
 
     @Override
-    public DmDependencyTO getDependencies(String site, String path, boolean populateUpdatedDependecinesOnly, boolean recursive) {
+    @ValidateParams
+    public DmDependencyTO getDependencies(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, boolean populateUpdatedDependecinesOnly, boolean recursive) {
         List<String> paths = new ArrayList<>(1);
         paths.add(path);
         Set<String> processedDependencies = new HashSet<>();
@@ -742,7 +752,8 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
     }
 
     @Override
-    public void extractDependencies(String site, String path, Document document, Map<String, Set<String>> globalDeps) throws ServiceException {
+    @ValidateParams
+    public void extractDependencies(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, Document document, Map<String, Set<String>> globalDeps) throws ServiceException {
         if (globalDeps == null) {
             globalDeps = new HashMap<String, Set<String>>();
         }
@@ -764,7 +775,8 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
     }
 
     @Override
-    public void extractDependenciesTemplate(String site, String path, StringBuffer templateContent, Map<String, Set<String>> globalDeps) throws ServiceException {
+    @ValidateParams
+    public void extractDependenciesTemplate(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, StringBuffer templateContent, Map<String, Set<String>> globalDeps) throws ServiceException {
         if (globalDeps == null) {
             globalDeps = new HashMap<>();
         }
@@ -772,7 +784,8 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
     }
 
     @Override
-    public void extractDependenciesStyle(String site, String path, StringBuffer styleContent, Map<String, Set<String>> globalDeps) throws ServiceException {
+    @ValidateParams
+    public void extractDependenciesStyle(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, StringBuffer styleContent, Map<String, Set<String>> globalDeps) throws ServiceException {
         if (globalDeps == null) {
             globalDeps = new HashMap<>();
         }
@@ -782,7 +795,8 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
     }
 
     @Override
-    public void extractDependenciesJavascript(String site, String path, StringBuffer javascriptContent, Map<String, Set<String>> globalDeps) throws ServiceException {
+    @ValidateParams
+    public void extractDependenciesJavascript(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, StringBuffer javascriptContent, Map<String, Set<String>> globalDeps) throws ServiceException {
         if (globalDeps == null) {
             globalDeps = new HashMap<>();
         }
@@ -796,7 +810,8 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
     }
 
     @Override
-    public void setDependencies(final String site, final String path, final Map<String, Set<String>> dependencies) throws ServiceException {
+    @ValidateParams
+    public void setDependencies(@ValidateStringParam(name = "site") final String site, @ValidateSecurePathParam(name = "path") final String path, final Map<String, Set<String>> dependencies) throws ServiceException {
         try {
             final Map<String, Set<String>> filteredDependencies =  new HashMap<>();
             for (String type : dependencies.keySet()) {
@@ -855,7 +870,8 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
     }
 
     @Override
-    public void updateDependencies(String site, String path, String state) {
+    @ValidateParams
+    public void updateDependencies(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, @ValidateStringParam(name = "state") String state) {
         DmDependencyTO dmDependencyTo = getDependencies(site, path, false, true);
         if (dmDependencyTo != null) {
             List<DmDependencyTO> pages = dmDependencyTo.getPages();
@@ -883,7 +899,8 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
      * @param dependencies
      */
     @Override
-    public InputStream replaceDependencies(String site, Document document, Map<String, String> dependencies) throws ServiceException {
+    @ValidateParams
+    public InputStream replaceDependencies(@ValidateStringParam(name = "site") String site, Document document, Map<String, String> dependencies) throws ServiceException {
         try {
             if(!dependencies.isEmpty()){
                 String xml= XmlUtils.convertDocumentToString(document);
@@ -905,7 +922,8 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
      * Return a map of <Dependency matching copy pattern, target location>
      */
     @Override
-    public Map<String, String> getCopyDependencies(String site, String sourceContentPath, String dependencyPath) throws ServiceException {
+    @ValidateParams
+    public Map<String, String> getCopyDependencies(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "sourceContentPath") String sourceContentPath, @ValidateSecurePathParam(name = "dependencyPath") String dependencyPath) throws ServiceException {
         Map<String,String> copyDependency = new HashMap<String,String>();
         if(sourceContentPath.endsWith(DmConstants.XML_PATTERN) && dependencyPath.endsWith(DmConstants.XML_PATTERN)){
             ContentItemTO dependencyItem = contentService.getContentItem(site, sourceContentPath);
@@ -942,7 +960,8 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
     }
 
     @Override
-    public List<String> getDependencyPaths(String site, String path) {
+    @ValidateParams
+    public List<String> getDependencyPaths(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
         List<String> toRet = new ArrayList<>();
         Map<String, String> params = new HashMap<String, String>();
         params.put("site", site);
@@ -955,7 +974,8 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
     }
 
     @Override
-    public List<String> getDependantPaths(String site, String path) {
+    @ValidateParams
+    public List<String> getDependantPaths(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
         List<String> toRet = new ArrayList<>();
         Map<String, String> params = new HashMap<String, String>();
         params.put("site", site);
@@ -969,14 +989,16 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
 
 
     @Override
-    public void deleteDependenciesForSite(String site) {
+    @ValidateParams
+    public void deleteDependenciesForSite(@ValidateStringParam(name = "site") String site) {
         Map<String, String> params = new HashMap<>();
         params.put("site", site);
         dependencyMapper.deleteDependenciesForSite(params);
     }
 
     @Override
-    public void deleteDependenciesForSiteAndPath(String site, String path) {
+    @ValidateParams
+    public void deleteDependenciesForSiteAndPath(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
         Map<String, String> params = new HashMap<>();
         params.put("site", site);
         params.put("path", path);

@@ -35,6 +35,10 @@ import freemarker.template.TemplateException;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.http.RequestContext;
+import org.craftercms.commons.validation.annotations.param.ValidateIntegerParam;
+import org.craftercms.commons.validation.annotations.param.ValidateParams;
+import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
+import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.StudioXmlConstants;
@@ -96,13 +100,15 @@ public class SecurityServiceImpl implements SecurityService {
     protected ObjectFactory<FreeMarkerConfig> freeMarkerConfig;
 
     @Override
-    public String authenticate(String username, String password) throws BadCredentialsException, AuthenticationSystemException {
+    @ValidateParams
+    public String authenticate(@ValidateStringParam(name = "username") String username, @ValidateStringParam(name = "password") String password) throws BadCredentialsException, AuthenticationSystemException {
         String toRet = securityProvider.authenticate(username, password);
         return toRet;
     }
 
     @Override
-    public boolean validateTicket(String token) {
+    @ValidateParams
+    public boolean validateTicket(@ValidateStringParam(name = "token") String token) {
         return securityProvider.validateTicket(token);
     }
 
@@ -117,12 +123,14 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
-    public Map<String,Object> getUserProfile(String user) {
+    @ValidateParams
+    public Map<String,Object> getUserProfile(@ValidateStringParam(name = "user") String user) {
         return securityProvider.getUserProfile(user);
     }
 
     @Override
-    public Set<String> getUserPermissions(final String site, String path, String user, List<String> groups) {
+    @ValidateParams
+    public Set<String> getUserPermissions(@ValidateStringParam(name = "site") final String site, @ValidateSecurePathParam(name = "path") String path, @ValidateStringParam(name = "user") String user, List<String> groups) {
         Set<String> permissions = new HashSet<String>();
         if (StringUtils.isNotEmpty(site)) {
             PermissionsConfigTO rolesConfig = loadConfiguration(site, getRoleMappingsFileName());
@@ -256,7 +264,8 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
-    public Set<String> getUserRoles(final String site, String user) {
+    @ValidateParams
+    public Set<String> getUserRoles(@ValidateStringParam(name = "site") final String site, @ValidateStringParam(name = "user") String user) {
 
         Set<String> groups = securityProvider.getUserGroups(user);
         if (groups != null && groups.size() > 0) {
@@ -442,12 +451,14 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
-    public void addUserGroup(String groupName) {
+    @ValidateParams
+    public void addUserGroup(@ValidateStringParam(name = "groupName") String groupName) {
         securityProvider.addUserGroup(groupName);
     }
 
     @Override
-    public void addUserGroup(String parentGroup, String groupName) {
+    @ValidateParams
+    public void addUserGroup(@ValidateStringParam(name = "parentGroup") String parentGroup, @ValidateStringParam(name = "groupName") String groupName) {
         securityProvider.addUserGroup(parentGroup, groupName);
     }
 
@@ -508,7 +519,8 @@ public class SecurityServiceImpl implements SecurityService {
 
 
     @Override
-    public void reloadConfiguration(String site) {
+    @ValidateParams
+    public void reloadConfiguration(@ValidateStringParam(name = "site") String site) {
         PermissionsConfigTO permissionsConfigTO = loadConfiguration(site, getPermissionsFileName());
         PermissionsConfigTO rolesConfigTO = loadConfiguration(site, getRoleMappingsFileName());
     }
@@ -532,7 +544,8 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
-    public boolean createUser(String username, String password, String firstName, String lastName, String email) throws UserAlreadyExistsException {
+    @ValidateParams
+    public boolean createUser(@ValidateStringParam(name = "username") String username, @ValidateStringParam(name = "password") String password, @ValidateStringParam(name = "firstName") String firstName, @ValidateStringParam(name = "lastName") String lastName, @ValidateStringParam(name = "email") String email) throws UserAlreadyExistsException {
         boolean toRet = securityProvider.createUser(username, password, firstName, lastName, email, false);
         if (toRet) {
             ActivityService.ActivityType activityType = ActivityService.ActivityType.CREATED;
@@ -545,7 +558,8 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
-    public boolean deleteUser(String username) throws UserNotFoundException, DeleteUserNotAllowedException {
+    @ValidateParams
+    public boolean deleteUser(@ValidateStringParam(name = "username") String username) throws UserNotFoundException, DeleteUserNotAllowedException {
         if (!isDeleteUserAllowed(username)) {
             throw new DeleteUserNotAllowedException();
         } else {
@@ -583,7 +597,8 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
-    public boolean updateUser(String username, String firstName, String lastName, String email) throws UserNotFoundException, UserExternallyManagedException {
+    @ValidateParams
+    public boolean updateUser(@ValidateStringParam(name = "username") String username, @ValidateStringParam(name = "firstName") String firstName, @ValidateStringParam(name = "lastName") String lastName, @ValidateStringParam(name = "email") String email) throws UserNotFoundException, UserExternallyManagedException {
         boolean toRet = securityProvider.updateUser(username, firstName, lastName, email);
         if (toRet) {
             ActivityService.ActivityType activityType = ActivityService.ActivityType.UPDATED;
@@ -596,17 +611,20 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
-    public boolean enableUser(String username, boolean enabled) throws UserNotFoundException, UserExternallyManagedException {
+    @ValidateParams
+    public boolean enableUser(@ValidateStringParam(name = "username") String username, boolean enabled) throws UserNotFoundException, UserExternallyManagedException {
         return securityProvider.enableUser(username, enabled);
     }
 
     @Override
-    public Map<String, Object> getUserStatus(String username) throws UserNotFoundException {
+    @ValidateParams
+    public Map<String, Object> getUserStatus(@ValidateStringParam(name = "username") String username) throws UserNotFoundException {
         return securityProvider.getUserStatus(username);
     }
 
     @Override
-    public List<Map<String, Object>> getAllUsers(int start, int number) {
+    @ValidateParams
+    public List<Map<String, Object>> getAllUsers(@ValidateIntegerParam(name = "start") int start, @ValidateIntegerParam(name = "number") int number) {
         return securityProvider.getAllUsers(start, number);
     }
 
@@ -616,64 +634,76 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
-    public List<Map<String, Object>> getUsersPerSite(String site, int start, int number) throws SiteNotFoundException {
+    @ValidateParams
+    public List<Map<String, Object>> getUsersPerSite(@ValidateStringParam(name = "site") String site, @ValidateIntegerParam(name = "start") int start, @ValidateIntegerParam(name = "number") int number) throws SiteNotFoundException {
         return securityProvider.getUsersPerSite(site, start, number);
     }
 
     @Override
-    public int getUsersPerSiteTotal(String site) throws SiteNotFoundException {
+    @ValidateParams
+    public int getUsersPerSiteTotal(@ValidateStringParam(name = "site") String site) throws SiteNotFoundException {
         return securityProvider.getUsersPerSiteTotal(site);
     }
 
     @Override
-    public boolean createGroup(String groupName, String description, String siteId) throws GroupAlreadyExistsException, SiteNotFoundException {
+    @ValidateParams
+    public boolean createGroup(@ValidateStringParam(name = "groupName") String groupName, @ValidateStringParam(name = "description") String description, @ValidateStringParam(name = "siteId") String siteId) throws GroupAlreadyExistsException, SiteNotFoundException {
         return securityProvider.createGroup(groupName, description, siteId, false);
     }
 
     @Override
-    public Map<String, Object> getGroup(String site, String group) throws GroupNotFoundException {
+    @ValidateParams
+    public Map<String, Object> getGroup(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "group") String group) throws GroupNotFoundException {
         return securityProvider.getGroup(site, group);
     }
 
     @Override
-    public List<Map<String, Object>> getAllGroups(int start, int number) {
+    @ValidateParams
+    public List<Map<String, Object>> getAllGroups(@ValidateIntegerParam(name = "start") int start, @ValidateIntegerParam(name = "number") int number) {
         return securityProvider.getAllGroups(start, number);
     }
 
     @Override
-    public List<Map<String, Object>> getGroupsPerSite(String site, int start, int number) throws SiteNotFoundException {
+    @ValidateParams
+    public List<Map<String, Object>> getGroupsPerSite(@ValidateStringParam(name = "site") String site, @ValidateIntegerParam(name = "start") int start, @ValidateIntegerParam(name = "number") int number) throws SiteNotFoundException {
         return securityProvider.getGroupsPerSite(site, start, number);
     }
 
     @Override
-    public int getGroupsPerSiteTotal(String site) throws SiteNotFoundException {
+    @ValidateParams
+    public int getGroupsPerSiteTotal(@ValidateStringParam(name = "site") String site) throws SiteNotFoundException {
         return securityProvider.getGroupsPerSiteTotal(site);
     }
 
     @Override
-    public List<Map<String, Object>> getUsersPerGroup(String site, String group, int start, int number) throws
+    @ValidateParams
+    public List<Map<String, Object>> getUsersPerGroup(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "group") String group, @ValidateIntegerParam(name = "start") int start, @ValidateIntegerParam(name = "number") int number) throws
 	    GroupNotFoundException {
         return securityProvider.getUsersPerGroup(site, group, start, number);
     }
 
     @Override
-    public int getUsersPerGroupTotal(String site, String group) throws
+    @ValidateParams
+    public int getUsersPerGroupTotal(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "group") String group) throws
             GroupNotFoundException {
         return securityProvider.getUsersPerGroupTotal(site, group);
     }
 
     @Override
-    public boolean updateGroup(String siteId, String groupName, String description) throws GroupNotFoundException {
+    @ValidateParams
+    public boolean updateGroup(@ValidateStringParam(name = "siteId") String siteId, @ValidateStringParam(name = "groupName") String groupName, @ValidateStringParam(name = "description") String description) throws GroupNotFoundException {
         return securityProvider.updateGroup(siteId, groupName, description);
     }
 
     @Override
-    public boolean deleteGroup(String site, String group) throws GroupNotFoundException {
+    @ValidateParams
+    public boolean deleteGroup(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "group") String group) throws GroupNotFoundException {
         return securityProvider.deleteGroup(site, group);
     }
 
     @Override
-    public boolean addUserToGroup(String siteId, String groupName, String username) throws
+    @ValidateParams
+    public boolean addUserToGroup(@ValidateStringParam(name = "siteId") String siteId, @ValidateStringParam(name = "groupName") String groupName, @ValidateStringParam(name = "username") String username) throws
 	    UserAlreadyExistsException, UserNotFoundException, GroupNotFoundException {
         boolean toRet = securityProvider.addUserToGroup(siteId, groupName, username);
         if (toRet) {
@@ -687,7 +717,8 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
-    public boolean removeUserFromGroup(String siteId, String groupName, String username) throws
+    @ValidateParams
+    public boolean removeUserFromGroup(@ValidateStringParam(name = "siteId") String siteId, @ValidateStringParam(name = "groupName") String groupName, @ValidateStringParam(name = "username") String username) throws
 	    UserNotFoundException, GroupNotFoundException {
         boolean toRet = securityProvider.removeUserFromGroup(siteId, groupName, username);
         if (toRet) {
@@ -701,7 +732,8 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
-    public Map<String, Object> forgotPassword(String username) throws ServiceException, UserNotFoundException, UserExternallyManagedException {
+    @ValidateParams
+    public Map<String, Object> forgotPassword(@ValidateStringParam(name = "username") String username) throws ServiceException, UserNotFoundException, UserExternallyManagedException {
         logger.debug("Getting user profile for " + username);
         Map<String, Object> userProfile = securityProvider.getUserProfile(username);
         boolean success = false;
@@ -744,7 +776,8 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
-    public boolean validateToken(String token) throws UserNotFoundException, UserExternallyManagedException {
+    @ValidateParams
+    public boolean validateToken(@ValidateStringParam(name = "token") String token) throws UserNotFoundException, UserExternallyManagedException {
         boolean toRet = false;
         String decryptedToken = decryptToken(token);
         if (StringUtils.isNotEmpty(decryptedToken)) {
@@ -838,12 +871,14 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
-    public boolean changePassword(String username, String current, String newPassword) throws UserNotFoundException, PasswordDoesNotMatchException, UserExternallyManagedException {
+    @ValidateParams
+    public boolean changePassword(@ValidateStringParam(name = "username") String username, @ValidateStringParam(name = "current") String current, @ValidateStringParam(name = "newPassword") String newPassword) throws UserNotFoundException, PasswordDoesNotMatchException, UserExternallyManagedException {
         return securityProvider.changePassword(username, current, newPassword);
     }
 
     @Override
-    public Map<String, Object> setUserPassword(String token, String newPassword) throws UserNotFoundException, UserExternallyManagedException {
+    @ValidateParams
+    public Map<String, Object> setUserPassword(@ValidateStringParam(name = "token") String token, @ValidateStringParam(name = "newPassword") String newPassword) throws UserNotFoundException, UserExternallyManagedException {
         Map<String, Object> toRet = new HashMap<String, Object>();
         toRet.put("username", StringUtils.EMPTY);
         toRet.put("success", false);
@@ -880,7 +915,8 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
-    public boolean resetPassword(String username, String newPassword) throws UserNotFoundException, UserExternallyManagedException {
+    @ValidateParams
+    public boolean resetPassword(@ValidateStringParam(name = "username") String username, @ValidateStringParam(name = "newPassword") String newPassword) throws UserNotFoundException, UserExternallyManagedException {
         String currentUser = getCurrentUser();
         if (isAdmin(currentUser)) {
             return securityProvider.setUserPassword(username, newPassword);
@@ -904,7 +940,8 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
-    public boolean userExists(String username) {
+    @ValidateParams
+    public boolean userExists(@ValidateStringParam(name = "username") String username) {
         return securityProvider.userExists(username);
     }
 

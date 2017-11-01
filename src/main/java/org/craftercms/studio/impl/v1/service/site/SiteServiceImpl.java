@@ -31,6 +31,10 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.craftercms.commons.validation.annotations.param.ValidateIntegerParam;
+import org.craftercms.commons.validation.annotations.param.ValidateParams;
+import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
+import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.dal.ItemMetadata;
@@ -101,7 +105,8 @@ public class SiteServiceImpl implements SiteService {
 	private final static Logger logger = LoggerFactory.getLogger(SiteServiceImpl.class);
 
     @Override
-    public boolean writeConfiguration(String site, String path, InputStream content) throws ServiceException {
+    @ValidateParams
+    public boolean writeConfiguration(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, InputStream content) throws ServiceException {
         // Write site configuration
         ActivityService.ActivityType activityType = ActivityService.ActivityType.UPDATED;
         if (!contentRepository.contentExists(site, path)) {
@@ -127,7 +132,8 @@ public class SiteServiceImpl implements SiteService {
     }
 
 	@Override
-	public boolean writeConfiguration(String path, InputStream content) throws ServiceException {
+    @ValidateParams
+	public boolean writeConfiguration(@ValidateSecurePathParam(name = "path") String path, InputStream content) throws ServiceException {
 	    // Write global configuration
         String commitId = contentRepository.writeContent("", path, content);
         boolean toReturn = StringUtils.isEmpty(commitId);
@@ -135,7 +141,8 @@ public class SiteServiceImpl implements SiteService {
 	}
 
 	@Override
-	public Map<String, Object> getConfiguration(String path) {
+    @ValidateParams
+	public Map<String, Object> getConfiguration(@ValidateSecurePathParam(name = "path") String path) {
 		return null;
 	}
 
@@ -147,13 +154,16 @@ public class SiteServiceImpl implements SiteService {
 	 * @param site the name of the site
 	 * @return a Document containing the entire site configuration
 	 */
-	public Document getSiteConfiguration(String site)
+	@Override
+    @ValidateParams
+	public Document getSiteConfiguration(@ValidateStringParam(name = "site") String site)
 	throws SiteConfigNotFoundException {
 		return _siteServiceDAL.getSiteConfiguration(site);
 	}
 
 	@Override
-	public Map<String, Object> getConfiguration(String site, String path, boolean applyEnv) {
+    @ValidateParams
+	public Map<String, Object> getConfiguration(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, boolean applyEnv) {
 		String configPath;
 		if (StringUtils.isEmpty(site)) {
 			configPath = getGlobalConfigRoot() + path;
@@ -243,7 +253,8 @@ public class SiteServiceImpl implements SiteService {
 	}
 
     @Override
-    public List<PublishingTargetTO> getPublishingTargetsForSite(String site) {
+    @ValidateParams
+    public List<PublishingTargetTO> getPublishingTargetsForSite(@ValidateStringParam(name = "site") String site) {
         return environmentConfig.getPublishingTargetsForSite(site);
     }
 
@@ -258,7 +269,8 @@ public class SiteServiceImpl implements SiteService {
     }
 
    	@Override
-   	public void createSiteFromBlueprint(String blueprintName, String siteName, String siteId, String desc) throws
+    @ValidateParams
+   	public void createSiteFromBlueprint(@ValidateStringParam(name = "blueprintName") String blueprintName, @ValidateStringParam(name = "siteName") String siteName, @ValidateStringParam(name = "siteId") String siteId, @ValidateStringParam(name = "desc") String desc) throws
 	    SiteAlreadyExistsException, SiteCreationException, PreviewDeployerUnreachableException, SearchUnreachableException {
 	    if (exists(siteId)) {
 	        throw new SiteAlreadyExistsException();
@@ -542,7 +554,8 @@ public class SiteServiceImpl implements SiteService {
     }
 
 	@Override
-   	public boolean deleteSite(String siteId) {
+    @ValidateParams
+   	public boolean deleteSite(@ValidateStringParam(name = "siteId") String siteId) {
  		boolean success = true;
         logger.debug("Deleting site:" + siteId);
         try {
@@ -649,22 +662,26 @@ public class SiteServiceImpl implements SiteService {
 	}
 
     @Override
-    public String getPreviewServerUrl(String site) {
+    @ValidateParams
+    public String getPreviewServerUrl(@ValidateStringParam(name = "site") String site) {
         return environmentConfig.getPreviewServerUrl(site);
     }
 
     @Override
-    public String getLiveServerUrl(String site) {
+    @ValidateParams
+    public String getLiveServerUrl(@ValidateStringParam(name = "site") String site) {
         return environmentConfig.getLiveServerUrl(site);
     }
 
     @Override
-    public String getAuthoringServerUrl(String site) {
+    @ValidateParams
+    public String getAuthoringServerUrl(@ValidateStringParam(name = "site") String site) {
         return environmentConfig.getAuthoringServerUrl(site);
     }
 
     @Override
-    public String getAdminEmailAddress(String site) {
+    @ValidateParams
+    public String getAdminEmailAddress(@ValidateStringParam(name = "site") String site) {
         return environmentConfig.getAdminEmailAddress(site);
     }
 
@@ -676,7 +693,8 @@ public class SiteServiceImpl implements SiteService {
     }
 
     @Override
-    public void reloadSiteConfiguration(String site) {
+    @ValidateParams
+    public void reloadSiteConfiguration(@ValidateStringParam(name = "site") String site) {
         reloadSiteConfiguration(site, true);
     }
 
@@ -704,7 +722,8 @@ public class SiteServiceImpl implements SiteService {
     }
 
     @Override
-    public void syncRepository(String site) throws SiteNotFoundException {
+    @ValidateParams
+    public void syncRepository(@ValidateStringParam(name = "site") String site) throws SiteNotFoundException {
 		if (!exists(site)) {
 			throw new SiteNotFoundException();
 		} else {
@@ -720,12 +739,14 @@ public class SiteServiceImpl implements SiteService {
     }
 
     @Override
-    public void rebuildDatabase(String site) {
+    @ValidateParams
+    public void rebuildDatabase(@ValidateStringParam(name = "site") String site) {
         rebuildRepositoryMetadata.execute(site);
     }
 
     @Override
-    public void updateLastCommitId(String site, String commitId) {
+    @ValidateParams
+    public void updateLastCommitId(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "commitId") String commitId) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("siteId", site);
         params.put("lastCommitId", commitId);
@@ -733,7 +754,8 @@ public class SiteServiceImpl implements SiteService {
     }
 
     @Override
-    public boolean syncDatabaseWithRepo(String site, String fromCommitId) {
+    @ValidateParams
+    public boolean syncDatabaseWithRepo(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "fromCommitId") String fromCommitId) {
 		boolean toReturn = true;
 
 		logger.info("Syncing database with repository for site: " + site + " fromCommitId = " + (StringUtils.isEmpty(fromCommitId) ? "Empty repo" : fromCommitId));
@@ -951,12 +973,14 @@ public class SiteServiceImpl implements SiteService {
     }
 
     @Override
-    public boolean exists(String site) {
+    @ValidateParams
+    public boolean exists(@ValidateStringParam(name = "site") String site) {
         return siteFeedMapper.exists(site) > 0;
     }
 
     @Override
-    public int getSitesPerUserTotal(String username) throws UserNotFoundException {
+    @ValidateParams
+    public int getSitesPerUserTotal(@ValidateStringParam(name = "username") String username) throws UserNotFoundException {
 	    if (securityService.userExists(username)) {
             Map<String, Object> params = new HashMap<String, Object>();
             params.put("username", username);
@@ -967,7 +991,8 @@ public class SiteServiceImpl implements SiteService {
     }
 
     @Override
-    public List<SiteFeed> getSitesPerUser(String username, int start, int number) throws UserNotFoundException {
+    @ValidateParams
+    public List<SiteFeed> getSitesPerUser(@ValidateStringParam(name = "username") String username, @ValidateIntegerParam(name = "start") int start, @ValidateIntegerParam(name = "number") int number) throws UserNotFoundException {
         if (securityService.userExists(username)) {
             Map<String, Object> params = new HashMap<String, Object>();
             params.put("username", username);
@@ -987,7 +1012,8 @@ public class SiteServiceImpl implements SiteService {
     }
 
     @Override
-    public SiteFeed getSite(String siteId) throws SiteNotFoundException {
+    @ValidateParams
+    public SiteFeed getSite(@ValidateStringParam(name = "siteId") String siteId) throws SiteNotFoundException {
         if (exists(siteId)) {
             Map<String, Object> params = new HashMap<String, Object>();
             params.put("siteId", siteId);
@@ -998,7 +1024,8 @@ public class SiteServiceImpl implements SiteService {
     }
 
     @Override
-    public boolean isPublishingEnabled(String siteId) {
+    @ValidateParams
+    public boolean isPublishingEnabled(@ValidateStringParam(name = "siteId") String siteId) {
         try {
             SiteFeed siteFeed = getSite(siteId);
             return siteFeed.getPublishingEnabled() > 0;
@@ -1009,7 +1036,8 @@ public class SiteServiceImpl implements SiteService {
     }
 
     @Override
-    public boolean enablePublishing(String siteId, boolean enabled) throws SiteNotFoundException {
+    @ValidateParams
+    public boolean enablePublishing(@ValidateStringParam(name = "siteId") String siteId, boolean enabled) throws SiteNotFoundException {
         if (exists(siteId)) {
             Map<String, Object> params = new HashMap<String, Object>();
             params.put("siteId", siteId);
@@ -1022,7 +1050,8 @@ public class SiteServiceImpl implements SiteService {
     }
 
     @Override
-    public boolean updatePublishingStatusMessage(String siteId, String message) throws SiteNotFoundException {
+    @ValidateParams
+    public boolean updatePublishingStatusMessage(@ValidateStringParam(name = "siteId") String siteId, @ValidateStringParam(name = "message") String message) throws SiteNotFoundException {
         if (exists(siteId)) {
             Map<String, Object> params = new HashMap<String, Object>();
             params.put("siteId", siteId);
@@ -1035,7 +1064,8 @@ public class SiteServiceImpl implements SiteService {
     }
 
     @Override
-    public PublishStatus getPublishStatus(String site) throws SiteNotFoundException {
+    @ValidateParams
+    public PublishStatus getPublishStatus(@ValidateStringParam(name = "site") String site) throws SiteNotFoundException {
         SiteFeed siteFeed = getSite(site);
         String psm = siteFeed.getPublishingStatusMessage();
         PublishStatus ps = new PublishStatus();
