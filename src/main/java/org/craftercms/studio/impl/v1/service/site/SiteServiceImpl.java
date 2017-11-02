@@ -31,10 +31,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.craftercms.commons.validation.annotations.param.ValidateIntegerParam;
-import org.craftercms.commons.validation.annotations.param.ValidateParams;
-import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
-import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
+import org.craftercms.commons.validation.annotations.param.*;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.dal.ItemMetadata;
@@ -270,7 +267,7 @@ public class SiteServiceImpl implements SiteService {
 
    	@Override
     @ValidateParams
-   	public void createSiteFromBlueprint(@ValidateStringParam(name = "blueprintName") String blueprintName, @ValidateStringParam(name = "siteName") String siteName, @ValidateStringParam(name = "siteId") String siteId, @ValidateStringParam(name = "desc") String desc) throws
+   	public void createSiteFromBlueprint(@ValidateStringParam(name = "blueprintName") String blueprintName, @ValidateNoTagsParam(name = "siteName") String siteName, @ValidateStringParam(name = "siteId") String siteId, @ValidateNoTagsParam(name = "desc") String desc) throws
 	    SiteAlreadyExistsException, SiteCreationException, PreviewDeployerUnreachableException, SearchUnreachableException {
 	    if (exists(siteId)) {
 	        throw new SiteAlreadyExistsException();

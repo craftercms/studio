@@ -35,10 +35,7 @@ import freemarker.template.TemplateException;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.http.RequestContext;
-import org.craftercms.commons.validation.annotations.param.ValidateIntegerParam;
-import org.craftercms.commons.validation.annotations.param.ValidateParams;
-import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
-import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
+import org.craftercms.commons.validation.annotations.param.*;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.StudioXmlConstants;
@@ -545,7 +542,7 @@ public class SecurityServiceImpl implements SecurityService {
 
     @Override
     @ValidateParams
-    public boolean createUser(@ValidateStringParam(name = "username") String username, @ValidateStringParam(name = "password") String password, @ValidateStringParam(name = "firstName") String firstName, @ValidateStringParam(name = "lastName") String lastName, @ValidateStringParam(name = "email") String email) throws UserAlreadyExistsException {
+    public boolean createUser(@ValidateNoTagsParam(name = "username") String username, @ValidateStringParam(name = "password") String password, @ValidateNoTagsParam(name = "firstName") String firstName, @ValidateNoTagsParam(name = "lastName") String lastName, @ValidateNoTagsParam(name = "email") String email) throws UserAlreadyExistsException {
         boolean toRet = securityProvider.createUser(username, password, firstName, lastName, email, false);
         if (toRet) {
             ActivityService.ActivityType activityType = ActivityService.ActivityType.CREATED;
@@ -598,7 +595,7 @@ public class SecurityServiceImpl implements SecurityService {
 
     @Override
     @ValidateParams
-    public boolean updateUser(@ValidateStringParam(name = "username") String username, @ValidateStringParam(name = "firstName") String firstName, @ValidateStringParam(name = "lastName") String lastName, @ValidateStringParam(name = "email") String email) throws UserNotFoundException, UserExternallyManagedException {
+    public boolean updateUser(@ValidateStringParam(name = "username") String username, @ValidateNoTagsParam(name = "firstName") String firstName, @ValidateNoTagsParam(name = "lastName") String lastName, @ValidateNoTagsParam(name = "email") String email) throws UserNotFoundException, UserExternallyManagedException {
         boolean toRet = securityProvider.updateUser(username, firstName, lastName, email);
         if (toRet) {
             ActivityService.ActivityType activityType = ActivityService.ActivityType.UPDATED;
@@ -647,7 +644,7 @@ public class SecurityServiceImpl implements SecurityService {
 
     @Override
     @ValidateParams
-    public boolean createGroup(@ValidateStringParam(name = "groupName") String groupName, @ValidateStringParam(name = "description") String description, @ValidateStringParam(name = "siteId") String siteId) throws GroupAlreadyExistsException, SiteNotFoundException {
+    public boolean createGroup(@ValidateNoTagsParam(name = "groupName") String groupName, @ValidateNoTagsParam(name = "description") String description, @ValidateStringParam(name = "siteId") String siteId) throws GroupAlreadyExistsException, SiteNotFoundException {
         return securityProvider.createGroup(groupName, description, siteId, false);
     }
 
@@ -691,7 +688,7 @@ public class SecurityServiceImpl implements SecurityService {
 
     @Override
     @ValidateParams
-    public boolean updateGroup(@ValidateStringParam(name = "siteId") String siteId, @ValidateStringParam(name = "groupName") String groupName, @ValidateStringParam(name = "description") String description) throws GroupNotFoundException {
+    public boolean updateGroup(@ValidateStringParam(name = "siteId") String siteId, @ValidateNoTagsParam(name = "groupName") String groupName, @ValidateNoTagsParam(name = "description") String description) throws GroupNotFoundException {
         return securityProvider.updateGroup(siteId, groupName, description);
     }
 
