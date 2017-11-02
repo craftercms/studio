@@ -36,6 +36,9 @@ import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.validation.annotations.param.ValidateParams;
+import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
+import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.dal.ItemMetadata;
@@ -127,7 +130,8 @@ public class WorkflowServiceImpl implements WorkflowService {
     public static final String COMPLETE_SUBMIT_TO_GO_LIVE_MSG = "submitToGoLive";
 
     @Override
-    public ResultTO submitToGoLive(String site, String username, String request) throws ServiceException {
+    @ValidateParams
+    public ResultTO submitToGoLive(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "username") String username, String request) throws ServiceException {
         return submitForApproval(site, username, request, false);
     }
 
@@ -293,7 +297,8 @@ public class WorkflowServiceImpl implements WorkflowService {
     }
 
     @Override
-    public void submitToGoLive(String site, List<String> paths, ZonedDateTime scheduledDate, boolean sendApprovedNotice, String submitter) {
+    @ValidateParams
+    public void submitToGoLive(@ValidateStringParam(name = "site") String site, List<String> paths, ZonedDateTime scheduledDate, boolean sendApprovedNotice, @ValidateStringParam(name = "submitter") String submitter) {
 		/*
 		// this needs to be gutted an re-written as workflow handlers that rely on services like dependency, state, content repository
 		// that use the appropriate DAL objects.  Now is not the time to pull the thread on that sweater :-/
@@ -301,7 +306,8 @@ public class WorkflowServiceImpl implements WorkflowService {
     }
 
     @Override
-    public Map<String, Object> getGoLiveItems(String site, String sort, boolean ascending) throws ServiceException {
+    @ValidateParams
+    public Map<String, Object> getGoLiveItems(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "sort") String sort, boolean ascending) throws ServiceException {
         DmContentItemComparator comparator = new DmContentItemComparator(sort, ascending, false, false);
         List<ContentItemTO> items = getGoLiveItems(site, comparator);
 
@@ -376,7 +382,9 @@ public class WorkflowServiceImpl implements WorkflowService {
         return categories;
     }
 
-    public void fillQueue(String site, GoLiveQueue goLiveQueue, GoLiveQueue inProcessQueue) throws ServiceException {
+    @Override
+    @ValidateParams
+    public void fillQueue(@ValidateStringParam(name = "site") String site, GoLiveQueue goLiveQueue, GoLiveQueue inProcessQueue) throws ServiceException {
         List<ItemState> changeSet = objectStateService.getSubmittedItems(site);
         // TODO: implement list changed all
 
@@ -423,7 +431,9 @@ public class WorkflowServiceImpl implements WorkflowService {
         }
     }
 
-    public Map<String, Object> getInProgressItems(String site, String sort, boolean ascending, boolean inProgressOnly) throws ServiceException {
+    @Override
+    @ValidateParams
+    public Map<String, Object> getInProgressItems(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "sort") String sort, boolean ascending, boolean inProgressOnly) throws ServiceException {
         DmContentItemComparator comparator = new DmContentItemComparator(sort, ascending, true, true);
         comparator.setSecondLevelCompareRequired(true);
         comparator.setSecondLevelSortBy(DmContentItemComparator.SORT_PATH);
@@ -525,7 +535,8 @@ public class WorkflowServiceImpl implements WorkflowService {
     }
 
     @Override
-    public boolean removeFromWorkflow(String site, String path, boolean cancelWorkflow) {
+    @ValidateParams
+    public boolean removeFromWorkflow(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, boolean cancelWorkflow) {
         Set<String> processedPaths = new HashSet<>();
         return removeFromWorkflow(site, path, processedPaths, cancelWorkflow);
     }
@@ -602,7 +613,8 @@ public class WorkflowServiceImpl implements WorkflowService {
     }
 
     @Override
-    public List<ContentItemTO> getWorkflowAffectedPaths(String site, String path) {
+    @ValidateParams
+    public List<ContentItemTO> getWorkflowAffectedPaths(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
         List<String> affectedPaths = getWorkflowAffectedPathsInternal(site, path);
         return getWorkflowAffectedItems(site, affectedPaths);
     }
@@ -651,7 +663,8 @@ public class WorkflowServiceImpl implements WorkflowService {
      * @throws ServiceException
      */
     @Override
-    public ResultTO goDelete(String site, String request, String user) {
+    @ValidateParams
+    public ResultTO goDelete(@ValidateStringParam(name = "site") String site, String request, @ValidateStringParam(name = "user") String user) {
         String md5 = ContentUtils.getMd5ForFile(request);
         String id = site + ":" + user + ":" + md5;
         if (!generalLockService.tryLock(id)) {
@@ -1855,7 +1868,8 @@ public class WorkflowServiceImpl implements WorkflowService {
      * @throws ServiceException
      */
     @Override
-    public ResultTO goLive(final String site, final String request) throws ServiceException {
+    @ValidateParams
+    public ResultTO goLive(@ValidateStringParam(name = "site") final String site, final String request) throws ServiceException {
         String lockKey = DmConstants.PUBLISHING_LOCK_KEY.replace("{SITE}", site.toUpperCase());
         generalLockService.lock(lockKey);
         try {
@@ -1876,7 +1890,9 @@ public class WorkflowServiceImpl implements WorkflowService {
         }
     }
 
-    public boolean cleanWorkflow(final String url, final String site, final Set<DmDependencyTO> dependents) {
+    @Override
+    @ValidateParams
+    public boolean cleanWorkflow(@ValidateSecurePathParam(name = "url") final String url, @ValidateStringParam(name = "site") final String site, final Set<DmDependencyTO> dependents) {
         _cancelWorkflow(site, url);
         return true;
     }
@@ -2018,7 +2034,8 @@ public class WorkflowServiceImpl implements WorkflowService {
     }
 
     @Override
-    public boolean isRescheduleRequest(DmDependencyTO dependencyTO, String site) {
+    @ValidateParams
+    public boolean isRescheduleRequest(DmDependencyTO dependencyTO, @ValidateStringParam(name = "site") String site) {
         if ((dependencyTO.isDeleted() || (!dependencyTO.isSubmitted() && !dependencyTO.isInProgress()))) {
             ContentItemTO to = contentService.getContentItem(site, dependencyTO.getUri());
             ZonedDateTime newDate = dependencyTO.getScheduledDate();
@@ -2070,7 +2087,8 @@ public class WorkflowServiceImpl implements WorkflowService {
 
     @Override
     @SuppressWarnings("unchecked")
-    public ResultTO reject(String site, String user, String request) throws ServiceException {
+    @ValidateParams
+    public ResultTO reject(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "user") String user, String request) throws ServiceException {
         ResultTO result = new ResultTO();
         try {
             String approver = user;

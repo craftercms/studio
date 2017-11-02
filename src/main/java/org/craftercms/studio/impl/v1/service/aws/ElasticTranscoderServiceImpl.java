@@ -3,6 +3,9 @@ package org.craftercms.studio.impl.v1.service.aws;
 import java.io.File;
 import java.io.InputStream;
 
+import org.craftercms.commons.validation.annotations.param.ValidateParams;
+import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
+import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.aws.elastictranscoder.ElasticTranscoder;
 import org.craftercms.studio.api.v1.aws.elastictranscoder.TranscoderJob;
 import org.craftercms.studio.api.v1.aws.elastictranscoder.TranscoderProfile;
@@ -40,7 +43,8 @@ public class ElasticTranscoderServiceImpl implements ElasticTranscoderService {
     }
 
     @Override
-    public TranscoderJob transcodeFile(String site, String profilePath, String filename, File file) throws TranscoderException {
+    @ValidateParams
+    public TranscoderJob transcodeFile(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "profilePath") String profilePath, @ValidateStringParam(name = "filename") String filename, File file) throws TranscoderException {
         TranscoderProfile profile = getTranscoderProfile(site, profilePath);
         TranscoderJob job = transcoder.startJob(filename, file, profile);
 

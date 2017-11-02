@@ -26,6 +26,7 @@ import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.service.workflow.context.GoLiveContext;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.DmDependencyTO;
+import org.craftercms.studio.api.v1.to.GoLiveQueue;
 import org.craftercms.studio.api.v1.to.ResultTO;
 
 public interface WorkflowService {
@@ -103,4 +104,8 @@ public interface WorkflowService {
     ResultTO goLive(final String site, final String request) throws ServiceException;
 
     ResultTO reject(final String site, final String user, final String request) throws ServiceException;
+
+    void fillQueue(String site, GoLiveQueue goLiveQueue, GoLiveQueue inProcessQueue) throws ServiceException;
+
+    boolean cleanWorkflow(final String url, final String site, final Set<DmDependencyTO> dependents);
 }

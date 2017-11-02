@@ -27,6 +27,8 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.validation.annotations.param.ValidateParams;
+import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.PublishRequest;
 import org.craftercms.studio.api.v1.dal.PublishRequestMapper;
@@ -81,7 +83,8 @@ public class PublishingManagerImpl implements PublishingManager {
     protected PublishRequestMapper publishRequestMapper;
 
     @Override
-    public List<PublishRequest> getItemsReadyForDeployment(String site, String environment) {
+    @ValidateParams
+    public List<PublishRequest> getItemsReadyForDeployment(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "environment") String environment) {
         Map<String, Object> params = new HashMap<>();
         params.put("site", site);
         params.put("state", PublishRequest.State.READY_FOR_LIVE);
@@ -281,7 +284,8 @@ public class PublishingManagerImpl implements PublishingManager {
     }
 
     @Override
-    public void markItemsCompleted(String site, String environment, List<PublishRequest> processedItems) throws DeploymentException {
+    @ValidateParams
+    public void markItemsCompleted(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "environment") String environment, List<PublishRequest> processedItems) throws DeploymentException {
         for (PublishRequest item : processedItems) {
             item.setState(PublishRequest.State.COMPLETED);
             publishRequestMapper.updateItemDeploymentState(item);
@@ -289,7 +293,8 @@ public class PublishingManagerImpl implements PublishingManager {
     }
 
     @Override
-    public void markItemsProcessing(String site, String environment, List<PublishRequest> itemsToDeploy) throws DeploymentException {
+    @ValidateParams
+    public void markItemsProcessing(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "environment") String environment, List<PublishRequest> itemsToDeploy) throws DeploymentException {
         for (PublishRequest item : itemsToDeploy) {
             item.setState(PublishRequest.State.PROCESSING);
             publishRequestMapper.updateItemDeploymentState(item);
@@ -297,7 +302,8 @@ public class PublishingManagerImpl implements PublishingManager {
     }
 
     @Override
-    public void markItemsReady(String site, String environment, List<PublishRequest> copyToEnvironmentItems) throws DeploymentException {
+    @ValidateParams
+    public void markItemsReady(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "environment") String environment, List<PublishRequest> copyToEnvironmentItems) throws DeploymentException {
         for (PublishRequest item : copyToEnvironmentItems) {
             item.setState(PublishRequest.State.READY_FOR_LIVE);
             publishRequestMapper.updateItemDeploymentState(item);
@@ -305,7 +311,8 @@ public class PublishingManagerImpl implements PublishingManager {
     }
 
     @Override
-    public void markItemsBlocked(String site, String environment, List<PublishRequest> copyToEnvironmentItems) throws DeploymentException {
+    @ValidateParams
+    public void markItemsBlocked(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "environment") String environment, List<PublishRequest> copyToEnvironmentItems) throws DeploymentException {
         for (PublishRequest item : copyToEnvironmentItems) {
             item.setState(PublishRequest.State.BLOCKED);
             publishRequestMapper.updateItemDeploymentState(item);
@@ -435,7 +442,8 @@ public class PublishingManagerImpl implements PublishingManager {
     }
 
     @Override
-    public boolean isPublishingBlocked(String site) {
+    @ValidateParams
+    public boolean isPublishingBlocked(@ValidateStringParam(name = "site") String site) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("site", site);
         params.put("now", ZonedDateTime.now(ZoneOffset.UTC));
@@ -445,7 +453,8 @@ public class PublishingManagerImpl implements PublishingManager {
     }
 
     @Override
-    public String getPublishingStatus(String site) {
+    @ValidateParams
+    public String getPublishingStatus(@ValidateStringParam(name = "site") String site) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("site", site);
         params.put("now", ZonedDateTime.now(ZoneOffset.UTC));

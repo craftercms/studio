@@ -20,6 +20,8 @@
 package org.craftercms.studio.impl.v1.service.event;
 
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.validation.annotations.param.ValidateParams;
+import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.ebus.*;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -45,7 +47,8 @@ public class EventServiceImpl implements EventService, ApplicationContextAware {
 
 
     @Override
-    public void publish(String event, Object... args) {
+    @ValidateParams
+    public void publish(@ValidateStringParam(name = "event") String event, Object... args) {
         logger.debug(String.format("Publishing %s", event));
 
         List<EventSubscriber> listenersForEvent = getListenersForEvent(event, false);
@@ -72,14 +75,16 @@ public class EventServiceImpl implements EventService, ApplicationContextAware {
     }
 
     @Override
-    public void subscribe(String event, String listener, Method method) {
+    @ValidateParams
+    public void subscribe(@ValidateStringParam(name = "event") String event, @ValidateStringParam(name = "listener") String listener, Method method) {
         logger.info(String.format("Subscribing %s to %s", listener, event));
         EventSubscriber subscriber = new EventSubscriber(listener, method);
         getListenersForEvent(event, true).add(subscriber);
     }
 
     @Override
-    public void unSubscribe(String event, String listener) {
+    @ValidateParams
+    public void unSubscribe(@ValidateStringParam(name = "event") String event, @ValidateStringParam(name = "listener") String listener) {
         logger.debug(String.format("UnSubscribing %s to %s", listener, event));
         List<EventSubscriber> listeners = getListenersForEvent(event, false);
         for (EventSubscriber subscriber : listeners) {
