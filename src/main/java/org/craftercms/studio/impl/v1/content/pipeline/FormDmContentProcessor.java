@@ -74,7 +74,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 
     public void process(PipelineContent content, ResultTO result) throws ContentProcessException {
         try {
-            writeContent(content);
+            writeContent(content, result);
         } catch (ServiceException e) {
             logger.error("Failed to write " + content.getId(),e);
             throw new ContentProcessException("Failed to write " + content.getId(), e);
@@ -83,75 +83,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
         }
     }
 
-    /**
-     * write content to the given path
-     *
-     * @param site
-     *            site to write the content to
-     * @param user
-     * 			content owner
-     * @param path
-     *            path to write the content to
-     * @param fileName
-     *            content name
-     * @param contentType
-     * 				content type
-     * @param input
-     *            content input stream
-     * @param createFolders
-     * 				create missing folders?
-     * @param overwrite
-     * 				overwrite the existing content?
-     * @param isPreview
-     * @param unlock
-     * 			unlock the content upon update?
-     * @throws ServiceException
-     */
-    protected ActivityService.ActivityType writeContent(String site, String user, String path, String fileName, String contentType, InputStream input,
-                                                        boolean createFolders, boolean overwrite, boolean isPreview, boolean unlock) throws ServiceException {
-
-        try {
-            // look up the path content first
-            boolean parentExists = contentService.contentExists(site, path);
-            ContentItemTO parentItem = contentService.getContentItem(site, path, 0);
-            if (parentExists && createFolders) {
-                parentItem = createMissingFoldersInPath(site, path, isPreview);
-            }
-            if (parentItem != null) {
-                // if the parent content name is the same as the file name
-                // update the content
-                // look up the path content first
-                if (parentItem.getName().equals(fileName)) {
-                    updateFile(site, parentItem, path, input, user, isPreview, unlock);
-                    return ActivityService.ActivityType.UPDATED;
-                } else {
-                    // otherwise, create new one
-                    String filePath = path + FILE_SEPARATOR + fileName;
-                    boolean contentExists = contentService.contentExists(site, filePath);
-                    ContentItemTO fileItem = contentService.getContentItem(site, filePath, 0);
-                    if (contentExists && overwrite) {
-                        updateFile(site, fileItem, filePath, input, user, isPreview, unlock);
-                        return ActivityService.ActivityType.UPDATED;
-                    } else {
-                        createNewFile(site, parentItem, fileName, contentType, input, user,unlock);
-                        return ActivityService.ActivityType.CREATED;
-                    }
-                }
-            } else {
-                throw new ContentNotFoundException(path + " does not exist in site: " + site);
-            }
-        } catch (ContentNotFoundException e) {
-            throw e;
-        } catch (Exception e) {
-            logger.error("Error: ", e);
-            throw new ContentNotFoundException("Unexpected exception ", e);
-        } finally {
-            ContentUtils.release(input);
-        }
-
-    }
-
-    protected void writeContent(PipelineContent content) throws ServiceException {
+    protected void writeContent(PipelineContent content, ResultTO result) throws ServiceException {
         String user = content.getProperty(DmConstants.KEY_USER);
         String site = content.getProperty(DmConstants.KEY_SITE);
         String path = content.getProperty(DmConstants.KEY_PATH);
@@ -187,7 +119,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                     String existingMd5 = ContentUtils.getMd5ForFile(existingContent);
                     String newMd5 = ContentUtils.getMd5ForFile(input);
                     if (!existingMd5.equals(newMd5)) {
-                        updateFile(site, item, path, input, user, isPreview, unlock);
+                        updateFile(site, item, path, input, user, isPreview, unlock, result);
                         content.addProperty(DmConstants.KEY_ACTIVITY_TYPE, ActivityService.ActivityType.UPDATED.toString());
                     } else {
                         updateLastEditedProperties(site, item.getUri(), user);
@@ -221,7 +153,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                         String existingMd5 = ContentUtils.getMd5ForFile(existingContent);
                         String newMd5 = ContentUtils.getMd5ForFile(input);
                         if (!existingMd5.equals(newMd5)) {
-                            updateFile(site, contentItem, path, input, user, isPreview, unlock);
+                            updateFile(site, contentItem, path, input, user, isPreview, unlock, result);
                             content.addProperty(DmConstants.KEY_ACTIVITY_TYPE, ActivityService.ActivityType.UPDATED.toString());
                         } else {
                             updateLastEditedProperties(site, contentItem.getUri(), user);
@@ -242,7 +174,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                         }
                         return;
                     } else {
-                        ContentItemTO newFileItem = createNewFile(site, parentItem, fileName, contentType, input, user, unlock);
+                        ContentItemTO newFileItem = createNewFile(site, parentItem, fileName, contentType, input, user, unlock, result);
                         content.addProperty(DmConstants.KEY_ACTIVITY_TYPE, ActivityService.ActivityType.CREATED.toString());
                         return;
                     }
@@ -291,7 +223,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
      * @throws ContentNotFoundException
      */
     protected ContentItemTO createNewFile(String site, ContentItemTO parentItem, String fileName, String contentType, InputStream input,
-    		String user, boolean unlock)
+    		String user, boolean unlock, ResultTO result)
             throws ContentNotFoundException {
         ContentItemTO fileItem = null;
 
@@ -315,6 +247,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                     properties.put(ItemMetadata.PROP_LOCK_OWNER, user);
                 }
                 objectMetadataManager.setObjectMetadata(site, parentItem.getUri() + FILE_SEPARATOR + fileName, properties);
+                result.setCommitId(objectMetadataManager.getProperties(site, parentItem.getUri() + FILE_SEPARATOR + fileName).getCommitId());
             } catch (Exception e) {
                 logger.error("Error writing new file: " + fileName, e);
             } finally {
@@ -345,44 +278,49 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
      * 			unlock the content upon update?
      * @throws ServiceException
      */
-    protected void updateFile(String site, ContentItemTO contentItem, String path, InputStream input, String user, boolean isPreview, boolean unlock)
+    protected void updateFile(String site, ContentItemTO contentItem, String path, InputStream input, String user, boolean isPreview, boolean unlock, ResultTO result)
             throws ServiceException {
 
+        boolean success = false;
         try {
-            contentService.writeContent(site, path, input);
+            success = contentService.writeContent(site, path, input);
         } finally {
             ContentUtils.release(input);
         }
 
-        Map<String, Object> properties = new HashMap<>();
-        properties.put(ItemMetadata.PROP_MODIFIER, user);
-        properties.put(ItemMetadata.PROP_MODIFIED, ZonedDateTime.now(ZoneOffset.UTC));
-        if (unlock) {
-            properties.put(ItemMetadata.PROP_LOCK_OWNER, StringUtils.EMPTY);
-        } else {
-            properties.put(ItemMetadata.PROP_LOCK_OWNER, user);
-        }
-        if (!objectMetadataManager.metadataExist(site, path)) {
-            objectMetadataManager.insertNewObjectMetadata(site, path);
-        }
-        objectMetadataManager.setObjectMetadata(site, path, properties);
-
-            // unlock the content upon save if the flag is true
+        if (success) {
+            Map<String, Object> properties = new HashMap<>();
+            properties.put(ItemMetadata.PROP_MODIFIER, user);
+            properties.put(ItemMetadata.PROP_MODIFIED, ZonedDateTime.now(ZoneOffset.UTC));
             if (unlock) {
-                contentRepository.unLockItem(site, path);
-                logger.debug("Unlocked the content site: " + site + " path: " + path);
+                properties.put(ItemMetadata.PROP_LOCK_OWNER, StringUtils.EMPTY);
             } else {
-                contentRepository.lockItem(site, path);
+                properties.put(ItemMetadata.PROP_LOCK_OWNER, user);
             }
+            if (!objectMetadataManager.metadataExist(site, path)) {
+                objectMetadataManager.insertNewObjectMetadata(site, path);
+            }
+            objectMetadataManager.setObjectMetadata(site, path, properties);
+            result.setCommitId(objectMetadataManager.getProperties(site, path).getCommitId());
+
             // if there is anything pending and this is not a preview update, cancel workflow
-        if (!isPreview) {
-            if (cancelWorkflow(site, path)) {
-                workflowService.removeFromWorkflow(site, path, true);
-            } else {
-                if(updateWorkFlow(site,path)) {
-                    workflowService.updateWorkflowSandboxes(site,path);
+            if (!isPreview) {
+                if (cancelWorkflow(site, path)) {
+                    workflowService.removeFromWorkflow(site, path, true);
+                } else {
+                    if (updateWorkFlow(site, path)) {
+                        workflowService.updateWorkflowSandboxes(site, path);
+                    }
                 }
             }
+        }
+
+        // unlock the content upon save if the flag is true
+        if (unlock) {
+            contentRepository.unLockItem(site, path);
+            logger.debug("Unlocked the content site: " + site + " path: " + path);
+        } else {
+            contentRepository.lockItem(site, path);
         }
     }
 

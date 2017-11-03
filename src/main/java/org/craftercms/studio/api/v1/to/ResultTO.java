@@ -44,6 +44,8 @@ public class ResultTO implements Serializable {
 
     protected boolean _invalidateCache = false;
 
+    protected String commitId = null;
+
 	/**
 	 * @param success
 	 *            the success to set
@@ -109,4 +111,7 @@ public class ResultTO implements Serializable {
     public void setInvalidateCache(boolean _invalidateCache) {
         this._invalidateCache = _invalidateCache;
     }
+
+    public String getCommitId() { return commitId; }
+    public void setCommitId(String commitId) { this.commitId = commitId; }
 }
