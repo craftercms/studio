@@ -17,6 +17,9 @@
  */
 package org.craftercms.studio.impl.v1.service.clipboard;
 
+import org.craftercms.commons.validation.annotations.param.ValidateParams;
+import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
+import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 
@@ -46,21 +49,24 @@ implements ClipboardService {
     }
 
     @Override
-    public ClipboardItem getItems(String site, HttpSession session) 
+    @ValidateParams
+    public ClipboardItem getItems(@ValidateStringParam(name = "site") String site, HttpSession session)
     throws ServiceException {
         return getClipboardStore(site, session).getOps();
     }
 
 
     @Override
-    public boolean cut(String site, String path, HttpSession session) 
+    @ValidateParams
+    public boolean cut(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, HttpSession session)
     throws ServiceException {
         ClipboardItem clipItem = new ClipboardItem(path, true);
         return clip(site, clipItem, true, session);
     }
 
     @Override
-    public boolean copy(String site, String path, HttpSession session) 
+    @ValidateParams
+    public boolean copy(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, HttpSession session)
     throws ServiceException {
 
         ClipboardItem clipItem = new ClipboardItem(path, false);
@@ -69,13 +75,15 @@ implements ClipboardService {
     }
 
     @Override
-    public boolean copy(String site, ClipboardItem clipItem, HttpSession session) 
+    @ValidateParams
+    public boolean copy(@ValidateStringParam(name = "site") String site, ClipboardItem clipItem, HttpSession session)
     throws ServiceException {
         return clip(site, clipItem, false, session);
     }
 
     @Override
-    public Set<String> paste(String site, String destinationPath, HttpSession session) 
+    @ValidateParams
+    public Set<String> paste(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "destinationPath") String destinationPath, HttpSession session)
     throws ServiceException {
         Set<String> pastedItems = new HashSet<String>();
 
@@ -146,38 +154,15 @@ implements ClipboardService {
         store.addOp(item);
 
         return true;
-    };
-
-    /**
-     * wrapper around a map used to store clipboard opearations
-     */
-    protected class ClipboardStore {
-
-        public ClipboardStore() {
-            this.op = null;
-        };
-
-        public void clear() {
-            this.op = null;
-        };
-
-        public boolean addOp(ClipboardItem op) {
-            this.op = op;
-            return true;
-        };
-
-        public ClipboardItem getOps() {
-            return this.op;
-        };
-
-        protected ClipboardItem op;
-    } 
+    }
 
     /**
      * store containing clipped operations
      * currently this leverages session
      */
-    public ClipboardStore getClipboardStore(String site,  HttpSession session) { 
+    @Override
+    @ValidateParams
+    public ClipboardStore getClipboardStore(@ValidateStringParam(name = "site") String site,  HttpSession session) {
         
         ClipboardStore clipboardStore = (ClipboardStore)session.getAttribute(site + "-clipboard-condition");
 

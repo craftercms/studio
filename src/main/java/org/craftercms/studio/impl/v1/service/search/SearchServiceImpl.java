@@ -13,6 +13,8 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.craftercms.commons.validation.annotations.param.ValidateParams;
+import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -42,7 +44,8 @@ public class SearchServiceImpl implements SearchService {
 	}
 
 	@Override
-	public void createIndex(final String siteId) throws ServiceException {
+    @ValidateParams
+	public void createIndex(@ValidateStringParam(name = "siteId") final String siteId) throws ServiceException {
 		logger.info("Creating search index for site:" + siteId);
 		String requestUrl = studioConfiguration.getProperty(PREVIEW_SEARCH_CREATE_URL);
 
@@ -70,7 +73,8 @@ public class SearchServiceImpl implements SearchService {
 	}
 
 	@Override
-	public void deleteIndex(final String siteId) throws ServiceException {
+    @ValidateParams
+	public void deleteIndex(@ValidateStringParam(name = "siteId") final String siteId) throws ServiceException {
 		logger.debug("Deleting search index for site:" + siteId);
 
 		String requestUrl = studioConfiguration.getProperty(PREVIEW_SEARCH_DELETE_URL);
