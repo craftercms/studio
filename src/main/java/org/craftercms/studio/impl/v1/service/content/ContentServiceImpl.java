@@ -376,7 +376,11 @@ public class ContentServiceImpl implements ContentService {
             item.setSize(assetInfoTO.getSize());
             item.setSizeUnit(assetInfoTO.getSizeUnit());
             if (item != null) {
-                objectStateService.transition(site, item, TransitionEvent.SAVE);
+                if (result.getCommitId() != null) {
+                    objectStateService.transition(site, item, TransitionEvent.SAVE);
+                } else {
+                    objectStateService.transition(site, item, TransitionEvent.CANCEL_EDIT);
+                }
             }
 
             PreviewEventContext context = new PreviewEventContext();

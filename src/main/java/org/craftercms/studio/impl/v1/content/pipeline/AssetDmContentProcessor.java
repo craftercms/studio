@@ -90,7 +90,7 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
         try {
             ContentAssetInfoTO oldAssetInfo = (ContentAssetInfoTO) result.getItem();
             ContentAssetInfoTO assetInfo = writeContentAsset(site, user, path, fileName,
-                    content.getContentStream(), width, height, createFolders, isPreview, unlock, isSystemAsset);
+                    content.getContentStream(), width, height, createFolders, isPreview, unlock, isSystemAsset, result);
             if (oldAssetInfo != null) {
                 oldAssetInfo.setFileExtension(assetInfo.getFileExtension());
                 oldAssetInfo.setFileName(assetInfo.getFileName());
@@ -126,7 +126,7 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
      * @throws ServiceException
      */
     protected ContentAssetInfoTO writeContentAsset(String site, String user, String path, String assetName, InputStream in,
-                                                   int width, int height, boolean createFolders, boolean isPreview, boolean unlock, boolean isSystemAsset)
+                                                   int width, int height, boolean createFolders, boolean isPreview, boolean unlock, boolean isSystemAsset, ResultTO result)
             throws ServiceException {
         logger.debug("Writing content asset: [site: " + site + ", path: " + path + ", assetName: " + assetName + ", createFolders: " + createFolders);
 
@@ -154,10 +154,10 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
                 ContentItemTO contentItem = null;
                 if (exists) {
                     contentItem = contentService.getContentItem(site, path + FILE_SEPARATOR + assetName, 0);
-                    updateFile(site, contentItem, contentPath, in, user, isPreview, unlock);
+                    updateFile(site, contentItem, contentPath, in, user, isPreview, unlock, result);
                 } else {
                     // TODO: define content type
-                    contentItem = createNewFile(site, parentContentItem, assetName, null, in, user, unlock);
+                    contentItem = createNewFile(site, parentContentItem, assetName, null, in, user, unlock, result);
                     objectStateService.insertNewEntry(site, contentItem);
                 }
                 ContentAssetInfoTO assetInfo = new ContentAssetInfoTO();
@@ -205,44 +205,46 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
      * 			unlock the content upon update?
      * @throws ServiceException
      */
-    protected void updateFile(String site, ContentItemTO contentItem, String relativePath, InputStream input, String user, boolean isPreview, boolean unlock)
+    protected void updateFile(String site, ContentItemTO contentItem, String relativePath, InputStream input, String user, boolean isPreview, boolean unlock, ResultTO result)
             throws ServiceException {
-
+        boolean success = false;
         try {
-            contentService.writeContent(site, relativePath, input);
+            success = contentService.writeContent(site, relativePath, input);
         } finally {
             ContentUtils.release(input);
         }
 
-        Map<String, Object> properties = new HashMap<>();
-        properties.put(ItemMetadata.PROP_MODIFIER, user);
-        properties.put(ItemMetadata.PROP_MODIFIED, ZonedDateTime.now(ZoneOffset.UTC));
-        if (unlock) {
-            properties.put(ItemMetadata.PROP_LOCK_OWNER, StringUtils.EMPTY);
-        } else {
-            properties.put(ItemMetadata.PROP_LOCK_OWNER, user);
-        }
-        if (!objectMetadataManager.metadataExist(site, relativePath)) {
-            objectMetadataManager.insertNewObjectMetadata(site, relativePath);
-        }
-        objectMetadataManager.setObjectMetadata(site, relativePath, properties);
+        if (success) {
+            Map<String, Object> properties = new HashMap<>();
+            properties.put(ItemMetadata.PROP_MODIFIER, user);
+            properties.put(ItemMetadata.PROP_MODIFIED, ZonedDateTime.now(ZoneOffset.UTC));
+            if (unlock) {
+                properties.put(ItemMetadata.PROP_LOCK_OWNER, StringUtils.EMPTY);
+            } else {
+                properties.put(ItemMetadata.PROP_LOCK_OWNER, user);
+            }
+            if (!objectMetadataManager.metadataExist(site, relativePath)) {
+                objectMetadataManager.insertNewObjectMetadata(site, relativePath);
+            }
+            objectMetadataManager.setObjectMetadata(site, relativePath, properties);
+            result.setCommitId(objectMetadataManager.getProperties(site, relativePath).getCommitId());
 
+            // if there is anything pending and this is not a preview update, cancel workflow
+            if (!isPreview) {
+                if (cancelWorkflow(site, relativePath)) {
+                    workflowService.removeFromWorkflow(site, relativePath, true);
+                } else {
+                    if (updateWorkFlow(site, relativePath)) {
+                        workflowService.updateWorkflowSandboxes(site, relativePath);
+                    }
+                }
+            }
+        }
         if (unlock) {
             contentService.unLockContent(site, relativePath);
             logger.debug("Unlocked the content site " + site + " path " + relativePath);
         } else {
             contentService.lockContent(site, relativePath);
-        }
-
-        // if there is anything pending and this is not a preview update, cancel workflow
-        if (!isPreview) {
-            if (cancelWorkflow(site, relativePath)) {
-                workflowService.removeFromWorkflow(site, relativePath, true);
-            } else {
-                if(updateWorkFlow(site,relativePath)) {
-                    workflowService.updateWorkflowSandboxes(site,relativePath);
-                }
-            }
         }
     }
 
