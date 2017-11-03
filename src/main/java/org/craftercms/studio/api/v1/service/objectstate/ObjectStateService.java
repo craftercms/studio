@@ -85,4 +85,6 @@ public interface ObjectStateService {
     boolean deletedPathExists(String site, String path);
 
     void deployCommitId(String site, String commitId);
+
+    String setObjectState(String site, String path, String state, boolean systemProcessing);
 }

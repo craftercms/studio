@@ -25,6 +25,9 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.codec.digest.DigestUtils;
+import org.craftercms.commons.validation.annotations.param.ValidateParams;
+import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
+import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -56,7 +59,8 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
     }
 
     @Override
-    public void publish(final String site, List<String> paths, ZonedDateTime launchDate,
+    @ValidateParams
+    public void publish(@ValidateStringParam(name = "site") final String site, List<String> paths, ZonedDateTime launchDate,
                         final MultiChannelPublishingContext mcpContext) {
         boolean scheduledDateIsNow = false;
         if (launchDate == null) {
@@ -77,12 +81,14 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
     }
 
     @Override
-    public void unpublish(String site, List<String> paths, String approver) {
+    @ValidateParams
+    public void unpublish(@ValidateStringParam (name = "site") String site, List<String> paths, String approver) {
         unpublish(site, paths, approver, null);
     }
 
     @Override
-    public void unpublish(String site, List<String> paths,  String approver, ZonedDateTime scheduleDate) {
+    @ValidateParams
+    public void unpublish(@ValidateStringParam(name = "site") String site, List<String> paths, @ValidateStringParam(name = "approver") String approver, ZonedDateTime scheduleDate) {
         if (scheduleDate == null) {
             scheduleDate = ZonedDateTime.now(ZoneOffset.UTC);
         }
@@ -94,7 +100,8 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
     }
 
     @Override
-    public void cancelScheduledItem(String site, String path) {
+    @ValidateParams
+    public void cancelScheduledItem(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
         try {
             deploymentService.cancelWorkflow(site, path);
         } catch (DeploymentException e) {
@@ -108,7 +115,8 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
      * @return true if there is at least one publishing channel config
      */
     @Override
-	public boolean hasChannelsConfigure(String site, MultiChannelPublishingContext mcpContext) {
+    @ValidateParams
+	public boolean hasChannelsConfigure(@ValidateStringParam(name = "site") String site, MultiChannelPublishingContext mcpContext) {
     	boolean toReturn = false;
         if (mcpContext != null) {
             List<PublishingTargetTO> publishingTargets = siteService.getPublishingTargetsForSite(site);
@@ -122,7 +130,8 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
     }
 
     @Override
-    public void bulkGoLive(String site, String environment, String path) {
+    @ValidateParams
+    public void bulkGoLive(@ValidateStringParam(name = "site") String site, @ValidateStringParam String environment, @ValidateSecurePathParam(name = "path") String path) {
         logger.info("Starting Bulk Go Live for path " + path + " site " + site);
 
         String queryPath = path;

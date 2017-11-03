@@ -20,6 +20,9 @@ package org.craftercms.studio.impl.v1.service.objectstate;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.validation.annotations.param.ValidateParams;
+import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
+import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.dal.ItemState;
 import org.craftercms.studio.api.v1.dal.ItemStateMapper;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -60,12 +63,14 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     }
 
     @Override
-    public ItemState getObjectState(String site, String path) {
+    @ValidateParams
+    public ItemState getObjectState(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
         return getObjectState(site, path, true);
     }
 
     @Override
-    public ItemState getObjectState(String site, String path, boolean insert) {
+    @ValidateParams
+    public ItemState getObjectState(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, boolean insert) {
         String cleanPath = FilenameUtils.normalize(path, true);
         String lockId = site + ":" + cleanPath;
         ItemState state = null;
@@ -92,7 +97,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     }
 
     @Override
-    public void setSystemProcessing(String site, String path, boolean isSystemProcessing) {
+    @ValidateParams
+    public void setSystemProcessing(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, boolean isSystemProcessing) {
         String cleanPath = FilenameUtils.normalize(path, true);
         String lockId = site + ":" + cleanPath;
         logger.debug("Locking with ID: {0}", lockId);
@@ -111,7 +117,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     }
 
     @Override
-    public void setSystemProcessingBulk(String site, List<String> paths, boolean isSystemProcessing) {
+    @ValidateParams
+    public void setSystemProcessingBulk(@ValidateStringParam(name = "site") String site, List<String> paths, boolean isSystemProcessing) {
         if (paths == null || paths.isEmpty()) {
             return;
         }
@@ -140,13 +147,15 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     }
 
     @Override
-    public void transition(String site, ContentItemTO item, TransitionEvent event) {
+    @ValidateParams
+    public void transition(@ValidateStringParam(name = "site") String site, ContentItemTO item, TransitionEvent event) {
         String path = FilenameUtils.normalize(item.getUri(), true);
         transition(site, path, event);
     }
 
     @Override
-    public void transition(String site, String path, TransitionEvent event) {
+    @ValidateParams
+    public void transition(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, TransitionEvent event) {
         String lockId = site + ":" + path;
         generalLockService.lock(lockId);
         try {
@@ -195,7 +204,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     }
 
     @Override
-    public void deployCommitId(String site, String commitId) {
+    @ValidateParams
+    public void deployCommitId(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "commitId") String commitId) {
         Map<String, String> params = new HashMap<String, String>();
         params.put("siteId", site);
         params.put("commitId", commitId);
@@ -204,7 +214,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     }
 
     @Override
-    public void insertNewEntry(String site, ContentItemTO item) {
+    @ValidateParams
+    public void insertNewEntry(@ValidateStringParam(name = "site") String site, ContentItemTO item) {
         String path = FilenameUtils.normalize(item.getUri(), true);
         ItemState newEntry = new ItemState();
         if (StringUtils.isEmpty(item.getNodeRef())) {
@@ -220,7 +231,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     }
 
     @Override
-    public void insertNewEntry(String site, String path) {
+    @ValidateParams
+    public void insertNewEntry(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
         path = FilenameUtils.normalize(path, true);
         ItemState newEntry = new ItemState();
         newEntry.setObjectId(UUID.randomUUID().toString());
@@ -233,7 +245,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     }
 
     @Override
-    public List<ItemState> getSubmittedItems(String site) {
+    @ValidateParams
+    public List<ItemState> getSubmittedItems(@ValidateStringParam(name = "site") String site) {
         Map<String, Object> params = new HashMap<String, Object>();
         List<String> statesValues = new ArrayList<String>();
         for (State state : State.SUBMITTED_STATES) {
@@ -246,7 +259,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     }
 
     @Override
-    public void updateObjectPath(String site, String oldPath, String newPath) {
+    @ValidateParams
+    public void updateObjectPath(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "oldPath") String oldPath, @ValidateSecurePathParam(name = "newPath") String newPath) {
         oldPath = FilenameUtils.normalize(oldPath, true);
         newPath = FilenameUtils.normalize(newPath, true);
         Map<String, Object> params = new HashMap<>();
@@ -257,7 +271,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     }
 
     @Override
-    public boolean isUpdated(String site, String path) {
+    @ValidateParams
+    public boolean isUpdated(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
         path = FilenameUtils.normalize(path, true);
         ItemState state = getObjectState(site, path);
         if (state != null) {
@@ -268,7 +283,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     }
 
     @Override
-    public boolean isUpdatedOrNew(String site, String path) {
+    @ValidateParams
+    public boolean isUpdatedOrNew(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
         path = FilenameUtils.normalize(path, true);
         ItemState state = getObjectState(site, path);
         if (state != null) {
@@ -279,7 +295,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     }
 
     @Override
-    public boolean isUpdatedOrSubmitted(String site, String path) {
+    @ValidateParams
+    public boolean isUpdatedOrSubmitted(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
         path = FilenameUtils.normalize(path, true);
         ItemState state = getObjectState(site, path);
         if (state != null) {
@@ -290,7 +307,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     }
 
     @Override
-    public boolean isSubmitted(String site, String path) {
+    @ValidateParams
+    public boolean isSubmitted(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
         path = FilenameUtils.normalize(path, true);
         ItemState state = getObjectState(site, path);
         if (state != null) {
@@ -301,7 +319,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     }
 
     @Override
-    public boolean isNew(String site, String path) {
+    @ValidateParams
+    public boolean isNew(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
         path = FilenameUtils.normalize(path, true);
         ItemState state = getObjectState(site, path);
         if (state != null) {
@@ -312,7 +331,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     }
 
     @Override
-    public boolean isFolderLive(String site, String folderPath) {
+    @ValidateParams
+    public boolean isFolderLive(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "folderPath") String folderPath) {
         folderPath = FilenameUtils.normalize(folderPath, true);
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("site", site);
@@ -321,7 +341,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     }
 
     @Override
-    public boolean isScheduled(String site, String path) {
+    @ValidateParams
+    public boolean isScheduled(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
         path = FilenameUtils.normalize(path, true);
         ItemState state = getObjectState(site, path);
         if (state != null) {
@@ -332,7 +353,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     }
 
     @Override
-    public boolean isInWorkflow(String site, String path) {
+    @ValidateParams
+    public boolean isInWorkflow(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
         path = FilenameUtils.normalize(path, true);
         ItemState state = getObjectState(site, path);
         if (state != null) {
@@ -343,7 +365,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     }
 
     @Override
-    public List<ItemState> getChangeSet(String site) {
+    @ValidateParams
+    public List<ItemState> getChangeSet(@ValidateStringParam(name = "site") String site) {
         Map<String, Object> params = new HashMap<String, Object>();
         List<String> statesValues = new ArrayList<String>();
         for (State state : State.CHANGE_SET_STATES) {
@@ -356,7 +379,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     }
 
     @Override
-    public void deleteObjectState(String objectId) {
+    @ValidateParams
+    public void deleteObjectState(@ValidateStringParam(name = "objectId") String objectId) {
         GeneralLockService nodeLockService = getService(GeneralLockService.class);
         nodeLockService.lock(objectId);
         try {
@@ -367,7 +391,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     }
 
     @Override
-    public void deleteObjectStateForPath(String site, String path) {
+    @ValidateParams
+    public void deleteObjectStateForPath(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
         path = FilenameUtils.normalize(path, true);
         Map<String, String> params = new HashMap<String, String>();
         params.put("site", site);
@@ -376,7 +401,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     }
 
     @Override
-    public void deleteObjectStatesForFolder(String site, String path) {
+    @ValidateParams
+    public void deleteObjectStatesForFolder(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
         path = FilenameUtils.normalize(path, true);
         Map<String, String> params = new HashMap<String, String>();
         params.put("site", site);
@@ -385,7 +411,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     }
 
     @Override
-    public void transitionBulk(String site, List<String> paths, TransitionEvent event, State defaultTargetState) {
+    @ValidateParams
+    public void transitionBulk(@ValidateStringParam(name = "site") String site, List<String> paths, TransitionEvent event, State defaultTargetState) {
         if (paths != null && !paths.isEmpty()) {
             Map<String, Object> params = new HashMap<>();
             params.put("site", site);
@@ -425,7 +452,9 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     /**
      * get the object for a given set of states
      */
-    public List<ItemState> getObjectStateByStates(String site, List<String> states) {
+    @Override
+    @ValidateParams
+    public List<ItemState> getObjectStateByStates(@ValidateStringParam(name = "site") String site, List<String> states) {
 
         if (states != null && !states.isEmpty()) {
             Map<String, Object> params = new HashMap<String, Object>();
@@ -438,7 +467,9 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
         }
     }
 
-    public String setObjectState(String site, String path, String state, boolean systemProcessing) {
+    @Override
+    @ValidateParams
+    public String setObjectState(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, @ValidateStringParam(name = "state") String state, boolean systemProcessing) {
         path = FilenameUtils.normalize(path, true);
         Map<String, String> params = new HashMap<String, String>();
         params.put("site", site);
@@ -455,7 +486,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     }
 
     @Override
-    public void deleteObjectStatesForSite(String site) {
+    @ValidateParams
+    public void deleteObjectStatesForSite(@ValidateStringParam(name = "site") String site) {
         Map<String, String> params = new HashMap<String, String>();
         params.put("site", site);
         itemStateMapper.deleteObjectStatesForSite(params);
@@ -467,7 +499,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     }
 
     @Override
-    public void setStateForSiteContent(String site, State state) {
+    @ValidateParams
+    public void setStateForSiteContent(@ValidateStringParam(name = "site") String site, State state) {
         Map<String, String> params = new HashMap<String, String>();
         params.put("siteId", site);
         params.put("state", state.name());
@@ -475,7 +508,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     }
 
     @Override
-    public List<String> getChangeSetForSubtree(String site, String path) {
+    @ValidateParams
+    public List<String> getChangeSetForSubtree(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("site", site);
         params.put("path", path);
@@ -490,7 +524,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     }
 
     @Override
-    public boolean deletedPathExists(String site, String path) {
+    @ValidateParams
+    public boolean deletedPathExists(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("siteId", site);
         params.put("path", path);
