@@ -24,6 +24,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.commons.ebus.annotations.EventHandler;
 import org.craftercms.commons.ebus.annotations.EventSelectorType;
+import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
@@ -318,7 +319,7 @@ public class SiteServiceImpl implements SiteService {
 
    	@Override
     @ValidateParams
-   	public boolean createSiteFromBlueprint(@ValidateStringParam(name = "blueprintName") String blueprintName, @ValidateStringParam(name = "siteName") String siteName, @ValidateStringParam(name = "siteId") String siteId, @ValidateStringParam(name = "desc") String desc) {
+   	public boolean createSiteFromBlueprint(@ValidateStringParam(name = "blueprintName") String blueprintName, @ValidateNoTagsParam(name = "siteName") String siteName, @ValidateNoTagsParam(name = "siteId") String siteId, @ValidateNoTagsParam(name = "desc") String desc) {
  		boolean success = true;
  		try {
 			contentRepository.createFolder("/wem-projects/"+siteId+"/"+siteId, "work-area");
