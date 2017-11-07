@@ -33,10 +33,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
-import org.craftercms.studio.api.v1.dal.ItemMetadata;
-import org.craftercms.studio.api.v1.dal.ItemState;
-import org.craftercms.studio.api.v1.dal.SiteFeed;
-import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
+import org.craftercms.studio.api.v1.dal.*;
 import org.craftercms.studio.api.v1.deployment.PreviewDeployer;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.PreviewDeployerUnreachableException;
@@ -745,140 +742,165 @@ public class SiteServiceImpl implements SiteService {
 	    	logger.debug("\tOperation: " + repoOperation.getOperation().toString() + " " + repoOperation.getPath());
 	    }
 
+	    boolean diverged = false;
+	    GitLog current = null;
+
 	    // Process all operations and track if one or more have failed
 	    for (RepoOperationTO repoOperation: repoOperations) {
-            Map<String, String> activityInfo = new HashMap<String, String>();
-            String contentClass;
-            Map<String, Object> properties;
-		    switch (repoOperation.getOperation()) {
-			    case CREATE:
-			    case COPY:
-				    ItemState state = objectStateService.getObjectState(site, repoOperation.getPath(), false);
+            boolean gitLogProcessed = false;
+            GitLog gitLog = contentRepository.getGitLog(site, repoOperation.getCommitId());
+            if (gitLog != null) {
+                diverged = diverged || gitLog.getProcessed() < 1;
+            } else {
+                contentRepository.insertGitLog(site, repoOperation.getCommitId(), repoOperation.getDateTime(), 1, 0);
+                diverged = true;
+                gitLogProcessed = false;
+                gitLog = contentRepository.getGitLog(site, repoOperation.getCommitId());
+            }
 
-				    if (state == null) {
-					    objectStateService.insertNewEntry(site, repoOperation.getPath());
-				    } else {
-					    objectStateService.transition(site, repoOperation.getPath(), TransitionEvent.SAVE);
-				    }
+            if (current == null) {
+                current = gitLog;
+            } else {
+	            if (!current.getCommitId().equals(gitLog.getCommitId())) {
+                    contentRepository.markGitLogVerified(site, gitLog.getCommitId());
+                    current = gitLog;
+                }
+            }
 
-				    if (!objectMetadataManager.metadataExist(site, repoOperation.getPath())) {
-					    objectMetadataManager.insertNewObjectMetadata(site, repoOperation.getPath());
-				    }
-                    properties = new HashMap<String, Object>();
-                    properties.put(ItemMetadata.PROP_SITE, site);
-                    properties.put(ItemMetadata.PROP_PATH, repoOperation.getPath());
-                    properties.put(ItemMetadata.PROP_MODIFIED, repoOperation.getDateTime());
-                    properties.put(ItemMetadata.PROP_COMMIT_ID, repoOperation.getCommitId());
-                    objectMetadataManager.setObjectMetadata(site, repoOperation.getMoveToPath(), properties);
-				    toReturn = toReturn && extractDependenciesForItem(site, repoOperation.getPath());
-                    contentClass = contentService.getContentTypeClass(site, repoOperation.getPath());
-                    if( repoOperation.getPath().endsWith(DmConstants.XML_PATTERN)) {
-                        activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
-                    }
-				    activityService.postActivity(site, repoOperation.getAuthor(), repoOperation.getPath(),
-                            ActivityService.ActivityType.CREATED, ActivityService.ActivitySource.REPOSITORY, activityInfo);
-				    break;
+	        if (diverged) {
+                Map<String, String> activityInfo = new HashMap<String, String>();
+                String contentClass;
+                Map<String, Object> properties;
+                switch (repoOperation.getOperation()) {
+                    case CREATE:
+                    case COPY:
+                        ItemState state = objectStateService.getObjectState(site, repoOperation.getPath(), false);
 
-			    case UPDATE:
-				    objectStateService.getObjectState(site, repoOperation.getPath());
-				    objectStateService.transition(site, repoOperation.getPath(), TransitionEvent.SAVE);
-				    if (!objectMetadataManager.metadataExist(site, repoOperation.getPath())) {
-					    objectMetadataManager.insertNewObjectMetadata(site, repoOperation.getPath());
-				    }
-                    properties = new HashMap<String, Object>();
-                    properties.put(ItemMetadata.PROP_SITE, site);
-                    properties.put(ItemMetadata.PROP_PATH, repoOperation.getPath());
-                    properties.put(ItemMetadata.PROP_MODIFIED, repoOperation.getDateTime());
-                    properties.put(ItemMetadata.PROP_COMMIT_ID, repoOperation.getCommitId());
-                    objectMetadataManager.setObjectMetadata(site, repoOperation.getMoveToPath(), properties);
-				    toReturn = toReturn && extractDependenciesForItem(site, repoOperation.getPath());
-                    contentClass = contentService.getContentTypeClass(site, repoOperation.getPath());
-                    if( repoOperation.getPath().endsWith(DmConstants.XML_PATTERN)) {
-                        activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
-                    }
-                    activityService.postActivity(site, repoOperation.getAuthor(), repoOperation.getPath(),
-                            ActivityService.ActivityType.UPDATED, ActivityService.ActivitySource.REPOSITORY, activityInfo);
-				    break;
+                        if (state == null) {
+                            objectStateService.insertNewEntry(site, repoOperation.getPath());
+                        } else {
+                            objectStateService.transition(site, repoOperation.getPath(), TransitionEvent.SAVE);
+                        }
 
-			    case DELETE:
-				    objectStateService.deleteObjectStateForPath(site, repoOperation.getPath());
-				    objectMetadataManager.deleteObjectMetadata(site, repoOperation.getPath());
-				    dmDependencyService.deleteDependenciesForSiteAndPath(site, repoOperation.getPath());
-                    contentClass = contentService.getContentTypeClass(site, repoOperation.getPath());
-                    if( repoOperation.getPath().endsWith(DmConstants.XML_PATTERN)) {
-                        activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
-                    }
-                    activityService.postActivity(site, repoOperation.getAuthor(), repoOperation.getPath(),
-                            ActivityService.ActivityType.DELETED, ActivityService.ActivitySource.REPOSITORY, activityInfo);
-				    break;
+                        if (!objectMetadataManager.metadataExist(site, repoOperation.getPath())) {
+                            objectMetadataManager.insertNewObjectMetadata(site, repoOperation.getPath());
+                        }
+                        properties = new HashMap<String, Object>();
+                        properties.put(ItemMetadata.PROP_SITE, site);
+                        properties.put(ItemMetadata.PROP_PATH, repoOperation.getPath());
+                        properties.put(ItemMetadata.PROP_MODIFIED, repoOperation.getDateTime());
+                        properties.put(ItemMetadata.PROP_COMMIT_ID, repoOperation.getCommitId());
+                        objectMetadataManager.setObjectMetadata(site, repoOperation.getMoveToPath(), properties);
+                        toReturn = toReturn && extractDependenciesForItem(site, repoOperation.getPath());
+                        contentClass = contentService.getContentTypeClass(site, repoOperation.getPath());
+                        if (repoOperation.getPath().endsWith(DmConstants.XML_PATTERN)) {
+                            activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
+                        }
+                        activityService.postActivity(site, repoOperation.getAuthor(), repoOperation.getPath(),
+                                ActivityService.ActivityType.CREATED, ActivityService.ActivitySource.REPOSITORY, activityInfo);
+                        break;
 
-			    case MOVE:
-				    ItemState stateRename = objectStateService.getObjectState(site, repoOperation.getPath(), false);
-				    if (stateRename == null) {
-					    objectStateService.getObjectState(site, repoOperation.getPath());
-					    objectStateService.transition(site, repoOperation.getPath(), TransitionEvent.SAVE);
-				    } else {
-					    objectStateService.updateObjectPath(site, repoOperation.getPath(), repoOperation.getMoveToPath());
-					    objectStateService.transition(site, repoOperation.getMoveToPath(), TransitionEvent.SAVE);
-				    }
+                    case UPDATE:
+                        objectStateService.getObjectState(site, repoOperation.getPath());
+                        objectStateService.transition(site, repoOperation.getPath(), TransitionEvent.SAVE);
+                        if (!objectMetadataManager.metadataExist(site, repoOperation.getPath())) {
+                            objectMetadataManager.insertNewObjectMetadata(site, repoOperation.getPath());
+                        }
+                        properties = new HashMap<String, Object>();
+                        properties.put(ItemMetadata.PROP_SITE, site);
+                        properties.put(ItemMetadata.PROP_PATH, repoOperation.getPath());
+                        properties.put(ItemMetadata.PROP_MODIFIED, repoOperation.getDateTime());
+                        properties.put(ItemMetadata.PROP_COMMIT_ID, repoOperation.getCommitId());
+                        objectMetadataManager.setObjectMetadata(site, repoOperation.getMoveToPath(), properties);
+                        toReturn = toReturn && extractDependenciesForItem(site, repoOperation.getPath());
+                        contentClass = contentService.getContentTypeClass(site, repoOperation.getPath());
+                        if (repoOperation.getPath().endsWith(DmConstants.XML_PATTERN)) {
+                            activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
+                        }
+                        activityService.postActivity(site, repoOperation.getAuthor(), repoOperation.getPath(),
+                                ActivityService.ActivityType.UPDATED, ActivityService.ActivitySource.REPOSITORY, activityInfo);
+                        break;
 
-				    if (!objectMetadataManager.metadataExist(site, repoOperation.getPath())) {
-					    if (!objectMetadataManager.metadataExist(site, repoOperation.getMoveToPath())) {
-						    objectMetadataManager.insertNewObjectMetadata(site, repoOperation.getMoveToPath());
-					    } else {
-						    if (!objectMetadataManager.isRenamed(site, repoOperation.getMoveToPath())) {
-							    // set renamed and old path
-							    properties = new HashMap<String, Object>();
-							    properties.put(ItemMetadata.PROP_SITE, site);
-							    properties.put(ItemMetadata.PROP_PATH, repoOperation.getMoveToPath());
-							    properties.put(ItemMetadata.PROP_RENAMED, 1);
-							    properties.put(ItemMetadata.PROP_OLD_URL, repoOperation.getPath());
+                    case DELETE:
+                        objectStateService.deleteObjectStateForPath(site, repoOperation.getPath());
+                        objectMetadataManager.deleteObjectMetadata(site, repoOperation.getPath());
+                        dmDependencyService.deleteDependenciesForSiteAndPath(site, repoOperation.getPath());
+                        contentClass = contentService.getContentTypeClass(site, repoOperation.getPath());
+                        if (repoOperation.getPath().endsWith(DmConstants.XML_PATTERN)) {
+                            activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
+                        }
+                        activityService.postActivity(site, repoOperation.getAuthor(), repoOperation.getPath(),
+                                ActivityService.ActivityType.DELETED, ActivityService.ActivitySource.REPOSITORY, activityInfo);
+                        break;
+
+                    case MOVE:
+                        ItemState stateRename = objectStateService.getObjectState(site, repoOperation.getPath(), false);
+                        if (stateRename == null) {
+                            objectStateService.getObjectState(site, repoOperation.getPath());
+                            objectStateService.transition(site, repoOperation.getPath(), TransitionEvent.SAVE);
+                        } else {
+                            objectStateService.updateObjectPath(site, repoOperation.getPath(), repoOperation.getMoveToPath());
+                            objectStateService.transition(site, repoOperation.getMoveToPath(), TransitionEvent.SAVE);
+                        }
+
+                        if (!objectMetadataManager.metadataExist(site, repoOperation.getPath())) {
+                            if (!objectMetadataManager.metadataExist(site, repoOperation.getMoveToPath())) {
+                                objectMetadataManager.insertNewObjectMetadata(site, repoOperation.getMoveToPath());
+                            } else {
+                                if (!objectMetadataManager.isRenamed(site, repoOperation.getMoveToPath())) {
+                                    // set renamed and old path
+                                    properties = new HashMap<String, Object>();
+                                    properties.put(ItemMetadata.PROP_SITE, site);
+                                    properties.put(ItemMetadata.PROP_PATH, repoOperation.getMoveToPath());
+                                    properties.put(ItemMetadata.PROP_RENAMED, 1);
+                                    properties.put(ItemMetadata.PROP_OLD_URL, repoOperation.getPath());
+                                    properties.put(ItemMetadata.PROP_COMMIT_ID, repoOperation.getCommitId());
+                                    properties.put(ItemMetadata.PROP_MODIFIED, repoOperation.getDateTime());
+                                    objectMetadataManager.setObjectMetadata(site, repoOperation.getMoveToPath(), properties);
+                                }
+                            }
+                        } else {
+                            if (!objectMetadataManager.metadataExist(site, repoOperation.getMoveToPath())) {
+                                // preform move: update path, set renamed, set old url
+                                objectMetadataManager.updateObjectPath(site, repoOperation.getPath(), repoOperation.getMoveToPath());
+                                properties = new HashMap<String, Object>();
+                                properties.put(ItemMetadata.PROP_SITE, site);
+                                properties.put(ItemMetadata.PROP_PATH, repoOperation.getMoveToPath());
+                                properties.put(ItemMetadata.PROP_RENAMED, 1);
+                                properties.put(ItemMetadata.PROP_OLD_URL, repoOperation.getPath());
                                 properties.put(ItemMetadata.PROP_COMMIT_ID, repoOperation.getCommitId());
-                                properties.put(ItemMetadata.PROP_MODIFIED, repoOperation.getDateTime());
-							    objectMetadataManager.setObjectMetadata(site, repoOperation.getMoveToPath(), properties);
-						    }
-					    }
-				    } else {
-					    if (!objectMetadataManager.metadataExist(site, repoOperation.getMoveToPath())) {
-						    // preform move: update path, set renamed, set old url
-						    objectMetadataManager.updateObjectPath(site, repoOperation.getPath(), repoOperation.getMoveToPath());
-						    properties = new HashMap<String, Object>();
-						    properties.put(ItemMetadata.PROP_SITE, site);
-						    properties.put(ItemMetadata.PROP_PATH, repoOperation.getMoveToPath());
-						    properties.put(ItemMetadata.PROP_RENAMED, 1);
-						    properties.put(ItemMetadata.PROP_OLD_URL, repoOperation.getPath());
-						    properties.put(ItemMetadata.PROP_COMMIT_ID, repoOperation.getCommitId());
-						    objectMetadataManager.setObjectMetadata(site, repoOperation.getMoveToPath(), properties);
-					    } else {
-						    // if not already renamed set renamed and old url
-						    if (!objectMetadataManager.isRenamed(site, repoOperation.getMoveToPath())) {
-							    // set renamed and old path
-							    properties = new HashMap<String, Object>();
-							    properties.put(ItemMetadata.PROP_SITE, site);
-							    properties.put(ItemMetadata.PROP_PATH, repoOperation.getMoveToPath());
-							    properties.put(ItemMetadata.PROP_RENAMED, 1);
-							    properties.put(ItemMetadata.PROP_OLD_URL, repoOperation.getPath());
-                                properties.put(ItemMetadata.PROP_COMMIT_ID, repoOperation.getCommitId());
-							    objectMetadataManager.setObjectMetadata(site, repoOperation.getMoveToPath(), properties);
-						    }
-						    objectMetadataManager.deleteObjectMetadata(site, repoOperation.getPath());
-					    }
-				    }
+                                objectMetadataManager.setObjectMetadata(site, repoOperation.getMoveToPath(), properties);
+                            } else {
+                                // if not already renamed set renamed and old url
+                                if (!objectMetadataManager.isRenamed(site, repoOperation.getMoveToPath())) {
+                                    // set renamed and old path
+                                    properties = new HashMap<String, Object>();
+                                    properties.put(ItemMetadata.PROP_SITE, site);
+                                    properties.put(ItemMetadata.PROP_PATH, repoOperation.getMoveToPath());
+                                    properties.put(ItemMetadata.PROP_RENAMED, 1);
+                                    properties.put(ItemMetadata.PROP_OLD_URL, repoOperation.getPath());
+                                    properties.put(ItemMetadata.PROP_COMMIT_ID, repoOperation.getCommitId());
+                                    objectMetadataManager.setObjectMetadata(site, repoOperation.getMoveToPath(), properties);
+                                }
+                                objectMetadataManager.deleteObjectMetadata(site, repoOperation.getPath());
+                            }
+                        }
 
-				    toReturn = toReturn && extractDependenciesForItem(site, repoOperation.getMoveToPath());
-                    contentClass = contentService.getContentTypeClass(site, repoOperation.getMoveToPath());
-                    if( repoOperation.getMoveToPath().endsWith(DmConstants.XML_PATTERN)) {
-                        activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
-                    }
-                    activityService.postActivity(site, repoOperation.getAuthor(), repoOperation.getMoveToPath(),
-                            ActivityService.ActivityType.UPDATED, ActivityService.ActivitySource.REPOSITORY, activityInfo);
-				    break;
+                        toReturn = toReturn && extractDependenciesForItem(site, repoOperation.getMoveToPath());
+                        contentClass = contentService.getContentTypeClass(site, repoOperation.getMoveToPath());
+                        if (repoOperation.getMoveToPath().endsWith(DmConstants.XML_PATTERN)) {
+                            activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
+                        }
+                        activityService.postActivity(site, repoOperation.getAuthor(), repoOperation.getMoveToPath(),
+                                ActivityService.ActivityType.UPDATED, ActivityService.ActivitySource.REPOSITORY, activityInfo);
+                        break;
 
-			    default:
-				    logger.error("Error: Unknown repo operation for site " + site + " operation: " + repoOperation.getOperation());
-				    toReturn = false;
-				    break;
-		    }
+                    default:
+                        logger.error("Error: Unknown repo operation for site " + site + " operation: " + repoOperation.getOperation());
+                        toReturn = false;
+                        break;
+                }
+            }
 	    }
 
 	    // At this point we have attempted to process all operations, some may have failed

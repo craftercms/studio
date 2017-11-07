@@ -25,8 +25,10 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
+import org.craftercms.studio.api.v1.dal.GitLog;
 import org.craftercms.studio.api.v1.dal.PublishRequest;
 import org.craftercms.studio.api.v1.ebus.DeploymentItem;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -260,7 +262,8 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
     }
 
     private void syncRepository(String site) {
-
+        GitLog lastProcessedCommit = contentRepository.getLastProcessedCommit(site);
+        siteService.syncDatabaseWithRepo(site, lastProcessedCommit.getCommitId());
     }
 
     public boolean isMasterPublishingNode() {

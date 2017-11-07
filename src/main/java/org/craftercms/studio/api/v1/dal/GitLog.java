@@ -29,6 +29,7 @@ public class GitLog implements Serializable {
     private String commitId;
     private ZonedDateTime commitDate;
     private int processed;
+    private int verified;
 
     public long getId() { return id; }
     public void setId(long id) { this.id = id; }
@@ -44,4 +45,7 @@ public class GitLog implements Serializable {
 
     public int getProcessed() { return processed; }
     public void setProcessed(int processed) { this.processed = processed; }
+
+    public int getVerified() { return verified; }
+    public void setVerified(int verified) { this.verified = verified; }
 }

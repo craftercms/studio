@@ -23,4 +23,10 @@ import java.util.Map;
 public interface GitLogMapper {
 
     GitLog getLastProcessedCommit(Map params);
+
+    GitLog getGitLog(Map params);
+
+    void insertGitLog(Map params);
+
+    void markGitLogVerified(Map params);
 }

@@ -18,6 +18,7 @@
 package org.craftercms.studio.api.v1.repository;
 
 
+import org.craftercms.studio.api.v1.dal.GitLog;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
@@ -25,6 +26,7 @@ import org.craftercms.studio.api.v1.to.RepoOperationTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
 
 import java.io.InputStream;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -281,6 +283,39 @@ public interface ContentRepository {
      * @return true if it exists in site repository, otherwise false
      */
     boolean commitIdExists(String site, String commitId);
+
+    /**
+     * Get last commit id from database that was processed abd verified.
+     *
+     * @param site site identifier
+     * @return last commit id 
+     */
+    GitLog getLastProcessedCommit(String site);
+
+    /**
+     * Get git log object from database
+     * @param siteId site id
+     * @param commitId commit ID
+     * @return git log object
+     */
+    GitLog getGitLog(String siteId, String commitId);
+
+    /**
+     * Insert
+     * @param siteId
+     * @param commitId
+     * @param dateTime
+     * @param processed
+     * @param verified
+     */
+    void insertGitLog(String siteId, String commitId, ZonedDateTime dateTime, int processed, int verified);
+
+    /**
+     * Mark Git log as verified
+     * @param siteId site identifier
+     * @param commitId commit id
+     */
+    void markGitLogVerified(String siteId, String commitId);
 
     /*
     List<PublishTO> getPublishEvents(String site, String commitIdFrom, String commitIdTo);
