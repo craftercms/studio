@@ -664,17 +664,19 @@ public class WorkflowServiceImpl implements WorkflowService {
         List<String> paths = new ArrayList<String>();
         for (String affectedItem : allItemsToCancel) {
             try {
-                deploymentService.cancelWorkflow(site, affectedItem);
-                ObjectMetadata objectMetadata = objectMetadataManager.getProperties(site, affectedItem);
-                if (objectMetadata != null) {
-                    objectMetadata.setSubmittedBy(StringUtils.EMPTY);
-                    objectMetadata.setSendEmail(0);
-                    objectMetadata.setSubmittedForDeletion(0);
-                    objectMetadata.setSubmissionComment(StringUtils.EMPTY);
-                    objectMetadata.setLaunchDate(null);
-                    objectMetadataManager.updateObjectMetadata(objectMetadata);
+                if (objectStateService.isSubmitted(site, affectedItem) || objectStateService.isScheduled(site, affectedItem)) {
+                    deploymentService.cancelWorkflow(site, affectedItem);
+                    ObjectMetadata objectMetadata = objectMetadataManager.getProperties(site, affectedItem);
+                    if (objectMetadata != null) {
+                        objectMetadata.setSubmittedBy(StringUtils.EMPTY);
+                        objectMetadata.setSendEmail(0);
+                        objectMetadata.setSubmittedForDeletion(0);
+                        objectMetadata.setSubmissionComment(StringUtils.EMPTY);
+                        objectMetadata.setLaunchDate(null);
+                        objectMetadataManager.updateObjectMetadata(objectMetadata);
+                    }
+                    paths.add(affectedItem);
                 }
-                paths.add(affectedItem);
             } catch (DeploymentException e) {
                 logger.error("Error occurred while trying to cancel workflow for path [" + affectedItem + "], site " + site, e);
             }
@@ -682,6 +684,9 @@ public class WorkflowServiceImpl implements WorkflowService {
         objectStateService.transitionBulk(site, paths, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.REJECT, State.NEW_UNPUBLISHED_UNLOCKED);
 	}
 
+	/*
+	    TODO: Method needs cleaning up and refactoring.
+	 */
     protected List<String> getWorkflowAffectedPathsInternal(String site, String path) {
         List<String> affectedPaths = new ArrayList<String>();
         //List<ContentItemTO> affectedItems = new ArrayList<ContentItemTO>();
@@ -714,6 +719,9 @@ public class WorkflowServiceImpl implements WorkflowService {
         return affectedPaths;
     }
 
+    /*
+        TODO: Method name is not meaningful.
+     */
 	@Override
     @ValidateParams
 	public List<ContentItemTO> getWorkflowAffectedPaths(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
