@@ -664,17 +664,19 @@ public class WorkflowServiceImpl implements WorkflowService {
         List<String> paths = new ArrayList<String>();
         for (String affectedItem : allItemsToCancel) {
             try {
-                deploymentService.cancelWorkflow(site, affectedItem);
-                ObjectMetadata objectMetadata = objectMetadataManager.getProperties(site, affectedItem);
-                if (objectMetadata != null) {
-                    objectMetadata.setSubmittedBy(StringUtils.EMPTY);
-                    objectMetadata.setSendEmail(0);
-                    objectMetadata.setSubmittedForDeletion(0);
-                    objectMetadata.setSubmissionComment(StringUtils.EMPTY);
-                    objectMetadata.setLaunchDate(null);
-                    objectMetadataManager.updateObjectMetadata(objectMetadata);
+                if (objectStateService.isSubmitted(site, affectedItem) || objectStateService.isScheduled(site, affectedItem)) {
+                    deploymentService.cancelWorkflow(site, affectedItem);
+                    ObjectMetadata objectMetadata = objectMetadataManager.getProperties(site, affectedItem);
+                    if (objectMetadata != null) {
+                        objectMetadata.setSubmittedBy(StringUtils.EMPTY);
+                        objectMetadata.setSendEmail(0);
+                        objectMetadata.setSubmittedForDeletion(0);
+                        objectMetadata.setSubmissionComment(StringUtils.EMPTY);
+                        objectMetadata.setLaunchDate(null);
+                        objectMetadataManager.updateObjectMetadata(objectMetadata);
+                    }
+                    paths.add(affectedItem);
                 }
-                paths.add(affectedItem);
             } catch (DeploymentException e) {
                 logger.error("Error occurred while trying to cancel workflow for path [" + affectedItem + "], site " + site, e);
             }
