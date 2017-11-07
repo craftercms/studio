@@ -684,6 +684,9 @@ public class WorkflowServiceImpl implements WorkflowService {
         objectStateService.transitionBulk(site, paths, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.REJECT, State.NEW_UNPUBLISHED_UNLOCKED);
 	}
 
+	/*
+	    TODO: Method needs cleaning up and refactoring.
+	 */
     protected List<String> getWorkflowAffectedPathsInternal(String site, String path) {
         List<String> affectedPaths = new ArrayList<String>();
         //List<ContentItemTO> affectedItems = new ArrayList<ContentItemTO>();
@@ -716,6 +719,9 @@ public class WorkflowServiceImpl implements WorkflowService {
         return affectedPaths;
     }
 
+    /*
+        TODO: Method name is not meaningful.
+     */
 	@Override
     @ValidateParams
 	public List<ContentItemTO> getWorkflowAffectedPaths(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
