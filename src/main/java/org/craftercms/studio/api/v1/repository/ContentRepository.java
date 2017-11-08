@@ -292,8 +292,6 @@ public interface ContentRepository {
      */
     boolean commitIdExists(String site, String commitId);
 
-    void poc(String site, String environment, String path, String commitId);
-
     /*
     List<PublishTO> getPublishEvents(String site, String commitIdFrom, String commitIdTo);
     List<PublishTO> getPublishEvents(String site, String commitIdFrom);
