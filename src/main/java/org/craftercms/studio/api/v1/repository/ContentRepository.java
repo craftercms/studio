@@ -22,6 +22,7 @@ import org.craftercms.studio.api.v1.dal.GitLog;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
+import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v1.to.RepoOperationTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
 
@@ -29,7 +30,6 @@ import java.io.InputStream;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * This interface represents the repository layer of Crafter Studio.  All interaction with the backend
@@ -231,14 +231,24 @@ public interface ContentRepository {
     boolean deleteSite(String siteId);
 
     /**
-     * Publish content to specified environment.
+     * Initial publish to specified environment.
      *
-     * @param commitIds
+     * @param site
      * @param environment
      * @param author
      * @param comment
      */
-    void publish(String site, Set<String> commitIds, String environment, String author, String comment) throws DeploymentException;
+    void initialPublish(String site, String environment, String author, String comment) throws DeploymentException;
+
+    /**
+     * Publish content to specified environment.
+     *
+     * @param deploymentItems
+     * @param environment
+     * @param author
+     * @param comment
+     */
+    void publish(String site, List<DeploymentItemTO> deploymentItems, String environment, String author, String comment) throws DeploymentException;
 
     /**
      * Get a list of operations since the commit ID provided (compare that commit to HEAD)
@@ -288,7 +298,7 @@ public interface ContentRepository {
      * Get last commit id from database that was processed abd verified.
      *
      * @param site site identifier
-     * @return last commit id 
+     * @return last commit id
      */
     GitLog getLastProcessedCommit(String site);
 

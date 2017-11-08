@@ -18,6 +18,8 @@
 package org.craftercms.studio.impl.v1.service.configuration;
 
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.validation.annotations.param.ValidateParams;
+import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
@@ -88,7 +90,9 @@ public class ServicesConfigImpl implements ServicesConfig {
         return loadConfiguration(site);
     }
 
-	public String getWemProject(String site) {
+    @Override
+    @ValidateParams
+	public String getWemProject(@ValidateStringParam(name = "site") String site) {
 		SiteConfigTO config = getSiteConfig(site);
 		if (config != null && config.getWemProject() != null) {
 			return config.getWemProject();
@@ -97,7 +101,8 @@ public class ServicesConfigImpl implements ServicesConfig {
 	}
 
     @Override
-    public List<DmFolderConfigTO> getFolders(String site) {
+    @ValidateParams
+    public List<DmFolderConfigTO> getFolders(@ValidateStringParam(name = "site") String site) {
         SiteConfigTO config = getSiteConfig(site);
         if (config != null && config.getRepositoryConfig() != null) {
             return config.getRepositoryConfig().getFolders();
@@ -105,7 +110,9 @@ public class ServicesConfigImpl implements ServicesConfig {
         return null;
     }
 
-	public String getRootPrefix(String site) {
+    @Override
+    @ValidateParams
+	public String getRootPrefix(@ValidateStringParam(name = "site") String site) {
 		SiteConfigTO config = getSiteConfig(site);
 		if (config != null && config.getRepositoryConfig() != null) {
 			return config.getRepositoryConfig().getRootPrefix();
@@ -113,11 +120,15 @@ public class ServicesConfigImpl implements ServicesConfig {
 		return null;
 	}
 
-	public ContentTypeConfigTO getContentTypeConfig(String site, String name) {
+	@Override
+    @ValidateParams
+	public ContentTypeConfigTO getContentTypeConfig(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "name") String name) {
 		return contentTypesConfig.getContentTypeConfig(site, name);
 	}
 
-	public List<String> getAssetPatterns(String site) {
+	@Override
+    @ValidateParams
+	public List<String> getAssetPatterns(@ValidateStringParam(name = "site") String site) {
 		SiteConfigTO config = getSiteConfig(site);
 		if (config != null && config.getRepositoryConfig() != null) {
 			return config.getRepositoryConfig().getAssetPatterns();
@@ -125,8 +136,9 @@ public class ServicesConfigImpl implements ServicesConfig {
 		return null;
 	}
 
-
-	public List<DeleteDependencyConfigTO> getDeleteDependencyPatterns(String site,String contentType) {
+    @Override
+    @ValidateParams
+	public List<DeleteDependencyConfigTO> getDeleteDependencyPatterns(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "contentType") String contentType) {
         if(contentType==null){
              return Collections.emptyList();
         }
@@ -137,8 +149,9 @@ public class ServicesConfigImpl implements ServicesConfig {
         return Collections.emptyList();
 	}
 
-
-	public List<CopyDependencyConfigTO> getCopyDependencyPatterns(String site,String contentType) {
+    @Override
+    @ValidateParams
+	public List<CopyDependencyConfigTO> getCopyDependencyPatterns(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "contentType") String contentType) {
         if(contentType==null){
              return Collections.emptyList();
         }
@@ -149,7 +162,9 @@ public class ServicesConfigImpl implements ServicesConfig {
         return Collections.emptyList();
 	}
 
-	public List<String> getComponentPatterns(String site) {
+	@Override
+    @ValidateParams
+	public List<String> getComponentPatterns(@ValidateStringParam(name = "site") String site) {
 		SiteConfigTO config = getSiteConfig(site);
 		if (config != null && config.getRepositoryConfig() != null) {
 			return config.getRepositoryConfig().getComponentPatterns();
@@ -157,7 +172,9 @@ public class ServicesConfigImpl implements ServicesConfig {
 		return null;
 	}
 
-	public List<String> getPagePatterns(String site) {
+	@Override
+    @ValidateParams
+	public List<String> getPagePatterns(@ValidateStringParam(name = "site") String site) {
 		SiteConfigTO config = getSiteConfig(site);
 		if (config != null && config.getRepositoryConfig() != null) {
 			return config.getRepositoryConfig().getPagePatterns();
@@ -165,7 +182,9 @@ public class ServicesConfigImpl implements ServicesConfig {
 		return null;
 	}
 
-    public List<String> getRenderingTemplatePatterns(String site) {
+	@Override
+    @ValidateParams
+    public List<String> getRenderingTemplatePatterns(@ValidateStringParam(name = "site") String site) {
         SiteConfigTO config = getSiteConfig(site);
         if (config != null && config.getRepositoryConfig() != null) {
             return config.getRepositoryConfig().getRenderingTemplatePatterns();
@@ -173,7 +192,9 @@ public class ServicesConfigImpl implements ServicesConfig {
         return null;
     }
 
-    public List<String> getScriptsPatterns(String site) {
+    @Override
+    @ValidateParams
+    public List<String> getScriptsPatterns(@ValidateStringParam(name = "site") String site) {
         SiteConfigTO config = getSiteConfig(site);
         if (config != null && config.getRepositoryConfig() != null) {
             return config.getRepositoryConfig().getScriptsPatterns();
@@ -181,7 +202,9 @@ public class ServicesConfigImpl implements ServicesConfig {
         return null;
     }
 
-    public List<String> getLevelDescriptorPatterns(String site) {
+    @Override
+    @ValidateParams
+    public List<String> getLevelDescriptorPatterns(@ValidateStringParam(name = "site") String site) {
         SiteConfigTO config = getSiteConfig(site);
         if (config != null && config.getRepositoryConfig() != null) {
             return config.getRepositoryConfig().getLevelDescriptorPatterns();
@@ -189,7 +212,9 @@ public class ServicesConfigImpl implements ServicesConfig {
         return null;
     }
 
-	public List<String> getDocumentPatterns(String site) {
+    @Override
+    @ValidateParams
+	public List<String> getDocumentPatterns(@ValidateStringParam(name = "site") String site) {
 		SiteConfigTO config = getSiteConfig(site);
 		if (config != null && config.getRepositoryConfig() != null) {
 			return config.getRepositoryConfig().getDocumentPatterns();
@@ -197,7 +222,9 @@ public class ServicesConfigImpl implements ServicesConfig {
 		return null;
 	}
 
-	public String getLevelDescriptorName(String site) {
+	@Override
+    @ValidateParams
+	public String getLevelDescriptorName(@ValidateStringParam(name = "site") String site) {
 		SiteConfigTO config = getSiteConfig(site);
 		if (config != null && config.getRepositoryConfig() != null) {
 			return config.getRepositoryConfig().getLevelDescriptorName();
@@ -205,7 +232,9 @@ public class ServicesConfigImpl implements ServicesConfig {
 		return null;
 	}
 
-	public List<String> getDisplayInWidgetPathPatterns(String site) {
+	@Override
+    @ValidateParams
+	public List<String> getDisplayInWidgetPathPatterns(@ValidateStringParam(name = "site") String site) {
 		SiteConfigTO config = getSiteConfig(site);
 		if (config != null && config.getRepositoryConfig() != null) {
 			return config.getRepositoryConfig().getDisplayPatterns();
@@ -213,7 +242,9 @@ public class ServicesConfigImpl implements ServicesConfig {
 		return null;
 	}
 
-	public String getDefaultTimezone(String site) {
+	@Override
+    @ValidateParams
+	public String getDefaultTimezone(@ValidateStringParam(name = "site") String site) {
 		SiteConfigTO config = getSiteConfig(site);
 		if (config != null) {
 			return config.getTimezone();
@@ -368,7 +399,9 @@ public class ServicesConfigImpl implements ServicesConfig {
         }
     }
 
-    public List<String> getPreviewableMimetypesPaterns(String site) {
+    @Override
+    @ValidateParams
+    public List<String> getPreviewableMimetypesPaterns(@ValidateStringParam(name = "site") String site) {
         SiteConfigTO config = getSiteConfig(site);
         if (config != null && config.getRepositoryConfig() != null) {
             return config.getRepositoryConfig().getPreviewableMimetypesPaterns();
@@ -385,7 +418,8 @@ public class ServicesConfigImpl implements ServicesConfig {
     }
 
     @Override
-    public void reloadConfiguration(String site) {
+    @ValidateParams
+    public void reloadConfiguration(@ValidateStringParam(name = "site") String site) {
         SiteConfigTO config = loadConfiguration(site);
     }
 

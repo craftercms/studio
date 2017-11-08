@@ -18,6 +18,9 @@
 package org.craftercms.studio.impl.v1.service.content;
 
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.validation.annotations.param.ValidateParams;
+import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
+import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
@@ -34,6 +37,7 @@ import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.io.SAXReader;
+import org.xml.sax.SAXException;
 
 import java.io.InputStream;
 import java.io.Serializable;
@@ -68,7 +72,8 @@ public class DmContentLifeCycleServiceImpl extends AbstractRegistrableService im
     }
 
     @Override
-    public void process(String site, String user, String path, String contentType, ContentLifeCycleOperation operation, Map<String, String> params) {
+    @ValidateParams
+    public void process(@ValidateStringParam(name = "site") String site, @ValidateStringParam String user, @ValidateSecurePathParam String path, @ValidateStringParam(name = "contenType") String contentType, ContentLifeCycleOperation operation, Map<String, String> params) {
         if (operation == null) {
             logger.warn("No lifecycle operation provided for " + site + ":" + path);
             return;
@@ -173,6 +178,13 @@ public class DmContentLifeCycleServiceImpl extends AbstractRegistrableService im
             try {
                 is = contentService.getContent(site, path);
                 SAXReader saxReader = new SAXReader();
+                try {
+                    saxReader.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+                    saxReader.setFeature("http://xml.org/sax/features/external-general-entities", false);
+                    saxReader.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+                }catch (SAXException ex){
+                    logger.error("Unable to turn off external entity loading, This could be a security risk.", ex);
+                }
                 Document content = saxReader.read(is);
                 return content;
             } catch (DocumentException e) {
