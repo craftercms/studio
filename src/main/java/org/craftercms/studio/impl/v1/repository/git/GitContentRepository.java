@@ -54,14 +54,20 @@ import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentHistoryProvider;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
+import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v1.to.RepoOperationTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.api.errors.RefNotFoundException;
+import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.diff.DiffEntry;
+import org.eclipse.jgit.errors.AmbiguousObjectException;
+import org.eclipse.jgit.errors.IncorrectObjectTypeException;
+import org.eclipse.jgit.errors.MissingObjectException;
 import org.eclipse.jgit.internal.storage.file.LockFile;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.merge.MergeStrategy;
@@ -812,9 +818,58 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     @Override
-    public void publish(String site, Set<String> commitIds, String environment, String author, String comment) throws DeploymentException {
+    public void initialPublish(String site, String environment, String author, String comment) throws DeploymentException {
         Repository repo = helper.getRepository(site, GitRepositories.PUBLISHED);
         String commitId = StringUtils.EMPTY;
+        String path = StringUtils.EMPTY;
+        synchronized (helper.getRepository(site, GitRepositories.PUBLISHED)) {
+            try (Git git = new Git(repo)) {
+
+                // fetch "origin/master"
+                logger.debug("Fetch from sandbox for site " + site);
+                FetchResult fetchResult = git.fetch().call();
+
+                // checkout master and pull from sandbox
+                logger.debug("Checkout published/master branch for site " + site);
+                try {
+
+                    Ref checkoutMasterResult = git.checkout().setName(Constants.MASTER).call();
+                    PullResult pullResult = git.pull().setRemote(Constants.DEFAULT_REMOTE_NAME).setRemoteBranchName(Constants.MASTER).setStrategy(MergeStrategy.THEIRS).call();
+                } catch (RefNotFoundException e) {
+                    logger.error("Failed to checkout published master and to pull content from sandbox for site " + site, e);
+                    throw new DeploymentException("Failed to checkout published master and to pull content from sandbox for site " + site);
+                }
+
+                // checkout environment branch
+                logger.debug("Checkout environment branch " + environment + " for site " + site);
+                try {
+                    Ref checkoutResult = git.checkout().setCreateBranch(true).setForce(true).setStartPoint("master")
+                            .setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK)
+                            .setName(environment)
+                            .call();
+                } catch (RefNotFoundException e) {
+                    logger.info("Not able to find branch " + environment + " for site " + site + ". Creating new branch");
+                }
+
+                // tag
+                PersonIdent authorIdent = helper.getAuthorIdent(author);
+                ZonedDateTime publishDate = ZonedDateTime.now(ZoneOffset.UTC);
+                String tagName = publishDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX")) + "_published_on_" + publishDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX"));
+                Ref tagResult = git.tag().setTagger(authorIdent).setName(tagName).setMessage(comment).call();
+
+            } catch (Exception e) {
+                logger.error("Error when publishing site " + site + " to environment " + environment, e);
+                throw new DeploymentException("Error when publishing site " + site + " to environment " + environment + " [commit ID = " + commitId + "]");
+            }
+        }
+
+    }
+
+    @Override
+    public void publish(String site, List<DeploymentItemTO> deploymentItems, String environment, String author, String comment) throws DeploymentException {
+        Repository repo = helper.getRepository(site, GitRepositories.PUBLISHED);
+        String commitId = StringUtils.EMPTY;
+        String path = StringUtils.EMPTY;
         synchronized (helper.getRepository(site, GitRepositories.PUBLISHED)) {
             try (Git git = new Git(repo)) {
 
@@ -884,136 +939,32 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         logger.error("Failed to create in-progress published branch for site " + site);
                     }
 
-                    for (String cId : commitIds) {
-                        commitId = cId;
-                        logger.debug("Cherry-picking commit id " + commitId);
-                        String message = studioConfiguration.getProperty(REPO_PUBLISHED_CHERRY_PICK_MESSAGE);
-                        message = message.replace(studioConfiguration.getProperty(REPO_PUBLISHED_CHERRY_PICK_MESSAGE_REPLACE), commitId);
+                    for (DeploymentItemTO deploymentItem : deploymentItems) {
+                        commitId = deploymentItem.getCommitId();
+                        path = helper.getGitPath(deploymentItem.getPath());
+                        logger.debug("Checking out file " + path + " from commit id " + commitId + " for site " + site);
+                        // String message = studioConfiguration.getProperty(REPO_PUBLISHED_CHERRY_PICK_MESSAGE);
+                        // message = message.replace(studioConfiguration.getProperty(REPO_PUBLISHED_CHERRY_PICK_MESSAGE_REPLACE), commitId);
 
                         ObjectId objCommitId = repo.resolve(commitId);
                         RevWalk rw = new RevWalk(repo);
                         RevCommit rc = rw.parseCommit(objCommitId);
 
-                        CherryPickResult cherryPickResult = git
-                                .cherryPick()
-                                .setNoCommit(false)
-                                .include(objCommitId).call();
-
-                        switch (cherryPickResult.getStatus()) {
-                            case FAILED:
-                                // TODO: DB: what to do if cherry pick failed ?
-                                logger.error("Cherry-pick failed.");
-                                String errorMessage = "Failing paths:\n";
-                                Map<String, ResolveMerger.MergeFailureReason> failPaths = cherryPickResult.getFailingPaths();
-                                if (failPaths != null) {
-                                    for (String key : failPaths.keySet()) {
-                                        errorMessage += "\t" + key + " -> " + failPaths.get(key).toString() + "\n";
-                                    }
-                                }
-                                logger.error(errorMessage);
-                                break;
-
-                            case CONFLICTING:
-                                // TODO: DB: what to do if cherry pick has conflict ?
-                                logger.debug("Conflict executing cherry-pick with default merge strategy for site " + site + ".");
-                                String errorMessage2 = "Failing paths:\n";
-                                Map<String, ResolveMerger.MergeFailureReason> failPaths2 = cherryPickResult.getFailingPaths();
-                                if (failPaths2 != null) {
-                                    for (String key : failPaths2.keySet()) {
-                                        errorMessage2 += "\t" + key + " -> " + failPaths2.get(key).toString() + "\n";
-                                        git.checkout().setStartPoint(commitId).addPath(key).call();
-                                    }
-                                    logger.error(errorMessage2);
-                                } else {
-                                    logger.debug("Cherry pick in conflict state without failing paths. Get status to check repository.");
-                                    Status gitStatus = git.status().call();
-                                    Set<String> removed = gitStatus.getRemoved();
-                                    logger.debug("Get all conflicts for cherry-pick command");
-                                    Map<String, IndexDiff.StageState> conflicts = gitStatus.getConflictingStageState();
-                                    for (Map.Entry<String, IndexDiff.StageState> entry : conflicts.entrySet()) {
-                                        String path = entry.getKey();
-                                        IndexDiff.StageState stageState = entry.getValue();
-                                        switch (stageState) {
-                                            case BOTH_ADDED:
-                                            case BOTH_MODIFIED:
-                                                logger.debug("If conflict is caused by both added a file, do checkout on that path with option --theirs");
-                                                git.checkout().setStartPoint(commitId).addPath(path).call();
-                                                break;
-                                            case DELETED_BY_THEM:
-                                                logger.debug("If conflict is caused by incoming delete, remove file from repository with rm command");
-                                                git.rm().addFilepattern(path).call();
-                                                break;
-                                            case DELETED_BY_US:
-                                                logger.debug("If conflict is caused by file being deleted in our repo but exists in base and origin, do checkout on that path");
-                                                git.checkout().setStartPoint(commitId).addPath(path).call();
-                                                break;
-                                            default:
-                                                logger.debug("Conflict is " + stageState.name() + " path " + path + "- not able to handle it. Throw error");
-                                                throw new DeploymentException("Conflict while cherry-pick commit id: " + commitId + " for site " + site);
-                                        }
-                                    }
-                                    logger.debug("Add all changes to index with git add.");
-                                    git.add().addFilepattern(GIT_COMMIT_ALL_ITEMS).call();
-                                    logger.debug("Remove all removed files with git rm.");
-                                    for (String rm : removed) {
-                                        git.rm().addFilepattern(rm).call();
-                                    }
-
-                                    logger.debug("Conflict resolved - execute commit and finish deployment");
-                                    String commitMessage = rc.getFullMessage();
-                                    git.commit().setMessage(commitMessage).call();
-
-                                    String newCommitMessage = StringUtils.EMPTY;
-                                    long commitTime = 0l;
-                                    Iterable<RevCommit> logs = git.log()
-                                            .add(repo.resolve(inProgressBranchName))
-                                            .setMaxCount(1)
-                                            .call();
-                                    Iterator<RevCommit> iter = logs.iterator();
-                                    if (iter.hasNext()) {
-                                        RevCommit revCommit = iter.next();
-                                        newCommitMessage += revCommit.getFullMessage() + "\n";
-                                        commitTime = revCommit.getCommitTime();
-                                    }
-                                    newCommitMessage += message;
-                                    git.commit().setAmend(true).setMessage(newCommitMessage).call();
-
-                                    // tag
-                                    ZonedDateTime tagDate2 = Instant.ofEpochSecond(commitTime).atZone(ZoneOffset.UTC);
-                                    ZonedDateTime publishDate = ZonedDateTime.now(ZoneOffset.UTC);
-                                    String tagName2 = tagDate2.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX")) + "_published_on_" + publishDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX"));
-                                    PersonIdent authorIdent2 = helper.getAuthorIdent(author);
-                                    Ref tagResult2 = git.tag().setTagger(authorIdent2).setName(tagName2).setMessage(newCommitMessage).call();
-                                    break;
-                                }
-                                break;
-
-                            case OK:
-                                logger.debug("Cherry-pick completed successfully.");
-
-                                String newCommitMessage = StringUtils.EMPTY;
-                                Iterable<RevCommit> logs = git.log()
-                                        .add(repo.resolve(inProgressBranchName))
-                                        .setMaxCount(1)
-                                        .call();
-                                Iterator<RevCommit> iter = logs.iterator();
-                                if (iter.hasNext()) {
-                                    RevCommit revCommit = iter.next();
-                                    newCommitMessage += revCommit.getFullMessage() + "\n";
-                                }
-                                newCommitMessage += message;
-                                git.commit().setAmend(true).setMessage(newCommitMessage).call();
-
-                                long commitTime = cherryPickResult.getNewHead().getCommitTime();
-                                // tag
-                                ZonedDateTime tagDate2 = Instant.ofEpochSecond(commitTime).atZone(ZoneOffset.UTC);
-                                ZonedDateTime publishDate = ZonedDateTime.now(ZoneOffset.UTC);
-                                String tagName2 = tagDate2.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX")) + "_published_on_" + publishDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX"));
-                                PersonIdent authorIdent2 = helper.getAuthorIdent(author);
-                                Ref tagResult2 = git.tag().setTagger(authorIdent2).setName(tagName2).setMessage(newCommitMessage).call();
-                                break;
-                        }
+                        Ref result = git.checkout().setStartPoint(commitId).addPath(path).call();
                     }
+
+                    // commit all deployed files
+                    PersonIdent authorIdent = helper.getAuthorIdent(author);
+                    git.add().addFilepattern(GIT_COMMIT_ALL_ITEMS).call();
+                    RevCommit revCommit = git.commit().setMessage(comment).setAuthor(authorIdent).call();
+                    int commitTime = revCommit.getCommitTime();
+
+                    // tag
+                    ZonedDateTime tagDate2 = Instant.ofEpochSecond(commitTime).atZone(ZoneOffset.UTC);
+                    ZonedDateTime publishDate = ZonedDateTime.now(ZoneOffset.UTC);
+                    String tagName2 = tagDate2.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX")) + "_published_on_" + publishDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX"));
+                    PersonIdent authorIdent2 = helper.getAuthorIdent(author);
+                    Ref tagResult2 = git.tag().setTagger(authorIdent2).setName(tagName2).setMessage(comment).call();
 
                     // checkout environment
                     logger.debug("Checkout environment " + environment + " branch for site " + site);
