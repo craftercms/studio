@@ -341,13 +341,11 @@ public class SiteServiceImpl implements SiteService {
 			    // environment overrides
 
 			    // initial deployment
-                Set<String> commitIds = new HashSet<String>();
-                commitIds.add(lastCommitId);
                 List<PublishingTargetTO> publishingTargets = getPublishingTargetsForSite(siteId);
                 if (publishingTargets != null && publishingTargets.size() > 0) {
                     for (PublishingTargetTO target : publishingTargets) {
                         if (StringUtils.isNotEmpty(target.getRepoBranchName())) {
-                            contentRepository.publish(siteId, commitIds, target.getRepoBranchName(), securityProvider.getCurrentUser(), "Create site.");
+                            contentRepository.initialPublish(siteId, target.getRepoBranchName(), securityProvider.getCurrentUser(), "Create site.");
                         }
                     }
                 }

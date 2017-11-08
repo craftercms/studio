@@ -54,14 +54,20 @@ import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentHistoryProvider;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
+import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v1.to.RepoOperationTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.api.errors.RefNotFoundException;
+import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.diff.DiffEntry;
+import org.eclipse.jgit.errors.AmbiguousObjectException;
+import org.eclipse.jgit.errors.IncorrectObjectTypeException;
+import org.eclipse.jgit.errors.MissingObjectException;
 import org.eclipse.jgit.internal.storage.file.LockFile;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.merge.MergeStrategy;
@@ -812,7 +818,250 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     @Override
-    public void publish(String site, Set<String> commitIds, String environment, String author, String comment) throws DeploymentException {
+    public void poc(String site, String environment, String path, String commitId) {
+        Repository repo = helper.getRepository(site, GitRepositories.PUBLISHED);
+        synchronized (helper.getRepository(site, GitRepositories.PUBLISHED)) {
+            try (Git git = new Git(repo)) {
+
+                // fetch "origin/master"
+                logger.debug("Fetch from sandbox for site " + site);
+                FetchResult fetchResult = git.fetch().call();
+
+                // checkout master and pull from sandbox
+                logger.debug("Checkout published/master branch for site " + site);
+                try {
+
+                    Ref checkoutMasterResult = git.checkout().setName(Constants.MASTER).call();
+
+                    PullResult pullResult = git.pull().setRemote(Constants.DEFAULT_REMOTE_NAME).setRemoteBranchName(Constants.MASTER).setStrategy(MergeStrategy.THEIRS).call();
+                } catch (RefNotFoundException e) {
+                    logger.error("Failed to checkout published master and to pull content from sandbox for site " + site, e);
+                    //throw new DeploymentException("Failed to checkout published master and to pull content from sandbox for site " + site);
+                }
+
+                // checkout environment branch
+                logger.debug("Checkout environment branch " + environment + " for site " + site);
+                boolean newBranch = false;
+                try {
+                    Ref checkoutResult = git.checkout()
+                            .setName(environment)
+                            .call();
+                } catch (RefNotFoundException e) {
+                    logger.info("Not able to find branch " + environment + " for site " + site + ". Creating new branch");
+                    // checkout environment branch
+                    newBranch = true;
+                    Ref checkoutResult = git.checkout().setCreateBranch(true).setForce(true).setStartPoint("master")
+                            .setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK)
+                            .setName(environment)
+                            .call();
+                }
+
+                //logger.debug("Cherry-picking commit id " + commitId);
+                String message = studioConfiguration.getProperty(REPO_PUBLISHED_CHERRY_PICK_MESSAGE);
+                message = message.replace(studioConfiguration.getProperty(REPO_PUBLISHED_CHERRY_PICK_MESSAGE_REPLACE), commitId);
+
+                ObjectId objCommitId = repo.resolve(commitId);
+                RevWalk rw = new RevWalk(repo);
+                RevCommit rc = rw.parseCommit(objCommitId);
+
+                git.checkout().setStartPoint(commitId).addPath(helper.getGitPath(path)).call();
+                git.add().addFilepattern(GIT_COMMIT_ALL_ITEMS).call();
+                String commitMessage = rc.getFullMessage();
+                git.commit().setMessage(commitMessage).call();
+
+            } catch (InvalidRemoteException e) {
+                e.printStackTrace();
+            } catch (TransportException e) {
+                e.printStackTrace();
+            } catch (GitAPIException e) {
+                e.printStackTrace();
+            } catch (IncorrectObjectTypeException e) {
+                e.printStackTrace();
+            } catch (AmbiguousObjectException e) {
+                e.printStackTrace();
+            } catch (MissingObjectException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    @Override
+    public void initialPublish(String site, String environment, String author, String comment) throws DeploymentException {
+        Repository repo = helper.getRepository(site, GitRepositories.PUBLISHED);
+        String commitId = StringUtils.EMPTY;
+        String path = StringUtils.EMPTY;
+        synchronized (helper.getRepository(site, GitRepositories.PUBLISHED)) {
+            try (Git git = new Git(repo)) {
+
+                // fetch "origin/master"
+                logger.debug("Fetch from sandbox for site " + site);
+                FetchResult fetchResult = git.fetch().call();
+
+                // checkout master and pull from sandbox
+                logger.debug("Checkout published/master branch for site " + site);
+                try {
+
+                    Ref checkoutMasterResult = git.checkout().setName(Constants.MASTER).call();
+                    PullResult pullResult = git.pull().setRemote(Constants.DEFAULT_REMOTE_NAME).setRemoteBranchName(Constants.MASTER).setStrategy(MergeStrategy.THEIRS).call();
+                } catch (RefNotFoundException e) {
+                    logger.error("Failed to checkout published master and to pull content from sandbox for site " + site, e);
+                    throw new DeploymentException("Failed to checkout published master and to pull content from sandbox for site " + site);
+                }
+
+                // checkout environment branch
+                logger.debug("Checkout environment branch " + environment + " for site " + site);
+                try {
+                    Ref checkoutResult = git.checkout().setCreateBranch(true).setForce(true).setStartPoint("master")
+                            .setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK)
+                            .setName(environment)
+                            .call();
+                } catch (RefNotFoundException e) {
+                    logger.info("Not able to find branch " + environment + " for site " + site + ". Creating new branch");
+                }
+
+                // tag
+                PersonIdent authorIdent = helper.getAuthorIdent(author);
+                ZonedDateTime publishDate = ZonedDateTime.now(ZoneOffset.UTC);
+                String tagName = publishDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX")) + "_published_on_" + publishDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX"));
+                Ref tagResult = git.tag().setTagger(authorIdent).setName(tagName).setMessage(comment).call();
+
+            } catch (Exception e) {
+                logger.error("Error when publishing site " + site + " to environment " + environment, e);
+                throw new DeploymentException("Error when publishing site " + site + " to environment " + environment + " [commit ID = " + commitId + "]");
+            }
+        }
+
+    }
+
+    @Override
+    public void publish(String site, List<DeploymentItemTO> deploymentItems, String environment, String author, String comment) throws DeploymentException {
+        Repository repo = helper.getRepository(site, GitRepositories.PUBLISHED);
+        String commitId = StringUtils.EMPTY;
+        String path = StringUtils.EMPTY;
+        synchronized (helper.getRepository(site, GitRepositories.PUBLISHED)) {
+            try (Git git = new Git(repo)) {
+
+                String inProgressBranchName = environment + IN_PROGRESS_BRANCH_NAME_SUFIX;
+
+                // fetch "origin/master"
+                logger.debug("Fetch from sandbox for site " + site);
+                FetchResult fetchResult = git.fetch().call();
+
+                // checkout master and pull from sandbox
+                logger.debug("Checkout published/master branch for site " + site);
+                try {
+                    // First delete it in case it already exists (ignored if does not exist)
+                    String currentBranch = repo.getBranch();
+                    if (currentBranch.endsWith(IN_PROGRESS_BRANCH_NAME_SUFIX)) {
+                        git.reset().setMode(ResetCommand.ResetType.HARD).call();
+                    }
+
+                    Ref checkoutMasterResult = git.checkout().setName(Constants.MASTER).call();
+
+                    logger.debug("Delete in-progress branch, in case it was not cleaned up for site " + site);
+                    git.branchDelete().setBranchNames(inProgressBranchName).setForce(true).call();
+
+                    PullResult pullResult = git.pull().setRemote(Constants.DEFAULT_REMOTE_NAME).setRemoteBranchName(Constants.MASTER).setStrategy(MergeStrategy.THEIRS).call();
+                } catch (RefNotFoundException e) {
+                    logger.error("Failed to checkout published master and to pull content from sandbox for site " + site, e);
+                    throw new DeploymentException("Failed to checkout published master and to pull content from sandbox for site " + site);
+                }
+
+                // checkout environment branch
+                logger.debug("Checkout environment branch " + environment + " for site " + site);
+                boolean newBranch = false;
+                try {
+                    Ref checkoutResult = git.checkout()
+                            .setName(environment)
+                            .call();
+                } catch (RefNotFoundException e) {
+                    logger.info("Not able to find branch " + environment + " for site " + site + ". Creating new branch");
+                    // checkout environment branch
+                    newBranch = true;
+                    Ref checkoutResult = git.checkout().setCreateBranch(true).setForce(true).setStartPoint("master")
+                            .setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK)
+                            .setName(environment)
+                            .call();
+                }
+
+                // check if it is new branch
+                // if true nothing to do, already pulled everything
+                // otherwise do cherry-picking
+                if (!newBranch) {
+                    // cherry pick all commit ids
+
+                    // Create in progress branch
+                    try {
+
+                        // Create in progress branch
+                        logger.debug("Create in-progress branch for site " + site);
+                        Ref checkoutResult = git.checkout()
+                                .setCreateBranch(true)
+                                .setForce(true)
+                                .setStartPoint(environment)
+                                .setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK)
+                                .setName(inProgressBranchName)
+                                .call();
+                    } catch (GitAPIException e) {
+                        // TODO: DB: Error ?
+                        logger.error("Failed to create in-progress published branch for site " + site);
+                    }
+
+                    for (DeploymentItemTO deploymentItem : deploymentItems) {
+                        commitId = deploymentItem.getCommitId();
+                        path = helper.getGitPath(deploymentItem.getPath());
+                        logger.debug("Checking out file " + path + " from commit id " + commitId + " for site " + site);
+                        // String message = studioConfiguration.getProperty(REPO_PUBLISHED_CHERRY_PICK_MESSAGE);
+                        // message = message.replace(studioConfiguration.getProperty(REPO_PUBLISHED_CHERRY_PICK_MESSAGE_REPLACE), commitId);
+
+                        ObjectId objCommitId = repo.resolve(commitId);
+                        RevWalk rw = new RevWalk(repo);
+                        RevCommit rc = rw.parseCommit(objCommitId);
+
+                        Ref result = git.checkout().setStartPoint(commitId).addPath(path).call();
+                    }
+
+                    // commit all deployed files
+                    PersonIdent authorIdent = helper.getAuthorIdent(author);
+                    git.add().addFilepattern(GIT_COMMIT_ALL_ITEMS).call();
+                    RevCommit revCommit = git.commit().setMessage(comment).setAuthor(authorIdent).call();
+                    int commitTime = revCommit.getCommitTime();
+
+                    // tag
+                    ZonedDateTime tagDate2 = Instant.ofEpochSecond(commitTime).atZone(ZoneOffset.UTC);
+                    ZonedDateTime publishDate = ZonedDateTime.now(ZoneOffset.UTC);
+                    String tagName2 = tagDate2.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX")) + "_published_on_" + publishDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX"));
+                    PersonIdent authorIdent2 = helper.getAuthorIdent(author);
+                    Ref tagResult2 = git.tag().setTagger(authorIdent2).setName(tagName2).setMessage(comment).call();
+
+                    // checkout environment
+                    logger.debug("Checkout environment " + environment + " branch for site " + site);
+                    Ref checkoutResult = git.checkout()
+                            .setName(environment)
+                            .call();
+
+                    Ref branchRef = repo.findRef(inProgressBranchName);
+
+                    // merge in-progress branch
+                    logger.debug("Merge in-progress branch into environment " + environment + " for site " + site);
+                    git.merge().setCommit(true).include(branchRef).call();
+
+                    // clean up
+                    logger.debug("Delete in-progress branch (clean up) for site " + site);
+                    git.branchDelete().setBranchNames(inProgressBranchName).setForce(true).call();
+                }
+            } catch (Exception e) {
+                logger.error("Error when publishing site " + site + " to environment " + environment, e);
+                throw new DeploymentException("Error when publishing site " + site + " to environment " + environment + " [commit ID = " + commitId + "]");
+            }
+        }
+
+    }
+
+//    @Override
+    public void publish_old(String site, Set<String> commitIds, String environment, String author, String comment) throws DeploymentException {
         Repository repo = helper.getRepository(site, GitRepositories.PUBLISHED);
         String commitId = StringUtils.EMPTY;
         synchronized (helper.getRepository(site, GitRepositories.PUBLISHED)) {

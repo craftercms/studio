@@ -28,11 +28,11 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.event.EventService;
+import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 
 import java.lang.reflect.Method;
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PUBLISH_TO_ENVIRONMENT;
 
@@ -45,12 +45,15 @@ public class EnvironmentDeployer {
     @EventListener(EVENT_PUBLISH_TO_ENVIRONMENT)
     public void onEnvironmentDeploymentEvent(DeploymentEventContext context) {
         List<DeploymentItem> items = context.getItems();
-        Set<String> commitIds = new HashSet<String>();
+        List<DeploymentItemTO> deploymentItems = new ArrayList<DeploymentItemTO>();
         for (DeploymentItem item : items) {
-            commitIds.add(item.getCommitId());
+            DeploymentItemTO deploymentItem = new DeploymentItemTO();
+            deploymentItem.setSite(item.getSite());
+            deploymentItem.setPath(item.getPath());
+            deploymentItem.setCommitId(item.getCommitId());
         }
         try {
-            contentRepository.publish(context.getSite(), commitIds, context.getEnvironment(), context.getAuthor(), context.getComment());
+            contentRepository.publish(context.getSite(), deploymentItems, context.getEnvironment(), context.getAuthor(), context.getComment());
         } catch (DeploymentException e) {
             logger.error("Error when publishing site " + context.getSite() + " to environment " + context.getEnvironment(), e);
         }
