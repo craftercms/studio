@@ -137,8 +137,10 @@ public class SiteServiceImpl implements SiteService {
         properties.put(ItemMetadata.PROP_MODIFIER, user);
         objectMetadataManager.setObjectMetadata(site, path, properties);
 
-        objectMetadataManager.updateCommitId(site, path, commitId);
-        contentRepository.insertGitLog(site, commitId, ZonedDateTime.now(ZoneOffset.UTC), 1, 0);
+        if (commitId != null) {
+            objectMetadataManager.updateCommitId(site, path, commitId);
+            contentRepository.insertGitLog(site, commitId, ZonedDateTime.now(ZoneOffset.UTC), 1, 0);
+        }
         boolean toRet = StringUtils.isEmpty(commitId);
 
         return toRet;
