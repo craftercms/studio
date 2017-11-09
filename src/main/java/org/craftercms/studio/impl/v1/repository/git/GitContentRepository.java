@@ -46,6 +46,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.constant.RepoOperation;
 import org.craftercms.studio.api.v1.dal.DeploymentSyncHistory;
+import org.craftercms.studio.api.v1.dal.GitLog;
+import org.craftercms.studio.api.v1.dal.GitLogMapper;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -61,17 +63,11 @@ import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.api.errors.RefNotFoundException;
-import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.diff.DiffEntry;
-import org.eclipse.jgit.errors.AmbiguousObjectException;
-import org.eclipse.jgit.errors.IncorrectObjectTypeException;
-import org.eclipse.jgit.errors.MissingObjectException;
 import org.eclipse.jgit.internal.storage.file.LockFile;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.merge.MergeStrategy;
-import org.eclipse.jgit.merge.ResolveMerger;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevSort;
 import org.eclipse.jgit.revwalk.RevTree;
@@ -82,6 +78,7 @@ import org.eclipse.jgit.transport.FetchResult;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.context.ServletContextAware;
 
 import static org.craftercms.studio.api.v1.constant.GitRepositories.PUBLISHED;
@@ -1341,6 +1338,42 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         return toRet;
     }
 
+    @Override
+    public GitLog getLastProcessedCommit(String siteId) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("siteId", siteId);
+        return gitLogMapper.getLastProcessedCommit(params);
+    }
+
+    @Override
+    public GitLog getGitLog(String siteId, String commitId) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("siteId", siteId);
+        params.put("commitId", commitId);
+        return gitLogMapper.getGitLog(params);
+    }
+
+    @Override
+    public void insertGitLog(String siteId, String commitId, ZonedDateTime dateTime, int processed, int verified) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("siteId", siteId);
+        params.put("commitId", commitId);
+        params.put("commitDate", dateTime);
+        params.put("processed", processed);
+        params.put("verified", verified);
+        gitLogMapper.insertGitLog(params);
+    }
+
+    @Override
+    public void markGitLogVerified(String siteId, String commitId) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("siteId", siteId);
+        params.put("commitId", commitId);
+        params.put("processed", 1);
+        params.put("verified", 1);
+        gitLogMapper.markGitLogVerified(params);
+    }
+
     public void setServletContext(ServletContext ctx) {
         this.ctx = ctx;
     }
@@ -1360,4 +1393,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     ServletContext ctx;
     SecurityProvider securityProvider;
     StudioConfiguration studioConfiguration;
+
+    @Autowired
+    GitLogMapper gitLogMapper;
 }

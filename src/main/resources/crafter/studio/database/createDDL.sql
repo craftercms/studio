@@ -27,7 +27,7 @@ USE crafter ;
 
 CREATE TABLE _meta (`version` VARCHAR(10) NOT NULL , PRIMARY KEY (`version`)) ;
 
-INSERT INTO _meta (version) VALUES ('3.0.1') ;
+INSERT INTO _meta (version) VALUES ('3.0.2') ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`             BIGINT(20)   NOT NULL AUTO_INCREMENT,
@@ -211,6 +211,22 @@ CREATE TABLE IF NOT EXISTS group_user
     ON DELETE CASCADE,
   FOREIGN KEY group_ug_foreign_key(groupid) REFERENCES `group` (id)
     ON DELETE CASCADE
+)
+  ENGINE = InnoDB
+  DEFAULT CHARSET = utf8
+  ROW_FORMAT = DYNAMIC ;
+
+CREATE TABLE IF NOT EXISTS gitlog
+(
+  `id`          BIGINT(20)    NOT NULL AUTO_INCREMENT,
+  `site_id`     VARCHAR(50)   NOT NULL,
+  `commit_id`   VARCHAR(50)   NOT NULL,
+  `commit_date` DATETIME      NOT NULL,
+  `processed`   INT           NOT NULL DEFAULT 0,
+  `verified`    INT           NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`),
+  UNIQUE `uq_siteid_commitid` (`site_id`, `commit_id`),
+  INDEX `gitlog_site_idx` (`site_id` ASC)
 )
   ENGINE = InnoDB
   DEFAULT CHARSET = utf8
