@@ -19,10 +19,13 @@ package org.craftercms.studio.impl.v1.service.site;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
@@ -120,6 +123,7 @@ public class SiteServiceImpl implements SiteService {
             objectMetadataManager.insertNewObjectMetadata(site, path);
         }
         objectMetadataManager.updateCommitId(site, path, commitId);
+        contentRepository.insertGitLog(site, commitId, ZonedDateTime.now(ZoneOffset.UTC), 1, 0);
         boolean toRet = StringUtils.isEmpty(commitId);
 
         return toRet;
@@ -356,6 +360,8 @@ public class SiteServiceImpl implements SiteService {
 			    siteFeed.setLastCommitId(lastCommitId);
 			    siteFeed.setPublishingStatusMessage(studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT));
 			    siteFeedMapper.createSite(siteFeed);
+
+			    contentRepository.insertGitLog(siteId, lastCommitId, ZonedDateTime.now(ZoneOffset.UTC), 1, 0);
 
                 // Add default groups
                 addDefaultGroupsForNewSite(siteId);
@@ -749,13 +755,16 @@ public class SiteServiceImpl implements SiteService {
     @ValidateParams
     public boolean syncDatabaseWithRepo(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "fromCommitId") String fromCommitId) {
 		boolean toReturn = true;
-
-		logger.info("Syncing database with repository for site: " + site + " fromCommitId = " + (StringUtils.isEmpty(fromCommitId) ? "Empty repo" : fromCommitId));
-
-	    List<RepoOperationTO> repoOperations = contentRepository.getOperations(site, fromCommitId, contentRepository
+        List<RepoOperationTO> repoOperations = contentRepository.getOperations(site, fromCommitId, contentRepository
 		    .getRepoLastCommitId(site));
+        if (CollectionUtils.isEmpty(repoOperations)) {
+            logger.debug("Database is up to date with repository for site: " + site);
+            contentRepository.markGitLogVerified(site, fromCommitId);
+            return toReturn;
+        }
 
-	    logger.debug("Operations to sync: ");
+        logger.info("Syncing database with repository for site: " + site + " fromCommitId = " + (StringUtils.isEmpty(fromCommitId) ? "Empty repo" : fromCommitId));
+        logger.debug("Operations to sync: ");
 	    for (RepoOperationTO repoOperation: repoOperations) {
 	    	logger.debug("\tOperation: " + repoOperation.getOperation().toString() + " " + repoOperation.getPath());
 	    }
@@ -780,7 +789,7 @@ public class SiteServiceImpl implements SiteService {
                 current = gitLog;
             } else {
 	            if (!current.getCommitId().equals(gitLog.getCommitId())) {
-                    contentRepository.markGitLogVerified(site, gitLog.getCommitId());
+                    contentRepository.markGitLogVerified(site, current.getCommitId());
                     current = gitLog;
                 }
             }
@@ -920,6 +929,9 @@ public class SiteServiceImpl implements SiteService {
                 }
             }
 	    }
+        if (current != null) {
+            contentRepository.markGitLogVerified(site, current.getCommitId());
+        }
 
 	    // At this point we have attempted to process all operations, some may have failed
 	    // We will update the lastCommitId of the database ignoring errors if any

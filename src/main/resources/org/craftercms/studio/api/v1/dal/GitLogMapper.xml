@@ -40,10 +40,10 @@
 
     <insert id="insertGitLog" parameterType="java.util.Map">
         INSERT INTO gitlog (site_id, commit_id, commit_date, processed, verified)
-        VALUES (#{siteId}, #{commitId}, #{commit_date}, #{processed}, #{verified})
+        VALUES (#{siteId}, #{commitId}, #{commitDate}, #{processed}, #{verified})
     </insert>
 
     <update id="markGitLogVerified" parameterType="java.util.Map">
-        UPDATE gitlog SET processed = #{processed}, verified = #{verified} WHERE site_id = #{site_id} AND commit_id = #{commitId}
+        UPDATE gitlog SET processed = #{processed}, verified = #{verified} WHERE site_id = #{siteId} AND commit_id = #{commitId}
     </update>
 </mapper>

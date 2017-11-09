@@ -27,7 +27,7 @@ USE crafter ;
 
 CREATE TABLE _meta (`version` VARCHAR(10) NOT NULL , PRIMARY KEY (`version`)) ;
 
-INSERT INTO _meta (version) VALUES ('3.0.1') ;
+INSERT INTO _meta (version) VALUES ('3.0.2') ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`             BIGINT(20)   NOT NULL AUTO_INCREMENT,
@@ -226,7 +226,7 @@ CREATE TABLE IF NOT EXISTS gitlog
   `verified`    INT           NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
   UNIQUE `uq_siteid_commitid` (`site_id`, `commit_id`),
-  INDEX `gitlog_site_idx` (`site` ASC)
+  INDEX `gitlog_site_idx` (`site_id` ASC)
 )
   ENGINE = InnoDB
   DEFAULT CHARSET = utf8

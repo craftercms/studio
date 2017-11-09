@@ -25,7 +25,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.dal.GitLog;
@@ -90,6 +89,12 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
             Set<String> siteNames = siteService.getAllAvailableSites();
             if (siteNames != null && siteNames.size() > 0) {
                 for (String site : siteNames) {
+                    try {
+                        syncRepository(site);
+                    } catch (Exception e) {
+                        logger.error("Failed to sync database from repository for site " + site);
+                        siteService.enablePublishing(site, false);
+                    }
                     if (siteService.isPublishingEnabled(site)) {
                         if (!publishingManager.isPublishingBlocked(site)) {
                             String statusMessage = StringUtils.EMPTY;
@@ -255,7 +260,11 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
 
     private void syncRepository(String site) {
         GitLog lastProcessedCommit = contentRepository.getLastProcessedCommit(site);
-        siteService.syncDatabaseWithRepo(site, lastProcessedCommit.getCommitId());
+        if (lastProcessedCommit != null) {
+            siteService.syncDatabaseWithRepo(site, lastProcessedCommit.getCommitId());
+        } else {
+            siteService.syncDatabaseWithRepo(site, contentRepository.getRepoFirstCommitId(site));
+        }
     }
 
     public boolean isMasterPublishingNode() {
