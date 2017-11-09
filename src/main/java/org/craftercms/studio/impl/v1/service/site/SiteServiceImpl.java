@@ -39,6 +39,7 @@ import org.craftercms.studio.api.v1.dal.ItemState;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v1.deployment.PreviewDeployer;
+import org.craftercms.studio.api.v1.ebus.PreviewEventContext;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.PreviewDeployerUnreachableException;
 import org.craftercms.studio.api.v1.exception.SearchUnreachableException;
@@ -89,6 +90,7 @@ import org.xml.sax.SAXException;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_DEFAULT_GROUPS_DESCRIPTION;
+import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.*;
 
 /**
@@ -110,6 +112,11 @@ public class SiteServiceImpl implements SiteService {
             activityType = ActivityService.ActivityType.CREATED;
         }
         String commitId = contentRepository.writeContent(site, path, content);
+
+        PreviewEventContext context = new PreviewEventContext();
+        context.setSite(site);
+        eventService.publish(EVENT_PREVIEW_SYNC, context);
+
         String user = securityService.getCurrentUser();
         Map<String, String> extraInfo = new HashMap<String, String>();
         if (StringUtils.startsWith(path, contentTypeService.getConfigPath())) {
