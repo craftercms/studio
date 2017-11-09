@@ -19,6 +19,8 @@ package org.craftercms.studio.impl.v1.service.content;
 
 import java.io.*;
 import java.io.InputStream;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -432,6 +434,7 @@ public class ContentServiceImpl implements ContentService {
                 objectMetadataManager.insertNewObjectMetadata(site, path);
             }
             objectMetadataManager.updateCommitId(site, path, commitId);
+            _contentRepository.insertGitLog(site, commitId, ZonedDateTime.now(ZoneOffset.UTC), 1, 0);
             siteService.updateLastCommitId(site, commitId);
         }
 
@@ -702,6 +705,7 @@ public class ContentServiceImpl implements ContentService {
                 updateChildrenOnMove(site, fromPath, movePath);
                 for (Map.Entry<String, String> entry : commitIds.entrySet()) {
                     objectMetadataManager.updateCommitId(site, FILE_SEPARATOR + entry.getKey(), entry.getValue());
+                    _contentRepository.insertGitLog(site, entry.getValue(), ZonedDateTime.now(ZoneOffset.UTC), 1, 0);
                 }
                 siteService.updateLastCommitId(site, _contentRepository.getRepoLastCommitId(site));
             }
@@ -1624,6 +1628,7 @@ public class ContentServiceImpl implements ContentService {
         if (commitId != null) {
             // Update the database with the commitId for the target item
             objectMetadataManager.updateCommitId(site, path, commitId);
+            _contentRepository.insertGitLog(site, commitId, ZonedDateTime.now(ZoneOffset.UTC), 1, 0);
             siteService.updateLastCommitId(site, commitId);
             toReturn = true;
         }
@@ -2042,6 +2047,7 @@ public class ContentServiceImpl implements ContentService {
             updateChildrenOnMove(site, path, targetPath);
             for (Map.Entry<String, String> entry : commitIds.entrySet()) {
                 objectMetadataManager.updateCommitId(site, FILE_SEPARATOR + entry.getKey(), entry.getValue());
+                _contentRepository.insertGitLog(site, entry.getValue(), ZonedDateTime.now(ZoneOffset.UTC), 1, 0);
             }
             siteService.updateLastCommitId(site, _contentRepository.getRepoLastCommitId(site));
 
