@@ -1432,7 +1432,7 @@ public class ContentServiceImpl implements ContentService {
         // TODO: SJ: Refactor such that the populate of non-XML is also a method in 3.1+
         ContentItemTO item = createNewContentItemTO(site, path);
 
-        if (item.uri.endsWith(".xml")) {
+        if (item.uri.endsWith(".xml") && !item.uri.startsWith("/config/")) {
 
             try {
                 item = populateContentDrivenProperties(site, item);

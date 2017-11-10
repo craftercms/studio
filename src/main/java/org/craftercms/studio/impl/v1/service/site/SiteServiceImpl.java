@@ -25,6 +25,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -129,8 +130,17 @@ public class SiteServiceImpl implements SiteService {
         if (!objectMetadataManager.metadataExist(site, path)) {
             objectMetadataManager.insertNewObjectMetadata(site, path);
         }
-        objectMetadataManager.updateCommitId(site, path, commitId);
-        contentRepository.insertGitLog(site, commitId, ZonedDateTime.now(ZoneOffset.UTC), 1, 0);
+
+        Map<String, Object> properties = new HashMap<>();
+        properties.put(ItemMetadata.PROP_NAME, FilenameUtils.getName(path));
+        properties.put(ItemMetadata.PROP_MODIFIED, ZonedDateTime.now(ZoneOffset.UTC));
+        properties.put(ItemMetadata.PROP_MODIFIER, user);
+        objectMetadataManager.setObjectMetadata(site, path, properties);
+
+        if (commitId != null) {
+            objectMetadataManager.updateCommitId(site, path, commitId);
+            contentRepository.insertGitLog(site, commitId, ZonedDateTime.now(ZoneOffset.UTC), 1, 0);
+        }
         boolean toRet = StringUtils.isEmpty(commitId);
 
         return toRet;
