@@ -2,7 +2,7 @@ package org.craftercms.studio.api.v1.aws.elastictranscoder;
 
 import java.io.File;
 
-import org.craftercms.studio.api.v1.exception.TranscoderException;
+import org.craftercms.studio.api.v1.exception.AwsException;
 
 /**
  * Proxy to AWS Elastic Transcoder (and S3) that enables the creation of transcoder jobs based on a {@link TranscoderProfile}s.
@@ -22,8 +22,8 @@ public interface ElasticTranscoder {
      * @return the metadata of the transcoder job. It's important to point out that returning the job info doesn't mean that the job
      * has been completed. To monitor the progress of the job the returned job ID can be used.
      *
-     * @throws TranscoderException if an error occurred
+     * @throws AwsException if an error occurred
      */
-    TranscoderJob startJob(String filename, File file, TranscoderProfile profile) throws TranscoderException;
+    TranscoderJob startJob(String filename, File file, TranscoderProfile profile) throws AwsException;
 
 }
