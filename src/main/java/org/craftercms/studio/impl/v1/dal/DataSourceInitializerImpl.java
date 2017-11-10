@@ -22,9 +22,11 @@ package org.craftercms.studio.impl.v1.dal;
 import ch.vorburger.exec.ManagedProcessException;
 import ch.vorburger.mariadb4j.DB;
 import ch.vorburger.mariadb4j.MariaDB4jService;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.jdbc.RuntimeSqlException;
 import org.apache.ibatis.jdbc.ScriptRunner;
+import org.craftercms.commons.crypto.CryptoUtils;
 import org.craftercms.studio.api.v1.dal.DataSourceInitializer;
 import org.craftercms.studio.api.v1.exception.DatabaseUpgradeUnsupportedVersionException;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -54,6 +56,7 @@ public class DataSourceInitializerImpl implements DataSourceInitializer, Disposa
     private final static String DB_QUERY_GET_META_TABLE_VERSION = "SELECT _meta.version FROM _meta LIMIT 1";
     private final static String DB_QUERY_CHECK_GROUP_TABLE_EXISTS = "SELECT * FROM information_schema.tables WHERE table_schema = 'crafter' AND table_name = 'cstudio_group' LIMIT 1";
     private final static String DB_QUERY_USE_CRAFTER = "use crafter";
+    private final static String DB_QUERY_SET_ADMIN_PASSWORD = "UPDATE user SET password = '{password}' WHERE username = 'admin'";
 
     @Override
     public void initDataSource() throws DatabaseUpgradeUnsupportedVersionException {
@@ -150,10 +153,20 @@ public class DataSourceInitializerImpl implements DataSourceInitializer, Disposa
                         Reader reader = new InputStreamReader(is);
                         try {
                             sr.runScript(reader);
+
+                            if (isRandomAdminPasswordEnabled()) {
+                                String randomPassword = generateRandomPassword();
+                                String hashedPassword = CryptoUtils.hashPassword(randomPassword);
+                                String update = DB_QUERY_SET_ADMIN_PASSWORD.replace("{password}", hashedPassword);
+                                int result = statement.executeUpdate(update);
+                                conn.commit();
+                                logger.info("*** Admin Account Password: \"" + randomPassword + "\" ***");
+                            }
                         } catch (RuntimeSqlException e) {
                             logger.error("Error while running create DB script", e);
                         }
                     }
+
                     rs.close();
                     statement.close();
                 } catch (SQLException e) {
@@ -220,12 +233,23 @@ public class DataSourceInitializerImpl implements DataSourceInitializer, Disposa
         shutdown();
     }
 
+    private String generateRandomPassword() {
+        int passwordLength = Integer.parseInt(studioConfiguration.getProperty(DB_INITIALIZER_RANDOM_ADMIN_PASSWORD_LENGTH));
+        String passwordChars = studioConfiguration.getProperty(DB_INITIALIZER_RANDOM_ADMIN_PASSWORD_CHARS);
+        return RandomStringUtils.random(passwordLength, passwordChars);
+    }
+
     private String getCreateDBScriptPath() {
         return studioConfiguration.getProperty(DB_INITIALIZER_CREATE_DB_SCRIPT_LOCATION);
     }
 
     private String getUpgradeDBScriptPath() {
         return studioConfiguration.getProperty(DB_INITIALIZER_UPGRADE_DB_SCRIPT_LOCATION);
+    }
+
+    private boolean isRandomAdminPasswordEnabled() {
+        boolean toRet = Boolean.parseBoolean(studioConfiguration.getProperty(DB_INITIALIZER_RANDOM_ADMIN_PASSWORD_ENABLED));
+        return toRet;
     }
 
     public String getDelimiter() { return delimiter; }
