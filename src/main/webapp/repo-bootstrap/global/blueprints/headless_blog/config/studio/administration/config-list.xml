@@ -122,5 +122,11 @@
             <description>confTabEngineSiteAppContextConfigurationDesc</description>
             <samplePath>/studio/administration/samples/sample-engine-application-context.xml</samplePath>
         </file>
+        <file>
+            <path>/studio/aws/aws.xml</path>
+            <title>AWS Profiles</title>
+            <description>AWS Profiles</description>
+            <samplePath>/studio/administration/samples/sample-aws.xml</samplePath>
+        </file>
     </files>
 </config>
