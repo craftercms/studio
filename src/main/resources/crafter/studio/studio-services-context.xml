@@ -698,14 +698,29 @@
     <!-- ////////////////////////////////////// -->
     <!--         AWS                            -->
     <!-- ////////////////////////////////////// -->
+    <bean id="studioAwsProfileManager" class="org.craftercms.studio.impl.v1.service.aws.AwsProfileManagerImpl">
+        <property name="basePath"
+                  value="#{studioConfiguration.getProperty('studio.configuration.site.aws.configBasePath')}"/>
+        <property name="fileName"
+                  value="#{studioConfiguration.getProperty('studio.configuration.site.aws.configFileName')}"/>
+        <property name="contentService" ref="cstudioContentService"/>
+    </bean>
+
     <bean id="studioTranscoderProfileReader" class="org.craftercms.studio.impl.v1.aws.elastictranscoder.XmlTranscoderProfileReader"/>
 
     <bean id="studioElasticTranscoder" class="org.craftercms.studio.impl.v1.aws.elastictranscoder.ElasticTranscoderImpl"/>
 
     <bean id="studioElasticTranscoderService" class="org.craftercms.studio.impl.v1.service.aws.ElasticTranscoderServiceImpl">
-        <property name="contentService" ref="cstudioContentService"/>
+        <property name="profileManager" ref="studioAwsProfileManager"/>
         <property name="profileReader" ref="studioTranscoderProfileReader"/>
         <property name="transcoder" ref="studioElasticTranscoder"/>
+    </bean>
+
+    <bean id="studioS3ProfileReader" class="org.craftercms.studio.impl.v1.aws.s3.XmlS3ProfileReader"/>
+
+    <bean id="studioS3Service" class="org.craftercms.studio.impl.v1.service.aws.S3ServiceImpl">
+        <property name="profileManager" ref="studioAwsProfileManager"/>
+        <property name="profileReader" ref="studioS3ProfileReader"/>
     </bean>
 
     <!-- Utilities -->

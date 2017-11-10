@@ -24,7 +24,7 @@ import org.craftercms.studio.api.v1.aws.elastictranscoder.ElasticTranscoder;
 import org.craftercms.studio.api.v1.aws.elastictranscoder.TranscoderJob;
 import org.craftercms.studio.api.v1.aws.elastictranscoder.TranscoderOutput;
 import org.craftercms.studio.api.v1.aws.elastictranscoder.TranscoderProfile;
-import org.craftercms.studio.api.v1.exception.TranscoderException;
+import org.craftercms.studio.api.v1.exception.AwsException;
 
 /**
  * Default implementation of {@link ElasticTranscoder}. Just as indicated by the interface, the video file is first uploaded to the
@@ -37,7 +37,7 @@ import org.craftercms.studio.api.v1.exception.TranscoderException;
 public class ElasticTranscoderImpl implements ElasticTranscoder {
 
     @Override
-    public TranscoderJob startJob(String filename, File file, TranscoderProfile profile) throws TranscoderException {
+    public TranscoderJob startJob(String filename, File file, TranscoderProfile profile) throws AwsException {
         try {
             AmazonS3 s3Client = getS3Client(profile);
             AmazonElasticTranscoder transcoderClient = getTranscoderClient(profile);
@@ -51,7 +51,7 @@ public class ElasticTranscoderImpl implements ElasticTranscoder {
 
             return createResult(baseKey, jobResult, pipeline);
         } catch (Exception e) {
-            throw new TranscoderException("Error while attempting to start an AWS Elastic Transcoder job for file " + filename, e);
+            throw new AwsException("Error while attempting to start an AWS Elastic Transcoder job for file " + filename, e);
         }
     }
 
