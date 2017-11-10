@@ -6,7 +6,7 @@ def site = null
 def profileId = null
 def filename = null
 def file = null
-def elasticTranscoderService = applicationContext["studioElasticTranscoderService"]
+def s3Service = applicationContext["studioS3Service"]
 
 response.setHeader("Content-Type", "text/html")
 
@@ -53,20 +53,20 @@ if (ServletFileUpload.isMultipartContent(request)) {
         return
     }
 
-    def job
+    def output
     try {
-        job = elasticTranscoderService.transcodeFile(site, profileId, filename, file)
+        output = s3Service.uploadFile(site, profileId, filename, file)
     } catch (e) {
-        logger.error("Transcoding of file ${file} failed", e)
+        logger.error("Upload of file ${file} failed", e)
 
-        sendError("Transcoding of file failed")
+        sendError("Upload of file failed")
 
         return
     }
 
     def writer = response.writer
         writer.println("<script>document.domain = \"${request.serverName}\";</script>")
-        writer.println("[{\"job_id\":\"${job.id}\",\"output_bucket\":\"${job.outputBucket}\",\"base_key\":\"${job.baseKey}\"}]")
+        writer.println("[{\"bucket\":\"${output.bucket}\",\"key\":\"${output.key}\"}]")
         writer.flush()
 } else {
     sendError("Request is not of type multi-part")

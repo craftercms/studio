@@ -5,13 +5,13 @@ package org.craftercms.studio.api.v1.exception;
  *
  * @author avasquez
  */
-public class TranscoderException extends ServiceException {
+public class AwsException extends ServiceException {
 
-    public TranscoderException(String message) {
+    public AwsException(String message) {
         super(message);
     }
 
-    public TranscoderException(String message, Exception e) {
+    public AwsException(String message, Exception e) {
         super(message, e);
     }
 
