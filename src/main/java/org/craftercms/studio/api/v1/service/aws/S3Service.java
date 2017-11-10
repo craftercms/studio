@@ -2,7 +2,6 @@ package org.craftercms.studio.api.v1.service.aws;
 
 import java.io.File;
 
-import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.aws.s3.S3Output;
 import org.craftercms.studio.api.v1.exception.AwsException;
 
