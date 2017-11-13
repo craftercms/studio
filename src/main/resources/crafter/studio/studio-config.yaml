@@ -332,6 +332,12 @@ studio.db.initializer.url: jdbc:mariadb://127.0.0.1:33306?user=root&password=
 studio.db.initializer.createDbscriptLocation: crafter/studio/database/createDDL.sql
 # Upgrade database SQL script location
 studio.db.initializer.upgradeDbScriptLocation: crafter/studio/database/upgrade-{version}.sql
+# Enable random admin password generation
+studio.db.initializer.randomAdminPassword.enabled: false
+# Random admin password length
+studio.db.initializer.randomAdminPassword.length: 16
+# Random admin password allowed chars
+studio.db.initializer.randomAdminPassword.chars: ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*_=+-/
 # Test database connections retrieved from the pool before being used (value true).
 # If value is set to false database connection will not be tested before being used.
 studio.db.testOnBorrow: true
