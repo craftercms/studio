@@ -158,7 +158,7 @@ public class DataSourceInitializerImpl implements DataSourceInitializer, Disposa
                                 String randomPassword = generateRandomPassword();
                                 String hashedPassword = CryptoUtils.hashPassword(randomPassword);
                                 String update = DB_QUERY_SET_ADMIN_PASSWORD.replace("{password}", hashedPassword);
-                                int result = statement.executeUpdate(update);
+                                statement.executeUpdate(update);
                                 conn.commit();
                                 logger.info("*** Admin Account Password: \"" + randomPassword + "\" ***");
                             }
