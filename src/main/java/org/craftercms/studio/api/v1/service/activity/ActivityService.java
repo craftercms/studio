@@ -39,7 +39,9 @@ public interface ActivityService {
 		UPDATED,
 		DELETED,
         ADD_USER_TO_GROUP,
-        REMOVE_USER_FROM_GROUP
+        REMOVE_USER_FROM_GROUP,
+        LOGIN,
+        LOGOUT
 	}
 
 	enum ActivitySource {
