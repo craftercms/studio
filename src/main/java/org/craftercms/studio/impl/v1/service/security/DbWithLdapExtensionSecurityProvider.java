@@ -179,7 +179,7 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
                         ActivityService.ActivityType activityType = ActivityService.ActivityType.UPDATED;
                         Map<String, String> extraInfo = new HashMap<String, String>();
                         extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
-                        activityService.postActivity("N/A", user.getUsername(), "N/A", activityType, ActivityService.ActivitySource.UI, extraInfo);
+                        activityService.postActivity(getSystemSite(), user.getUsername(), user.getUsername(), activityType, ActivityService.ActivitySource.UI, extraInfo);
                     }
                 } catch (UserNotFoundException e) {
                     logger.error("Error updating user " + username + " with data from external authentication provider", e);
@@ -194,7 +194,7 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
                         ActivityService.ActivityType activityType = ActivityService.ActivityType.CREATED;
                         Map<String, String> extraInfo = new HashMap<String, String>();
                         extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
-                        activityService.postActivity("N/A", user.getUsername(), "N/A", activityType, ActivityService.ActivitySource.UI, extraInfo);
+                        activityService.postActivity(getSystemSite(), user.getUsername(), user.getUsername(), activityType, ActivityService.ActivitySource.UI, extraInfo);
                     }
                 } catch (UserAlreadyExistsException e) {
                     logger.error("Error adding user " + username + " from external authentication provider", e);
@@ -247,6 +247,10 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
             addUserToGroup(siteId, groupName, username);
         }
         return true;
+    }
+
+    public String getSystemSite() {
+        return studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE);
     }
 
     public LdapTemplate getLdapTemplate() { return ldapTemplate; }

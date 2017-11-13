@@ -100,6 +100,18 @@ public class SecurityServiceImpl implements SecurityService {
     @ValidateParams
     public String authenticate(@ValidateStringParam(name = "username") String username, @ValidateStringParam(name = "password") String password) throws BadCredentialsException, AuthenticationSystemException {
         String toRet = securityProvider.authenticate(username, password);
+        if (StringUtils.isNotEmpty(toRet)) {
+            RequestContext requestContext = RequestContext.getCurrent();
+            HttpServletRequest httpServletRequest = requestContext.getRequest();
+            String ipAddress = httpServletRequest.getRemoteAddr();
+
+            ActivityService.ActivityType activityType = ActivityService.ActivityType.LOGIN;
+            Map<String, String> extraInfo = new HashMap<String, String>();
+            extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
+            activityService.postActivity(getSystemSite(), username, ipAddress, activityType, ActivityService.ActivitySource.UI, extraInfo);
+
+            logger.info("User " + username + " logged in from IP: " + ipAddress);
+        }
         return toRet;
     }
 
@@ -530,12 +542,23 @@ public class SecurityServiceImpl implements SecurityService {
 
     @Override
     public boolean logout() {
+        String username = getCurrentUser();
         boolean toRet = securityProvider.logout();
         RequestContext context = RequestContext.getCurrent();
         if (context != null) {
-            HttpSession httpSession = context.getRequest().getSession();
+            HttpServletRequest httpServletRequest = context.getRequest();
+            String ipAddress = httpServletRequest.getRemoteAddr();
+
+            HttpSession httpSession = httpServletRequest.getSession();
             httpSession.removeAttribute(STUDIO_SESSION_TOKEN_ATRIBUTE);
             httpSession.invalidate();
+
+            ActivityService.ActivityType activityType = ActivityService.ActivityType.LOGOUT;
+            Map<String, String> extraInfo = new HashMap<String, String>();
+            extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
+            activityService.postActivity(getSystemSite(), username, ipAddress, activityType, ActivityService.ActivitySource.UI, extraInfo);
+
+            logger.info("User " + username + " logged out from IP: " + ipAddress);
         }
         return toRet;
     }
@@ -549,7 +572,7 @@ public class SecurityServiceImpl implements SecurityService {
             String user = getCurrentUser();
             Map<String, String> extraInfo = new HashMap<String, String>();
             extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
-            activityService.postActivity("N/A", user, "N/A", activityType, ActivityService.ActivitySource.UI, extraInfo);
+            activityService.postActivity(getSystemSite(), user, username, activityType, ActivityService.ActivitySource.UI, extraInfo);
         }
         return toRet;
     }
@@ -566,7 +589,7 @@ public class SecurityServiceImpl implements SecurityService {
                 String user = getCurrentUser();
                 Map<String, String> extraInfo = new HashMap<String, String>();
                 extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
-                activityService.postActivity("N/A", user, "N/A", activityType, ActivityService.ActivitySource.UI, extraInfo);
+                activityService.postActivity(getSystemSite(), user, username, activityType, ActivityService.ActivitySource.UI, extraInfo);
             }
             return toRet;
         }
@@ -602,7 +625,7 @@ public class SecurityServiceImpl implements SecurityService {
             String user = getCurrentUser();
             Map<String, String> extraInfo = new HashMap<String, String>();
             extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
-            activityService.postActivity("N/A", user, "N/A", activityType, ActivityService.ActivitySource.UI, extraInfo);
+            activityService.postActivity(getSystemSite(), user, username, activityType, ActivityService.ActivitySource.UI, extraInfo);
         }
         return toRet;
     }
@@ -995,6 +1018,10 @@ public class SecurityServiceImpl implements SecurityService {
 
     public String getDefaultFromAddress() {
         return studioConfiguration.getProperty(MAIL_FROM_DEFAULT);
+    }
+
+    public String getSystemSite() {
+        return studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE);
     }
 
     public SecurityProvider getSecurityProvider() { return securityProvider; }
