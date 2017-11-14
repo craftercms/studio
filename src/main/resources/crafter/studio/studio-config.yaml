@@ -33,6 +33,8 @@ studio.repo.rebuildMetadata.batchSize: 100
 studio.repo.published.cherryPickMessage: (cherry picked from commit <commitId>)
 studio.repo.published.cherryPickMessage.replace: <commitId>
 studio.repo.published.cherryPickMessage.commitId.regex: (.*\W*)(\(cherry\spicked\sfrom\scommit\s)([a-f0-9]*)(\))
+# Published repository commit message
+studio.repo.published.commitMessage: "Publish event triggered by {username} on {datetime} via {source}.\n\nPublish note from user: \"{message}\"\n\nCommit ID: {commit_id}"
 
 ############################################################
 ##                   Site Configuration                   ##
