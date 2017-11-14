@@ -381,6 +381,8 @@ public class DeploymentServiceImpl implements DeploymentService {
                     if (deployedItem != null) {
                         deployedItem.eventDate = entry.getSyncDate();
                         deployedItem.endpoint = entry.getTarget();
+                        deployedItem.setUser(entry.getUser());
+                        deployedItem.setEndpoint(entry.getEnvironment());
                         String deployedLabel = entry.getSyncDate().format(DateTimeFormatter.ofPattern(DATE_FORMAT_DEPLOYED));
                         if (tasks.size() > 0) {
                             DmDeploymentTaskTO lastTask = tasks.get(tasks.size() - 1);

@@ -1219,7 +1219,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                                     dsh.setPath(file);
                                     dsh.setSyncDate(Instant.ofEpochSecond(revCommit.getCommitTime()).atZone(ZoneOffset.UTC));
                                     dsh.setUser(revCommit.getAuthorIdent().getName());
-                                    dsh.setEnvironment(environment);
+                                    dsh.setEnvironment(environment.replace(Constants.R_HEADS, ""));
                                     toRet.add(dsh);
                                     counter++;
                                 }
