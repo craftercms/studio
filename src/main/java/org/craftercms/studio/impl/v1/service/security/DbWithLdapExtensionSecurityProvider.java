@@ -244,7 +244,14 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
            createGroup(groupName, "Externally managed group", siteId, true);
         }
         if (!userExistsInGroup(siteId, groupName, username)) {
-            addUserToGroup(siteId, groupName, username);
+            boolean success = addUserToGroup(siteId, groupName, username);
+            if (success){
+                ActivityService.ActivityType activityType = ActivityService.ActivityType.ADD_USER_TO_GROUP;
+                String user = getCurrentUser();
+                Map<String, String> extraInfo = new HashMap<String, String>();
+                extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
+                activityService.postActivity(siteId, user, username + " > " + groupName , activityType, ActivityService.ActivitySource.UI, extraInfo);
+            }
         }
         return true;
     }
