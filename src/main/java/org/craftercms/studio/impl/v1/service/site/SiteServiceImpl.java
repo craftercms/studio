@@ -952,8 +952,8 @@ public class SiteServiceImpl implements SiteService {
 
 	    // At this point we have attempted to process all operations, some may have failed
 	    // We will update the lastCommitId of the database ignoring errors if any
-	    logger.info("Done syncing operations with a result of: " + toReturn);
-        logger.info("Syncing database lastCommitId for site: " + site);
+	    logger.debug("Done syncing operations with a result of: " + toReturn);
+        logger.debug("Syncing database lastCommitId for site: " + site);
 
 	    // Update database
         String lastCommitId = contentRepository.getRepoLastCommitId(site);
@@ -967,6 +967,7 @@ public class SiteServiceImpl implements SiteService {
 
 	    logger.info("Done syncing database with repository for site: " + site + " fromCommitId = " + (StringUtils.isEmpty(fromCommitId) ? "Empty repo" : fromCommitId) +
 		    " with a final result of: " + toReturn);
+        logger.info("Last commit ID for site: " + site + " is " + lastCommitId);
 
         if (!toReturn) {
 	        // Some operations failed during sync database from repo

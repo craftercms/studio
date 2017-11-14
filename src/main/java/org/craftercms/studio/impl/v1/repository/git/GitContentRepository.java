@@ -936,24 +936,35 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         logger.error("Failed to create in-progress published branch for site " + site);
                     }
 
+                    Set<String> deployedCommits = new HashSet<String>();
                     for (DeploymentItemTO deploymentItem : deploymentItems) {
                         commitId = deploymentItem.getCommitId();
                         path = helper.getGitPath(deploymentItem.getPath());
                         logger.debug("Checking out file " + path + " from commit id " + commitId + " for site " + site);
-                        // String message = studioConfiguration.getProperty(REPO_PUBLISHED_CHERRY_PICK_MESSAGE);
-                        // message = message.replace(studioConfiguration.getProperty(REPO_PUBLISHED_CHERRY_PICK_MESSAGE_REPLACE), commitId);
 
                         ObjectId objCommitId = repo.resolve(commitId);
                         RevWalk rw = new RevWalk(repo);
                         RevCommit rc = rw.parseCommit(objCommitId);
 
                         Ref result = git.checkout().setStartPoint(commitId).addPath(path).call();
+                        deployedCommits.add(commitId);
                     }
 
                     // commit all deployed files
+                    String commitMessage = studioConfiguration.getProperty(REPO_PUBLISHED_COMMIT_MESSAGE);
                     PersonIdent authorIdent = helper.getAuthorIdent(author);
                     git.add().addFilepattern(GIT_COMMIT_ALL_ITEMS).call();
-                    RevCommit revCommit = git.commit().setMessage(comment).setAuthor(authorIdent).call();
+
+                    commitMessage = commitMessage.replace("{username}", author);
+                    commitMessage = commitMessage.replace("{datetime}", ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX")));
+                    commitMessage = commitMessage.replace("{source}", "UI");
+                    commitMessage = commitMessage.replace("{message}", comment);
+                    StringBuilder sb = new StringBuilder();
+                    for (String c : deployedCommits) {
+                        sb.append(c).append(" ");
+                    }
+                    commitMessage = commitMessage.replace("{commit_id}", sb.toString().trim());
+                    RevCommit revCommit = git.commit().setMessage(commitMessage).setAuthor(authorIdent).call();
                     int commitTime = revCommit.getCommitTime();
 
                     // tag
@@ -961,7 +972,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     ZonedDateTime publishDate = ZonedDateTime.now(ZoneOffset.UTC);
                     String tagName2 = tagDate2.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX")) + "_published_on_" + publishDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX"));
                     PersonIdent authorIdent2 = helper.getAuthorIdent(author);
-                    Ref tagResult2 = git.tag().setTagger(authorIdent2).setName(tagName2).setMessage(comment).call();
+                    Ref tagResult2 = git.tag().setTagger(authorIdent2).setName(tagName2).setMessage(commitMessage).call();
 
                     // checkout environment
                     logger.debug("Checkout environment " + environment + " branch for site " + site);

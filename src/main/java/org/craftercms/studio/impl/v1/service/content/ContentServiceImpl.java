@@ -220,7 +220,7 @@ public class ContentServiceImpl implements ContentService {
             } else {
                 // Content does not exist; check for moved content and deleted content
                 if (objectStateService.deletedPathExists(site, path) || objectMetadataManager.movedPathExists(site, path)) {
-                    throw new ServiceException("Moved or deleted content existed for site " + site + " on path " + path + ". New content can not be created on that path before change is published.");
+                    throw new ServiceException("Content " + path + " for site " + site + ", cannot be created because this name/URL was in use by another content item that has been moved or deleted by not yet published.");
                 }
             }
 
@@ -378,7 +378,7 @@ public class ContentServiceImpl implements ContentService {
             }
 
             if (objectStateService.deletedPathExists(site, path) || objectMetadataManager.movedPathExists(site, path)) {
-                throw new ServiceException("Moved or deleted content existed for site " + site + " on path " + path + ". New content can not be created on that path before change is published.");
+                throw new ServiceException("Content " + path + " for site " + site + ", cannot be created because this name/URL was in use by another content item that has been moved or deleted by not yet published.");
             }
             ResultTO result = processContent(id, in, false, params, DmConstants.CONTENT_CHAIN_ASSET);
             ContentAssetInfoTO assetInfoTO = (ContentAssetInfoTO)result.getItem();
