@@ -291,7 +291,7 @@ public class ContentServiceImpl implements ContentService {
     @Override
     @ValidateParams
     public void writeContentAndRename(@ValidateStringParam(name = "site") final String site, @ValidateSecurePathParam(name = "path") final String path, @ValidateSecurePathParam(name = "targetPath") final String targetPath, @ValidateStringParam(name = "fileName") final String fileName, @ValidateStringParam(name = "contentType") final String contentType, final InputStream input,
-                                      @ValidateStringParam(name = "createFolders") final String createFolders, @ValidateStringParam(name = "edit") final  String edit, @ValidateStringParam(name = "unlock") final String unlock, @ValidateStringParam(name = "createFolder") final boolean createFolder) throws ServiceException {
+                                      @ValidateStringParam(name = "createFolders") final String createFolders, @ValidateStringParam(name = "edit") final  String edit, @ValidateStringParam(name = "unlock") final String unlock, final boolean createFolder) throws ServiceException {
         // TODO: SJ: The parameters need to be properly typed. Can't have Strings that actually mean boolean. Fix in
         // TODO: SJ: 2.7.x
         String id = site + ":" + path + ":" + fileName + ":" + contentType;
