@@ -247,10 +247,9 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
             boolean success = addUserToGroup(siteId, groupName, username);
             if (success){
                 ActivityService.ActivityType activityType = ActivityService.ActivityType.ADD_USER_TO_GROUP;
-                String user = getCurrentUser();
                 Map<String, String> extraInfo = new HashMap<String, String>();
                 extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
-                activityService.postActivity(siteId, user, username + " > " + groupName , activityType, ActivityService.ActivitySource.UI, extraInfo);
+                activityService.postActivity(siteId, "LDAP", username + " > " + groupName , activityType, ActivityService.ActivitySource.UI, extraInfo);
             }
         }
         return true;
