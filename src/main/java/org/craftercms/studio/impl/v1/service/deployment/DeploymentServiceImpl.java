@@ -30,6 +30,7 @@ import org.craftercms.studio.api.v1.exception.CommitNotFoundException;
 import org.craftercms.studio.api.v1.exception.EnvironmentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
@@ -763,7 +764,14 @@ public class DeploymentServiceImpl implements DeploymentService {
 
     @Override
     @ValidateParams
-    public boolean enablePublishing(@ValidateStringParam(name = "site") String site, boolean enabled) throws SiteNotFoundException {
+    public boolean enablePublishing(@ValidateStringParam(name = "site") String site, boolean enabled) throws SiteNotFoundException, AuthenticationException {
+        if (!siteService.exists(site)) {
+            throw new SiteNotFoundException();
+        }
+        if (!securityService.isSiteAdmin(securityService.getCurrentUser())) {
+            throw new AuthenticationException();
+        }
+
         boolean toRet = siteService.enablePublishing(site, enabled);
         String message = StringUtils.EMPTY;
         if (enabled) {

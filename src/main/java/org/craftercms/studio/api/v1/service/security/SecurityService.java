@@ -313,4 +313,11 @@ public interface SecurityService {
      * @return true if user session is valid
      */
     boolean validateSession(HttpServletRequest request);
+
+    /**
+     * Check if given user is site admin
+     * @param username user
+     * @return true if user belongs to admin group
+     */
+    boolean isSiteAdmin(String username);
 }

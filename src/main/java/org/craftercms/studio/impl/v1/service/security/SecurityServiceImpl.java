@@ -961,6 +961,22 @@ public class SecurityServiceImpl implements SecurityService {
 
     @Override
     @ValidateParams
+    public boolean isSiteAdmin(@ValidateStringParam(name = "username") String username) {
+        Set<String> userGroups = securityProvider.getUserGroups(username);
+        boolean toRet = false;
+        if (CollectionUtils.isNotEmpty(userGroups)) {
+            for (String group : userGroups) {
+                if (StringUtils.equalsIgnoreCase(group, studioConfiguration.getProperty(CONFIGURATION_SITE_DEFAULT_ADMIN_GROUP))) {
+                    toRet = true;
+                    break;
+                }
+            }
+        }
+        return toRet;
+    }
+
+    @Override
+    @ValidateParams
     public boolean userExists(@ValidateStringParam(name = "username") String username) {
         return securityProvider.userExists(username);
     }
