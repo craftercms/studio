@@ -21,6 +21,7 @@ import groovy.json.JsonException
 import groovy.json.JsonSlurper
 import org.apache.commons.lang3.StringUtils
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException
+import org.craftercms.studio.api.v1.exception.security.AuthenticationException
 import scripts.api.DeploymentServices
 
 def result = [:]
@@ -58,6 +59,9 @@ try {
                 response.setStatus(500)
                 result.message = "Internal server error"
             }
+        } catch (AuthenticationException e) {
+            response.setStatus(401)
+            result.message = "Unauthorized"
         } catch (SiteNotFoundException e) {
             response.setStatus(404)
             result.message = "Site not found"
