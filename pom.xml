@@ -28,7 +28,7 @@
         <phantomjs.plugin.version>0.5</phantomjs.plugin.version>
         <suiteXmlFile>test/resources/testng.xml</suiteXmlFile>
         <studio.ui.path>target/ui/</studio.ui.path>
-        <spring.security.version>4.2.3.RELEASE</spring.security.version>
+        <spring.security.version>4.1.0.RELEASE</spring.security.version>
     </properties>
 
     <licenses>
