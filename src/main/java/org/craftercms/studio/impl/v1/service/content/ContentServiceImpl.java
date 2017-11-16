@@ -434,7 +434,7 @@ public class ContentServiceImpl implements ContentService {
                 objectMetadataManager.insertNewObjectMetadata(site, path);
             }
             objectMetadataManager.updateCommitId(site, path, commitId);
-            _contentRepository.insertGitLog(site, commitId, ZonedDateTime.now(ZoneOffset.UTC), 1, 0);
+            _contentRepository.insertGitLog(site, commitId, 1);
             siteService.updateLastCommitId(site, commitId);
         }
 
@@ -705,7 +705,7 @@ public class ContentServiceImpl implements ContentService {
                 updateChildrenOnMove(site, fromPath, movePath);
                 for (Map.Entry<String, String> entry : commitIds.entrySet()) {
                     objectMetadataManager.updateCommitId(site, FILE_SEPARATOR + entry.getKey(), entry.getValue());
-                    _contentRepository.insertGitLog(site, entry.getValue(), ZonedDateTime.now(ZoneOffset.UTC), 1, 0);
+                    _contentRepository.insertGitLog(site, entry.getValue(), 1);
                 }
                 siteService.updateLastCommitId(site, _contentRepository.getRepoLastCommitId(site));
             }
@@ -1628,7 +1628,7 @@ public class ContentServiceImpl implements ContentService {
         if (commitId != null) {
             // Update the database with the commitId for the target item
             objectMetadataManager.updateCommitId(site, path, commitId);
-            _contentRepository.insertGitLog(site, commitId, ZonedDateTime.now(ZoneOffset.UTC), 1, 0);
+            _contentRepository.insertGitLog(site, commitId, 1);
             siteService.updateLastCommitId(site, commitId);
             toReturn = true;
         }
@@ -2047,7 +2047,7 @@ public class ContentServiceImpl implements ContentService {
             updateChildrenOnMove(site, path, targetPath);
             for (Map.Entry<String, String> entry : commitIds.entrySet()) {
                 objectMetadataManager.updateCommitId(site, FILE_SEPARATOR + entry.getKey(), entry.getValue());
-                _contentRepository.insertGitLog(site, entry.getValue(), ZonedDateTime.now(ZoneOffset.UTC), 1, 0);
+                _contentRepository.insertGitLog(site, entry.getValue(), 1);
             }
             siteService.updateLastCommitId(site, _contentRepository.getRepoLastCommitId(site));
 

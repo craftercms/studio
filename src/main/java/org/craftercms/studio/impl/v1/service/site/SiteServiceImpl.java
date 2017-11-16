@@ -139,7 +139,7 @@ public class SiteServiceImpl implements SiteService {
 
         if (commitId != null) {
             objectMetadataManager.updateCommitId(site, path, commitId);
-            contentRepository.insertGitLog(site, commitId, ZonedDateTime.now(ZoneOffset.UTC), 1, 0);
+            contentRepository.insertGitLog(site, commitId, 1);
         }
         boolean toRet = StringUtils.isEmpty(commitId);
 
@@ -378,7 +378,7 @@ public class SiteServiceImpl implements SiteService {
 			    siteFeed.setPublishingStatusMessage(studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT));
 			    siteFeedMapper.createSite(siteFeed);
 
-			    contentRepository.insertGitLog(siteId, lastCommitId, ZonedDateTime.now(ZoneOffset.UTC), 1, 0);
+			    contentRepository.insertGitLog(siteId, lastCommitId, 1);
 
                 // Add default groups
                 addDefaultGroupsForNewSite(siteId);
@@ -768,6 +768,13 @@ public class SiteServiceImpl implements SiteService {
         siteFeedMapper.updateLastCommitId(params);
     }
 
+    private void updateLastVerifiedGitlogCommitId(String site, String commitId) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("siteId", site);
+        params.put("commitId", commitId);
+        siteFeedMapper.updateLastVerifiedGitlogCommitId(params);
+    }
+
     @Override
     @ValidateParams
     public boolean syncDatabaseWithRepo(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "fromCommitId") String fromCommitId) {
@@ -776,7 +783,7 @@ public class SiteServiceImpl implements SiteService {
 		    .getRepoLastCommitId(site));
         if (CollectionUtils.isEmpty(repoOperations)) {
             logger.debug("Database is up to date with repository for site: " + site);
-            contentRepository.markGitLogVerified(site, fromCommitId);
+            contentRepository.markGitLogVerifiedProcessed(site, fromCommitId);
             return toReturn;
         }
 
@@ -796,7 +803,7 @@ public class SiteServiceImpl implements SiteService {
             if (gitLog != null) {
                 diverged = diverged || gitLog.getProcessed() < 1;
             } else {
-                contentRepository.insertGitLog(site, repoOperation.getCommitId(), repoOperation.getDateTime(), 1, 0);
+                contentRepository.insertGitLog(site, repoOperation.getCommitId(), 0);
                 diverged = true;
                 gitLogProcessed = false;
                 gitLog = contentRepository.getGitLog(site, repoOperation.getCommitId());
@@ -806,7 +813,7 @@ public class SiteServiceImpl implements SiteService {
                 current = gitLog;
             } else {
 	            if (!current.getCommitId().equals(gitLog.getCommitId())) {
-                    contentRepository.markGitLogVerified(site, current.getCommitId());
+                    contentRepository.markGitLogVerifiedProcessed(site, current.getCommitId());
                     current = gitLog;
                 }
             }
@@ -947,7 +954,8 @@ public class SiteServiceImpl implements SiteService {
             }
 	    }
         if (current != null) {
-            contentRepository.markGitLogVerified(site, current.getCommitId());
+            contentRepository.markGitLogVerifiedProcessed(site, current.getCommitId());
+            updateLastVerifiedGitlogCommitId(site, current.getCommitId());
         }
 
 	    // At this point we have attempted to process all operations, some may have failed

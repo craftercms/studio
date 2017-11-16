@@ -1351,13 +1351,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     @Override
-    public GitLog getLastProcessedCommit(String siteId) {
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put("siteId", siteId);
-        return gitLogMapper.getLastProcessedCommit(params);
-    }
-
-    @Override
     public GitLog getGitLog(String siteId, String commitId) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("siteId", siteId);
@@ -1366,24 +1359,21 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     @Override
-    public void insertGitLog(String siteId, String commitId, ZonedDateTime dateTime, int processed, int verified) {
+    public void insertGitLog(String siteId, String commitId, int processed) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("siteId", siteId);
         params.put("commitId", commitId);
-        params.put("commitDate", dateTime);
         params.put("processed", processed);
-        params.put("verified", verified);
         gitLogMapper.insertGitLog(params);
     }
 
     @Override
-    public void markGitLogVerified(String siteId, String commitId) {
+    public void markGitLogVerifiedProcessed(String siteId, String commitId) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("siteId", siteId);
         params.put("commitId", commitId);
         params.put("processed", 1);
-        params.put("verified", 1);
-        gitLogMapper.markGitLogVerified(params);
+        gitLogMapper.markGitLogProcessed(params);
     }
 
     public void setServletContext(ServletContext ctx) {
