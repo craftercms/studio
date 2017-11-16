@@ -302,11 +302,17 @@ public class DeploymentServiceImpl implements DeploymentService {
             RepositoryItem[] children = contentRepository.getContentChildren(site, path);
 
             if (children.length < 1) {
-                contentService.deleteContent(site, path, false, user);
-                objectStateService.deleteObjectStatesForFolder(site, folderPath);
-                objectMetadataManager.deleteObjectMetadataForFolder(site, folderPath);
-                String parentPath = ContentUtils.getParentUrl(path);
-                deleteFolder(site, parentPath, user);
+                if (path.endsWith(FILE_SEPARATOR + DmConstants.INDEX_FILE)) {
+                    contentService.deleteContent(site, path, false, user);
+                    objectStateService.deleteObjectStatesForFolder(site, folderPath);
+                    objectMetadataManager.deleteObjectMetadataForFolder(site, folderPath);
+                    String parentPath = ContentUtils.getParentUrl(path);
+                    deleteFolder(site, parentPath, user);
+                } else {
+                    contentService.deleteContent(site, path, false, user);
+                    objectStateService.deleteObjectStatesForFolder(site, folderPath);
+                    objectMetadataManager.deleteObjectMetadataForFolder(site, folderPath);
+                }
             }
         } else {
             objectStateService.deleteObjectStatesForFolder(site, folderPath);
