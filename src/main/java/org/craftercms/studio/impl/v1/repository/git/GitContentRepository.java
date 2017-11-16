@@ -243,11 +243,14 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
             try (Git git = new Git(repo)) {
                 String pathToDelete = helper.getGitPath(path);
-                //Path toDelete = Paths.get(repo.getDirectory().getParent(), pathToDelete);
+                Path toDelete = Paths.get(repo.getDirectory().getParent(), pathToDelete);
                 Path parentToDelete = Paths.get(pathToDelete).getParent();
                 git.rm().addFilepattern(pathToDelete).setCached(false).call();
 
-                String pathToCommit = deleteParentFolder(git, parentToDelete);
+                String pathToCommit = pathToDelete;
+                if (toDelete.toFile().isFile()) {
+                    pathToCommit = deleteParentFolder(git, parentToDelete);
+                }
 
                 // TODO: SJ: we need to define messages in a string table of sorts
                 commitId = helper.commitFile(repo, site, pathToCommit, "Delete file " + path, StringUtils.isEmpty(approver) ? helper.getCurrentUserIdent() : helper.getAuthorIdent(approver));
@@ -271,11 +274,9 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             if (children.length == 1 || children[0].equals(".keep")) {
                 Path ancestor = parentFolder.getParent();
                 git.rm().addFilepattern(helper.getGitPath(folderToDelete + FILE_SEPARATOR + ".keep")).setCached(false).call();
-                toRet = deleteParentFolder(git, ancestor);
             } else {
                 Path ancestor = parentFolder.getParent();
                 git.rm().addFilepattern(helper.getGitPath(parentFolder.toString())).setCached(false).call();
-                toRet = deleteParentFolder(git, ancestor);
             }
         }
         return toRet;
