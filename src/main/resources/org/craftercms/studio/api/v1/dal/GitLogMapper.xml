@@ -25,25 +25,19 @@
         <id property="id" column="id"/>
         <result property="siteId" column="site_id"/>
         <result property="commitId" column="commit_id"/>
-        <result property="commitDate" column="commit_date"/>
         <result property="processed" column="processed"/>
-        <result property="verified" column="verified"/>
     </resultMap>
-
-    <select id="getLastProcessedCommit" resultMap="GitLogMap" parameterType="java.util.Map">
-        SELECT * FROM gitlog WHERE site_id = #{siteId} AND verified = 1 AND processed = 1 ORDER BY commit_date DESC LIMIT 0, 1
-    </select>
 
     <select id="getGitLog" resultMap="GitLogMap" parameterType="java.util.Map">
         SELECT * FROM gitlog WHERE site_id = #{siteId} AND commit_id = #{commitId}
     </select>
 
     <insert id="insertGitLog" parameterType="java.util.Map">
-        INSERT INTO gitlog (site_id, commit_id, commit_date, processed, verified)
-        VALUES (#{siteId}, #{commitId}, #{commitDate}, #{processed}, #{verified})
+        INSERT INTO gitlog (site_id, commit_id, processed)
+        VALUES (#{siteId}, #{commitId}, #{processed})
     </insert>
 
-    <update id="markGitLogVerified" parameterType="java.util.Map">
-        UPDATE gitlog SET processed = #{processed}, verified = #{verified} WHERE site_id = #{siteId} AND commit_id = #{commitId}
+    <update id="markGitLogProcessed" parameterType="java.util.Map">
+        UPDATE gitlog SET processed = #{processed} WHERE site_id = #{siteId} AND commit_id = #{commitId}
     </update>
 </mapper>

@@ -29,6 +29,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.dal.GitLog;
 import org.craftercms.studio.api.v1.dal.PublishRequest;
+import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -258,10 +259,11 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
         return environments;
     }
 
-    private void syncRepository(String site) {
-        GitLog lastProcessedCommit = contentRepository.getLastProcessedCommit(site);
-        if (lastProcessedCommit != null) {
-            siteService.syncDatabaseWithRepo(site, lastProcessedCommit.getCommitId());
+    private void syncRepository(String site) throws SiteNotFoundException {
+        SiteFeed siteFeed = siteService.getSite(site);
+        String lastProcessedCommit = siteFeed.getLastVerifiedGitlogCommitId();
+        if (StringUtils.isNotEmpty(lastProcessedCommit)) {
+            siteService.syncDatabaseWithRepo(site, lastProcessedCommit);
         } else {
             siteService.syncDatabaseWithRepo(site, contentRepository.getRepoFirstCommitId(site));
         }

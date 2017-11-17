@@ -47,6 +47,9 @@ public class SiteFeed {
     public String getPublishingStatusMessage() { return publishingStatusMessage; }
     public void setPublishingStatusMessage(String publishingStatusMessage) { this.publishingStatusMessage = publishingStatusMessage; }
 
+    public String getLastVerifiedGitlogCommitId() { return lastVerifiedGitlogCommitId; }
+    public void setLastVerifiedGitlogCommitId(String lastVerifiedGitlogCommitId) { this.lastVerifiedGitlogCommitId = lastVerifiedGitlogCommitId; }
+
     protected long id;
     protected String siteId;
     protected String name;
@@ -56,4 +59,5 @@ public class SiteFeed {
     protected String lastCommitId;
     protected int publishingEnabled;
     protected String publishingStatusMessage;
+    protected String lastVerifiedGitlogCommitId;
 }

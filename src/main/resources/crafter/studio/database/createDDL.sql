@@ -27,7 +27,7 @@ USE crafter ;
 
 CREATE TABLE _meta (`version` VARCHAR(10) NOT NULL , PRIMARY KEY (`version`)) ;
 
-INSERT INTO _meta (version) VALUES ('3.0.2') ;
+INSERT INTO _meta (version) VALUES ('3.0.2.1') ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`             BIGINT(20)   NOT NULL AUTO_INCREMENT,
@@ -115,15 +115,16 @@ CREATE TABLE IF NOT EXISTS `publish_request` (
   ROW_FORMAT = DYNAMIC ;
 
 CREATE TABLE IF NOT EXISTS `site` (
-  `id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,
-  `site_id`                   VARCHAR(50)   NOT NULL,
-  `name`                      VARCHAR(255)  NOT NULL,
-  `description`               TEXT          NULL,
-  `status`                    VARCHAR(255)  NULL,
-  `last_commit_id`            VARCHAR(50)   NULL,
-  `system`                    INT           NOT NULL DEFAULT 0,
-  `publishing_enabled`        INT           NOT NULL DEFAULT 1,
-  `publishing_status_message` VARCHAR(2000) NULL,
+  `id`                              BIGINT(20)    NOT NULL AUTO_INCREMENT,
+  `site_id`                         VARCHAR(50)   NOT NULL,
+  `name`                            VARCHAR(255)  NOT NULL,
+  `description`                     TEXT          NULL,
+  `status`                          VARCHAR(255)  NULL,
+  `last_commit_id`                  VARCHAR(50)   NULL,
+  `system`                          INT           NOT NULL DEFAULT 0,
+  `publishing_enabled`              INT           NOT NULL DEFAULT 1,
+  `publishing_status_message`       VARCHAR(2000) NULL,
+  `last_verified_gitlog_commit_id`  VARCHAR(50)   NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `id_unique` (`id` ASC),
   UNIQUE INDEX `site_id_unique` (`site_id` ASC),
@@ -221,9 +222,7 @@ CREATE TABLE IF NOT EXISTS gitlog
   `id`          BIGINT(20)    NOT NULL AUTO_INCREMENT,
   `site_id`     VARCHAR(50)   NOT NULL,
   `commit_id`   VARCHAR(50)   NOT NULL,
-  `commit_date` DATETIME      NOT NULL,
   `processed`   INT           NOT NULL DEFAULT 0,
-  `verified`    INT           NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
   UNIQUE `uq_siteid_commitid` (`site_id`, `commit_id`),
   INDEX `gitlog_site_idx` (`site_id` ASC)

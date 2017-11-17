@@ -295,14 +295,6 @@ public interface ContentRepository {
     boolean commitIdExists(String site, String commitId);
 
     /**
-     * Get last commit id from database that was processed abd verified.
-     *
-     * @param site site identifier
-     * @return last commit id
-     */
-    GitLog getLastProcessedCommit(String site);
-
-    /**
      * Get git log object from database
      * @param siteId site id
      * @param commitId commit ID
@@ -311,21 +303,19 @@ public interface ContentRepository {
     GitLog getGitLog(String siteId, String commitId);
 
     /**
-     * Insert
-     * @param siteId
-     * @param commitId
-     * @param dateTime
-     * @param processed
-     * @param verified
+     * Insert Git Log
+     * @param siteId site
+     * @param commitId commit ID
+     * @param processed processed
      */
-    void insertGitLog(String siteId, String commitId, ZonedDateTime dateTime, int processed, int verified);
+    void insertGitLog(String siteId, String commitId, int processed);
 
     /**
      * Mark Git log as verified
      * @param siteId site identifier
      * @param commitId commit id
      */
-    void markGitLogVerified(String siteId, String commitId);
+    void markGitLogVerifiedProcessed(String siteId, String commitId);
 
     /*
     List<PublishTO> getPublishEvents(String site, String commitIdFrom, String commitIdTo);

@@ -31,6 +31,7 @@
         <result property="lastCommitId" column="last_commit_id" jdbcType="VARCHAR" javaType="String"/>
         <result property="publishingEnabled" column="publishing_enabled" javaType="Integer" jdbcType="INTEGER"/>
         <result property="publishingStatusMessage" column="publishing_status_message" jdbcType="VARCHAR" javaType="String"/>
+        <result property="lastVerifiedGitlogCommitId" column="last_verified_gitlog_commit_id" jdbcType="VARCHAR" javaType="String"/>
     </resultMap>
 
     <parameterMap id="SiteFeedMapParams" type="org.craftercms.studio.api.v1.dal.SiteFeed">
@@ -42,6 +43,7 @@
         <parameter property="lastCommitId" jdbcType="VARCHAR"/>
         <parameter property="publishingEnabled" jdbcType="INTEGER"/>
         <parameter property="publishingStatusMessage" jdbcType="VARCHAR" />
+        <parameter property="lastVerifiedGitlogCommitId" jdbcType="VARCHAR" />
     </parameterMap>
 
     <select id="getSites" resultMap="SiteFeedMap">
@@ -112,5 +114,9 @@
 
     <update id="updatePublishingStatusMessage" parameterType="java.util.Map">
         UPDATE site SET publishing_status_message = #{message} WHERE site_id = #{siteId}
+    </update>
+
+    <update id="updateLastVerifiedGitlogCommitId" parameterType="java.util.Map">
+        UPDATE site SET last_verified_gitlog_commit_id = #{commitId} WHERE site_id = #{siteId}
     </update>
 </mapper>
