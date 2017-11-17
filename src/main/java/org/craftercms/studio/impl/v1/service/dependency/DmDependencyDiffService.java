@@ -34,6 +34,11 @@ public class DmDependencyDiffService extends AbstractRegistrableService {
 
     private static final Logger logger = LoggerFactory.getLogger(DmDependencyDiffService.class);
 
+    protected DmDependencyService dependencyService;
+
+    public DmDependencyService getDependencyService() { return dependencyService; }
+    public void setDependencyService(DmDependencyService dependencyService) { this.dependencyService = dependencyService; }
+
     @Override
     public void register() {
         getServicesManager().registerService(DmDependencyDiffService.class, this);
@@ -87,8 +92,7 @@ public class DmDependencyDiffService extends AbstractRegistrableService {
 	 * @throws ServiceException
 	 */
 	protected List<String> findDependencies(String site, String sandbox, String relativePath, boolean isRecursive, List<String> dependencies) throws ServiceException{
-        DmDependencyService dmDependencyService = getService(DmDependencyService.class);
-        List<String> dependenciesFromDoc = dmDependencyService.getDependencyPaths(site, relativePath);
+        List<String> dependenciesFromDoc = dependencyService.getDependencyPaths(site, relativePath);
         dependencies.addAll(dependenciesFromDoc);
         if(isRecursive){
             for(String dependency:dependenciesFromDoc){

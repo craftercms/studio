@@ -17,7 +17,6 @@
  ******************************************************************************/
 package org.craftercms.studio.impl.v1.service.workflow;
 
-import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Date;
@@ -1724,7 +1723,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                     }
                     submitPackPaths = submitpackage.getPaths();
 
-                    deleteOperation = new PreSubmitDeleteOperation(this, new HashSet<String>(itemsToDelete), context, rescheduledUris);
+                    deleteOperation = new PreSubmitDeleteOperation(this, new HashSet<String>(allItems), context, rescheduledUris);
                     removeChildFromSubmitPackForDelete(submitPackPaths);
                     for (String deleteCandidate : allItems) {
                         //_cacheManager.invalidateAndRemoveFromQueue(deleteCandidate, site);

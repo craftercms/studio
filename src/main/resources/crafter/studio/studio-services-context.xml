@@ -248,6 +248,11 @@
         <property name="ignoreDependenciesRules" value="#{'${dmDependenciesService.ignoreDependenciesRules}'.split(',')}"/>
         <property name="enableManualDependencyApproving" value="${dmDependenciesService.enableManualDependencyApproving}"/>
         <property name="submitToApproveDependencyRule" ref="studioSubmitToApproveDependencyRule"/>
+        <property name="dependencyDiffService" ref="cstudioDmDependencyDiffService" />
+    </bean>
+
+    <bean id="cstudioDmDependencyDiffService" class="org.craftercms.studio.impl.v1.service.dependency.DmDependencyDiffService">
+        <property name="dependencyService" ref="cstudioDmDependencyService" />
     </bean>
 
     <bean id="cstudioObjectStateService" class="org.craftercms.studio.impl.v1.service.objectstate.ObjectStateServiceImpl"

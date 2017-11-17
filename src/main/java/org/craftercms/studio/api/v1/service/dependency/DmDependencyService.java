@@ -20,6 +20,7 @@ package org.craftercms.studio.api.v1.service.dependency;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.DmDependencyTO;
 import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.impl.v1.service.dependency.DmDependencyDiffService;
 import org.dom4j.Document;
 
 import java.io.InputStream;
@@ -120,14 +121,14 @@ public interface DmDependencyService {
 
     void updateDependencies(String site,String path,String state);
 
-	//public Set<DmDependencyTO> getDeleteDependencies(String site,
-	//		String sourceContentPath, String dependencyPath) throws ServiceException;
+	Set<DmDependencyTO> getDeleteDependencies(String site,
+			String sourceContentPath, String dependencyPath) throws ServiceException;
 
 	//public List<String> extractDependenciesFromDocument(String site,
 	//		Document doc) throws ServiceException ;
 
-	//public List<String> getRemovedDependenices(DmDependencyDiffService.DiffRequest diffRequest,
-	//		boolean b) throws ServiceException;
+	List<String> getRemovedDependenices(DmDependencyDiffService.DiffRequest diffRequest,
+			boolean b) throws ServiceException;
 
     /**
      * Replace dependencies in the document based on the values in the Map original,target
@@ -158,7 +159,7 @@ public interface DmDependencyService {
 
     public List<String> getDependencyPaths(String site, String path);
 
-	//Set<DmDependencyTO> getDeleteDependencies(String site, String sourceContentPath, String dependencyPath, boolean isLiveRepo) throws ServiceException;
+	Set<DmDependencyTO> getDeleteDependencies(String site, String sourceContentPath, String dependencyPath, boolean isLiveRepo) throws ServiceException;
 
     List<String> getDependantPaths(String site, String path);
 
