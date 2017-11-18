@@ -18,7 +18,6 @@
 package org.craftercms.studio.api.v1.service.content;
 
 import java.io.InputStream;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -284,4 +283,5 @@ public interface ContentService {
     double reorderItems(String site, String relativePath, String before, String after, String orderName) throws ServiceException;
 
     boolean renameBulk(String site, String path, String targetPath, boolean createFolder);
+
 }

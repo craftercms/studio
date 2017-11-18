@@ -1229,6 +1229,82 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
         dependencyMapper.deleteDependenciesForSiteAndPath(params);
     }
 
+    @Override
+    @ValidateParams
+    public Set<DmDependencyTO> getDeleteDependencies(@ValidateStringParam(name = "site") String site,
+                                                     @ValidateStringParam(name = "sourceContentPath") String sourceContentPath,
+                                                     @ValidateStringParam(name = "dependencyPath") String dependencyPath, boolean isLiveRepo) throws ServiceException {
+        Set<DmDependencyTO> dependencies = new HashSet<DmDependencyTO>();
+        if(sourceContentPath.endsWith(DmConstants.XML_PATTERN) && dependencyPath.endsWith(DmConstants.XML_PATTERN)){
+            List<DeleteDependencyConfigTO> deleteAssociations = getDeletePatternConfig(site, sourceContentPath,isLiveRepo);
+            DmDependencyTO dmDependencyTo = getDependencies(site, dependencyPath, false, true);
+            if (dmDependencyTo != null) {
+                //TODO are pages also required?
+                List<DmDependencyTO> dependencyTOItems = dmDependencyTo.getDirectDependencies();//documents,assets,components
+                for (DmDependencyTO dependency : dependencyTOItems) {
+                    String assocFilePath = dependency.getUri();
+                    for (DeleteDependencyConfigTO deleteAssoc : deleteAssociations) {
+                        if (assocFilePath.matches(deleteAssoc.getPattern())) {
+                            if (contentService.contentExists(site, assocFilePath)) {
+                                dependencies.add(dependency);
+                                dependency.setDeleteEmptyParentFolder(deleteAssoc.isRemoveEmptyFolder());
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return dependencies;
+    }
+
+    @Override
+    @ValidateParams
+    public Set<DmDependencyTO> getDeleteDependencies(@ValidateStringParam(name = "site") String site,
+                                                     @ValidateStringParam(name = "sourceContentPath") String sourceContentPath,
+                                                     @ValidateStringParam(name = "dependencyPath") String dependencyPath) throws ServiceException {
+        return getDeleteDependencies(site, sourceContentPath, dependencyPath, false);
+    }
+
+    protected List<DeleteDependencyConfigTO> getDeletePatternConfig(String site, String relativePath,boolean isInLiveRepo) throws ServiceException{
+        List<DeleteDependencyConfigTO> deleteAssociations  = new ArrayList<DeleteDependencyConfigTO>();
+        ContentItemTO dependencyItem = contentService.getContentItem(site, relativePath, 0);
+        String contentType = dependencyItem.getContentType();
+        deleteAssociations  = servicesConfig.getDeleteDependencyPatterns(site, contentType);
+        return deleteAssociations;
+    }
+
+    protected List<DeleteDependencyConfigTO> getDeletePatternConfig(String site, String relativePath) throws ServiceException{
+        return getDeletePatternConfig(site,relativePath,false);
+    }
+
+    @Override
+    public List<String> getRemovedDependenices(DmDependencyDiffService.DiffRequest diffRequest,
+                                               boolean matchDeletePattern) throws ServiceException {
+        DmDependencyDiffService.DiffResponse diffResponse = dependencyDiffService.diff(diffRequest);
+        List<String> removedDep = diffResponse.getRemovedDependenices();
+        if(matchDeletePattern){
+            removedDep = filterDependenicesMatchingDeletePattern(diffRequest.getSite(), diffRequest.getSourcePath(),diffResponse.getRemovedDependenices());
+        }
+        return removedDep;
+    }
+
+    protected List<String> filterDependenicesMatchingDeletePattern(String site, String sourcePath, List<String> dependencies) throws ServiceException{
+        List<String> matchingDep = new ArrayList<String>();
+        if(sourcePath.endsWith(DmConstants.XML_PATTERN) && sourcePath.endsWith(DmConstants.XML_PATTERN)){
+            List<DeleteDependencyConfigTO> deleteAssociations = getDeletePatternConfig(site,sourcePath);
+            if (deleteAssociations != null && deleteAssociations.size() > 0) {
+                for(String dependency:dependencies){
+                    for (DeleteDependencyConfigTO deleteAssoc : deleteAssociations) {
+                        if (dependency.matches(deleteAssoc.getPattern())) {
+                            matchingDep.add(dependency);
+                        }
+                    }
+                }
+            }
+        }
+        return matchingDep;
+    }
+
     public ContentService getContentService() { return contentService; }
     public void setContentService(ContentService contentService) { this.contentService = contentService; }
 
@@ -1247,12 +1323,16 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
     public SubmitToApproveDependencyRule getSubmitToApproveDependencyRule() { return submitToApproveDependencyRule; }
     public void setSubmitToApproveDependencyRule(SubmitToApproveDependencyRule submitToApproveDependencyRule) { this.submitToApproveDependencyRule = submitToApproveDependencyRule; }
 
+    public DmDependencyDiffService getDependencyDiffService() { return dependencyDiffService; }
+    public void setDependencyDiffService(DmDependencyDiffService dependencyDiffService) { this.dependencyDiffService = dependencyDiffService; }
+
     protected ContentService contentService;
     protected ServicesConfig servicesConfig;
     protected org.craftercms.studio.api.v1.service.objectstate.ObjectStateService objectStateService;
     protected List<String> ignoreDependenciesRules = new ArrayList<>();
     protected boolean enableManualDependencyApproving = false;
     protected SubmitToApproveDependencyRule submitToApproveDependencyRule;
+    protected DmDependencyDiffService dependencyDiffService;
 
     @Autowired
     protected DependencyMapper dependencyMapper;

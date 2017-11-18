@@ -18,10 +18,11 @@ package org.craftercms.studio.api.v1.to;
 
 
 import org.craftercms.studio.api.v1.service.content.ContentService;
-import org.craftercms.studio.api.v1.service.content.DmContentService;
+import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 
 import java.io.Serializable;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 /**
@@ -46,12 +47,15 @@ public class GoLiveDeleteCandidates implements Serializable {
 
     protected ContentService contentService;
 
+    protected ObjectStateService objectStateService;
+
     protected String _site;
 
     //protected String _sub;
 
-    public GoLiveDeleteCandidates(String site, ContentService contentService){
+    public GoLiveDeleteCandidates(String site, ContentService contentService, ObjectStateService objectStateService){
         this.contentService = contentService;
+        this.objectStateService = objectStateService;
         this._site = site;
         //this._sub = sub;
     }
@@ -79,7 +83,13 @@ public class GoLiveDeleteCandidates implements Serializable {
      * @return
      */
     public boolean addDependency(String uri){
-
+        if (contentService.contentExists(_site, uri)){
+            if(!objectStateService.isNew(_site, uri)){
+                _liveDependencyItems.add(uri);
+            }
+            _dependencies.add(uri);
+            return true;
+        }
         return false;
     }
 
@@ -89,7 +99,18 @@ public class GoLiveDeleteCandidates implements Serializable {
      * @param uri
      */
     public void addDependencyParentFolder(String uri){
-
+        if (contentService.contentExists(_site, uri)){
+            if(!objectStateService.isNew(_site, uri)){
+                for (Iterator iterator = _liveDependencyItems.iterator(); iterator.hasNext();) {
+                    String liveItem = (String) iterator.next();
+                    if(liveItem.startsWith(uri)){
+                        iterator.remove();
+                    }
+                }
+                _liveDependencyItems.add(uri);
+            }
+            _dependencies.add(uri);
+        }
     }
 
     public Set<String> getPaths() {
