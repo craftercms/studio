@@ -1513,7 +1513,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                     }
                     submitPackPaths = submitpackage.getPaths();
 
-                    deleteOperation = new PreSubmitDeleteOperation(this, new HashSet<String>(itemsToDelete), context, rescheduledUris);
+                    deleteOperation = new PreSubmitDeleteOperation(this, new HashSet<String>(allItems), context, rescheduledUris);
                     removeChildFromSubmitPackForDelete(submitPackPaths);
                 }
                 Map<String, String> submittedBy = new HashMap<>();

@@ -177,6 +177,11 @@
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager" />
         <property name="dependencyResolver" ref="studioDependencyResolver" />
+        <property name="dependencyDiffService" ref="cstudioDependencyDiffService" />
+    </bean>
+
+    <bean id="cstudioDependencyDiffService" class="org.craftercms.studio.impl.v1.service.dependency.DependencyDiffServiceImpl">
+        <property name="dependencyService" ref="cstudioDmDependencyService" />
     </bean>
 
     <bean id="cstudioObjectStateService" class="org.craftercms.studio.impl.v1.service.objectstate.ObjectStateServiceImpl"

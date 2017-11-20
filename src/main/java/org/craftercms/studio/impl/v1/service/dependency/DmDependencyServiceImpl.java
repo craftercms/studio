@@ -38,6 +38,7 @@ import org.craftercms.studio.api.v1.service.AbstractRegistrableService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
+import org.craftercms.studio.api.v1.service.dependency.DependencyDiffService;
 import org.craftercms.studio.api.v1.service.dependency.DependencyResolver;
 import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
@@ -80,6 +81,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
     protected StudioConfiguration studioConfiguration;
     protected ObjectMetadataManager objectMetadataManager;
     protected DependencyResolver dependencyResolver;
+    protected DependencyDiffService dependencyDiffService;
 
     @Autowired
     protected DependencyMapper dependencyMapper;
@@ -1005,6 +1007,70 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
         dependencyMapper.deleteDependenciesForSiteAndPath(params);
     }
 
+    @Override
+    @ValidateParams
+    public Set<DmDependencyTO> getDeleteDependencies(@ValidateStringParam(name = "site") String site,
+                                                     @ValidateStringParam(name = "sourceContentPath") String sourceContentPath,
+                                                     @ValidateStringParam(name = "dependencyPath") String dependencyPath) throws ServiceException {
+        Set<DmDependencyTO> dependencies = new HashSet<DmDependencyTO>();
+        if(sourceContentPath.endsWith(DmConstants.XML_PATTERN) && dependencyPath.endsWith(DmConstants.XML_PATTERN)){
+            List<DeleteDependencyConfigTO> deleteAssociations = getDeletePatternConfig(site, sourceContentPath);
+            DmDependencyTO dmDependencyTo = getDependencies(site, dependencyPath, false, true);
+            if (dmDependencyTo != null) {
+                //TODO are pages also required?
+                List<DmDependencyTO> dependencyTOItems = dmDependencyTo.getDirectDependencies();//documents,assets,components
+                for (DmDependencyTO dependency : dependencyTOItems) {
+                    String assocFilePath = dependency.getUri();
+                    for (DeleteDependencyConfigTO deleteAssoc : deleteAssociations) {
+                        if (assocFilePath.matches(deleteAssoc.getPattern())) {
+                            if (contentService.contentExists(site, assocFilePath)) {
+                                dependencies.add(dependency);
+                                dependency.setDeleteEmptyParentFolder(deleteAssoc.isRemoveEmptyFolder());
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return dependencies;
+    }
+
+    protected List<DeleteDependencyConfigTO> getDeletePatternConfig(String site, String relativePath) throws ServiceException{
+        List<DeleteDependencyConfigTO> deleteAssociations  = new ArrayList<DeleteDependencyConfigTO>();
+        ContentItemTO dependencyItem = contentService.getContentItem(site, relativePath, 0);
+        String contentType = dependencyItem.getContentType();
+        deleteAssociations  = servicesConfig.getDeleteDependencyPatterns(site, contentType);
+        return deleteAssociations;
+    }
+
+    @Override
+    public List<String> getRemovedDependenices(DependencyDiffService.DiffRequest diffRequest,
+                                               boolean matchDeletePattern) throws ServiceException {
+        DependencyDiffService.DiffResponse diffResponse = dependencyDiffService.diff(diffRequest);
+        List<String> removedDep = diffResponse.getRemovedDependencies();
+        if(matchDeletePattern){
+            removedDep = filterDependenicesMatchingDeletePattern(diffRequest.getSite(), diffRequest.getSourcePath(),diffResponse.getRemovedDependencies());
+        }
+        return removedDep;
+    }
+
+    protected List<String> filterDependenicesMatchingDeletePattern(String site, String sourcePath, List<String> dependencies) throws ServiceException{
+        List<String> matchingDep = new ArrayList<String>();
+        if(sourcePath.endsWith(DmConstants.XML_PATTERN) && sourcePath.endsWith(DmConstants.XML_PATTERN)){
+            List<DeleteDependencyConfigTO> deleteAssociations = getDeletePatternConfig(site,sourcePath);
+            if (deleteAssociations != null && deleteAssociations.size() > 0) {
+                for(String dependency:dependencies){
+                    for (DeleteDependencyConfigTO deleteAssoc : deleteAssociations) {
+                        if (dependency.matches(deleteAssoc.getPattern())) {
+                            matchingDep.add(dependency);
+                        }
+                    }
+                }
+            }
+        }
+        return matchingDep;
+    }
+
     public List<String> getIgnoreDependenciesRules() {
         return Arrays.asList(studioConfiguration.getProperty(DEPENDENCIES_IGNORE_DEPENDENCIES_RULES).split(","));
     }
@@ -1034,4 +1100,7 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
 
     public DependencyResolver getDependencyResolver() { return dependencyResolver; }
     public void setDependencyResolver(DependencyResolver dependencyResolver) { this.dependencyResolver = dependencyResolver; }
+
+    public DependencyDiffService getDependencyDiffService() { return dependencyDiffService; }
+    public void setDependencyDiffService(DependencyDiffService dependencyDiffService) { this.dependencyDiffService = dependencyDiffService; }
 }

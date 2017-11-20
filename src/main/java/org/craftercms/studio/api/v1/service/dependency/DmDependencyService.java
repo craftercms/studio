@@ -124,4 +124,8 @@ public interface DmDependencyService {
      * @return A unmodifiable Set of ContentItemTO with all dependencies items.
      */
     Set<ContentItemTO> getDependenciesItems(String site, String path);
+
+    Set<DmDependencyTO> getDeleteDependencies(String site, String sourceContentPath, String dependencyPath) throws ServiceException;
+
+    List<String> getRemovedDependenices(DependencyDiffService.DiffRequest diffRequest, boolean b) throws ServiceException;
 }

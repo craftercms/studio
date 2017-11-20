@@ -19,8 +19,6 @@ package org.craftercms.studio.impl.v1.service.content;
 
 import java.io.*;
 import java.io.InputStream;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -48,6 +46,7 @@ import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.activity.ActivityService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.*;
+import org.craftercms.studio.api.v1.service.dependency.DependencyDiffService;
 import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
 import org.craftercms.studio.api.v1.service.event.EventService;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
@@ -1853,7 +1852,7 @@ public class ContentServiceImpl implements ContentService {
     @ValidateParams
     public GoLiveDeleteCandidates getDeleteCandidates(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "relativePath") String relativePath) throws ServiceException {
         ContentItemTO contentItem = getContentItem(site, relativePath);
-        GoLiveDeleteCandidates deletedItems = new GoLiveDeleteCandidates(site, this);
+        GoLiveDeleteCandidates deletedItems = new GoLiveDeleteCandidates(site, this, objectStateService);
         if (contentItem != null) {
             childDeleteItems(site, contentItem, deletedItems);
             //update summary for all uri's delete
@@ -1876,9 +1875,51 @@ public class ContentServiceImpl implements ContentService {
                     childDeleteItems(site, child, items);
                 }
             }
+        } else {
+            addDependenciesToDelete(site, contentItem.getUri(), contentItem.getUri(), items);
+            addRemovedDependenicesToDelete(site, contentItem.getUri(), items);
         }
         //add the child path
         items.getPaths().add(contentItem.getUri());
+    }
+
+    protected void addDependenciesToDelete(String site, String sourceContentPath, String dependencyPath, GoLiveDeleteCandidates candidates) throws ServiceException {
+        Set<String> dependencyParentFolder = new HashSet<String>();
+        //add dependencies as well
+        Set<DmDependencyTO> dmDependencyTOs = dependencyService.getDeleteDependencies(site, sourceContentPath, dependencyPath);
+        for (DmDependencyTO dependency : dmDependencyTOs) {
+            if (candidates.addDependency(dependency.getUri())) {
+                logger.debug("Added to delete" + dependency.getUri());
+                if (dependency.isDeleteEmptyParentFolder()) {
+                    dependencyParentFolder.add(ContentUtils.getParentUrl(dependency.getUri()));
+                }
+            }
+            addDependenciesToDelete(site, sourceContentPath, dependency.getUri(), candidates); //recursively add dependencies of the dependency
+        }
+
+        //Find if any folder would get empty if remove the items and add just the folder
+        for (String parentFolderToDelete : dependencyParentFolder) {
+            RepositoryItem[] children = _contentRepository.getContentChildren(site, parentFolderToDelete);
+            List<String> childItems = new ArrayList<String>();
+            for (RepositoryItem child : children) {
+                childItems.add(child.path + "/" + child.name);
+            }
+            if (candidates.getAllItems().containsAll(childItems)) {
+                logger.debug("Added parentFolder for delete" + parentFolderToDelete);
+                candidates.addDependencyParentFolder(parentFolderToDelete);
+            }
+        }
+    }
+
+    protected void addRemovedDependenicesToDelete(String site, String relativePath, GoLiveDeleteCandidates candidates) throws ServiceException {
+        if (relativePath.endsWith(DmConstants.XML_PATTERN) && !objectStateService.isNew(site, relativePath)) {
+            DependencyDiffService.DiffRequest diffRequest = new DependencyDiffService.DiffRequest(site, relativePath, null, null, site, true);
+            List<String> deleted = dependencyService.getRemovedDependenices(diffRequest, true);
+            logger.debug("Removed dependenices for path[" + relativePath + "] : " + deleted);
+            for (String dependency : deleted) {
+                candidates.getLiveDependencyItems().add(dependency);
+            }
+        }
     }
 
     @Override
