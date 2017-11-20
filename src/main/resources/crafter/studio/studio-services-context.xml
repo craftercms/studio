@@ -1007,6 +1007,8 @@
         <property name="scriptsClassPath" value="#{'${crafter.studio.scripts.groovy.classpath}'.split(',')}"/>
     </bean>
 
+    <bean id="filterMultipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver"/>
+
     <import resource="classpath:crafter/studio/cache/studio-cache-context.xml"/>
     <import resource="classpath:crafter/studio/studio-cluster-config.xml"/>
     <import resource="classpath:crafter/studio/studio-security-context.xml"/>
