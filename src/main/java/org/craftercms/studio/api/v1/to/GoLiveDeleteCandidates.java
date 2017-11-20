@@ -18,9 +18,11 @@ package org.craftercms.studio.api.v1.to;
 
 
 import org.craftercms.studio.api.v1.service.content.ContentService;
+import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 
 import java.io.Serializable;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 /**
@@ -35,22 +37,25 @@ public class GoLiveDeleteCandidates implements Serializable {
 
     private static final long serialVersionUID = -8844670158916016139L;
     // hold the page paths
-    protected Set<String> _paths = new HashSet<String>();
+    protected Set<String> paths = new HashSet<String>();
 
     //holds all the dependencies of the page and the child pages
-    protected Set<String> _dependencies = new HashSet<String>();
+    protected Set<String> dependencies = new HashSet<String>();
 
     //holds just the live dependenicies of page and the child pages
-    protected Set<String> _liveDependencyItems = new HashSet<String>(); //live items that hass been removed
+    protected Set<String> liveDependencyItems = new HashSet<String>(); //live items that hass been removed
 
     protected ContentService contentService;
 
-    protected String _site;
+    protected String site;
+
+    protected ObjectStateService objectStateService;
 
 
-    public GoLiveDeleteCandidates(String site, ContentService contentService){
+    public GoLiveDeleteCandidates(String site, ContentService contentService, ObjectStateService objectStateService){
         this.contentService = contentService;
-        this._site = site;
+        this.objectStateService = objectStateService;
+        this.site = site;
     }
 
     /**
@@ -60,11 +65,11 @@ public class GoLiveDeleteCandidates implements Serializable {
      */
     public Set<String> getAllItems(){
         Set<String> all = new HashSet<String>();
-        if(!_paths.isEmpty()){
-            all.addAll(_paths);
+        if(!paths.isEmpty()){
+            all.addAll(paths);
         }
-        if(!_dependencies.isEmpty()){
-            all.addAll(_dependencies);
+        if(!dependencies.isEmpty()){
+            all.addAll(dependencies);
         }
         return all;
     }
@@ -76,7 +81,13 @@ public class GoLiveDeleteCandidates implements Serializable {
      * @return true if dependency added
      */
     public boolean addDependency(String uri){
-
+        if (contentService.contentExists(site, uri)){
+            if(!objectStateService.isNew(site, uri)){
+                liveDependencyItems.add(uri);
+            }
+            dependencies.add(uri);
+            return true;
+        }
         return false;
     }
 
@@ -86,26 +97,37 @@ public class GoLiveDeleteCandidates implements Serializable {
      * @param uri
      */
     public void addDependencyParentFolder(String uri){
-
+        if (contentService.contentExists(site, uri)){
+            if(!objectStateService.isNew(site, uri)){
+                for (Iterator iterator = liveDependencyItems.iterator(); iterator.hasNext();) {
+                    String liveItem = (String) iterator.next();
+                    if(liveItem.startsWith(uri)){
+                        iterator.remove();
+                    }
+                }
+                liveDependencyItems.add(uri);
+            }
+            dependencies.add(uri);
+        }
     }
 
     public Set<String> getPaths() {
-        return _paths;
+        return paths;
     }
 
     public Set<String> getLiveDependencyItems() {
-        return _liveDependencyItems;
+        return liveDependencyItems;
     }
 
     public void setLiveDependencyItems(Set<String> liveItems) {
-        this._liveDependencyItems = liveItems;
+        this.liveDependencyItems = liveItems;
     }
 
     public Set<String> getDependencies() {
-        return _dependencies;
+        return dependencies;
     }
 
     public void setDependencies(Set<String> dependencies) {
-        this._dependencies = dependencies;
+        this.dependencies = dependencies;
     }
 }
