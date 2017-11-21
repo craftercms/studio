@@ -1,11 +1,6 @@
-import org.apache.commons.fileupload.servlet.ServletFileUpload
-import org.apache.commons.fileupload.disk.DiskFileItemFactory
 import org.apache.commons.io.FilenameUtils
+import org.springframework.web.multipart.MultipartRequest
 
-def site = null
-def profileId = null
-def filename = null
-def file = null
 def elasticTranscoderService = applicationContext["studioElasticTranscoderService"]
 
 response.setHeader("Content-Type", "text/html")
@@ -18,46 +13,22 @@ def sendError = { msg ->
         writer.flush()
 }
 
-if (ServletFileUpload.isMultipartContent(request)) {
-    try {
-        def factory = new DiskFileItemFactory()
-        def upload = new ServletFileUpload(factory)
-        def items = upload.parseRequest(request)
+if (request instanceof MultipartRequest) {
+    def site = params.site
+    def profileId = params.profileId
+    def uploadedFile = request.getFile("file")
+    filename = uploadedFile.getOriginalFilename()
 
-        items.each { item ->
-            if (item.formField) {
-                switch (item.fieldName) {
-                    case "site":
-                        site = item.string
-                        break
-                    case "profile":
-                        profileId = item.string
-                        break
-                }
-            } else {
-                filename = item.name
-
-                def filenameNoExt = FilenameUtils.removeExtension(filename)
-                def ext = FilenameUtils.getExtension(filename)
-
-                file = File.createTempFile(filenameNoExt, "." + ext)
-
-                item.write(file)
-            }
-        }
-    } catch (e) {
-        logger.error("Parsing of multi-part request failed", e)
-
-        sendError("Parsing of multi-part request failed")
-
-        return
-    }
+    def filenameNoExt = FilenameUtils.removeExtension(filename)
+    def ext = FilenameUtils.getExtension(filename)
+    def tmpFile = File.createTempFile(filenameNoExt, "." + ext)
+    uploadedFile.transferTo(tmpFile)
 
     def job
     try {
-        job = elasticTranscoderService.transcodeFile(site, profileId, filename, file)
+        job = elasticTranscoderService.transcodeFile(site, profileId, filename, tmpFile)
     } catch (e) {
-        logger.error("Transcoding of file ${file} failed", e)
+        logger.error("Transcoding of file ${tmpFile} failed", e)
 
         sendError("Transcoding of file failed")
 
