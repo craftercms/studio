@@ -15,7 +15,7 @@ def sendError = { msg ->
 
 if (request instanceof MultipartRequest) {
     def site = params.site
-    def profileId = params.profileId
+    def profileId = params.profile
     def uploadedFile = request.getFile("file")
     filename = uploadedFile.getOriginalFilename()
 
