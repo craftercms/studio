@@ -27,11 +27,7 @@
     </bean>
 
     <bean id="crafter.csrfFilter" class="org.springframework.security.web.csrf.CsrfFilter">
-        <constructor-arg>
-            <bean class="org.springframework.security.web.csrf.LazyCsrfTokenRepository">
-                <constructor-arg ref="crafter.csrfTokenRepository"/>
-            </bean>
-        </constructor-arg>
+        <constructor-arg ref="crafter.csrfTokenRepository"/>
     </bean>
 
 </beans>
