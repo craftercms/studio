@@ -1,17 +1,17 @@
 /*******************************************************************************
  * Crafter Studio Web-content authoring solution
  *     Copyright (C) 2007-2016 Crafter Software Corporation.
- * 
+ *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
  *     the Free Software Foundation, either version 3 of the License, or
  *     (at your option) any later version.
- * 
+ *
  *     This program is distributed in the hope that it will be useful,
  *     but WITHOUT ANY WARRANTY; without even the implied warranty of
  *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *     GNU General Public License for more details.
- * 
+ *
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
@@ -20,11 +20,11 @@ package org.craftercms.studio.impl.v1.repository.alfresco;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.net.URLDecoder;
+import java.security.*;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -39,6 +39,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.activation.MimetypesFileTypeMap;
 import javax.annotation.PreDestroy;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import javax.servlet.http.HttpSession;
 
 import org.apache.chemistry.opencmis.client.api.*;
@@ -54,18 +58,28 @@ import org.apache.chemistry.opencmis.commons.enums.VersioningState;
 import org.apache.chemistry.opencmis.commons.exceptions.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpStatus;
-import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
-import org.apache.commons.httpclient.methods.DeleteMethod;
-import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.httpclient.methods.InputStreamRequestEntity;
-import org.apache.commons.httpclient.methods.PostMethod;
+
 import org.apache.commons.httpclient.util.URIUtil;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpDelete;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.utils.HttpClientUtils;
+import org.apache.http.conn.ssl.AllowAllHostnameVerifier;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.conn.ssl.SSLContexts;
+import org.apache.http.entity.BasicHttpEntity;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.craftercms.commons.http.RequestContext;
 import org.craftercms.studio.api.v1.ebus.RepositoryEventContext;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
@@ -93,17 +107,14 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
 
     private static final TypeReference ALFRESCO_RESPONSE_TYPE = new TypeReference<Map<String, Object>>() {};
 
-    protected HttpClient httpClient;
     protected ObjectMapper objectMapper;
 
     public AlfrescoContentRepository() {
-        httpClient = new HttpClient(new MultiThreadedHttpConnectionManager());
         objectMapper = new ObjectMapper();
     }
 
     @PreDestroy
     public void destroy() {
-        ((MultiThreadedHttpConnectionManager)httpClient.getHttpConnectionManager()).shutdown();
     }
 
     @Override
@@ -161,8 +172,8 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
         logger.debug("Move from {0} -> to {1}", fromPath, toPath);
         String parentFromPath = fromPath.substring(0, fromPath.lastIndexOf("/"));
         String parentToPath = toPath.substring(0, toPath.lastIndexOf("/"));
-        
-        // If where we are moving is a file, we need the parent.  
+
+        // If where we are moving is a file, we need the parent.
         // Alfresco move operations use parent path as the target.
         String targetPath = toPath;
         if(targetPath.endsWith(".xml")) {
@@ -175,29 +186,29 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
             CmisObject sourceCmisObject = session.getObjectByPath(fromPath);
             CmisObject targetCmisObject =  null;
 
-            try { 
-                targetCmisObject = session.getObjectByPath(targetPath); 
+            try {
+                targetCmisObject = session.getObjectByPath(targetPath);
                 destFolderExists = true;
             }
             catch(CmisObjectNotFoundException notAnError) {
-               // the item isn't here yet, we're doing a move, not a rename get the parent
-                targetCmisObject = session.getObjectByPath(parentToPath); 
+                // the item isn't here yet, we're doing a move, not a rename get the parent
+                targetCmisObject = session.getObjectByPath(parentToPath);
                 isMoveLocation = true;
             }
-                
+
             ObjectType sourceType = sourceCmisObject.getType();
             ObjectType targetType = targetCmisObject.getType();
 
             if (BaseTypeId.CMIS_FOLDER.value().equals(targetType.getId())) {
                 Folder targetFolder = (Folder)targetCmisObject;
-                
+
                 if ("cmis:document".equals(sourceType.getId())) {
                     org.apache.chemistry.opencmis.client.api.Document sourceDocument =
                             (org.apache.chemistry.opencmis.client.api.Document)sourceCmisObject;
-                    
+
                     List<Folder> sourceParents = sourceDocument.getParents();
                     Folder sourceParent = (CollectionUtils.isEmpty(sourceParents) ? null : sourceParents.get(0));
-                    
+
                     if(sourceParent.getPath().equals(targetFolder.getPath()) ) {
                         // this is a rename only
                         String renamedFileName =  toPath.substring(toPath.lastIndexOf("/")+1);
@@ -208,8 +219,8 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
                         // this is a location move
                         String targetFileName = toPath.substring(toPath.lastIndexOf("/")+1);
 
-                        if(!targetFileName.contains(".xml") 
-                        || sourceDocument.getName().equals(targetFileName)) {
+                        if(!targetFileName.contains(".xml")
+                                || sourceDocument.getName().equals(targetFileName)) {
                             // this is a regular old move
                             logger.debug("Moving document {0} to {1}", sourceDocument.getPaths().get(0), targetFolder.getPath());
                             sourceDocument.move(sourceParent, targetFolder);
@@ -220,8 +231,8 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
                             sourceDocument.rename(targetFileName);
                             sourceDocument.move(sourceParent, targetFolder);
                         }
-                    }                    
-                } 
+                    }
+                }
                 else if ("cmis:folder".equals(sourceType.getId())) {
                     Folder sourceFolder = (Folder)sourceCmisObject;
                     Folder sourceParentFolder = sourceFolder.getFolderParent();
@@ -246,19 +257,19 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
                             logger.debug("Rename and moving folder {0} to {1}/{2}", sourceFolder.getPath(), targetFolder.getPath(), targetFolderName);
                             sourceFolder.rename(targetFolderName);
                             sourceFolder.move(sourceParentFolder, targetFolder);
-                        }   
+                        }
 
 
                     }
                 }
-                
+
                 session.clear();
                 result = true;
-            } 
+            }
             else {
                 logger.error("Move from {0} to {1} failed since target path is not folder.", fromPath, toPath);
             }
-        } 
+        }
         catch (CmisBaseException err) {
             logger.error("Error while moving content  from {0} to {1}", err, fromPath, toPath);
         }
@@ -268,7 +279,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
 
     @Override
     public boolean moveContent(String fromPath, String toPath, String newName) {
-       return moveContent(fromPath, toPath+"/"+newName);
+        return moveContent(fromPath, toPath+"/"+newName);
     }
 
     /**
@@ -306,13 +317,13 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
     public String createVersion(String path, String comment, boolean majorVersion) {
         long startTime = System.currentTimeMillis();
         String versionLabel = null;
-        if (majorVersion 
-        || (comment!=null && comment.startsWith("Reverted to content from version"))) {
+        if (majorVersion
+                || (comment!=null && comment.startsWith("Reverted to content from version"))) {
             // only major version will be created on demand. minor version is created on updates
             // OR The comment starts with Reverted.  Why?  Because autoversioning may be turned on
             // in the repo for any object SO any WRITE action causes a version.
             // Options here are to do what's above which makes an undesirable assumption about the
-            // layer above OR to turn on-and-off o versioning on every WRITE which is more complex 
+            // layer above OR to turn on-and-off o versioning on every WRITE which is more complex
             // for the repository. :-/
 
             Map<String, String> params = new HashMap<String, String>();
@@ -327,16 +338,16 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
                     ObjectType type = cmisObject.getBaseType();
                     if ("cmis:document".equals(type.getId())) {
                         org.apache.chemistry.opencmis.client.api.Document document =
-                            (org.apache.chemistry.opencmis.client.api.Document) cmisObject;
+                                (org.apache.chemistry.opencmis.client.api.Document) cmisObject;
                         ObjectId objId = null;
                         try {
-                             objId = document.checkOut();
+                            objId = document.checkOut();
                         } catch (CmisVersioningException ex) {
                             String pwcId = document.getVersionSeriesCheckedOutId();
                             objId = session.getObject(pwcId);
                         }
                         org.apache.chemistry.opencmis.client.api.Document workingCopy =
-                            (org.apache.chemistry.opencmis.client.api.Document) session.getObject(objId);
+                                (org.apache.chemistry.opencmis.client.api.Document) session.getObject(objId);
                         ContentStream contentStream = workingCopy.getContentStream();
                         objId = workingCopy.checkIn(majorVersion, null, contentStream, comment);
                         session.removeObjectFromCache(document.getId());
@@ -345,17 +356,17 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
                 }
             } catch (CmisBaseException err) {
                 logger.error("Error while creating new " + (majorVersion ? "major" : "minor") + " version for path " +
-                             path, err);
+                        path, err);
             }
         }
-        
+
         long duration = System.currentTimeMillis() - startTime;
         logger.debug("createVersion(path = {0}, majorVersion = {1}) ({2} ms)", path, majorVersion, duration);
         return versionLabel;
 
     }
 
-    /** 
+    /**
      * get the version history for an item
      * @param path - the path of the item
      */
@@ -371,7 +382,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
      * @param version - the path of the item
      */
     public InputStream getContentVersion(String path, String version)
-    throws ContentNotFoundException {
+            throws ContentNotFoundException {
 
         long startTime = System.currentTimeMillis();
         InputStream versionedContentStream = null;
@@ -412,7 +423,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
         return versionedContentStream;
     }
 
-    /** 
+    /**
      * revert a version (create a new version based on an old version)
      * @param path - the path of the item to "revert"
      * @param version - old version ID to base to version on
@@ -464,26 +475,30 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
     protected Map<String, Object> alfrescoGetRequest(String uri, Map<String, String> params) throws Exception {
         long startTime = System.currentTimeMillis();
         String serviceURL = buildAlfrescoRequestURL(uri, params);
-        GetMethod method = new GetMethod(serviceURL);
+        HttpGet method = new HttpGet(serviceURL);
 
         String ssoUsername = getSsoUsername();
         if (StringUtils.isNotEmpty(ssoUsername)) {
-            method.addRequestHeader(alfrescoExternalAuthHeaderName, ssoUsername);
+            method.addHeader(alfrescoExternalAuthHeaderName, ssoUsername);
         }
 
         logger.debug("Executing get to {0}", serviceURL);
 
+        HttpClient httpClient = null;
         try {
-            int status = httpClient.executeMethod(method);
+            HttpClientFactory factory = new HttpClientFactory(useSSL, keystoreFile, keystorePass, keystoreType);
+            httpClient = factory.getHttpsClient();
+            HttpResponse response = httpClient.execute(method);
 
-            logger.debug("Response status back from the server: {0}", status);
+            logger.debug("Response status back from the server: {0}", response.getStatusLine().getStatusCode());
 
-            return objectMapper.readValue(method.getResponseBodyAsStream(), ALFRESCO_RESPONSE_TYPE);
+            return objectMapper.readValue(response.getEntity().getContent(), ALFRESCO_RESPONSE_TYPE);
         } finally {
             long duration = System.currentTimeMillis() - startTime;
             logger.debug("alfrescoGetRequest(uri = {0}, params = {1}) ({2} ms)", uri, params, duration);
 
             method.releaseConnection();
+            HttpClientUtils.closeQuietly(httpClient);
         }
     }
 
@@ -493,35 +508,41 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
     protected Map<String, Object> alfrescoPostRequest(String uri, Map<String, String> params, InputStream body,
                                                       String bodyMimeType) throws Exception {
         long startTime = System.currentTimeMillis();
+
         String serviceURL = buildAlfrescoRequestURL(uri, params);
 
-        PostMethod method = new PostMethod(serviceURL);
-        method.setRequestEntity(new InputStreamRequestEntity(body, bodyMimeType));
+        HttpPost method = new HttpPost(serviceURL);
+        HttpEntity requestEntity = new StringEntity(IOUtils.toString(body), bodyMimeType, "UTF-8");
+        method.setEntity(requestEntity);
 
         String ssoUsername = getSsoUsername();
         if (StringUtils.isNotEmpty(ssoUsername)) {
-            method.addRequestHeader(alfrescoExternalAuthHeaderName, ssoUsername);
+            method.addHeader(alfrescoExternalAuthHeaderName, ssoUsername);
         }
 
         logger.debug("Executing post to {0}", serviceURL);
 
+        HttpClient httpClient = null;
         try {
-            int status = httpClient.executeMethod(method);
+            HttpClientFactory factory = new HttpClientFactory(useSSL, keystoreFile, keystorePass, keystoreType);
+            httpClient = factory.getHttpsClient();
+            HttpResponse response = httpClient.execute(method);
 
-            logger.debug("Response status back from the server: {0}", status);
+            logger.debug("Response status back from the server: {0}", response.getStatusLine().getStatusCode());
 
-            return objectMapper.readValue(method.getResponseBodyAsStream(), ALFRESCO_RESPONSE_TYPE);
+            return objectMapper.readValue(response.getEntity().getContent(), ALFRESCO_RESPONSE_TYPE);
         } finally {
             long duration = System.currentTimeMillis() - startTime;
             logger.debug("alfrescoPostRequest(uri = {0}, params = {1}, body = {2}, bodyMimeType = {3}) ({4} ms)",
-                         uri, params, "stream", bodyMimeType, duration);
+                    uri, params, "stream", bodyMimeType, duration);
 
             method.releaseConnection();
+            HttpClientUtils.closeQuietly(httpClient);
         }
     }
 
     /**
-     * build request URLs 
+     * build request URLs
      */
     protected String buildAlfrescoRequestURL(String uri, Map<String, String> params) throws Exception {
         String url = "";
@@ -547,7 +568,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
         if (StringUtils.isNotEmpty(ticket)) {
             url += (url.contains("?"))? "&alf_ticket=" + ticket: "?alf_ticket=" + ticket;
         }
-        
+
         return url;
     }
 
@@ -632,7 +653,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
             InputStream bodyStream = IOUtils.toInputStream(loginRequestBody, "UTF-8");
 
             Map<String, Object> result = alfrescoPostRequest(downloadURI, null, bodyStream,
-                                                             MediaType.APPLICATION_JSON_VALUE);
+                    MediaType.APPLICATION_JSON_VALUE);
             if (MapUtils.isNotEmpty(result)) {
                 Map<String, String> data = (Map<String, String>)result.get("data");
                 toRet = data.get("ticket");
@@ -663,14 +684,17 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
                 Map<String, String> params = new HashMap<>();
                 params.put("ticket", ticket);
 
-                GetMethod method = null;
+                HttpGet method = null;
                 String serviceURL;
+                HttpClient httpClient= null;
                 try {
                     serviceURL = buildAlfrescoRequestURL("/api/login/ticket/{ticket}", params);
-                    method = new GetMethod(serviceURL);
+                    method = new HttpGet(serviceURL);
 
-                    int status = httpClient.executeMethod(method);
-                    if (status == HttpStatus.SC_OK) {
+                    HttpClientFactory factory = new HttpClientFactory(useSSL, keystoreFile, keystorePass, keystorePass);
+                    httpClient = factory.getHttpsClient();
+                    HttpResponse response = httpClient.execute(method);
+                    if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
                         long duration = System.currentTimeMillis() - startTime;
 
                         logger.debug("validateTicket(ticket = {0}) ({1} ms)", ticket, duration);
@@ -683,6 +707,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
                     if (method != null) {
                         method.releaseConnection();
                     }
+                    HttpClientUtils.closeQuietly(httpClient);
                 }
 
                 long duration = System.currentTimeMillis() - startTime;
@@ -736,7 +761,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
                 ObjectType type = cmisObject.getType();
                 if ("cmis:document".equals(type.getId())) {
                     org.apache.chemistry.opencmis.client.api.Document document =
-                        (org.apache.chemistry.opencmis.client.api.Document) cmisObject;
+                            (org.apache.chemistry.opencmis.client.api.Document) cmisObject;
                     ContentStream contentStream = document.getContentStream();
                     inputStream = contentStream.getStream();
                 }
@@ -777,7 +802,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
 
                     if (BaseTypeId.CMIS_DOCUMENT.equals(child.getBaseTypeId())) {
                         org.apache.chemistry.opencmis.client.api.Document document =
-                            (org.apache.chemistry.opencmis.client.api.Document) child;
+                                (org.apache.chemistry.opencmis.client.api.Document) child;
                         item.path = document.getPaths().get(0);
                         Property<?> secundaryTypes = document.getProperty(PropertyIds.SECONDARY_OBJECT_TYPE_IDS);
                         if (secundaryTypes != null) {
@@ -907,7 +932,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
                 ObjectType type = cmisObject.getBaseType();
                 if (BaseTypeId.CMIS_DOCUMENT.value().equals(type.getId())) {
                     org.apache.chemistry.opencmis.client.api.Document doc =
-                        (org.apache.chemistry.opencmis.client.api.Document)cmisObject;
+                            (org.apache.chemistry.opencmis.client.api.Document)cmisObject;
                     if (doc.isVersionSeriesCheckedOut()) {
                         doc.cancelCheckOut();
                     }
@@ -939,7 +964,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
                 ObjectType type = cmisObject.getType();
                 if ("cmis:document".equals(type.getId())) {
                     org.apache.chemistry.opencmis.client.api.Document doc =
-                        (org.apache.chemistry.opencmis.client.api.Document)cmisObject;
+                            (org.apache.chemistry.opencmis.client.api.Document)cmisObject;
                     List<org.apache.chemistry.opencmis.client.api.Document> versionsCMIS = doc.getAllVersions();
                     String currentVersion = doc.getVersionLabel();
                     int temp = currentVersion.indexOf(".");
@@ -986,7 +1011,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
                 ObjectType type = cmisObject.getType();
                 if ("cmis:document".equals(type.getId())) {
                     org.apache.chemistry.opencmis.client.api.Document doc =
-                        (org.apache.chemistry.opencmis.client.api.Document)cmisObject;
+                            (org.apache.chemistry.opencmis.client.api.Document)cmisObject;
                     List<org.apache.chemistry.opencmis.client.api.Document> versionsCMIS = doc.getAllVersions();
                     if (versionsCMIS != null && versionsCMIS.size() > 0) {
                         for (org.apache.chemistry.opencmis.client.api.Document documentVersion : versionsCMIS) {
@@ -994,7 +1019,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
                                 ContentStream contentStream = documentVersion.getContentStream();
                                 ObjectId checkoutId = doc.checkOut();
                                 org.apache.chemistry.opencmis.client.api.Document checkedOutDoc =
-                                    (org.apache.chemistry.opencmis.client.api.Document)session.getObject(checkoutId);
+                                        (org.apache.chemistry.opencmis.client.api.Document)session.getObject(checkoutId);
 
                                 checkedOutDoc.checkIn(false, null, contentStream, comment);
                                 success = true;
@@ -1009,7 +1034,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
         }
         long duration = System.currentTimeMillis() - startTime;
         logger.debug("revertContentCMIS(fullPath = {0}, version = {1}, major = {2}, comment = {3}) ({4} ms) ",
-                     fullPath, version, major, comment, duration);
+                fullPath, version, major, comment, duration);
         return success;
     }
 
@@ -1147,7 +1172,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
                     Folder targetFolder = (Folder)targetCmisObject;
                     if ("cmis:document".equals(sourceType.getId())) {
                         org.apache.chemistry.opencmis.client.api.Document sourceDocument =
-                            (org.apache.chemistry.opencmis.client.api.Document)sourceCmisObject;
+                                (org.apache.chemistry.opencmis.client.api.Document)sourceCmisObject;
                         logger.debug("Coping document {0} to {1}", sourceDocument.getPaths().get(0), targetFolder.getPath());
                         copyDocument(targetFolder, newName, sourceDocument);
                     } else if ("cmis:folder".equals(sourceType.getId())) {
@@ -1165,29 +1190,29 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
                     session.clear();
                     long duration = System.currentTimeMillis() - startTime;
                     logger.debug("copyContentInternalCMIS(fromFullPath = {0}, toFullPath = {1}, isCut = {2}) ({3} ms)",
-                                 fromFullPath, toFullPath, isCut, duration);
+                            fromFullPath, toFullPath, isCut, duration);
                     return true;
                 } else {
                     logger.error((isCut ? "Move" : "Copy") + " failed since target path " + toFullPath +
-                                 " is not folder.");
+                            " is not folder.");
                 }
             } else {
                 if (sourceCmisObject == null) {
                     logger.error((isCut ? "Move" : "Copy") + " failed since source path " + fromFullPath +
-                                 " does not exist.");
+                            " does not exist.");
                 }
                 if (targetCmisObject == null) {
                     logger.error((isCut ? "Move" : "Copy") + " failed since target path " + toFullPath +
-                                 " does not exist.");
+                            " does not exist.");
                 }
             }
         } catch (CmisBaseException err) {
             logger.error("Error while " + (isCut ? "moving" : "copying") + " content from " + fromFullPath + " to " +
-                         toFullPath, err);
+                    toFullPath, err);
         }
         long duration = System.currentTimeMillis() - startTime;
         logger.debug("copyContentInternalCMIS(fromFullPath = {0}, toFullPath = {1}, isCut = {2}) ({3} ms)",
-                     fromFullPath, toFullPath, isCut, duration);
+                fromFullPath, toFullPath, isCut, duration);
         return result;
     }
 
@@ -1228,6 +1253,20 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
 
     protected Session createCMISSession(boolean alfrescoCMIS) {
         // Create a SessionFactory and set up the SessionParameter map
+
+        if (useSSL) {
+            SSLContext sc = null;
+            try {
+                sc = getSSLContext();
+                sc.init(null, new X509TrustManager[]{new HttpsTrustManager()}, new SecureRandom());
+
+            } catch (KeyManagementException | NoSuchAlgorithmException | CertificateException | IOException | KeyStoreException e) {
+                logger.error("Error initializing SSL context", e);
+            }
+            HttpsURLConnection.setDefaultHostnameVerifier(new AllowAllHostnameVerifier());
+            HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+        }
+
         SessionFactory sessionFactory = SessionFactoryImpl.newInstance();
         Map<String, String> parameter = new HashMap<String, String>();
 
@@ -1257,6 +1296,20 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
         return session;
     }
 
+    private SSLContext getSSLContext() throws KeyStoreException,
+            NoSuchAlgorithmException, CertificateException, IOException, KeyManagementException {
+        KeyStore trustStore  = KeyStore.getInstance(keystoreType);
+        FileInputStream instream = new FileInputStream(new File(keystoreFile));
+        try {
+            trustStore.load(instream, keystorePass.toCharArray());
+        } finally {
+            instream.close();
+        }
+        return SSLContexts.custom()
+                .loadTrustMaterial(trustStore)
+                .build();
+    }
+
     public void lockItem(String site, String path) {
         String fullPath = expandRelativeSitePath(site, path);
         lockItemCMIS(fullPath);
@@ -1274,7 +1327,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
             ObjectType type = cmisObject.getBaseType();
             if (BaseTypeId.CMIS_DOCUMENT.value().equals(type.getId())) {
                 org.apache.chemistry.opencmis.client.api.Document document =
-                    (org.apache.chemistry.opencmis.client.api.Document) cmisObject;
+                        (org.apache.chemistry.opencmis.client.api.Document) cmisObject;
                 if (!document.isVersionSeriesCheckedOut()) {
                     document.checkOut();
                 }
@@ -1307,11 +1360,11 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
                 ObjectType type = cmisObject.getBaseType();
                 if (BaseTypeId.CMIS_DOCUMENT.value().equals(type.getId())) {
                     org.apache.chemistry.opencmis.client.api.Document document =
-                        (org.apache.chemistry.opencmis.client.api.Document) cmisObject;
+                            (org.apache.chemistry.opencmis.client.api.Document) cmisObject;
                     String pwcId = document.getVersionSeriesCheckedOutId();
                     if (StringUtils.isNotEmpty(pwcId)) {
                         org.apache.chemistry.opencmis.client.api.Document pwcDocument =
-                            (org.apache.chemistry.opencmis.client.api.Document) session.getObject(pwcId);
+                                (org.apache.chemistry.opencmis.client.api.Document) session.getObject(pwcId);
                         if (pwcDocument != null) {
                             pwcDocument.cancelCheckOut();
                         }
@@ -1345,7 +1398,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
         try {
             InputStream bodyStream = IOUtils.toInputStream(newGroupRequestBody, "UTF-8");
             alfrescoPostRequest("/api/groups/" + parentGroup + "/children/GROUP_" + groupName, null, bodyStream,
-                                "application/json");
+                    "application/json");
         }
         catch(Exception err) {
             logger.error("err adding group: " + groupName + " to parent group: " + parentGroup, err);
@@ -1398,9 +1451,9 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
         if(context != null) {
             HttpSession httpSession = context.getRequest().getSession();
             httpSession.setAttribute("alf_ticket", ticket);
-        }        
+        }
     }
-    
+
     protected String getSessionUsername() {
         String username = null;
         RequestContext context = RequestContext.getCurrent();
@@ -1509,15 +1562,18 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
             Map<String, String> params = new HashMap<>();
             params.put("ticket", ticket);
 
-            DeleteMethod method = null;
+            HttpDelete method = null;
             String serviceURL;
+            HttpClient httpClient = null;
 
             try {
                 serviceURL = buildAlfrescoRequestURL("/api/login/ticket/{ticket}", params);
-                method = new DeleteMethod(serviceURL);
+                method = new HttpDelete(serviceURL);
 
-                int status = httpClient.executeMethod(method);
-                if (status == HttpStatus.SC_OK) {
+                HttpClientFactory factory = new HttpClientFactory(useSSL, keystoreFile, keystorePass, keystoreType);
+                httpClient = factory.getHttpsClient();
+                HttpResponse response = httpClient.execute(method);
+                if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
                     long duration = System.currentTimeMillis() - startTime;
                     logger.debug("logout() ({0} ms)", duration);
 
@@ -1529,6 +1585,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
                 if (method != null) {
                     method.releaseConnection();
                 }
+                HttpClientUtils.closeQuietly(httpClient);
             }
 
             long duration = System.currentTimeMillis() - startTime;
@@ -1668,6 +1725,10 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
     protected Pattern ssoUsernamePattern;
     protected String alfrescoExternalAuthHeaderName;
     protected boolean bootstrapEnabled = false;
+    protected boolean useSSL = false;
+    protected String keystoreFile;
+    protected String keystorePass;
+    protected String keystoreType;
 
     public String getAlfrescoUrl() {
         return alfrescoUrl;
@@ -1759,5 +1820,111 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
         this.bootstrapEnabled = bootstrapEnabled;
     }
 
+    public boolean isUseSSL() {
+        return useSSL;
+    }
+
+    public void setUseSSL(boolean useSSL) {
+        this.useSSL = useSSL;
+    }
+
+    public String getKeystoreFile() {
+        return keystoreFile;
+    }
+
+    public void setKeystoreFile(String keystoreFile) {
+        this.keystoreFile = keystoreFile;
+    }
+
+    public String getKeystorePass() {
+        return keystorePass;
+    }
+
+    public void setKeystorePass(String keystorePass) {
+        this.keystorePass = keystorePass;
+    }
+
+    public String getKeystoreType() {
+        return keystoreType;
+    }
+
+    public void setKeystoreType(String keystoreType) {
+        this.keystoreType = keystoreType;
+    }
+
+    public class HttpsTrustManager implements X509TrustManager {
+
+        @Override
+        public void checkClientTrusted(X509Certificate[] arg0, String arg1)
+                throws CertificateException {
+            // TODO Auto-generated method stub
+
+        }
+
+        @Override
+        public void checkServerTrusted(X509Certificate[] arg0, String arg1)
+                throws CertificateException {
+            // TODO Auto-generated method stub
+
+        }
+
+        @Override
+        public X509Certificate[] getAcceptedIssuers() {
+            return new X509Certificate[]{};
+        }
+
+    }
+
+    public class HttpClientFactory {
+
+        private CloseableHttpClient client;
+
+        private boolean useSSL = false;
+        private String keystoreFile;
+        private String keystorePass;
+        private String keystoreType;
+
+        public HttpClientFactory(boolean useSSL, String keystoreFile, String keystorePass, String keystoreType) {
+            this.useSSL = useSSL;
+            this.keystoreFile = keystoreFile;
+            this.keystorePass = keystorePass;
+            this.keystoreType = keystoreType;
+        }
+
+        public HttpClient getHttpsClient() throws Exception {
+            if (!useSSL) {
+                return HttpClients.createDefault();
+            }
+
+            if (client != null) {
+                return client;
+            }
+            SSLContext sslcontext = getSSLContext();
+            sslcontext.init(null, new X509TrustManager[]{new HttpsTrustManager()}, new SecureRandom());
+            SSLConnectionSocketFactory factory = new SSLConnectionSocketFactory(sslcontext,
+                    SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
+            client = HttpClients.custom().setSSLSocketFactory(factory).build();
+
+            return client;
+        }
+
+        public void releaseInstance() {
+            client = null;
+        }
+
+        private SSLContext getSSLContext() throws KeyStoreException,
+                NoSuchAlgorithmException, CertificateException, IOException, KeyManagementException {
+            KeyStore trustStore  = KeyStore.getInstance(keystoreType);
+            FileInputStream instream = new FileInputStream(new File(keystoreFile));
+            try {
+                trustStore.load(instream, keystorePass.toCharArray());
+            } finally {
+                instream.close();
+            }
+            return SSLContexts.custom()
+                    .loadTrustMaterial(trustStore)
+                    .build();
+        }
+    }
 }
 

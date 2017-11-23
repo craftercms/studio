@@ -15,6 +15,10 @@
         <property name="ssoHeaderName" value="${crafter.studio.sso.headerName}"/>
         <property name="ssoUsernamePattern" value="${crafter.studio.sso.username.pattern}"/>
         <property name="alfrescoExternalAuthHeaderName" value="${crafter.studio.sso.alfresco.externalAuth.headerName}"/>
+        <property name="useSSL" value="${alfresco.useSSL}"/>
+        <property name="keystoreFile" value="${alfresco.keystoreFile}" />
+        <property name="keystorePass" value="${alfresco.keystorePass}" />
+        <property name="keystoreType" value="${alfresco.keystoreType}" />
     </bean>
 
     <alias name="cstudioAlfrescoContentRepositoryUnCached"
