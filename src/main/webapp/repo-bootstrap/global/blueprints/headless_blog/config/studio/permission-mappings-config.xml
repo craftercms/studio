@@ -102,7 +102,7 @@
           <permission>Delete</permission>
         </allowed-permissions>
       </rule>
-      <rule regex="/static-assets/.*">
+      <rule regex="/(static-assets|templates|scripts)/.*">
         <allowed-permissions>
           <permission>Read</permission>
           <permission>Write</permission>
