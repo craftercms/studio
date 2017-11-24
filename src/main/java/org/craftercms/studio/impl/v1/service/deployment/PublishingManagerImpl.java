@@ -212,7 +212,7 @@ public class PublishingManagerImpl implements PublishingManager {
             RepositoryItem[] children = contentRepository.getContentChildren(site, path);
 
             if (children.length < 1) {
-                contentService.deleteContent(site, path, false, user);
+                contentService.deleteContent(site, path, true, user);
                 objectStateService.deleteObjectStatesForFolder(site, folderPath);
                 objectMetadataManager.deleteObjectMetadataForFolder(site, folderPath);
                 String parentPath = ContentUtils.getParentUrl(path);

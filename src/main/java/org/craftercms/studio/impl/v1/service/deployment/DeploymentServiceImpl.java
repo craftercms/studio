@@ -306,13 +306,13 @@ public class DeploymentServiceImpl implements DeploymentService {
 
             if (children.length < 1) {
                 if (path.endsWith(FILE_SEPARATOR + DmConstants.INDEX_FILE)) {
-                    contentService.deleteContent(site, path, false, user);
+                    contentService.deleteContent(site, path, true, user);
                     objectStateService.deleteObjectStatesForFolder(site, folderPath);
                     objectMetadataManager.deleteObjectMetadataForFolder(site, folderPath);
                     String parentPath = ContentUtils.getParentUrl(path);
                     deleteFolder(site, parentPath, user);
                 } else {
-                    contentService.deleteContent(site, path, false, user);
+                    contentService.deleteContent(site, path, true, user);
                     objectStateService.deleteObjectStatesForFolder(site, folderPath);
                     objectMetadataManager.deleteObjectMetadataForFolder(site, folderPath);
                 }
