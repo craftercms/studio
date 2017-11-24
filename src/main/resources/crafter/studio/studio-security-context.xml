@@ -105,4 +105,12 @@
 
     <bean id="studioAccessDeniedHandler" class="org.craftercms.studio.impl.v1.web.security.access.StudioAccessDeniedHandler"/>
 
+    <!-- CSRF -->
+    <bean id="crafter.csrfTokenRepository" class="org.springframework.security.web.csrf.CookieCsrfTokenRepository">
+        <property name="cookieHttpOnly" value="false"/>
+    </bean>
+
+    <bean id="crafter.csrfFilter" class="org.springframework.security.web.csrf.CsrfFilter">
+        <constructor-arg ref="crafter.csrfTokenRepository"/>
+    </bean>
 </beans>

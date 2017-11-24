@@ -1,7 +1,5 @@
 import scripts.api.ContentServices
-import org.apache.commons.fileupload.servlet.ServletFileUpload
-import org.apache.commons.fileupload.FileItem
-import org.apache.commons.fileupload.disk.DiskFileItemFactory
+import org.springframework.web.multipart.MultipartRequest
 
 model.cookieDomain = request.getServerName()
 
@@ -21,42 +19,18 @@ def systemAsset = null
 
 def context = ContentServices.createContext(applicationContext, request)
 
-if(ServletFileUpload.isMultipartContent(request)) {
-    DiskFileItemFactory factory = new DiskFileItemFactory()
-    ServletFileUpload upload = new ServletFileUpload(factory)
-    List<FileItem> items = upload.parseRequest(request)
-
-    Iterator<FileItem> iter = items.iterator()
-
-    while (iter.hasNext()) {
-        FileItem item = iter.next()
-
-        if (item.isFormField()) {
-            if(item.getFieldName()=="site") {
-                site = item.getString()
-            }
-            else if(item.getFieldName()=="path") {
-                path = item.getString()
-            } else if (item.getFieldName() == "fileName") {
-                fileName = item.getString()
-            } else if (item.getFieldName() == "isImage") {
-                isImage = item.getString()
-            } else if (item.getFieldName() == "allowedWith") {
-                allowedWidth = item.getString()
-            } else if (item.getFieldName() == "allowedHeight") {
-                allowedHeight = item.getString()
-            } else if (item.getFieldName() == "allowLessSize") {
-                allowLessSize = item.getString()
-            } else if (item.getFieldName() == "changeCase") {
-                changeCase = item.getString()
-            }
-        }
-        else {
-            fileName = item.getName()
-            contentType = item.getContentType()
-            content = item.getInputStream()
-        }
-    }
+if(request instanceof MultipartRequest) {
+    site = params.site
+    path = params.path
+    isImage = params.isImage
+    allowedWidth = params.allowedWidth
+    allowedHeight = params.allowedHeight
+    allowLessSize = params.allowLessSize
+    changeCase = params.changeCase
+    def file = request.getFile("file")
+    fileName = file.getOriginalFilename()
+    contentType = file.getContentType()
+    content = file.getInputStream()
 
     result = ContentServices.writeContentAsset(context, site, path, fileName, content,
             isImage, allowedWidth, allowedHeight, allowLessSize, draft, unlock, systemAsset)
