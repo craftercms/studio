@@ -49,20 +49,7 @@ public class SubmitToApproveDependencyRule implements DependencyRule {
         getAllDependenciesRecursive(site, path, allDependencies);
 
         for (String dep : allDependencies) {
-            if (objectStateService.isNew(site, dep)) {
-                dependencies.add(dep);
-            } else {
-                if (objectStateService.isUpdated(site, dep)) {
-                    for (String contentSpecificDependency : contentSpecificDependencies) {
-                        Pattern p = Pattern.compile(contentSpecificDependency);
-                        Matcher m = p.matcher(dep);
-                        if (m.matches()) {
-                            dependencies.add(dep);
-                            break;
-                        }
-                    }
-                }
-            }
+
         }
 
         return dependencies;
@@ -89,8 +76,22 @@ public class SubmitToApproveDependencyRule implements DependencyRule {
         List<String> depPaths = dmDependencyService.getDependencyPaths(site, path);
         for (String depPath : depPaths) {
             if (!dependecyPaths.contains(depPath)) {
-                dependecyPaths.add(depPath);
-                getAllDependenciesRecursive(site, depPath, dependecyPaths);
+                if (objectStateService.isNew(site, depPath)) {
+                    dependecyPaths.add(depPath);
+                    getAllDependenciesRecursive(site, depPath, dependecyPaths);
+                } else {
+                    if (objectStateService.isUpdated(site, depPath)) {
+                        for (String contentSpecificDependency : contentSpecificDependencies) {
+                            Pattern p = Pattern.compile(contentSpecificDependency);
+                            Matcher m = p.matcher(depPath);
+                            if (m.matches()) {
+                                dependecyPaths.add(depPath);
+                                getAllDependenciesRecursive(site, depPath, dependecyPaths);
+                                break;
+                            }
+                        }
+                    }
+                }
             }
         }
     }

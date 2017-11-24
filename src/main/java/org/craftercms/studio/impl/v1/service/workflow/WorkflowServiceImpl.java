@@ -698,7 +698,10 @@ public class WorkflowServiceImpl implements WorkflowService {
                 getMandatoryChildren(site, path, affectedPaths);
             }
 
-            List<String> dependencyPaths = getDependencyCandidates(site, affectedPaths);
+            List<String> dependencyPaths = new ArrayList<String>();
+            for (String affectedPath : affectedPaths) {
+                dependencyPaths.addAll(deploymentDependencyRule.applyRule(site, affectedPath));
+            }
             affectedPaths.addAll(dependencyPaths);
             List<String> candidates = new ArrayList<String>();
             for (String p : affectedPaths) {
@@ -743,24 +746,6 @@ public class WorkflowServiceImpl implements WorkflowService {
 				getMandatoryChildren(childPath, affectedPaths);
 			}
 		}*/
-	}
-
-	private List<String> getDependencyCandidates(String site, List<String> affectedPaths) {
-		List<String> dependenciesPaths = new ArrayList<String>();
-		for (String path : affectedPaths) {
-			getAllDependenciesRecursive(site, path, dependenciesPaths);
-		}
-		return dependenciesPaths;
-	}
-
-	protected void getAllDependenciesRecursive(String site, String path, List<String> dependecyPaths) {
-		List<String> depPaths = dmDependencyService.getDependencyPaths(site, path);
-		for (String depPath : depPaths) {
-			if (!dependecyPaths.contains(depPath)) {
-				dependecyPaths.add(depPath);
-				getAllDependenciesRecursive(site, depPath, dependecyPaths);
-			}
-		}
 	}
 
 	protected List<ContentItemTO> getWorkflowAffectedItems(String site, List<String> paths) {
