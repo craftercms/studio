@@ -480,6 +480,8 @@ public class ContentServiceImpl implements ContentService {
         objectMetadataManager.deleteObjectMetadata(site, path);
         dependencyService.deleteDependenciesForSiteAndPath(site, path);
 
+        _contentRepository.insertGitLog(site, commitId, 1);
+
         PreviewEventContext context = new PreviewEventContext();
         context.setSite(site);
         eventService.publish(EVENT_PREVIEW_SYNC, context);

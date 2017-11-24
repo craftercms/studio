@@ -277,6 +277,9 @@ public class DeploymentServiceImpl implements DeploymentService {
 
                     if (contentService.contentExists(site, path)) {
                         contentService.deleteContent(site, path, approver);
+                        if (path.endsWith(FILE_SEPARATOR + DmConstants.INDEX_FILE)) {
+                            deleteFolder(site, path.replace(FILE_SEPARATOR + DmConstants.INDEX_FILE, ""), approver);
+                        }
                     }
                     String lastRepoCommitId = contentRepository.getRepoLastCommitId(site);
                     if (StringUtils.isNotEmpty(lastRepoCommitId)) {

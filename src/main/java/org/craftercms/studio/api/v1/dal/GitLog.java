@@ -27,9 +27,7 @@ public class GitLog implements Serializable {
     private long id;
     private String siteId;
     private String commitId;
-    private ZonedDateTime commitDate;
     private int processed;
-    private int verified;
 
     public long getId() { return id; }
     public void setId(long id) { this.id = id; }
@@ -40,12 +38,7 @@ public class GitLog implements Serializable {
     public String getCommitId() { return commitId; }
     public void setCommitId(String commitId) { this.commitId = commitId; }
 
-    public ZonedDateTime getCommitDate() { return commitDate; }
-    public void setCommitDate(ZonedDateTime commitDate) { this.commitDate = commitDate; }
-
     public int getProcessed() { return processed; }
     public void setProcessed(int processed) { this.processed = processed; }
 
-    public int getVerified() { return verified; }
-    public void setVerified(int verified) { this.verified = verified; }
 }
