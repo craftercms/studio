@@ -629,16 +629,6 @@ public class WorkflowServiceImpl implements WorkflowService {
         }
     }
 
-    protected void getAllDependenciesRecursive(String site, String path, List<String> dependecyPaths) {
-        List<String> depPaths = dmDependencyService.getDependencyPaths(site, path);
-        for (String depPath : depPaths) {
-            if (!dependecyPaths.contains(depPath)) {
-                dependecyPaths.add(depPath);
-                getAllDependenciesRecursive(site, depPath, dependecyPaths);
-            }
-        }
-    }
-
     protected List<ContentItemTO> getWorkflowAffectedItems(String site, List<String> paths) {
         List<ContentItemTO> items = new ArrayList<>();
 

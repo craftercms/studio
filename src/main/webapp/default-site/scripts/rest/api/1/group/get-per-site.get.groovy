@@ -80,7 +80,7 @@ if (invalidParams) {
         def total = SecurityServices.getGroupsPerSiteTotal(context, siteId)
         def groupMap = SecurityServices.getGroupsPerSite(context, siteId, start, number)
         if (groupMap != null) {
-            def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/get/get-per-site.json?site_id=" + siteId + "&start=" + start + "&number=" + number
+            def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/group/get-per-site.json?site_id=" + siteId + "&start=" + start + "&number=" + number
             response.addHeader("Location", locationHeader)
             result.groups = groupMap
             result.total = total

@@ -277,6 +277,9 @@ public class DeploymentServiceImpl implements DeploymentService {
 
                     if (contentService.contentExists(site, path)) {
                         contentService.deleteContent(site, path, approver);
+                        if (path.endsWith(FILE_SEPARATOR + DmConstants.INDEX_FILE)) {
+                            deleteFolder(site, path.replace(FILE_SEPARATOR + DmConstants.INDEX_FILE, ""), approver);
+                        }
                     }
                     String lastRepoCommitId = contentRepository.getRepoLastCommitId(site);
                     if (StringUtils.isNotEmpty(lastRepoCommitId)) {
@@ -303,13 +306,13 @@ public class DeploymentServiceImpl implements DeploymentService {
 
             if (children.length < 1) {
                 if (path.endsWith(FILE_SEPARATOR + DmConstants.INDEX_FILE)) {
-                    contentService.deleteContent(site, path, false, user);
+                    contentService.deleteContent(site, path, true, user);
                     objectStateService.deleteObjectStatesForFolder(site, folderPath);
                     objectMetadataManager.deleteObjectMetadataForFolder(site, folderPath);
                     String parentPath = ContentUtils.getParentUrl(path);
                     deleteFolder(site, parentPath, user);
                 } else {
-                    contentService.deleteContent(site, path, false, user);
+                    contentService.deleteContent(site, path, true, user);
                     objectStateService.deleteObjectStatesForFolder(site, folderPath);
                     objectMetadataManager.deleteObjectMetadataForFolder(site, folderPath);
                 }
