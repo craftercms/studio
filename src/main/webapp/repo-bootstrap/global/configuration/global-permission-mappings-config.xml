@@ -24,31 +24,29 @@
 -->
 
 <permissions>
-    <site id="###GLOBAL###">
-        <role name="crafter-admin">
-            <rule regex="/.*">
-                <allowed-permissions>
-                    <permission>Read</permission>
-                    <permission>Write</permission>
-                    <permission>Delete</permission>
-                    <permission>Create Folder</permission>
-                     <permission>Publish</permission>
-                </allowed-permissions>
-            </rule>
-        </role>
-        <role name="create-sites">
-            <rule regex="/.*">
-                <allowed-permissions>
-                    <permission>create-site</permission>
-                </allowed-permissions>
-            </rule>
-        </role>
-        <!--<role name="*">-->
-            <!--<rule regex="/.*">-->
-                <!--<allowed-permissions>-->
-                    <!--<permission>Read</permission>-->
-                <!--</allowed-permissions>-->
-            <!--</rule>-->
-        <!--</role>-->
-    </site>
+    <role name="crafter-admin">
+        <rule regex="/.*">
+            <allowed-permissions>
+                <permission>Read</permission>
+                <permission>Write</permission>
+                <permission>Delete</permission>
+                <permission>Create Folder</permission>
+                <permission>Publish</permission>
+            </allowed-permissions>
+        </rule>
+    </role>
+    <role name="create-sites">
+        <rule regex="/.*">
+            <allowed-permissions>
+                <permission>create-site</permission>
+            </allowed-permissions>
+        </rule>
+    </role>
+    <!--<role name="*">-->
+    <!--<rule regex="/.*">-->
+    <!--<allowed-permissions>-->
+    <!--<permission>Read</permission>-->
+    <!--</allowed-permissions>-->
+    <!--</rule>-->
+    <!--</role>-->
 </permissions>

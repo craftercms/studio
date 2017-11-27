@@ -395,7 +395,7 @@ public class SecurityServiceImpl implements SecurityService {
             loadRoles(root, config);
 
             // permissions file
-            loadPermissions(root, config);
+            loadPermissions(site, root, config);
 
             config.setKey(site + ":" + filename);
             config.setLastUpdated(ZonedDateTime.now(ZoneOffset.UTC));
@@ -438,23 +438,18 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @SuppressWarnings("unchecked")
-    protected void loadPermissions(Element root, PermissionsConfigTO config) {
+    protected void loadPermissions(String siteId, Element root, PermissionsConfigTO config) {
         if (root.getName().equals(StudioXmlConstants.DOCUMENT_PERMISSIONS)) {
             Map<String, Map<String, List<Node>>> permissionsMap = new HashMap<String, Map<String, List<Node>>>();
-            List<Node> siteNodes = root.selectNodes(StudioXmlConstants.DOCUMENT_ELM_SITE);
-            for (Node siteNode : siteNodes) {
-                String siteId = siteNode.valueOf(StudioXmlConstants.DOCUMENT_ATTR_SITE_ID);
-                if (!StringUtils.isEmpty(siteId)) {
-                    List<Node> roleNodes = siteNode.selectNodes(StudioXmlConstants.DOCUMENT_ELM_PERMISSION_ROLE);
-                    Map<String, List<Node>> rules = new HashMap<String, List<Node>>();
-                    for (Node roleNode : roleNodes) {
-                        String roleName = roleNode.valueOf(StudioXmlConstants.DOCUMENT_ATTR_PERMISSIONS_NAME);
-                        List<Node> ruleNodes = roleNode.selectNodes(StudioXmlConstants.DOCUMENT_ELM_PERMISSION_RULE);
-                        rules.put(roleName, ruleNodes);
-                    }
-                    permissionsMap.put(siteId, rules);
-                }
+            List<Node> roleNodes = root.selectNodes(StudioXmlConstants.DOCUMENT_ELM_PERMISSION_ROLE);
+            Map<String, List<Node>> rules = new HashMap<String, List<Node>>();
+            for (Node roleNode : roleNodes) {
+                String roleName = roleNode.valueOf(StudioXmlConstants.DOCUMENT_ATTR_PERMISSIONS_NAME);
+                List<Node> ruleNodes = roleNode.selectNodes(StudioXmlConstants.DOCUMENT_ELM_PERMISSION_RULE);
+                rules.put(roleName, ruleNodes);
             }
+            permissionsMap.put(siteId, rules);
+
             config.setPermissions(permissionsMap);
         }
     }
@@ -487,7 +482,7 @@ public class SecurityServiceImpl implements SecurityService {
             Element root = document.getRootElement();
 
             // permissions file
-            loadPermissions(root, config);
+            loadPermissions("###GLOBAL###", root, config);
 
             String globalPermissionsKey = "###GLOBAL###:" + getGlobalPermissionsFileName();
             config.setKey(globalPermissionsKey);
