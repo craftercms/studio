@@ -774,17 +774,20 @@ public class ContentServiceImpl implements ContentService {
         }
 
         // write activity stream
-        activityService.renameContentId(site, fromPath, movePath);
+        ActivityService.ActivityType activityType = ActivityService.ActivityType.MOVED;
+        Map<String, String> extraInfo = new HashMap<String, String>();
+        if (renamedItem.isFolder()) {
+            extraInfo.put(DmConstants.KEY_CONTENT_TYPE, CONTENT_TYPE_FOLDER);
+        } else {
+            extraInfo.put(DmConstants.KEY_CONTENT_TYPE, getContentTypeClass(site, movePath));
+        }
+        activityService.postActivity(site, user, movePath, activityType, ActivityService.ActivitySource.UI, extraInfo);
 
         Map<String, String> activityInfo = new HashMap<String, String>();
         String contentClass = getContentTypeClass(site, movePath);
 
         if(movePath.endsWith(DmConstants.XML_PATTERN)) {
             activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
-        }
-
-        if (!renamedItem.isFolder()) {
-            activityService.postActivity(site, user, movePath, ActivityService.ActivityType.UPDATED, ActivityService.ActivitySource.UI, activityInfo);
         }
 
         updateDependenciesOnMove(site, fromPath, movePath);
