@@ -1519,6 +1519,8 @@ public class ContentServiceImpl implements ContentService {
                 item.setLive(liveFolder);
                 item.isNew = item.isNew();
                 item.isLive = item.isLive();
+                item.setInProgress(!item.isLive());
+                item.isInProgress = item.isInProgress();
             }
         }
     }
