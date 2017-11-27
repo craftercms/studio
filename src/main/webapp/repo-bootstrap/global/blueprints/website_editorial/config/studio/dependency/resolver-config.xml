@@ -62,6 +62,15 @@
                         <pattern>
                             <find-regex>/scripts/([^&lt;"]+)\.groovy</find-regex>
                         </pattern>
+                        <pattern>
+                            <find-regex>&lt;content-type&gt;/(.*)/(.*)&lt;/content-type&gt;</find-regex>
+                            <transforms>
+                                <transform>
+                                    <match>&lt;content-type&gt;/(.*)/(.*)&lt;/content-type&gt;</match>
+                                    <replace>/scripts/$1s/$2.groovy</replace>
+                                </transform>
+                            </transforms>
+                        </pattern>
                     </includes>
                 </dependency-type>
             </dependency-types>
@@ -130,6 +139,15 @@
                     <includes>
                         <pattern>
                             <find-regex>/scripts/([^&lt;"]+)\.groovy</find-regex>
+                        </pattern>
+                        <pattern>
+                            <find-regex>&lt;content-type&gt;/(.*)/(.*)&lt;/content-type&gt;</find-regex>
+                            <transforms>
+                                <transform>
+                                    <match>&lt;content-type&gt;/(.*)/(.*)&lt;/content-type&gt;</match>
+                                    <replace>/scripts/$1s/$2.groovy</replace>
+                                </transform>
+                            </transforms>
                         </pattern>
                     </includes>
                 </dependency-type>
