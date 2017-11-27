@@ -438,8 +438,6 @@ public class SiteServiceImpl implements SiteService {
 
         String siteConfigFolder = FILE_SEPARATOR + "config" + FILE_SEPARATOR + "studio";
         replaceFileContentGit(siteId, siteConfigFolder + FILE_SEPARATOR + "site-config.xml", "SITENAME", siteId);
-        replaceFileContentGit(siteId, siteConfigFolder + FILE_SEPARATOR + "role-mappings-config.xml", "SITENAME", siteId);
-        replaceFileContentGit(siteId, siteConfigFolder + FILE_SEPARATOR + "permission-mappings-config.xml", "SITENAME", siteId);
 
         return success;
     }

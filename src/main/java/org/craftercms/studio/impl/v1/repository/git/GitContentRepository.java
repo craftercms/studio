@@ -226,7 +226,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
             if (result) {
                 commitId = helper.commitFile(repo, site, emptyFilePath.toString(), "Created folder site: " + site +
-                        " " + "path: " + path, helper.getCurrentUserIdent());
+                        " " + "path: " + path + FILE_SEPARATOR + name, helper.getCurrentUserIdent());
             }
         }
 
