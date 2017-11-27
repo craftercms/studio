@@ -38,6 +38,7 @@ public interface ActivityService {
 		CREATED,
 		UPDATED,
 		DELETED,
+        MOVED,
         ADD_USER_TO_GROUP,
         REMOVE_USER_FROM_GROUP,
         LOGIN,
