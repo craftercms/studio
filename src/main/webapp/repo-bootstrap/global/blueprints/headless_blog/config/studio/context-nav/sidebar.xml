@@ -47,8 +47,7 @@
 								</modulehook>
 								<!-- Site IA Pages -->
 								<modulehook>
-									<name>wcm-root-folder</name>
-									<showDivider>true</showDivider>
+									<name>wcm-root-folder</name>									
 									<params>
 										<label>Example Blog</label>
 										<path>/site/website</path>
@@ -59,8 +58,7 @@
 
 								<!-- Components -->
 								<modulehook>
-									<name>wcm-root-folder</name>
-									<showDivider>true</showDivider>
+									<name>wcm-root-folder</name>									
 									<params>
 										<label>Items</label>
 										<path>/site/items</path>
@@ -70,8 +68,7 @@
 
 								<!-- Taxonomy -->
 								<modulehook>
-									<name>wcm-root-folder</name>
-									<showDivider>true</showDivider>
+									<name>wcm-root-folder</name>									
 									<params>
 										<label>Taxonomy</label>
 										<path>/site/taxonomy</path>
@@ -81,8 +78,7 @@
 
 								<!-- Scripts -->
 								<modulehook>
-									<name>wcm-assets-folder</name>
-									<showDivider>true</showDivider>
+									<name>wcm-assets-folder</name>									
 									<params>
 										<label>Scripts</label>
 										<path>/scripts</path>
@@ -93,8 +89,7 @@
 
 								<!-- Static Assets -->
 								<modulehook>
-									<name>wcm-assets-folder</name>
-									<showDivider>true</showDivider>
+									<name>wcm-assets-folder</name>									
 									<params>
 										<label>Static Assets</label>
 										<path>/static-assets</path>
@@ -105,8 +100,7 @@
 
 								<!-- Templates -->
 								<modulehook>
-									<name>wcm-assets-folder</name>
-									<showDivider>true</showDivider>
+									<name>wcm-assets-folder</name>									
 									<params>
 										<label>Templates</label>
 										<path>/templates</path>
@@ -117,8 +111,7 @@
 
 								<!-- Site Config -->
 								<modulehook>
-									<name>site-config</name>
-									<showDivider>true</showDivider>
+									<name>site-config</name>									
 									<params>
 										<roles>
 											<role>admin</role>
