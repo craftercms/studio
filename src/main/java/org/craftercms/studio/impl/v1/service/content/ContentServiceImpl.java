@@ -505,17 +505,22 @@ public class ContentServiceImpl implements ContentService {
         }
         boolean exists = contentExists(site, path);
         if (exists) {
+            ContentItemTO item = getContentItem(site, path, 0);
             ItemMetadata properties = objectMetadataManager.getProperties(site, path);
             String user = (properties != null && !StringUtils.isEmpty(properties.getSubmittedBy()) ? properties
                 .getSubmittedBy() : approver);
             Map<String, String> extraInfo = new HashMap<String, String>();
-            extraInfo.put(DmConstants.KEY_CONTENT_TYPE, getContentTypeClass(site, path));
+            if (item.isFolder()) {
+                extraInfo.put(DmConstants.KEY_CONTENT_TYPE, CONTENT_TYPE_FOLDER);
+            } else {
+                extraInfo.put(DmConstants.KEY_CONTENT_TYPE, getContentTypeClass(site, path));
+            }
             logger.debug("[DELETE] posting delete activity on " + path + " by " + user + " in " + site);
 
             activityService.postActivity(site, user, path, ActivityService.ActivityType.DELETED, ActivityService.ActivitySource.UI, extraInfo);
             // process content life cycle
             if (path.endsWith(DmConstants.XML_PATTERN)) {
-                ContentItemTO item = getContentItem(site, path, 0);
+
                 String contentType = item.getContentType();
                 dmContentLifeCycleService.process(site, user, path,
                         contentType, DmContentLifeCycleService.ContentLifeCycleOperation.DELETE, null);
