@@ -51,4 +51,8 @@ public interface PublishRequestMapper {
     int isPublishingBlocked(Map params);
 
     PublishRequest getLastDeployedItem(Map params);
+
+    List<String> getQueuedPaths(Map params);
+
+    int checkItemQueued(Map params);
 }

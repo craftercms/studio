@@ -110,12 +110,17 @@ public class DeploymentServiceImpl implements DeploymentService {
         Map<String, List<String>> groupedPaths = new HashMap<String, List<String>>();
 
         for (String p : paths) {
-            if (objectStateService.isNew(site, p)) {
-                newPaths.add(p);
-            } else if (objectMetadataManager.isRenamed(site, p)) {
-                movedPaths.add(p);
+            ContentItemTO item = contentService.getContentItem(site, p, 0);
+            if (item.isFolder()) {
+                logger.info("Content item at path " + p + " for site " + site + " is folder and will not be added to publishing queue.");
             } else {
-                updatedPaths.add(p);
+                if (objectStateService.isNew(site, p)) {
+                    newPaths.add(p);
+                } else if (objectMetadataManager.isRenamed(site, p)) {
+                    movedPaths.add(p);
+                } else {
+                    updatedPaths.add(p);
+                }
             }
         }
 
@@ -179,35 +184,48 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     private List<PublishRequest> createItems(String site, String environment, Map<String, List<String>> paths, ZonedDateTime scheduledDate, String approver, String submissionComment) {
-        List<PublishRequest> newItems = new ArrayList<PublishRequest>(paths.size());
+        List<PublishRequest> newItems = new ArrayList<PublishRequest>();
+
+        Map<String, Object> params = null;
         for (String action : paths.keySet()) {
             for (String path : paths.get(action)) {
                 PublishRequest item = new PublishRequest();
                 ItemMetadata metadata = objectMetadataManager.getProperties(site, path);
-                item.setId(++CTED_AUTOINCREMENT);
-                item.setSite(site);
-                item.setEnvironment(environment);
-                item.setPath(path);
-                item.setScheduledDate(scheduledDate);
-                item.setState(PublishRequest.State.READY_FOR_LIVE);
-                item.setAction(action);
                 if (metadata != null) {
-                    if (metadata.getRenamed() > 0) {
-                        String oldPath = metadata.getOldUrl();
-                        item.setOldPath(oldPath);
-                    }
-                    String commitId = metadata.getCommitId();
-                    if (StringUtils.isNotEmpty(commitId)) {
-                        item.setCommitId(commitId);
+                    params = new HashMap<String, Object>();
+                    params.put("site_id", site);
+                    params.put("environment", environment);
+                    params.put("state", PublishRequest.State.READY_FOR_LIVE);
+                    params.put("path", path);
+                    params.put("commitId", metadata.getCommitId());
+                    if (publishRequestMapper.checkItemQueued(params) > 0) {
+                        logger.info("Path " + path + " with commit ID " + metadata.getCommitId() + " already has queued publishing request for environment " + environment + " of site " + site + ". Adding another publishing request is skipped.");
                     } else {
-                        item.setCommitId(contentRepository.getRepoLastCommitId(site));
+                        item.setId(++CTED_AUTOINCREMENT);
+                        item.setSite(site);
+                        item.setEnvironment(environment);
+                        item.setPath(path);
+                        item.setScheduledDate(scheduledDate);
+                        item.setState(PublishRequest.State.READY_FOR_LIVE);
+                        item.setAction(action);
+                        if (metadata.getRenamed() > 0) {
+                            String oldPath = metadata.getOldUrl();
+                            item.setOldPath(oldPath);
+                        }
+                        String commitId = metadata.getCommitId();
+                        if (StringUtils.isNotEmpty(commitId)) {
+                            item.setCommitId(commitId);
+                        } else {
+                            item.setCommitId(contentRepository.getRepoLastCommitId(site));
+                        }
+
+                        String contentTypeClass = contentService.getContentTypeClass(site, path);
+                        item.setContentTypeClass(contentTypeClass);
+                        item.setUser(approver);
+                        item.setSubmissionComment(submissionComment);
+                        newItems.add(item);
                     }
                 }
-                String contentTypeClass = contentService.getContentTypeClass(site, path);
-                item.setContentTypeClass(contentTypeClass);
-                item.setUser(approver);
-                item.setSubmissionComment(submissionComment);
-                newItems.add(item);
             }
         }
         return newItems;
