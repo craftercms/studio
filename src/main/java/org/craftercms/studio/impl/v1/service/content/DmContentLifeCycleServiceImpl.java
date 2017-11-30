@@ -92,11 +92,13 @@ public class DmContentLifeCycleServiceImpl extends AbstractRegistrableService im
         }
         String script = contentService.getContentAsString(site, scriptPath);
 
-        Map<String, Object> model = buildModel(site, user, path, contentType, operation.toString(), params);
-        try {
-            scriptExecutor.executeScriptString(script, model);
-        } catch (Exception e) {
-            logger.error("Error while executing content lifecycle script for " + site + ":" + path, e);
+        if (StringUtils.isNotEmpty(script)) {
+            Map<String, Object> model = buildModel(site, user, path, contentType, operation.toString(), params);
+            try {
+                scriptExecutor.executeScriptString(script, model);
+            } catch (Exception e) {
+                logger.error("Error while executing content lifecycle script for " + site + ":" + path, e);
+            }
         }
     }
 

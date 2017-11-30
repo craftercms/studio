@@ -310,29 +310,34 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 File sourceFile = sourcePath.toFile();
                 Path targetPath = Paths.get(repo.getDirectory().getParent(), gitToPath);
                 File targetFile = targetPath.toFile();
-                if (targetFile.isFile()) {
-                    if (sourceFile.isFile()) {
-                        sourceFile.renameTo(targetFile);
-                    } else {
-                        // This is not a valid operation
-                        logger.error("Invalid move operation: Trying to rename a directory to a file for site: " + site + " fromPath: " + fromPath + " toPath: " + toPath + " newName: " + newName);
-                    }
-                } else if (sourceFile.isDirectory()) {
-                    // Check if we're moving a single file or whole subtree
-                    //FileUtils.moveToDirectory(sourceFile, targetFile, true);
-                    File[] dirList = sourceFile.listFiles();
-                    //Collection<File> dirList = FileUtils.listFilesAndDirs(sourceFile, FileFileFilter.FILE, DirectoryFileFilter.INSTANCE);
-                    for (File child : dirList) {
-                        if (!child.equals(sourceFile)) {
-                            FileUtils.moveToDirectory(child, targetFile, true);
-                        }
-                    }
-                    FileUtils.deleteDirectory(sourceFile);
+
+                if (sourceFile.getCanonicalFile().equals(targetFile.getCanonicalFile())) {
+                    sourceFile.renameTo(targetFile);
                 } else {
-                    if (sourceFile.isFile()) {
-                        FileUtils.moveFile(sourceFile, targetFile);
+                    if (targetFile.isFile()) {
+                        if (sourceFile.isFile()) {
+                            sourceFile.renameTo(targetFile);
+                        } else {
+                            // This is not a valid operation
+                            logger.error("Invalid move operation: Trying to rename a directory to a file for site: " + site + " fromPath: " + fromPath + " toPath: " + toPath + " newName: " + newName);
+                        }
+                    } else if (sourceFile.isDirectory()) {
+                        // Check if we're moving a single file or whole subtree
+                        //FileUtils.moveToDirectory(sourceFile, targetFile, true);
+                        File[] dirList = sourceFile.listFiles();
+                        //Collection<File> dirList = FileUtils.listFilesAndDirs(sourceFile, FileFileFilter.FILE, DirectoryFileFilter.INSTANCE);
+                        for (File child : dirList) {
+                            if (!child.equals(sourceFile)) {
+                                FileUtils.moveToDirectory(child, targetFile, true);
+                            }
+                        }
+                        FileUtils.deleteDirectory(sourceFile);
                     } else {
-                        FileUtils.moveToDirectory(sourceFile, targetFile, true);
+                        if (sourceFile.isFile()) {
+                            FileUtils.moveFile(sourceFile, targetFile);
+                        } else {
+                            FileUtils.moveToDirectory(sourceFile, targetFile, true);
+                        }
                     }
                 }
 
