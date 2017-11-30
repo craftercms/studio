@@ -535,13 +535,16 @@ public class SiteServiceImpl implements SiteService {
                     }
                     try {
                         if (isCss || isJs || isTemplate) {
-                            StringBuffer sb = new StringBuffer(contentService.getContentAsString(site, childPath));
-                            if (isCss) {
-                                dmDependencyService.extractDependenciesStyle(site, childPath, sb, globalDeps);
-                            } else if (isJs) {
-                                dmDependencyService.extractDependenciesJavascript(site, childPath, sb, globalDeps);
-                            } else if (isTemplate) {
-                                dmDependencyService.extractDependenciesTemplate(site, childPath, sb, globalDeps);
+                            String content = contentService.getContentAsString(site, childPath);
+                            if (StringUtils.isNotEmpty(content)) {
+                                StringBuffer sb = new StringBuffer(content);
+                                if (isCss) {
+                                    dmDependencyService.extractDependenciesStyle(site, childPath, sb, globalDeps);
+                                } else if (isJs) {
+                                    dmDependencyService.extractDependenciesJavascript(site, childPath, sb, globalDeps);
+                                } else if (isTemplate) {
+                                    dmDependencyService.extractDependenciesTemplate(site, childPath, sb, globalDeps);
+                                }
                             }
                         }
                     } catch (ServiceException e) {
