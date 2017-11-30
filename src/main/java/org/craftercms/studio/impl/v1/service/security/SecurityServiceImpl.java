@@ -441,7 +441,15 @@ public class SecurityServiceImpl implements SecurityService {
     protected void loadPermissions(String siteId, Element root, PermissionsConfigTO config) {
         if (root.getName().equals(StudioXmlConstants.DOCUMENT_PERMISSIONS)) {
             Map<String, Map<String, List<Node>>> permissionsMap = new HashMap<String, Map<String, List<Node>>>();
-            List<Node> roleNodes = root.selectNodes(StudioXmlConstants.DOCUMENT_ELM_PERMISSION_ROLE);
+
+            //backwards compatibility for nested <site>
+            Element permissionsRoot = root;
+            Element siteNode = (Element) permissionsRoot.selectSingleNode(StudioXmlConstants.DOCUMENT_ELM_SITE);
+            if(siteNode != null) {
+                permissionsRoot = siteNode;
+            }
+
+            List<Node> roleNodes = permissionsRoot.selectNodes(StudioXmlConstants.DOCUMENT_ELM_PERMISSION_ROLE);
             Map<String, List<Node>> rules = new HashMap<String, List<Node>>();
             for (Node roleNode : roleNodes) {
                 String roleName = roleNode.valueOf(StudioXmlConstants.DOCUMENT_ATTR_PERMISSIONS_NAME);
