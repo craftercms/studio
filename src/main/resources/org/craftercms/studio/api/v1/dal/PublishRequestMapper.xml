@@ -150,4 +150,22 @@
         ORDER BY scheduleddate DESC
         LIMIT 0, 1
     </select>
+
+    <select id="getQueuedPaths" resultType="String" parameterType="java.util.Map">
+        SELECT path
+        FROM publish_request
+        WHERE site = #{site_id}
+        AND environment = #{environment}
+        AND state = #{state}
+    </select>
+
+    <select id="checkItemQueued" resultType="int" parameterType="java.util.Map">
+        SELECT count(1)
+        FROM publish_request
+        WHERE site = #{site_id}
+        AND environment = #{environment}
+        AND path = #{path}
+        AND state = #{state}
+        AND commit_id = #{commitId}
+    </select>
 </mapper>

@@ -178,9 +178,7 @@ public class PublishingManagerImpl implements PublishingManager {
             ItemMetadata itemMetadata = objectMetadataManager.getProperties(site, path);
 
             if (itemMetadata == null) {
-                LOGGER.debug("No object state found for {0}:{1}, create it", site, path);
-                objectMetadataManager.insertNewObjectMetadata(site, path);
-                itemMetadata = objectMetadataManager.getProperties(site, path);
+                throw new DeploymentException("No metadata found for " + site + ":" + path);
             }
 
             if (isLive) {
@@ -189,17 +187,16 @@ public class PublishingManagerImpl implements PublishingManager {
 
                 // check if commit id from workflow and from object state match
                 ContentItemTO contentItem = contentService.getContentItem(site, path);
-                if (itemMetadata != null) {
-                    if (itemMetadata.getCommitId().equals(item.getCommitId())) {
-                        objectStateService.transition(site, contentItem, TransitionEvent.DEPLOYMENT);
-                    }
-                    Map<String, Object> props = new HashMap<String, Object>();
-                    props.put(ItemMetadata.PROP_SUBMITTED_BY, StringUtils.EMPTY);
-                    props.put(ItemMetadata.PROP_SEND_EMAIL, 0);
-                    props.put(ItemMetadata.PROP_SUBMITTED_FOR_DELETION, 0);
-                    props.put(ItemMetadata.PROP_SUBMISSION_COMMENT, StringUtils.EMPTY);
-                    objectMetadataManager.setObjectMetadata(site, path, props);
+                if (itemMetadata.getCommitId().equals(item.getCommitId())) {
+                    objectStateService.transition(site, contentItem, TransitionEvent.DEPLOYMENT);
                 }
+                Map<String, Object> props = new HashMap<String, Object>();
+                props.put(ItemMetadata.PROP_SUBMITTED_BY, StringUtils.EMPTY);
+                props.put(ItemMetadata.PROP_SEND_EMAIL, 0);
+                props.put(ItemMetadata.PROP_SUBMITTED_FOR_DELETION, 0);
+                props.put(ItemMetadata.PROP_SUBMISSION_COMMENT, StringUtils.EMPTY);
+                objectMetadataManager.setObjectMetadata(site, path, props);
+
             }
         }
         return deploymentItem;
