@@ -675,7 +675,7 @@
         <property name="contentService" ref="cstudioContentService"/>
         <property name="contentSpecificDependencies">
             <list>
-                <value>/components/page/.*</value>
+                <value>/site/components/page/.*</value>
                 <value>/static-assets/page/.*</value>
             </list>
         </property>
@@ -688,7 +688,7 @@
         <property name="contentService" ref="cstudioContentService"/>
         <property name="contentSpecificDependencies">
             <list>
-                <value>/components/page/.*</value>
+                <value>/site/components/page/.*</value>
                 <value>/static-assets/page/.*</value>
             </list>
         </property>
