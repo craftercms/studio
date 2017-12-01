@@ -45,7 +45,7 @@ public class DeploymentDependencyRule implements DependencyRule {
         Set<String> dependencies = new HashSet<String>();
         List<String> allDependencies = new ArrayList<String>();
         getAllDependenciesRecursive(site, path, allDependencies);
-
+        dependencies.addAll(allDependencies);
         return dependencies;
     }
 
