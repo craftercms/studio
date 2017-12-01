@@ -51,7 +51,7 @@ public class DeploymentDependencyRule implements DependencyRule {
         List<String> allDependencies = new ArrayList<String>();
         getMandatoryParent(site, path, allDependencies);
         getAllDependenciesRecursive(site, path, allDependencies);
-
+        dependencies.addAll(allDependencies);
         return dependencies;
     }
 
