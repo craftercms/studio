@@ -27,7 +27,7 @@ USE crafter ;
 
 CREATE TABLE _meta (`version` VARCHAR(10) NOT NULL , PRIMARY KEY (`version`)) ;
 
-INSERT INTO _meta (version) VALUES ('3.0.2.1') ;
+INSERT INTO _meta (version) VALUES ('3.0.3-SNAPSHOT.1') ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`             BIGINT(20)   NOT NULL AUTO_INCREMENT,
