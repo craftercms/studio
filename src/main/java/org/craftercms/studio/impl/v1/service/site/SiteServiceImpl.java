@@ -19,10 +19,14 @@ package org.craftercms.studio.impl.v1.service.site;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
@@ -31,13 +35,12 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.craftercms.commons.validation.annotations.param.*;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
-import org.craftercms.studio.api.v1.dal.ItemMetadata;
-import org.craftercms.studio.api.v1.dal.ItemState;
-import org.craftercms.studio.api.v1.dal.SiteFeed;
-import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
+import org.craftercms.studio.api.v1.dal.*;
 import org.craftercms.studio.api.v1.deployment.PreviewDeployer;
+import org.craftercms.studio.api.v1.ebus.PreviewEventContext;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.PreviewDeployerUnreachableException;
 import org.craftercms.studio.api.v1.exception.SearchUnreachableException;
@@ -84,9 +87,11 @@ import org.dom4j.Element;
 import org.dom4j.Node;
 import org.dom4j.io.SAXReader;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.xml.sax.SAXException;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_DEFAULT_GROUPS_DESCRIPTION;
+import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.*;
 
 /**
@@ -100,13 +105,19 @@ public class SiteServiceImpl implements SiteService {
 	private final static Logger logger = LoggerFactory.getLogger(SiteServiceImpl.class);
 
     @Override
-    public boolean writeConfiguration(String site, String path, InputStream content) throws ServiceException {
+    @ValidateParams
+    public boolean writeConfiguration(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, InputStream content) throws ServiceException {
         // Write site configuration
         ActivityService.ActivityType activityType = ActivityService.ActivityType.UPDATED;
         if (!contentRepository.contentExists(site, path)) {
             activityType = ActivityService.ActivityType.CREATED;
         }
         String commitId = contentRepository.writeContent(site, path, content);
+
+        PreviewEventContext context = new PreviewEventContext();
+        context.setSite(site);
+        eventService.publish(EVENT_PREVIEW_SYNC, context);
+
         String user = securityService.getCurrentUser();
         Map<String, String> extraInfo = new HashMap<String, String>();
         if (StringUtils.startsWith(path, contentTypeService.getConfigPath())) {
@@ -119,14 +130,25 @@ public class SiteServiceImpl implements SiteService {
         if (!objectMetadataManager.metadataExist(site, path)) {
             objectMetadataManager.insertNewObjectMetadata(site, path);
         }
-        objectMetadataManager.updateCommitId(site, path, commitId);
+
+        Map<String, Object> properties = new HashMap<>();
+        properties.put(ItemMetadata.PROP_NAME, FilenameUtils.getName(path));
+        properties.put(ItemMetadata.PROP_MODIFIED, ZonedDateTime.now(ZoneOffset.UTC));
+        properties.put(ItemMetadata.PROP_MODIFIER, user);
+        objectMetadataManager.setObjectMetadata(site, path, properties);
+
+        if (commitId != null) {
+            objectMetadataManager.updateCommitId(site, path, commitId);
+            contentRepository.insertGitLog(site, commitId, 1);
+        }
         boolean toRet = StringUtils.isEmpty(commitId);
 
         return toRet;
     }
 
 	@Override
-	public boolean writeConfiguration(String path, InputStream content) throws ServiceException {
+    @ValidateParams
+	public boolean writeConfiguration(@ValidateSecurePathParam(name = "path") String path, InputStream content) throws ServiceException {
 	    // Write global configuration
         String commitId = contentRepository.writeContent("", path, content);
         boolean toReturn = StringUtils.isEmpty(commitId);
@@ -134,7 +156,8 @@ public class SiteServiceImpl implements SiteService {
 	}
 
 	@Override
-	public Map<String, Object> getConfiguration(String path) {
+    @ValidateParams
+	public Map<String, Object> getConfiguration(@ValidateSecurePathParam(name = "path") String path) {
 		return null;
 	}
 
@@ -146,13 +169,16 @@ public class SiteServiceImpl implements SiteService {
 	 * @param site the name of the site
 	 * @return a Document containing the entire site configuration
 	 */
-	public Document getSiteConfiguration(String site)
+	@Override
+    @ValidateParams
+	public Document getSiteConfiguration(@ValidateStringParam(name = "site") String site)
 	throws SiteConfigNotFoundException {
 		return _siteServiceDAL.getSiteConfiguration(site);
 	}
 
 	@Override
-	public Map<String, Object> getConfiguration(String site, String path, boolean applyEnv) {
+    @ValidateParams
+	public Map<String, Object> getConfiguration(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, boolean applyEnv) {
 		String configPath;
 		if (StringUtils.isEmpty(site)) {
 			configPath = getGlobalConfigRoot() + path;
@@ -242,7 +268,8 @@ public class SiteServiceImpl implements SiteService {
 	}
 
     @Override
-    public List<PublishingTargetTO> getPublishingTargetsForSite(String site) {
+    @ValidateParams
+    public List<PublishingTargetTO> getPublishingTargetsForSite(@ValidateStringParam(name = "site") String site) {
         return environmentConfig.getPublishingTargetsForSite(site);
     }
 
@@ -257,7 +284,8 @@ public class SiteServiceImpl implements SiteService {
     }
 
    	@Override
-   	public void createSiteFromBlueprint(String blueprintName, String siteName, String siteId, String desc) throws
+    @ValidateParams
+   	public void createSiteFromBlueprint(@ValidateStringParam(name = "blueprintName") String blueprintName, @ValidateNoTagsParam(name = "siteName") String siteName, @ValidateStringParam(name = "siteId") String siteId, @ValidateNoTagsParam(name = "desc") String desc) throws
 	    SiteAlreadyExistsException, SiteCreationException, PreviewDeployerUnreachableException, SearchUnreachableException {
 	    if (exists(siteId)) {
 	        throw new SiteAlreadyExistsException();
@@ -331,13 +359,11 @@ public class SiteServiceImpl implements SiteService {
 			    // environment overrides
 
 			    // initial deployment
-                Set<String> commitIds = new HashSet<String>();
-                commitIds.add(lastCommitId);
                 List<PublishingTargetTO> publishingTargets = getPublishingTargetsForSite(siteId);
                 if (publishingTargets != null && publishingTargets.size() > 0) {
                     for (PublishingTargetTO target : publishingTargets) {
                         if (StringUtils.isNotEmpty(target.getRepoBranchName())) {
-                            contentRepository.publish(siteId, commitIds, target.getRepoBranchName(), securityProvider.getCurrentUser(), "Create site.");
+                            contentRepository.initialPublish(siteId, target.getRepoBranchName(), securityProvider.getCurrentUser(), "Create site.");
                         }
                     }
                 }
@@ -351,6 +377,8 @@ public class SiteServiceImpl implements SiteService {
 			    siteFeed.setLastCommitId(lastCommitId);
 			    siteFeed.setPublishingStatusMessage(studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT));
 			    siteFeedMapper.createSite(siteFeed);
+
+			    contentRepository.insertGitLog(siteId, lastCommitId, 1);
 
                 // Add default groups
                 addDefaultGroupsForNewSite(siteId);
@@ -410,8 +438,6 @@ public class SiteServiceImpl implements SiteService {
 
         String siteConfigFolder = FILE_SEPARATOR + "config" + FILE_SEPARATOR + "studio";
         replaceFileContentGit(siteId, siteConfigFolder + FILE_SEPARATOR + "site-config.xml", "SITENAME", siteId);
-        replaceFileContentGit(siteId, siteConfigFolder + FILE_SEPARATOR + "role-mappings-config.xml", "SITENAME", siteId);
-        replaceFileContentGit(siteId, siteConfigFolder + FILE_SEPARATOR + "permission-mappings-config.xml", "SITENAME", siteId);
 
         return success;
     }
@@ -509,13 +535,16 @@ public class SiteServiceImpl implements SiteService {
                     }
                     try {
                         if (isCss || isJs || isTemplate) {
-                            StringBuffer sb = new StringBuffer(contentService.getContentAsString(site, childPath));
-                            if (isCss) {
-                                dmDependencyService.extractDependenciesStyle(site, childPath, sb, globalDeps);
-                            } else if (isJs) {
-                                dmDependencyService.extractDependenciesJavascript(site, childPath, sb, globalDeps);
-                            } else if (isTemplate) {
-                                dmDependencyService.extractDependenciesTemplate(site, childPath, sb, globalDeps);
+                            String content = contentService.getContentAsString(site, childPath);
+                            if (StringUtils.isNotEmpty(content)) {
+                                StringBuffer sb = new StringBuffer(content);
+                                if (isCss) {
+                                    dmDependencyService.extractDependenciesStyle(site, childPath, sb, globalDeps);
+                                } else if (isJs) {
+                                    dmDependencyService.extractDependenciesJavascript(site, childPath, sb, globalDeps);
+                                } else if (isTemplate) {
+                                    dmDependencyService.extractDependenciesTemplate(site, childPath, sb, globalDeps);
+                                }
                             }
                         }
                     } catch (ServiceException e) {
@@ -541,7 +570,8 @@ public class SiteServiceImpl implements SiteService {
     }
 
 	@Override
-   	public boolean deleteSite(String siteId) {
+    @ValidateParams
+   	public boolean deleteSite(@ValidateStringParam(name = "siteId") String siteId) {
  		boolean success = true;
         logger.debug("Deleting site:" + siteId);
         try {
@@ -648,22 +678,26 @@ public class SiteServiceImpl implements SiteService {
 	}
 
     @Override
-    public String getPreviewServerUrl(String site) {
+    @ValidateParams
+    public String getPreviewServerUrl(@ValidateStringParam(name = "site") String site) {
         return environmentConfig.getPreviewServerUrl(site);
     }
 
     @Override
-    public String getLiveServerUrl(String site) {
+    @ValidateParams
+    public String getLiveServerUrl(@ValidateStringParam(name = "site") String site) {
         return environmentConfig.getLiveServerUrl(site);
     }
 
     @Override
-    public String getAuthoringServerUrl(String site) {
+    @ValidateParams
+    public String getAuthoringServerUrl(@ValidateStringParam(name = "site") String site) {
         return environmentConfig.getAuthoringServerUrl(site);
     }
 
     @Override
-    public String getAdminEmailAddress(String site) {
+    @ValidateParams
+    public String getAdminEmailAddress(@ValidateStringParam(name = "site") String site) {
         return environmentConfig.getAdminEmailAddress(site);
     }
 
@@ -675,7 +709,8 @@ public class SiteServiceImpl implements SiteService {
     }
 
     @Override
-    public void reloadSiteConfiguration(String site) {
+    @ValidateParams
+    public void reloadSiteConfiguration(@ValidateStringParam(name = "site") String site) {
         reloadSiteConfiguration(site, true);
     }
 
@@ -703,7 +738,8 @@ public class SiteServiceImpl implements SiteService {
     }
 
     @Override
-    public void syncRepository(String site) throws SiteNotFoundException {
+    @ValidateParams
+    public void syncRepository(@ValidateStringParam(name = "site") String site) throws SiteNotFoundException {
 		if (!exists(site)) {
 			throw new SiteNotFoundException();
 		} else {
@@ -719,172 +755,214 @@ public class SiteServiceImpl implements SiteService {
     }
 
     @Override
-    public void rebuildDatabase(String site) {
+    @ValidateParams
+    public void rebuildDatabase(@ValidateStringParam(name = "site") String site) {
         rebuildRepositoryMetadata.execute(site);
     }
 
     @Override
-    public void updateLastCommitId(String site, String commitId) {
+    @ValidateParams
+    public void updateLastCommitId(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "commitId") String commitId) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("siteId", site);
         params.put("lastCommitId", commitId);
         siteFeedMapper.updateLastCommitId(params);
     }
 
+    private void updateLastVerifiedGitlogCommitId(String site, String commitId) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("siteId", site);
+        params.put("commitId", commitId);
+        siteFeedMapper.updateLastVerifiedGitlogCommitId(params);
+    }
+
     @Override
-    public boolean syncDatabaseWithRepo(String site, String fromCommitId) {
+    @ValidateParams
+    public boolean syncDatabaseWithRepo(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "fromCommitId") String fromCommitId) {
 		boolean toReturn = true;
-
-		logger.info("Syncing database with repository for site: " + site + " fromCommitId = " + (StringUtils.isEmpty(fromCommitId) ? "Empty repo" : fromCommitId));
-
-	    List<RepoOperationTO> repoOperations = contentRepository.getOperations(site, fromCommitId, contentRepository
+        List<RepoOperationTO> repoOperations = contentRepository.getOperations(site, fromCommitId, contentRepository
 		    .getRepoLastCommitId(site));
+        if (CollectionUtils.isEmpty(repoOperations)) {
+            logger.debug("Database is up to date with repository for site: " + site);
+            contentRepository.markGitLogVerifiedProcessed(site, fromCommitId);
+            return toReturn;
+        }
 
-	    logger.debug("Operations to sync: ");
+        logger.info("Syncing database with repository for site: " + site + " fromCommitId = " + (StringUtils.isEmpty(fromCommitId) ? "Empty repo" : fromCommitId));
+        logger.debug("Operations to sync: ");
 	    for (RepoOperationTO repoOperation: repoOperations) {
 	    	logger.debug("\tOperation: " + repoOperation.getOperation().toString() + " " + repoOperation.getPath());
 	    }
 
+	    boolean diverged = false;
+	    GitLog current = null;
+
 	    // Process all operations and track if one or more have failed
 	    for (RepoOperationTO repoOperation: repoOperations) {
-            Map<String, String> activityInfo = new HashMap<String, String>();
-            String contentClass;
-            Map<String, Object> properties;
-		    switch (repoOperation.getOperation()) {
-			    case CREATE:
-			    case COPY:
-				    ItemState state = objectStateService.getObjectState(site, repoOperation.getPath(), false);
+            boolean gitLogProcessed = false;
+            GitLog gitLog = contentRepository.getGitLog(site, repoOperation.getCommitId());
+            if (gitLog != null) {
+                diverged = diverged || gitLog.getProcessed() < 1;
+            } else {
+                contentRepository.insertGitLog(site, repoOperation.getCommitId(), 0);
+                diverged = true;
+                gitLogProcessed = false;
+                gitLog = contentRepository.getGitLog(site, repoOperation.getCommitId());
+            }
 
-				    if (state == null) {
-					    objectStateService.insertNewEntry(site, repoOperation.getPath());
-				    } else {
-					    objectStateService.transition(site, repoOperation.getPath(), TransitionEvent.SAVE);
-				    }
+            if (current == null) {
+                current = gitLog;
+            } else {
+	            if (!current.getCommitId().equals(gitLog.getCommitId())) {
+                    contentRepository.markGitLogVerifiedProcessed(site, current.getCommitId());
+                    current = gitLog;
+                }
+            }
 
-				    if (!objectMetadataManager.metadataExist(site, repoOperation.getPath())) {
-					    objectMetadataManager.insertNewObjectMetadata(site, repoOperation.getPath());
-				    }
-                    properties = new HashMap<String, Object>();
-                    properties.put(ItemMetadata.PROP_SITE, site);
-                    properties.put(ItemMetadata.PROP_PATH, repoOperation.getPath());
-                    properties.put(ItemMetadata.PROP_MODIFIED, repoOperation.getDateTime());
-                    properties.put(ItemMetadata.PROP_COMMIT_ID, repoOperation.getCommitId());
-                    objectMetadataManager.setObjectMetadata(site, repoOperation.getMoveToPath(), properties);
-				    toReturn = toReturn && extractDependenciesForItem(site, repoOperation.getPath());
-                    contentClass = contentService.getContentTypeClass(site, repoOperation.getPath());
-                    if( repoOperation.getPath().endsWith(DmConstants.XML_PATTERN)) {
-                        activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
-                    }
-				    activityService.postActivity(site, repoOperation.getAuthor(), repoOperation.getPath(),
-                            ActivityService.ActivityType.CREATED, ActivityService.ActivitySource.REPOSITORY, activityInfo);
-				    break;
+	        if (diverged) {
+                Map<String, String> activityInfo = new HashMap<String, String>();
+                String contentClass;
+                Map<String, Object> properties;
+                switch (repoOperation.getOperation()) {
+                    case CREATE:
+                    case COPY:
+                        ItemState state = objectStateService.getObjectState(site, repoOperation.getPath(), false);
 
-			    case UPDATE:
-				    objectStateService.getObjectState(site, repoOperation.getPath());
-				    objectStateService.transition(site, repoOperation.getPath(), TransitionEvent.SAVE);
-				    if (!objectMetadataManager.metadataExist(site, repoOperation.getPath())) {
-					    objectMetadataManager.insertNewObjectMetadata(site, repoOperation.getPath());
-				    }
-                    properties = new HashMap<String, Object>();
-                    properties.put(ItemMetadata.PROP_SITE, site);
-                    properties.put(ItemMetadata.PROP_PATH, repoOperation.getPath());
-                    properties.put(ItemMetadata.PROP_MODIFIED, repoOperation.getDateTime());
-                    properties.put(ItemMetadata.PROP_COMMIT_ID, repoOperation.getCommitId());
-                    objectMetadataManager.setObjectMetadata(site, repoOperation.getMoveToPath(), properties);
-				    toReturn = toReturn && extractDependenciesForItem(site, repoOperation.getPath());
-                    contentClass = contentService.getContentTypeClass(site, repoOperation.getPath());
-                    if( repoOperation.getPath().endsWith(DmConstants.XML_PATTERN)) {
-                        activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
-                    }
-                    activityService.postActivity(site, repoOperation.getAuthor(), repoOperation.getPath(),
-                            ActivityService.ActivityType.UPDATED, ActivityService.ActivitySource.REPOSITORY, activityInfo);
-				    break;
+                        if (state == null) {
+                            objectStateService.insertNewEntry(site, repoOperation.getPath());
+                        } else {
+                            objectStateService.transition(site, repoOperation.getPath(), TransitionEvent.SAVE);
+                        }
 
-			    case DELETE:
-				    objectStateService.deleteObjectStateForPath(site, repoOperation.getPath());
-				    objectMetadataManager.deleteObjectMetadata(site, repoOperation.getPath());
-				    dmDependencyService.deleteDependenciesForSiteAndPath(site, repoOperation.getPath());
-                    contentClass = contentService.getContentTypeClass(site, repoOperation.getPath());
-                    if( repoOperation.getPath().endsWith(DmConstants.XML_PATTERN)) {
-                        activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
-                    }
-                    activityService.postActivity(site, repoOperation.getAuthor(), repoOperation.getPath(),
-                            ActivityService.ActivityType.DELETED, ActivityService.ActivitySource.REPOSITORY, activityInfo);
-				    break;
+                        if (!objectMetadataManager.metadataExist(site, repoOperation.getPath())) {
+                            objectMetadataManager.insertNewObjectMetadata(site, repoOperation.getPath());
+                        }
+                        properties = new HashMap<String, Object>();
+                        properties.put(ItemMetadata.PROP_SITE, site);
+                        properties.put(ItemMetadata.PROP_PATH, repoOperation.getPath());
+                        properties.put(ItemMetadata.PROP_MODIFIED, repoOperation.getDateTime());
+                        properties.put(ItemMetadata.PROP_COMMIT_ID, repoOperation.getCommitId());
+                        objectMetadataManager.setObjectMetadata(site, repoOperation.getMoveToPath(), properties);
+                        toReturn = toReturn && extractDependenciesForItem(site, repoOperation.getPath());
+                        contentClass = contentService.getContentTypeClass(site, repoOperation.getPath());
+                        if (repoOperation.getPath().endsWith(DmConstants.XML_PATTERN)) {
+                            activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
+                        }
+                        activityService.postActivity(site, repoOperation.getAuthor(), repoOperation.getPath(),
+                                ActivityService.ActivityType.CREATED, ActivityService.ActivitySource.REPOSITORY, activityInfo);
+                        break;
 
-			    case MOVE:
-				    ItemState stateRename = objectStateService.getObjectState(site, repoOperation.getPath(), false);
-				    if (stateRename == null) {
-					    objectStateService.getObjectState(site, repoOperation.getPath());
-					    objectStateService.transition(site, repoOperation.getPath(), TransitionEvent.SAVE);
-				    } else {
-					    objectStateService.updateObjectPath(site, repoOperation.getPath(), repoOperation.getMoveToPath());
-					    objectStateService.transition(site, repoOperation.getMoveToPath(), TransitionEvent.SAVE);
-				    }
+                    case UPDATE:
+                        objectStateService.getObjectState(site, repoOperation.getPath());
+                        objectStateService.transition(site, repoOperation.getPath(), TransitionEvent.SAVE);
+                        if (!objectMetadataManager.metadataExist(site, repoOperation.getPath())) {
+                            objectMetadataManager.insertNewObjectMetadata(site, repoOperation.getPath());
+                        }
+                        properties = new HashMap<String, Object>();
+                        properties.put(ItemMetadata.PROP_SITE, site);
+                        properties.put(ItemMetadata.PROP_PATH, repoOperation.getPath());
+                        properties.put(ItemMetadata.PROP_MODIFIED, repoOperation.getDateTime());
+                        properties.put(ItemMetadata.PROP_COMMIT_ID, repoOperation.getCommitId());
+                        objectMetadataManager.setObjectMetadata(site, repoOperation.getMoveToPath(), properties);
+                        toReturn = toReturn && extractDependenciesForItem(site, repoOperation.getPath());
+                        contentClass = contentService.getContentTypeClass(site, repoOperation.getPath());
+                        if (repoOperation.getPath().endsWith(DmConstants.XML_PATTERN)) {
+                            activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
+                        }
+                        activityService.postActivity(site, repoOperation.getAuthor(), repoOperation.getPath(),
+                                ActivityService.ActivityType.UPDATED, ActivityService.ActivitySource.REPOSITORY, activityInfo);
+                        break;
 
-				    if (!objectMetadataManager.metadataExist(site, repoOperation.getPath())) {
-					    if (!objectMetadataManager.metadataExist(site, repoOperation.getMoveToPath())) {
-						    objectMetadataManager.insertNewObjectMetadata(site, repoOperation.getMoveToPath());
-					    } else {
-						    if (!objectMetadataManager.isRenamed(site, repoOperation.getMoveToPath())) {
-							    // set renamed and old path
-							    properties = new HashMap<String, Object>();
-							    properties.put(ItemMetadata.PROP_SITE, site);
-							    properties.put(ItemMetadata.PROP_PATH, repoOperation.getMoveToPath());
-							    properties.put(ItemMetadata.PROP_RENAMED, 1);
-							    properties.put(ItemMetadata.PROP_OLD_URL, repoOperation.getPath());
+                    case DELETE:
+                        objectStateService.deleteObjectStateForPath(site, repoOperation.getPath());
+                        objectMetadataManager.deleteObjectMetadata(site, repoOperation.getPath());
+                        dmDependencyService.deleteDependenciesForSiteAndPath(site, repoOperation.getPath());
+                        contentClass = contentService.getContentTypeClass(site, repoOperation.getPath());
+                        if (repoOperation.getPath().endsWith(DmConstants.XML_PATTERN)) {
+                            activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
+                        }
+                        activityService.postActivity(site, repoOperation.getAuthor(), repoOperation.getPath(),
+                                ActivityService.ActivityType.DELETED, ActivityService.ActivitySource.REPOSITORY, activityInfo);
+                        break;
+
+                    case MOVE:
+                        ItemState stateRename = objectStateService.getObjectState(site, repoOperation.getPath(), false);
+                        if (stateRename == null) {
+                            objectStateService.getObjectState(site, repoOperation.getPath());
+                            objectStateService.transition(site, repoOperation.getPath(), TransitionEvent.SAVE);
+                        } else {
+                            objectStateService.updateObjectPath(site, repoOperation.getPath(), repoOperation.getMoveToPath());
+                            objectStateService.transition(site, repoOperation.getMoveToPath(), TransitionEvent.SAVE);
+                        }
+
+                        if (!objectMetadataManager.metadataExist(site, repoOperation.getPath())) {
+                            if (!objectMetadataManager.metadataExist(site, repoOperation.getMoveToPath())) {
+                                objectMetadataManager.insertNewObjectMetadata(site, repoOperation.getMoveToPath());
+                            } else {
+                                if (!objectMetadataManager.isRenamed(site, repoOperation.getMoveToPath())) {
+                                    // set renamed and old path
+                                    properties = new HashMap<String, Object>();
+                                    properties.put(ItemMetadata.PROP_SITE, site);
+                                    properties.put(ItemMetadata.PROP_PATH, repoOperation.getMoveToPath());
+                                    properties.put(ItemMetadata.PROP_RENAMED, 1);
+                                    properties.put(ItemMetadata.PROP_OLD_URL, repoOperation.getPath());
+                                    properties.put(ItemMetadata.PROP_COMMIT_ID, repoOperation.getCommitId());
+                                    properties.put(ItemMetadata.PROP_MODIFIED, repoOperation.getDateTime());
+                                    objectMetadataManager.setObjectMetadata(site, repoOperation.getMoveToPath(), properties);
+                                }
+                            }
+                        } else {
+                            if (!objectMetadataManager.metadataExist(site, repoOperation.getMoveToPath())) {
+                                // preform move: update path, set renamed, set old url
+                                objectMetadataManager.updateObjectPath(site, repoOperation.getPath(), repoOperation.getMoveToPath());
+                                properties = new HashMap<String, Object>();
+                                properties.put(ItemMetadata.PROP_SITE, site);
+                                properties.put(ItemMetadata.PROP_PATH, repoOperation.getMoveToPath());
+                                properties.put(ItemMetadata.PROP_RENAMED, 1);
+                                properties.put(ItemMetadata.PROP_OLD_URL, repoOperation.getPath());
                                 properties.put(ItemMetadata.PROP_COMMIT_ID, repoOperation.getCommitId());
-                                properties.put(ItemMetadata.PROP_MODIFIED, repoOperation.getDateTime());
-							    objectMetadataManager.setObjectMetadata(site, repoOperation.getMoveToPath(), properties);
-						    }
-					    }
-				    } else {
-					    if (!objectMetadataManager.metadataExist(site, repoOperation.getMoveToPath())) {
-						    // preform move: update path, set renamed, set old url
-						    objectMetadataManager.updateObjectPath(site, repoOperation.getPath(), repoOperation.getMoveToPath());
-						    properties = new HashMap<String, Object>();
-						    properties.put(ItemMetadata.PROP_SITE, site);
-						    properties.put(ItemMetadata.PROP_PATH, repoOperation.getMoveToPath());
-						    properties.put(ItemMetadata.PROP_RENAMED, 1);
-						    properties.put(ItemMetadata.PROP_OLD_URL, repoOperation.getPath());
-						    properties.put(ItemMetadata.PROP_COMMIT_ID, repoOperation.getCommitId());
-						    objectMetadataManager.setObjectMetadata(site, repoOperation.getMoveToPath(), properties);
-					    } else {
-						    // if not already renamed set renamed and old url
-						    if (!objectMetadataManager.isRenamed(site, repoOperation.getMoveToPath())) {
-							    // set renamed and old path
-							    properties = new HashMap<String, Object>();
-							    properties.put(ItemMetadata.PROP_SITE, site);
-							    properties.put(ItemMetadata.PROP_PATH, repoOperation.getMoveToPath());
-							    properties.put(ItemMetadata.PROP_RENAMED, 1);
-							    properties.put(ItemMetadata.PROP_OLD_URL, repoOperation.getPath());
-                                properties.put(ItemMetadata.PROP_COMMIT_ID, repoOperation.getCommitId());
-							    objectMetadataManager.setObjectMetadata(site, repoOperation.getMoveToPath(), properties);
-						    }
-						    objectMetadataManager.deleteObjectMetadata(site, repoOperation.getPath());
-					    }
-				    }
+                                objectMetadataManager.setObjectMetadata(site, repoOperation.getMoveToPath(), properties);
+                            } else {
+                                // if not already renamed set renamed and old url
+                                if (!objectMetadataManager.isRenamed(site, repoOperation.getMoveToPath())) {
+                                    // set renamed and old path
+                                    properties = new HashMap<String, Object>();
+                                    properties.put(ItemMetadata.PROP_SITE, site);
+                                    properties.put(ItemMetadata.PROP_PATH, repoOperation.getMoveToPath());
+                                    properties.put(ItemMetadata.PROP_RENAMED, 1);
+                                    properties.put(ItemMetadata.PROP_OLD_URL, repoOperation.getPath());
+                                    properties.put(ItemMetadata.PROP_COMMIT_ID, repoOperation.getCommitId());
+                                    objectMetadataManager.setObjectMetadata(site, repoOperation.getMoveToPath(), properties);
+                                }
+                                objectMetadataManager.deleteObjectMetadata(site, repoOperation.getPath());
+                            }
+                        }
 
-				    toReturn = toReturn && extractDependenciesForItem(site, repoOperation.getMoveToPath());
-                    contentClass = contentService.getContentTypeClass(site, repoOperation.getMoveToPath());
-                    if( repoOperation.getMoveToPath().endsWith(DmConstants.XML_PATTERN)) {
-                        activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
-                    }
-                    activityService.postActivity(site, repoOperation.getAuthor(), repoOperation.getMoveToPath(),
-                            ActivityService.ActivityType.UPDATED, ActivityService.ActivitySource.REPOSITORY, activityInfo);
-				    break;
+                        toReturn = toReturn && extractDependenciesForItem(site, repoOperation.getMoveToPath());
+                        contentClass = contentService.getContentTypeClass(site, repoOperation.getMoveToPath());
+                        if (repoOperation.getMoveToPath().endsWith(DmConstants.XML_PATTERN)) {
+                            activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
+                        }
+                        activityService.postActivity(site, repoOperation.getAuthor(), repoOperation.getMoveToPath(),
+                                ActivityService.ActivityType.UPDATED, ActivityService.ActivitySource.REPOSITORY, activityInfo);
+                        break;
 
-			    default:
-				    logger.error("Error: Unknown repo operation for site " + site + " operation: " + repoOperation.getOperation());
-				    toReturn = false;
-				    break;
-		    }
+                    default:
+                        logger.error("Error: Unknown repo operation for site " + site + " operation: " + repoOperation.getOperation());
+                        toReturn = false;
+                        break;
+                }
+            }
 	    }
+        if (current != null) {
+            contentRepository.markGitLogVerifiedProcessed(site, current.getCommitId());
+            updateLastVerifiedGitlogCommitId(site, current.getCommitId());
+        }
 
 	    // At this point we have attempted to process all operations, some may have failed
 	    // We will update the lastCommitId of the database ignoring errors if any
-	    logger.info("Done syncing operations with a result of: " + toReturn);
-        logger.info("Syncing database lastCommitId for site: " + site);
+	    logger.debug("Done syncing operations with a result of: " + toReturn);
+        logger.debug("Syncing database lastCommitId for site: " + site);
 
 	    // Update database
         String lastCommitId = contentRepository.getRepoLastCommitId(site);
@@ -898,6 +976,7 @@ public class SiteServiceImpl implements SiteService {
 
 	    logger.info("Done syncing database with repository for site: " + site + " fromCommitId = " + (StringUtils.isEmpty(fromCommitId) ? "Empty repo" : fromCommitId) +
 		    " with a final result of: " + toReturn);
+        logger.info("Last commit ID for site: " + site + " is " + lastCommitId);
 
         if (!toReturn) {
 	        // Some operations failed during sync database from repo
@@ -915,7 +994,15 @@ public class SiteServiceImpl implements SiteService {
 		    InputStream content = contentRepository.getContent(site, path);
 		    if (path.endsWith(DmConstants.XML_PATTERN)) {
 			    SAXReader saxReader = new SAXReader();
+				try {
+					saxReader.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+					saxReader.setFeature("http://xml.org/sax/features/external-general-entities", false);
+					saxReader.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+				}catch (SAXException ex){
+					logger.error("Unable to turn off external entity loading, This could be a security risk.", ex);
+				}
 			    Document doc = saxReader.read(content);
+
 			    dmDependencyService.extractDependencies(site, path, doc, new HashMap<>());
 		    } else {
 			    boolean isCss = path.endsWith(DmConstants.CSS_PATTERN);
@@ -942,12 +1029,14 @@ public class SiteServiceImpl implements SiteService {
     }
 
     @Override
-    public boolean exists(String site) {
+    @ValidateParams
+    public boolean exists(@ValidateStringParam(name = "site") String site) {
         return siteFeedMapper.exists(site) > 0;
     }
 
     @Override
-    public int getSitesPerUserTotal(String username) throws UserNotFoundException {
+    @ValidateParams
+    public int getSitesPerUserTotal(@ValidateStringParam(name = "username") String username) throws UserNotFoundException {
 	    if (securityService.userExists(username)) {
             Map<String, Object> params = new HashMap<String, Object>();
             params.put("username", username);
@@ -958,7 +1047,8 @@ public class SiteServiceImpl implements SiteService {
     }
 
     @Override
-    public List<SiteFeed> getSitesPerUser(String username, int start, int number) throws UserNotFoundException {
+    @ValidateParams
+    public List<SiteFeed> getSitesPerUser(@ValidateStringParam(name = "username") String username, @ValidateIntegerParam(name = "start") int start, @ValidateIntegerParam(name = "number") int number) throws UserNotFoundException {
         if (securityService.userExists(username)) {
             Map<String, Object> params = new HashMap<String, Object>();
             params.put("username", username);
@@ -978,7 +1068,8 @@ public class SiteServiceImpl implements SiteService {
     }
 
     @Override
-    public SiteFeed getSite(String siteId) throws SiteNotFoundException {
+    @ValidateParams
+    public SiteFeed getSite(@ValidateStringParam(name = "siteId") String siteId) throws SiteNotFoundException {
         if (exists(siteId)) {
             Map<String, Object> params = new HashMap<String, Object>();
             params.put("siteId", siteId);
@@ -989,7 +1080,8 @@ public class SiteServiceImpl implements SiteService {
     }
 
     @Override
-    public boolean isPublishingEnabled(String siteId) {
+    @ValidateParams
+    public boolean isPublishingEnabled(@ValidateStringParam(name = "siteId") String siteId) {
         try {
             SiteFeed siteFeed = getSite(siteId);
             return siteFeed.getPublishingEnabled() > 0;
@@ -1000,7 +1092,8 @@ public class SiteServiceImpl implements SiteService {
     }
 
     @Override
-    public boolean enablePublishing(String siteId, boolean enabled) throws SiteNotFoundException {
+    @ValidateParams
+    public boolean enablePublishing(@ValidateStringParam(name = "siteId") String siteId, boolean enabled) throws SiteNotFoundException {
         if (exists(siteId)) {
             Map<String, Object> params = new HashMap<String, Object>();
             params.put("siteId", siteId);
@@ -1013,7 +1106,8 @@ public class SiteServiceImpl implements SiteService {
     }
 
     @Override
-    public boolean updatePublishingStatusMessage(String siteId, String message) throws SiteNotFoundException {
+    @ValidateParams
+    public boolean updatePublishingStatusMessage(@ValidateStringParam(name = "siteId") String siteId, @ValidateStringParam(name = "message") String message) throws SiteNotFoundException {
         if (exists(siteId)) {
             Map<String, Object> params = new HashMap<String, Object>();
             params.put("siteId", siteId);
@@ -1026,7 +1120,8 @@ public class SiteServiceImpl implements SiteService {
     }
 
     @Override
-    public PublishStatus getPublishStatus(String site) throws SiteNotFoundException {
+    @ValidateParams
+    public PublishStatus getPublishStatus(@ValidateStringParam(name = "site") String site) throws SiteNotFoundException {
         SiteFeed siteFeed = getSite(site);
         String psm = siteFeed.getPublishingStatusMessage();
         PublishStatus ps = new PublishStatus();

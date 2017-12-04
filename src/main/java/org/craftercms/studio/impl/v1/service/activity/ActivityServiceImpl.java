@@ -25,6 +25,10 @@ import net.sf.json.JSONObject;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.validation.annotations.param.ValidateIntegerParam;
+import org.craftercms.commons.validation.annotations.param.ValidateParams;
+import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
+import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.AuditFeed;
@@ -91,7 +95,9 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
         getServicesManager().registerService(ActivityService.class, this);
     }
 
-	public void postActivity(String site, String user, String contentId, ActivityType activity, ActivitySource source, Map<String,String> extraInfo) {
+    @Override
+    @ValidateParams
+	public void postActivity(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "user") String user, @ValidateSecurePathParam(name = "contentId") String contentId, ActivityType activity, ActivitySource source, Map<String,String> extraInfo) {
 
 		JSONObject activityPost = new JSONObject();
 		activityPost.put(ACTIVITY_PROP_USER, user);
@@ -201,7 +207,8 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 	}
 
 	@Override
-	public void renameContentId(String site, String oldUrl, String newUrl) {
+    @ValidateParams
+	public void renameContentId(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "oldUrl") String oldUrl, @ValidateSecurePathParam(name = "newUrl") String newUrl) {
 		DebugUtils.addDebugStack(logger);
 		logger.debug("Rename " + oldUrl + " to " + newUrl);
 		Map<String, String> params = new HashMap<String, String>();
@@ -212,7 +219,8 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 	}
 
 	@Override
-	public List<ContentItemTO> getActivities(String site, String user, int num, String sort, boolean ascending, boolean excludeLive, String filterType) throws ServiceException {
+    @ValidateParams
+	public List<ContentItemTO> getActivities(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "user") String user, @ValidateIntegerParam(name = "num") int num, @ValidateStringParam(name = "sort") String sort, boolean ascending, boolean excludeLive, @ValidateStringParam(name = "filterType") String filterType) throws ServiceException {
 		int startPos = 0;
 		List<ContentItemTO> contentItems = new ArrayList<ContentItemTO>();
 		boolean hasMoreItems = true;
@@ -335,7 +343,7 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 		params.put("siteNetwork",siteId);
 		params.put("startPos", startPos);
 		params.put("feedSize", feedSize);
-		params.put("activities", Arrays.asList(ActivityType.CREATED, ActivityType.DELETED, ActivityType.UPDATED));
+		params.put("activities", Arrays.asList(ActivityType.CREATED, ActivityType.DELETED, ActivityType.UPDATED, ActivityType.MOVED));
 		if(StringUtils.isNotEmpty(contentType) && !contentType.toLowerCase().equals("all")){
 			params.put("contentType",contentType.toLowerCase());
 		}
@@ -352,7 +360,8 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 	}
 
 	@Override
-	public AuditFeed getDeletedActivity(String site, String path) {
+    @ValidateParams
+	public AuditFeed getDeletedActivity(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
 		HashMap<String,String> params = new HashMap<String,String>();
 		params.put("contentId", path);
 		params.put("siteNetwork", site);
@@ -362,14 +371,16 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 	}
 
 	@Override
-	public void deleteActivitiesForSite(String site) {
+    @ValidateParams
+	public void deleteActivitiesForSite(@ValidateStringParam(name = "site") String site) {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("site", site);
 		auditFeedMapper.deleteActivitiesForSite(params);
 	}
 
     @Override
-    public List<AuditFeed> getAuditLogForSite(String site, int start, int number, String user, List<String> actions)
+    @ValidateParams
+    public List<AuditFeed> getAuditLogForSite(@ValidateStringParam(name = "site") String site, @ValidateIntegerParam(name = "start") int start, @ValidateIntegerParam(name = "number") int number, @ValidateStringParam(name = "user") String user, List<String> actions)
 	throws SiteNotFoundException {
 		if (!siteService.exists(site)) {
 			throw new SiteNotFoundException();
@@ -389,7 +400,8 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
     }
 
     @Override
-    public long getAuditLogForSiteTotal(String site, String user, List<String> actions)
+    @ValidateParams
+    public long getAuditLogForSiteTotal(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "user") String user, List<String> actions)
             throws SiteNotFoundException {
         if (!siteService.exists(site)) {
             throw new SiteNotFoundException();

@@ -22,6 +22,7 @@ import org.craftercms.studio.api.v1.exception.CommitNotFoundException;
 import org.craftercms.studio.api.v1.exception.EnvironmentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.to.*;
 
 import java.time.ZonedDateTime;
@@ -99,7 +100,7 @@ public interface DeploymentService {
      * @param enabled true to enable publishing, false to disable publishing
      * @throws SiteNotFoundException
      */
-    boolean enablePublishing(String site, boolean enabled) throws SiteNotFoundException;
+    boolean enablePublishing(String site, boolean enabled) throws SiteNotFoundException, AuthenticationException;
 
     /**
      * Publish given commit IDs on given environment for given site

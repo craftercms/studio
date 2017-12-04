@@ -37,6 +37,7 @@ public interface StudioConfiguration {
     String REPO_PUBLISHED_CHERRY_PICK_MESSAGE = "studio.repo.published.cherryPickMessage";
     String REPO_PUBLISHED_CHERRY_PICK_MESSAGE_REPLACE = "studio.repo.published.cherryPickMessage.replace";
     String REPO_PUBLISHED_CHERRY_PICK_MESSAGE_COMMIT_ID_REGEX = "studio.repo.published.cherryPickMessage.commitId.regex";
+    String REPO_PUBLISHED_COMMIT_MESSAGE = "studio.repo.published.commitMessage";
 
     /** Database */
     String DB_DRIVER = "studio.db.driver";
@@ -52,6 +53,9 @@ public interface StudioConfiguration {
     String DB_INITIALIZER_URL = "studio.db.initializer.url";
     String DB_INITIALIZER_CREATE_DB_SCRIPT_LOCATION = "studio.db.initializer.createDbscriptLocation";
     String DB_INITIALIZER_UPGRADE_DB_SCRIPT_LOCATION = "studio.db.initializer.upgradeDbScriptLocation";
+    String DB_INITIALIZER_RANDOM_ADMIN_PASSWORD_ENABLED = "studio.db.initializer.randomAdminPassword.enabled";
+    String DB_INITIALIZER_RANDOM_ADMIN_PASSWORD_LENGTH = "studio.db.initializer.randomAdminPassword.length";
+    String DB_INITIALIZER_RANDOM_ADMIN_PASSWORD_CHARS = "studio.db.initializer.randomAdminPassword.chars";
     String DB_TEST_ON_BORROW = "studio.db.testOnBorrow";
     String DB_VALIDATION_QUERY = "studio.db.validationQuery";
     String DB_VALIDATION_INTERVAL = "studio.db.validationInterval";
@@ -66,6 +70,7 @@ public interface StudioConfiguration {
     String CONFIGURATION_GLOBAL_ROLE_MAPPINGS_FILE_NAME = "studio.configuration.global.roleMappingFileName";
     String CONFIGURATION_GLOBAL_PERMISSION_MAPPINGS_FILE_NAME = "studio.configuration.global.permissionMappingFileName";
     String CONFIGURATION_GLOBAL_UI_RESOURCE_OVERRIDE_PATH = "studio.configuration.global.ui.resource.override.path";
+    String CONFIGURATION_GLOBAL_SYSTEM_SITE = "studio.configuration.global.systemSite";
     String CONFIGURATION_SITE_CONFIG_BASE_PATH = "studio.configuration.site.configBasePath";
     String CONFIGURATION_SITE_ENVIRONMENT_CONFIG_BASE_PATH = "studio.configuration.site.environment.configBasePath";
     String CONFIGURATION_SITE_DEPLOYMENT_CONFIG_BASE_PATH = "studio.configuration.site.deployment.configBasePath";
@@ -113,6 +118,7 @@ public interface StudioConfiguration {
     String SECURITY_URLS_TO_INCLUDE = "security.urlsToInclude";
     String SECURITY_URLS_TO_EXCLUDE = "studio.security.urlsToExclude";
     String SECURITY_EXCEPTION_URLS = "studio.security.exceptionUrls";
+    String SECURITY_IGNORE_RENEW_TOKEN_URLS = "studio.security.ignoreRenewTokenUrls";
     String SECURITY_TYPE = "studio.security.type";
     String SECURITY_CIPHER_SALT = "studio.security.cipher.salt";
     String SECURITY_CIPHER_KEY = "studio.security.cipher.key";

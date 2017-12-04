@@ -46,4 +46,6 @@ public interface SiteFeedMapper {
     void enablePublishing(Map params);
 
     void updatePublishingStatusMessage(Map params);
+
+    void updateLastVerifiedGitlogCommitId(Map params);
 }

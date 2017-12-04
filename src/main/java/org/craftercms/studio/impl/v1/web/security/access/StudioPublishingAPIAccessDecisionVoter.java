@@ -95,7 +95,7 @@ public class StudioPublishingAPIAccessDecisionVoter extends StudioAbstractAccess
             switch (requestUri) {
                 case START:
                 case STOP:
-                    if (currentUser != null && isSiteAdmin(siteParam, currentUser)) {
+                    if (currentUser != null) {
                         toRet = ACCESS_GRANTED;
                     } else {
                         toRet = ACCESS_DENIED;

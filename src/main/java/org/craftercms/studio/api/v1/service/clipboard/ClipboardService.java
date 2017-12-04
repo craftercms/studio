@@ -80,6 +80,8 @@ public interface ClipboardService {
      */
     ClipboardItem getItems(String site, HttpSession session) throws ServiceException;
 
+    ClipboardStore getClipboardStore(String site,  HttpSession session);
+
     /**
      * A ClipboardItem is a record for clip board opearation (CUT/COPY)
      * A clipboard contains a list of ops until a paste is called
@@ -95,5 +97,30 @@ public interface ClipboardService {
         public boolean isDeep = true; // copy ops are not always deep, why is this hard coded? Suspect not used
         public String path = null;
         public Set<ClipboardItem> children;
+    }
+
+    /**
+     * wrapper around a map used to store clipboard opearations
+     */
+    class ClipboardStore {
+
+        public ClipboardStore() {
+            this.op = null;
+        };
+
+        public void clear() {
+            this.op = null;
+        };
+
+        public boolean addOp(ClipboardItem op) {
+            this.op = op;
+            return true;
+        }
+
+        public ClipboardItem getOps() {
+            return this.op;
+        };
+
+        protected ClipboardItem op;
     }
 }

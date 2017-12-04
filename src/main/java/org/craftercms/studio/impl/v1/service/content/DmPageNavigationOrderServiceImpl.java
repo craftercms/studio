@@ -18,6 +18,10 @@
 package org.craftercms.studio.impl.v1.service.content;
 
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.validation.annotations.param.ValidateDoubleParam;
+import org.craftercms.commons.validation.annotations.param.ValidateParams;
+import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
+import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.DmXmlConstants;
 import org.craftercms.studio.api.v1.dal.NavigationOrderSequence;
 import org.craftercms.studio.api.v1.dal.NavigationOrderSequenceMapper;
@@ -58,12 +62,14 @@ public class DmPageNavigationOrderServiceImpl extends AbstractRegistrableService
     }
 
     @Override
-    public double getNewNavOrder(String site, String path) {
+    @ValidateParams
+    public double getNewNavOrder(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
         return getNewNavOrder(site, path, -1);
     }
 
     @Override
-    public double getNewNavOrder(String site, String path, double currentMaxNavOrder) {
+    @ValidateParams
+    public double getNewNavOrder(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, @ValidateDoubleParam(name = "currentMaxNavOrder") double currentMaxNavOrder) {
 
         String lockId = site + ":" + path;
         generalLockService.lock(lockId);
@@ -111,7 +117,8 @@ public class DmPageNavigationOrderServiceImpl extends AbstractRegistrableService
     }
 
     @Override
-    public boolean addNavOrder(String site, String path, Document document) {
+    @ValidateParams
+    public boolean addNavOrder(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, Document document) {
         boolean docUpdated =false;
         Element root = document.getRootElement();
         //Node navOrderNode = root.selectSingleNode("//" + DmXmlConstants.ELM_ORDER_VALUE);
@@ -127,7 +134,8 @@ public class DmPageNavigationOrderServiceImpl extends AbstractRegistrableService
     }
 
     @Override
-    public boolean updateNavOrder(String site, String path, Document document) {
+    @ValidateParams
+    public boolean updateNavOrder(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, Document document) {
         boolean docUpdated =false;
         Element root = document.getRootElement();
         //Node navOrderNode = root.selectSingleNode("//" + DmXmlConstants.ELM_ORDER_VALUE);
@@ -150,7 +158,8 @@ public class DmPageNavigationOrderServiceImpl extends AbstractRegistrableService
     }
 
     @Override
-    public void deleteSequencesForSite(String site) {
+    @ValidateParams
+    public void deleteSequencesForSite(@ValidateStringParam(name = "site") String site) {
         Map<String, String> params = new HashMap<String, String>();
         params.put("site", site);
         navigationOrderSequenceMapper.deleteSequencesForSite(params);

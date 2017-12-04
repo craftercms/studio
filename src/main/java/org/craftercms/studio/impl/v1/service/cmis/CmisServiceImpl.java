@@ -30,6 +30,10 @@ import org.apache.chemistry.opencmis.commons.exceptions.CmisConnectionException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisRuntimeException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisUnauthorizedException;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.validation.annotations.param.ValidateIntegerParam;
+import org.craftercms.commons.validation.annotations.param.ValidateParams;
+import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
+import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.exception.*;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -82,7 +86,8 @@ public class CmisServiceImpl implements CmisService {
     private static final String CMIS_SEARCH_QUERY_SEARCH_TERM_VARIABLE = "{searchTerm}";
 
     @Override
-    public int listTotal(String site, String cmisRepo, String path) throws CmisUnavailableException, CmisTimeoutException, CmisRepositoryNotFoundException {
+    @ValidateParams
+    public int listTotal(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "cmisRepo") String cmisRepo, @ValidateSecurePathParam(name = "path") String path) throws CmisUnavailableException, CmisTimeoutException, CmisRepositoryNotFoundException {
         int toRet = 0;
         DataSourceRepositoryTO repositoryConfig = getConfiguration(site, cmisRepo);
         if (repositoryConfig != null) {
@@ -107,7 +112,8 @@ public class CmisServiceImpl implements CmisService {
     }
 
     @Override
-    public List<CmisContentItemTO> list(String site, String cmisRepo, String path, int start, int number) throws CmisUnavailableException, CmisTimeoutException, CmisRepositoryNotFoundException {
+    @ValidateParams
+    public List<CmisContentItemTO> list(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "cmisRepo") String cmisRepo, @ValidateSecurePathParam(name = "path") String path, @ValidateIntegerParam(name = "start") int start, @ValidateIntegerParam(name = "number") int number) throws CmisUnavailableException, CmisTimeoutException, CmisRepositoryNotFoundException {
         List<CmisContentItemTO> toRet = new ArrayList<CmisContentItemTO>();
         DataSourceRepositoryTO repositoryConfig = getConfiguration(site, cmisRepo);
         if (repositoryConfig != null) {
@@ -225,7 +231,8 @@ public class CmisServiceImpl implements CmisService {
     }
 
     @Override
-    public long searchTotal(String site, String cmisRepo, String searchTerm, String path) throws CmisUnavailableException, CmisTimeoutException, CmisRepositoryNotFoundException {
+    @ValidateParams
+    public long searchTotal(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "cmisRepo") String cmisRepo, @ValidateStringParam(name = "searchTerm") String searchTerm, @ValidateSecurePathParam(name = "path") String path) throws CmisUnavailableException, CmisTimeoutException, CmisRepositoryNotFoundException {
         long toRet = 0;
         DataSourceRepositoryTO repositoryConfig = getConfiguration(site, cmisRepo);
         if (repositoryConfig != null) {
@@ -246,7 +253,8 @@ public class CmisServiceImpl implements CmisService {
     }
 
     @Override
-    public List<CmisContentItemTO> search(String site, String cmisRepo, String searchTerm, String path, int start, int number) throws CmisUnavailableException, CmisTimeoutException, CmisRepositoryNotFoundException {
+    @ValidateParams
+    public List<CmisContentItemTO> search(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "cmisRepo") String cmisRepo, @ValidateStringParam(name = "searchTerm") String searchTerm, @ValidateSecurePathParam(name = "path") String path, @ValidateIntegerParam(name = "start") int start, @ValidateIntegerParam(name = "number") int number) throws CmisUnavailableException, CmisTimeoutException, CmisRepositoryNotFoundException {
         List<CmisContentItemTO> toRet = new ArrayList<CmisContentItemTO>();
         DataSourceRepositoryTO repositoryConfig = getConfiguration(site, cmisRepo);
         if (repositoryConfig != null) {
@@ -291,7 +299,8 @@ public class CmisServiceImpl implements CmisService {
     }
 
     @Override
-    public void cloneContent(String siteId, String cmisRepoId, String cmisPath, String studioPath) throws CmisUnavailableException, CmisTimeoutException, CmisPathNotFoundException, ServiceException, StudioPathNotFoundException, CmisRepositoryNotFoundException {
+    @ValidateParams
+    public void cloneContent(@ValidateStringParam(name = "siteId") String siteId, @ValidateStringParam(name = "cmisRepoId") String cmisRepoId, @ValidateSecurePathParam(name = "cmisPath") String cmisPath, @ValidateSecurePathParam(name = "studioPath") String studioPath) throws CmisUnavailableException, CmisTimeoutException, CmisPathNotFoundException, ServiceException, StudioPathNotFoundException, CmisRepositoryNotFoundException {
         if (!contentService.contentExists(siteId, studioPath)) throw new StudioPathNotFoundException();
         List<CmisContentItemTO> toRet = new ArrayList<CmisContentItemTO>();
         DataSourceRepositoryTO repositoryConfig = getConfiguration(siteId, cmisRepoId);

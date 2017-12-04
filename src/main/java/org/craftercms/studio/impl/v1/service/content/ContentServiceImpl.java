@@ -26,6 +26,10 @@ import java.util.regex.Pattern;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.validation.annotations.param.ValidateIntegerParam;
+import org.craftercms.commons.validation.annotations.param.ValidateParams;
+import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
+import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.DmXmlConstants;
 import org.craftercms.studio.api.v1.dal.ItemMetadata;
@@ -42,6 +46,7 @@ import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.activity.ActivityService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.*;
+import org.craftercms.studio.api.v1.service.dependency.DependencyDiffService;
 import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
 import org.craftercms.studio.api.v1.service.event.EventService;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
@@ -63,6 +68,7 @@ import org.dom4j.Element;
 import org.dom4j.DocumentException;
 
 import org.apache.commons.io.IOUtils;
+import org.xml.sax.SAXException;
 
 import javax.activation.MimetypesFileTypeMap;
 
@@ -86,24 +92,29 @@ public class ContentServiceImpl implements ContentService {
     public final static Pattern COPY_FOLDER_PATTERN = Pattern.compile("(.+)-([0-9]+)");
 
     @Override
-    public boolean contentExists(String site, String path) {
+    @ValidateParams
+    public boolean contentExists(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
         // TODO: SJ: Refactor in 2.7.x as this might already exists in Crafter Core (which is part of the new Studio)
         return this._contentRepository.contentExists(site, path);
     }
 
     @Override
-    public InputStream getContent(String site, String path) throws ContentNotFoundException {
+    @ValidateParams
+    public InputStream getContent(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) throws ContentNotFoundException {
         // TODO: SJ: Refactor in 4.x as this already exists in Crafter Core (which is part of the new Studio)
         return this._contentRepository.getContent(site, path);
     }
 
     @Override
-    public String getContentAsString(String site, String path)  {
+    @ValidateParams
+    public String getContentAsString(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path)  {
         // TODO: SJ: Refactor in 4.x as this already exists in Crafter Core (which is part of the new Studio)
         String content = null;
 
-        try {
-            content = IOUtils.toString(_contentRepository.getContent(site, path));
+        try (InputStream is = _contentRepository.getContent(site, path)) {
+            if (is != null) {
+                content = IOUtils.toString(is);
+            }
         }
         catch(Exception err) {
             logger.debug("Failed to get content as string for path {0}", err, path);
@@ -113,7 +124,8 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public Document getContentAsDocument(String site, String path)
+    @ValidateParams
+    public Document getContentAsDocument(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path)
             throws DocumentException {
         // TODO: SJ: Refactor in 4.x as this already exists in Crafter Core (which is part of the new Studio)
         Document retDocument = null;
@@ -127,6 +139,13 @@ public class ContentServiceImpl implements ContentService {
         if(is != null) {
             try {
                 SAXReader saxReader = new SAXReader();
+                try {
+                    saxReader.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+                    saxReader.setFeature("http://xml.org/sax/features/external-general-entities", false);
+                    saxReader.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+                }catch (SAXException ex){
+                    logger.error("Unable to turn off external entity loading, This could be a security risk.", ex);
+                }
                 retDocument = saxReader.read(is);
             }
             finally {
@@ -145,8 +164,9 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public void writeContent(String site, String path, String fileName, String contentType, InputStream input,
-                             String createFolders, String edit, String unlock) throws ServiceException {
+    @ValidateParams
+    public void writeContent(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, @ValidateStringParam(name = "fileName") String fileName, @ValidateStringParam(name = "contentType") String contentType, InputStream input,
+                             @ValidateStringParam(name = "createFolders") String createFolders, @ValidateStringParam(name = "edit") String edit, @ValidateStringParam(name = "unlock") String unlock) throws ServiceException {
         // TODO: SJ: refactor for 2.7.x
 
         Map<String, String> params = new HashMap<String, String>();
@@ -201,7 +221,7 @@ public class ContentServiceImpl implements ContentService {
             } else {
                 // Content does not exist; check for moved content and deleted content
                 if (objectStateService.deletedPathExists(site, path) || objectMetadataManager.movedPathExists(site, path)) {
-                    throw new ServiceException("Moved or deleted content existed for site " + site + " on path " + path + ". New content can not be created on that path before change is published.");
+                    throw new ServiceException("Content " + path + " for site " + site + ", cannot be created because this name/URL was in use by another content item that has been moved or deleted by not yet published.");
                 }
             }
 
@@ -270,8 +290,9 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public void writeContentAndRename(final String site, final String path, final String targetPath, final String fileName, final String contentType, final InputStream input,
-                                      final String createFolders, final  String edit, final String unlock, final boolean createFolder) throws ServiceException {
+    @ValidateParams
+    public void writeContentAndRename(@ValidateStringParam(name = "site") final String site, @ValidateSecurePathParam(name = "path") final String path, @ValidateSecurePathParam(name = "targetPath") final String targetPath, @ValidateStringParam(name = "fileName") final String fileName, @ValidateStringParam(name = "contentType") final String contentType, final InputStream input,
+                                      @ValidateStringParam(name = "createFolders") final String createFolders, @ValidateStringParam(name = "edit") final  String edit, @ValidateStringParam(name = "unlock") final String unlock, final boolean createFolder) throws ServiceException {
         // TODO: SJ: The parameters need to be properly typed. Can't have Strings that actually mean boolean. Fix in
         // TODO: SJ: 2.7.x
         String id = site + ":" + path + ":" + fileName + ":" + contentType;
@@ -317,7 +338,8 @@ public class ContentServiceImpl implements ContentService {
      * @throws ServiceException
      */
     @Override
-    public Map<String, Object> writeContentAsset(String site, String path, String assetName, InputStream in,
+    @ValidateParams
+    public Map<String, Object> writeContentAsset(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, @ValidateStringParam(name = "assetName") String assetName, InputStream in,
                                                  String isImage, String allowedWidth, String allowedHeight, String allowLessSize, String draft, String unlock, String systemAsset) throws ServiceException {
         boolean isSystemAsset = Boolean.valueOf(systemAsset);
 
@@ -357,7 +379,7 @@ public class ContentServiceImpl implements ContentService {
             }
 
             if (objectStateService.deletedPathExists(site, path) || objectMetadataManager.movedPathExists(site, path)) {
-                throw new ServiceException("Moved or deleted content existed for site " + site + " on path " + path + ". New content can not be created on that path before change is published.");
+                throw new ServiceException("Content " + path + " for site " + site + ", cannot be created because this name/URL was in use by another content item that has been moved or deleted by not yet published.");
             }
             ResultTO result = processContent(id, in, false, params, DmConstants.CONTENT_CHAIN_ASSET);
             ContentAssetInfoTO assetInfoTO = (ContentAssetInfoTO)result.getItem();
@@ -368,7 +390,11 @@ public class ContentServiceImpl implements ContentService {
             item.setSize(assetInfoTO.getSize());
             item.setSizeUnit(assetInfoTO.getSizeUnit());
             if (item != null) {
-                objectStateService.transition(site, item, TransitionEvent.SAVE);
+                if (result.getCommitId() != null) {
+                    objectStateService.transition(site, item, TransitionEvent.SAVE);
+                } else {
+                    objectStateService.transition(site, item, TransitionEvent.CANCEL_EDIT);
+                }
             }
 
             PreviewEventContext context = new PreviewEventContext();
@@ -395,7 +421,8 @@ public class ContentServiceImpl implements ContentService {
 
     // This method is used for writing configuration files, this needs to be refactored in 3.1+
     @Override
-    public boolean writeContent(String site, String path, InputStream content) throws ServiceException {
+    @ValidateParams
+    public boolean writeContent(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, InputStream content) throws ServiceException {
         boolean result;
 
         String commitId = _contentRepository.writeContent(site, path, content);
@@ -408,6 +435,7 @@ public class ContentServiceImpl implements ContentService {
                 objectMetadataManager.insertNewObjectMetadata(site, path);
             }
             objectMetadataManager.updateCommitId(site, path, commitId);
+            _contentRepository.insertGitLog(site, commitId, 1);
             siteService.updateLastCommitId(site, commitId);
         }
 
@@ -415,7 +443,8 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public boolean createFolder(String site, String path, String name) {
+    @ValidateParams
+    public boolean createFolder(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, @ValidateStringParam(name = "name") String name) {
         boolean toRet = false;
         String commitId = _contentRepository.createFolder(site, path, name);
         if (commitId != null) {
@@ -433,12 +462,14 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public boolean deleteContent(String site, String path, String approver) {
+    @ValidateParams
+    public boolean deleteContent(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, @ValidateStringParam(name = "approver") String approver) {
         return deleteContent(site, path, true, approver);
     }
 
     @Override
-    public boolean deleteContent(String site, String path, boolean generateActivity, String approver) {
+    @ValidateParams
+    public boolean deleteContent(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, boolean generateActivity, @ValidateStringParam(name = "approver") String approver) {
         String commitId;
         boolean toReturn = false;
         if (generateActivity) {
@@ -450,6 +481,10 @@ public class ContentServiceImpl implements ContentService {
         objectStateService.deleteObjectStateForPath(site, path);
         objectMetadataManager.deleteObjectMetadata(site, path);
         dependencyService.deleteDependenciesForSiteAndPath(site, path);
+
+        if (StringUtils.isNotEmpty(commitId)) {
+            _contentRepository.insertGitLog(site, commitId, 1);
+        }
 
         PreviewEventContext context = new PreviewEventContext();
         context.setSite(site);
@@ -474,17 +509,22 @@ public class ContentServiceImpl implements ContentService {
         }
         boolean exists = contentExists(site, path);
         if (exists) {
+            ContentItemTO item = getContentItem(site, path, 0);
             ItemMetadata properties = objectMetadataManager.getProperties(site, path);
             String user = (properties != null && !StringUtils.isEmpty(properties.getSubmittedBy()) ? properties
                 .getSubmittedBy() : approver);
             Map<String, String> extraInfo = new HashMap<String, String>();
-            extraInfo.put(DmConstants.KEY_CONTENT_TYPE, getContentTypeClass(site, path));
+            if (item.isFolder()) {
+                extraInfo.put(DmConstants.KEY_CONTENT_TYPE, CONTENT_TYPE_FOLDER);
+            } else {
+                extraInfo.put(DmConstants.KEY_CONTENT_TYPE, getContentTypeClass(site, path));
+            }
             logger.debug("[DELETE] posting delete activity on " + path + " by " + user + " in " + site);
 
             activityService.postActivity(site, user, path, ActivityService.ActivityType.DELETED, ActivityService.ActivitySource.UI, extraInfo);
             // process content life cycle
             if (path.endsWith(DmConstants.XML_PATTERN)) {
-                ContentItemTO item = getContentItem(site, path, 0);
+
                 String contentType = item.getContentType();
                 dmContentLifeCycleService.process(site, user, path,
                         contentType, DmContentLifeCycleService.ContentLifeCycleOperation.DELETE, null);
@@ -493,7 +533,8 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public String copyContent(String site, String fromPath, String toPath) {
+    @ValidateParams
+    public String copyContent(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "fromPath") String fromPath, @ValidateSecurePathParam(name = "toPath") String toPath) {
         return copyContent(site, fromPath, toPath, new HashSet<String>());
     }
 
@@ -636,7 +677,8 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public String moveContent(String site, String fromPath, String toPath) {
+    @ValidateParams
+    public String moveContent(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "fromPath") String fromPath, @ValidateSecurePathParam(name = "toPath") String toPath) {
         String retNewFileName = null;
         boolean opSuccess = false;
         String movePath = null;
@@ -673,6 +715,7 @@ public class ContentServiceImpl implements ContentService {
                 updateChildrenOnMove(site, fromPath, movePath);
                 for (Map.Entry<String, String> entry : commitIds.entrySet()) {
                     objectMetadataManager.updateCommitId(site, FILE_SEPARATOR + entry.getKey(), entry.getValue());
+                    _contentRepository.insertGitLog(site, entry.getValue(), 1);
                 }
                 siteService.updateLastCommitId(site, _contentRepository.getRepoLastCommitId(site));
             }
@@ -741,16 +784,20 @@ public class ContentServiceImpl implements ContentService {
 
         // write activity stream
         activityService.renameContentId(site, fromPath, movePath);
+        ActivityService.ActivityType activityType = ActivityService.ActivityType.MOVED;
+        Map<String, String> extraInfo = new HashMap<String, String>();
+        if (renamedItem.isFolder()) {
+            extraInfo.put(DmConstants.KEY_CONTENT_TYPE, CONTENT_TYPE_FOLDER);
+        } else {
+            extraInfo.put(DmConstants.KEY_CONTENT_TYPE, getContentTypeClass(site, movePath));
+        }
+        activityService.postActivity(site, user, movePath, activityType, ActivityService.ActivitySource.UI, extraInfo);
 
         Map<String, String> activityInfo = new HashMap<String, String>();
         String contentClass = getContentTypeClass(site, movePath);
 
         if(movePath.endsWith(DmConstants.XML_PATTERN)) {
             activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
-        }
-
-        if (!renamedItem.isFolder()) {
-            activityService.postActivity(site, user, movePath, ActivityService.ActivityType.UPDATED, ActivityService.ActivitySource.UI, activityInfo);
         }
 
         updateDependenciesOnMove(site, fromPath, movePath);
@@ -780,18 +827,21 @@ public class ContentServiceImpl implements ContentService {
                 }
             }
 
-            StringBuffer assetContent = new StringBuffer(getContentAsString(site, movePath));
-            Map<String, Set<String>> globalDeps = new HashMap<String, Set<String>>();
-            try {
-                if (isCss) {
-                    dependencyService.extractDependenciesStyle(site, movePath, assetContent, globalDeps);
-                } else if (isJs) {
-                    dependencyService.extractDependenciesJavascript(site, movePath, assetContent, globalDeps);
-                } else if (isTemplate) {
-                    dependencyService.extractDependenciesTemplate(site, movePath, assetContent, globalDeps);
+            String content = getContentAsString(site, movePath);
+            if (StringUtils.isNotEmpty(content)) {
+                StringBuffer assetContent = new StringBuffer(content);
+                Map<String, Set<String>> globalDeps = new HashMap<String, Set<String>>();
+                try {
+                    if (isCss) {
+                        dependencyService.extractDependenciesStyle(site, movePath, assetContent, globalDeps);
+                    } else if (isJs) {
+                        dependencyService.extractDependenciesJavascript(site, movePath, assetContent, globalDeps);
+                    } else if (isTemplate) {
+                        dependencyService.extractDependenciesTemplate(site, movePath, assetContent, globalDeps);
+                    }
+                } catch (ServiceException e) {
+                    logger.error("Error while updating dependencies on move content site: " + site + " path: " + movePath, e);
                 }
-            } catch (ServiceException e) {
-                logger.error("Error while updating dependencies on move content site: " + site + " path: " + movePath, e);
             }
         }
     }
@@ -1349,13 +1399,14 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public ContentItemTO getContentItem(String site, String path) {
+    @ValidateParams
+    public ContentItemTO getContentItem(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
         return getContentItem(site, path, 2);
     }
 
-
     @Override
-    public ContentItemTO getContentItem(String site, String path, int depth) {
+    @ValidateParams
+    public ContentItemTO getContentItem(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, @ValidateIntegerParam(name = "depth") int depth) {
         ContentItemTO item = null;
         logger.debug("Getting content item for site '{}' path '{}' depth '{}'", site, path, depth);
 
@@ -1398,7 +1449,7 @@ public class ContentServiceImpl implements ContentService {
         // TODO: SJ: Refactor such that the populate of non-XML is also a method in 3.1+
         ContentItemTO item = createNewContentItemTO(site, path);
 
-        if (item.uri.endsWith(".xml")) {
+        if (item.uri.endsWith(".xml") && !item.uri.startsWith("/config/")) {
 
             try {
                 item = populateContentDrivenProperties(site, item);
@@ -1481,6 +1532,8 @@ public class ContentServiceImpl implements ContentService {
                 item.setLive(liveFolder);
                 item.isNew = item.isNew();
                 item.isLive = item.isLive();
+                item.setInProgress(!item.isLive());
+                item.isInProgress = item.isInProgress();
             }
         }
     }
@@ -1547,7 +1600,8 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public ContentItemTO getContentItemTree(String site, String path, int depth) {
+    @ValidateParams
+    public ContentItemTO getContentItemTree(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, @ValidateIntegerParam(name = "depth") int depth) {
         logger.debug("Getting content item  tree for '{}':'{}' depth '{}'", site, path, depth);
         DebugUtils.addDebugStack(logger);
 
@@ -1578,19 +1632,22 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public VersionTO[] getContentItemVersionHistory(String site, String path) {
+    @ValidateParams
+    public VersionTO[] getContentItemVersionHistory(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
         // TODO: SJ: Switch this to return a collection and rely on Groovy to change it up for the UI
         return _contentRepository.getContentVersionHistory(site, path);
     }
 
     @Override
-    public boolean revertContentItem(String site, String path, String version, boolean major, String comment) {
+    @ValidateParams
+    public boolean revertContentItem(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, @ValidateStringParam(name = "version") String version, boolean major, @ValidateStringParam(name = "comment") String comment) {
         boolean toReturn = false;
         String commitId = _contentRepository.revertContent(site, path, version, major, comment);
 
         if (commitId != null) {
             // Update the database with the commitId for the target item
             objectMetadataManager.updateCommitId(site, path, commitId);
+            _contentRepository.insertGitLog(site, commitId, 1);
             siteService.updateLastCommitId(site, commitId);
             toReturn = true;
         }
@@ -1605,13 +1662,15 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public InputStream getContentVersion(String site, String path, String version)
+    @ValidateParams
+    public InputStream getContentVersion(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, @ValidateStringParam(name = "version") String version)
             throws ContentNotFoundException {
         return _contentRepository.getContentVersion(site, path, version);
     }
 
     @Override
-    public String getContentVersionAsString(String site, String path, String version)
+    @ValidateParams
+    public String getContentVersionAsString(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, @ValidateStringParam(name = "version") String version)
             throws ContentNotFoundException {
         String content = null;
 
@@ -1626,7 +1685,8 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public ContentItemTO createDummyDmContentItemForDeletedNode(String site, String relativePath) {
+    @ValidateParams
+    public ContentItemTO createDummyDmContentItemForDeletedNode(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "relativePath") String relativePath) {
         // TODO: SJ: Think of another way to do this in 3.1+
 
         ContentItemTO item = new ContentItemTO();
@@ -1703,7 +1763,8 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public String getContentTypeClass(String site, String uri) {
+    @ValidateParams
+    public String getContentTypeClass(@ValidateStringParam(name = "site") String site, String uri) {
         // TODO: SJ: This reads: if can't guess what it is, it's a page. This is to be replaced in 3.1+
         if (matchesPatterns(uri, servicesConfig.getPagePatterns(site))) {
             return CONTENT_TYPE_PAGE;
@@ -1731,7 +1792,8 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public ResultTO processContent(String id, InputStream input, boolean isXml, Map<String, String> params, String contentChainForm) throws ServiceException {
+    @ValidateParams
+    public ResultTO processContent(@ValidateStringParam(name = "id") String id, InputStream input, boolean isXml, Map<String, String> params, @ValidateStringParam(name = "contentChainForm") String contentChainForm) throws ServiceException {
         // TODO: SJ: Pipeline Processor is not defined right, we need to refactor in 3.1+
         // TODO: SJ: Pipeline should take input, and give you back output
         // TODO: SJ: Presently, this takes action and performs the action as a side effect of the processor chain
@@ -1753,7 +1815,8 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public String getNextAvailableName(String site, String path) {
+    @ValidateParams
+    public String getNextAvailableName(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
         // TODO: SJ: Refactor to be faster, and make it work regardless (seems to fail above 10) in 3.1+
         String[] levels = path.split(FILE_SEPARATOR);
         int length = levels.length;
@@ -1806,9 +1869,10 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public GoLiveDeleteCandidates getDeleteCandidates(String site, String relativePath) throws ServiceException {
+    @ValidateParams
+    public GoLiveDeleteCandidates getDeleteCandidates(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "relativePath") String relativePath) throws ServiceException {
         ContentItemTO contentItem = getContentItem(site, relativePath);
-        GoLiveDeleteCandidates deletedItems = new GoLiveDeleteCandidates(site, this);
+        GoLiveDeleteCandidates deletedItems = new GoLiveDeleteCandidates(site, this, objectStateService);
         if (contentItem != null) {
             childDeleteItems(site, contentItem, deletedItems);
             //update summary for all uri's delete
@@ -1831,13 +1895,56 @@ public class ContentServiceImpl implements ContentService {
                     childDeleteItems(site, child, items);
                 }
             }
+        } else {
+            addDependenciesToDelete(site, contentItem.getUri(), contentItem.getUri(), items);
+            addRemovedDependenicesToDelete(site, contentItem.getUri(), items);
         }
         //add the child path
         items.getPaths().add(contentItem.getUri());
     }
 
+    protected void addDependenciesToDelete(String site, String sourceContentPath, String dependencyPath, GoLiveDeleteCandidates candidates) throws ServiceException {
+        Set<String> dependencyParentFolder = new HashSet<String>();
+        //add dependencies as well
+        Set<DmDependencyTO> dmDependencyTOs = dependencyService.getDeleteDependencies(site, sourceContentPath, dependencyPath);
+        for (DmDependencyTO dependency : dmDependencyTOs) {
+            if (candidates.addDependency(dependency.getUri())) {
+                logger.debug("Added to delete" + dependency.getUri());
+                if (dependency.isDeleteEmptyParentFolder()) {
+                    dependencyParentFolder.add(ContentUtils.getParentUrl(dependency.getUri()));
+                }
+            }
+            addDependenciesToDelete(site, sourceContentPath, dependency.getUri(), candidates); //recursively add dependencies of the dependency
+        }
+
+        //Find if any folder would get empty if remove the items and add just the folder
+        for (String parentFolderToDelete : dependencyParentFolder) {
+            RepositoryItem[] children = _contentRepository.getContentChildren(site, parentFolderToDelete);
+            List<String> childItems = new ArrayList<String>();
+            for (RepositoryItem child : children) {
+                childItems.add(child.path + "/" + child.name);
+            }
+            if (candidates.getAllItems().containsAll(childItems)) {
+                logger.debug("Added parentFolder for delete" + parentFolderToDelete);
+                candidates.addDependencyParentFolder(parentFolderToDelete);
+            }
+        }
+    }
+
+    protected void addRemovedDependenicesToDelete(String site, String relativePath, GoLiveDeleteCandidates candidates) throws ServiceException {
+        if (relativePath.endsWith(DmConstants.XML_PATTERN) && !objectStateService.isNew(site, relativePath)) {
+            DependencyDiffService.DiffRequest diffRequest = new DependencyDiffService.DiffRequest(site, relativePath, null, null, site, true);
+            List<String> deleted = dependencyService.getRemovedDependenices(diffRequest, true);
+            logger.debug("Removed dependenices for path[" + relativePath + "] : " + deleted);
+            for (String dependency : deleted) {
+                candidates.getLiveDependencyItems().add(dependency);
+            }
+        }
+    }
+
     @Override
-    public void lockContent(String site, String path) {
+    @ValidateParams
+    public void lockContent(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
         // TODO: SJ: Where is the object state update to indicate item is now locked?
         // TODO: SJ: Dejan to look into this
         _contentRepository.lockItem(site, path);
@@ -1845,7 +1952,8 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public void unLockContent(String site, String path) {
+    @ValidateParams
+    public void unLockContent(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
         ContentItemTO item = getContentItem(site, path, 0);
         objectStateService.transition(site, item, TransitionEvent.CANCEL_EDIT); // this unlocks too
         _contentRepository.unLockItem(site, path);
@@ -1853,7 +1961,8 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public List<DmOrderTO> getItemOrders(String site, String path) throws ContentNotFoundException {
+    @ValidateParams
+    public List<DmOrderTO> getItemOrders(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) throws ContentNotFoundException {
         List<DmOrderTO> dmOrderTOs = getOrders(site, path, "default", false);
         for (DmOrderTO dmOrderTO : dmOrderTOs) {
             dmOrderTO.setName(StringEscapeUtils.escapeJava(dmOrderTO.getName()));
@@ -1917,7 +2026,8 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public double reorderItems(String site, String relativePath, String before, String after, String orderName) throws ServiceException {
+    @ValidateParams
+    public double reorderItems(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "relativePath") String relativePath, @ValidateSecurePathParam(name = "before") String before, @ValidateSecurePathParam(name = "after") String after, @ValidateStringParam(name = "orderName") String orderName) throws ServiceException {
         Double beforeOrder = null;
         Double afterOrder = null;
         DmOrderTO beforeOrderTO = null;
@@ -1980,7 +2090,8 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public boolean renameFolder(String site, String path, String name) {
+    @ValidateParams
+    public boolean renameFolder(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, @ValidateStringParam(name = "name") String name) {
         boolean toRet = false;
         String parentPath = FILE_SEPARATOR + FilenameUtils.getPathNoEndSeparator(path);
 
@@ -1997,6 +2108,7 @@ public class ContentServiceImpl implements ContentService {
             updateChildrenOnMove(site, path, targetPath);
             for (Map.Entry<String, String> entry : commitIds.entrySet()) {
                 objectMetadataManager.updateCommitId(site, FILE_SEPARATOR + entry.getKey(), entry.getValue());
+                _contentRepository.insertGitLog(site, entry.getValue(), 1);
             }
             siteService.updateLastCommitId(site, _contentRepository.getRepoLastCommitId(site));
 

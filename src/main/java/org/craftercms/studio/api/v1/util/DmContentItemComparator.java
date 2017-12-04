@@ -116,16 +116,16 @@ public class DmContentItemComparator extends ContentComparatorBase<ContentItemTO
             }
             return rt;
 		} else if (SORT_BROWSER_URI.equals(_sort)) {
-			String item1Uri = (item1.uri != null) ? item1.uri.toLowerCase() : null;
-			String item2Uri = (item2.uri != null) ? item2.uri.toLowerCase() : null;
+			String item1Uri = (item1.browserUri != null) ? item1.browserUri.toLowerCase() : null;
+			String item2Uri = (item2.browserUri != null) ? item2.browserUri.toLowerCase() : null;
 			int rt = compareStrings(item1Uri, item2Uri, _ascending);
             if(rt == 0 && _isSecondLevelCompareRequired) {
                 return secondLevelCompare(item1,item2);
             }
             return rt;
 		} else if (SORT_PATH.equals(_sort)) {
-			String item1Path = (item1.path != null) ? item1.path.toLowerCase() : null;
-			String item2Path = (item2.path != null) ? item2.path.toLowerCase() : null;
+			String item1Path = (item1.uri != null) ? item1.uri.toLowerCase() : null;
+			String item2Path = (item2.uri != null) ? item2.uri.toLowerCase() : null;
 			int rt = compareStrings(item1Path, item2Path, _ascending);
             if(rt == 0 && _isSecondLevelCompareRequired) {
                 return secondLevelCompare(item1,item2);
@@ -157,12 +157,12 @@ public class DmContentItemComparator extends ContentComparatorBase<ContentItemTO
             String item2InternalName = (item2.internalName != null) ? item2.internalName.toLowerCase() : null;
             return compareStrings(item1InternalName, item2InternalName, _secondLevelAscending);
         } else if (SORT_BROWSER_URI.equals(_secondLevelSortBy)) {
-            String item1Uri = (item1.uri != null) ? item1.uri.toLowerCase() : null;
-            String item2Uri = (item2.uri != null) ? item2.uri.toLowerCase() : null;
+            String item1Uri = (item1.browserUri != null) ? item1.browserUri.toLowerCase() : null;
+            String item2Uri = (item2.browserUri != null) ? item2.browserUri.toLowerCase() : null;
             return compareStrings(item1Uri, item2Uri, _secondLevelAscending);
         } else if (SORT_PATH.equals(_secondLevelSortBy)) {
-            String item1Path = (item1.path != null) ? item1.path.toLowerCase() : null;
-            String item2Path = (item2.path != null) ? item2.path.toLowerCase() : null;
+            String item1Path = (item1.uri != null) ? item1.uri.toLowerCase() : null;
+            String item2Path = (item2.uri != null) ? item2.uri.toLowerCase() : null;
             return compareStrings(item1Path, item2Path, _secondLevelAscending);
         } else if (SORT_USER_LAST_NAME.equals(_secondLevelSortBy)) {
             String item1LastName = (item1.userLastName != null) ? item1.userLastName.toLowerCase() : null;

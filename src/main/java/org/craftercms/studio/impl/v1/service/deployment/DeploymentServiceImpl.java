@@ -20,6 +20,7 @@ package org.craftercms.studio.impl.v1.service.deployment;
 import net.sf.json.JSONObject;
 import org.apache.commons.collections.FastArrayList;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.validation.annotations.param.*;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.*;
@@ -29,6 +30,7 @@ import org.craftercms.studio.api.v1.exception.CommitNotFoundException;
 import org.craftercms.studio.api.v1.exception.EnvironmentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
@@ -94,15 +96,13 @@ public class DeploymentServiceImpl implements DeploymentService {
     @Autowired
     protected PublishRequestMapper publishRequestMapper;
 
-    public void deploy(String site, String environment, List<String> paths, ZonedDateTime scheduledDate, String approver, String submissionComment, final boolean scheduleDateNow) throws DeploymentException {
+    @Override
+    @ValidateParams
+    public void deploy(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "environment") String environment, List<String> paths, ZonedDateTime scheduledDate, @ValidateStringParam(name = "approver") String approver, @ValidateStringParam(name = "submissionComment") String submissionComment, final boolean scheduleDateNow) throws DeploymentException {
 
         if (scheduledDate != null && scheduledDate.isAfter(ZonedDateTime.now(ZoneOffset.UTC))) {
             objectStateService.transitionBulk(site, paths, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.SUBMIT_WITHOUT_WORKFLOW_SCHEDULED, org.craftercms.studio.api.v1.service.objectstate.State.NEW_SUBMITTED_NO_WF_SCHEDULED);
-            objectStateService.setSystemProcessingBulk(site, paths, false);
-        } else {
-            objectStateService.setSystemProcessingBulk(site, paths, true);
         }
-
         List<String> newPaths = new ArrayList<String>();
         List<String> updatedPaths = new ArrayList<String>();
         List<String> movedPaths = new ArrayList<String>();
@@ -110,12 +110,17 @@ public class DeploymentServiceImpl implements DeploymentService {
         Map<String, List<String>> groupedPaths = new HashMap<String, List<String>>();
 
         for (String p : paths) {
-            if (objectStateService.isNew(site, p)) {
-                newPaths.add(p);
-            } else if (objectMetadataManager.isRenamed(site, p)) {
-                movedPaths.add(p);
+            ContentItemTO item = contentService.getContentItem(site, p, 0);
+            if (item.isFolder()) {
+                logger.info("Content item at path " + p + " for site " + site + " is folder and will not be added to publishing queue.");
             } else {
-                updatedPaths.add(p);
+                if (objectStateService.isNew(site, p)) {
+                    newPaths.add(p);
+                } else if (objectMetadataManager.isRenamed(site, p)) {
+                    movedPaths.add(p);
+                } else {
+                    updatedPaths.add(p);
+                }
             }
         }
 
@@ -129,6 +134,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         for (PublishRequest item : items) {
             publishRequestMapper.insertItemForDeployment(item);
         }
+        objectStateService.setSystemProcessingBulk(site, paths, false);
         // We need to pick up this on Inserting , not on execution!
         try {
             sendContentApprovalEmail(items, scheduleDateNow);
@@ -178,47 +184,59 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     private List<PublishRequest> createItems(String site, String environment, Map<String, List<String>> paths, ZonedDateTime scheduledDate, String approver, String submissionComment) {
-        List<PublishRequest> newItems = new ArrayList<PublishRequest>(paths.size());
+        List<PublishRequest> newItems = new ArrayList<PublishRequest>();
+
+        Map<String, Object> params = null;
         for (String action : paths.keySet()) {
             for (String path : paths.get(action)) {
                 PublishRequest item = new PublishRequest();
                 ItemMetadata metadata = objectMetadataManager.getProperties(site, path);
-                item.setId(++CTED_AUTOINCREMENT);
-                item.setSite(site);
-                item.setEnvironment(environment);
-                item.setPath(path);
-                item.setScheduledDate(scheduledDate);
-                item.setState(PublishRequest.State.READY_FOR_LIVE);
-                item.setAction(action);
                 if (metadata != null) {
-                    if (metadata.getRenamed() > 0) {
-                        String oldPath = metadata.getOldUrl();
-                        item.setOldPath(oldPath);
-                    }
-                    String commitId = metadata.getCommitId();
-                    if (StringUtils.isNotEmpty(commitId)) {
-                        item.setCommitId(commitId);
+                    params = new HashMap<String, Object>();
+                    params.put("site_id", site);
+                    params.put("environment", environment);
+                    params.put("state", PublishRequest.State.READY_FOR_LIVE);
+                    params.put("path", path);
+                    params.put("commitId", metadata.getCommitId());
+                    if (publishRequestMapper.checkItemQueued(params) > 0) {
+                        logger.info("Path " + path + " with commit ID " + metadata.getCommitId() + " already has queued publishing request for environment " + environment + " of site " + site + ". Adding another publishing request is skipped.");
                     } else {
-                        item.setCommitId(contentRepository.getRepoLastCommitId(site));
+                        item.setId(++CTED_AUTOINCREMENT);
+                        item.setSite(site);
+                        item.setEnvironment(environment);
+                        item.setPath(path);
+                        item.setScheduledDate(scheduledDate);
+                        item.setState(PublishRequest.State.READY_FOR_LIVE);
+                        item.setAction(action);
+                        if (metadata.getRenamed() > 0) {
+                            String oldPath = metadata.getOldUrl();
+                            item.setOldPath(oldPath);
+                        }
+                        String commitId = metadata.getCommitId();
+                        if (StringUtils.isNotEmpty(commitId)) {
+                            item.setCommitId(commitId);
+                        } else {
+                            item.setCommitId(contentRepository.getRepoLastCommitId(site));
+                        }
+
+                        String contentTypeClass = contentService.getContentTypeClass(site, path);
+                        item.setContentTypeClass(contentTypeClass);
+                        item.setUser(approver);
+                        item.setSubmissionComment(submissionComment);
+                        newItems.add(item);
                     }
                 }
-                String contentTypeClass = contentService.getContentTypeClass(site, path);
-                item.setContentTypeClass(contentTypeClass);
-                item.setUser(approver);
-                item.setSubmissionComment(submissionComment);
-                newItems.add(item);
             }
         }
         return newItems;
     }
 
     @Override
-    public void delete(String site, List<String> paths, String approver, ZonedDateTime scheduledDate) throws DeploymentException {
+    @ValidateParams
+    public void delete(@ValidateStringParam(name = "site") String site, List<String> paths, @ValidateStringParam(name = "approver") String approver, ZonedDateTime scheduledDate) throws DeploymentException {
         if (scheduledDate != null && scheduledDate.isAfter(ZonedDateTime.now(ZoneOffset.UTC))) {
             objectStateService.transitionBulk(site, paths, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.DELETE, org.craftercms.studio.api.v1.service.objectstate.State.NEW_DELETED);
-            objectStateService.setSystemProcessingBulk(site, paths, false);
-        } else {
-            objectStateService.setSystemProcessingBulk(site, paths, true);
+
         }
         Set<String> environments = getAllPublishingEnvironments(site);
         for (String environment : environments) {
@@ -227,6 +245,7 @@ public class DeploymentServiceImpl implements DeploymentService {
                 publishRequestMapper.insertItemForDeployment(item);
             }
         }
+        objectStateService.setSystemProcessingBulk(site, paths, false);
     }
 
     protected Set<String> getAllPublishingEnvironments(String site) {
@@ -276,6 +295,9 @@ public class DeploymentServiceImpl implements DeploymentService {
 
                     if (contentService.contentExists(site, path)) {
                         contentService.deleteContent(site, path, approver);
+                        if (path.endsWith(FILE_SEPARATOR + DmConstants.INDEX_FILE)) {
+                            deleteFolder(site, path.replace(FILE_SEPARATOR + DmConstants.INDEX_FILE, ""), approver);
+                        }
                     }
                     String lastRepoCommitId = contentRepository.getRepoLastCommitId(site);
                     if (StringUtils.isNotEmpty(lastRepoCommitId)) {
@@ -301,11 +323,17 @@ public class DeploymentServiceImpl implements DeploymentService {
             RepositoryItem[] children = contentRepository.getContentChildren(site, path);
 
             if (children.length < 1) {
-                contentService.deleteContent(site, path, false, user);
-                objectStateService.deleteObjectStatesForFolder(site, folderPath);
-                objectMetadataManager.deleteObjectMetadataForFolder(site, folderPath);
-                String parentPath = ContentUtils.getParentUrl(path);
-                deleteFolder(site, parentPath, user);
+                if (path.endsWith(FILE_SEPARATOR + DmConstants.INDEX_FILE)) {
+                    contentService.deleteContent(site, path, true, user);
+                    objectStateService.deleteObjectStatesForFolder(site, folderPath);
+                    objectMetadataManager.deleteObjectMetadataForFolder(site, folderPath);
+                    String parentPath = ContentUtils.getParentUrl(path);
+                    deleteFolder(site, parentPath, user);
+                } else {
+                    contentService.deleteContent(site, path, true, user);
+                    objectStateService.deleteObjectStatesForFolder(site, folderPath);
+                    objectMetadataManager.deleteObjectMetadataForFolder(site, folderPath);
+                }
             }
         } else {
             objectStateService.deleteObjectStatesForFolder(site, folderPath);
@@ -314,7 +342,8 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     @Override
-    public void deleteDeploymentDataForSite(final String site) {
+    @ValidateParams
+    public void deleteDeploymentDataForSite(@ValidateStringParam(name = "site") final String site) {
         signalWorkersToStop();
         Map<String, String> params = new HashMap<String, String>();
         params.put("site", site);
@@ -339,7 +368,8 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     @Override
-    public List<PublishRequest> getScheduledItems(String site) {
+    @ValidateParams
+    public List<PublishRequest> getScheduledItems(@ValidateStringParam(name = "site") String site) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("site", site);
         params.put("state", PublishRequest.State.READY_FOR_LIVE);
@@ -348,7 +378,8 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     @Override
-    public void cancelWorkflow(String site, String path) throws DeploymentException {
+    @ValidateParams
+    public void cancelWorkflow(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) throws DeploymentException {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("site", site);
         params.put("path", path);
@@ -359,7 +390,8 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     @Override
-    public List<DmDeploymentTaskTO> getDeploymentHistory(String site, int daysFromToday, int numberOfItems, String sort, boolean ascending, String filterType) {
+    @ValidateParams
+    public List<DmDeploymentTaskTO> getDeploymentHistory(@ValidateStringParam(name = "site") String site, @ValidateIntegerParam(name = "daysFromToday") int daysFromToday, @ValidateIntegerParam(name = "numberOfItems") int numberOfItems, @ValidateStringParam(name = "sort") String sort, boolean ascending, @ValidateStringParam(name = "filterType") String filterType) {
         // get the filtered list of attempts in a specific date range
         ZonedDateTime toDate = ZonedDateTime.now(ZoneOffset.UTC);
         ZonedDateTime fromDate = toDate.minusDays(daysFromToday);
@@ -377,6 +409,8 @@ public class DeploymentServiceImpl implements DeploymentService {
                     if (deployedItem != null) {
                         deployedItem.eventDate = entry.getSyncDate();
                         deployedItem.endpoint = entry.getTarget();
+                        deployedItem.setUser(entry.getUser());
+                        deployedItem.setEndpoint(entry.getEnvironment());
                         String deployedLabel = entry.getSyncDate().format(DateTimeFormatter.ofPattern(DATE_FORMAT_DEPLOYED));
                         if (tasks.size() > 0) {
                             DmDeploymentTaskTO lastTask = tasks.get(tasks.size() - 1);
@@ -457,7 +491,8 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     @Override
-    public List<ContentItemTO> getScheduledItems(String site, String sort, boolean ascending, String subSort, boolean subAscending, String filterType) throws ServiceException {
+    @ValidateParams
+    public List<ContentItemTO> getScheduledItems(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "sort") String sort, boolean ascending,@ValidateStringParam(name = "subSort") String subSort, boolean subAscending, @ValidateStringParam(name = "filterType") String filterType) throws ServiceException {
         if (StringUtils.isEmpty(sort)) {
             sort = DmContentItemComparator.SORT_EVENT_DATE;
         }
@@ -625,7 +660,8 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     @Override
-    public Map<String, List<PublishingChannelTO>> getAvailablePublishingChannelGroups(String site, String path) {
+    @ValidateParams
+    public Map<String, List<PublishingChannelTO>> getAvailablePublishingChannelGroups(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
         List<PublishingChannelTO> channelsTO = getAvailablePublishingChannelGroupsForSite(site, path);
         List<PublishingChannelTO> publishChannels = new ArrayList<PublishingChannelTO>();
         List<PublishingChannelTO> updateStatusChannels = new ArrayList<PublishingChannelTO>();
@@ -672,7 +708,8 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     @Override
-    public void syncAllContentToPreview(String site, boolean waitTillDone) throws ServiceException {
+    @ValidateParams
+    public void syncAllContentToPreview(@ValidateStringParam(name = "site") String site, boolean waitTillDone) throws ServiceException {
         PreviewEventContext context = new PreviewEventContext(waitTillDone);
         context.setSite(site);
         eventService.publish(EVENT_PREVIEW_SYNC, context);
@@ -691,7 +728,8 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     @Override
-    public List<PublishRequest> getDeploymentQueue(String site) throws ServiceException {
+    @ValidateParams
+    public List<PublishRequest> getDeploymentQueue(@ValidateStringParam(name = "site") String site) throws ServiceException {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("site", site);
         List<String> states = new ArrayList<String>();
@@ -703,7 +741,8 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     @Override
-    public boolean cancelDeployment(String site, String path, long deploymentId) throws ServiceException {
+    @ValidateParams
+    public boolean cancelDeployment(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, @ValidateLongParam(name = "deploymentId") long deploymentId) throws ServiceException {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("site", site);
         params.put("path", path);
@@ -714,7 +753,8 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     @Override
-    public void bulkGoLive(String site, String environment, String path) {
+    @ValidateParams
+    public void bulkGoLive(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "environment") String environment, @ValidateSecurePathParam(name = "path") String path) {
         dmPublishService.bulkGoLive(site, environment, path);
     }
 
@@ -738,17 +778,27 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     @Override
-    public PublishStatus getPublishStatus(String site) throws SiteNotFoundException {
+    @ValidateParams
+    public PublishStatus getPublishStatus(@ValidateStringParam(name = "site") String site) throws SiteNotFoundException {
         return siteService.getPublishStatus(site);
     }
 
     @Override
-    public ZonedDateTime getLastDeploymentDate(String site, String path) {
+    @ValidateParams
+    public ZonedDateTime getLastDeploymentDate(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
         return deploymentHistoryProvider.getLastDeploymentDate(site, path);
     }
 
     @Override
-    public boolean enablePublishing(String site, boolean enabled) throws SiteNotFoundException {
+    @ValidateParams
+    public boolean enablePublishing(@ValidateStringParam(name = "site") String site, boolean enabled) throws SiteNotFoundException, AuthenticationException {
+        if (!siteService.exists(site)) {
+            throw new SiteNotFoundException();
+        }
+        if (!securityService.isSiteAdmin(securityService.getCurrentUser())) {
+            throw new AuthenticationException();
+        }
+
         boolean toRet = siteService.enablePublishing(site, enabled);
         String message = StringUtils.EMPTY;
         if (enabled) {
@@ -762,7 +812,8 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     @Override
-    public void publishCommits(String site, String environment, List<String> commitIds) throws SiteNotFoundException, EnvironmentNotFoundException, CommitNotFoundException {
+    @ValidateParams
+    public void publishCommits(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "environment") String environment, List<String> commitIds) throws SiteNotFoundException, EnvironmentNotFoundException, CommitNotFoundException {
         if (!siteService.exists(site)) {
             throw new SiteNotFoundException();
         }

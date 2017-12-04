@@ -27,8 +27,9 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
+import org.craftercms.studio.api.v1.dal.GitLog;
 import org.craftercms.studio.api.v1.dal.PublishRequest;
-import org.craftercms.studio.api.v1.ebus.DeploymentItem;
+import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -38,6 +39,7 @@ import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.PublishingManager;
 import org.craftercms.studio.api.v1.service.event.EventService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v1.to.PublishingTargetTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
@@ -88,6 +90,12 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
             Set<String> siteNames = siteService.getAllAvailableSites();
             if (siteNames != null && siteNames.size() > 0) {
                 for (String site : siteNames) {
+                    try {
+                        syncRepository(site);
+                    } catch (Exception e) {
+                        logger.error("Failed to sync database from repository for site " + site);
+                        siteService.enablePublishing(site, false);
+                    }
                     if (siteService.isPublishingEnabled(site)) {
                         if (!publishingManager.isPublishingBlocked(site)) {
                             String statusMessage = StringUtils.EMPTY;
@@ -96,7 +104,6 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
                                 for (String environment : environments) {
                                     logger.debug("Processing content ready for deployment for site \"{0}\"", site);
                                     List<PublishRequest> itemsToDeploy = publishingManager.getItemsReadyForDeployment(site, environment);
-                                    //List<String> pathsToDeploy = getPaths(itemsToDeploy);
 
                                     if (itemsToDeploy != null && itemsToDeploy.size() > 0) {
                                         logger.info("Starting publishing on environment " + environment + " for site " + site);
@@ -109,7 +116,7 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
 
                                         String author = itemsToDeploy.get(0).getUser();
                                         StringBuilder sbComment = new StringBuilder();
-                                        List<DeploymentItem> completeDeploymentItemList = new ArrayList<DeploymentItem>();
+                                        List<DeploymentItemTO> completeDeploymentItemList = new ArrayList<DeploymentItemTO>();
                                         Set<String> processedPaths = new HashSet<String>();
                                         SimpleDateFormat sdf = new SimpleDateFormat(StudioConstants.DATE_PATTERN_WORKFLOW_WITH_TZ);
                                         String messagePath = StringUtils.EMPTY;
@@ -177,8 +184,9 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
         }
     }
 
-    private void processPublishingRequest(String site, String environment, PublishRequest item, List<DeploymentItem> completeDeploymentItemList, Set<String> processedPaths) throws SiteNotFoundException, DeploymentException {
-        List<DeploymentItem> missingDependencies = new ArrayList<DeploymentItem>();
+    private void processPublishingRequest(String site, String environment, PublishRequest item, List<DeploymentItemTO> completeDeploymentItemList, Set<String> processedPaths) throws SiteNotFoundException, DeploymentException {
+        List<DeploymentItemTO> missingDependencies = new ArrayList<DeploymentItemTO>();
+        Set<String> missingDependenciesPaths = new HashSet<String>();
         SimpleDateFormat sdf = new SimpleDateFormat(StudioConstants.DATE_PATTERN_WORKFLOW_WITH_TZ);
         String messagePath = item.getPath();
         String statusMessage = studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_BUSY);
@@ -189,13 +197,13 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
         try {
             generalLockService.lock(lockKey2);
 
-            List<DeploymentItem> deploymentItemList = new ArrayList<DeploymentItem>();
+            List<DeploymentItemTO> deploymentItemList = new ArrayList<DeploymentItemTO>();
 
 
             logger.debug("Processing [{0}] content item for site \"{1}\"", item
                     .getPath(), site);
-            DeploymentItem deploymentItem = publishingManager.processCommit(item);
-                deploymentItemList.add(deploymentItem);
+            DeploymentItemTO deploymentItem = publishingManager.processItem(item);
+            deploymentItemList.add(deploymentItem);
             logger.debug("Processing COMPLETE [{0}] content item for site \"{1}\"",
                     item.getPath(), site);
 
@@ -203,7 +211,7 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
                 logger.debug("Processing Mandatory Deps [{0}] content item for site "
                         + "\"{1}\"", item.getPath(), site);
                 missingDependencies.addAll(publishingManager
-                        .processMandatoryDependenciesForCommit(item, processedPaths));
+                        .processMandatoryDependencies(item, processedPaths, missingDependenciesPaths));
                 logger.debug("Processing Mandatory Dependencies COMPLETE [{0}]"
                         + " content item for site \"{1}\"", item.getPath(), site);
             }
@@ -233,17 +241,9 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
         }
     }
 
-    private void deploy(String site, String environment, List<DeploymentItem> items, String author, String comment) throws DeploymentException {
+    private void deploy(String site, String environment, List<DeploymentItemTO> items, String author, String comment) throws DeploymentException {
         logger.debug("Deploying " + items.size() + " item(s)");
-        Set<String> commitIds = new HashSet<String>(items.size());
-        for (DeploymentItem item : items) {
-            contentRepository.lockItemForPublishing(site, item.getPath());
-            commitIds.add(item.getCommitId());
-        }
-        contentRepository.publish(site, commitIds, environment, author, comment);
-        for (DeploymentItem item : items) {
-            contentRepository.unLockItemForPublishing(site, item.getPath());
-        }
+        contentRepository.publish(site, items, environment, author, comment);
     }
 
     private Set<String> getAllPublishingEnvironments(String site) {
@@ -257,6 +257,16 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
             }
         }
         return environments;
+    }
+
+    private void syncRepository(String site) throws SiteNotFoundException {
+        SiteFeed siteFeed = siteService.getSite(site);
+        String lastProcessedCommit = siteFeed.getLastVerifiedGitlogCommitId();
+        if (StringUtils.isNotEmpty(lastProcessedCommit)) {
+            siteService.syncDatabaseWithRepo(site, lastProcessedCommit);
+        } else {
+            siteService.syncDatabaseWithRepo(site, contentRepository.getRepoFirstCommitId(site));
+        }
     }
 
     public boolean isMasterPublishingNode() {

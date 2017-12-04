@@ -177,6 +177,11 @@
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager" />
         <property name="dependencyResolver" ref="studioDependencyResolver" />
+        <property name="dependencyDiffService" ref="cstudioDependencyDiffService" />
+    </bean>
+
+    <bean id="cstudioDependencyDiffService" class="org.craftercms.studio.impl.v1.service.dependency.DependencyDiffServiceImpl">
+        <property name="dependencyService" ref="cstudioDmDependencyService" />
     </bean>
 
     <bean id="cstudioObjectStateService" class="org.craftercms.studio.impl.v1.service.objectstate.ObjectStateServiceImpl"
@@ -375,12 +380,6 @@
     <!-- ////////////////////////////////////// -->
     <!--         Security layer               -->
     <!-- ////////////////////////////////////// -->
-
-    <bean id="crafter.studioSecurityFilter" class="org.craftercms.studio.impl.v1.web.filter.StudioSecurityFilter">
-        <property name="securityProvider" ref="securityProvider"/>
-        <property name="studioConfiguration" ref="studioConfiguration" />
-        <property name="securityService" ref="cstudioSecurityService" />
-    </bean>
 
     <bean id="securityProvider" class="org.craftercms.studio.impl.v1.service.security.MappedSecurityProvider">
         <property name="studioConfiguration" ref="studioConfiguration" />
@@ -676,7 +675,7 @@
         <property name="contentService" ref="cstudioContentService"/>
         <property name="contentSpecificDependencies">
             <list>
-                <value>/components/page/.*</value>
+                <value>/site/components/page/.*</value>
                 <value>/static-assets/page/.*</value>
             </list>
         </property>
@@ -689,7 +688,7 @@
         <property name="contentService" ref="cstudioContentService"/>
         <property name="contentSpecificDependencies">
             <list>
-                <value>/components/page/.*</value>
+                <value>/site/components/page/.*</value>
                 <value>/static-assets/page/.*</value>
             </list>
         </property>
@@ -704,14 +703,29 @@
     <!-- ////////////////////////////////////// -->
     <!--         AWS                            -->
     <!-- ////////////////////////////////////// -->
+    <bean id="studioAwsProfileManager" class="org.craftercms.studio.impl.v1.service.aws.AwsProfileManagerImpl">
+        <property name="basePath"
+                  value="#{studioConfiguration.getProperty('studio.configuration.site.aws.configBasePath')}"/>
+        <property name="fileName"
+                  value="#{studioConfiguration.getProperty('studio.configuration.site.aws.configFileName')}"/>
+        <property name="contentService" ref="cstudioContentService"/>
+    </bean>
+
     <bean id="studioTranscoderProfileReader" class="org.craftercms.studio.impl.v1.aws.elastictranscoder.XmlTranscoderProfileReader"/>
 
     <bean id="studioElasticTranscoder" class="org.craftercms.studio.impl.v1.aws.elastictranscoder.ElasticTranscoderImpl"/>
 
     <bean id="studioElasticTranscoderService" class="org.craftercms.studio.impl.v1.service.aws.ElasticTranscoderServiceImpl">
-        <property name="contentService" ref="cstudioContentService"/>
+        <property name="profileManager" ref="studioAwsProfileManager"/>
         <property name="profileReader" ref="studioTranscoderProfileReader"/>
         <property name="transcoder" ref="studioElasticTranscoder"/>
+    </bean>
+
+    <bean id="studioS3ProfileReader" class="org.craftercms.studio.impl.v1.aws.s3.XmlS3ProfileReader"/>
+
+    <bean id="studioS3Service" class="org.craftercms.studio.impl.v1.service.aws.S3ServiceImpl">
+        <property name="profileManager" ref="studioAwsProfileManager"/>
+        <property name="profileReader" ref="studioS3ProfileReader"/>
     </bean>
 
     <!-- Utilities -->
@@ -749,6 +763,8 @@
     <bean id="studioConfiguration" class="org.craftercms.studio.impl.v1.util.StudioConfigurationImpl" init-method="init" >
         <property name="configLocation" value="crafter/studio/studio-config.yaml"/>
     </bean>
+
+    <bean id="filterMultipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver"/>
 
     <import resource="classpath:crafter/studio/studio-security-context.xml"/>
 </beans>
