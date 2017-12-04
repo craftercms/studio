@@ -9,7 +9,7 @@
     <url>https://github.com/craftercms/studio2</url>
 
     <packaging>war</packaging>
-    <version>3.0.2-SNAPSHOT</version>
+    <version>3.0.2</version>
     <organization>
         <name>CrafterCMS</name>
         <url>http://craftercms.org</url>
@@ -29,7 +29,7 @@
         <phantomjs.plugin.version>0.5</phantomjs.plugin.version>
         <suiteXmlFile>test/resources/testng.xml</suiteXmlFile>
         <studio.ui.path>target/ui/</studio.ui.path>
-        <studio.ui.version>master</studio.ui.version>
+        <studio.ui.version>v3.0.2</studio.ui.version>
         <spring.version>4.3.7.RELEASE</spring.version>
         <spring.security.version>4.2.2.RELEASE</spring.security.version>
     </properties>
@@ -91,7 +91,7 @@
         <dependency>
             <groupId>org.craftercms</groupId>
             <artifactId>crafter-engine</artifactId>
-            <version>3.0.2-SNAPSHOT</version>
+            <version>3.0.2</version>
             <type>war</type>
             <exclusions>
                 <exclusion>
@@ -116,7 +116,7 @@
         <dependency>
             <groupId>org.craftercms</groupId>
             <artifactId>crafter-engine</artifactId>
-            <version>3.0.2-SNAPSHOT</version>
+            <version>3.0.2</version>
             <classifier>classes</classifier>
             <scope>provided</scope>
         </dependency>
