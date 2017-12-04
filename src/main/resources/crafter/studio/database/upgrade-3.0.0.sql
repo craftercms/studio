@@ -40,4 +40,4 @@ CREATE TABLE IF NOT EXISTS gitlog
 
 ALTER TABLE `site` ADD COLUMN `last_verified_gitlog_commit_id` VARCHAR(50) NULL ;
 
-INSERT INTO _meta (version) VALUES ('3.0.3-SNAPSHOT.1') ;
+INSERT INTO _meta (version) VALUES ('3.0.2.1') ;
