@@ -1283,6 +1283,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
         // or you can substitute your own URL
         parameter.put(SessionParameter.ATOMPUB_URL, alfrescoUrl + cmisPath);
         parameter.put(SessionParameter.BINDING_TYPE, BindingType.ATOMPUB.value());
+        parameter.put(SessionParameter.COOKIES, "true");
 
         // find all the repositories at this URL - there should only be one.
         List<Repository> repositories = new ArrayList<Repository>();
