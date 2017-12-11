@@ -36,7 +36,6 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.StringTokenizer;
 
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.*;
 
