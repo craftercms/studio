@@ -191,6 +191,24 @@ studio.security.ldap.userAttribute.siteId: crafterSite
 studio.security.ldap.userAttribute.groupName: crafterGroup
 # Global admin group
 studio.security.global.adminGroup: crafter-admin
+# Authentication via headers enabled
+studio.authentication.headers.enabled: false
+# Authentication header for secure key
+studio.authentication.headers.secureKeyHeader: saml_secure_key
+# Authentication headers secure key
+studio.authentication.headers.secureKey: secure
+# Authentication header for username
+studio.authentication.headers.username: saml_username
+# Authentication header for first name
+studio.authentication.headers.firstName: saml_firstname
+# Authentication header for last name
+studio.authentication.headers.lastName: saml_lastname
+# Authentication header for email
+studio.authentication.headers.email: saml_email
+# Authentication header for groups: comma separated list of sites and groups
+#   Example:
+#   craftercms1645,Author,anothersite,Author
+studio.authentication.headers.groups: groups
 
 ###############################################################
 ##               Page Navigation Order Service               ##

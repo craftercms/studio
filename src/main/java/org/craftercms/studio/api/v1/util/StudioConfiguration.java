@@ -142,6 +142,16 @@ public interface StudioConfiguration {
     String SECURITY_LDAP_USER_ATTRIBUTE_SITE_ID = "studio.security.ldap.userAttribute.siteId";
     String SECURITY_LDAP_USER_ATTRIBUTE_GROUP_NAME = "studio.security.ldap.userAttribute.groupName";
 
+    /** Authentication headers **/
+    String AUTHENTICATION_HEADERS_ENABLED = "studio.authentication.headers.enabled";
+    String AUTHENTICATION_HEADERS_SECURE_KEY_HEADER = "studio.authentication.headers.secureKeyHeader";
+    String AUTHENTICATION_HEADERS_SECURE_KEY = "studio.authentication.headers.secureKey";
+    String AUTHENTICATION_HEADERS_USERNAME = "studio.authentication.headers.username";
+    String AUTHENTICATION_HEADERS_FIRST_NAME = "studio.authentication.headers.firstName";
+    String AUTHENTICATION_HEADERS_LAST_NAME = "studio.authentication.headers.lastName";
+    String AUTHENTICATION_HEADERS_EMAIL = "studio.authentication.headers.email";
+    String AUTHENTICATION_HEADERS_GROUPS = "studio.authentication.headers.groups";
+
     /** Page Navigation Order Service */
     String PAGE_NAVIGATION_ORDER_INCREMENT = "studio.pageNavigationOrder.increment";
 
