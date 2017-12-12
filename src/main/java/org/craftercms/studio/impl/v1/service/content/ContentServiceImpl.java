@@ -1484,21 +1484,25 @@ public class ContentServiceImpl implements ContentService {
 
     protected void loadContentTypeProperties(String site, ContentItemTO item, String contentType) {
         // TODO: SJ: Refactor in 2.7.x
-        if(contentType != null && !contentType.equals("folder") && !contentType.equals("asset") && !contentType.equals(CONTENT_TYPE_UNKNOWN)) {
-            ContentTypeConfigTO config = servicesConfig.getContentTypeConfig(site, contentType);
-            if (config != null) {
-                item.setForm(config.getForm());
-                item.setFormPagePath(config.getFormPath());
-                item.setPreviewable(config.isPreviewable());
-                item.isPreviewable = item.previewable;
-            }
+        if (item.isFolder()) {
+            item.setContentType(CONTENT_TYPE_FOLDER);
         } else {
-            MimetypesFileTypeMap mimeTypesMap = new MimetypesFileTypeMap();
-            String mimeType = mimeTypesMap.getContentType(item.getName());
-            if (mimeType != null && !StringUtils.isEmpty(mimeType)) {
-                item.setPreviewable(ContentUtils.matchesPatterns(mimeType, servicesConfig
-                        .getPreviewableMimetypesPaterns(site)));
-                item.isPreviewable = item.previewable;
+            if (contentType != null && !contentType.equals(CONTENT_TYPE_FOLDER) && !contentType.equals("asset") && !contentType.equals(CONTENT_TYPE_UNKNOWN)) {
+                ContentTypeConfigTO config = servicesConfig.getContentTypeConfig(site, contentType);
+                if (config != null) {
+                    item.setForm(config.getForm());
+                    item.setFormPagePath(config.getFormPath());
+                    item.setPreviewable(config.isPreviewable());
+                    item.isPreviewable = item.previewable;
+                }
+            } else {
+                MimetypesFileTypeMap mimeTypesMap = new MimetypesFileTypeMap();
+                String mimeType = mimeTypesMap.getContentType(item.getName());
+                if (mimeType != null && !StringUtils.isEmpty(mimeType)) {
+                    item.setPreviewable(ContentUtils.matchesPatterns(mimeType, servicesConfig
+                            .getPreviewableMimetypesPaterns(site)));
+                    item.isPreviewable = item.previewable;
+                }
             }
         }
         // TODO CodeRev:but what if the config is null?
