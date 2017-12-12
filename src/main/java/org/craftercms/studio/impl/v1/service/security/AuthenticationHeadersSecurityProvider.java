@@ -46,11 +46,14 @@ public class AuthenticationHeadersSecurityProvider extends DbWithLdapExtensionSe
     @Override
     public String authenticate(String username, String password) throws BadCredentialsException, AuthenticationSystemException {
         if (isAuthenticationHeadersEnabled()) {
+            logger.debug("Authenticating user using authentication headers.");
+
             RequestContext requestContext = RequestContext.getCurrent();
             if (requestContext != null) {
                 HttpServletRequest request = requestContext.getRequest();
-                String securekeyHeader = request.getHeader(studioConfiguration.getProperty(AUTHENTICATION_HEADERS_SECURE_KEY_HEADER));
-                String secureKey = studioConfiguration.getProperty(AUTHENTICATION_HEADERS_SECURE_KEY);
+                String securekeyHeader = request.getHeader(studioConfiguration.getProperty(AUTHENTICATION_HEADERS_SECURE_KEY_HEADER_NAME));
+                String secureKey = studioConfiguration.getProperty(AUTHENTICATION_HEADERS_SECURE_KEY_HEADER_VALUE);
+                logger.debug("Verifying authentication header secure key.");
                 if (StringUtils.equals(securekeyHeader, secureKey)) {
                     String usernameHeader = request.getHeader(studioConfiguration.getProperty(AUTHENTICATION_HEADERS_USERNAME));
                     String firstName = request.getHeader(studioConfiguration.getProperty(AUTHENTICATION_HEADERS_FIRST_NAME));
@@ -59,6 +62,7 @@ public class AuthenticationHeadersSecurityProvider extends DbWithLdapExtensionSe
                     String groups = request.getHeader(studioConfiguration.getProperty(AUTHENTICATION_HEADERS_GROUPS));
 
                     if (userExists(usernameHeader)) {
+                        logger.debug("If user already exists in studio DB, update details.");
                         try {
                             boolean success = updateUserInternal(usernameHeader, firstName, lastName, email);
                             if (success) {
@@ -68,12 +72,13 @@ public class AuthenticationHeadersSecurityProvider extends DbWithLdapExtensionSe
                                 activityService.postActivity(getSystemSite(), usernameHeader, usernameHeader, activityType, ActivityService.ActivitySource.UI, extraInfo);
                             }
                         } catch (UserNotFoundException e) {
-                            logger.error("Error updating user " + username + " with data from external authentication provider", e);
+                            logger.error("Error updating user " + username + " with data from authentication headers", e);
 
                             throw new AuthenticationSystemException("Error updating user " + username +
                                     " with data from external authentication provider", e);
                         }
                     } else {
+                        logger.debug("User does not exist in studio db. Adding user " + usernameHeader);
                         try {
                             boolean success = createUser(usernameHeader, password, firstName, lastName, email, true);
                             if (success) {
@@ -83,7 +88,7 @@ public class AuthenticationHeadersSecurityProvider extends DbWithLdapExtensionSe
                                 activityService.postActivity(getSystemSite(), usernameHeader, usernameHeader, activityType, ActivityService.ActivitySource.UI, extraInfo);
                             }
                         } catch (UserAlreadyExistsException e) {
-                            logger.error("Error adding user " + username + " from external authentication provider", e);
+                            logger.error("Error adding user " + username + " from authentication headers", e);
 
                             throw new AuthenticationSystemException("Error adding user " + username + " from external authentication provider", e);
                         }
@@ -96,6 +101,7 @@ public class AuthenticationHeadersSecurityProvider extends DbWithLdapExtensionSe
                     user.setEmail(email);
                     user.setGroups(new ArrayList<Group>());
 
+                    logger.debug("Update user groups in database.");
                     if (StringUtils.isNoneEmpty(groups)) {
                         String[] groupsArray = groups.split(",");
                         if (groupsArray.length % 2 == 0) {
@@ -128,8 +134,10 @@ public class AuthenticationHeadersSecurityProvider extends DbWithLdapExtensionSe
                     return token;
                 }
             }
+            logger.debug("Unsable to authenticate user using authentication headers. Switching to other security provider(s).");
             return super.authenticate(username, password);
         } else {
+            logger.debug("Authentication using headers disabled. Switching to other security provider(s).");
             return super.authenticate(username, password);
         }
     }

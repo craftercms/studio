@@ -50,33 +50,29 @@ public class StudioAuthenticationTokenProcessingFilter extends GenericFilterBean
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
         HttpServletRequest httpRequest = this.getAsHttpRequest(servletRequest);
-        //if (isAuthenticationHeadersEnabled()) {
-            // TODO: validate SAML headers
-        //} else {
-            HttpSession httpSession = httpRequest.getSession();
-            synchronized (httpSession) {
-                String userName = securityService.getCurrentUser();
-                String authToken = securityService.getCurrentToken();
+        HttpSession httpSession = httpRequest.getSession();
+        synchronized (httpSession) {
+            String userName = securityService.getCurrentUser();
+            String authToken = securityService.getCurrentToken();
 
-                if (userName != null) {
+            if (userName != null) {
 
-                    UserDetails userDetails = this.userDetailsManager.loadUserByUsername(userName);
+                UserDetails userDetails = this.userDetailsManager.loadUserByUsername(userName);
 
-                    if (SessionTokenUtils.validateToken(authToken, userDetails.getUsername())) {
+                if (SessionTokenUtils.validateToken(authToken, userDetails.getUsername())) {
 
-                        UsernamePasswordAuthenticationToken authentication =
-                                new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                        SecurityContextHolder.getContext().setAuthentication(authentication);
+                    UsernamePasswordAuthenticationToken authentication =
+                            new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
 
-                        if (httpRequest.getRequestURI().startsWith(httpRequest.getContextPath() + "/api/1") && !getIgnoreRenewTokenUrls().contains(HttpUtils.getRequestUriWithoutContextPath(httpRequest))) {
-                            int timeout = Integer.parseInt(studioConfiguration.getProperty(SECURITY_SESSION_TIMEOUT));
-                            String newToken = SessionTokenUtils.createToken(userDetails.getUsername(), timeout);
-                            httpSession.setAttribute(STUDIO_SESSION_TOKEN_ATRIBUTE, newToken);
-                        }
+                    if (httpRequest.getRequestURI().startsWith(httpRequest.getContextPath() + "/api/1") && !getIgnoreRenewTokenUrls().contains(HttpUtils.getRequestUriWithoutContextPath(httpRequest))) {
+                        int timeout = Integer.parseInt(studioConfiguration.getProperty(SECURITY_SESSION_TIMEOUT));
+                        String newToken = SessionTokenUtils.createToken(userDetails.getUsername(), timeout);
+                        httpSession.setAttribute(STUDIO_SESSION_TOKEN_ATRIBUTE, newToken);
                     }
                 }
             }
-        //}
+        }
         filterChain.doFilter(servletRequest, servletResponse);
     }
 

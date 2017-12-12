@@ -144,8 +144,8 @@ public interface StudioConfiguration {
 
     /** Authentication headers **/
     String AUTHENTICATION_HEADERS_ENABLED = "studio.authentication.headers.enabled";
-    String AUTHENTICATION_HEADERS_SECURE_KEY_HEADER = "studio.authentication.headers.secureKeyHeader";
-    String AUTHENTICATION_HEADERS_SECURE_KEY = "studio.authentication.headers.secureKey";
+    String AUTHENTICATION_HEADERS_SECURE_KEY_HEADER_NAME = "studio.authentication.headers.secureKeyHeaderName";
+    String AUTHENTICATION_HEADERS_SECURE_KEY_HEADER_VALUE = "studio.authentication.headers.secureKeyHeaderValue";
     String AUTHENTICATION_HEADERS_USERNAME = "studio.authentication.headers.username";
     String AUTHENTICATION_HEADERS_FIRST_NAME = "studio.authentication.headers.firstName";
     String AUTHENTICATION_HEADERS_LAST_NAME = "studio.authentication.headers.lastName";
