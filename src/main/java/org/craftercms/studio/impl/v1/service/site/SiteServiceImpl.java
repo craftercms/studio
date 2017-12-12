@@ -840,6 +840,7 @@ public class SiteServiceImpl implements SiteService {
                         properties = new HashMap<String, Object>();
                         properties.put(ItemMetadata.PROP_SITE, site);
                         properties.put(ItemMetadata.PROP_PATH, repoOperation.getPath());
+                        properties.put(ItemMetadata.PROP_MODIFIER, repoOperation.getAuthor());
                         properties.put(ItemMetadata.PROP_MODIFIED, repoOperation.getDateTime());
                         properties.put(ItemMetadata.PROP_COMMIT_ID, repoOperation.getCommitId());
                         objectMetadataManager.setObjectMetadata(site, repoOperation.getMoveToPath(), properties);
@@ -861,6 +862,7 @@ public class SiteServiceImpl implements SiteService {
                         properties = new HashMap<String, Object>();
                         properties.put(ItemMetadata.PROP_SITE, site);
                         properties.put(ItemMetadata.PROP_PATH, repoOperation.getPath());
+                        properties.put(ItemMetadata.PROP_MODIFIER, repoOperation.getAuthor());
                         properties.put(ItemMetadata.PROP_MODIFIED, repoOperation.getDateTime());
                         properties.put(ItemMetadata.PROP_COMMIT_ID, repoOperation.getCommitId());
                         objectMetadataManager.setObjectMetadata(site, repoOperation.getMoveToPath(), properties);
@@ -907,6 +909,7 @@ public class SiteServiceImpl implements SiteService {
                                     properties.put(ItemMetadata.PROP_RENAMED, 1);
                                     properties.put(ItemMetadata.PROP_OLD_URL, repoOperation.getPath());
                                     properties.put(ItemMetadata.PROP_COMMIT_ID, repoOperation.getCommitId());
+                                    properties.put(ItemMetadata.PROP_MODIFIER, repoOperation.getAuthor());
                                     properties.put(ItemMetadata.PROP_MODIFIED, repoOperation.getDateTime());
                                     objectMetadataManager.setObjectMetadata(site, repoOperation.getMoveToPath(), properties);
                                 }
@@ -921,6 +924,7 @@ public class SiteServiceImpl implements SiteService {
                                 properties.put(ItemMetadata.PROP_RENAMED, 1);
                                 properties.put(ItemMetadata.PROP_OLD_URL, repoOperation.getPath());
                                 properties.put(ItemMetadata.PROP_COMMIT_ID, repoOperation.getCommitId());
+                                properties.put(ItemMetadata.PROP_MODIFIER, repoOperation.getAuthor());
                                 objectMetadataManager.setObjectMetadata(site, repoOperation.getMoveToPath(), properties);
                             } else {
                                 // if not already renamed set renamed and old url
@@ -932,6 +936,7 @@ public class SiteServiceImpl implements SiteService {
                                     properties.put(ItemMetadata.PROP_RENAMED, 1);
                                     properties.put(ItemMetadata.PROP_OLD_URL, repoOperation.getPath());
                                     properties.put(ItemMetadata.PROP_COMMIT_ID, repoOperation.getCommitId());
+                                    properties.put(ItemMetadata.PROP_MODIFIER, repoOperation.getAuthor());
                                     objectMetadataManager.setObjectMetadata(site, repoOperation.getMoveToPath(), properties);
                                 }
                                 objectMetadataManager.deleteObjectMetadata(site, repoOperation.getPath());
