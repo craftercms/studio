@@ -17,28 +17,24 @@ if (request instanceof MultipartRequest) {
     def site = params.site
     def profileId = params.profile
     def uploadedFile = request.getFile("file")
-    filename = uploadedFile.getOriginalFilename()
-
-    def filenameNoExt = FilenameUtils.removeExtension(filename)
-    def ext = FilenameUtils.getExtension(filename)
-    def tmpFile = File.createTempFile(filenameNoExt, "." + ext)
-    uploadedFile.transferTo(tmpFile)
-
-    def output
+    def filename = uploadedFile.getOriginalFilename()
     try {
-        output = s3Service.uploadFile(site, profileId, filename, tmpFile)
-    } catch (e) {
-        logger.error("Upload of file ${tmpFile} failed", e)
+        def filenameNoExt = FilenameUtils.removeExtension(filename)
+        def ext = FilenameUtils.getExtension(filename)
+        def tmpFile = File.createTempFile(filenameNoExt, "." + ext)
+        uploadedFile.transferTo(tmpFile)
 
-        sendError("Upload of file failed")
+        def output = s3Service.uploadFile(site, profileId, filename, tmpFile)
 
-        return
-    }
-
-    def writer = response.writer
+        def writer = response.writer
         writer.println("<script>document.domain = \"${request.serverName}\";</script>")
         writer.println("[{\"bucket\":\"${output.bucket}\",\"key\":\"${output.key}\"}]")
         writer.flush()
+    } catch (e) {
+        logger.error("Upload of file ${filename} failed", e)
+
+        sendError("Upload of file failed: ${e.message}")
+    }
 } else {
     sendError("Request is not of type multi-part")
 }
