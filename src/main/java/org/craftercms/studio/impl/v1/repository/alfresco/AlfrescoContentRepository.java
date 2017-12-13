@@ -691,7 +691,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
                     serviceURL = buildAlfrescoRequestURL("/api/login/ticket/{ticket}", params);
                     method = new HttpGet(serviceURL);
 
-                    HttpClientFactory factory = new HttpClientFactory(useSSL, keystoreFile, keystorePass, keystorePass);
+                    HttpClientFactory factory = new HttpClientFactory(useSSL, keystoreFile, keystorePass, keystoreType);
                     httpClient = factory.getHttpsClient();
                     HttpResponse response = httpClient.execute(method);
                     if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
