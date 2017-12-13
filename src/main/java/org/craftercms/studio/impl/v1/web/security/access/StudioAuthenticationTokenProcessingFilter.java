@@ -73,7 +73,6 @@ public class StudioAuthenticationTokenProcessingFilter extends GenericFilterBean
                 }
             }
         }
-
         filterChain.doFilter(servletRequest, servletResponse);
     }
 
@@ -88,6 +87,11 @@ public class StudioAuthenticationTokenProcessingFilter extends GenericFilterBean
 
     public List<String> getIgnoreRenewTokenUrls() {
         return Arrays.asList(studioConfiguration.getProperty(SECURITY_IGNORE_RENEW_TOKEN_URLS).split(","));
+    }
+
+    public boolean isAuthenticationHeadersEnabled() {
+        String enabledString = studioConfiguration.getProperty(AUTHENTICATION_HEADERS_ENABLED);
+        return Boolean.parseBoolean(enabledString);
     }
 
     private UserDetailsManager userDetailsManager;
