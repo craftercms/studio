@@ -116,22 +116,20 @@ implements ClipboardService {
                 String newPath = null;
                 boolean cut = op.isCut;
 
-                if(cut==true) {
+                if (cut) {
                     // RDTMP_COPYPASTE
                     // CopyContent inteface is able to send status and new path yet
-                    // newPath = contentService.moveContent(site, op.path, destinationPath);
                     workflowService.cleanWorkflow(op.path, site, Collections.<DmDependencyTO>emptySet());
                     newPath = contentService.moveContent(site, op.path, destinationPath);
                 }
                 else {
                     // RDTMP_COPYPASTE
                     // CopyContent inteface is able to send status and new path yet
-                    // newPath = contentService.copyContent(site, op.path, destinationPath);
                     newPath = contentService.copyContent(site, op.path, destinationPath);
 
                     // recurse on copied children
                     pasteItems(site, newPath, op.children, pastedItems);
-                };
+                }
 
                 pastedItems.add(newPath);                
             }
