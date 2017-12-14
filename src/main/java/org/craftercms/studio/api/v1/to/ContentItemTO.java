@@ -504,9 +504,7 @@ public class ContentItemTO implements Serializable {
                     int compareResult = comparator.compare(child, itemToAdd);
 					if (compareResult < 0) {
 						pos = index + 1 + 0;
-					} else if (compareResult == 0){
-                        return;
-                    }
+					}
 					// if the new item's URI starts with the URI of one of the
 					// item
 					// add the new item as a child of the item found
@@ -542,8 +540,6 @@ public class ContentItemTO implements Serializable {
                         children.add(index, itemToAdd);
                         added = true;
                         break;
-                    } else if (compareResult == 0) {
-                        return;
 					} else {
 						pos = index + 1;
 					}
