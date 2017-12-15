@@ -236,5 +236,5 @@ public interface ContentService {
      * @param name a new folder name
      * @return return the reference to the folder renamed
      */
-    boolean renameFolder(String site, String path, String name);
+    boolean renameFolder(String site, String path, String name) throws ServiceException;
 }

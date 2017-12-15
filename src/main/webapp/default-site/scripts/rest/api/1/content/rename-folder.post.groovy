@@ -21,7 +21,12 @@ import scripts.api.ContentServices;
 def site = request.getParameter("site")
 def path = request.getParameter("path")
 def name = request.getParameter("name")
-
-def context = ContentServices.createContext(applicationContext, request)
-result = ContentServices.renameFolder(site, path, name, context);
+def result = [:]
+try {
+    def context = ContentServices.createContext(applicationContext, request)
+    result.result = ContentServices.renameFolder(site, path, name, context);
+} catch (Exception e) {
+    response.setStatus(500)
+    result.message = "Internal server error";
+}
 return result
