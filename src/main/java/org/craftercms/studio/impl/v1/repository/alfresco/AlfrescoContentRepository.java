@@ -168,6 +168,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
         boolean result = false;
         boolean isMoveLocation = false;
         boolean destFolderExists = false;
+        boolean fileMove = false;
 
         logger.debug("Move from {0} -> to {1}", fromPath, toPath);
         String parentFromPath = fromPath.substring(0, fromPath.lastIndexOf("/"));
@@ -179,6 +180,7 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
         if(targetPath.endsWith(".xml")) {
             // This is a file move
             targetPath = parentToPath;
+            fileMove = true;
         }
 
         try {
@@ -239,9 +241,16 @@ public class AlfrescoContentRepository extends AbstractContentRepository impleme
                     String targetFolderName = toPath.substring(toPath.lastIndexOf("/")+1);
 
                     if(parentFromPath.equals(parentToPath) && destFolderExists) {
-                        // move is just a rename
-                        logger.debug("Rename {0} to {1}/{2}", sourceFolder.getPath(), targetFolder.getPath(), targetFolderName);
-                        sourceFolder.rename(targetFolderName);
+                        if (fileMove) {
+                            // move is just a rename
+                            logger.debug("Rename {0} to {1}/{2}", sourceFolder.getPath(), targetFolder.getPath(), targetFolderName);
+                            sourceFolder.rename(targetFolderName);
+                        } else {
+                            // This is just a move
+                            // example: move /a to /b/a
+                            logger.debug("Moving folder {0} to {1}", sourceFolder.getPath(), targetFolder.getPath());
+                            sourceFolder.move(sourceParentFolder, targetFolder);
+                        }
                     }
                     else {
 
