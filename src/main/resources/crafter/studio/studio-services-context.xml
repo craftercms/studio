@@ -257,6 +257,7 @@
     <bean id="cstudioClipboardService" class="org.craftercms.studio.impl.v1.service.clipboard.ClipboardServiceImpl"
             parent="cstudioRegistrableService">
         <property name="contentService" ref="cstudioContentService"/>
+        <property name="workflowService" ref="cstudioWorkflowService" />
     </bean>
 
     <bean id="studioEventService" class="org.craftercms.studio.impl.v1.service.event.EventServiceImpl" />

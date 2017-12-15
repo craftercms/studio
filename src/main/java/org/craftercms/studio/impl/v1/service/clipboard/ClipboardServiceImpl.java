@@ -28,7 +28,10 @@ import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.service.AbstractRegistrableService;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.clipboard.ClipboardService;
+import org.craftercms.studio.api.v1.service.workflow.WorkflowService;
+import org.craftercms.studio.api.v1.to.DmDependencyTO;
 
+import java.util.Collections;
 import java.util.Set;
 import java.util.HashSet;
 
@@ -113,21 +116,20 @@ implements ClipboardService {
                 String newPath = null;
                 boolean cut = op.isCut;
 
-                if(cut==true) {
+                if (cut) {
                     // RDTMP_COPYPASTE
                     // CopyContent inteface is able to send status and new path yet
-                    // newPath = contentService.moveContent(site, op.path, destinationPath);
+                    workflowService.cleanWorkflow(op.path, site, Collections.<DmDependencyTO>emptySet());
                     newPath = contentService.moveContent(site, op.path, destinationPath);
                 }
                 else {
                     // RDTMP_COPYPASTE
                     // CopyContent inteface is able to send status and new path yet
-                    // newPath = contentService.copyContent(site, op.path, destinationPath);
                     newPath = contentService.copyContent(site, op.path, destinationPath);
 
                     // recurse on copied children
                     pasteItems(site, newPath, op.children, pastedItems);
-                };
+                }
 
                 pastedItems.add(newPath);                
             }
@@ -176,7 +178,11 @@ implements ClipboardService {
 
 
     protected ContentService contentService;
+    protected WorkflowService workflowService;
 
     public ContentService getContentService() { return contentService; }
     public void setContentService(ContentService contentService) { this.contentService = contentService; }
+
+    public WorkflowService getWorkflowService() { return workflowService; }
+    public void setWorkflowService(WorkflowService workflowService) { this.workflowService = workflowService; }
 }
