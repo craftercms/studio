@@ -952,7 +952,13 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         RevWalk rw = new RevWalk(repo);
                         RevCommit rc = rw.parseCommit(objCommitId);
 
-                        Ref result = git.checkout().setStartPoint(commitId).addPath(path).call();
+                        CheckoutCommand checkout = git.checkout();
+                        Ref result = checkout.setStartPoint(commitId).addPath(path).call();
+
+                        if (deploymentItem.isMove()) {
+                            String oldPath = helper.getGitPath(deploymentItem.getOldPath());
+                            git.rm().addFilepattern(oldPath).setCached(false).call();
+                        }
                         deployedCommits.add(commitId);
                     }
 
