@@ -177,26 +177,27 @@ public class DiskContentRepository extends AbstractContentRepository implements 
             File source = constructRepoPath(fromPath).toFile();
             File destDir = constructRepoPath(toPath).toFile();
 
-            if(parentFromPath.equals(parentToPath)
-            && fromIsFile == toIsFile) {
-                // this is a rename only
-                logger.debug("Renaming document {0} to {1}/{2}", fromPath, toPath);
-                source.renameTo(destDir);
-            }
-            else {
-                if(!fromFileName.equals(toFileName)
-                && fromIsFile == toIsFile) {
-                    // this kind of move operation on a disk is a rename
-                    logger.debug("Moving RENAME A document {0} to {1}", fromPath, toPath);
+            if (source.isDirectory() && destDir.exists() && destDir.isDirectory()) {
+                FileUtils.moveDirectoryToDirectory(source, destDir, true);
+            } else {
+                if (parentFromPath.equals(parentToPath)
+                        && fromIsFile == toIsFile) {
+                    // this is a rename only
+                    logger.debug("Renaming document {0} to {1}/{2}", fromPath, toPath);
                     source.renameTo(destDir);
-                }
-                else if(fromFileName.equals(toFileName) && source.isDirectory()) {
-                    logger.debug("Moving RENAME B document {0} to {1}", fromPath, toPath);
-                    source.renameTo(destDir);
-                }
-                else {
-                    logger.debug("Moving MOVE document {0} to {1}", fromPath, toPath);
-                    FileUtils.moveFileToDirectory(source, destDir, true);
+                } else {
+                    if (!fromFileName.equals(toFileName)
+                            && fromIsFile == toIsFile) {
+                        // this kind of move operation on a disk is a rename
+                        logger.debug("Moving RENAME A document {0} to {1}", fromPath, toPath);
+                        source.renameTo(destDir);
+                    } else if (fromFileName.equals(toFileName) && source.isDirectory()) {
+                        logger.debug("Moving RENAME B document {0} to {1}", fromPath, toPath);
+                        source.renameTo(destDir);
+                    } else {
+                        logger.debug("Moving MOVE document {0} to {1}", fromPath, toPath);
+                        FileUtils.moveFileToDirectory(source, destDir, true);
+                    }
                 }
             }
 

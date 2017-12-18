@@ -23,7 +23,8 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.lang.Callback;
 import org.craftercms.commons.validation.annotations.param.ValidateIntegerParam;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
@@ -835,18 +836,21 @@ public class ContentServiceImpl implements ContentService {
                 }
             }
 
-            StringBuffer assetContent = new StringBuffer(getContentAsString(expandRelativeSitePath(site, movePath)));
-            Map<String, Set<String>> globalDeps = new HashMap<String, Set<String>>();
-            try {
-                if (isCss) {
-                    dependencyService.extractDependenciesStyle(site, movePath, assetContent, globalDeps);
-                } else if (isJs) {
-                    dependencyService.extractDependenciesJavascript(site, movePath, assetContent, globalDeps);
-                } else if (isTemplate) {
-                    dependencyService.extractDependenciesTemplate(site, movePath, assetContent, globalDeps);
+            String assetContentString = getContentAsString(expandRelativeSitePath(site, movePath));
+            if (StringUtils.isNotEmpty(assetContentString)) {
+                StringBuffer assetContent = new StringBuffer(assetContentString);
+                Map<String, Set<String>> globalDeps = new HashMap<String, Set<String>>();
+                try {
+                    if (isCss) {
+                        dependencyService.extractDependenciesStyle(site, movePath, assetContent, globalDeps);
+                    } else if (isJs) {
+                        dependencyService.extractDependenciesJavascript(site, movePath, assetContent, globalDeps);
+                    } else if (isTemplate) {
+                        dependencyService.extractDependenciesTemplate(site, movePath, assetContent, globalDeps);
+                    }
+                } catch (ServiceException e) {
+                    logger.error("Error while updating dependencies on move content site: " + site + " path: " + movePath, e);
                 }
-            } catch (ServiceException e) {
-                logger.error("Error while updating dependencies on move content site: " + site + " path: " + movePath, e);
             }
         }
     }
@@ -2139,7 +2143,7 @@ public class ContentServiceImpl implements ContentService {
     public List<DmOrderTO> getItemOrders(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) throws ContentNotFoundException {
         List<DmOrderTO> dmOrderTOs = getOrders(site, path, "default", false);
         for (DmOrderTO dmOrderTO : dmOrderTOs) {
-            dmOrderTO.setName(StringUtils.escape(dmOrderTO.getName()));
+            dmOrderTO.setName(StringEscapeUtils.escapeJava(dmOrderTO.getName()));
         }
         return dmOrderTOs;
     }
