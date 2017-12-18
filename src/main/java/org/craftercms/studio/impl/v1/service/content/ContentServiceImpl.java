@@ -805,10 +805,6 @@ public class ContentServiceImpl implements ContentService {
             message.setRepositoryEventContext(repositoryEventContext);
 
             repositoryReactor.notify(EBusConstants.REPOSITORY_MOVE_EVENT, Event.wrap(message));
-            
-            // note this was not here before 
-            // assume notify takes care of this but was bot previously applied to copy
-            previewSync.syncPath(site, movePath, repositoryEventContext);
         }
     }
 
