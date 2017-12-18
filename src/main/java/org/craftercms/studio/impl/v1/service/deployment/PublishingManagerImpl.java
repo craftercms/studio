@@ -168,6 +168,8 @@ public class PublishingManagerImpl implements PublishingManager {
             }
         } else {
             if (StringUtils.equals(action, PublishRequest.Action.MOVE)) {
+                deploymentItem.setMove(true);
+                deploymentItem.setOldPath(oldPath);
                 if (oldPath != null && oldPath.length() > 0) {
                     if (isLive) {
                         objectMetadataManager.clearRenamed(site, path);
