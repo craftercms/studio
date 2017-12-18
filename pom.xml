@@ -32,6 +32,7 @@
         <studio.ui.version>develop</studio.ui.version>
         <spring.version>4.3.7.RELEASE</spring.version>
         <spring.security.version>4.2.2.RELEASE</spring.security.version>
+        <box.sdk.version>2.8.2</box.sdk.version>
     </properties>
 
     <licenses>
@@ -455,6 +456,13 @@
         <dependency>
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-java-sdk-elastictranscoder</artifactId>
+        </dependency>
+
+        <!-- Box SDK -->
+        <dependency>
+            <groupId>com.box</groupId>
+            <artifactId>box-java-sdk</artifactId>
+            <version>${box.sdk.version}</version>
         </dependency>
     </dependencies>
 

@@ -729,6 +729,18 @@
         <property name="profileReader" ref="studioS3ProfileReader"/>
     </bean>
 
+    <!-- ////////////////////////////////////// -->
+    <!--         BOX                            -->
+    <!-- ////////////////////////////////////// -->
+    <bean id="studioBoxProfileReader" class="org.craftercms.studio.impl.v1.box.BoxProfileReaderImpl">
+        <property name="configPath" value="#{studioConfiguration.getProperty('studio.configuration.site.box.configurationPath')}"/>
+        <property name="contentService" ref="cstudioContentService"/>
+    </bean>
+
+    <bean id="studioBoxService" class="org.craftercms.studio.impl.v1.service.box.BoxServiceImpl">
+        <property name="profileReader" ref="studioBoxProfileReader"/>
+    </bean>
+
     <!-- Utilities -->
     <bean id="studioApplicationContextProvider" class="org.craftercms.studio.impl.v1.util.spring.context.ApplicationContextProvider"></bean>
 

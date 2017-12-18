@@ -91,6 +91,9 @@ studio.configuration.site.dependencyResolver.configFileName: resolver-config.xml
 studio.configuration.site.aws.configBasePath: /config/studio/aws
 # Name of the AWS configuration file
 studio.configuration.site.aws.configFileName: aws.xml
+# Repo path to read the Box configuration
+studio.configuration.site.box.configurationPath: /config/studio/box/box.xml
+
 ########################################################
 ##                   Import Service                   ##
 ########################################################

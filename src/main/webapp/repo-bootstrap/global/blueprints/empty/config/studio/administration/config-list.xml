@@ -128,5 +128,11 @@
             <description>AWS Profiles</description>
             <samplePath>/studio/administration/samples/sample-aws.xml</samplePath>
         </file>
+        <file>
+            <path>/studio/box/box.xml</path>
+            <title>Box Profiles</title>
+            <description>Box Profiles</description>
+            <samplePath>/studio/administration/samples/sample-box.xml</samplePath>
+        </file>
     </files>
 </config>
