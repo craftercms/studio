@@ -64,7 +64,7 @@ public class StudioAccessDecisionManager extends AbstractAccessDecisionManager {
             return;
         }
 
-        if (authentication.isAuthenticated()) {
+        if (authentication.isAuthenticated() && !authentication.getPrincipal().equals("anonymousUser")) {
             loggerCrafter.debug("User authenticated allow access");
             return;
         } else {
