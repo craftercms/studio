@@ -22,6 +22,7 @@ For every repository you need to specify:
                 <password />
                 <base-path />
                 <download-url-regex />
+                <use-ssl />
             </repository>
         </repositories>
     </cmis>
@@ -40,6 +41,7 @@ For every repository you need to specify:
         {item_id}. The regular expression contains the full download URL
         pattern to the item in the CMIS repository, and {item_id} will be
         replaced by Crafter CMS with the selected item ID.
+    use-ssl: set to true to enable HTTPS protocol
 -->
 <cmis>
     <repositories>
@@ -52,6 +54,7 @@ For every repository you need to specify:
                 <password>guest</password>
                 <base-path>/</base-path>
                 <download-url-regex>http://localhost:8080/alfresco/service/api/node/content/workspace/SpacesStore/{item_id}</download-url-regex>
+                <use-ssl>false</use-ssl>
             </repository>
         -->
     </repositories>

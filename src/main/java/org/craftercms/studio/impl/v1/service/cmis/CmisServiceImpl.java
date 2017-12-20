@@ -46,6 +46,7 @@ import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Node;
 
+import javax.net.ssl.*;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -57,6 +58,10 @@ import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.*;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.cert.X509Certificate;
 import java.util.*;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
@@ -78,6 +83,7 @@ public class CmisServiceImpl implements CmisService {
     private static final String PASSWORD_PROPERTY = "password";
     private static final String BASE_PATH_PROPERTY = "base-path";
     private static final String DOWNLOAD_URL_REGEX_PROPERTY = "download-url-regex";
+    private static final String USE_SSL_PROPERTY = "use-ssl";
 
     private static final String MIME_TYPE_FOLDER = "folder";
 
@@ -181,6 +187,7 @@ public class CmisServiceImpl implements CmisService {
                 repositoryConfig.setPassword(getPropertyValue(node, PASSWORD_PROPERTY));
                 repositoryConfig.setBasePath(getPropertyValue(node, BASE_PATH_PROPERTY));
                 repositoryConfig.setDownloadUrlRegex(getPropertyValue(node, DOWNLOAD_URL_REGEX_PROPERTY));
+                repositoryConfig.setUseSsl(Boolean.parseBoolean(getPropertyValue(node, USE_SSL_PROPERTY)));
             } else {
                 throw new CmisRepositoryNotFoundException();
             }
@@ -199,6 +206,16 @@ public class CmisServiceImpl implements CmisService {
     }
 
     private Session createCMISSession(DataSourceRepositoryTO config) throws CmisUnavailableException, CmisTimeoutException {
+
+        if (config.isUseSsl()) {
+            SSLContext sc = null;
+            try {
+                sc = getSSLContext();
+            } catch (KeyManagementException | NoSuchAlgorithmException  e) {
+                logger.error("Error initializing SSL context", e);
+            }
+        }
+
         // Create a SessionFactory and set up the SessionParameter map
         SessionFactory sessionFactory = SessionFactoryImpl.newInstance();
         Map<String, String> parameter = new HashMap<String, String>();
@@ -229,6 +246,34 @@ public class CmisServiceImpl implements CmisService {
         }
 
         return session;
+    }
+
+    private SSLContext getSSLContext() throws KeyManagementException, NoSuchAlgorithmException {
+        // Create a trust manager that does not validate certificate chains
+        TrustManager[] trustAllCerts = new TrustManager[] {
+                new X509TrustManager() {
+                    public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                        return new X509Certificate[0];
+                    }
+                    public void checkClientTrusted(
+                            java.security.cert.X509Certificate[] certs, String authType) {
+                    }
+                    public void checkServerTrusted(
+                            java.security.cert.X509Certificate[] certs, String authType) {
+                    }
+                }
+        };
+
+        // Ignore differences between given hostname and certificate hostname
+        HostnameVerifier hv = (hostname, session) -> true;
+
+        // Install the all-trusting trust manager
+        SSLContext sc = SSLContext.getInstance("SSL");
+        sc.init(null, trustAllCerts, new SecureRandom());
+        HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+        HttpsURLConnection.setDefaultHostnameVerifier(hv);
+
+        return sc;
     }
 
     @Override
