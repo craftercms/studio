@@ -2097,7 +2097,7 @@ public class ContentServiceImpl implements ContentService {
             RepositoryItem[] children = _contentRepository.getContentChildren(expandRelativeSitePath(site, parentFolderToDelete));
             List<String> childItems = new ArrayList<String>();
             for (RepositoryItem child : children) {
-                childItems.add(child.path + "/" + child.name);
+                childItems.add(getRelativeSitePath(site, child.path + "/" + child.name));
             }
             if (candidates.getAllItems().containsAll(childItems)) {
                 logger.debug("Added parentFolder for delete" + parentFolderToDelete);
