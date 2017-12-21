@@ -31,6 +31,7 @@ public class DataSourceRepositoryTO implements Serializable{
     protected String password;
     protected String basePath;
     protected String downloadUrlRegex;
+    protected boolean useSsl;
 
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
@@ -52,4 +53,7 @@ public class DataSourceRepositoryTO implements Serializable{
 
     public String getDownloadUrlRegex() { return downloadUrlRegex; }
     public void setDownloadUrlRegex(String downloadUrlRegex) { this.downloadUrlRegex = downloadUrlRegex; }
+
+    public boolean isUseSsl() { return useSsl; }
+    public void setUseSsl(boolean useSsl) { this.useSsl = useSsl; }
 }
