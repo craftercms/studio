@@ -27,7 +27,6 @@ import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.chemistry.opencmis.commons.enums.BindingType;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisBaseException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisConnectionException;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisRuntimeException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisUnauthorizedException;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.validation.annotations.param.ValidateIntegerParam;
@@ -47,16 +46,6 @@ import org.dom4j.DocumentException;
 import org.dom4j.Node;
 
 import javax.net.ssl.*;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.math.BigInteger;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.nio.ByteBuffer;
-import java.nio.channels.Channels;
-import java.nio.channels.FileChannel;
-import java.nio.channels.ReadableByteChannel;
 import java.nio.file.*;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
@@ -211,6 +200,10 @@ public class CmisServiceImpl implements CmisService {
             SSLContext sc = null;
             try {
                 sc = getSSLContext();
+                // Ignore differences between given hostname and certificate hostname
+                HostnameVerifier hv = (hostname, session) -> true;
+                HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+                HttpsURLConnection.setDefaultHostnameVerifier(hv);
             } catch (KeyManagementException | NoSuchAlgorithmException  e) {
                 logger.error("Error initializing SSL context", e);
             }
@@ -252,26 +245,21 @@ public class CmisServiceImpl implements CmisService {
         // Create a trust manager that does not validate certificate chains
         TrustManager[] trustAllCerts = new TrustManager[] {
                 new X509TrustManager() {
-                    public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                    public X509Certificate[] getAcceptedIssuers() {
                         return new X509Certificate[0];
                     }
                     public void checkClientTrusted(
-                            java.security.cert.X509Certificate[] certs, String authType) {
+                            X509Certificate[] certs, String authType) {
                     }
                     public void checkServerTrusted(
-                            java.security.cert.X509Certificate[] certs, String authType) {
+                            X509Certificate[] certs, String authType) {
                     }
                 }
         };
 
-        // Ignore differences between given hostname and certificate hostname
-        HostnameVerifier hv = (hostname, session) -> true;
-
         // Install the all-trusting trust manager
         SSLContext sc = SSLContext.getInstance("SSL");
         sc.init(null, trustAllCerts, new SecureRandom());
-        HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-        HttpsURLConnection.setDefaultHostnameVerifier(hv);
 
         return sc;
     }
