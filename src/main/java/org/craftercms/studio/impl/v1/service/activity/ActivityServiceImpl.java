@@ -295,19 +295,12 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 				String modifier = (feedObject.containsKey(ACTIVITY_PROP_FEEDUSER)) ? feedObject.getString(ACTIVITY_PROP_FEEDUSER) : "";
 				if(modifier != null && !modifier.isEmpty()) {
 					item.user = modifier;
-                    /* TODO: extract user information
-                    ProfileService profileService = getService(ProfileService.class);
-                    UserProfileTO profile = profileService.getUserProfile(modifier, site, false);
-                    if (profile != null) {
-                        item.setUserFirstName(profile.getProfile().get(ContentModel.PROP_FIRSTNAME.getLocalName()));
-                        item.setUserLastName(profile.getProfile().get(ContentModel.PROP_LASTNAME.getLocalName()));
-                    }*/
 				}
 
 				String activitySummary = (feedObject.containsKey(ACTIVITY_PROP_ACTIVITY_SUMMARY)) ? feedObject.getString(ACTIVITY_PROP_ACTIVITY_SUMMARY) : "";
 				JSONObject summaryObject = JSONObject.fromObject(activitySummary);
-				if (summaryObject.containsKey(StudioConstants.CONTENT_TYPE)) {
-					String contentType = (String)summaryObject.get(StudioConstants.CONTENT_TYPE);
+				if (summaryObject.containsKey(DmConstants.KEY_CONTENT_TYPE)) {
+					String contentType = (String)summaryObject.get(DmConstants.KEY_CONTENT_TYPE);
 					item.contentType = contentType;
 				}
 				if(summaryObject.containsKey(StudioConstants.INTERNAL_NAME)) {
@@ -321,7 +314,6 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
                 item.setLockOwner("");
 			}
 			String postDate = (feedObject.containsKey(ACTIVITY_PROP_POST_DATE)) ? feedObject.getString(ACTIVITY_PROP_POST_DATE) : "";
-			//Date editedDate = ContentUtils.getEditedDate(postDate);
             ZonedDateTime editedDate = ZonedDateTime.parse(postDate);
             if (editedDate != null) {
                 item.eventDate = editedDate.withZoneSameInstant(ZoneOffset.UTC);
