@@ -102,10 +102,14 @@ public class StudioPublishingAPIAccessDecisionVoter extends StudioAbstractAccess
                     }
                     break;
                 case STATUS:
-                    if (currentUser != null && isSiteMember(siteParam, currentUser)) {
-                        toRet = ACCESS_GRANTED;
+                    if (siteService.exists(siteParam)) {
+                        if (currentUser != null && isSiteMember(siteParam, currentUser)) {
+                            toRet = ACCESS_GRANTED;
+                        } else {
+                            toRet = ACCESS_DENIED;
+                        }
                     } else {
-                        toRet = ACCESS_DENIED;
+                        toRet = ACCESS_ABSTAIN;
                     }
                     break;
                 default:
