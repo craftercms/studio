@@ -958,6 +958,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         if (deploymentItem.isMove()) {
                             String oldPath = helper.getGitPath(deploymentItem.getOldPath());
                             git.rm().addFilepattern(oldPath).setCached(false).call();
+                            cleanUpMoveFolders(git, oldPath);
                         }
                         deployedCommits.add(commitId);
                     }
@@ -1008,6 +1009,16 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             }
         }
 
+    }
+
+    private void cleanUpMoveFolders(Git git, String path) throws GitAPIException {
+        Path parentToDelete = Paths.get(path).getParent();
+        deleteParentFolder(git, parentToDelete);
+        Path testDelete = Paths.get(git.getRepository().getDirectory().getParent(), parentToDelete.toString());
+        File testDeleteFile = testDelete.toFile();
+        if (!testDeleteFile.exists()) {
+            cleanUpMoveFolders(git, parentToDelete.toString());
+        }
     }
 
     @Override
