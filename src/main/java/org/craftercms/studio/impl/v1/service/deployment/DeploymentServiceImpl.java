@@ -112,7 +112,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         for (String p : paths) {
             ContentItemTO item = contentService.getContentItem(site, p, 0);
             if (item.isFolder()) {
-                logger.info("Content item at path " + p + " for site " + site + " is folder and will not be added to publishing queue.");
+                logger.debug("Content item at path " + p + " for site " + site + " is folder and will not be added to publishing queue.");
             } else {
                 if (objectStateService.isNew(site, p)) {
                     newPaths.add(p);
