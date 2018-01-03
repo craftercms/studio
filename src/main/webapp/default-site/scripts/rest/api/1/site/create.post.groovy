@@ -32,6 +32,13 @@ try {
     def blueprint = parsedReq.blueprint
     def siteId = parsedReq.site_id
     def description = parsedReq.description
+    /** Remote options */
+    def useRemote = parsedReq.use_remote
+    def remoteName = parsedReq.remote_name
+    def remoteUrl = parsedReq.remote_url
+    def username = parsedReq.username
+    def password = parsedReq.password
+    def createOption = parsedReq.create_option
 
 /** Validate Parameters */
     def invalidParams = false;
@@ -64,20 +71,33 @@ try {
         result.message = "Invalid parameter(s): " + paramsList
     } else {
         def context = SiteServices.createContext(applicationContext, request)
-        try {
-            SiteServices.createSiteFromBlueprint(context, blueprint, siteId, siteId, description)
-            result.message = "OK"
-            def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/site/get.json?site_id=" + siteId
-            response.addHeader("Location", locationHeader)
-            response.setStatus(201)
-        } catch (SiteAlreadyExistsException e) {
-            response.setStatus(409)
-            def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/site/get.json?site_id=" + siteId
-            response.addHeader("Location", locationHeader)
-            result.message = "Site already exists"
-        } catch (Exception e) {
-            response.setStatus(500)
-            result.message = "Internal server error: \n" + e
+        if (!useRemote) {
+            try {
+                SiteServices.createSiteFromBlueprint(context, blueprint, siteId, siteId, description)
+                result.message = "OK"
+                def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/site/get.json?site_id=" + siteId
+                response.addHeader("Location", locationHeader)
+                response.setStatus(201)
+            } catch (SiteAlreadyExistsException e) {
+                response.setStatus(409)
+                def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/site/get.json?site_id=" + siteId
+                response.addHeader("Location", locationHeader)
+                result.message = "Site already exists"
+            } catch (Exception e) {
+                response.setStatus(500)
+                result.message = "Internal server error: \n" + e
+            }
+        } else {
+            try {
+                SiteServices.createSiteWithRemoteOption(context, siteId, description, blueprint, remoteName, remoteUrl, username, password, createOption)
+                result.message = "OK"
+                def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/site/get.json?site_id=" + siteId
+                response.addHeader("Location", locationHeader)
+                response.setStatus(201)
+            } catch (Exception e) {
+                response.setStatus(500)
+                result.message = "Internal server error: \n" + e
+            }
         }
     }
 } catch (JsonException e) {
