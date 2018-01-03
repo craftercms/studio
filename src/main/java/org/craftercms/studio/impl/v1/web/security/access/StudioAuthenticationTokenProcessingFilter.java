@@ -54,6 +54,11 @@ public class StudioAuthenticationTokenProcessingFilter extends GenericFilterBean
 
     private static ReentrantLock semaphore = new ReentrantLock();
 
+    private UserDetailsManager userDetailsManager;
+    private SecurityService securityService;
+    private StudioConfiguration studioConfiguration;
+    private SecurityProvider securityProvider;
+
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
         HttpServletRequest httpRequest = this.getAsHttpRequest(servletRequest);
@@ -116,11 +121,6 @@ public class StudioAuthenticationTokenProcessingFilter extends GenericFilterBean
         String enabledString = studioConfiguration.getProperty(AUTHENTICATION_HEADERS_ENABLED);
         return Boolean.parseBoolean(enabledString);
     }
-
-    private UserDetailsManager userDetailsManager;
-    private SecurityService securityService;
-    private StudioConfiguration studioConfiguration;
-    private SecurityProvider securityProvider;
 
     public UserDetailsManager getUserDetailsManager() { return userDetailsManager; }
     public void setUserDetailsManager(UserDetailsManager userDetailsManager) { this.userDetailsManager = userDetailsManager; }
