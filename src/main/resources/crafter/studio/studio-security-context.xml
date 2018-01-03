@@ -49,6 +49,7 @@
         <property name="securityService" ref="cstudioSecurityService"/>
         <property name="userDetailsManager" ref="studioUserDetailsManager"/>
         <property name="studioConfiguration" ref="studioConfiguration" />
+        <property name="securityProvider" ref="securityProvider" />
     </bean>
 
     <security:authentication-manager id="studioAuthenticationManager">

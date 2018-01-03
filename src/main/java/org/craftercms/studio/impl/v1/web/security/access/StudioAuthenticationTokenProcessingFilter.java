@@ -18,9 +18,13 @@
 
 package org.craftercms.studio.impl.v1.web.security.access;
 
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.http.HttpUtils;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationSystemException;
+import org.craftercms.studio.api.v1.exception.security.BadCredentialsException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.security.UserDetailsManager;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
@@ -39,6 +43,7 @@ import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 
 import static org.craftercms.studio.api.v1.service.security.SecurityService.STUDIO_SESSION_TOKEN_ATRIBUTE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.*;
@@ -47,16 +52,18 @@ public class StudioAuthenticationTokenProcessingFilter extends GenericFilterBean
 
     private final static Logger crafterLogger = LoggerFactory.getLogger(StudioAuthenticationTokenProcessingFilter.class);
 
+    private static ReentrantLock semaphore = new ReentrantLock();
+
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
         HttpServletRequest httpRequest = this.getAsHttpRequest(servletRequest);
         HttpSession httpSession = httpRequest.getSession();
-        synchronized (httpSession) {
+        semaphore.lock();
+        try {
             String userName = securityService.getCurrentUser();
             String authToken = securityService.getCurrentToken();
 
             if (userName != null) {
-
                 UserDetails userDetails = this.userDetailsManager.loadUserByUsername(userName);
 
                 if (SessionTokenUtils.validateToken(authToken, userDetails.getUsername())) {
@@ -71,7 +78,23 @@ public class StudioAuthenticationTokenProcessingFilter extends GenericFilterBean
                         httpSession.setAttribute(STUDIO_SESSION_TOKEN_ATRIBUTE, newToken);
                     }
                 }
+            } else {
+                if (isAuthenticationHeadersEnabled()) {
+                    // If user not authenticated check for authentication headers
+                    String usernameHeader = httpRequest.getHeader(studioConfiguration.getProperty(AUTHENTICATION_HEADERS_USERNAME));
+                    try {
+                        securityProvider.authenticate(usernameHeader, StringUtils.EMPTY);
+                        UserDetails userDetails = this.userDetailsManager.loadUserByUsername(usernameHeader);
+                        UsernamePasswordAuthenticationToken authentication =
+                                new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                        SecurityContextHolder.getContext().setAuthentication(authentication);
+                    } catch (BadCredentialsException | AuthenticationSystemException e) {
+                        logger.error("Unsable to authenticate user using authentication headers.");
+                    }
+                }
             }
+        } finally {
+            semaphore.unlock();
         }
         filterChain.doFilter(servletRequest, servletResponse);
     }
@@ -97,6 +120,7 @@ public class StudioAuthenticationTokenProcessingFilter extends GenericFilterBean
     private UserDetailsManager userDetailsManager;
     private SecurityService securityService;
     private StudioConfiguration studioConfiguration;
+    private SecurityProvider securityProvider;
 
     public UserDetailsManager getUserDetailsManager() { return userDetailsManager; }
     public void setUserDetailsManager(UserDetailsManager userDetailsManager) { this.userDetailsManager = userDetailsManager; }
@@ -106,4 +130,7 @@ public class StudioAuthenticationTokenProcessingFilter extends GenericFilterBean
 
     public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
+
+    public SecurityProvider getSecurityProvider() { return securityProvider; }
+    public void setSecurityProvider(SecurityProvider securityProvider) { this.securityProvider = securityProvider; }
 }
