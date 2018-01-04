@@ -42,4 +42,6 @@ public interface GitContentRepositoryConstants {
     String CONFIG_PARAMETER_URL = "url";
     String CONFIG_PARAMETER_FETCH = "fetch";
     String CONFIG_PARAMETER_FETCH_DEFAULT = "+refs/heads/*:refs/remotes/origin/*";
+    String CONFIG_PARAMETER_EXCLUDES_FILE = "excludesFile";
+    String CONFIG_PARAMETER_EXCLUDES_FILE_DEFAULT = ".gitignore";
 }

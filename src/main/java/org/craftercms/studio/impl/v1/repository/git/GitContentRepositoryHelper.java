@@ -190,6 +190,8 @@ public class GitContentRepositoryHelper {
             config.setString(CONFIG_SECTION_CORE, null, CONFIG_PARAMETER_BIG_FILE_THRESHOLD, CONFIG_PARAMETER_BIG_FILE_THRESHOLD_DEFAULT);
             // Set fileMode
             config.setBoolean(CONFIG_SECTION_CORE, null, CONFIG_PARAMETER_FILE_MODE, CONFIG_PARAMETER_FILE_MODE_DEFAULT);
+            // Disable global gitignore
+            config.setString(CONFIG_SECTION_CORE, null, CONFIG_PARAMETER_EXCLUDES_FILE, CONFIG_PARAMETER_EXCLUDES_FILE_DEFAULT);
             // Save configuration changes
             config.save();
         } catch (IOException e) {
