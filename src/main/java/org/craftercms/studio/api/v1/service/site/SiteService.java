@@ -101,6 +101,20 @@ public interface SiteService {
     void createSiteFromBlueprint(String blueprintName, String siteName, String siteId, String desc) throws SiteAlreadyExistsException, SiteCreationException, PreviewDeployerUnreachableException, SearchUnreachableException;
 
     /**
+     * Create a new site with remote option (clone from remote or push to remote repository)
+     *
+     * @param siteId
+     * @param description
+     * @param blueprintName
+     * @param remoteName
+     * @param remoteUrl
+     * @param remoteUsername
+     * @param remotePassword
+     * @param createOption
+     */
+    void createSiteWithRemoteOption(String siteId, String description, String blueprintName, String remoteName, String remoteUrl, String remoteUsername, String remotePassword, String createOption);
+
+    /**
      * remove a site from the system
      */
    	boolean deleteSite(String siteId);
