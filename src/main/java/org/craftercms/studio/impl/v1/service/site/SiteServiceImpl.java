@@ -569,7 +569,13 @@ public class SiteServiceImpl implements SiteService {
         }
     }
 
-	@Override
+    @Override
+    @ValidateParams
+    public void createSiteWithRemoteOption(@ValidateStringParam(name = "siteId") String siteId, @ValidateNoTagsParam(name = "description") String description, String blueprintName, @ValidateStringParam(name = "remoteName") String remoteName, @ValidateStringParam(name = "remoteUrl") String remoteUrl, String remoteUsername, String remotePassword, @ValidateStringParam(name = "createOption") String createOption) {
+        throw new RuntimeException("Not implemented yet");
+    }
+
+    @Override
     @ValidateParams
    	public boolean deleteSite(@ValidateStringParam(name = "siteId") String siteId) {
  		boolean success = true;
