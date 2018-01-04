@@ -49,6 +49,7 @@
         <property name="securityService" ref="cstudioSecurityService"/>
         <property name="userDetailsManager" ref="studioUserDetailsManager"/>
         <property name="studioConfiguration" ref="studioConfiguration" />
+        <property name="securityProvider" ref="securityProvider" />
     </bean>
 
     <security:authentication-manager id="studioAuthenticationManager">
@@ -92,7 +93,7 @@
     <bean id="cstudioAuthenticationHeadersSecurityProviderRegistration"
           parent="cstudioSecurityProviderRegistration">
         <property name="securityProvider" ref="studioAuthenticationHeadersProvider"/>
-        <property name="providerType" value="saml"/>
+        <property name="providerType" value="headers"/>
     </bean>
 
     <bean id="studioAccessDecisionManager" class="org.craftercms.studio.impl.v1.web.security.access.StudioAccessDecisionManager" >

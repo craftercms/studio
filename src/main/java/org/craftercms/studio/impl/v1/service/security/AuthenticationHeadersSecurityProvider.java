@@ -62,20 +62,22 @@ public class AuthenticationHeadersSecurityProvider extends DbWithLdapExtensionSe
                     String groups = request.getHeader(studioConfiguration.getProperty(AUTHENTICATION_HEADERS_GROUPS));
 
                     if (userExists(usernameHeader)) {
-                        logger.debug("If user already exists in studio DB, update details.");
-                        try {
-                            boolean success = updateUserInternal(usernameHeader, firstName, lastName, email);
-                            if (success) {
-                                ActivityService.ActivityType activityType = ActivityService.ActivityType.UPDATED;
-                                Map<String, String> extraInfo = new HashMap<String, String>();
-                                extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
-                                activityService.postActivity(getSystemSite(), usernameHeader, usernameHeader, activityType, ActivityService.ActivitySource.UI, extraInfo);
-                            }
-                        } catch (UserNotFoundException e) {
-                            logger.error("Error updating user " + username + " with data from authentication headers", e);
+                        if (StringUtils.isNoneEmpty(firstName, lastName, email)) {
+                            logger.debug("If user already exists in studio DB, update details.");
+                            try {
+                                boolean success = updateUserInternal(usernameHeader, firstName, lastName, email);
+                                if (success) {
+                                    ActivityService.ActivityType activityType = ActivityService.ActivityType.UPDATED;
+                                    Map<String, String> extraInfo = new HashMap<String, String>();
+                                    extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
+                                    activityService.postActivity(getSystemSite(), usernameHeader, usernameHeader, activityType, ActivityService.ActivitySource.UI, extraInfo);
+                                }
+                            } catch (UserNotFoundException e) {
+                                logger.error("Error updating user " + username + " with data from authentication headers", e);
 
-                            throw new AuthenticationSystemException("Error updating user " + username +
-                                    " with data from external authentication provider", e);
+                                throw new AuthenticationSystemException("Error updating user " + username +
+                                        " with data from external authentication provider", e);
+                            }
                         }
                     } else {
                         logger.debug("User does not exist in studio db. Adding user " + usernameHeader);
