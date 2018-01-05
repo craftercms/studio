@@ -64,9 +64,9 @@ class SpringSiteServices {
         return springBackedService.createSiteFromBlueprint(blueprintName, siteName, siteId, desc)
     }
 
-    def createSiteWithRemoteOption(siteId, description, blueprint, remoteName, remoteUrl, username, password, createOption) {
+    def createSiteWithRemoteOption(siteId, description, blueprint, remoteName, remoteUrl, remoteUsername, remotePassword, createOption) {
         def springBackedService = this.context.applicationContext.get("cstudioSiteServiceSimple")
-        return springBackedService.createSiteWithRemoteOption(siteId, description, blueprint, remoteName, remoteUrl, username, password, createOption)
+        return springBackedService.createSiteWithRemoteOption(siteId, description, blueprint, remoteName, remoteUrl, remoteUsername, remotePassword, createOption)
     }
 
     def deleteSite(siteId) {
