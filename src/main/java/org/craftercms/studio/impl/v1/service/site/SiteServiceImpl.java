@@ -89,8 +89,7 @@ import org.dom4j.io.SAXReader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.xml.sax.SAXException;
 
-import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_DEFAULT_GROUPS_DESCRIPTION;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.*;
 
@@ -571,8 +570,293 @@ public class SiteServiceImpl implements SiteService {
 
     @Override
     @ValidateParams
-    public void createSiteWithRemoteOption(@ValidateStringParam(name = "siteId") String siteId, @ValidateNoTagsParam(name = "description") String description, String blueprintName, @ValidateStringParam(name = "remoteName") String remoteName, @ValidateStringParam(name = "remoteUrl") String remoteUrl, String remoteUsername, String remotePassword, @ValidateStringParam(name = "createOption") String createOption) {
-        throw new RuntimeException("Not implemented yet");
+    public void createSiteWithRemoteOption(@ValidateStringParam(name = "siteId") String siteId, @ValidateNoTagsParam(name = "description") String description, String blueprintName, @ValidateStringParam(name = "remoteName") String remoteName, @ValidateStringParam(name = "remoteUrl") String remoteUrl, String remoteUsername, String remotePassword, @ValidateStringParam(name = "createOption") String createOption) throws SiteAlreadyExistsException, SearchUnreachableException, PreviewDeployerUnreachableException, SiteCreationException {
+        if (exists(siteId)) {
+            throw new SiteAlreadyExistsException();
+        }
+        switch (createOption) {
+            case REMOTE_REPOSITORY_CREATE_OPTION_CLONE:
+                createSiteCloneRemote(siteId, description, remoteName, remoteUrl, remoteUsername, remotePassword);
+                break;
+
+            case REMOTE_REPOSITORY_CREATE_OPTION_PUSH:
+                createSitePushToRemote(siteId, description, blueprintName, remoteName, remoteUrl, remoteUsername, remotePassword);
+                break;
+
+            default:
+                break;
+        }
+    }
+
+    private void createSiteCloneRemote(String siteId, String description, String remoteName, String remoteUrl, String remoteUsername, String remotePassword) throws SearchUnreachableException, PreviewDeployerUnreachableException, SiteCreationException {
+        boolean success = true;
+
+        // TODO: SJ: We must fail site creation if any of the site creations steps fail and rollback
+        // TODO: SJ: For example: Create site => Create Search Index (success), create Deployer Target (fail) = fail
+        // TODO: SJ: and rollback the whole thing.
+        // TODO: SJ: What we need to do for site creation and the order of execution:
+        // TODO: SJ: 1) search index, 2) deployer target, 3) git repo, 4) database, 5) kick deployer
+
+        // Attempt to create the search index for the new site
+        try {
+            searchService.createIndex(siteId);
+        } catch (ServiceException e) {
+            success = false;
+            logger.error("Error while creating site: " + siteId + " ID: " + siteId + " as clone from remote repository: " +
+                    remoteName + " (" + remoteUrl + "). Is the Search running and configured correctly in Studio?", e);
+            throw new SearchUnreachableException("Error while creating site: " + siteId + " ID: " + siteId + " as clone from remote repository: " +
+                    remoteName + " (" + remoteUrl + "). Is the Search running and configured correctly in Studio?");
+        }
+
+        // Check if search index creation was successful, create the site in the preview deployer
+        if (success) {
+            try {
+                success = previewDeployer.createTarget(siteId);
+            } catch (Exception e) {
+                success = false;
+                logger.error("Error while creating site: " + siteId + " ID: " + siteId + " as clone from remote repository: " +
+                        remoteName + " (" + remoteUrl + "). Is the Preview Deployer running and configured correctly in Studio?", e);
+            }
+
+            if (!success) {
+                logger.error("Error while creating site: " + siteId + " ID: " + siteId + " as clone from remote repository: " +
+                        remoteName + " (" + remoteUrl + "). Is the Preview Deployer running and configured correctly in Studio?");
+                // Rollback search index creation
+                try {
+                    searchService.deleteIndex(siteId);
+                } catch (ServiceException e) {
+                    logger.error("Error while rolling back/deleting site: " + siteId + " ID: " + siteId +
+                            " as clone from remote repository: " + remoteName + " (" + remoteUrl + "). This means the site search index (core) is " +
+                            "still present, but the site is not successfully created.", e);
+                }
+
+                throw new PreviewDeployerUnreachableException("Error while creating site: " + siteId + " ID: "
+                        + siteId + " as clone from remote repository: " + remoteName + " (" + remoteUrl + "). Is the Preview Deployer running and "
+                        + "configured correctly in Studio?");
+            }
+        }
+
+        if (success) {
+            try {
+                // create site by cloning remote git repo
+                contentRepository.createSiteCloneRemote(siteId, remoteName, remoteUrl, remoteUsername, remotePassword);
+
+                String lastCommitId = contentRepository.getRepoLastCommitId(siteId);
+
+                // Set object states
+                createObjectStatesforNewSite(siteId);
+
+                // set object metadata
+                createObjectMetadataforNewSite(siteId, lastCommitId);
+
+                // Extract dependencies
+                extractDependenciesForNewSite(siteId);
+
+                // Extract metadata ?
+
+                // permissions
+                // environment overrides
+
+                // initial deployment
+                List<PublishingTargetTO> publishingTargets = getPublishingTargetsForSite(siteId);
+                if (publishingTargets != null && publishingTargets.size() > 0) {
+                    for (PublishingTargetTO target : publishingTargets) {
+                        if (StringUtils.isNotEmpty(target.getRepoBranchName())) {
+                            contentRepository.initialPublish(siteId, target.getRepoBranchName(), securityProvider.getCurrentUser(), "Create site.");
+                        }
+                    }
+                }
+                objectStateService.setStateForSiteContent(siteId, State.EXISTING_UNEDITED_UNLOCKED);
+
+                // insert database records
+                SiteFeed siteFeed = new SiteFeed();
+                siteFeed.setName(siteId);
+                siteFeed.setSiteId(siteId);
+                siteFeed.setDescription(description);
+                siteFeed.setLastCommitId(lastCommitId);
+                siteFeed.setPublishingStatusMessage(studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT));
+                siteFeedMapper.createSite(siteFeed);
+
+                contentRepository.insertGitLog(siteId, lastCommitId, 1);
+
+                // Add default groups
+                addDefaultGroupsForNewSite(siteId);
+
+                // Add creator to admin group
+                securityService.addUserToGroup(siteId, getDefaultAdminGroup(), securityService.getCurrentUser());
+
+                reloadSiteConfiguration(siteId);
+            } catch(Exception e) {
+                // TODO: SJ: We need better exception handling here
+                success = false;
+                logger.error("Error while creating site: " + siteId + " ID: " + siteId + " as clone from remote repository: " +
+                        remoteName + " (" + remoteUrl + "). Rolling back.", e);
+
+                boolean deleted = previewDeployer.deleteTarget(siteId);
+                if (!deleted) {
+                    logger.error("Error while rolling back/deleting site: " + siteId + " ID: " + siteId +
+                            " as clone from remote repository: " + remoteName + " (" + remoteUrl + "). This means the site's preview deployer target is " +
+                            "still present, but the site is not successfully created.");
+                }
+
+                try {
+                    searchService.deleteIndex(siteId);
+                } catch (ServiceException ex) {
+                    logger.error("Error while rolling back/deleting site: " + siteId + " ID: " + siteId +
+                            " as clone from remote repository: " + remoteName + " (" + remoteUrl + "). This means the site search index (core) is " +
+                            "still present, but the site is not successfully created.", ex);
+                }
+
+                throw new SiteCreationException("Error while creating site: " + siteId + " ID: " + siteId + " as clone from remote repository: " +
+                        remoteName + " (" + remoteUrl + "). Rolling back.");
+            }
+        }
+    }
+
+    private void createSitePushToRemote(String siteId, String description, String blueprintName, String remoteName, String remoteUrl, String remoteUsername, String remotePassword) throws SiteAlreadyExistsException, SearchUnreachableException, PreviewDeployerUnreachableException, SiteCreationException {
+        if (exists(siteId)) {
+            throw new SiteAlreadyExistsException();
+        }
+
+        boolean success = true;
+
+        // TODO: SJ: We must fail site creation if any of the site creations steps fail and rollback
+        // TODO: SJ: For example: Create site => Create Search Index (success), create Deployer Target (fail) = fail
+        // TODO: SJ: and rollback the whole thing.
+        // TODO: SJ: What we need to do for site creation and the order of execution:
+        // TODO: SJ: 1) search index, 2) deployer target, 3) git repo, 4) database, 5) kick deployer
+
+        // Attempt to create the search index for the new site
+        try {
+            searchService.createIndex(siteId);
+        } catch (ServiceException e) {
+            success = false;
+            logger.error("Error while creating site: " + siteId + " ID: " + siteId + " from blueprint: " +
+                    blueprintName + ". Is the Search running and configured correctly in Studio?", e);
+            throw new SearchUnreachableException("Error while creating site: " + siteId + " ID: " + siteId + " from"
+                    + " blueprint: " + blueprintName + ". Is the Search running and configured correctly in Studio?");
+        }
+
+        // Check if search index creation was successful, create the site in the preview deployer
+        if (success) {
+            try {
+                success = previewDeployer.createTarget(siteId);
+            } catch (Exception e) {
+                success = false;
+                logger.error("Error while creating site: " + siteId + " ID: " + siteId + " from blueprint: " +
+                        blueprintName + ". Is the Preview Deployer running and configured correctly in Studio?", e);
+            }
+
+            if (!success) {
+                logger.error("Error while creating site: " + siteId + " ID: " + siteId + " from blueprint: " +
+                        blueprintName + ". Is the Preview Deployer running and configured correctly in Studio?");
+                // Rollback search index creation
+                try {
+                    searchService.deleteIndex(siteId);
+                } catch (ServiceException e) {
+                    logger.error("Error while rolling back/deleting site: " + siteId + " ID: " + siteId +
+                            " from blueprint: " + blueprintName + ". This means the site search index (core) is " +
+                            "still present, but the site is not successfully created.", e);
+                }
+
+                throw new PreviewDeployerUnreachableException("Error while creating site: " + siteId + " ID: "
+                        + siteId + " from blueprint: " + blueprintName + ". Is the Preview Deployer running and "
+                        + "configured correctly in Studio?");
+            }
+        }
+
+        if (success) {
+            try {
+                success = createSiteFromBlueprintGit(blueprintName, siteId, siteId, description);
+
+                String lastCommitId = contentRepository.getRepoLastCommitId(siteId);
+
+                // Set object states
+                createObjectStatesforNewSite(siteId);
+
+                // set object metadata
+                createObjectMetadataforNewSite(siteId, lastCommitId);
+
+                // Extract dependencies
+                extractDependenciesForNewSite(siteId);
+
+                // Extract metadata ?
+
+                // permissions
+                // environment overrides
+
+                // initial deployment
+                List<PublishingTargetTO> publishingTargets = getPublishingTargetsForSite(siteId);
+                if (publishingTargets != null && publishingTargets.size() > 0) {
+                    for (PublishingTargetTO target : publishingTargets) {
+                        if (StringUtils.isNotEmpty(target.getRepoBranchName())) {
+                            contentRepository.initialPublish(siteId, target.getRepoBranchName(), securityProvider.getCurrentUser(), "Create site.");
+                        }
+                    }
+                }
+                objectStateService.setStateForSiteContent(siteId, State.EXISTING_UNEDITED_UNLOCKED);
+
+                // insert database records
+                SiteFeed siteFeed = new SiteFeed();
+                siteFeed.setName(siteId);
+                siteFeed.setSiteId(siteId);
+                siteFeed.setDescription(description);
+                siteFeed.setLastCommitId(lastCommitId);
+                siteFeed.setPublishingStatusMessage(studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT));
+                siteFeedMapper.createSite(siteFeed);
+
+                contentRepository.insertGitLog(siteId, lastCommitId, 1);
+
+                // Add default groups
+                addDefaultGroupsForNewSite(siteId);
+
+                // Add creator to admin group
+                securityService.addUserToGroup(siteId, getDefaultAdminGroup(), securityService.getCurrentUser());
+
+                reloadSiteConfiguration(siteId);
+
+                contentRepository.createSitePushToRemote(siteId, remoteName, remoteUrl, remoteUsername, remotePassword);
+            } catch(Exception e) {
+                // TODO: SJ: We need better exception handling here
+                success = false;
+                logger.error("Error while creating site: " + siteId + " ID: " + siteId + " from blueprint: " +
+                        blueprintName + ". Rolling back.", e);
+
+                boolean deleted = previewDeployer.deleteTarget(siteId);
+                if (!deleted) {
+                    logger.error("Error while rolling back/deleting site: " + siteId + " ID: " + siteId +
+                            " from blueprint: " + blueprintName + ". This means the site's preview deployer target is " +
+                            "still present, but the site is not successfully created.");
+                }
+
+                try {
+                    searchService.deleteIndex(siteId);
+                } catch (ServiceException ex) {
+                    logger.error("Error while rolling back/deleting site: " + siteId + " ID: " + siteId +
+                            " from blueprint: " + blueprintName + ". This means the site search index (core) is " +
+                            "still present, but the site is not successfully created.", ex);
+                }
+
+                throw new SiteCreationException("Error while creating site: " + siteId + " ID: " + siteId + " from blueprint: " +
+                        blueprintName + ". Rolling back.");
+            }
+        }
+
+        if (success) {
+            // Now that everything is created, we can sync the preview deployer with the new content
+            try {
+                deploymentService.syncAllContentToPreview(siteId, true);
+            } catch (ServiceException e) {
+                // TODO: SJ: We need better exception handling here
+                logger.error("Error while syncing site: " + siteId + " ID: " + siteId + " to preview. Site was "
+                        + "successfully created otherwise. Ignoring.", e);
+
+                throw new SiteCreationException("Error while syncing site: " + siteId + " ID: " + siteId + " to preview. Site was "
+                        + "successfully created, but it won't be preview-able until the Preview Deployer is reachable.");
+            }
+        } else {
+            throw new SiteCreationException("Error while creating site: " + siteId + " ID: " + siteId + ".");
+        }
     }
 
     @Override

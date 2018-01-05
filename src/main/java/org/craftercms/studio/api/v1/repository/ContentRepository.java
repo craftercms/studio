@@ -317,6 +317,30 @@ public interface ContentRepository {
      */
     void markGitLogVerifiedProcessed(String siteId, String commitId);
 
+    /**
+     * Create new site as a clone from remote repository
+     *
+     * @param siteId
+     * @param remoteName
+     * @param remoteUrl
+     * @param remoteUsername
+     * @param remotePassword
+     * @return
+     */
+    boolean createSiteCloneRemote(String siteId, String remoteName, String remoteUrl, String remoteUsername, String remotePassword);
+
+    /**
+     * Push new site to remote repository
+     *
+     * @param siteId
+     * @param remoteName
+     * @param remoteUrl
+     * @param remoteUsername
+     * @param remotePassword
+     * @return
+     */
+    boolean createSitePushToRemote(String siteId, String remoteName, String remoteUrl, String remoteUsername, String remotePassword);
+
     /*
     List<PublishTO> getPublishEvents(String site, String commitIdFrom, String commitIdTo);
     List<PublishTO> getPublishEvents(String site, String commitIdFrom);

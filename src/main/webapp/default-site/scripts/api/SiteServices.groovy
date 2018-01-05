@@ -67,9 +67,9 @@ class SiteServices {
         return siteServicesImpl.createSiteFromBlueprint(blueprintName, siteName, siteId, desc)
     }
 
-    static createSiteWithRemoteOption(context, siteId, description, blueprint, remoteName, remoteUrl, username, password, createOption) {
+    static createSiteWithRemoteOption(context, siteId, description, blueprint, remoteName, remoteUrl, remoteUsername, remotePassword, createOption) {
         def siteServicesImpl = ServiceFactory.getSiteServices(context)
-        return siteServicesImpl.createSiteWithRemoteOption(siteId, description, blueprint, remoteName, remoteUrl, username, password, createOption)
+        return siteServicesImpl.createSiteWithRemoteOption(siteId, description, blueprint, remoteName, remoteUrl, remoteUsername, remotePassword, createOption)
     }
 
     static deleteSite(context, siteId) {

@@ -112,7 +112,7 @@ public interface SiteService {
      * @param remotePassword
      * @param createOption
      */
-    void createSiteWithRemoteOption(String siteId, String description, String blueprintName, String remoteName, String remoteUrl, String remoteUsername, String remotePassword, String createOption);
+    void createSiteWithRemoteOption(String siteId, String description, String blueprintName, String remoteName, String remoteUrl, String remoteUsername, String remotePassword, String createOption) throws SiteAlreadyExistsException, SearchUnreachableException, PreviewDeployerUnreachableException, SiteCreationException;
 
     /**
      * remove a site from the system

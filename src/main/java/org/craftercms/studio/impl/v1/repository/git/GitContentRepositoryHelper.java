@@ -58,8 +58,10 @@ import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
+import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 
+import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
 import static org.craftercms.studio.api.v1.constant.SecurityConstants.*;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.*;
@@ -646,5 +648,30 @@ public class GitContentRepositoryHelper {
             rw.dispose();
         }
         return files;
+    }
+
+    public boolean createSiteCloneRemoteGitRepo(String siteId, String remoteName, String remoteUrl, String remoteUsername, String remotePassword) {
+        boolean toRet = true;
+        // prepare a new folder for the cloned repository
+        Path siteSandboxPath = buildRepoPath(SANDBOX, siteId);
+        File localPath = siteSandboxPath.toFile();
+        localPath.delete();
+
+        // then clone
+        UsernamePasswordCredentialsProvider credentialsProvider = new UsernamePasswordCredentialsProvider(remoteUsername, remotePassword);
+        logger.debug("Cloning from " + remoteUrl + " to " + localPath);
+        try (Git result = Git.cloneRepository()
+                .setURI(remoteUrl)
+                .setDirectory(localPath)
+                .setCredentialsProvider(credentialsProvider)
+                .setRemote(remoteName)
+                .call()) {
+            Repository sandboxRepo = result.getRepository();
+            sandboxes.put(siteId, sandboxRepo);
+        } catch (GitAPIException e) {
+            logger.error("Error while creating repository for site with path" + siteSandboxPath.toString(), e);
+            toRet = false;
+        }
+        return toRet;
     }
 }
