@@ -584,6 +584,7 @@ public class SiteServiceImpl implements SiteService {
                 break;
 
             default:
+                logger.error("Invalid create option for create site using remote repository: " + createOption + "\nAvailable options: [" + REMOTE_REPOSITORY_CREATE_OPTION_CLONE + ", " + REMOTE_REPOSITORY_CREATE_OPTION_PUSH + "]");
                 break;
         }
     }

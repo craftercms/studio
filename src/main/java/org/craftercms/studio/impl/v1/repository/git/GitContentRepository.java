@@ -64,9 +64,7 @@ import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.api.errors.RefNotFoundException;
-import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.internal.storage.file.LockFile;
 import org.eclipse.jgit.lib.*;
@@ -1409,16 +1407,20 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         boolean toReturn;
 
         // clone remote git repository for site content
+        logger.debug("Creating site " + siteId + " as a clone of remote repository " + remoteName + " (" + remoteUrl + ").");
         toReturn = helper.createSiteCloneRemoteGitRepo(siteId, remoteName, remoteUrl, remoteUsername, remotePassword);
 
         if (toReturn) {
             // update site name variable inside config files
             toReturn = helper.updateSitenameConfigVar(siteId);
-        }
 
-        if (toReturn) {
-            // commit everything so it is visible
-            toReturn = helper.performInitialCommit(siteId, INITIAL_COMMIT);
+
+            if (toReturn) {
+                // commit everything so it is visible
+                toReturn = helper.performInitialCommit(siteId, INITIAL_COMMIT);
+            }
+        } else {
+            logger.error("Error while creating site " + siteId + " by cloning remote repository " + remoteName + " (" + remoteUrl + ").");
         }
 
         return toReturn;
@@ -1435,7 +1437,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 remoteAddCommand.call();
 
                 UsernamePasswordCredentialsProvider credentialsProvider = new UsernamePasswordCredentialsProvider(remoteUsername, remotePassword);
-                Iterable<PushResult> pushCommand = git.push()
+                git.push()
                         .setPushAll()
                         .setRemote(remoteName)
                         .setCredentialsProvider(credentialsProvider)
@@ -1443,9 +1445,10 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
             } catch (URISyntaxException | GitAPIException e) {
                 logger.error("Failed to push newly created site " + siteId + " to remote repository " + remoteUrl);
+                toRet = false;
             }
         }
-        return false;
+        return toRet;
     }
 
     public void setServletContext(ServletContext ctx) {
