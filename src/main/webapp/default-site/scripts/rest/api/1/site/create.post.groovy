@@ -23,6 +23,8 @@ import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException
 import scripts.api.SiteServices;
 import groovy.json.JsonSlurper
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOTE_REPOSITORY_CREATE_OPTION_PUSH
+
 def result = [:]
 try {
     def requestJson = request.reader.text
@@ -34,6 +36,11 @@ try {
     def description = parsedReq.description
     /** Remote options */
     def useRemote = parsedReq.use_remote
+    if (useRemote != null) {
+        useRemote = useRemote.toBoolean();
+    } else {
+        useRemote = false
+    }
     def remoteName = parsedReq.remote_name
     def remoteUrl = parsedReq.remote_url
     def remoteUsername = parsedReq.remote_username
@@ -46,9 +53,11 @@ try {
 
 // blueprint
     try {
-        if (StringUtils.isEmpty(blueprint)) {
-            invalidParams = true
-            paramsList.add("blueprint")
+        if (!useRemote || (useRemote && REMOTE_REPOSITORY_CREATE_OPTION_PUSH.equals(createOption))) {
+            if (StringUtils.isEmpty(blueprint)) {
+                invalidParams = true
+                paramsList.add("blueprint")
+            }
         }
     } catch (Exception exc) {
         invalidParams = true
@@ -64,6 +73,63 @@ try {
     } catch (Exception exc) {
         invalidParams = true
         paramsList.add("site_id")
+    }
+
+    if (useRemote) {
+        // remote_name
+        try {
+            if (StringUtils.isEmpty(remoteName)) {
+                invalidParams = true
+                paramsList.add("remote_name")
+            }
+        } catch (Exception exc) {
+            invalidParams = true
+            paramsList.add("remote_name")
+        }
+
+        // remote_url
+        try {
+            if (StringUtils.isEmpty(remoteUrl)) {
+                invalidParams = true
+                paramsList.add("remote_url")
+            }
+        } catch (Exception exc) {
+            invalidParams = true
+            paramsList.add("remote_url")
+        }
+
+        // remote_username
+        try {
+            if (StringUtils.isEmpty(remoteUsername)) {
+                invalidParams = true
+                paramsList.add("remote_username")
+            }
+        } catch (Exception exc) {
+            invalidParams = true
+            paramsList.add("remote_username")
+        }
+
+        // remote_password
+        try {
+            if (StringUtils.isEmpty(remotePassword)) {
+                invalidParams = true
+                paramsList.add("remote_password")
+            }
+        } catch (Exception exc) {
+            invalidParams = true
+            paramsList.add("remote_password")
+        }
+
+        // create_option
+        try {
+            if (StringUtils.isEmpty(createOption)) {
+                invalidParams = true
+                paramsList.add("create_option")
+            }
+        } catch (Exception exc) {
+            invalidParams = true
+            paramsList.add("create_option")
+        }
     }
 
     if (invalidParams) {
