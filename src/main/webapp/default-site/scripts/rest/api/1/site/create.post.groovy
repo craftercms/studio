@@ -32,6 +32,18 @@ try {
     def blueprint = parsedReq.blueprint
     def siteId = parsedReq.site_id
     def description = parsedReq.description
+    /** Remote options */
+    def useRemote = parsedReq.use_remote
+    if (useRemote != null) {
+        useRemote = useRemote.toBoolean();
+    } else {
+        useRemote = false
+    }
+    def remoteName = parsedReq.remote_name
+    def remoteUrl = parsedReq.remote_url
+    def remoteUsername = parsedReq.remote_username
+    def remotePassword = parsedReq.remote_password
+    def createOption = parsedReq.create_option
 
 /** Validate Parameters */
     def invalidParams = false;
@@ -39,9 +51,11 @@ try {
 
 // blueprint
     try {
-        if (StringUtils.isEmpty(blueprint)) {
-            invalidParams = true
-            paramsList.add("blueprint")
+        if (!useRemote || (useRemote && REMOTE_REPOSITORY_CREATE_OPTION_PUSH.equals(createOption))) {
+            if (StringUtils.isEmpty(blueprint)) {
+                invalidParams = true
+                paramsList.add("blueprint")
+            }
         }
     } catch (Exception exc) {
         invalidParams = true
@@ -59,17 +73,82 @@ try {
         paramsList.add("site_id")
     }
 
+    if (useRemote) {
+        // remote_name
+        try {
+            if (StringUtils.isEmpty(remoteName)) {
+                invalidParams = true
+                paramsList.add("remote_name")
+            }
+        } catch (Exception exc) {
+            invalidParams = true
+            paramsList.add("remote_name")
+        }
+
+        // remote_url
+        try {
+            if (StringUtils.isEmpty(remoteUrl)) {
+                invalidParams = true
+                paramsList.add("remote_url")
+            }
+        } catch (Exception exc) {
+            invalidParams = true
+            paramsList.add("remote_url")
+        }
+
+        // remote_username
+        try {
+            if (StringUtils.isEmpty(remoteUsername)) {
+                invalidParams = true
+                paramsList.add("remote_username")
+            }
+        } catch (Exception exc) {
+            invalidParams = true
+            paramsList.add("remote_username")
+        }
+
+        // remote_password
+        try {
+            if (StringUtils.isEmpty(remotePassword)) {
+                invalidParams = true
+                paramsList.add("remote_password")
+            }
+        } catch (Exception exc) {
+            invalidParams = true
+            paramsList.add("remote_password")
+        }
+
+        // create_option
+        try {
+            if (StringUtils.isEmpty(createOption)) {
+                invalidParams = true
+                paramsList.add("create_option")
+            }
+        } catch (Exception exc) {
+            invalidParams = true
+            paramsList.add("create_option")
+        }
+    }
+
     if (invalidParams) {
         response.setStatus(400)
         result.message = "Invalid parameter(s): " + paramsList
     } else {
         def context = SiteServices.createContext(applicationContext, request)
         try {
-            SiteServices.createSiteFromBlueprint(context, blueprint, siteId, siteId, description)
-            result.message = "OK"
-            def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/site/get.json?site_id=" + siteId
-            response.addHeader("Location", locationHeader)
-            response.setStatus(201)
+            if (!useRemote) {
+                SiteServices.createSiteFromBlueprint(context, blueprint, siteId, siteId, description)
+                result.message = "OK"
+                def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/site/get.json?site_id=" + siteId
+                response.addHeader("Location", locationHeader)
+                response.setStatus(201)
+            } else {
+                SiteServices.createSiteWithRemoteOption(context, siteId, description, blueprint, remoteName, remoteUrl, remoteUsername, remotePassword, createOption)
+                result.message = "OK"
+                def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/site/get.json?site_id=" + siteId
+                response.addHeader("Location", locationHeader)
+                response.setStatus(201)
+            }
         } catch (SiteAlreadyExistsException e) {
             response.setStatus(409)
             def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/site/get.json?site_id=" + siteId

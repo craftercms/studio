@@ -23,6 +23,7 @@ package org.craftercms.studio.impl.v1.repository.git;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URISyntaxException;
 import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -75,6 +76,9 @@ import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.revwalk.filter.AndRevFilter;
 import org.eclipse.jgit.revwalk.filter.CommitTimeRevFilter;
 import org.eclipse.jgit.transport.FetchResult;
+import org.eclipse.jgit.transport.PushResult;
+import org.eclipse.jgit.transport.URIish;
+import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
@@ -1396,6 +1400,55 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         params.put("commitId", commitId);
         params.put("processed", 1);
         gitLogMapper.markGitLogProcessed(params);
+    }
+
+    @Override
+    public boolean createSiteCloneRemote(String siteId, String remoteName, String remoteUrl, String remoteUsername, String remotePassword) {
+        boolean toReturn;
+
+        // clone remote git repository for site content
+        logger.debug("Creating site " + siteId + " as a clone of remote repository " + remoteName + " (" + remoteUrl + ").");
+        toReturn = helper.createSiteCloneRemoteGitRepo(siteId, remoteName, remoteUrl, remoteUsername, remotePassword);
+
+        if (toReturn) {
+            // update site name variable inside config files
+            toReturn = helper.updateSitenameConfigVar(siteId);
+
+
+            if (toReturn) {
+                // commit everything so it is visible
+                toReturn = helper.performInitialCommit(siteId, INITIAL_COMMIT);
+            }
+        } else {
+            logger.error("Error while creating site " + siteId + " by cloning remote repository " + remoteName + " (" + remoteUrl + ").");
+        }
+
+        return toReturn;
+    }
+
+    @Override
+    public boolean createSitePushToRemote(String siteId, String remoteName, String remoteUrl, String remoteUsername, String remotePassword) {
+        boolean toRet = true;
+        try (Repository repo = helper.getRepository(siteId, SANDBOX)) {
+            try (Git git = new Git(repo)) {
+                RemoteAddCommand remoteAddCommand = git.remoteAdd();
+                remoteAddCommand.setName(remoteName);
+                remoteAddCommand.setUri(new URIish(remoteUrl));
+                remoteAddCommand.call();
+
+                UsernamePasswordCredentialsProvider credentialsProvider = new UsernamePasswordCredentialsProvider(remoteUsername, remotePassword);
+                git.push()
+                        .setPushAll()
+                        .setRemote(remoteName)
+                        .setCredentialsProvider(credentialsProvider)
+                        .call();
+
+            } catch (URISyntaxException | GitAPIException e) {
+                logger.error("Failed to push newly created site " + siteId + " to remote repository " + remoteUrl);
+                toRet = false;
+            }
+        }
+        return toRet;
     }
 
     public void setServletContext(ServletContext ctx) {
