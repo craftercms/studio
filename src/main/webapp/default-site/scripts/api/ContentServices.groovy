@@ -78,17 +78,6 @@ class ContentServices {
 	}
 
 	/**
-	 * delete a content item
-	 * @param site - the projectId
-	 * @param path - the path to delete
-	 * @oaran context - container for passing request, token and other values that may be needed by the implementation
-	 */
-	static deleteContent(site, path, context) {
-        def contentServicesImpl = ServiceFactory.getContentServices(context)
-        return contentServicesImpl.deleteContent(site, path)
-	}
-
-	/**
 	 * get the actual content at a given path
 	 * @param site - the project ID
 	 * @param path - the path of the content to get
