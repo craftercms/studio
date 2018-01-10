@@ -750,8 +750,9 @@ public class WorkflowServiceImpl implements WorkflowService {
                         goLiveItems.addAll(references);
                         goLiveItems.addAll(children);
                         List<String> goLivePaths = new ArrayList<>();
+                        Set<String> processedPaths = new HashSet<String>();
                         for (DmDependencyTO goLiveItem : goLiveItems) {
-                            resolveSubmittedPaths(site, goLiveItem, goLivePaths);
+                            resolveSubmittedPaths(site, goLiveItem, goLivePaths, processedPaths);
                         }
                         List<String> nodeRefs = new ArrayList<>();
                         for (String path : goLivePaths) {
@@ -837,6 +838,7 @@ public class WorkflowServiceImpl implements WorkflowService {
      */
     @SuppressWarnings("unchecked")
     protected ResultTO approve_new(String site, String request, Operation operation) {
+        long start = System.currentTimeMillis();
         String approver = securityService.getCurrentUser();
         ResultTO result = new ResultTO();
         try {
@@ -863,6 +865,7 @@ public class WorkflowServiceImpl implements WorkflowService {
             String responseMessageKey = null;
             SimpleDateFormat format = new SimpleDateFormat(StudioConstants.DATE_PATTERN_WORKFLOW_WITH_TZ);
             List<DmDependencyTO> submittedItems = new ArrayList<>();
+            logger.error("Checkpoint 1: " + (System.currentTimeMillis() - start));
             for (int index = 0; index < length; index++) {
                 String stringItem = items.optString(index);
 
@@ -870,6 +873,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                 DmDependencyTO submittedItem = null;
 
                 submittedItem = getSubmittedItem_new(site, stringItem, format, scheduledDate);
+                logger.error("Checkpoint 1." + index + ": " + (System.currentTimeMillis() - start));
                 List<DmDependencyTO> submitForDeleteChildren = removeSubmitToDeleteChildrenForGoLive(submittedItem, operation);
                 if (submittedItem.isReference()) {
                     submittedItem.setReference(false);
@@ -877,6 +881,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                 submittedItems.add(submittedItem);
                 submittedItems.addAll(submitForDeleteChildren);
             }
+            logger.error("Checkpoint 2: " + (System.currentTimeMillis() - start));
             switch (operation) {
                 case GO_LIVE:
                     if (scheduledDate != null && isNow == false) {
@@ -887,6 +892,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                     List<DmDependencyTO> submitToDeleteItems = new ArrayList<>();
                     List<DmDependencyTO> goLiveItems = new ArrayList<>();
                     List<DmDependencyTO> renameItems = new ArrayList<>();
+                    logger.error("Checkpoint 3: " + (System.currentTimeMillis() - start));
                     for (DmDependencyTO item : submittedItems) {
                         if (item.isSubmittedForDeletion()) {
                             submitToDeleteItems.add(item);
@@ -898,27 +904,34 @@ public class WorkflowServiceImpl implements WorkflowService {
                             }
                         }
                     }
-
+                    logger.error("Checkpoint 4: " + (System.currentTimeMillis() - start));
                     if (!submitToDeleteItems.isEmpty()) {
                         doDelete(site, submitToDeleteItems, approver);
                     }
 
                     if (!goLiveItems.isEmpty()) {
+                        logger.error("Checkpoint 5: " + (System.currentTimeMillis() - start) +" size = " + goLiveItems.size());
                         List<DmDependencyTO> references = getRefAndChildOfDiffDateFromParent_new(site, goLiveItems, true);
+                        logger.error("Checkpoint 6: " + (System.currentTimeMillis() - start) + " size = " + goLiveItems.size());
                         List<DmDependencyTO> children = getRefAndChildOfDiffDateFromParent_new(site, goLiveItems, false);
                         goLiveItems.addAll(references);
                         goLiveItems.addAll(children);
+                        logger.error("Checkpoint 7: " + (System.currentTimeMillis() - start));
                         List<DmDependencyTO> dependencies = addDependenciesForSubmittedItems(site, submittedItems, format, scheduledDate);
+                        logger.error("Checkpoint 8: " + (System.currentTimeMillis() - start) + " size = " + dependencies.size() + ", " + goLiveItems.size());
                         goLiveItems.addAll(dependencies);
                         List<String> goLivePaths = new ArrayList<>();
                         for (DmDependencyTO goLiveItem : goLiveItems) {
-                            resolveSubmittedPaths(site, goLiveItem, goLivePaths);
+                            goLivePaths.add(goLiveItem.getUri());
+                            //resolveSubmittedPaths(site, goLiveItem, goLivePaths, processedPaths);
                         }
+                        logger.error("Checkpoint 9: " + (System.currentTimeMillis() - start) + " size = " + dependencies.size() + ", " + goLiveItems.size());
                         for (String path : goLivePaths) {
                             String lockId = site + ":" + path;
                             generalLockService.lock(lockId);
 
                         }
+                        logger.error("Checkpoint 10: " + (System.currentTimeMillis() - start) + " size = " + dependencies.size() + ", " + goLiveItems.size());
                         try {
                             goLive(site, goLiveItems, approver, mcpContext);
                         } finally {
@@ -927,22 +940,26 @@ public class WorkflowServiceImpl implements WorkflowService {
                                 generalLockService.unlock(lockId);
                             }
                         }
+                        logger.error("Checkpoint 11: " + (System.currentTimeMillis() - start) + " size = " + goLiveItems.size());
                     }
 
                     if (!renameItems.isEmpty()) {
                         List<String> renamePaths = new ArrayList<>();
                         List<DmDependencyTO> renamedChildren = new ArrayList<>();
+                        logger.error("Checkpoint 12: " + (System.currentTimeMillis() - start));
                         for (DmDependencyTO renameItem : renameItems) {
                             renamedChildren.addAll(getChildrenForRenamedItem(site, renameItem));
                             renamePaths.add(renameItem.getUri());
                             objectStateService.setSystemProcessing(site, renameItem.getUri(), true);
                         }
+                        logger.error("Checkpoint 13: " + (System.currentTimeMillis() - start));
                         for (DmDependencyTO renamedChild : renamedChildren) {
                             renamePaths.add(renamedChild.getUri());
                             objectStateService.setSystemProcessing(site, renamedChild.getUri(), true);
                         }
                         renameItems.addAll(renamedChildren);
                         //Set proper information of all renameItems before send them to GoLive
+                        logger.error("Checkpoint 14: " + (System.currentTimeMillis() - start));
                         for(int i=0;i<renameItems.size();i++){
                             DmDependencyTO renamedItem = renameItems.get(i);
                             if (renamedItem.getScheduledDate() != null && renamedItem.getScheduledDate().isAfter(ZonedDateTime.now(ZoneOffset.UTC))) {
@@ -952,8 +969,9 @@ public class WorkflowServiceImpl implements WorkflowService {
                             }
                             renameItems.set(i, renamedItem);
                         }
-
+                        logger.error("Checkpoint 15: " + (System.currentTimeMillis() - start));
                         goLive(site, renameItems, approver, mcpContext);
+                        logger.error("Checkpoint 16: " + (System.currentTimeMillis() - start));
                     }
 
                     break;
@@ -971,6 +989,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                     }
                     doDelete(site, submittedItems, approver);
             }
+            logger.error("Checkpoint 17: " + (System.currentTimeMillis() - start));
             result.setSuccess(true);
             result.setStatus(200);
             result.setMessage(notificationService.getNotificationMessage(site, NotificationMessageType
@@ -986,6 +1005,7 @@ public class WorkflowServiceImpl implements WorkflowService {
             result.setSuccess(false);
             result.setMessage(e.getMessage());
         }
+        logger.error("Finished: " + (System.currentTimeMillis() - start));
         return result;
     }
 
@@ -1073,8 +1093,9 @@ public class WorkflowServiceImpl implements WorkflowService {
                         //List<DmDependencyTO> dependencies = addDependenciesForSubmittedItems(site, submittedItems, format, scheduledDate);
                         //goLiveItems.addAll(dependencies);
                         List<String> goLivePaths = new ArrayList<>();
+                        Set<String> processedPaths = new HashSet<String>();
                         for (DmDependencyTO goLiveItem : goLiveItems) {
-                            resolveSubmittedPaths(site, goLiveItem, goLivePaths);
+                            resolveSubmittedPaths(site, goLiveItem, goLivePaths, processedPaths);
                         }
                         for (String path : goLivePaths) {
                             String lockId = site + ":" + path;
@@ -1473,9 +1494,10 @@ public class WorkflowServiceImpl implements WorkflowService {
             Set<String> rescheduledUris = new HashSet<String>();
             if (deletePackage != null) {
                 ZonedDateTime launchDate = scheduledDate.equals(now) ? null : scheduledDate;
+                Set<String> processedUris = new HashSet<String>();
                 for (DmDependencyTO dmDependencyTO : deletePackage) {
                     if (launchDate != null) {
-                        handleReferences(site, submitpackage, dmDependencyTO, true, null, "", rescheduledUris);
+                        handleReferences(site, submitpackage, dmDependencyTO, true, null, "", rescheduledUris, processedUris);
                     } else {
                         applyDeleteDependencyRule(site, submitpackage, dmDependencyTO);
                     }
@@ -1534,36 +1556,48 @@ public class WorkflowServiceImpl implements WorkflowService {
         return groupedPackages;
     }
 
-    protected void handleReferences(String site, SubmitPackage submitpackage, DmDependencyTO dmDependencyTO, boolean isNotScheduled, SubmitPackage dependencyPackage, String approver, Set<String> rescheduledUris) {//,boolean isReferencePage) {
-        ItemMetadata properties = objectMetadataManager.getProperties(site, dmDependencyTO.getUri());
-        ZonedDateTime scheduledDate = null;
-        if (properties != null) {
-            scheduledDate = properties.getLaunchDate();
-        }
-        ItemState state = objectStateService.getObjectState(site, dmDependencyTO.getUri());
-        if (state != null) {
-            if (!State.isSubmitted(State.valueOf(state.getState())) && scheduledDate != null && scheduledDate.equals(dmDependencyTO.getScheduledDate())) {
-                if (objectStateService.isScheduled(site, dmDependencyTO.getUri())) {
-                    return;
-                } else {
-                    submitpackage.addToPackage(dmDependencyTO);
+    protected void handleReferences(String site, SubmitPackage submitpackage, DmDependencyTO dmDependencyTO, boolean isNotScheduled, SubmitPackage dependencyPackage, String approver, Set<String> rescheduledUris, Set<String> processedUris) {//,boolean isReferencePage) {
+        if (!processedUris.contains(dmDependencyTO.getUri())) {
+            long start = System.currentTimeMillis();
+            logger.error("Checkpoint E1: " + (System.currentTimeMillis() - start));
+            ItemMetadata properties = objectMetadataManager.getProperties(site, dmDependencyTO.getUri());
+            logger.error("Checkpoint E2: " + (System.currentTimeMillis() - start));
+            ZonedDateTime scheduledDate = null;
+            if (properties != null) {
+                scheduledDate = properties.getLaunchDate();
+            }
+            logger.error("Checkpoint E3: " + (System.currentTimeMillis() - start));
+            ItemState state = objectStateService.getObjectState(site, dmDependencyTO.getUri());
+            logger.error("Checkpoint E4: " + (System.currentTimeMillis() - start));
+            if (state != null) {
+                if (!State.isSubmitted(State.valueOf(state.getState())) && scheduledDate != null && scheduledDate.equals(dmDependencyTO.getScheduledDate())) {
+                    if (objectStateService.isScheduled(site, dmDependencyTO.getUri())) {
+                        return;
+                    } else {
+                        submitpackage.addToPackage(dmDependencyTO);
+                    }
                 }
             }
-        }
-        if (!dmDependencyTO.isReference()) {
-            submitpackage.addToPackage(dmDependencyTO);
-        }
-
-        Set<String> dependencySet = deploymentDependencyRule.applyRule(site, dmDependencyTO.getUri());
-        for (String dependency : dependencySet) {
-            submitpackage.addToPackage(dependency);
-            if (!isNotScheduled) {
-                dependencyPackage.addToPackage(dependency);
+            logger.error("Checkpoint E5: " + (System.currentTimeMillis() - start));
+            if (!dmDependencyTO.isReference()) {
+                submitpackage.addToPackage(dmDependencyTO);
             }
-        }
-
-        if (isRescheduleRequest(dmDependencyTO, site)) {
-            rescheduledUris.add(dmDependencyTO.getUri());
+            logger.error("Checkpoint E6: " + (System.currentTimeMillis() - start));
+            //Set<String> dependencySet = deploymentDependencyRule.applyRule(site, dmDependencyTO.getUri());
+            //logger.error("Checkpoint E7: " + (System.currentTimeMillis() - start) + " size = " + dependencySet.size());
+            //for (String dependency : dependencySet) {
+             //   submitpackage.addToPackage(dependency);
+            //    if (!isNotScheduled) {
+             //       dependencyPackage.addToPackage(dependency);
+            //    }
+            //    processedUris.add(dependency);
+            //}
+            logger.error("Checkpoint E8: " + (System.currentTimeMillis() - start));
+            if (isRescheduleRequest(dmDependencyTO, site)) {
+                rescheduledUris.add(dmDependencyTO.getUri());
+            }
+            processedUris.add(dmDependencyTO.getUri());
+            logger.error("Checkpoint E9: " + (System.currentTimeMillis() - start));
         }
     }
 
@@ -1745,13 +1779,23 @@ public class WorkflowServiceImpl implements WorkflowService {
 
     protected List<DmDependencyTO> addDependenciesForSubmittedItems(String site, List<DmDependencyTO> submittedItems, SimpleDateFormat format, String globalScheduledDate) {
         List<DmDependencyTO> dependencies = new ArrayList<DmDependencyTO>();
+        long start = System.currentTimeMillis();
         Set<String> dependenciesPaths = new HashSet<String>();
+        logger.error("Checkpoint A1: " + (System.currentTimeMillis() - start));
+        int i = 0;
         for (DmDependencyTO submittedItem : submittedItems) {
-            dependenciesPaths.addAll(deploymentDependencyRule.applyRule(site, submittedItem.getUri()));
+            if (!dependenciesPaths.contains(submittedItem.getUri())) {
+                dependenciesPaths.addAll(deploymentDependencyRule.applyRule(site, submittedItem.getUri()));
+                logger.error("Checkpoint A1." + ++i + ": " + (System.currentTimeMillis() - start));
+            }
         }
+        logger.error("Checkpoint A2: " + (System.currentTimeMillis() - start));
+        int j = 0;
         for (String depPath : dependenciesPaths) {
-            dependencies.add(getSubmittedItem(site, depPath, format, globalScheduledDate, null));
+            dependencies.add(getSubmittedItem_new(site, depPath, format, globalScheduledDate));
+            logger.error("Checkpoint A2." + ++j + ": " + (System.currentTimeMillis() - start));
         }
+        logger.error("Checkpoint A3: " + (System.currentTimeMillis() - start) + " size = " + dependencies.size());
         return dependencies;
     }
 
@@ -1767,25 +1811,36 @@ public class WorkflowServiceImpl implements WorkflowService {
         return dependencies;
     }
 
-    protected void resolveSubmittedPaths(String site, DmDependencyTO item, List<String> submittedPaths) {
-        if (!submittedPaths.contains(item.getUri())) {
-            submittedPaths.add(item.getUri());
-        }
-        List<DmDependencyTO> children = item.getChildren();
-        if (children != null) {
-            for (DmDependencyTO child : children) {
-                if (objectStateService.isUpdatedOrNew(site, child.getUri())) {
-                    if (!submittedPaths.contains(child.getUri())) {
-                        submittedPaths.add(child.getUri());
+    // TODO: optimize this!!!
+    protected void resolveSubmittedPaths(String site, DmDependencyTO item, List<String> submittedPaths, Set<String> processedPaths) {
+        long start = System.currentTimeMillis();
+        logger.error("Checkpoint B1: " + (System.currentTimeMillis() - start));
+        if (!processedPaths.contains(item.getUri())) {
+            if (!submittedPaths.contains(item.getUri())) {
+                submittedPaths.add(item.getUri());
+            }
+            List<DmDependencyTO> children = item.getChildren();
+            if (children != null) {
+                logger.error("Checkpoint B2: " + (System.currentTimeMillis() - start));
+                int i = 0;
+                for (DmDependencyTO child : children) {
+                    if (objectStateService.isUpdatedOrNew(site, child.getUri())) {
+                        if (!submittedPaths.contains(child.getUri())) {
+                            submittedPaths.add(child.getUri());
+                        }
+                        logger.error("Checkpoint B2.1." + ++i + ": " + (System.currentTimeMillis() - start));
+                        resolveSubmittedPaths(site, child, submittedPaths, processedPaths);
+                        logger.error("Checkpoint B2.2." + ++i + ": " + (System.currentTimeMillis() - start));
                     }
-                    resolveSubmittedPaths(site, child, submittedPaths);
                 }
             }
+            logger.error("Checkpoint B3: " + (System.currentTimeMillis() - start));
+            Set<String> dependencyPaths = deploymentDependencyRule.applyRule(site, item.getUri());
+            submittedPaths.addAll(dependencyPaths);
+            processedPaths.addAll(dependencyPaths);
+            processedPaths.add(item.getUri());
+            logger.error("Checkpoint B4: " + (System.currentTimeMillis() - start) + " size = " + submittedPaths.size());
         }
-
-        Set<String> dependencyPaths = deploymentDependencyRule.applyRule(site, item.getUri());
-        submittedPaths.addAll(dependencyPaths);
-
     }
 
     protected List<DmDependencyTO> getChildrenForRenamedItem(String site, DmDependencyTO renameItem) {
@@ -1911,9 +1966,12 @@ public class WorkflowServiceImpl implements WorkflowService {
         final ZonedDateTime now = ZonedDateTime.now(ZoneOffset.UTC);
         if (submittedItems != null) {
             // group submitted items into packages by their scheduled date
+            logger.error("Checkpoint C1: " + (System.currentTimeMillis() - start));
             Map<ZonedDateTime, List<DmDependencyTO>> groupedPackages = groupByDate(submittedItems, now);
 
+            int i = 0;
             for (ZonedDateTime scheduledDate : groupedPackages.keySet()) {
+                logger.error("Checkpoint C2.1" + ++i + ": " + (System.currentTimeMillis() - start));
                 List<DmDependencyTO> goLivePackage = groupedPackages.get(scheduledDate);
                 if (goLivePackage != null) {
                     ZonedDateTime launchDate = scheduledDate.equals(now) ? null : scheduledDate;
@@ -1927,14 +1985,17 @@ public class WorkflowServiceImpl implements WorkflowService {
                      */
                     final Set<String> rescheduledUris = new HashSet<String>();
                     final SubmitPackage dependencyPackage = new SubmitPackage("");
+                    Set<String> processedUris = new HashSet<String>();
+                    logger.error("Checkpoint C2.2" + i + ": " + (System.currentTimeMillis() - start));
                     for (final DmDependencyTO dmDependencyTO : goLivePackage) {
-                        goLivepackage(site, submitpackage, dmDependencyTO, isNotScheduled, dependencyPackage, approver, rescheduledUris);
+                        goLivepackage(site, submitpackage, dmDependencyTO, isNotScheduled, dependencyPackage, approver, rescheduledUris, processedUris);
                     }
-
+                    logger.error("Checkpoint C2.3" + i + ": " + (System.currentTimeMillis() - start));
                     List<String> stringList = submitpackage.getPaths();
                     String label = submitpackage.getLabel();
                     SubmitLifeCycleOperation operation = null;
                     GoLiveContext context = new GoLiveContext(approver, site);
+                    logger.error("Checkpoint C2.4" + i + ": " + (System.currentTimeMillis() - start));
                     if (!isNotScheduled) {
                         Set<String> uris = new HashSet<String>();
                         uris.addAll(dependencyPackage.getUris());
@@ -1944,30 +2005,44 @@ public class WorkflowServiceImpl implements WorkflowService {
                     } else {
                         operation = new PreGoLiveOperation(this, submitpackage.getUris(), context, rescheduledUris);
                     }
+                    logger.error("Checkpoint C2.5" + i + ": " + (System.currentTimeMillis() - start));
                     if (!stringList.isEmpty()) {
                         // get the workflow initiator mapping
                         Map<String, String> submittedBy = new HashMap<String, String>();
+                        logger.error("Checkpoint C2.6" + i + ": " + (System.currentTimeMillis() - start));
                         for (String uri : stringList) {
                             dmPublishService.cancelScheduledItem(site, uri);
                         }
+                        logger.error("Checkpoint C2.7" + i + ": " + (System.currentTimeMillis() - start));
                         workflowProcessor.addToWorkflow(site, stringList, launchDate, label, operation, approver, mcpContext);
-
+                        logger.error("Checkpoint C2.8" + i + ": " + (System.currentTimeMillis() - start));
                     }
                 }
             }
         }
         long end = System.currentTimeMillis();
-        logger.debug("Total go live time = " + (end - start));
+        logger.error("Total go live time = " + (end - start));
     }
 
-    protected void goLivepackage(String site, SubmitPackage submitpackage, DmDependencyTO dmDependencyTO, boolean isNotScheduled, SubmitPackage dependencyPackage, String approver, Set<String> rescheduledUris) {
-        handleReferences(site, submitpackage, dmDependencyTO, isNotScheduled, dependencyPackage, approver, rescheduledUris);
-        List<DmDependencyTO> children = dmDependencyTO.getChildren();
-        if (children != null) {
-            for (DmDependencyTO child : children) {
-                handleReferences(site, submitpackage, child, isNotScheduled, dependencyPackage, approver, rescheduledUris);
-                goLivepackage(site, submitpackage, child, isNotScheduled, dependencyPackage, approver, rescheduledUris);
+    // TODO: OPTIMIZE !!!
+    protected void goLivepackage(String site, SubmitPackage submitpackage, DmDependencyTO dmDependencyTO, boolean isNotScheduled, SubmitPackage dependencyPackage, String approver, Set<String> rescheduledUris, Set<String> processedUris) {
+        long start = System.currentTimeMillis();
+        logger.error("Checkpoint D1: " + (System.currentTimeMillis() - start));
+        if (!processedUris.contains(dmDependencyTO.getUri())) {
+            handleReferences(site, submitpackage, dmDependencyTO, isNotScheduled, dependencyPackage, approver, rescheduledUris, processedUris);
+            logger.error("Checkpoint D2: " + (System.currentTimeMillis() - start));
+            List<DmDependencyTO> children = dmDependencyTO.getChildren();
+            if (children != null) {
+                int i = 1;
+                for (DmDependencyTO child : children) {
+                    logger.error("Checkpoint D3." + i + ".1: " + (System.currentTimeMillis() - start));
+                    handleReferences(site, submitpackage, child, isNotScheduled, dependencyPackage, approver, rescheduledUris, processedUris);
+                    logger.error("Checkpoint D3." + i + ".2: " + (System.currentTimeMillis() - start));
+                    goLivepackage(site, submitpackage, child, isNotScheduled, dependencyPackage, approver, rescheduledUris, processedUris);
+                    logger.error("Checkpoint D3." + i++ + ".3: " + (System.currentTimeMillis() - start));
+                }
             }
+            processedUris.add(dmDependencyTO.getUri());
         }
     }
 

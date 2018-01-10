@@ -47,6 +47,7 @@ public class DeploymentDependencyRule implements DependencyRule {
 
     @Override
     public Set<String> applyRule(String site, String path) {
+        logger.error("Depedency rule: " + site + " - " + path);
         Set<String> dependencies = new HashSet<String>();
         List<String> allDependencies = new ArrayList<String>();
         getMandatoryParent(site, path, allDependencies);
