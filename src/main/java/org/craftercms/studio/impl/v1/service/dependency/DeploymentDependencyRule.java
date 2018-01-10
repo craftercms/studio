@@ -31,7 +31,6 @@ import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -47,7 +46,7 @@ public class DeploymentDependencyRule implements DependencyRule {
 
     @Override
     public Set<String> applyRule(String site, String path) {
-        logger.error("Depedency rule: " + site + " - " + path);
+        logger.debug("Apply depedency deployment rule for site: " + site + " and path: " + path);
         Set<String> dependencies = new HashSet<String>();
         List<String> allDependencies = new ArrayList<String>();
         getMandatoryParent(site, path, allDependencies);
