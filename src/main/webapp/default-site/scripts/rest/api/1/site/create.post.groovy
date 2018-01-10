@@ -51,7 +51,7 @@ try {
 
 // blueprint
     try {
-        if (!useRemote || (useRemote && REMOTE_REPOSITORY_CREATE_OPTION_PUSH.equals(createOption))) {
+        if (!useRemote || (useRemote && StringUtils.equalsIgnoreCase(REMOTE_REPOSITORY_CREATE_OPTION_PUSH, createOption))) {
             if (StringUtils.isEmpty(blueprint)) {
                 invalidParams = true
                 paramsList.add("blueprint")
