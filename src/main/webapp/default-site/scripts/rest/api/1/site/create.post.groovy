@@ -23,6 +23,8 @@ import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException
 import scripts.api.SiteServices;
 import groovy.json.JsonSlurper
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOTE_REPOSITORY_CREATE_OPTION_PUSH;
+
 def result = [:]
 try {
     def requestJson = request.reader.text
