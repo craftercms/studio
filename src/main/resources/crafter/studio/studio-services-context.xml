@@ -645,6 +645,8 @@
         <property name="publicUrls" value="${crafter.studio.security.publicUrls}"/>
         <property name="securityService" ref="cstudioSecurityService" />
         <property name="sessionTimeout" value="${crafter.studio.security.sessionTimeout}"/>
+        <property name="ssoEnabled" value="${crafter.studio.sso.enabled}"/>
+        <property name="ssoHeaderName" value="${crafter.studio.sso.headerName}"/>
     </bean>
 
     <bean id="securityProvider" class="org.craftercms.studio.impl.v1.service.security.MappedSecurityProvider">

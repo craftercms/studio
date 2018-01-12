@@ -24,6 +24,8 @@ public class StudioAuthenticationFilter extends GenericFilterBean {
     protected int sessionTimeout;
     protected String[] publicUrls;
     protected SecurityService securityService;
+    protected boolean ssoEnabled = false;
+    protected String ssoHeaderName;
 
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
@@ -50,17 +52,22 @@ public class StudioAuthenticationFilter extends GenericFilterBean {
     }
 
     private boolean isSessionExpired(HttpServletRequest request) {
-        HttpSession httpSession = request.getSession();
-        String sessionToken = (String)httpSession.getAttribute(STUDIO_SESSION_TOKEN_ATRIBUTE);
-        String user = securityService.getCurrentUser();
-        if (StringUtils.isNotEmpty(sessionToken) && StringUtils.isNotEmpty(user)) {
-            if (SessionTokenUtils.validateToken(sessionToken, user)) {
-                sessionToken = SessionTokenUtils.createToken(user, sessionTimeout);
-                httpSession.setAttribute(STUDIO_SESSION_TOKEN_ATRIBUTE, sessionToken);
-                return false;
+        if (ssoEnabled) {
+            String ssoUserName = request.getHeader(ssoHeaderName);
+            return StringUtils.isEmpty(ssoUserName);
+        } else {
+            HttpSession httpSession = request.getSession();
+            String sessionToken = (String) httpSession.getAttribute(STUDIO_SESSION_TOKEN_ATRIBUTE);
+            String user = securityService.getCurrentUser();
+            if (StringUtils.isNotEmpty(sessionToken) && StringUtils.isNotEmpty(user)) {
+                if (SessionTokenUtils.validateToken(sessionToken, user)) {
+                    sessionToken = SessionTokenUtils.createToken(user, sessionTimeout);
+                    httpSession.setAttribute(STUDIO_SESSION_TOKEN_ATRIBUTE, sessionToken);
+                    return false;
+                }
             }
+            return true;
         }
-        return true;
     }
 
     private boolean isAuthentcated() {
@@ -85,4 +92,10 @@ public class StudioAuthenticationFilter extends GenericFilterBean {
 
     public SecurityService getSecurityService() { return securityService; }
     public void setSecurityService(SecurityService securityService) { this.securityService = securityService; }
+
+    public boolean isSsoEnabled() { return ssoEnabled; }
+    public void setSsoEnabled(boolean ssoEnabled) { this.ssoEnabled = ssoEnabled; }
+
+    public String getSsoHeaderName() { return ssoHeaderName; }
+    public void setSsoHeaderName(String ssoHeaderName) { this.ssoHeaderName = ssoHeaderName; }
 }
