@@ -657,8 +657,18 @@ public class GitContentRepositoryHelper {
         File localPath = siteSandboxPath.toFile();
         localPath.delete();
 
+        UsernamePasswordCredentialsProvider credentialsProvider = null;
+
+        // Check if this remote git repository has username/password provided
+        if (!StringUtils.isEmpty(remoteUsername)) {
+            if (StringUtil.isEmpty(remotePassword)) {
+                // Username was provided but password is empty
+                logger.debug("Password field is empty while cloning from remote repository: " + remoteUrl);
+            }
+            credentialsProvider = new UsernamePasswordCredentialsProvider(remoteUsername, remotePassword);
+        }
+
         // then clone
-        UsernamePasswordCredentialsProvider credentialsProvider = new UsernamePasswordCredentialsProvider(remoteUsername, remotePassword);
         logger.debug("Cloning from " + remoteUrl + " to " + localPath);
         try (Git result = Git.cloneRepository()
                 .setURI(remoteUrl)
