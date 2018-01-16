@@ -98,28 +98,6 @@ try {
             paramsList.add("remote_url")
         }
 
-        // remote_username
-        try {
-            if (StringUtils.isEmpty(remoteUsername)) {
-                invalidParams = true
-                paramsList.add("remote_username")
-            }
-        } catch (Exception exc) {
-            invalidParams = true
-            paramsList.add("remote_username")
-        }
-
-        // remote_password
-        try {
-            if (StringUtils.isEmpty(remotePassword)) {
-                invalidParams = true
-                paramsList.add("remote_password")
-            }
-        } catch (Exception exc) {
-            invalidParams = true
-            paramsList.add("remote_password")
-        }
-
         // create_option
         try {
             if (StringUtils.isEmpty(createOption)) {
