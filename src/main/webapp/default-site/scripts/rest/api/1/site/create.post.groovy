@@ -20,10 +20,13 @@
 import groovy.json.JsonException
 import org.apache.commons.lang3.StringUtils
 import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException
+import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException
+import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException
 import scripts.api.SiteServices;
 import groovy.json.JsonSlurper
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOTE_REPOSITORY_CREATE_OPTION_CLONE
 import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOTE_REPOSITORY_CREATE_OPTION_PUSH;
 
 def result = [:]
@@ -104,6 +107,7 @@ try {
             if (StringUtils.isEmpty(createOption)) {
                 invalidParams = true
                 paramsList.add("create_option")
+            } else {
             }
         } catch (Exception exc) {
             invalidParams = true
@@ -114,6 +118,9 @@ try {
     if (invalidParams) {
         response.setStatus(400)
         result.message = "Invalid parameter(s): " + paramsList
+    } else if (!StringUtils.equalsAnyIgnoreCase(createOption, REMOTE_REPOSITORY_CREATE_OPTION_CLONE, REMOTE_REPOSITORY_CREATE_OPTION_PUSH)) {
+        response.setStatus(400)
+        result.message = "Invalid create option for remote repository"
     } else {
         def context = SiteServices.createContext(applicationContext, request)
         try {
@@ -133,6 +140,12 @@ try {
         } catch (InvalidRemoteRepositoryException e) {
             response.setStatus(400)
             result.message = "Remote repository URL invalid"
+        } catch (InvalidRemoteRepositoryCredentialsException e) {
+            response.setStatus(400)
+            result.message = "Remote repository credentials invalid"
+        } catch (RemoteRepositoryNotFoundException e) {
+            response.setStatus(404)
+            result.message = "Remote repository not found"
         } catch (SiteAlreadyExistsException e) {
             response.setStatus(409)
             def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/site/get.json?site_id=" + siteId
