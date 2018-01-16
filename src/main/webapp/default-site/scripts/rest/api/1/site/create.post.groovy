@@ -20,6 +20,7 @@
 import groovy.json.JsonException
 import org.apache.commons.lang3.StringUtils
 import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException
+import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException
 import scripts.api.SiteServices;
 import groovy.json.JsonSlurper
 
@@ -129,6 +130,9 @@ try {
                 response.addHeader("Location", locationHeader)
                 response.setStatus(201)
             }
+        } catch (InvalidRemoteRepositoryException e) {
+            response.setStatus(400)
+            result.message = "Remote repository URL invalid"
         } catch (SiteAlreadyExistsException e) {
             response.setStatus(409)
             def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/site/get.json?site_id=" + siteId

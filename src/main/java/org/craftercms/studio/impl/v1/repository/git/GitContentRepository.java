@@ -50,6 +50,7 @@ import org.craftercms.studio.api.v1.dal.DeploymentSyncHistory;
 import org.craftercms.studio.api.v1.dal.GitLog;
 import org.craftercms.studio.api.v1.dal.GitLogMapper;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
+import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
@@ -815,9 +816,21 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     public boolean deleteSite(String site) {
         boolean toReturn;
 
-        synchronized (helper.getRepository(site, StringUtils.isEmpty(site) ? GitRepositories.GLOBAL : SANDBOX)) {
-            synchronized (helper.getRepository(site, GitRepositories.PUBLISHED)) {
-                toReturn = helper.deleteSiteGitRepo(site);
+        Repository repository = helper.getRepository(site, StringUtils.isEmpty(site) ? GitRepositories.GLOBAL : SANDBOX);
+        if (repository != null) {
+            synchronized (repository) {
+                synchronized (helper.getRepository(site, GitRepositories.PUBLISHED)) {
+                    toReturn = helper.deleteSiteGitRepo(site);
+                }
+            }
+        } else {
+            Path sitePath = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH), studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH), site);
+            try {
+                FileUtils.deleteDirectory(sitePath.toFile());
+                toReturn = true;
+            } catch (IOException e) {
+                logger.error("Error while deleting site " + site, e);
+                toReturn = false;
             }
         }
 
@@ -1403,7 +1416,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     @Override
-    public boolean createSiteCloneRemote(String siteId, String remoteName, String remoteUrl, String remoteUsername, String remotePassword) {
+    public boolean createSiteCloneRemote(String siteId, String remoteName, String remoteUrl, String remoteUsername, String remotePassword) throws InvalidRemoteRepositoryException {
         boolean toReturn;
 
         // clone remote git repository for site content
@@ -1449,6 +1462,11 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             }
         }
         return toRet;
+    }
+
+    public boolean validateRemoteRepositoryConnection(String remoteName, String remoteUrl, String remoteUsername, String remotePassword) {
+        boolean toRet = true;
+        return true;
     }
 
     public void setServletContext(ServletContext ctx) {

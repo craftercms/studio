@@ -41,6 +41,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
+import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
@@ -650,7 +651,7 @@ public class GitContentRepositoryHelper {
         return files;
     }
 
-    public boolean createSiteCloneRemoteGitRepo(String siteId, String remoteName, String remoteUrl, String remoteUsername, String remotePassword) {
+    public boolean createSiteCloneRemoteGitRepo(String siteId, String remoteName, String remoteUrl, String remoteUsername, String remotePassword) throws InvalidRemoteRepositoryException {
         boolean toRet = true;
         // prepare a new folder for the cloned repository
         Path siteSandboxPath = buildRepoPath(SANDBOX, siteId);
@@ -678,6 +679,9 @@ public class GitContentRepositoryHelper {
                 .call()) {
             Repository sandboxRepo = result.getRepository();
             sandboxes.put(siteId, sandboxRepo);
+        } catch (InvalidRemoteException e) {
+            logger.error("Invalid remote repository: " + remoteName + " (" + remoteUrl + ")", e);
+            throw new InvalidRemoteRepositoryException("Invalid remote repository: " + remoteName + " (" + remoteUrl + ")");
         } catch (GitAPIException e) {
             logger.error("Error while creating repository for site with path" + siteSandboxPath.toString(), e);
             toRet = false;

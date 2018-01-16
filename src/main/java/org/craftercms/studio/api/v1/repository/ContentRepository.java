@@ -21,6 +21,7 @@ package org.craftercms.studio.api.v1.repository;
 import org.craftercms.studio.api.v1.dal.GitLog;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v1.to.RepoOperationTO;
@@ -327,7 +328,7 @@ public interface ContentRepository {
      * @param remotePassword
      * @return
      */
-    boolean createSiteCloneRemote(String siteId, String remoteName, String remoteUrl, String remoteUsername, String remotePassword);
+    boolean createSiteCloneRemote(String siteId, String remoteName, String remoteUrl, String remoteUsername, String remotePassword) throws InvalidRemoteRepositoryException;
 
     /**
      * Push new site to remote repository
@@ -340,6 +341,16 @@ public interface ContentRepository {
      * @return
      */
     boolean createSitePushToRemote(String siteId, String remoteName, String remoteUrl, String remoteUsername, String remotePassword);
+
+    /**
+     * Validate remote repository connection parameters
+     * @param remoteName
+     * @param remoteUrl
+     * @param remoteUsername
+     * @param remotePassword
+     * @return
+     */
+    boolean validateRemoteRepositoryConnection(String remoteName, String remoteUrl, String remoteUsername, String remotePassword);
 
     /*
     List<PublishTO> getPublishEvents(String site, String commitIdFrom, String commitIdTo);
