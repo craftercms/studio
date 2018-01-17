@@ -119,7 +119,7 @@ try {
     if (invalidParams) {
         response.setStatus(400)
         result.message = "Invalid parameter(s): " + paramsList
-    } else if (!StringUtils.equalsAnyIgnoreCase(createOption, REMOTE_REPOSITORY_CREATE_OPTION_CLONE, REMOTE_REPOSITORY_CREATE_OPTION_PUSH)) {
+    } else if (useRemote && !StringUtils.equalsAnyIgnoreCase(createOption, REMOTE_REPOSITORY_CREATE_OPTION_CLONE, REMOTE_REPOSITORY_CREATE_OPTION_PUSH)) {
         response.setStatus(400)
         result.message = "Invalid create option for remote repository"
     } else {
