@@ -35,7 +35,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
-import com.google.gdata.util.common.base.StringUtil;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -206,7 +205,7 @@ public class GitContentRepositoryHelper {
     }
 
     public Path buildRepoPath(GitRepositories repoType) {
-        return buildRepoPath(repoType, StringUtil.EMPTY_STRING);
+        return buildRepoPath(repoType, StringUtils.EMPTY);
     }
     public Path buildRepoPath(GitRepositories repoType, String site) {
         Path path;
@@ -664,7 +663,7 @@ public class GitContentRepositoryHelper {
 
         // Check if this remote git repository has username/password provided
         if (!StringUtils.isEmpty(remoteUsername)) {
-            if (StringUtil.isEmpty(remotePassword)) {
+            if (StringUtils.isEmpty(remotePassword)) {
                 // Username was provided but password is empty
                 logger.debug("Password field is empty while cloning from remote repository: " + remoteUrl);
             }

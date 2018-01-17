@@ -50,6 +50,7 @@ import org.craftercms.studio.api.v1.exception.SiteCreationException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
+import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotBareException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
@@ -67,7 +68,6 @@ import org.craftercms.studio.api.v1.service.content.DmPageNavigationOrderService
 import org.craftercms.studio.api.v1.service.content.ImportService;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
 import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
-import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.event.EventService;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
@@ -574,7 +574,7 @@ public class SiteServiceImpl implements SiteService {
 
     @Override
     @ValidateParams
-    public void createSiteWithRemoteOption(@ValidateStringParam(name = "siteId") String siteId, @ValidateNoTagsParam(name = "description") String description, String blueprintName, @ValidateStringParam(name = "remoteName") String remoteName, @ValidateStringParam(name = "remoteUrl") String remoteUrl, String remoteUsername, String remotePassword, @ValidateStringParam(name = "createOption") String createOption) throws SiteAlreadyExistsException, SearchUnreachableException, PreviewDeployerUnreachableException, SiteCreationException, InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException {
+    public void createSiteWithRemoteOption(@ValidateStringParam(name = "siteId") String siteId, @ValidateNoTagsParam(name = "description") String description, String blueprintName, @ValidateStringParam(name = "remoteName") String remoteName, @ValidateStringParam(name = "remoteUrl") String remoteUrl, String remoteUsername, String remotePassword, @ValidateStringParam(name = "createOption") String createOption) throws SiteAlreadyExistsException, SearchUnreachableException, PreviewDeployerUnreachableException, SiteCreationException, InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException, RemoteRepositoryNotBareException {
         if (exists(siteId)) {
             throw new SiteAlreadyExistsException();
         }
@@ -732,7 +732,7 @@ public class SiteServiceImpl implements SiteService {
         }
     }
 
-    private void createSitePushToRemote(String siteId, String description, String blueprintName, String remoteName, String remoteUrl, String remoteUsername, String remotePassword) throws SiteAlreadyExistsException, SearchUnreachableException, PreviewDeployerUnreachableException, SiteCreationException {
+    private void createSitePushToRemote(String siteId, String description, String blueprintName, String remoteName, String remoteUrl, String remoteUsername, String remotePassword) throws SiteAlreadyExistsException, SearchUnreachableException, PreviewDeployerUnreachableException, SiteCreationException, InvalidRemoteRepositoryCredentialsException, InvalidRemoteRepositoryException, RemoteRepositoryNotFoundException, RemoteRepositoryNotBareException {
         if (exists(siteId)) {
             throw new SiteAlreadyExistsException();
         }
@@ -787,7 +787,62 @@ public class SiteServiceImpl implements SiteService {
         if (success) {
             try {
                 success = createSiteFromBlueprintGit(blueprintName, siteId, siteId, description);
+            } catch (Exception e) {
+                // TODO: SJ: We need better exception handling here
+                success = false;
+                logger.error("Error while creating site: " + siteId + " ID: " + siteId + " from blueprint: " +
+                        blueprintName + ". Rolling back.", e);
 
+                boolean deleted = previewDeployer.deleteTarget(siteId);
+                if (!deleted) {
+                    logger.error("Error while rolling back/deleting site: " + siteId + " ID: " + siteId +
+                            " from blueprint: " + blueprintName + ". This means the site's preview deployer target is " +
+                            "still present, but the site is not successfully created.");
+                }
+
+                try {
+                    searchService.deleteIndex(siteId);
+                } catch (ServiceException ex) {
+                    logger.error("Error while rolling back/deleting site: " + siteId + " ID: " + siteId +
+                            " from blueprint: " + blueprintName + ". This means the site search index (core) is " +
+                            "still present, but the site is not successfully created.", ex);
+                }
+
+                throw new SiteCreationException("Error while creating site: " + siteId + " ID: " + siteId + " from blueprint: " +
+                        blueprintName + ". Rolling back.");
+            }
+
+            if (success) {
+                try {
+                    contentRepository.createSitePushToRemote(siteId, remoteName, remoteUrl, remoteUsername, remotePassword);
+                } catch (RemoteRepositoryNotFoundException | InvalidRemoteRepositoryException | InvalidRemoteRepositoryCredentialsException | RemoteRepositoryNotBareException e) {
+                    // TODO: SJ: We need better exception handling here
+                    success = false;
+                    logger.error("Error while creating site: " + siteId + " ID: " + siteId + " from blueprint: " +
+                            blueprintName + ". Rolling back.", e);
+
+                    contentRepository.deleteSite(siteId);
+
+                    boolean deleted = previewDeployer.deleteTarget(siteId);
+                    if (!deleted) {
+                        logger.error("Error while rolling back/deleting site: " + siteId + " ID: " + siteId +
+                                " from blueprint: " + blueprintName + ". This means the site's preview deployer target is " +
+                                "still present, but the site is not successfully created.");
+                    }
+
+                    try {
+                        searchService.deleteIndex(siteId);
+                    } catch (ServiceException ex) {
+                        logger.error("Error while rolling back/deleting site: " + siteId + " ID: " + siteId +
+                                " from blueprint: " + blueprintName + ". This means the site search index (core) is " +
+                                "still present, but the site is not successfully created.", ex);
+                    }
+
+                    throw e;
+                }
+            }
+
+            try {
                 String lastCommitId = contentRepository.getRepoLastCommitId(siteId);
 
                 // Set object states
@@ -834,13 +889,14 @@ public class SiteServiceImpl implements SiteService {
 
                 reloadSiteConfiguration(siteId);
 
-                contentRepository.createSitePushToRemote(siteId, remoteName, remoteUrl, remoteUsername, remotePassword);
+
             } catch(Exception e) {
                 // TODO: SJ: We need better exception handling here
                 success = false;
                 logger.error("Error while creating site: " + siteId + " ID: " + siteId + " from blueprint: " +
                         blueprintName + ". Rolling back.", e);
 
+                deleteSite(siteId);
                 boolean deleted = previewDeployer.deleteTarget(siteId);
                 if (!deleted) {
                     logger.error("Error while rolling back/deleting site: " + siteId + " ID: " + siteId +

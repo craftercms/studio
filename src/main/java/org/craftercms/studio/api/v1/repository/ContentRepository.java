@@ -23,6 +23,7 @@ import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
+import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotBareException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
@@ -342,7 +343,7 @@ public interface ContentRepository {
      * @param remotePassword
      * @return
      */
-    boolean createSitePushToRemote(String siteId, String remoteName, String remoteUrl, String remoteUsername, String remotePassword);
+    boolean createSitePushToRemote(String siteId, String remoteName, String remoteUrl, String remoteUsername, String remotePassword) throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException, RemoteRepositoryNotBareException;
 
     /**
      * Validate remote repository connection parameters

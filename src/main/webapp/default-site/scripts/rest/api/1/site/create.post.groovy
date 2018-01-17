@@ -22,6 +22,7 @@ import org.apache.commons.lang3.StringUtils
 import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException
+import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotBareException
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException
 import scripts.api.SiteServices;
 import groovy.json.JsonSlurper
@@ -146,6 +147,9 @@ try {
         } catch (RemoteRepositoryNotFoundException e) {
             response.setStatus(404)
             result.message = "Remote repository not found"
+        } catch (RemoteRepositoryNotBareException e) {
+            response.setStatus(409)
+            result.message = "Remote repository not bare"
         } catch (SiteAlreadyExistsException e) {
             response.setStatus(409)
             def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/site/get.json?site_id=" + siteId
