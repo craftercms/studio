@@ -1,7 +1,6 @@
 /*
- * Crafter Studio
- *
- * Copyright (C) 2007-2016 Crafter Software Corporation.
+ * Crafter Studio Web-content authoring solution
+ * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,7 +14,6 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 package org.craftercms.studio.impl.v1.repository.git;
@@ -50,6 +48,10 @@ import org.craftercms.studio.api.v1.dal.DeploymentSyncHistory;
 import org.craftercms.studio.api.v1.dal.GitLog;
 import org.craftercms.studio.api.v1.dal.GitLogMapper;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
+import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
+import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
+import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotBareException;
+import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
@@ -64,7 +66,9 @@ import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.api.errors.RefNotFoundException;
+import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.internal.storage.file.LockFile;
 import org.eclipse.jgit.lib.*;
@@ -75,10 +79,7 @@ import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.revwalk.filter.AndRevFilter;
 import org.eclipse.jgit.revwalk.filter.CommitTimeRevFilter;
-import org.eclipse.jgit.transport.FetchResult;
-import org.eclipse.jgit.transport.PushResult;
-import org.eclipse.jgit.transport.URIish;
-import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
+import org.eclipse.jgit.transport.*;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
@@ -95,6 +96,7 @@ import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryC
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_COMMIT_ALL_ITEMS;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.INITIAL_COMMIT;
+import static org.eclipse.jgit.transport.RemoteRefUpdate.Status.REJECTED_NONFASTFORWARD;
 
 public class GitContentRepository implements ContentRepository, ServletContextAware, DeploymentHistoryProvider {
 
@@ -815,9 +817,21 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     public boolean deleteSite(String site) {
         boolean toReturn;
 
-        synchronized (helper.getRepository(site, StringUtils.isEmpty(site) ? GitRepositories.GLOBAL : SANDBOX)) {
-            synchronized (helper.getRepository(site, GitRepositories.PUBLISHED)) {
-                toReturn = helper.deleteSiteGitRepo(site);
+        Repository repository = helper.getRepository(site, StringUtils.isEmpty(site) ? GitRepositories.GLOBAL : SANDBOX);
+        if (repository != null) {
+            synchronized (repository) {
+                synchronized (helper.getRepository(site, GitRepositories.PUBLISHED)) {
+                    toReturn = helper.deleteSiteGitRepo(site);
+                }
+            }
+        } else {
+            Path sitePath = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH), studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH), site);
+            try {
+                FileUtils.deleteDirectory(sitePath.toFile());
+                toReturn = true;
+            } catch (IOException e) {
+                logger.error("Error while deleting site " + site, e);
+                toReturn = false;
             }
         }
 
@@ -1403,7 +1417,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     @Override
-    public boolean createSiteCloneRemote(String siteId, String remoteName, String remoteUrl, String remoteUsername, String remotePassword) {
+    public boolean createSiteCloneRemote(String siteId, String remoteName, String remoteUrl, String remoteUsername, String remotePassword) throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException {
         boolean toReturn;
 
         // clone remote git repository for site content
@@ -1427,7 +1441,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     @Override
-    public boolean createSitePushToRemote(String siteId, String remoteName, String remoteUrl, String remoteUsername, String remotePassword) {
+    public boolean createSitePushToRemote(String siteId, String remoteName, String remoteUrl, String remoteUsername, String remotePassword) throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException, RemoteRepositoryNotBareException {
         boolean toRet = true;
         try (Repository repo = helper.getRepository(siteId, SANDBOX)) {
             try (Git git = new Git(repo)) {
@@ -1435,20 +1449,55 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 remoteAddCommand.setName(remoteName);
                 remoteAddCommand.setUri(new URIish(remoteUrl));
                 remoteAddCommand.call();
+                UsernamePasswordCredentialsProvider credentialsProvider = null;
+                // Check if this remote git repository has username/password provided
+                if (!StringUtils.isEmpty(remoteUsername)) {
+                    if (StringUtils.isEmpty(remotePassword)) {
+                        // Username was provided but password is empty
+                        logger.debug("Password field is empty while cloning from remote repository: " + remoteUrl);
+                    }
+                    credentialsProvider = new UsernamePasswordCredentialsProvider(remoteUsername, remotePassword);
+                }
 
-                UsernamePasswordCredentialsProvider credentialsProvider = new UsernamePasswordCredentialsProvider(remoteUsername, remotePassword);
-                git.push()
+                Iterable<PushResult> result = git.push()
                         .setPushAll()
                         .setRemote(remoteName)
                         .setCredentialsProvider(credentialsProvider)
                         .call();
-
-            } catch (URISyntaxException | GitAPIException e) {
-                logger.error("Failed to push newly created site " + siteId + " to remote repository " + remoteUrl);
-                toRet = false;
+                Iterator<PushResult> resultIter = result.iterator();
+                if (resultIter.hasNext()) {
+                    PushResult pushResult = resultIter.next();
+                    Iterator<RemoteRefUpdate> remoteRefUpdateIterator = pushResult.getRemoteUpdates().iterator();
+                    if (remoteRefUpdateIterator.hasNext()) {
+                        RemoteRefUpdate update = remoteRefUpdateIterator.next();
+                        if (update.getStatus().equals(REJECTED_NONFASTFORWARD)) {
+                            logger.error("Remote repository: " + remoteName + " (" + remoteUrl + ") is not bare repository");
+                            throw new RemoteRepositoryNotBareException("Remote repository: " + remoteName + " (" + remoteUrl + ") is not bare repository");
+                        }
+                    }
+                }
+            } catch (InvalidRemoteException e) {
+                logger.error("Invalid remote repository: " + remoteName + " (" + remoteUrl + ")", e);
+                throw new InvalidRemoteRepositoryException("Invalid remote repository: " + remoteName + " (" + remoteUrl + ")");
+            } catch (TransportException e) {
+                if (StringUtils.endsWithIgnoreCase(e.getMessage(), "not authorized")) {
+                    logger.error("Invalid credentials accessing remote repository: " + remoteName + " (" + remoteUrl + ")", e);
+                    throw new InvalidRemoteRepositoryCredentialsException("Invalid credentials accessing remote repository: " + remoteName + " (" + remoteUrl + ") for username " + remoteUsername, e);
+                } else {
+                    logger.error("Remote repository not found: " + remoteName + " (" + remoteUrl + ")", e);
+                    throw new RemoteRepositoryNotFoundException("Remote repository not found: " + remoteName + " (" + remoteUrl + ")");
+                }
             }
+        } catch (URISyntaxException | GitAPIException e) {
+                logger.error("Failed to push newly created site " + siteId + " to remote repository " + remoteUrl, e);
+                toRet = false;
         }
         return toRet;
+    }
+
+    public boolean validateRemoteRepositoryConnection(String remoteName, String remoteUrl, String remoteUsername, String remotePassword) {
+        boolean toRet = true;
+        return true;
     }
 
     public void setServletContext(ServletContext ctx) {

@@ -1,6 +1,6 @@
 /*
  * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2017 Crafter Software Corporation.
+ * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,13 +16,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 import groovy.json.JsonException
 import org.apache.commons.lang3.StringUtils
 import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException
+import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException
+import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException
+import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotBareException
+import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException
 import scripts.api.SiteServices;
 import groovy.json.JsonSlurper
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOTE_REPOSITORY_CREATE_OPTION_CLONE
 import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOTE_REPOSITORY_CREATE_OPTION_PUSH;
 
 def result = [:]
@@ -103,6 +107,7 @@ try {
             if (StringUtils.isEmpty(createOption)) {
                 invalidParams = true
                 paramsList.add("create_option")
+            } else {
             }
         } catch (Exception exc) {
             invalidParams = true
@@ -113,6 +118,9 @@ try {
     if (invalidParams) {
         response.setStatus(400)
         result.message = "Invalid parameter(s): " + paramsList
+    } else if (useRemote && !StringUtils.equalsAnyIgnoreCase(createOption, REMOTE_REPOSITORY_CREATE_OPTION_CLONE, REMOTE_REPOSITORY_CREATE_OPTION_PUSH)) {
+        response.setStatus(400)
+        result.message = "Invalid create option for remote repository"
     } else {
         def context = SiteServices.createContext(applicationContext, request)
         try {
@@ -129,6 +137,18 @@ try {
                 response.addHeader("Location", locationHeader)
                 response.setStatus(201)
             }
+        } catch (InvalidRemoteRepositoryException e) {
+            response.setStatus(400)
+            result.message = "Remote repository URL invalid"
+        } catch (InvalidRemoteRepositoryCredentialsException e) {
+            response.setStatus(400)
+            result.message = "Remote repository credentials invalid"
+        } catch (RemoteRepositoryNotFoundException e) {
+            response.setStatus(404)
+            result.message = "Remote repository not found"
+        } catch (RemoteRepositoryNotBareException e) {
+            response.setStatus(409)
+            result.message = "Remote repository not bare"
         } catch (SiteAlreadyExistsException e) {
             response.setStatus(409)
             def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/site/get.json?site_id=" + siteId
