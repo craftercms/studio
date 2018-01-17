@@ -581,10 +581,12 @@ public class SiteServiceImpl implements SiteService {
         }
         switch (createOption) {
             case REMOTE_REPOSITORY_CREATE_OPTION_CLONE:
+                logger.debug("Clone from remote repository create option selected");
                 createSiteCloneRemote(siteId, description, remoteName, remoteUrl, remoteUsername, remotePassword);
                 break;
 
             case REMOTE_REPOSITORY_CREATE_OPTION_PUSH:
+                logger.debug("Push to remote repository create option selected");
                 createSitePushToRemote(siteId, description, blueprintName, remoteName, remoteUrl, remoteUsername, remotePassword);
                 break;
 
@@ -605,6 +607,7 @@ public class SiteServiceImpl implements SiteService {
 
         // Attempt to create the search index for the new site
         try {
+            logger.debug("Creating search index for site " + siteId);
             searchService.createIndex(siteId);
         } catch (ServiceException e) {
             success = false;
@@ -617,6 +620,7 @@ public class SiteServiceImpl implements SiteService {
         // Check if search index creation was successful, create the site in the preview deployer
         if (success) {
             try {
+                logger.debug("Creating preview deployer target for site " + siteId);
                 success = previewDeployer.createTarget(siteId);
             } catch (Exception e) {
                 success = false;
@@ -645,6 +649,7 @@ public class SiteServiceImpl implements SiteService {
         if (success) {
             try {
                 // create site by cloning remote git repo
+                logger.debug("Creating site " + siteId + " by cloning remote repository " + remoteName + " (" + remoteUrl + ")");
                 contentRepository.createSiteCloneRemote(siteId, remoteName, remoteUrl, remoteUsername, remotePassword);
             } catch (InvalidRemoteRepositoryException | InvalidRemoteRepositoryCredentialsException | RemoteRepositoryNotFoundException e) {
 
@@ -677,12 +682,15 @@ public class SiteServiceImpl implements SiteService {
                 String lastCommitId = contentRepository.getRepoLastCommitId(siteId);
 
                 // Set object states
+                logger.debug("Adding item states to database for site " + siteId);
                 createObjectStatesforNewSite(siteId);
 
                 // set object metadata
+                logger.debug("Adding item metadata to database for site " + siteId);
                 createObjectMetadataforNewSite(siteId, lastCommitId);
 
                 // Extract dependencies
+                logger.debug("Adding item dependencies to database for site " + siteId);
                 extractDependenciesForNewSite(siteId);
 
                 // Extract metadata ?
@@ -691,6 +699,7 @@ public class SiteServiceImpl implements SiteService {
                 // environment overrides
 
                 // initial deployment
+                logger.debug("Executing initial deployement for site " + siteId);
                 List<PublishingTargetTO> publishingTargets = getPublishingTargetsForSite(siteId);
                 if (publishingTargets != null && publishingTargets.size() > 0) {
                     for (PublishingTargetTO target : publishingTargets) {
@@ -702,6 +711,7 @@ public class SiteServiceImpl implements SiteService {
                 objectStateService.setStateForSiteContent(siteId, State.EXISTING_UNEDITED_UNLOCKED);
 
                 // insert database records
+                logger.debug("Adding site record to database for site " + siteId);
                 SiteFeed siteFeed = new SiteFeed();
                 siteFeed.setName(siteId);
                 siteFeed.setSiteId(siteId);
@@ -710,14 +720,17 @@ public class SiteServiceImpl implements SiteService {
                 siteFeed.setPublishingStatusMessage(studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT));
                 siteFeedMapper.createSite(siteFeed);
 
+                logger.debug("Adding git log to database for site " + siteId);
                 contentRepository.insertGitLog(siteId, lastCommitId, 1);
 
                 // Add default groups
+                logger.debug("Adding default groups for site " + siteId);
                 addDefaultGroupsForNewSite(siteId);
 
                 // Add creator to admin group
                 securityService.addUserToGroup(siteId, getDefaultAdminGroup(), securityService.getCurrentUser());
 
+                logger.debug("Loading configuration for site " + siteId);
                 reloadSiteConfiguration(siteId);
             } catch(Exception e) {
                 // TODO: SJ: We need better exception handling here
@@ -748,6 +761,7 @@ public class SiteServiceImpl implements SiteService {
 
         // Attempt to create the search index for the new site
         try {
+            logger.debug("Creating search index for site " + siteId);
             searchService.createIndex(siteId);
         } catch (ServiceException e) {
             success = false;
@@ -760,6 +774,7 @@ public class SiteServiceImpl implements SiteService {
         // Check if search index creation was successful, create the site in the preview deployer
         if (success) {
             try {
+                logger.debug("Creating preview deployer target for site " + siteId);
                 success = previewDeployer.createTarget(siteId);
             } catch (Exception e) {
                 success = false;
@@ -787,6 +802,7 @@ public class SiteServiceImpl implements SiteService {
 
         if (success) {
             try {
+                logger.debug("Creating site " + siteId + " from blueprint " + blueprintName);
                 success = createSiteFromBlueprintGit(blueprintName, siteId, siteId, description);
             } catch (Exception e) {
                 // TODO: SJ: We need better exception handling here
@@ -815,6 +831,7 @@ public class SiteServiceImpl implements SiteService {
 
             if (success) {
                 try {
+                    logger.debug("Pushing site " + siteId + " to remote repository " + remoteName + " (" + remoteUrl + ")");
                     contentRepository.createSitePushToRemote(siteId, remoteName, remoteUrl, remoteUsername, remotePassword);
                 } catch (RemoteRepositoryNotFoundException | InvalidRemoteRepositoryException | InvalidRemoteRepositoryCredentialsException | RemoteRepositoryNotBareException e) {
                     // TODO: SJ: We need better exception handling here
@@ -847,12 +864,15 @@ public class SiteServiceImpl implements SiteService {
                 String lastCommitId = contentRepository.getRepoLastCommitId(siteId);
 
                 // Set object states
+                logger.debug("Adding item states to database for site " + siteId);
                 createObjectStatesforNewSite(siteId);
 
                 // set object metadata
+                logger.debug("Adding item metadata to database for site " + siteId);
                 createObjectMetadataforNewSite(siteId, lastCommitId);
 
                 // Extract dependencies
+                logger.debug("Adding item dependencies to database for site " + siteId);
                 extractDependenciesForNewSite(siteId);
 
                 // Extract metadata ?
@@ -861,6 +881,7 @@ public class SiteServiceImpl implements SiteService {
                 // environment overrides
 
                 // initial deployment
+                logger.debug("Executing initial deployement for site " + siteId);
                 List<PublishingTargetTO> publishingTargets = getPublishingTargetsForSite(siteId);
                 if (publishingTargets != null && publishingTargets.size() > 0) {
                     for (PublishingTargetTO target : publishingTargets) {
@@ -872,6 +893,7 @@ public class SiteServiceImpl implements SiteService {
                 objectStateService.setStateForSiteContent(siteId, State.EXISTING_UNEDITED_UNLOCKED);
 
                 // insert database records
+                logger.debug("Adding site record to database for site " + siteId);
                 SiteFeed siteFeed = new SiteFeed();
                 siteFeed.setName(siteId);
                 siteFeed.setSiteId(siteId);
@@ -880,17 +902,18 @@ public class SiteServiceImpl implements SiteService {
                 siteFeed.setPublishingStatusMessage(studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT));
                 siteFeedMapper.createSite(siteFeed);
 
+                logger.debug("Adding git log to database for site " + siteId);
                 contentRepository.insertGitLog(siteId, lastCommitId, 1);
 
                 // Add default groups
+                logger.debug("Adding default groups for site " + siteId);
                 addDefaultGroupsForNewSite(siteId);
 
                 // Add creator to admin group
                 securityService.addUserToGroup(siteId, getDefaultAdminGroup(), securityService.getCurrentUser());
 
+                logger.debug("Loading configuration for site " + siteId);
                 reloadSiteConfiguration(siteId);
-
-
             } catch(Exception e) {
                 // TODO: SJ: We need better exception handling here
                 success = false;

@@ -1426,11 +1426,13 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
         if (toReturn) {
             // update site name variable inside config files
+            logger.debug("Update site name configuration variables for site " + siteId);
             toReturn = helper.updateSitenameConfigVar(siteId);
 
 
             if (toReturn) {
                 // commit everything so it is visible
+                logger.debug("Perform initial commit for site " + siteId);
                 toReturn = helper.performInitialCommit(siteId, INITIAL_COMMIT);
             }
         } else {
@@ -1445,10 +1447,13 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         boolean toRet = true;
         try (Repository repo = helper.getRepository(siteId, SANDBOX)) {
             try (Git git = new Git(repo)) {
+                logger.debug("Adding remote repository " + remoteName + "(" + remoteUrl +")");
                 RemoteAddCommand remoteAddCommand = git.remoteAdd();
                 remoteAddCommand.setName(remoteName);
                 remoteAddCommand.setUri(new URIish(remoteUrl));
                 remoteAddCommand.call();
+
+                logger.debug("Add user credentials if provided");
                 UsernamePasswordCredentialsProvider credentialsProvider = null;
                 // Check if this remote git repository has username/password provided
                 if (!StringUtils.isEmpty(remoteUsername)) {
@@ -1459,11 +1464,14 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     credentialsProvider = new UsernamePasswordCredentialsProvider(remoteUsername, remotePassword);
                 }
 
+                logger.debug("Push site " + siteId + " to remote repository " + remoteName + "(" + remoteUrl +")");
                 Iterable<PushResult> result = git.push()
                         .setPushAll()
                         .setRemote(remoteName)
                         .setCredentialsProvider(credentialsProvider)
                         .call();
+
+                logger.debug("Check push result to verify it was success");
                 Iterator<PushResult> resultIter = result.iterator();
                 if (resultIter.hasNext()) {
                     PushResult pushResult = resultIter.next();
@@ -1481,8 +1489,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 throw new InvalidRemoteRepositoryException("Invalid remote repository: " + remoteName + " (" + remoteUrl + ")");
             } catch (TransportException e) {
                 if (StringUtils.endsWithIgnoreCase(e.getMessage(), "not authorized")) {
-                    logger.error("Invalid credentials accessing remote repository: " + remoteName + " (" + remoteUrl + ")", e);
-                    throw new InvalidRemoteRepositoryCredentialsException("Invalid credentials accessing remote repository: " + remoteName + " (" + remoteUrl + ") for username " + remoteUsername, e);
+                    logger.error("Bad credentials or read only repository: " + remoteName + " (" + remoteUrl + ")", e);
+                    throw new InvalidRemoteRepositoryCredentialsException("Bad credentials or read only repository: " + remoteName + " (" + remoteUrl + ") for username " + remoteUsername, e);
                 } else {
                     logger.error("Remote repository not found: " + remoteName + " (" + remoteUrl + ")", e);
                     throw new RemoteRepositoryNotFoundException("Remote repository not found: " + remoteName + " (" + remoteUrl + ")");
