@@ -1,6 +1,6 @@
 /*
  * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2016 Crafter Software Corporation.
+ * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,6 +31,6 @@ def extraInfo = [:]
 extraInfo.contentType = contentTypeClass;
 
 def context = ActivityServices.createContext(applicationContext, request);
-result.result = ActivityServices.postActivity(context, site, user, path, activityType, extraInfo);
+result.result = ActivityServices.postActivity(context, site, user, path, activityType, ActivityService.ActivitySource.UI, extraInfo);
 
 return result;
