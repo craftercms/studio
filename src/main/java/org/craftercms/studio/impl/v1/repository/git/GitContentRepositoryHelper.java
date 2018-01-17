@@ -657,6 +657,7 @@ public class GitContentRepositoryHelper {
         File localPath = siteSandboxPath.toFile();
         localPath.delete();
 
+        logger.debug("Add user credentials if provided");
         UsernamePasswordCredentialsProvider credentialsProvider = null;
 
         // Check if this remote git repository has username/password provided
@@ -683,8 +684,8 @@ public class GitContentRepositoryHelper {
             throw new InvalidRemoteRepositoryException("Invalid remote repository: " + remoteName + " (" + remoteUrl + ")");
         } catch (TransportException e) {
             if (StringUtils.endsWithIgnoreCase(e.getMessage(), "not authorized")) {
-                logger.error("Invalid credentials accessing remote repository: " + remoteName + " (" + remoteUrl + ")", e);
-                throw new InvalidRemoteRepositoryCredentialsException("Invalid credentials accessing remote repository: " + remoteName + " (" + remoteUrl + ") for username " + remoteUsername, e);
+                logger.error("Bad credentials or read only repository: " + remoteName + " (" + remoteUrl + ")", e);
+                throw new InvalidRemoteRepositoryCredentialsException("Bad credentials or read only repository: " + remoteName + " (" + remoteUrl + ") for username " + remoteUsername, e);
             } else {
                 logger.error("Remote repository not found: " + remoteName + " (" + remoteUrl + ")", e);
                 throw new RemoteRepositoryNotFoundException("Remote repository not found: " + remoteName + " (" + remoteUrl + ")");
