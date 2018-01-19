@@ -1010,6 +1010,7 @@ public class SiteServiceImpl implements SiteService {
 	        objectStateService.deleteObjectStatesForSite(siteId);
 	        objectMetadataManager.deleteObjectMetadataForSite(siteId);
 	        dmPageNavigationOrderService.deleteSequencesForSite(siteId);
+	        contentRepository.deleteGitLogForSite(siteId);
 	    } catch(Exception e) {
 		    success = false;
 		    logger.error("Failed to delete the database for site:" + siteId, e);
