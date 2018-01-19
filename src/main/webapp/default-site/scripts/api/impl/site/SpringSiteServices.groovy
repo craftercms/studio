@@ -84,12 +84,6 @@ class SpringSiteServices {
         return springBackedService.reloadSiteConfiguration(site)
     }
 
-    def getCannedMessage(site,messageKey,locale="us") {
-                def newNotificationSystem=this.context.applicationContext.get("cstudioNotificationService")
-        return  newNotificationSystem.getNotificationMessage(site, NotificationMessageType.CannedMessages,
-                messageKey, Locale.forLanguageTag(locale))
-    }
-
     def syncRepository(site) {
         def springBackedService = this.context.applicationContext.get("cstudioSiteServiceSimple")
         return springBackedService.syncRepository(site)
