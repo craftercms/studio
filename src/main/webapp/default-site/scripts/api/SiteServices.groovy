@@ -91,11 +91,6 @@ class SiteServices {
         return siteServicesImpl.getCannedMessage(site,key,locale)
     }
 
-    static importSite(context, config) {
-        def siteServicesImpl = ServiceFactory.getSiteServices(context)
-        return siteServicesImpl.importSite(config)
-    }
-
     static syncRepository(context, site) {
         def siteServicesImpl = ServiceFactory.getSiteServices(context)
         return siteServicesImpl.syncRepository(site)
