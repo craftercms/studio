@@ -136,7 +136,7 @@ public class AuthenticationHeadersSecurityProvider extends DbWithLdapExtensionSe
                     return token;
                 }
             }
-            logger.debug("Unsable to authenticate user using authentication headers. Switching to other security provider(s).");
+            logger.debug("Unable to authenticate user using authentication headers. Switching to other security provider(s).");
             return super.authenticate(username, password);
         } else {
             logger.debug("Authentication using headers disabled. Switching to other security provider(s).");
