@@ -1,7 +1,6 @@
 /*
- * Crafter Studio
- *
- * Copyright (C) 2007-2016 Crafter Software Corporation.
+ * Crafter Studio Web-content authoring solution
+ * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,7 +14,6 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 package org.craftercms.studio.impl.v1.repository.git;
@@ -35,12 +33,14 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
-import com.google.gdata.util.common.base.StringUtil;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
+import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
+import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
+import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
@@ -58,8 +58,10 @@ import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
+import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 
+import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
 import static org.craftercms.studio.api.v1.constant.SecurityConstants.*;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.*;
@@ -201,7 +203,7 @@ public class GitContentRepositoryHelper {
     }
 
     public Path buildRepoPath(GitRepositories repoType) {
-        return buildRepoPath(repoType, StringUtil.EMPTY_STRING);
+        return buildRepoPath(repoType, StringUtils.EMPTY);
     }
     public Path buildRepoPath(GitRepositories repoType, String site) {
         Path path;
@@ -646,5 +648,52 @@ public class GitContentRepositoryHelper {
             rw.dispose();
         }
         return files;
+    }
+
+    public boolean createSiteCloneRemoteGitRepo(String siteId, String remoteName, String remoteUrl, String remoteUsername, String remotePassword) throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException {
+        boolean toRet = true;
+        // prepare a new folder for the cloned repository
+        Path siteSandboxPath = buildRepoPath(SANDBOX, siteId);
+        File localPath = siteSandboxPath.toFile();
+        localPath.delete();
+
+        logger.debug("Add user credentials if provided");
+        UsernamePasswordCredentialsProvider credentialsProvider = null;
+
+        // Check if this remote git repository has username/password provided
+        if (!StringUtils.isEmpty(remoteUsername)) {
+            if (StringUtils.isEmpty(remotePassword)) {
+                // Username was provided but password is empty
+                logger.debug("Password field is empty while cloning from remote repository: " + remoteUrl);
+            }
+            credentialsProvider = new UsernamePasswordCredentialsProvider(remoteUsername, remotePassword);
+        }
+
+        // then clone
+        logger.debug("Cloning from " + remoteUrl + " to " + localPath);
+        try (Git result = Git.cloneRepository()
+                .setURI(remoteUrl)
+                .setDirectory(localPath)
+                .setCredentialsProvider(credentialsProvider)
+                .setRemote(remoteName)
+                .call()) {
+            Repository sandboxRepo = result.getRepository();
+            sandboxes.put(siteId, sandboxRepo);
+        } catch (InvalidRemoteException e) {
+            logger.error("Invalid remote repository: " + remoteName + " (" + remoteUrl + ")", e);
+            throw new InvalidRemoteRepositoryException("Invalid remote repository: " + remoteName + " (" + remoteUrl + ")");
+        } catch (TransportException e) {
+            if (StringUtils.endsWithIgnoreCase(e.getMessage(), "not authorized")) {
+                logger.error("Bad credentials or read only repository: " + remoteName + " (" + remoteUrl + ")", e);
+                throw new InvalidRemoteRepositoryCredentialsException("Bad credentials or read only repository: " + remoteName + " (" + remoteUrl + ") for username " + remoteUsername, e);
+            } else {
+                logger.error("Remote repository not found: " + remoteName + " (" + remoteUrl + ")", e);
+                throw new RemoteRepositoryNotFoundException("Remote repository not found: " + remoteName + " (" + remoteUrl + ")");
+            }
+        } catch (GitAPIException e) {
+            logger.error("Error while creating repository for site with path" + siteSandboxPath.toString(), e);
+            toRet = false;
+        }
+        return toRet;
     }
 }

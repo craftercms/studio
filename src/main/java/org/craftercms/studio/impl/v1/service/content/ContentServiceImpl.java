@@ -1484,21 +1484,25 @@ public class ContentServiceImpl implements ContentService {
 
     protected void loadContentTypeProperties(String site, ContentItemTO item, String contentType) {
         // TODO: SJ: Refactor in 2.7.x
-        if(contentType != null && !contentType.equals("folder") && !contentType.equals("asset") && !contentType.equals(CONTENT_TYPE_UNKNOWN)) {
-            ContentTypeConfigTO config = servicesConfig.getContentTypeConfig(site, contentType);
-            if (config != null) {
-                item.setForm(config.getForm());
-                item.setFormPagePath(config.getFormPath());
-                item.setPreviewable(config.isPreviewable());
-                item.isPreviewable = item.previewable;
-            }
+        if (item.isFolder()) {
+            item.setContentType(CONTENT_TYPE_FOLDER);
         } else {
-            MimetypesFileTypeMap mimeTypesMap = new MimetypesFileTypeMap();
-            String mimeType = mimeTypesMap.getContentType(item.getName());
-            if (mimeType != null && !StringUtils.isEmpty(mimeType)) {
-                item.setPreviewable(ContentUtils.matchesPatterns(mimeType, servicesConfig
-                        .getPreviewableMimetypesPaterns(site)));
-                item.isPreviewable = item.previewable;
+            if (contentType != null && !contentType.equals(CONTENT_TYPE_FOLDER) && !contentType.equals("asset") && !contentType.equals(CONTENT_TYPE_UNKNOWN)) {
+                ContentTypeConfigTO config = servicesConfig.getContentTypeConfig(site, contentType);
+                if (config != null) {
+                    item.setForm(config.getForm());
+                    item.setFormPagePath(config.getFormPath());
+                    item.setPreviewable(config.isPreviewable());
+                    item.isPreviewable = item.previewable;
+                }
+            } else {
+                MimetypesFileTypeMap mimeTypesMap = new MimetypesFileTypeMap();
+                String mimeType = mimeTypesMap.getContentType(item.getName());
+                if (mimeType != null && !StringUtils.isEmpty(mimeType)) {
+                    item.setPreviewable(ContentUtils.matchesPatterns(mimeType, servicesConfig
+                            .getPreviewableMimetypesPaterns(site)));
+                    item.isPreviewable = item.previewable;
+                }
             }
         }
         // TODO CodeRev:but what if the config is null?
@@ -2091,14 +2095,19 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     @ValidateParams
-    public boolean renameFolder(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, @ValidateStringParam(name = "name") String name) {
+    public boolean renameFolder(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, @ValidateStringParam(name = "name") String name) throws ServiceException {
         boolean toRet = false;
-        String parentPath = FILE_SEPARATOR + FilenameUtils.getPathNoEndSeparator(path);
 
+        String parentPath = FILE_SEPARATOR + FilenameUtils.getPathNoEndSeparator(path);
         String targetPath = parentPath + FILE_SEPARATOR + name;
 
-        logger.debug("Rename folder for site {0} sourcePath {3} to target path {4}", site, path, targetPath);
+        if (contentExists(site, targetPath)) {
+            Map<String,String> ids = contentItemIdGenerator.getIds();
+            String id = ids.get(DmConstants.KEY_PAGE_GROUP_ID);
+            targetPath += "-" + id;
+        }
 
+        logger.debug("Rename folder for site {0} sourcePath {3} to target path {4}", site, path, targetPath);
         // NOTE: IN WRITE SCENARIOS the repository OP IS PART of this PIPELINE, for some reason, historically with MOVE it is not
         Map<String, String> commitIds = _contentRepository.moveContent(site, path, targetPath);
 

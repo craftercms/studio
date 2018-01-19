@@ -223,7 +223,7 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
         }
     }
 
-    private boolean updateUserInternal(String username, String firstName, String lastName, String email) throws UserNotFoundException {
+    protected boolean updateUserInternal(String username, String firstName, String lastName, String email) throws UserNotFoundException {
         if (!userExists(username)) {
             throw new UserNotFoundException();
         } else {
@@ -238,7 +238,7 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
         }
     }
 
-    private boolean upsertUserGroup(String siteId, String groupName, String username) throws GroupAlreadyExistsException,
+    protected boolean upsertUserGroup(String siteId, String groupName, String username) throws GroupAlreadyExistsException,
         SiteNotFoundException, UserNotFoundException, UserAlreadyExistsException, GroupNotFoundException {
         if (!groupExists(siteId, groupName)) {
            createGroup(groupName, "Externally managed group", siteId, true);

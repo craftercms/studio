@@ -41,6 +41,7 @@ public class StudioSiteAPIAccessDecisionVoter extends StudioAbstractAccessDecisi
     private final static Logger logger = LoggerFactory.getLogger(StudioSiteAPIAccessDecisionVoter.class);
 
     private final static String CREATE = "/api/1/services/api/1/site/create.json";
+    private final static String DELETE = "/api/1/services/api/1/site/delete-site.json";
 
     @Override
     public boolean supports(ConfigAttribute configAttribute) {
@@ -87,6 +88,7 @@ public class StudioSiteAPIAccessDecisionVoter extends StudioAbstractAccessDecisi
             }
             switch (requestUri) {
                 case CREATE:
+                case DELETE:
                     if (currentUser != null && isAdmin(currentUser)) {
                         toRet = ACCESS_GRANTED;
                     } else {

@@ -52,8 +52,8 @@ public class StudioUserAPIAccessDecisionVoter extends StudioAbstractAccessDecisi
     private final static String GET = "/api/1/services/api/1/user/get.json";
     private final static String GET_ALL = "/api/1/services/api/1/user/get-all.json";
     private final static String GET_PER_SITE = "/api/1/services/api/1/user/get-per-site.json";
-    private final static String LOGIN = "/api/1/services/api/1/user/login.json";
-    private final static String LOGOUT = "/api/1/services/api/1/user/logout.json";
+    private final static String LOGIN = "/api/1/services/api/1/security/login.json";
+    private final static String LOGOUT = "/api/1/services/api/1/security/logout.json";
     private final static String RESET_PASSWORD = "/api/1/services/api/1/user/reset-password.json";
     private final static String SET_PASSWORD = "/api/1/services/api/1/user/set-password.json";
     private final static String STATUS = "/api/1/services/api/1/user/status.json";

@@ -49,6 +49,7 @@
         <property name="securityService" ref="cstudioSecurityService"/>
         <property name="userDetailsManager" ref="studioUserDetailsManager"/>
         <property name="studioConfiguration" ref="studioConfiguration" />
+        <property name="securityProvider" ref="securityProvider" />
     </bean>
 
     <security:authentication-manager id="studioAuthenticationManager">
@@ -81,6 +82,18 @@
           parent="cstudioSecurityProviderRegistration">
         <property name="securityProvider" ref="cstudioLdapSecurityProvider"/>
         <property name="providerType" value="ldap"/>
+    </bean>
+
+    <bean id="studioAuthenticationHeadersProvider" class="org.craftercms.studio.impl.v1.service.security.AuthenticationHeadersSecurityProvider">
+        <property name="activityService" ref="cstudioActivityService"/>
+        <property name="ldapTemplate" ref="ldapTemplate"/>
+        <property name="studioConfiguration" ref="studioConfiguration" />
+    </bean>
+
+    <bean id="cstudioAuthenticationHeadersSecurityProviderRegistration"
+          parent="cstudioSecurityProviderRegistration">
+        <property name="securityProvider" ref="studioAuthenticationHeadersProvider"/>
+        <property name="providerType" value="headers"/>
     </bean>
 
     <bean id="studioAccessDecisionManager" class="org.craftercms.studio.impl.v1.web.security.access.StudioAccessDecisionManager" >

@@ -79,7 +79,9 @@ public class RegexDependencyResolver implements DependencyResolver {
                                         if (contentService.contentExists(site, matchedPath)) {
                                             extractedPaths.add(matchedPath);
                                         } else {
-                                            logger.info("Found reference to " + matchedPath + " in content at " + path + " but content does not exist in referenced path for site " + site);
+                                            String message = "Found reference to " + matchedPath + " in content at " + path + " but content does not exist in referenced path for site " + site + ".\n"
+                                                    + "Regular expression for extracting dependencies matched string, and after applying transformation rules to get value for dependency path, that dependency path was not found in site repository as a content.";
+                                            logger.debug(message);
                                         }
                                     }
                                 }

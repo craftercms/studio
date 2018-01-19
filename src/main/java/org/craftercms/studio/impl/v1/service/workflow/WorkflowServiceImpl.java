@@ -750,8 +750,9 @@ public class WorkflowServiceImpl implements WorkflowService {
                         goLiveItems.addAll(references);
                         goLiveItems.addAll(children);
                         List<String> goLivePaths = new ArrayList<>();
+                        Set<String> processedPaths = new HashSet<String>();
                         for (DmDependencyTO goLiveItem : goLiveItems) {
-                            resolveSubmittedPaths(site, goLiveItem, goLivePaths);
+                            resolveSubmittedPaths(site, goLiveItem, goLivePaths, processedPaths);
                         }
                         List<String> nodeRefs = new ArrayList<>();
                         for (String path : goLivePaths) {
@@ -879,7 +880,7 @@ public class WorkflowServiceImpl implements WorkflowService {
             }
             switch (operation) {
                 case GO_LIVE:
-                    if (scheduledDate != null && isNow == false) {
+                    if (scheduledDate != null && !isNow) {
                         responseMessageKey = NotificationService.COMPLETE_SCHEDULE_GO_LIVE;
                     } else {
                         responseMessageKey = NotificationService.COMPLETE_GO_LIVE;
@@ -898,7 +899,6 @@ public class WorkflowServiceImpl implements WorkflowService {
                             }
                         }
                     }
-
                     if (!submitToDeleteItems.isEmpty()) {
                         doDelete(site, submitToDeleteItems, approver);
                     }
@@ -912,7 +912,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                         goLiveItems.addAll(dependencies);
                         List<String> goLivePaths = new ArrayList<>();
                         for (DmDependencyTO goLiveItem : goLiveItems) {
-                            resolveSubmittedPaths(site, goLiveItem, goLivePaths);
+                            goLivePaths.add(goLiveItem.getUri());
                         }
                         for (String path : goLivePaths) {
                             String lockId = site + ":" + path;
@@ -952,7 +952,6 @@ public class WorkflowServiceImpl implements WorkflowService {
                             }
                             renameItems.set(i, renamedItem);
                         }
-
                         goLive(site, renameItems, approver, mcpContext);
                     }
 
@@ -964,10 +963,6 @@ public class WorkflowServiceImpl implements WorkflowService {
                     for (DmDependencyTO deletedItem : submittedItems) {
                         //deletedItem.setScheduledDate(getScheduledDate(site, format, scheduledDate));
                         deletePaths.add(deletedItem.getUri());
-                        ContentItemTO contentItem = contentService.getContentItem(site, deletedItem.getUri());
-                        if (contentItem != null) {
-                            //nodeRefs.add(nodeRef.getId());
-                        }
                     }
                     doDelete(site, submittedItems, approver);
             }
@@ -1073,8 +1068,9 @@ public class WorkflowServiceImpl implements WorkflowService {
                         //List<DmDependencyTO> dependencies = addDependenciesForSubmittedItems(site, submittedItems, format, scheduledDate);
                         //goLiveItems.addAll(dependencies);
                         List<String> goLivePaths = new ArrayList<>();
+                        Set<String> processedPaths = new HashSet<String>();
                         for (DmDependencyTO goLiveItem : goLiveItems) {
-                            resolveSubmittedPaths(site, goLiveItem, goLivePaths);
+                            resolveSubmittedPaths(site, goLiveItem, goLivePaths, processedPaths);
                         }
                         for (String path : goLivePaths) {
                             String lockId = site + ":" + path;
@@ -1473,9 +1469,10 @@ public class WorkflowServiceImpl implements WorkflowService {
             Set<String> rescheduledUris = new HashSet<String>();
             if (deletePackage != null) {
                 ZonedDateTime launchDate = scheduledDate.equals(now) ? null : scheduledDate;
+                Set<String> processedUris = new HashSet<String>();
                 for (DmDependencyTO dmDependencyTO : deletePackage) {
                     if (launchDate != null) {
-                        handleReferences(site, submitpackage, dmDependencyTO, true, null, "", rescheduledUris);
+                        handleReferences(site, submitpackage, dmDependencyTO, true, null, "", rescheduledUris, processedUris);
                     } else {
                         applyDeleteDependencyRule(site, submitpackage, dmDependencyTO);
                     }
@@ -1534,36 +1531,30 @@ public class WorkflowServiceImpl implements WorkflowService {
         return groupedPackages;
     }
 
-    protected void handleReferences(String site, SubmitPackage submitpackage, DmDependencyTO dmDependencyTO, boolean isNotScheduled, SubmitPackage dependencyPackage, String approver, Set<String> rescheduledUris) {//,boolean isReferencePage) {
-        ItemMetadata properties = objectMetadataManager.getProperties(site, dmDependencyTO.getUri());
-        ZonedDateTime scheduledDate = null;
-        if (properties != null) {
-            scheduledDate = properties.getLaunchDate();
-        }
-        ItemState state = objectStateService.getObjectState(site, dmDependencyTO.getUri());
-        if (state != null) {
-            if (!State.isSubmitted(State.valueOf(state.getState())) && scheduledDate != null && scheduledDate.equals(dmDependencyTO.getScheduledDate())) {
-                if (objectStateService.isScheduled(site, dmDependencyTO.getUri())) {
-                    return;
-                } else {
-                    submitpackage.addToPackage(dmDependencyTO);
+    protected void handleReferences(String site, SubmitPackage submitpackage, DmDependencyTO dmDependencyTO, boolean isNotScheduled, SubmitPackage dependencyPackage, String approver, Set<String> rescheduledUris, Set<String> processedUris) {//,boolean isReferencePage) {
+        if (!processedUris.contains(dmDependencyTO.getUri())) {
+            ItemMetadata properties = objectMetadataManager.getProperties(site, dmDependencyTO.getUri());
+            ZonedDateTime scheduledDate = null;
+            if (properties != null) {
+                scheduledDate = properties.getLaunchDate();
+            }
+            ItemState state = objectStateService.getObjectState(site, dmDependencyTO.getUri());
+            if (state != null) {
+                if (!State.isSubmitted(State.valueOf(state.getState())) && scheduledDate != null && scheduledDate.equals(dmDependencyTO.getScheduledDate())) {
+                    if (objectStateService.isScheduled(site, dmDependencyTO.getUri())) {
+                        return;
+                    } else {
+                        submitpackage.addToPackage(dmDependencyTO);
+                    }
                 }
             }
-        }
-        if (!dmDependencyTO.isReference()) {
-            submitpackage.addToPackage(dmDependencyTO);
-        }
-
-        Set<String> dependencySet = deploymentDependencyRule.applyRule(site, dmDependencyTO.getUri());
-        for (String dependency : dependencySet) {
-            submitpackage.addToPackage(dependency);
-            if (!isNotScheduled) {
-                dependencyPackage.addToPackage(dependency);
+            if (!dmDependencyTO.isReference()) {
+                submitpackage.addToPackage(dmDependencyTO);
             }
-        }
-
-        if (isRescheduleRequest(dmDependencyTO, site)) {
-            rescheduledUris.add(dmDependencyTO.getUri());
+            if (isRescheduleRequest(dmDependencyTO, site)) {
+                rescheduledUris.add(dmDependencyTO.getUri());
+            }
+            processedUris.add(dmDependencyTO.getUri());
         }
     }
 
@@ -1746,11 +1737,15 @@ public class WorkflowServiceImpl implements WorkflowService {
     protected List<DmDependencyTO> addDependenciesForSubmittedItems(String site, List<DmDependencyTO> submittedItems, SimpleDateFormat format, String globalScheduledDate) {
         List<DmDependencyTO> dependencies = new ArrayList<DmDependencyTO>();
         Set<String> dependenciesPaths = new HashSet<String>();
+        int i = 0;
         for (DmDependencyTO submittedItem : submittedItems) {
-            dependenciesPaths.addAll(deploymentDependencyRule.applyRule(site, submittedItem.getUri()));
+            if (!dependenciesPaths.contains(submittedItem.getUri())) {
+                dependenciesPaths.addAll(deploymentDependencyRule.applyRule(site, submittedItem.getUri()));
+            }
         }
+        int j = 0;
         for (String depPath : dependenciesPaths) {
-            dependencies.add(getSubmittedItem(site, depPath, format, globalScheduledDate, null));
+            dependencies.add(getSubmittedItem_new(site, depPath, format, globalScheduledDate));
         }
         return dependencies;
     }
@@ -1767,25 +1762,28 @@ public class WorkflowServiceImpl implements WorkflowService {
         return dependencies;
     }
 
-    protected void resolveSubmittedPaths(String site, DmDependencyTO item, List<String> submittedPaths) {
-        if (!submittedPaths.contains(item.getUri())) {
-            submittedPaths.add(item.getUri());
-        }
-        List<DmDependencyTO> children = item.getChildren();
-        if (children != null) {
-            for (DmDependencyTO child : children) {
-                if (objectStateService.isUpdatedOrNew(site, child.getUri())) {
-                    if (!submittedPaths.contains(child.getUri())) {
-                        submittedPaths.add(child.getUri());
+    protected void resolveSubmittedPaths(String site, DmDependencyTO item, List<String> submittedPaths, Set<String> processedPaths) {
+        if (!processedPaths.contains(item.getUri())) {
+            if (!submittedPaths.contains(item.getUri())) {
+                submittedPaths.add(item.getUri());
+            }
+            List<DmDependencyTO> children = item.getChildren();
+            if (children != null) {
+                int i = 0;
+                for (DmDependencyTO child : children) {
+                    if (objectStateService.isUpdatedOrNew(site, child.getUri())) {
+                        if (!submittedPaths.contains(child.getUri())) {
+                            submittedPaths.add(child.getUri());
+                        }
+                        resolveSubmittedPaths(site, child, submittedPaths, processedPaths);
                     }
-                    resolveSubmittedPaths(site, child, submittedPaths);
                 }
             }
+            Set<String> dependencyPaths = deploymentDependencyRule.applyRule(site, item.getUri());
+            submittedPaths.addAll(dependencyPaths);
+            processedPaths.addAll(dependencyPaths);
+            processedPaths.add(item.getUri());
         }
-
-        Set<String> dependencyPaths = deploymentDependencyRule.applyRule(site, item.getUri());
-        submittedPaths.addAll(dependencyPaths);
-
     }
 
     protected List<DmDependencyTO> getChildrenForRenamedItem(String site, DmDependencyTO renameItem) {
@@ -1906,13 +1904,13 @@ public class WorkflowServiceImpl implements WorkflowService {
      */
     protected void goLive(final String site, final List<DmDependencyTO> submittedItems, String approver, MultiChannelPublishingContext mcpContext)
             throws ServiceException {
-        long start = System.currentTimeMillis();
         // get web project information
         final ZonedDateTime now = ZonedDateTime.now(ZoneOffset.UTC);
         if (submittedItems != null) {
             // group submitted items into packages by their scheduled date
             Map<ZonedDateTime, List<DmDependencyTO>> groupedPackages = groupByDate(submittedItems, now);
 
+            int i = 0;
             for (ZonedDateTime scheduledDate : groupedPackages.keySet()) {
                 List<DmDependencyTO> goLivePackage = groupedPackages.get(scheduledDate);
                 if (goLivePackage != null) {
@@ -1927,10 +1925,10 @@ public class WorkflowServiceImpl implements WorkflowService {
                      */
                     final Set<String> rescheduledUris = new HashSet<String>();
                     final SubmitPackage dependencyPackage = new SubmitPackage("");
+                    Set<String> processedUris = new HashSet<String>();
                     for (final DmDependencyTO dmDependencyTO : goLivePackage) {
-                        goLivepackage(site, submitpackage, dmDependencyTO, isNotScheduled, dependencyPackage, approver, rescheduledUris);
+                        goLivepackage(site, submitpackage, dmDependencyTO, isNotScheduled, dependencyPackage, approver, rescheduledUris, processedUris);
                     }
-
                     List<String> stringList = submitpackage.getPaths();
                     String label = submitpackage.getLabel();
                     SubmitLifeCycleOperation operation = null;
@@ -1951,23 +1949,25 @@ public class WorkflowServiceImpl implements WorkflowService {
                             dmPublishService.cancelScheduledItem(site, uri);
                         }
                         workflowProcessor.addToWorkflow(site, stringList, launchDate, label, operation, approver, mcpContext);
-
                     }
                 }
             }
         }
         long end = System.currentTimeMillis();
-        logger.debug("Total go live time = " + (end - start));
     }
 
-    protected void goLivepackage(String site, SubmitPackage submitpackage, DmDependencyTO dmDependencyTO, boolean isNotScheduled, SubmitPackage dependencyPackage, String approver, Set<String> rescheduledUris) {
-        handleReferences(site, submitpackage, dmDependencyTO, isNotScheduled, dependencyPackage, approver, rescheduledUris);
-        List<DmDependencyTO> children = dmDependencyTO.getChildren();
-        if (children != null) {
-            for (DmDependencyTO child : children) {
-                handleReferences(site, submitpackage, child, isNotScheduled, dependencyPackage, approver, rescheduledUris);
-                goLivepackage(site, submitpackage, child, isNotScheduled, dependencyPackage, approver, rescheduledUris);
+    protected void goLivepackage(String site, SubmitPackage submitpackage, DmDependencyTO dmDependencyTO, boolean isNotScheduled, SubmitPackage dependencyPackage, String approver, Set<String> rescheduledUris, Set<String> processedUris) {
+        if (!processedUris.contains(dmDependencyTO.getUri())) {
+            handleReferences(site, submitpackage, dmDependencyTO, isNotScheduled, dependencyPackage, approver, rescheduledUris, processedUris);
+            List<DmDependencyTO> children = dmDependencyTO.getChildren();
+            if (children != null) {
+                int i = 1;
+                for (DmDependencyTO child : children) {
+                    handleReferences(site, submitpackage, child, isNotScheduled, dependencyPackage, approver, rescheduledUris, processedUris);
+                    goLivepackage(site, submitpackage, child, isNotScheduled, dependencyPackage, approver, rescheduledUris, processedUris);
+                }
             }
+            processedUris.add(dmDependencyTO.getUri());
         }
     }
 

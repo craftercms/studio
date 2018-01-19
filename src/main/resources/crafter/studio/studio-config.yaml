@@ -91,6 +91,9 @@ studio.configuration.site.dependencyResolver.configFileName: resolver-config.xml
 studio.configuration.site.aws.configBasePath: /config/studio/aws
 # Name of the AWS configuration file
 studio.configuration.site.aws.configFileName: aws.xml
+# Repo path to read the Box configuration
+studio.configuration.site.box.configurationPath: /config/studio/box/box.xml
+
 ########################################################
 ##                   Import Service                   ##
 ########################################################
@@ -191,6 +194,25 @@ studio.security.ldap.userAttribute.siteId: crafterSite
 studio.security.ldap.userAttribute.groupName: crafterGroup
 # Global admin group
 studio.security.global.adminGroup: crafter-admin
+# Authentication via headers enabled
+studio.authentication.headers.enabled: false
+# Authentication header for secure key
+studio.authentication.headers.secureKeyHeaderName: secure_key
+# Authentication headers secure key that is expected to match secure key value from headers
+# Typically this is placed in the header by the authentication agent, e.g. Apache mod_mellon
+studio.authentication.headers.secureKeyHeaderValue: secure
+# Authentication header for username
+studio.authentication.headers.username: username
+# Authentication header for first name
+studio.authentication.headers.firstName: firstname
+# Authentication header for last name
+studio.authentication.headers.lastName: lastname
+# Authentication header for email
+studio.authentication.headers.email: email
+# Authentication header for groups: comma separated list of sites and groups
+#   Example:
+#   craftercms1645,Author,anothersite,Author
+studio.authentication.headers.groups: groups
 
 ###############################################################
 ##               Page Navigation Order Service               ##

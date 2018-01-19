@@ -60,7 +60,6 @@ import java.text.SimpleDateFormat;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.TemporalUnit;
 import java.util.*;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.DATE_FORMAT_DEPLOYED;
@@ -112,7 +111,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         for (String p : paths) {
             ContentItemTO item = contentService.getContentItem(site, p, 0);
             if (item.isFolder()) {
-                logger.info("Content item at path " + p + " for site " + site + " is folder and will not be added to publishing queue.");
+                logger.debug("Content item at path " + p + " for site " + site + " is folder and will not be added to publishing queue.");
             } else {
                 if (objectStateService.isNew(site, p)) {
                     newPaths.add(p);

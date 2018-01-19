@@ -257,6 +257,7 @@
     <bean id="cstudioClipboardService" class="org.craftercms.studio.impl.v1.service.clipboard.ClipboardServiceImpl"
             parent="cstudioRegistrableService">
         <property name="contentService" ref="cstudioContentService"/>
+        <property name="workflowService" ref="cstudioWorkflowService" />
     </bean>
 
     <bean id="studioEventService" class="org.craftercms.studio.impl.v1.service.event.EventServiceImpl" />
@@ -726,6 +727,18 @@
     <bean id="studioS3Service" class="org.craftercms.studio.impl.v1.service.aws.S3ServiceImpl">
         <property name="profileManager" ref="studioAwsProfileManager"/>
         <property name="profileReader" ref="studioS3ProfileReader"/>
+    </bean>
+
+    <!-- ////////////////////////////////////// -->
+    <!--         BOX                            -->
+    <!-- ////////////////////////////////////// -->
+    <bean id="studioBoxProfileReader" class="org.craftercms.studio.impl.v1.box.BoxProfileReaderImpl">
+        <property name="configPath" value="#{studioConfiguration.getProperty('studio.configuration.site.box.configurationPath')}"/>
+        <property name="contentService" ref="cstudioContentService"/>
+    </bean>
+
+    <bean id="studioBoxService" class="org.craftercms.studio.impl.v1.service.box.BoxServiceImpl">
+        <property name="profileReader" ref="studioBoxProfileReader"/>
     </bean>
 
     <!-- Utilities -->

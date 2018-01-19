@@ -118,4 +118,10 @@ package org.craftercms.studio.api.v1.constant;
      * System constants
      */
     String FILE_SEPARATOR = "/";
+
+    /**
+     * Remote repository create option
+     */
+    String REMOTE_REPOSITORY_CREATE_OPTION_CLONE = "clone";
+    String REMOTE_REPOSITORY_CREATE_OPTION_PUSH = "push";
 }

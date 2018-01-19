@@ -27,4 +27,6 @@ public interface GitLogMapper {
     void insertGitLog(Map params);
 
     void markGitLogProcessed(Map params);
+
+    void deleteGitLogForSite(Map params);
 }

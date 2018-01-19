@@ -1,6 +1,6 @@
 /*
  * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2016 Crafter Software Corporation.
+ * Copyright (C) 2007-2018 Crafter Software Corporation.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,13 +15,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import scripts.api.SiteServices
 import scripts.api.impl.content.ContentMonitoring
 
-def context = SiteServices.createContext(applicationContext, request)
-
-return ContentMonitoring.doMonitoringForAllSites(context)
-
-
-
-
+return ContentMonitoring.doMonitoringForAllSites(applicationContext, logger);

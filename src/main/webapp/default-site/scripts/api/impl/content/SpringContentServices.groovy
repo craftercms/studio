@@ -72,17 +72,6 @@ class SpringContentServices {
 	}
 
 	/**
-	 * delete a content item
-     *
-	 * @param site - the projectId
-	 * @param path - the path to delete
-	 */
-	def deleteContent(site, path) {
-        def springBackedService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN)
-        return springBackedService.deleteContent(site, path)
-	}
-
-	/**
 	 * get the actual content at a given path
 	 * @param site - the project ID
 	 * @param path - the path of the content to get
