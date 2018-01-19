@@ -44,11 +44,6 @@ class SpringDeploymentServices {
         return springBackedService.syncAllContentToPreview(site, false)
     }
 
-    def getSyncTargetQueue(site, endpoint, targetVersion) {
-        def springBackedService = this.context.applicationContext.get("cstudioDeploymentService")
-        return springBackedService.getSyncTargetQueue(site, endpoint, targetVersion)
-    }
-
     def getDeploymentEndpoints(site) {
         def springBackedService = this.context.applicationContext.get("cstudioDeploymentService")
         return springBackedService.getDeploymentEndpoints(site)

@@ -42,11 +42,6 @@ class DeploymentServices {
         return deploymentServicesImpl.getAvailablePublishingChannelGroups(site, path);
     }
 
-    static getSyncTargetQueue(context, site, endpoint, targetVersion) {
-        def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context);
-        return deploymentServicesImpl.getSyncTargetQueue(site, endpoint, targetVersion);
-    }
-
     static getDeploymentEndpoints(context, site) {
         def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context);
         return deploymentServicesImpl.getDeploymentEndpoints(site);
