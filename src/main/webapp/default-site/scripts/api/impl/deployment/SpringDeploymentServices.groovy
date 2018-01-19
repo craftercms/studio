@@ -44,11 +44,6 @@ class SpringDeploymentServices {
         return springBackedService.syncAllContentToPreview(site, false)
     }
 
-    def getDeploymentEndpoints(site) {
-        def springBackedService = this.context.applicationContext.get("cstudioDeploymentService")
-        return springBackedService.getDeploymentEndpoints(site)
-    }
-
     def cancelDeployment(site, path, deploymentId) {
         def springBackedService = this.context.applicationContext.get("cstudioDeploymentService")
         return springBackedService.cancelDeployment(site, path, deploymentId)
