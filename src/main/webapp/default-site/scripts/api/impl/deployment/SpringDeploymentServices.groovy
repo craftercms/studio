@@ -44,11 +44,6 @@ class SpringDeploymentServices {
         return springBackedService.syncAllContentToPreview(site, false)
     }
 
-    def cancelDeployment(site, path, deploymentId) {
-        def springBackedService = this.context.applicationContext.get("cstudioDeploymentService")
-        return springBackedService.cancelDeployment(site, path, deploymentId)
-    }
-
     def bulkGoLive(site, environment, path) {
         def springBackedService = this.context.applicationContext.get("cstudioDeploymentService")
         return springBackedService.bulkGoLive(site, environment, path)

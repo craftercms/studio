@@ -38,21 +38,9 @@ public interface PublishRequestMapper {
 
     void deleteDeploymentDataForSite(Map params);
 
-    List<PublishRequest> getItemsBySiteAndStates(Map params);
-
-    void cancelDeployment(Map params);
-
-    int checkIfItemWasPublished(Map params);
-
-    int checkIfItemWasPublishedForEnvironment(Map params);
-
     PublishRequest checkPublishingStatus(Map params);
 
     int isPublishingBlocked(Map params);
-
-    PublishRequest getLastDeployedItem(Map params);
-
-    List<String> getQueuedPaths(Map params);
 
     int checkItemQueued(Map params);
 }

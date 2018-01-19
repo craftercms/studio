@@ -42,11 +42,6 @@ class DeploymentServices {
         return deploymentServicesImpl.getAvailablePublishingChannelGroups(site, path);
     }
 
-    static cancelDeployment(context, site, path, deploymentId) {
-        def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context);
-        return deploymentServicesImpl.cancelDeployment(site, path, deploymentId);
-    }
-
     static bulkGoLive(context, site, environment, path) {
         def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context);
         return deploymentServicesImpl.bulkGoLive(site, environment, path);
