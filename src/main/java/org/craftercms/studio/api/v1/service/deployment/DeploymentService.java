@@ -70,8 +70,6 @@ public interface DeploymentService {
 
     void syncAllContentToPreview(String site, boolean waitTillDone) throws ServiceException;
 
-    List<PublishRequest> getDeploymentQueue(String site) throws ServiceException;
-
     boolean cancelDeployment(String site, String path, long deploymentId) throws ServiceException;
 
     void bulkGoLive(String site, String environment, String path);

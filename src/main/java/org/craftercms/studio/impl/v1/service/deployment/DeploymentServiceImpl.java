@@ -728,19 +728,6 @@ public class DeploymentServiceImpl implements DeploymentService {
 
     @Override
     @ValidateParams
-    public List<PublishRequest> getDeploymentQueue(@ValidateStringParam(name = "site") String site) throws ServiceException {
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put("site", site);
-        List<String> states = new ArrayList<String>();
-        states.add(PublishRequest.State.READY_FOR_LIVE);
-        states.add(PublishRequest.State.PROCESSING);
-        params.put("states", states);
-        params.put("now", ZonedDateTime.now(ZoneOffset.UTC));
-        return publishRequestMapper.getItemsBySiteAndStates(params);
-    }
-
-    @Override
-    @ValidateParams
     public boolean cancelDeployment(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, @ValidateLongParam(name = "deploymentId") long deploymentId) throws ServiceException {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("site", site);
