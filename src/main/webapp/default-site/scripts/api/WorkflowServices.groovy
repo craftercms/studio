@@ -67,15 +67,6 @@ class WorkflowServices {
     }
 
     /**
-     * get workflow jobs
-     * @param site - the project ID
-     */
-    static getWorkflowJobs(context, site) {
-        def workflowServicesImpl = ServiceFactory.getWorkflowServices(context)
-        return workflowServicesImpl.getWorkflowJobs(site)
-    }
-
-    /**
      * get a user's activity history
      * @param site - the project ID
      * @param userId - id of the user

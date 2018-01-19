@@ -85,12 +85,5 @@ class SpringWorkflowServices {
         def springBackedService = this.context.applicationContext.get("cstudioWorkflowService");
         return springBackedService.createJob(site, items, workflowId, properties);
     }
-
-    def getWorkflowJobs(site) {
-        def springBackedService = this.context.applicationContext.get("cstudioWorkflowService");
-        return springBackedService.getActiveJobs();
-    }
-
-
 }
 
