@@ -74,8 +74,6 @@ public interface DeploymentService {
 
     void bulkGoLive(String site, String environment, String path);
 
-    List<DeploymentJobTO> getDeploymentJobs();
-
     /**
      * Get last deployment date time for given site and path
      *

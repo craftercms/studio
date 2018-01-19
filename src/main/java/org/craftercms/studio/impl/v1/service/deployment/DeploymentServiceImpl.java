@@ -745,25 +745,6 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     @Override
-    public List<DeploymentJobTO> getDeploymentJobs() {
-        List<DeploymentJobTO> jobList = new ArrayList<DeploymentJobTO>();
-
-        DeploymentJobTO copyToEnvStoreJob = new DeploymentJobTO();
-        copyToEnvStoreJob.setId(deployContentToEnvironmentStoreJob.getClass().getCanonicalName());
-        copyToEnvStoreJob.setName(deployContentToEnvironmentStoreJob.getClass().getSimpleName());
-        copyToEnvStoreJob.setEnabled(deployContentToEnvironmentStoreJob.isMasterPublishingNode());
-        copyToEnvStoreJob.setRunning(false);
-        try {
-            copyToEnvStoreJob.setHost(InetAddress.getLocalHost().toString());
-        } catch (UnknownHostException e) {
-            logger.debug("Error while getting host information");
-        }
-        jobList.add(copyToEnvStoreJob);
-
-        return jobList;
-    }
-
-    @Override
     @ValidateParams
     public PublishStatus getPublishStatus(@ValidateStringParam(name = "site") String site) throws SiteNotFoundException {
         return siteService.getPublishStatus(site);

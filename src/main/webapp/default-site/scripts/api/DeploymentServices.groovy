@@ -57,11 +57,6 @@ class DeploymentServices {
         return deploymentServicesImpl.bulkGoLive(site, environment, path);
     }
 
-    static getDeploymentJobs(context) {
-        def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context);
-        return deploymentServicesImpl.getDeploymentJobs();
-    }
-
     static getStatus(context, siteId) {
         def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context);
         return deploymentServicesImpl.getPublishStatus(siteId);
