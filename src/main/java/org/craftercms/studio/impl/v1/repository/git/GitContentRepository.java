@@ -1417,6 +1417,13 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     @Override
+    public void deleteGitLogForSite(String siteId) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("siteId", siteId);
+        gitLogMapper.deleteGitLogForSite(params);
+    }
+
+    @Override
     public boolean createSiteCloneRemote(String siteId, String remoteName, String remoteUrl, String remoteUsername, String remotePassword) throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException {
         boolean toReturn;
 

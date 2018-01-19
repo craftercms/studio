@@ -323,6 +323,12 @@ public interface ContentRepository {
     void markGitLogVerifiedProcessed(String siteId, String commitId);
 
     /**
+     * Delete Git log for site
+     * @param siteId site identifier
+     */
+    void deleteGitLogForSite(String siteId);
+
+    /**
      * Create new site as a clone from remote repository
      *
      * @param siteId
