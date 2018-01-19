@@ -38,18 +38,6 @@ class SpringContentServices {
     }
 
     /**
-     * copy content from PathA to pathB
-     *
-     * @param site - the project ID
-     * @param fromPath paths to content
-     * @param toPath target path
-     */
-    def copyContent(site, fromPath, toPath){
-        def springBackedService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN)
-        return springBackedService.copyContent(site, fromPath, toPath)
-    }
-
-    /**
      * move content from PathA to pathB
      *
      * @param site - the project ID

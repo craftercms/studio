@@ -41,19 +41,6 @@ class ContentServices {
     }
 
     /**
-     * copy content from PathA to pathB
-     *
-     * @param site - the project ID
-     * @param fromPath paths to content
-     * @param toPath target path
-     * @oaran context - container for passing request, token and other values that may be needed by the implementation
-     */
-    static copyContent(site, fromPath, toPath, context){
-        def contentServicesImpl = ServiceFactory.getContentServices(context)
-        return contentServicesImpl.copyContent(site, fromPath, toPath)
-    }
-
-    /**
      * move content from PathA to pathB
      *
      * @param site - the project ID
