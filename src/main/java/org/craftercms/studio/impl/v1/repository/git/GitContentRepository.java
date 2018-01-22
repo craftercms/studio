@@ -84,6 +84,7 @@ import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.web.context.ServletContextAware;
 
 import static org.craftercms.studio.api.v1.constant.GitRepositories.PUBLISHED;
@@ -1404,7 +1405,16 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         params.put("siteId", siteId);
         params.put("commitId", commitId);
         params.put("processed", processed);
-        gitLogMapper.insertGitLog(params);
+        try {
+            gitLogMapper.insertGitLog(params);
+        } catch (DuplicateKeyException e) {
+            logger.error("Failed to insert commit id: " + commitId + " for site: " + siteId + " into gitlog table, because it is duplicate entry. Marking it as not processed so it can be processed by sync database task.", e);
+            params = new HashMap<String, Object>();
+            params.put("siteId", siteId);
+            params.put("commitId", commitId);
+            params.put("processed", 0);
+            gitLogMapper.markGitLogProcessed(params);
+        }
     }
 
     @Override
