@@ -93,7 +93,7 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
                     try {
                         syncRepository(site);
                     } catch (Exception e) {
-                        logger.error("Failed to sync database from repository for site " + site);
+                        logger.error("Failed to sync database from repository for site " + site, e);
                         siteService.enablePublishing(site, false);
                     }
                     if (siteService.isPublishingEnabled(site)) {
@@ -260,11 +260,14 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
     }
 
     private void syncRepository(String site) throws SiteNotFoundException {
+        logger.debug("Getting last verified commit for site: " + site);
         SiteFeed siteFeed = siteService.getSite(site);
         String lastProcessedCommit = siteFeed.getLastVerifiedGitlogCommitId();
         if (StringUtils.isNotEmpty(lastProcessedCommit)) {
+            logger.debug("Syncing database with repository for site " + site + " from last processed commit " + lastProcessedCommit);
             siteService.syncDatabaseWithRepo(site, lastProcessedCommit);
         } else {
+            logger.debug("Syncing database with repository for site " + site + " from initial commit");
             siteService.syncDatabaseWithRepo(site, contentRepository.getRepoFirstCommitId(site));
         }
     }

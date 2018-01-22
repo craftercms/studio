@@ -1185,11 +1185,16 @@ public class SiteServiceImpl implements SiteService {
 	    // Process all operations and track if one or more have failed
 	    for (RepoOperationTO repoOperation: repoOperations) {
             boolean gitLogProcessed = false;
+            logger.debug("Verifying repo opertation " + repoOperation.getOperation().toString() + " " + repoOperation.getPath());
+            logger.debug("Get Git Log from database for commit id " + repoOperation.getCommitId());
             GitLog gitLog = contentRepository.getGitLog(site, repoOperation.getCommitId());
             if (gitLog != null) {
                 diverged = diverged || gitLog.getProcessed() < 1;
             } else {
+                logger.debug("Git Log does not exist in database for commit id " + repoOperation.getCommitId());
+                logger.debug("Inserting Git Log for commit id " + repoOperation.getCommitId() + " and site " + site);
                 contentRepository.insertGitLog(site, repoOperation.getCommitId(), 0);
+                logger.debug("Repository diverged from database. All repository operations onwards need to be processed");
                 diverged = true;
                 gitLogProcessed = false;
                 gitLog = contentRepository.getGitLog(site, repoOperation.getCommitId());
@@ -1214,11 +1219,14 @@ public class SiteServiceImpl implements SiteService {
                         ItemState state = objectStateService.getObjectState(site, repoOperation.getPath(), false);
 
                         if (state == null) {
+                            logger.debug("Insert item state for site: " + site + " path: " + repoOperation.getPath());
                             objectStateService.insertNewEntry(site, repoOperation.getPath());
                         } else {
+                            logger.debug("Set item state for site: " + site + " path: " + repoOperation.getPath());
                             objectStateService.transition(site, repoOperation.getPath(), TransitionEvent.SAVE);
                         }
 
+                        logger.debug("Set item metadata for site: " + site + " path: " + repoOperation.getPath());
                         if (!objectMetadataManager.metadataExist(site, repoOperation.getPath())) {
                             objectMetadataManager.insertNewObjectMetadata(site, repoOperation.getPath());
                         }
@@ -1229,18 +1237,23 @@ public class SiteServiceImpl implements SiteService {
                         properties.put(ItemMetadata.PROP_MODIFIED, repoOperation.getDateTime());
                         properties.put(ItemMetadata.PROP_COMMIT_ID, repoOperation.getCommitId());
                         objectMetadataManager.setObjectMetadata(site, repoOperation.getMoveToPath(), properties);
+                        logger.debug("Extract dependencies for site: " + site + " path: " + repoOperation.getPath());
                         toReturn = toReturn && extractDependenciesForItem(site, repoOperation.getPath());
                         contentClass = contentService.getContentTypeClass(site, repoOperation.getPath());
                         if (repoOperation.getPath().endsWith(DmConstants.XML_PATTERN)) {
                             activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
                         }
+                        logger.debug("Insert audit log for site: " + site + " path: " + repoOperation.getPath());
                         activityService.postActivity(site, repoOperation.getAuthor(), repoOperation.getPath(),
                                 ActivityService.ActivityType.CREATED, ActivityService.ActivitySource.REPOSITORY, activityInfo);
                         break;
 
                     case UPDATE:
+                        logger.debug("Set item state for site: " + site + " path: " + repoOperation.getPath());
                         objectStateService.getObjectState(site, repoOperation.getPath());
                         objectStateService.transition(site, repoOperation.getPath(), TransitionEvent.SAVE);
+
+                        logger.debug("Set item metadata for site: " + site + " path: " + repoOperation.getPath());
                         if (!objectMetadataManager.metadataExist(site, repoOperation.getPath())) {
                             objectMetadataManager.insertNewObjectMetadata(site, repoOperation.getPath());
                         }
@@ -1251,37 +1264,46 @@ public class SiteServiceImpl implements SiteService {
                         properties.put(ItemMetadata.PROP_MODIFIED, repoOperation.getDateTime());
                         properties.put(ItemMetadata.PROP_COMMIT_ID, repoOperation.getCommitId());
                         objectMetadataManager.setObjectMetadata(site, repoOperation.getMoveToPath(), properties);
+
+                        logger.debug("Extract dependencies for site: " + site + " path: " + repoOperation.getPath());
                         toReturn = toReturn && extractDependenciesForItem(site, repoOperation.getPath());
                         contentClass = contentService.getContentTypeClass(site, repoOperation.getPath());
                         if (repoOperation.getPath().endsWith(DmConstants.XML_PATTERN)) {
                             activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
                         }
+                        logger.debug("Insert audit log for site: " + site + " path: " + repoOperation.getPath());
                         activityService.postActivity(site, repoOperation.getAuthor(), repoOperation.getPath(),
                                 ActivityService.ActivityType.UPDATED, ActivityService.ActivitySource.REPOSITORY, activityInfo);
                         break;
 
                     case DELETE:
+                        logger.debug("Delete item state for site: " + site + " path: " + repoOperation.getPath());
                         objectStateService.deleteObjectStateForPath(site, repoOperation.getPath());
+                        logger.debug("Delete item metadata for site: " + site + " path: " + repoOperation.getPath());
                         objectMetadataManager.deleteObjectMetadata(site, repoOperation.getPath());
+                        logger.debug("Extract dependencies for site: " + site + " path: " + repoOperation.getPath());
                         dmDependencyService.deleteDependenciesForSiteAndPath(site, repoOperation.getPath());
                         contentClass = contentService.getContentTypeClass(site, repoOperation.getPath());
                         if (repoOperation.getPath().endsWith(DmConstants.XML_PATTERN)) {
                             activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
                         }
+                        logger.debug("Insert audit log for site: " + site + " path: " + repoOperation.getPath());
                         activityService.postActivity(site, repoOperation.getAuthor(), repoOperation.getPath(),
                                 ActivityService.ActivityType.DELETED, ActivityService.ActivitySource.REPOSITORY, activityInfo);
                         break;
 
                     case MOVE:
                         ItemState stateRename = objectStateService.getObjectState(site, repoOperation.getPath(), false);
+                        logger.debug("Set item state for site: " + site + " path: " + repoOperation.getMoveToPath());
                         if (stateRename == null) {
-                            objectStateService.getObjectState(site, repoOperation.getPath());
-                            objectStateService.transition(site, repoOperation.getPath(), TransitionEvent.SAVE);
+                            objectStateService.getObjectState(site, repoOperation.getMoveToPath());
+                            objectStateService.transition(site, repoOperation.getMoveToPath(), TransitionEvent.SAVE);
                         } else {
                             objectStateService.updateObjectPath(site, repoOperation.getPath(), repoOperation.getMoveToPath());
                             objectStateService.transition(site, repoOperation.getMoveToPath(), TransitionEvent.SAVE);
                         }
 
+                        logger.debug("Set item metadata for site: " + site + " path: " + repoOperation.getMoveToPath());
                         if (!objectMetadataManager.metadataExist(site, repoOperation.getPath())) {
                             if (!objectMetadataManager.metadataExist(site, repoOperation.getMoveToPath())) {
                                 objectMetadataManager.insertNewObjectMetadata(site, repoOperation.getMoveToPath());
@@ -1328,11 +1350,13 @@ public class SiteServiceImpl implements SiteService {
                             }
                         }
 
+                        logger.debug("Extract dependencies for site: " + site + " path: " + repoOperation.getPath());
                         toReturn = toReturn && extractDependenciesForItem(site, repoOperation.getMoveToPath());
                         contentClass = contentService.getContentTypeClass(site, repoOperation.getMoveToPath());
                         if (repoOperation.getMoveToPath().endsWith(DmConstants.XML_PATTERN)) {
                             activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
                         }
+                        logger.debug("Insert audit log for site: " + site + " path: " + repoOperation.getMoveToPath());
                         activityService.postActivity(site, repoOperation.getAuthor(), repoOperation.getMoveToPath(),
                                 ActivityService.ActivityType.UPDATED, ActivityService.ActivitySource.REPOSITORY, activityInfo);
                         break;
@@ -1356,9 +1380,11 @@ public class SiteServiceImpl implements SiteService {
 
 	    // Update database
         String lastCommitId = contentRepository.getRepoLastCommitId(site);
+        logger.debug("Update last commit id " + lastCommitId + " for site " + site);
         updateLastCommitId(site, lastCommitId);
         // Sync all preview deployers
         try {
+            logger.debug("Sync preview for site " + site);
             deploymentService.syncAllContentToPreview(site, false);
         } catch (ServiceException e) {
             logger.error("Error synchronizing preview with repository for site: " + site, e);
