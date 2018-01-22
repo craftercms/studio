@@ -155,8 +155,6 @@ public interface SiteService {
 
     void reloadGlobalConfiguration();
 
-    void importSite(String config);
-
     /**
      * Synchronize Database with repository
      *

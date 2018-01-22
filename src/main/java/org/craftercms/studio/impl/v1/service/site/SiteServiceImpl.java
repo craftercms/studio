@@ -1123,11 +1123,6 @@ public class SiteServiceImpl implements SiteService {
     }
 
     @Override
-    public void importSite(String config) {
-
-    }
-
-    @Override
     @ValidateParams
     public void syncRepository(@ValidateStringParam(name = "site") String site) throws SiteNotFoundException {
 		if (!exists(site)) {

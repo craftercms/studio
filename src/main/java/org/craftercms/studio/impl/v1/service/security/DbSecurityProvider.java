@@ -439,10 +439,6 @@ public class DbSecurityProvider implements SecurityProvider {
 
     }
 
-    public String getPasswordHash(String password) {
-        return CryptoUtils.hashPassword(password);
-    }
-
     @Override
     public boolean createUser(String username, String password, String firstName, String lastName, String email, boolean externallyManaged) throws UserAlreadyExistsException {
         if (userExists(username)) {
