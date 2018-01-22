@@ -4,8 +4,8 @@ def boxService = applicationContext["studioBoxService"]
 
 response.setHeader("Content-Type", "text/html")
 
-def sendError = { msg ->
-
+def sendError = { code, msg ->
+    response.status = code
     def writer = response.writer
     writer.println("<script>document.domain = \"${request.serverName}\";</script>")
     writer.println("{\"hasError\":true,\"errors\":[\"${msg}\"]}")
@@ -27,8 +27,8 @@ if (request instanceof MultipartRequest) {
     } catch (e) {
         logger.error("Upload of file ${filename} failed", e)
 
-        sendError("Upload of file failed: ${e.message}")
+        sendError(500, "Upload of file failed: ${e.message}")
     }
 } else {
-    sendError("Request is not of type multi-part")
+    sendError(400, "Request is not of type multi-part")
 }
