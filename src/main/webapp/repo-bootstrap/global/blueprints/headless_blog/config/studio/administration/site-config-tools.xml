@@ -275,7 +275,7 @@
         </tool>
         <tool>
             <name>status-view</name>
-            <label>Publish</label>
+            <label>Publishing</label>
             <icon>
                 <class>fa-cloud-upload</class>
             </icon>
