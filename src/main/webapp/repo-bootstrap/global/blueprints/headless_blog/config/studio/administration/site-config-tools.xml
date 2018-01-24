@@ -273,5 +273,12 @@
             <name>log-view</name>
             <label>Log Console</label>
         </tool>
+        <tool>
+            <name>status-view</name>
+            <label>Publish</label>
+            <icon>
+                <class>fa-cloud-upload</class>
+            </icon>
+        </tool>
     </tools>
 </config>
