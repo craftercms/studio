@@ -1,6 +1,6 @@
 /*
- * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2016 Crafter Software Corporation.
+ * Crafter Studio
+ * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,6 +42,8 @@ public class GeneralLockServiceImpl extends AbstractRegistrableService implement
     @Override
     @ValidateParams
     public void lock(@ValidateStringParam(name = "objectId") String objectId) {
+        // Locking is no longer required, disabling here as the code evolves
+        /*
         ReentrantLock nodeLock;
         if (logger.isDebugEnabled()) {
             logger.debug("[" + Thread.currentThread().getName() + "]" + " Obtaining lock for id " + objectId);
@@ -67,11 +69,15 @@ public class GeneralLockServiceImpl extends AbstractRegistrableService implement
         if (logger.isDebugEnabled()) {
             logger.debug("[" + Thread.currentThread().getName() + "]" + " Locked all threads for id " + objectId);
         }
+        */
     }
 
     @Override
     @ValidateParams
     public boolean tryLock(@ValidateStringParam(name = "objectId") String objectId) {
+        // Locking is no longer required, disabling here as the code evolves
+        return true;
+        /*
         ReentrantLock nodeLock;
         if (logger.isDebugEnabled()) {
             logger.debug("[" + Thread.currentThread().getName() + "]" + " Trying to get lock for id " + objectId);
@@ -98,11 +104,14 @@ public class GeneralLockServiceImpl extends AbstractRegistrableService implement
             logger.debug("[" + Thread.currentThread().getName() + "]" + " Result for tryLock on id " + objectId + " : " + toRet);
         }
         return toRet;
+        */
     }
 
     @Override
     @ValidateParams
     public void unlock(@ValidateStringParam(name = "objectId") String objectId) {
+        // Locking is no longer required, disabling here as the code evolves
+        /*
         ReentrantLock nodeLock = null;
         if (logger.isDebugEnabled()) {
             logger.debug("[" + Thread.currentThread().getName() + "]" + " Unlocking id " + objectId);
@@ -125,5 +134,6 @@ public class GeneralLockServiceImpl extends AbstractRegistrableService implement
         if (logger.isDebugEnabled()) {
             logger.debug("[" + Thread.currentThread().getName() + "]" + " Finished unlocking id " + objectId);
         }
+        */
     }
 }
