@@ -26,7 +26,6 @@ import org.apache.commons.lang.StringUtils;
  */
 class SpringDependencyServices {
 
-    static DEPENDENCY_SERVICES_BEAN_OLD = "cstudioDmDependencyService"
     static DEPENDENCY_SERVICES_BEAN = "studioDependencyService"
     static CONTENT_SERVICES_BEAN = "cstudioContentService"
 
@@ -89,23 +88,21 @@ class SpringDependencyServices {
         def springBackendService = this.context.applicationContext.get(DEPENDENCY_SERVICES_BEAN);
         def springBackendContentService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN);
         def dependants = []
-        def dependantPaths = springBackendService.getItemsDependingOn(site, path, -1)
+        def dependantPaths = springBackendService.getItemsDependingOn(site, path, 1)
         dependantPaths.each {
             dependants.add(springBackendContentService.getContentItem(site, it, 0))
         }
         return dependants
-        //return springBackendService.getDependantItems(site, path);
     }
 
     def getDependenciesItems(site, path) {
         def springBackendService = this.context.applicationContext.get(DEPENDENCY_SERVICES_BEAN);
         def springBackendContentService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN);
         def dependencies = []
-        def dependencyPaths = springBackendService.getItemDependencies(site, path, -1)
+        def dependencyPaths = springBackendService.getItemDependencies(site, path, 1)
         dependencyPaths.each {
             dependencies.add(springBackendContentService.getContentItem(site, it, 0))
         }
         return dependencies
-        //return springBackendService.getDependenciesItems(site, path);
     }
 }
