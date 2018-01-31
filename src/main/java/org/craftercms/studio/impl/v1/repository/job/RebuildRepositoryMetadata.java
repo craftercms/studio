@@ -30,11 +30,9 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
-import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
+import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
-import org.dom4j.Document;
-import org.dom4j.DocumentException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.task.TaskExecutor;
 
@@ -122,7 +120,7 @@ public class RebuildRepositoryMetadata {
         try {
             // Delete all dependencies
             logger.debug("Deleting dependencies for site " + site);
-            dmDependencyService.deleteDependenciesForSite(site);
+            dependencyService.deleteSiteDependencies(site);
         } catch (Exception error) {
             logger.error("Failed to delete dependencies for site " + site);
         }
@@ -212,9 +210,8 @@ public class RebuildRepositoryMetadata {
                 if (relativePath.endsWith(DmConstants.XML_PATTERN)) {
                     logger.debug("Calculate dependencies");
                     try {
-                        Document document = contentService.getContentAsDocument(contentService.expandRelativeSitePath(site, relativePath));
-                        dmDependencyService.extractDependencies(site, relativePath, document, null);
-                    } catch (DocumentException | ServiceException err) {
+                        dependencyService.upsertDependencies(site, relativePath);
+                    } catch (ServiceException err) {
                         logger.debug("Error while calculating dependencies for " + relativePath, err);
                     }
 
@@ -241,7 +238,7 @@ public class RebuildRepositoryMetadata {
 
     protected ObjectMetadataManager objectMetadataManager;
     protected ObjectStateService objectStateService;
-    protected DmDependencyService dmDependencyService;
+    protected DependencyService dependencyService;
     protected ContentService contentService;
     protected SecurityService securityService;
     protected String previewRepoRootPath;
@@ -254,8 +251,8 @@ public class RebuildRepositoryMetadata {
     public ObjectStateService getObjectStateService() { return objectStateService; }
     public void setObjectStateService(ObjectStateService objectStateService) { this.objectStateService = objectStateService; }
 
-    public DmDependencyService getDmDependencyService() { return dmDependencyService; }
-    public void setDmDependencyService(DmDependencyService dmDependencyService) { this.dmDependencyService = dmDependencyService; }
+    public DependencyService getDependencyService() { return dependencyService; }
+    public void setDependencyService(DependencyService dependencyService) { this.dependencyService = dependencyService; }
 
     public ContentService getContentService() { return contentService; }
     public void setContentService(ContentService contentService) { this.contentService = contentService; }

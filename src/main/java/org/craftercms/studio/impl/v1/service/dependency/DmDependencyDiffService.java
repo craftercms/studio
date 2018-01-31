@@ -18,11 +18,12 @@
 package org.craftercms.studio.impl.v1.service.dependency;
 
 import java.util.List;
+import java.util.Set;
 
 import javolution.util.FastList;
 
 import org.apache.commons.lang.StringUtils;
-import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
+import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v1.to.DmDependencyTO;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.service.AbstractRegistrableService;
@@ -34,10 +35,10 @@ public class DmDependencyDiffService extends AbstractRegistrableService {
 
     private static final Logger logger = LoggerFactory.getLogger(DmDependencyDiffService.class);
 
-    protected DmDependencyService dependencyService;
+    protected DependencyService dependencyService;
 
-    public DmDependencyService getDependencyService() { return dependencyService; }
-    public void setDependencyService(DmDependencyService dependencyService) { this.dependencyService = dependencyService; }
+    public DependencyService getDependencyService() { return dependencyService; }
+    public void setDependencyService(DependencyService dependencyService) { this.dependencyService = dependencyService; }
 
     @Override
     public void register() {
@@ -92,7 +93,7 @@ public class DmDependencyDiffService extends AbstractRegistrableService {
 	 * @throws ServiceException
 	 */
 	protected List<String> findDependencies(String site, String sandbox, String relativePath, boolean isRecursive, List<String> dependencies) throws ServiceException{
-        List<String> dependenciesFromDoc = dependencyService.getDependencyPaths(site, relativePath);
+        Set<String> dependenciesFromDoc = dependencyService.getItemDependencies(site, relativePath, 1);
         dependencies.addAll(dependenciesFromDoc);
         if(isRecursive){
             for(String dependency:dependenciesFromDoc){

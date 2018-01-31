@@ -78,7 +78,7 @@ public interface DeploymentService {
 
     boolean cancelDeployment(String site, String path, long deploymentId) throws ServiceException;
 
-    void bulkGoLive(String site, String environment, String path);
+    void bulkGoLive(String site, String environment, String path) throws ServiceException;
 
     void bulkDelete(String site, String path);
 

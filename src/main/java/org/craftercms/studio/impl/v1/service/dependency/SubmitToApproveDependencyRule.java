@@ -21,11 +21,12 @@ package org.craftercms.studio.impl.v1.service.dependency;
 
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.studio.api.v1.constant.DmConstants;
+import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.dependency.DependencyRule;
-import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
+import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
@@ -42,7 +43,7 @@ public class SubmitToApproveDependencyRule implements DependencyRule {
     private final static Logger logger = LoggerFactory.getLogger(SubmitToApproveDependencyRule.class);
 
     @Override
-    public Set<String> applyRule(String site, String path) {
+    public Set<String> applyRule(String site, String path) throws ServiceException {
         Set<String> dependencies = new HashSet<String>();
         List<String> allDependencies = new ArrayList<String>();
         getMandatoryParent(site, path, allDependencies);
@@ -68,8 +69,8 @@ public class SubmitToApproveDependencyRule implements DependencyRule {
         }
     }
 
-    protected void getAllDependenciesRecursive(String site, String path, List<String> dependecyPaths) {
-        List<String> depPaths = dmDependencyService.getDependencyPaths(site, path);
+    protected void getAllDependenciesRecursive(String site, String path, List<String> dependecyPaths) throws ServiceException {
+        Set<String> depPaths = dependencyService.getItemDependencies(site, path, 1);
         for (String depPath : depPaths) {
             if (!dependecyPaths.contains(depPath)) {
                 if (objectStateService.isNew(site, depPath)) {
@@ -95,8 +96,8 @@ public class SubmitToApproveDependencyRule implements DependencyRule {
     public ObjectStateService getObjectStateService() { return objectStateService; }
     public void setObjectStateService(ObjectStateService objectStateService) { this.objectStateService = objectStateService; }
 
-    public DmDependencyService getDmDependencyService() { return dmDependencyService; }
-    public void setDmDependencyService(DmDependencyService dmDependencyService) { this.dmDependencyService = dmDependencyService; }
+    public DependencyService getDependencyService() { return dependencyService; }
+    public void setDependencyService(DependencyService dependencyService) { this.dependencyService = dependencyService; }
 
     public List<String> getContentSpecificDependencies() { return contentSpecificDependencies; }
     public void setContentSpecificDependencies(List<String> contentSpecificDependencies) { this.contentSpecificDependencies = contentSpecificDependencies; }
@@ -105,7 +106,7 @@ public class SubmitToApproveDependencyRule implements DependencyRule {
     public void setContentService(ContentService contentService) { this.contentService = contentService; }
 
     protected ObjectStateService objectStateService;
-    protected DmDependencyService dmDependencyService;
+    protected DependencyService dependencyService;
     protected List<String> contentSpecificDependencies;
     protected ContentService contentService;
 }

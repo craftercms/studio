@@ -130,9 +130,9 @@ public interface WorkflowService {
 	 * 			cancel the pending workflow instance this content belongs to?
 	 * @throws ServiceException
 	 */
-	public boolean removeFromWorkflow(String site, String path, boolean cancelWorkflow);
+	public boolean removeFromWorkflow(String site, String path, boolean cancelWorkflow) throws ServiceException;
 
-	public List<ContentItemTO> getWorkflowAffectedPaths(String site, String path);
+	public List<ContentItemTO> getWorkflowAffectedPaths(String site, String path) throws ServiceException;
 
 	/**
 	 * update workflow sandboxes if the content at the given path is in workflow
@@ -175,7 +175,7 @@ public interface WorkflowService {
 
     ResultTO reject(final String site, final String user, final String request) throws ServiceException;
 
-    boolean cleanWorkflow(final String url, final String site, final Set<DmDependencyTO> dependents);
+    boolean cleanWorkflow(final String url, final String site, final Set<DmDependencyTO> dependents) throws ServiceException;
 
     ResultTO submitToDelete( String site, String user, String requestBody) throws ServiceException;
 }

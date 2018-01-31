@@ -33,7 +33,6 @@ import org.craftercms.studio.api.v1.service.activity.ActivityService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
-import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
 import org.craftercms.studio.api.v1.service.workflow.WorkflowService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.DmPathTO;
@@ -42,7 +41,6 @@ import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -125,7 +123,6 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                     return ActivityService.ActivityType.UPDATED;
                 } else {
                     // otherwise, create new one
-                    //contentPath = contentPath.replaceFirst(WcmConstants.INDEX_FILE, "");
                     String fileFullPath =  parentContentPath + "/" + fileName;
                     String relativeFilePath = contentService.getRelativeSitePath(site, fileFullPath);
                     boolean contentExists = contentService.contentExists(site, fileFullPath);
@@ -172,7 +169,6 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
             fullPath = fullPath + "/" + fileName;
         }
         String parentRelativePath = contentService.getRelativeSitePath(site, parentContentPath);
-        //contentPath = (isPreview) ? DmUtils.getPreviewPath(contentPath) : contentPath;
         try {
             // look up the path content first
             ContentItemTO parentItem = contentService.getContentItem(site, parentRelativePath, 0);
@@ -199,7 +195,6 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                             DmPathTO pathTO = new DmPathTO(fullPath);
                             if (cancelWorkflow(site, path)) {
                                 workflowService.removeFromWorkflow(site, pathTO.getRelativePath(), true);
-                                //dmDependencyService.updateDependencies(site,pathTO.getRelativePath(), DmConstants.DM_STATUS_IN_PROGRESS);
                             } else {
                                 if(updateWorkFlow(site,pathTO.getRelativePath())) {
                                     workflowService.updateWorkflowSandboxes(site,pathTO.getRelativePath());
@@ -237,7 +232,6 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                                 DmPathTO pathTO = new DmPathTO(fullPath);
                                 if (cancelWorkflow(site, pathTO.getRelativePath())) {
                                     workflowService.removeFromWorkflow(site, pathTO.getRelativePath(), true);
-                                    //dmDependencyService.updateDependencies(site,pathTO.getRelativePath(), DmConstants.DM_STATUS_IN_PROGRESS);
                                 } else {
                                     if(updateWorkFlow(site,pathTO.getRelativePath())) {
                                         workflowService.updateWorkflowSandboxes(site,pathTO.getRelativePath());
@@ -334,7 +328,6 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
             // unlock the content upon save
             if (unlock) {
                 contentRepository.unLockItem(site, parentItem.getUri() + "/" + fileName);
-                //persistenceManagerService.unlock(fileNode);
             } else {
             }
 
@@ -362,23 +355,11 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
     protected void updateFile(String site, ContentItemTO contentItem, String fullPath, InputStream input, String user, boolean isPreview, boolean unlock)
             throws ServiceException {
 
-        // TODO: check lock status of content
-        /*
-    	LockStatus lockStatus = persistenceManagerService.getLockStatus(contentNode);
-        String nodeStatus = (String)persistenceManagerService.getProperty(contentNode, CStudioContentModel.PROP_STATUS);
-        /**
-         * added to handle issue with submitting locked content (Dejan 2012/04/12)
-         *//*
-        if (LockStatus.NO_LOCK.equals(lockStatus) || LockStatus.LOCK_OWNER.equals(lockStatus) ||
-                (nodeStatus.equalsIgnoreCase(DmConstants.DM_STATUS_SUBMITTED))
-        		)
-        /***** end ******//*
-        {*/
-            try {
-                contentService.writeContent(fullPath, input);
-            } finally {
-                ContentUtils.release(input);
-            }
+        try {
+            contentService.writeContent(fullPath, input);
+        } finally {
+            ContentUtils.release(input);
+        }
 
         Map<String, Object> properties = new HashMap<>();
         properties.put(ObjectMetadata.PROP_MODIFIER, user);
@@ -394,10 +375,6 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
         }
         objectMetadataManager.setObjectMetadata(site, relativePath, properties);
 
-        //TODO: create next minor version
-        /*
-            dmVersionService.createNextMinorVersion(site, fullPath);
-            */
             // unlock the content upon save if the flag is true
             if (unlock) {
                 contentRepository.unLockItem(site, relativePath);
@@ -410,17 +387,12 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                 DmPathTO path = new DmPathTO(fullPath);
                 if (cancelWorkflow(site, path.getRelativePath())) {
                     workflowService.removeFromWorkflow(site, path.getRelativePath(), true);
-                    //dmDependencyService.updateDependencies(site,path.getRelativePath(), DmConstants.DM_STATUS_IN_PROGRESS);
                 } else {
                     if(updateWorkFlow(site,path.getRelativePath())) {
                         workflowService.updateWorkflowSandboxes(site,path.getRelativePath());
                     }
                 }
-            }/*
-        } else {
-            String owner = (String)persistenceManagerService.getProperty(contentNode, ContentModel.PROP_LOCK_OWNER);
-            throw new ServiceException("The content is locked by another user: " + owner);
-        }*/
+            }
     }
 
     /**
@@ -515,7 +487,6 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 
     protected ContentService contentService;
     protected WorkflowService workflowService;
-    protected DmDependencyService dmDependencyService;
     protected ServicesConfig servicesConfig;
     protected ObjectMetadataManager objectMetadataManager;
     protected ContentRepository contentRepository;
@@ -525,9 +496,6 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 
     public WorkflowService getWorkflowService() { return workflowService; }
     public void setWorkflowService(WorkflowService workflowService) { this.workflowService = workflowService; }
-
-    public DmDependencyService getDmDependencyService() { return dmDependencyService; }
-    public void setDmDependencyService(DmDependencyService dmDependencyService) { this.dmDependencyService = dmDependencyService; }
 
     public ServicesConfig getServicesConfig() { return servicesConfig; }
     public void setServicesConfig(ServicesConfig servicesConfig) { this.servicesConfig = servicesConfig; }

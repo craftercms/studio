@@ -17,6 +17,8 @@
  ******************************************************************************/
 package org.craftercms.studio.api.v1.service.deployment;
 
+import org.craftercms.studio.api.v1.exception.ServiceException;
+
 public class DeploymentException extends Exception {
 
     private static final long serialVersionUID = -4559386100186790847L;
@@ -31,5 +33,8 @@ public class DeploymentException extends Exception {
 
     public DeploymentException(String message, Throwable t) {
         super(message, t);
+    }
+
+    public DeploymentException(ServiceException e) {
     }
 }

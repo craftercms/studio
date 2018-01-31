@@ -40,5 +40,13 @@ public interface DependencyMapper {
 
     void deleteDependenciesForSiteAndPath(Map params);
 
+    void deleteDependenciesForSiteAndListOfPaths(Map params);
 
+    List<String> getDependenciesForList(Map params);
+
+    List<String> getPublishingDependenciesForList(Map params);
+
+    List<String> getItemsDependingOn(Map params);
+
+    void moveDependency(Map params);
 }

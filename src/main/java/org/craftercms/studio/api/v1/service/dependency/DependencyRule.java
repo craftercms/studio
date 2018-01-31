@@ -19,9 +19,11 @@
 
 package org.craftercms.studio.api.v1.service.dependency;
 
+import org.craftercms.studio.api.v1.exception.ServiceException;
+
 import java.util.Set;
 
 public interface DependencyRule {
 
-    Set<String> applyRule(String site, String path);
+    Set<String> applyRule(String site, String path) throws ServiceException;
 }
