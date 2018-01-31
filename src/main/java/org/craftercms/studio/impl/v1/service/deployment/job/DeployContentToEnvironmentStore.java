@@ -128,8 +128,6 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
                                                 }
                                                 deploy(site, environment, completeDeploymentItemList, author, sbComment.toString());
                                                 publishingManager.markItemsCompleted(site, environment, itemsToDeploy);
-
-                                                siteService.updatePublishingStatusMessage(site, statusMessage);
                                                 logger.debug("Mark deployment completed for processed items for site \"{0}\"", site);
                                                 logger.info("Finished publishing environment " + environment + " for site " + site);
                                             } catch (DeploymentException err) {
@@ -219,6 +217,7 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
             completeDeploymentItemList.addAll(deploymentItemList);
             statusMessage = studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_IDLE);
             statusMessage = statusMessage.replace("{item_path}", messagePath).replace("{datetime}", ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern(sdf.toPattern())));
+            siteService.updatePublishingStatusMessage(site, statusMessage);
         } catch (DeploymentException err) {
             logger.error("Error while executing deployment to environment store for site \"{0}\",", err, site);
             publishingManager.markItemsReady(site, environment, Arrays.asList(item));
