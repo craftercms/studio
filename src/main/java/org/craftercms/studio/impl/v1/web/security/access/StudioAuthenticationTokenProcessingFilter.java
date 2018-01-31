@@ -18,7 +18,7 @@
 
 package org.craftercms.studio.impl.v1.web.security.access;
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.craftercms.commons.http.HttpUtils;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationSystemException;
 import org.craftercms.studio.api.v1.exception.security.BadCredentialsException;
@@ -88,13 +88,13 @@ public class StudioAuthenticationTokenProcessingFilter extends GenericFilterBean
                     // If user not authenticated check for authentication headers
                     String usernameHeader = httpRequest.getHeader(studioConfiguration.getProperty(AUTHENTICATION_HEADERS_USERNAME));
                     try {
-                        securityProvider.authenticate(usernameHeader, StringUtils.EMPTY);
+                        securityProvider.authenticate(usernameHeader, RandomStringUtils.randomAlphanumeric(16));
                         UserDetails userDetails = this.userDetailsManager.loadUserByUsername(usernameHeader);
                         UsernamePasswordAuthenticationToken authentication =
                                 new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                         SecurityContextHolder.getContext().setAuthentication(authentication);
                     } catch (BadCredentialsException | AuthenticationSystemException e) {
-                        logger.error("Unable to authenticate user using authentication headers.");
+                        crafterLogger.error("Unable to authenticate user using authentication headers.");
                     }
                 }
             }
