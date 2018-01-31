@@ -133,11 +133,6 @@ public class DmWorkflowListenerImpl implements DmWorkflowListener {
     }
 
     @Override
-    public void postSubmitToGolive(String site, DmDependencyTO dependencyTO) {
-        logger.debug("Submit to Go live complete [" + dependencyTO + "]");
-    }
-
-    @Override
     public void postReject(String site, DmDependencyTO submittedItem) {
         logger.debug("Reject complete [" + submittedItem.getUri() + "]");
     }

@@ -36,6 +36,7 @@ import org.craftercms.studio.api.v1.ebus.DeploymentEventItem;
 import org.craftercms.studio.api.v1.ebus.DeploymentEventMessage;
 import org.craftercms.studio.api.v1.ebus.DeploymentEventService;
 import org.craftercms.studio.api.v1.ebus.RepositoryEventContext;
+import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
@@ -43,8 +44,7 @@ import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
-import org.craftercms.studio.api.v1.service.dependency.DependencyRule;
-import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
+import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v1.service.deployment.*;
 import org.craftercms.studio.api.v1.service.notification.NotificationService;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
@@ -156,7 +156,7 @@ public class PublishingManagerImpl implements PublishingManager {
                 }
 
             } catch (Exception e) {
-                //LOGGER.error(String.format("Target (%s) responded with error while checking target version. Get version failed for url %s", target.getName(), target.getVersionUrl()));
+                LOGGER.error(String.format("Target (%s) responded with error while checking target version. Get version failed for url %s", target.getName(), target.getVersionUrl()));
 
             } finally {
                 if (client != null) {
@@ -649,7 +649,12 @@ public class PublishingManagerImpl implements PublishingManager {
             }
 
             if (!enablePublishingWithoutDependencies) {
-                Set<String> dependentPaths = deploymentDependencyRule.applyRule(site, path);
+                Set<String> dependentPaths = null;
+                try {
+                    dependentPaths = dependencyService.getPublishingDepenencies(site, path);
+                } catch (ServiceException e) {
+                    throw new DeploymentException(e);
+                }
                 for (String dependentPath : dependentPaths) {
                     if (objectStateService.isNew(site, dependentPath) || objectMetadataManager.isRenamed(site, dependentPath) ) {
                         String dependentFullPath = contentService.expandRelativeSitePath(site, dependentPath);
@@ -745,8 +750,8 @@ public class PublishingManagerImpl implements PublishingManager {
     public SecurityProvider getSecurityProvider() { return securityProvider; }
     public void setSecurityProvider(SecurityProvider securityProvider) { this.securityProvider = securityProvider; }
 
-    public DependencyRule getDeploymentDependencyRule() { return deploymentDependencyRule; }
-    public void setDeploymentDependencyRule(DependencyRule deploymentDependencyRule) { this.deploymentDependencyRule = deploymentDependencyRule; }
+    public DependencyService getDependencyService() { return dependencyService; }
+    public void setDependencyService(DependencyService dependencyService) { this.dependencyService = dependencyService; }
 
     protected String indexFile;
     protected boolean importModeEnabled;
@@ -764,7 +769,7 @@ public class PublishingManagerImpl implements PublishingManager {
     protected boolean enablePublishingWithoutDependencies = false;
     protected DeploymentEventService deploymentEventService;
     protected SecurityProvider securityProvider;
-    protected DependencyRule deploymentDependencyRule;
+    protected DependencyService dependencyService;
 
     @Autowired
     protected CopyToEnvironmentMapper copyToEnvironmentMapper;

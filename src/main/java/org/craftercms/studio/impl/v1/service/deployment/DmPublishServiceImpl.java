@@ -30,13 +30,14 @@ import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.DmConstants;
+import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.service.AbstractRegistrableService;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
-import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
+import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.deployment.DmPublishService;
@@ -52,14 +53,6 @@ import org.craftercms.studio.api.v1.to.PublishingChannelGroupConfigTO;
 public class DmPublishServiceImpl extends AbstractRegistrableService implements DmPublishService {
 
     private static final Logger logger = LoggerFactory.getLogger(DmPublishServiceImpl.class);
-
-    //protected DmFilterWrapper dmFilterWrapper;
-
-
-    //public void setDmFilterWrapper(DmFilterWrapper dmFilterWrapper) {
-//		this.dmFilterWrapper = dmFilterWrapper;
-//	}
-
 
     @Override
     public void register() {
@@ -177,7 +170,7 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
 
     @Override
     @ValidateParams
-    public void bulkGoLive(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "environment") String environment, @ValidateSecurePathParam(name = "path") String path) {
+    public void bulkGoLive(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "environment") String environment, @ValidateSecurePathParam(name = "path") String path) throws ServiceException {
         logger.info("Starting Bulk Go Live for path " + path + " site " + site);
 
         List<String> childrenPaths = new ArrayList<String>();
@@ -229,20 +222,9 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
         logger.info("Finished Bulk Go Live for path " + path + " site " + site);
     }
 
-    protected void getAllDependenciesRecursive(String site, String path, List<String> dependencyPaths) {
-        List<String> depPaths = dmDependencyService.getDependencyPaths(site, path);
-        for (String depPath : depPaths) {
-            if (!dependencyPaths.contains(depPath)) {
-                if (contentService.contentExists(site, depPath)) {
-                    if (objectStateService.isUpdatedOrNew(site, depPath)) {
-                        if (!dependencyPaths.contains(depPath)) {
-                            dependencyPaths.add(depPath);
-                        }
-                        getAllDependenciesRecursive(site, depPath, dependencyPaths);
-                    }
-                }
-            }
-        }
+    protected void getAllDependenciesRecursive(String site, String path, List<String> dependencyPaths) throws ServiceException {
+        Set<String> depPaths = dependencyService.getPublishingDepenencies(site, path);
+        dependencyPaths.addAll(depPaths);
     }
 
     protected void getAllMandatoryChildren(String site, ContentItemTO item, List<String> pathsToPublish) {
@@ -310,8 +292,8 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
     public ObjectMetadataManager getObjectMetadataManager() { return objectMetadataManager; }
     public void setObjectMetadataManager(ObjectMetadataManager objectMetadataManager) { this.objectMetadataManager = objectMetadataManager; }
 
-    public DmDependencyService getDmDependencyService() { return dmDependencyService; }
-    public void setDmDependencyService(DmDependencyService dmDependencyService) { this.dmDependencyService = dmDependencyService; }
+    public DependencyService getDependencyService() { return dependencyService; }
+    public void setDependencyService(DependencyService dependencyService) { this.dependencyService = dependencyService; }
 
     public ObjectStateService getObjectStateService() { return objectStateService; }
     public void setObjectStateService(ObjectStateService objectStateService) { this.objectStateService = objectStateService; }
@@ -322,6 +304,6 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
     protected ContentService contentService;
     protected ContentRepository contentRepository;
     protected ObjectMetadataManager objectMetadataManager;
-    protected DmDependencyService dmDependencyService;
+    protected DependencyService dependencyService;
     protected ObjectStateService objectStateService;
 }

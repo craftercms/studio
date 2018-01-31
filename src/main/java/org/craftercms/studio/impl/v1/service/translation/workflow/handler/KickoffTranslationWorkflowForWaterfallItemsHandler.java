@@ -20,9 +20,11 @@ package org.craftercms.studio.impl.v1.service.translation.workflow.handler;
 import java.util.Map;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Set;
 
 import javolution.util.FastList;
 
+import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.site.SiteService;
@@ -30,7 +32,7 @@ import org.craftercms.studio.api.v1.service.translation.TranslationService;
 import org.craftercms.studio.api.v1.service.workflow.WorkflowItem;
 import org.craftercms.studio.api.v1.service.workflow.WorkflowJob;
 import org.craftercms.studio.api.v1.service.workflow.WorkflowService;
-import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
+import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.impl.v1.service.workflow.JobStateHandler;
 import org.dom4j.Document;
 import org.dom4j.Node;
@@ -63,7 +65,7 @@ public class KickoffTranslationWorkflowForWaterfallItemsHandler implements JobSt
 			}
 
 			// load the translation for the site
-			Document siteConfigEl = _siteService.getSiteConfiguration(site);
+			Document siteConfigEl = siteService.getSiteConfiguration(site);
 			String sourceLanguage = siteConfigEl.valueOf("/site-config/translation/sourceLanguage");
 			
 			List<Node> targetEls = siteConfigEl.selectNodes("/site-config/translation/targetSites//targetSite");
@@ -84,7 +86,7 @@ public class KickoffTranslationWorkflowForWaterfallItemsHandler implements JobSt
 					properties.put("targetLanguage", targetLanguage);
 					
 					// calculate the intersection
-					List<String> targetPaths = _translationService.calculateTargetTranslationSet(site, paths, targetSiteId);
+					List<String> targetPaths = translationService.calculateTargetTranslationSet(site, paths, targetSiteId);
 					
 					// submit job
 					for(String path : targetPaths) {
@@ -105,19 +107,19 @@ public class KickoffTranslationWorkflowForWaterfallItemsHandler implements JobSt
 	}
 
 	/** getter site config property */
-	public SiteService getSiteService() { return _siteService; }
+	public SiteService getSiteService() { return siteService; }
 	/** setter for site config property */
-	public void setSiteService(SiteService service) { _siteService = service; }
+	public void setSiteService(SiteService service) { siteService = service; }
 
 	/** getter translation service property */
-	public TranslationService getTranslationService() { return _translationService; }
+	public TranslationService getTranslationService() { return translationService; }
 	/** setter for translation service property */
-	public void setTranslationService(TranslationService service) { _translationService = service; }
+	public void setTranslationService(TranslationService service) { translationService = service; }
 
-	public void setDependencyService(DmDependencyService service) { _dependencyService = service; }
+	public void setDependencyService(DependencyService service) { dependencyService = service; }
 
-	private void getDependents(String site, String path, List<String> dependents) {
-		List<String> depPaths = _dependencyService.getDependencyPaths(site, path);
+	private void getDependents(String site, String path, List<String> dependents) throws ServiceException {
+		Set<String> depPaths = dependencyService.getItemDependencies(site, path, 1);
 		for (String depPath : depPaths) {
 			// Add only page and components
 			if (!dependents.contains(depPath) && depPath.startsWith("/site/")) {
@@ -127,7 +129,7 @@ public class KickoffTranslationWorkflowForWaterfallItemsHandler implements JobSt
 		}
 	}
 
-	private SiteService _siteService;
-	private TranslationService _translationService;
-	private DmDependencyService _dependencyService;
+	private SiteService siteService;
+	private TranslationService translationService;
+	private DependencyService dependencyService;
 }

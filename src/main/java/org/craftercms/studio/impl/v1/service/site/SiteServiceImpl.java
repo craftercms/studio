@@ -45,7 +45,7 @@ import org.craftercms.studio.api.v1.service.configuration.DeploymentEndpointConf
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.configuration.SiteEnvironmentConfig;
 import org.craftercms.studio.api.v1.service.content.*;
-import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
+import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.notification.NotificationService;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
@@ -350,9 +350,6 @@ public class SiteServiceImpl implements SiteService {
 			// Set object states
 			createObjectStatesforNewSite(siteId);
 
-			// Extract dependencies
-			extractDependenciesForNewSite(siteId);
-
 			// Extract metadata ?
 
 	 		// permissions
@@ -365,6 +362,9 @@ public class SiteServiceImpl implements SiteService {
 			siteFeed.setSiteId(siteId);
 			siteFeed.setDescription(desc);
 			siteFeedMapper.createSite(siteFeed);
+
+            // Extract dependencies
+            extractDependenciesForNewSite(siteId);
 
             CacheService cacheService = cacheTemplate.getCacheService();
             StudioCacheContext cacheContext = new StudioCacheContext(siteId, true);
@@ -428,46 +428,14 @@ public class SiteServiceImpl implements SiteService {
                 DmPathTO dmPathTO = new DmPathTO(childFullPath);
                 String relativePath = dmPathTO.getRelativePath();
 
-                if (childFullPath.endsWith(DmConstants.XML_PATTERN)) {
-                    try {
-                        Document doc = contentService.getContentAsDocument(childFullPath);
-                        dmDependencyService.extractDependencies(site, relativePath, doc, globalDeps);
-                    } catch (ContentNotFoundException e) {
-                        logger.error("Failed to extract dependencies for document: " + childFullPath, e);
-                    } catch (ServiceException e) {
-                        logger.error("Failed to extract dependencies for document: " + childFullPath, e);
-                    } catch (DocumentException e) {
-                        logger.error("Failed to extract dependencies for document: " + childFullPath, e);
-                    }
-                } else {
-
-                    boolean isCss = childFullPath.endsWith(DmConstants.CSS_PATTERN);
-                    boolean isJs = childFullPath.endsWith(DmConstants.JS_PATTERN);
-                    List<String> templatePatterns = servicesConfig.getRenderingTemplatePatterns(site);
-                    boolean isTemplate = false;
-                    for (String templatePattern : templatePatterns) {
-                        Pattern pattern = Pattern.compile(templatePattern);
-                        Matcher matcher = pattern.matcher(relativePath);
-                        if (matcher.matches()) {
-                            isTemplate = true;
-                            break;
-                        }
-                    }
-                    try {
-                        if (isCss || isJs || isTemplate) {
-                            StringBuffer sb = new StringBuffer(contentService.getContentAsString(childFullPath));
-                            if (isCss) {
-                                dmDependencyService.extractDependenciesStyle(site, relativePath, sb, globalDeps);
-                            } else if (isJs) {
-                                dmDependencyService.extractDependenciesJavascript(site, relativePath, sb, globalDeps);
-                            } else if (isTemplate) {
-                                dmDependencyService.extractDependenciesTemplate(site, relativePath, sb, globalDeps);
-                            }
-                        }
-                    } catch (ServiceException e) {
-                        logger.error("Failed to extract dependencies for: " + childFullPath, e);
-                    }
+                try {
+                    dependencyService.upsertDependencies(site, relativePath);
+                } catch (ContentNotFoundException e) {
+                    logger.error("Failed to extract dependencies for document: " + childFullPath, e);
+                } catch (ServiceException e) {
+                    logger.error("Failed to extract dependencies for document: " + childFullPath, e);
                 }
+
             }
         }
     }
@@ -483,7 +451,7 @@ public class SiteServiceImpl implements SiteService {
 	 		// delete database records
 			siteFeedMapper.deleteSite(siteId);
 			activityService.deleteActivitiesForSite(siteId);
-			dmDependencyService.deleteDependenciesForSite(siteId);
+			dependencyService.deleteSiteDependencies(siteId);
             deploymentService.deleteDeploymentDataForSite(siteId);
             objectStateService.deleteObjectStatesForSite(siteId);
             dmPageNavigationOrderService.deleteSequencesForSite(siteId);
@@ -677,8 +645,8 @@ public class SiteServiceImpl implements SiteService {
 	public ObjectStateService getObjectStateService() { return objectStateService; }
 	public void setObjectStateService(ObjectStateService objectStateService) { this.objectStateService = objectStateService; }
 
-	public DmDependencyService getDmDependencyService() { return dmDependencyService; }
-	public void setDmDependencyService(DmDependencyService dmDependencyService) { this.dmDependencyService = dmDependencyService; }
+	public DependencyService getDependencyService() { return dependencyService; }
+	public void setDependencyService(DependencyService dependencyService) { this.dependencyService = dependencyService; }
 
 	public SecurityService getSecurityService() { return securityService; }
 	public void setSecurityService(SecurityService securityService) { this.securityService = securityService; }
@@ -741,7 +709,7 @@ public class SiteServiceImpl implements SiteService {
 	protected String environmentConfigPath = null;
 	protected ContentRepository contentRepository;
 	protected ObjectStateService objectStateService;
-	protected DmDependencyService dmDependencyService;
+	protected DependencyService dependencyService;
 	protected SecurityService securityService;
 	protected ActivityService activityService;
 	protected DeploymentService deploymentService;

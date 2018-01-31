@@ -39,7 +39,7 @@ import org.craftercms.studio.api.v1.service.configuration.DeploymentEndpointConf
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
-import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
+import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v1.service.deployment.CopyToEnvironmentItem;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
@@ -94,12 +94,17 @@ public class DeploymentServiceImpl implements DeploymentService {
         Map<String, List<String>> groupedPaths = new HashMap<String, List<String>>();
 
         for (String p : paths) {
-            if (objectStateService.isNew(site, p)) {
-                newPaths.add(p);
-            } else if (objectMetadataManager.isRenamed(site, p)) {
-                movedPaths.add(p);
+            ContentItemTO item = contentService.getContentItem(site, p, 0);
+            if (item.isFolder()) {
+                logger.debug("Content item at path " + p + " for site " + site + " is folder and will not be added to publishing queue.");
             } else {
-                updatedPaths.add(p);
+                if (objectStateService.isNew(site, p)) {
+                    newPaths.add(p);
+                } else if (objectMetadataManager.isRenamed(site, p)) {
+                    movedPaths.add(p);
+                } else {
+                    updatedPaths.add(p);
+                }
             }
         }
 
@@ -487,7 +492,6 @@ public class DeploymentServiceImpl implements DeploymentService {
      *
      * @param site
      * @param launchDate
-     * @param node
      * @param scheduledItems
      * @param comparator
      * @param displayPatterns
@@ -496,7 +500,6 @@ public class DeploymentServiceImpl implements DeploymentService {
                                     List<ContentItemTO> scheduledItems, DmContentItemComparator comparator,
                                     DmContentItemComparator subComparator, List<String> displayPatterns, String filterType) {
         try {
-            DmPathTO path = new DmPathTO(fullPath);
             addToScheduledDateList(site, launchDate, format, fullPath,
                 scheduledItems, comparator, subComparator, displayPatterns, filterType);
             String relativePath = contentService.getRelativeSitePath(site, fullPath);
@@ -515,11 +518,9 @@ public class DeploymentServiceImpl implements DeploymentService {
      * @param site
      * @param launchDate
      * @param format
-     * @param node
      * @param scheduledItems
      * @param comparator
      * @param subComparator
-     * @param taskId
      * @param displayPatterns
      * @throws ServiceException
      */
@@ -535,9 +536,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         if (ContentUtils.matchesPatterns(path.getRelativePath(), displayPatterns)) {
             ContentItemTO itemToAdd = contentService.getContentItem(site, path.getRelativePath(), 0);
             if (dmFilterWrapper.accept(site, itemToAdd, filterType)) {
-                //itemToAdd.submitted = false;
                 itemToAdd.scheduledDate = launchDate;
-                //itemToAdd.inProgress = false;
                 boolean found = false;
                 for (int index = 0; index < scheduledItems.size(); index++) {
                     ContentItemTO currDateItem = scheduledItems.get(index);
@@ -574,22 +573,10 @@ public class DeploymentServiceImpl implements DeploymentService {
                                                     DmContentItemComparator subComparator,
                                                     List<String> displayPatterns,
                                                     String filterType,
-                                                    String relativePath) {
+                                                    String relativePath) throws ServiceException {
 
-        DmDependencyTO dmDependencyTo = dmDependencyService.getDependencies(site, relativePath, false, true);
-
-        if (dmDependencyTo != null) {
-
-            List<DmDependencyTO> pages = dmDependencyTo.getPages();
-            _addDependendenciesToSchdeuleList(site, launchDate, format, scheduledItems, comparator, subComparator, displayPatterns, filterType, pages);
-
-            List<DmDependencyTO> components = dmDependencyTo.getComponents();
-            _addDependendenciesToSchdeuleList(site, launchDate, format, scheduledItems, comparator, subComparator, displayPatterns, filterType, components);
-
-            List<DmDependencyTO> documents = dmDependencyTo.getDocuments();
-            _addDependendenciesToSchdeuleList(site, launchDate, format, scheduledItems, comparator, subComparator, displayPatterns, filterType, documents);
-        }
-
+        Set<String> dependencyPaths = dependencyService.getItemDependencies(site, relativePath,1);
+        _addDependendenciesToSchdeuleList(site, launchDate, format, scheduledItems, comparator, subComparator, displayPatterns, filterType, dependencyPaths);
     }
 
     protected ContentItemTO createDateItem(String name, ContentItemTO itemToAdd, DmContentItemComparator comparator, String timeZone) {
@@ -611,16 +598,15 @@ public class DeploymentServiceImpl implements DeploymentService {
                                                      DmContentItemComparator subComparator,
                                                      List<String> displayPatterns,
                                                      String filterType,
-                                                     List<DmDependencyTO>dependencies) {
+                                                     Set<String> dependencies) throws ServiceException {
         if(dependencies != null) {
-            for(DmDependencyTO dependencyTo:dependencies) {
-                if (objectStateService.isNew(site, dependencyTo.getUri())) {
-                    String uri = dependencyTo.getUri();
-                    String fullPath = contentService.expandRelativeSitePath(site, uri);
-                    if(objectStateService.isScheduled(site, uri)) {
+            for(String dependency : dependencies) {
+                if (objectStateService.isNew(site, dependency)) {
+                    String fullPath = contentService.expandRelativeSitePath(site, dependency);
+                    if(objectStateService.isScheduled(site, dependency)) {
                         addScheduledItem(site,launchDate,format,fullPath,scheduledItems,comparator,subComparator,displayPatterns,filterType);
-                        if(dependencyTo.getUri().endsWith(DmConstants.XML_PATTERN)) {
-                            addDependendenciesToSchdeuleList(site,launchDate,format,scheduledItems,comparator,subComparator,displayPatterns,filterType,uri);
+                        if(dependency.endsWith(DmConstants.XML_PATTERN)) {
+                            addDependendenciesToSchdeuleList(site,launchDate,format,scheduledItems,comparator,subComparator,displayPatterns,filterType,dependency);
                         }
                     }
                 }
@@ -862,7 +848,7 @@ public class DeploymentServiceImpl implements DeploymentService {
 
     @Override
     @ValidateParams
-    public void bulkGoLive(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "environment") String environment, @ValidateSecurePathParam(name = "path") String path) {
+    public void bulkGoLive(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "environment") String environment, @ValidateSecurePathParam(name = "path") String path) throws ServiceException {
         dmPublishService.bulkGoLive(site, environment, path);
     }
 
@@ -915,8 +901,8 @@ public class DeploymentServiceImpl implements DeploymentService {
         this.activityService = activityService;
     }
 
-    public void setDmDependencyService(DmDependencyService dmDependencyService) {
-        this.dmDependencyService = dmDependencyService;
+    public void setDependencyService(DependencyService dependencyService) {
+        this.dependencyService = dependencyService;
     }
 
     public void setDmFilterWrapper(DmFilterWrapper dmFilterWrapper) {
@@ -964,7 +950,7 @@ public class DeploymentServiceImpl implements DeploymentService {
     protected ServicesConfig servicesConfig;
     protected ContentService contentService;
     protected ActivityService activityService;
-    protected DmDependencyService dmDependencyService;
+    protected DependencyService dependencyService;
     protected DmFilterWrapper dmFilterWrapper;
     protected SiteService siteService;
     protected ObjectStateService objectStateService;

@@ -99,4 +99,42 @@
         WHERE site = #{site}
         AND (source_path = #{path} OR target_path = #{path})
     </delete>
+
+    <select id="getDependenciesForList" parameterType="java.util.Map" resultType="String">
+        SELECT target_path
+        FROM cstudio_DEPENDENCY
+        WHERE site = #{site}
+        AND source_path IN
+        <foreach item="path" index="index" collection="paths"
+                 open="(" separator="," close=")">
+            #{path}
+        </foreach>
+    </select>
+
+    <select id="getPublishingDependenciesForList" parameterType="java.util.Map" resultType="String">
+        SELECT target_path
+        FROM (cstudio_DEPENDENCY cd INNER JOIN cstudio_objectstate co ON cd.target_path = co.path)
+        WHERE cd.site = #{site}
+        AND cd.source_path IN
+        <foreach item="path" index="index" collection="paths"
+                 open="(" separator="," close=")">
+            #{path}
+        </foreach>
+        AND co.state IN
+        <foreach item="state" index="index" collection="states"
+                 open="(" separator="," close=")">
+            #{state}
+        </foreach>
+    </select>
+
+    <select id="getItemsDependingOn" resultType="String" parameterType="java.util.Map">
+        SELECT source_path
+        FROM cstudio_DEPENDENCY
+        WHERE site = #{site}
+        AND target_path in
+        <foreach item="path" index="index" collection="paths"
+                 open="(" separator="," close=")">
+            #{path}
+        </foreach>
+    </select>
 </mapper>
