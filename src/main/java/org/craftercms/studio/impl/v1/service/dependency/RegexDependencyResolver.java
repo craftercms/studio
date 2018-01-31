@@ -53,7 +53,7 @@ public class RegexDependencyResolver implements DependencyResolver {
     @Override
     public Map<String, Set<String>> resolve(String site, String path) {
         Map<String, Set<String>> toRet = new HashMap<String, Set<String>>();
-        DependencyResolverConfigTO config = getConfiguraion(site);
+        DependencyResolverConfigTO config = getConfiguration(site);
         if (config != null) {
             String content = contentService.getContentAsString(contentService.expandRelativeSitePath(site, path));
             if (content != null) {
@@ -105,7 +105,7 @@ public class RegexDependencyResolver implements DependencyResolver {
     }
 
     @SuppressWarnings("unchecked")
-    private DependencyResolverConfigTO getConfiguraion(String site) {
+    private DependencyResolverConfigTO getConfiguration(String site) {
         DependencyResolverConfigTO config = null;
         String configLocation = getConfigLocation(site);
         Document document = null;

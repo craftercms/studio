@@ -847,7 +847,7 @@ public class ContentServiceImpl implements ContentService {
     }
 
     protected void updateDependenciesOnMove(String site, String fromPath, String movePath) throws ServiceException {
-        dependencyService.deleteItemDependencies(site, fromPath);
+        dependencyService.moveDependencies(site, fromPath, movePath);
         try {
             dependencyService.upsertDependencies(site, movePath);
         } catch (ServiceException  e) {

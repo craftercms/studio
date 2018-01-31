@@ -404,6 +404,27 @@ public class DependencyServiceImpl implements DependencyService {
     }
 
     @Override
+    public Set<String> moveDependencies(String site, String oldPath, String newPath) throws SiteNotFoundException, ContentNotFoundException, ServiceException {
+        // Check if site exists
+        if (!siteService.exists(site)) {
+            throw new SiteNotFoundException();
+        }
+
+        // Check if content exists
+        if (!contentService.contentExists(site, newPath)) {
+            throw new ContentNotFoundException();
+        }
+
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("siteId", site);
+        params.put("oldPath", oldPath);
+        params.put("newPath", newPath);
+        dependencyMapper.moveDependency(params);
+
+        return getItemDependencies(site, newPath, 1);
+    }
+
+    @Override
     public void deleteItemDependencies(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) throws SiteNotFoundException, ContentNotFoundException, ServiceException {
         // Check if site exists
         if (!siteService.exists(site)) {

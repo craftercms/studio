@@ -127,6 +127,18 @@ public interface DependencyService {
     Set<String> getItemsDependingOn(String site, String path, int depth) throws SiteNotFoundException, ContentNotFoundException, ServiceException;
 
     /**
+     * Move an item and make sure dependency paths remain correct.
+     *
+     * @param site Site to operate on
+     * @param oldPath Path to item to move
+     * @param newPath Path the item moves to
+     * @throws SiteNotFoundException Site doesn't exist
+     * @throws ContentNotFoundException Path doesn't exist
+     * @throws ServiceException Internal error, see exception details
+     */
+    Set<String> moveDependencies(String site, String oldPath, String newPath) throws SiteNotFoundException, ContentNotFoundException, ServiceException;
+
+    /**
      * Delete an item dependencies from the database.
      *
      * @param site Site to operate on

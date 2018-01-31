@@ -47,4 +47,6 @@ public interface DependencyMapper {
     List<String> getPublishingDependenciesForList(Map params);
 
     List<String> getItemsDependingOn(Map params);
+
+    void moveDependency(Map params);
 }
