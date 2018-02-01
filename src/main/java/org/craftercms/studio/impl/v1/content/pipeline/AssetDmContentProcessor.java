@@ -17,7 +17,6 @@
  */
 package org.craftercms.studio.impl.v1.content.pipeline;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.content.pipeline.PipelineContent;
@@ -163,13 +162,8 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
                 ContentAssetInfoTO assetInfo = new ContentAssetInfoTO();
                 assetInfo.setFileName(assetName);
                 InputStream is = contentService.getContent(site, path + FILE_SEPARATOR + assetName);
-                long sizeInBytes = 0;
+                long sizeInBytes = ContentUtils.getSizeForFile(is);
                 double convertedSize = 0;
-                try {
-                    sizeInBytes = IOUtils.toByteArray(is).length;
-                } catch (Exception e) {
-                    logger.error("Unable to determine size for content at site: " + site + " path " + contentPath);
-                }
                 if (sizeInBytes > 0) {
                     convertedSize = sizeInBytes / 1024d;
                     if (convertedSize >= 1024) {

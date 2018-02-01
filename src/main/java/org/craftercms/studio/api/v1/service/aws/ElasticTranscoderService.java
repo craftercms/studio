@@ -1,6 +1,6 @@
 package org.craftercms.studio.api.v1.service.aws;
 
-import java.io.File;
+import java.io.InputStream;
 
 import org.craftercms.studio.api.v1.aws.elastictranscoder.TranscoderJob;
 import org.craftercms.studio.api.v1.exception.AwsException;
@@ -19,12 +19,13 @@ public interface ElasticTranscoderService {
      * @param site          the site
      * @param profileId   the id of the {@link org.craftercms.studio.api.v1.aws.elastictranscoder.TranscoderProfile} to use
      * @param filename      the name of the video file to transcode
-     * @param file          the video file itself
+     * @param content          the video file itself
      *
      * @return the {@link TranscoderJob} that was started
      *
      * @throws AwsException if an error occurs
      */
-    TranscoderJob transcodeFile(String site, String profileId, String filename, File file) throws AwsException;
+    TranscoderJob transcodeFile(String site, String profileId, String filename, InputStream content) throws
+        AwsException;
 
 }

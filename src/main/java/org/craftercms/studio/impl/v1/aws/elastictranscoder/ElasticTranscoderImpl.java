@@ -13,7 +13,7 @@ import com.amazonaws.services.elastictranscoder.model.ReadPipelineResult;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 
-import java.io.File;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -25,6 +25,7 @@ import org.craftercms.studio.api.v1.aws.elastictranscoder.TranscoderJob;
 import org.craftercms.studio.api.v1.aws.elastictranscoder.TranscoderOutput;
 import org.craftercms.studio.api.v1.aws.elastictranscoder.TranscoderProfile;
 import org.craftercms.studio.api.v1.exception.AwsException;
+import org.craftercms.studio.impl.v1.service.aws.AwsUtils;
 
 /**
  * Default implementation of {@link ElasticTranscoder}. Just as indicated by the interface, the video file is first uploaded to the
@@ -36,8 +37,18 @@ import org.craftercms.studio.api.v1.exception.AwsException;
  */
 public class ElasticTranscoderImpl implements ElasticTranscoder {
 
+    protected int partSize;
+
+    public ElasticTranscoderImpl() {
+        partSize = AwsUtils.MIN_PART_SIZE;
+    }
+
+    public void setPartSize(final int partSize) {
+        this.partSize = partSize;
+    }
+
     @Override
-    public TranscoderJob startJob(String filename, File file, TranscoderProfile profile) throws AwsException {
+    public TranscoderJob startJob(String filename, InputStream content, TranscoderProfile profile) throws AwsException {
         try {
             AmazonS3 s3Client = getS3Client(profile);
             AmazonElasticTranscoder transcoderClient = getTranscoderClient(profile);
@@ -45,7 +56,7 @@ public class ElasticTranscoderImpl implements ElasticTranscoder {
             String baseKey = FilenameUtils.removeExtension(filename) + "/" + UUID.randomUUID().toString();
             String inputKey = baseKey + "." + FilenameUtils.getExtension(filename);
 
-            uploadInput(inputKey, file, pipeline, s3Client);
+            uploadInput(inputKey, filename, content, pipeline, s3Client);
 
             CreateJobResult jobResult = createJob(inputKey, baseKey, profile, transcoderClient);
 
@@ -64,10 +75,11 @@ public class ElasticTranscoderImpl implements ElasticTranscoder {
         return result.getPipeline();
     }
 
-    protected void uploadInput(String inputKey, File file, Pipeline pipeline, AmazonS3 s3Client) {
+    protected void uploadInput(String inputKey, String filename, InputStream content, Pipeline pipeline,
+                               AmazonS3 s3Client) throws AwsException {
         String inputBucket = pipeline.getInputBucket();
 
-        s3Client.putObject(inputBucket, inputKey, file);
+        AwsUtils.uploadStream(inputBucket, inputKey, s3Client, partSize, filename, content);
     }
 
     protected CreateJobResult createJob(String inputKey, String baseKey, TranscoderProfile profile,

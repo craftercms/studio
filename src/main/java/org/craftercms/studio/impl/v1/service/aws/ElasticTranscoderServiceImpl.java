@@ -1,6 +1,6 @@
 package org.craftercms.studio.impl.v1.service.aws;
 
-import java.io.File;
+import java.io.InputStream;
 
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
@@ -33,9 +33,9 @@ public class ElasticTranscoderServiceImpl extends AbstractAwsService<TranscoderP
     public TranscoderJob transcodeFile(@ValidateStringParam(name = "site") String site,
                                        @ValidateStringParam(name = "profileId") String profileId,
                                        @ValidateStringParam(name = "filename") String filename,
-                                       File file) throws AwsException {
+                                       InputStream content) throws AwsException {
         TranscoderProfile profile = getProfile(site, profileId);
-        TranscoderJob job = transcoder.startJob(filename, file, profile);
+        TranscoderJob job = transcoder.startJob(filename, content, profile);
 
         return job;
     }

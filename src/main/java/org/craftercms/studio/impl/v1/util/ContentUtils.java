@@ -133,6 +133,20 @@ public class ContentUtils {
 		return false;
 	}
 
+	public static long getSizeForFile(InputStream input) {
+		byte[] buffer = new byte[1024];
+		long totalBytes = 0;
+		int bytesRead = 0;
+		try {
+			while(-1 != (bytesRead = input.read(buffer))) {
+				totalBytes += bytesRead;
+			}
+		} catch (IOException e) {
+			logger.error("Error while reading input stream", e);
+		}
+		return totalBytes;
+	}
+
 	public static String getMd5ForFile(InputStream input) {
 		String result = null;
 		MessageDigest md = null;
