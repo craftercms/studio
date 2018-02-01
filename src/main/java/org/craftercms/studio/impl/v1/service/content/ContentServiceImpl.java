@@ -537,45 +537,50 @@ public class ContentServiceImpl implements ContentService {
                     try {
                         String contentType = fromItem.getContentType();
                         InputStream fromContent = getContent(site, fromPath);
-                        Document fromDocument = ContentUtils.convertStreamToXml(fromContent);
-                        Map<String, String> fromPageIds = getContentIds(fromDocument);
+                        if (fromPath.endsWith(DmConstants.XML_PATTERN)) {
+                            Document fromDocument = ContentUtils.convertStreamToXml(fromContent);
+                            Map<String, String> fromPageIds = getContentIds(fromDocument);
 
-                        logger.debug("copying file for site {0} from {1} to {2}, new name is {3}", site, fromPath, toPath, copyPath);
+                            logger.debug("copying file for site {0} from {1} to {2}, new name is {3}", site, fromPath, toPath, copyPath);
 
-                        // come up with a new object ID and group ID for the object
-                        Map<String, String> copyObjectIds = contentItemIdGenerator.getIds();
+                            // come up with a new object ID and group ID for the object
+                            Map<String, String> copyObjectIds = contentItemIdGenerator.getIds();
 
-                        Map<String, String> copyDependencies = getCopyDependencies(site, fromPath, fromPath);
-                        copyDependencies = getItemSpecificDependencies(fromDocument, copyDependencies);
-                        logger.debug("Calculated copy dependencies: {0}, {1}", fromPath, copyDependencies);
+                            Map<String, String> copyDependencies = getCopyDependencies(site, fromPath, fromPath);
+                            copyDependencies = getItemSpecificDependencies(fromDocument, copyDependencies);
+                            logger.debug("Calculated copy dependencies: {0}, {1}", fromPath, copyDependencies);
 
-                        // Duplicate the children
-                        for (String dependecyKey : copyDependencies.keySet()) {
-                            String dependecyPath = copyDependencies.get(dependecyKey);
-                            String copyDepPath = dependecyPath;
+                            // Duplicate the children
+                            for (String dependecyKey : copyDependencies.keySet()) {
+                                String dependecyPath = copyDependencies.get(dependecyKey);
+                                String copyDepPath = dependecyPath;
 
-                            // Does not seem to work (leaving it here because it's suspposed to do the work below)
-                            //PathMacrosTransaltor.resolvePath(dependecyPath, copyObjectIds);
-                            //copyDepPath = copyDepPath + "/" +  dependecyPath.substring(dependecyPath.lastIndexOf("/")+1);
+                                // Does not seem to work (leaving it here because it's suspposed to do the work below)
+                                //PathMacrosTransaltor.resolvePath(dependecyPath, copyObjectIds);
+                                //copyDepPath = copyDepPath + "/" +  dependecyPath.substring(dependecyPath.lastIndexOf("/")+1);
 
-                            // try a simple substitution
-                            copyDepPath = copyDepPath.replaceAll(
-                                    fromPageIds.get(DmConstants.KEY_PAGE_ID),
-                                    copyObjectIds.get(DmConstants.KEY_PAGE_ID));
+                                // try a simple substitution
+                                copyDepPath = copyDepPath.replaceAll(
+                                        fromPageIds.get(DmConstants.KEY_PAGE_ID),
+                                        copyObjectIds.get(DmConstants.KEY_PAGE_ID));
 
-                            copyDepPath = copyDepPath.replaceAll(
-                                    fromPageIds.get(DmConstants.KEY_PAGE_GROUP_ID),
-                                    copyObjectIds.get(DmConstants.KEY_PAGE_GROUP_ID));
-                            logger.debug("TRANSLATED DEP PATH {0} to {1}", dependecyPath, copyDepPath);
+                                copyDepPath = copyDepPath.replaceAll(
+                                        fromPageIds.get(DmConstants.KEY_PAGE_GROUP_ID),
+                                        copyObjectIds.get(DmConstants.KEY_PAGE_GROUP_ID));
 
-                            copyContent(site, dependecyPath, copyDepPath, processedPaths);
+                                if (!copyDepPath.endsWith(DmConstants.XML_PATTERN)) {
+                                    copyDepPath = ContentUtils.getParentUrl(copyDepPath);
+                                }
+                                logger.debug("TRANSLATED DEP PATH {0} to {1}", dependecyPath, copyDepPath);
+
+                                copyContent(site, dependecyPath, copyDepPath, processedPaths);
+                            }
+
+                            // update the file name / folder values
+                            Document copyDocument = updateContentForCopy(site, fromDocument, copyPathFileName, copyPathFolder, copyObjectIds, copyPathModifier);
+
+                            copyContent = ContentUtils.convertDocumentToStream(copyDocument, CStudioConstants.CONTENT_ENCODING);
                         }
-
-                        // update the file name / folder values
-                        Document copyDocument = updateContentForCopy(site, fromDocument, copyPathFileName, copyPathFolder, copyObjectIds, copyPathModifier);
-
-                        copyContent = ContentUtils.convertDocumentToStream(copyDocument, CStudioConstants.CONTENT_ENCODING);
-
                         // This code is very similar to what is in WRTIE CONTENT. Consolidate this code?
                         Map<String, String> params = new HashMap<String, String>();
                         params.put(DmConstants.KEY_SITE, site);
@@ -597,16 +602,13 @@ public class ContentServiceImpl implements ContentService {
                             generalLockService.lock(id);
 
                             // processContent will close the input stream
-                            if (!StringUtils.isEmpty(contentType)) {
-                                processContent(id, copyContent, true, params, DmConstants.CONTENT_CHAIN_FORM);
-                            } else {
                                 if (copyFileName.endsWith(DmConstants.XML_PATTERN)) {
                                     // when do you get here?
                                     processContent(id, copyContent, true, params, DmConstants.CONTENT_CHAIN_FORM);
                                 } else {
                                     processContent(id, fromContent, false, params, DmConstants.CONTENT_CHAIN_ASSET);
                                 }
-                            }
+
 
                             // I THINK this will always return null
                             ObjectState objectState = objectStateService.getObjectState(site, copyPath);
@@ -679,7 +681,7 @@ public class ContentServiceImpl implements ContentService {
                                     StringUtils.isNotEmpty(copyConfig.getTarget()) && assocFilePath.matches(copyConfig.getPattern())) {
                                 ContentItemTO assocItem = getContentItem(site, assocFilePath);
                                 if (assocItem != null) {
-                                    copyDependency.put(dependency, copyConfig.getTarget());
+                                    copyDependency.put(dependency, dependency);
                                 }
                             }
                         }
@@ -687,6 +689,10 @@ public class ContentServiceImpl implements ContentService {
 
                 } else {
                     logger.debug("Copy Pattern is not provided for contentType" + contentType);
+                }
+                Set<String> deps = dependencyService.getItemSpecificDependencies(site, dependencyPath, 1);
+                for (String dep : deps) {
+                    copyDependency.put(dep, dep);
                 }
             } else {
                 logger.debug("Not found dependency item at {0}", fullPath);
