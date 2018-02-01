@@ -20,9 +20,7 @@ import com.amazonaws.services.s3.AmazonS3ClientBuilder;
  * @author joseross
  */
 public class S3ServiceImpl extends AbstractAwsService<S3Profile> implements S3Service {
-
-    private static final Logger logger = LoggerFactory.getLogger(S3ServiceImpl.class);
-
+    
     protected int partSize;
 
     public S3ServiceImpl() {
