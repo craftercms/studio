@@ -8,8 +8,6 @@ import org.craftercms.studio.api.v1.aws.s3.S3Profile;
 import org.craftercms.studio.api.v1.exception.AwsException;
 import org.craftercms.studio.api.v1.service.aws.AbstractAwsService;
 import org.craftercms.studio.api.v1.service.aws.S3Service;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
@@ -20,7 +18,7 @@ import com.amazonaws.services.s3.AmazonS3ClientBuilder;
  * @author joseross
  */
 public class S3ServiceImpl extends AbstractAwsService<S3Profile> implements S3Service {
-    
+
     protected int partSize;
 
     public S3ServiceImpl() {
