@@ -49,6 +49,15 @@ public interface ContentService {
     InputStream getContent(String site, String path) throws ContentNotFoundException;
 
     /**
+     * get file size
+     *
+     * @param site site id where the operation will be executed
+     * @param path path to content
+     * @return Size in bytes
+     */
+    long getContentSize(String site, String path);
+
+    /**
      * get from wcm content
      *
      * @param path

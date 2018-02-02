@@ -135,9 +135,6 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
             ext = assetName.substring(index + 1).toUpperCase();
         }
 
-        if (isSystemAsset) {
-            assetName = ContentUtils.getMd5ForFile(in) + "." + ext;
-        }
         String contentPath = path + FILE_SEPARATOR + assetName;
 
         try {
@@ -161,8 +158,7 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
                 }
                 ContentAssetInfoTO assetInfo = new ContentAssetInfoTO();
                 assetInfo.setFileName(assetName);
-                InputStream is = contentService.getContent(site, path + FILE_SEPARATOR + assetName);
-                long sizeInBytes = ContentUtils.getSizeForFile(is);
+                long sizeInBytes = contentService.getContentSize(site, path + FILE_SEPARATOR + assetName);
                 double convertedSize = 0;
                 if (sizeInBytes > 0) {
                     convertedSize = sizeInBytes / 1024d;

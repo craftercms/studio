@@ -116,23 +116,8 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                     ContentItemTO item = contentService.getContentItem(site, path, 0);
                     InputStream existingContent = contentService.getContent(site, path);
 
-                    String existingMd5 = ContentUtils.getMd5ForFile(existingContent);
-                    String newMd5 = ContentUtils.getMd5ForFile(input);
-                    if (!existingMd5.equals(newMd5)) {
-                        updateFile(site, item, path, input, user, isPreview, unlock, result);
-                        content.addProperty(DmConstants.KEY_ACTIVITY_TYPE, ActivityService.ActivityType.UPDATED.toString());
-                    } else {
-                        updateLastEditedProperties(site, item.getUri(), user);
-                        if (!isPreview) {
-                            if (cancelWorkflow(site, path)) {
-                                workflowService.removeFromWorkflow(site, path, true);
-                            } else {
-                                if(updateWorkFlow(site, path)) {
-                                    workflowService.updateWorkflowSandboxes(site, path);
-                                }
-                            }
-                        }
-                    }
+                    updateFile(site, item, path, input, user, isPreview, unlock, result);
+                    content.addProperty(DmConstants.KEY_ACTIVITY_TYPE, ActivityService.ActivityType.UPDATED.toString());
                     if (unlock) {
                         // TODO: We need ability to lock/unlock content in repo
                         contentService.unLockContent(site, path);
@@ -150,23 +135,8 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                     if (fileExists) {
                         ContentItemTO contentItem = contentService.getContentItem(site, path, 0);
                         InputStream existingContent = contentService.getContent(site, path);
-                        String existingMd5 = ContentUtils.getMd5ForFile(existingContent);
-                        String newMd5 = ContentUtils.getMd5ForFile(input);
-                        if (!existingMd5.equals(newMd5)) {
-                            updateFile(site, contentItem, path, input, user, isPreview, unlock, result);
-                            content.addProperty(DmConstants.KEY_ACTIVITY_TYPE, ActivityService.ActivityType.UPDATED.toString());
-                        } else {
-                            updateLastEditedProperties(site, contentItem.getUri(), user);
-                            if (!isPreview) {
-                                if (cancelWorkflow(site, path)) {
-                                    workflowService.removeFromWorkflow(site, path, true);
-                                } else {
-                                    if(updateWorkFlow(site, path)) {
-                                        workflowService.updateWorkflowSandboxes(site,path);
-                                    }
-                                }
-                            }
-                        }
+                        updateFile(site, contentItem, path, input, user, isPreview, unlock, result);
+                        content.addProperty(DmConstants.KEY_ACTIVITY_TYPE, ActivityService.ActivityType.UPDATED.toString());
                         if (unlock) {
                             // TODO: We need ability to lock/unlock content in repo
                             contentService.unLockContent(site, path);

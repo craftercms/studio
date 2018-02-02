@@ -32,7 +32,6 @@ import org.craftercms.studio.api.v1.to.RepoOperationTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
 
 import java.io.InputStream;
-import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -60,6 +59,15 @@ public interface ContentRepository {
      * @return document
      */
     InputStream getContent(String site, String path) throws ContentNotFoundException;
+
+    /**
+     * get file size
+     *
+     * @param site site id where the operation will be executed
+     * @param path path to content
+     * @return Size in bytes
+     */
+    long getContentSize(String site, String path);
 
     /**
      * write content

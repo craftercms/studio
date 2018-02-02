@@ -18,7 +18,6 @@
 package org.craftercms.studio.impl.v1.service.content;
 
 import java.io.*;
-import java.io.InputStream;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -103,6 +102,12 @@ public class ContentServiceImpl implements ContentService {
     public InputStream getContent(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) throws ContentNotFoundException {
         // TODO: SJ: Refactor in 4.x as this already exists in Crafter Core (which is part of the new Studio)
         return this._contentRepository.getContent(site, path);
+    }
+
+    @Override
+    @ValidateParams
+    public long getContentSize(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "path") String path) {
+        return _contentRepository.getContentSize(site, path);
     }
 
     @Override
@@ -1462,7 +1467,7 @@ public class ContentServiceImpl implements ContentService {
             item.isPage = item.page;
             item.previewable = item.page;
             item.isPreviewable = item.previewable;
-            item.asset = ContentUtils.matchesPatterns(item.getUri(), servicesConfig.getAssetPatterns(site)) || ContentUtils.matchesPatterns(item.getUri(), servicesConfig.getRenderingTemplatePatterns(site)) || ContentUtils.matchesPatterns(item.getUri(), servicesConfig.getScriptsPatterns(site));;
+            item.asset = ContentUtils.matchesPatterns(item.getUri(), servicesConfig.getAssetPatterns(site)) || ContentUtils.matchesPatterns(item.getUri(), servicesConfig.getRenderingTemplatePatterns(site)) || ContentUtils.matchesPatterns(item.getUri(), servicesConfig.getScriptsPatterns(site));
             item.isAsset = item.asset;
             item.component = ContentUtils.matchesPatterns(item.getUri(), servicesConfig.getComponentPatterns(site)) || item.isLevelDescriptor() || item.asset;
             item.isComponent = item.component;
