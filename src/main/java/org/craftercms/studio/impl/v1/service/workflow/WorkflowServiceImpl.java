@@ -655,8 +655,7 @@ public class WorkflowServiceImpl implements WorkflowService {
     @Override
     @ValidateParams
     public ResultTO goDelete(@ValidateStringParam(name = "site") String site, String request, @ValidateStringParam(name = "user") String user) {
-        String md5 = ContentUtils.getMd5ForFile(request);
-        String id = site + ":" + user + ":" + md5;
+        String id = site + ":" + user + ":" + request;
         if (!generalLockService.tryLock(id)) {
             generalLockService.lock(id);
             generalLockService.unlock(id);

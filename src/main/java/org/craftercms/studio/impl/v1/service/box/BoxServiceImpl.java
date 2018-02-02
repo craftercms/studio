@@ -1,6 +1,5 @@
 package org.craftercms.studio.impl.v1.service.box;
 
-import java.io.IOException;
 import java.io.InputStream;
 
 import org.craftercms.studio.api.v1.box.BoxProfile;
@@ -67,24 +66,19 @@ public class BoxServiceImpl implements BoxService {
      * {@inheritDoc}
      */
     @Override
-    public BoxUploadResult uploadFile(final String site, final String profileId, final String filename, final long
-        size, final InputStream content) throws BoxException {
+    public BoxUploadResult uploadFile(final String site, final String profileId, final String filename,
+                                      final InputStream content) throws BoxException {
         try {
             BoxProfile profile = getProfile(site, profileId);
             BoxAPIConnection api = getConnection(profile);
             String uploadFolder = profile.getUploadFolder();
             BoxFolder folder = getUploadFolder(uploadFolder, api);
-            BoxFile.Info info;
-            if(size >= MIN_SIZE) {
-                info = folder.uploadLargeFile(content, filename, size);
-            } else {
-                info = folder.uploadFile(content, filename);
-            }
+            BoxFile.Info info = folder.uploadFile(content, filename);
             BoxUploadResult result = new BoxUploadResult();
             result.setId(info.getID());
             result.setName(info.getName());
             return result;
-        } catch (InterruptedException | IOException | BoxAPIException e) {
+        } catch (BoxAPIException e) {
             throw new BoxException("Error during file upload", e);
         }
     }

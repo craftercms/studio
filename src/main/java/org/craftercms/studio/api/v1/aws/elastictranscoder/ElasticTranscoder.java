@@ -1,6 +1,6 @@
 package org.craftercms.studio.api.v1.aws.elastictranscoder;
 
-import java.io.File;
+import java.io.InputStream;
 
 import org.craftercms.studio.api.v1.exception.AwsException;
 
@@ -16,7 +16,7 @@ public interface ElasticTranscoder {
      * the input bucket in S3 before the job is created.
      *
      * @param filename  the video's file name
-     * @param file      the file of the video
+     * @param content      the file of the video
      * @param profile   the transcoding profile
      *
      * @return the metadata of the transcoder job. It's important to point out that returning the job info doesn't mean that the job
@@ -24,6 +24,6 @@ public interface ElasticTranscoder {
      *
      * @throws AwsException if an error occurred
      */
-    TranscoderJob startJob(String filename, File file, TranscoderProfile profile) throws AwsException;
+    TranscoderJob startJob(String filename, InputStream content, TranscoderProfile profile) throws AwsException;
 
 }

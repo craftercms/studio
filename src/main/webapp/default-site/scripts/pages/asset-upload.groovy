@@ -1,5 +1,6 @@
+import org.apache.commons.fileupload.servlet.ServletFileUpload
+import org.apache.commons.fileupload.util.Streams
 import scripts.api.ContentServices
-import org.springframework.web.multipart.MultipartRequest
 
 model.cookieDomain = request.getServerName()
 
@@ -19,21 +20,43 @@ def systemAsset = null
 
 def context = ContentServices.createContext(applicationContext, request)
 
-if(request instanceof MultipartRequest) {
-    site = params.site
-    path = params.path
-    isImage = params.isImage
-    allowedWidth = params.allowedWidth
-    allowedHeight = params.allowedHeight
-    allowLessSize = params.allowLessSize
-    changeCase = params.changeCase
-    def file = request.getFile("file")
-    fileName = file.getOriginalFilename()
-    contentType = file.getContentType()
-    content = file.getInputStream()
-
-    result = ContentServices.writeContentAsset(context, site, path, fileName, content,
-            isImage, allowedWidth, allowedHeight, allowLessSize, draft, unlock, systemAsset)
+if(ServletFileUpload.isMultipartContent(request)) {
+    def upload = new ServletFileUpload()
+    def iterator = upload.getItemIterator(request)
+    while(iterator.hasNext()) {
+        def item = iterator.next()
+        def name = item.getFieldName()
+        def stream = item.openStream()
+        if (item.isFormField()) {
+            switch (name) {
+                case "site":
+                    site = Streams.asString(stream)
+                    break
+                case "path":
+                    path = Streams.asString(stream)
+                    break
+                case "isImage":
+                    isImage = Streams.asString(stream)
+                    break
+                case "allowedWidth":
+                    allowedWidth = Streams.asString(stream)
+                    break
+                case "allowedHeight":
+                    allowedHeight = Streams.asString(stream)
+                    break
+                case "allowLessSize":
+                    allowLessSize = Streams.asString(stream)
+                    break
+                case "changeCase":
+                    changeCase = Streams.asString(stream)
+                    break
+            }
+        } else {
+            fileName = item.getName()
+            result = ContentServices.writeContentAsset(context, site, path, fileName, stream,
+                    isImage, allowedWidth, allowedHeight, allowLessSize, draft, unlock, systemAsset)
+        }
+    }
 } else {
     site = request.getParameter("site")
     path = request.getParameter("path")

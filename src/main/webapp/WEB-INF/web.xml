@@ -66,11 +66,6 @@
 	</filter>
 
     <filter>
-        <filter-name>springMultipartFilter</filter-name>
-        <filter-class>org.springframework.web.multipart.support.MultipartFilter</filter-class>
-    </filter>
-
-    <filter>
         <filter-name>crafter.csrfFilter</filter-name>
         <filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
     </filter>
@@ -100,11 +95,6 @@
 
     <filter-mapping>
         <filter-name>springSecurityFilterChain</filter-name>
-        <url-pattern>/*</url-pattern>
-    </filter-mapping>
-
-    <filter-mapping>
-        <filter-name>springMultipartFilter</filter-name>
         <url-pattern>/*</url-pattern>
     </filter-mapping>
 

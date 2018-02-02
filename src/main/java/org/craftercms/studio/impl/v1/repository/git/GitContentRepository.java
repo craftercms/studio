@@ -166,6 +166,25 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     @Override
+    public long getContentSize(final String site, final String path) {
+        Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GitRepositories.GLOBAL :
+            GitRepositories.SANDBOX);
+        try {
+            RevTree tree = helper.getTreeForLastCommit(repo);
+            try (TreeWalk tw = TreeWalk.forPath(repo, helper.getGitPath(path), tree)) {
+                if (tw != null && tw.getObjectId(0) != null) {
+                    ObjectId id = tw.getObjectId(0);
+                    ObjectLoader objectLoader = repo.open(id);
+                    return objectLoader.getSize();
+                }
+            }
+        } catch (IOException e) {
+            logger.error("Error while getting content for file at site: " + site + " path: " + path, e);
+        }
+        return -1L;
+    }
+
+    @Override
     public String writeContent(String site, String path, InputStream content) {
         // Write content to git and commit it
         String commitId = null;
