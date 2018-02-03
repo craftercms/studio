@@ -480,30 +480,8 @@ public class PublishingManagerImpl implements PublishingManager {
                     
                     
                     if (oldPath.endsWith("/" + DmConstants.INDEX_FILE)) {
-                        boolean hasRenamedChildren = false;
-                        String fullPath = contentService.expandRelativeSitePath(site, oldPath.replace("/" + DmConstants.INDEX_FILE, ""));
-                        
-                        if (contentService.contentExists(fullPath)) {
-                            try {
-                                RepositoryItem[] children = contentRepository.getContentChildren(fullPath);
-                                
-                                if (children.length < 2) {
-                                    deployer.deleteFile(site, oldPath.replace("/" + DmConstants.INDEX_FILE, ""));
-                                }
-                                else {
-                                    hasRenamedChildren = true;
-                                }
-                            } catch (Exception exc) {
-                                LOGGER.info("Error while checking children for moved content site " + site + " old path " + oldPath);
-                            }
-                        }
-                        
-                        
-                        if (!hasRenamedChildren) {
-                            deleteFolder(site, oldPath.replace("/" + DmConstants.INDEX_FILE, ""), user, deployer);
-                        }
+                        deleteFolder(site, oldPath.replace("/" + DmConstants.INDEX_FILE, ""), user, deployer);
                     }
-                    
                     
                     if (isLive) {
                         LOGGER.debug("Clear Renamed {0} on Live ENV", path);
@@ -583,6 +561,10 @@ public class PublishingManagerImpl implements PublishingManager {
                 String parentPath = ContentUtils.getParentUrl(path);
                 deleteFolder(site, parentPath, user, deployer);
             }
+        } else {
+            deployer.deleteFile(site, path);
+            String parentPath = ContentUtils.getParentUrl(path);
+            deleteFolder(site, parentPath, user, deployer);
         }
     }
 
