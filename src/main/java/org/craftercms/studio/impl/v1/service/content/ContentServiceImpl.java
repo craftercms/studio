@@ -86,6 +86,9 @@ public class ContentServiceImpl implements ContentService {
 
     protected static final String MSG_ERROR_IO_CLOSE_FAILED = "err_io_closed_failed";
 
+    private static final String COPY_DEP_XPATH = "//*/text()[normalize-space(.)='{copyDep}']/parent::*";
+    private static final String COPY_DEP = "{copyDep}";
+
     private static final Logger logger = LoggerFactory.getLogger(ContentServiceImpl.class);
 
     /**
@@ -573,7 +576,8 @@ public class ContentServiceImpl implements ContentService {
                                 }
                                 logger.debug("TRANSLATED DEP PATH {0} to {1}", dependecyPath, copyDepPath);
 
-                                copyContent(site, dependecyPath, copyDepPath, processedPaths);
+                                String newCopyDepthPath = copyContent(site, dependecyPath, copyDepPath, processedPaths);
+                                fromDocument = replaceCopyDependency(fromDocument, dependecyPath, newCopyDepthPath);
                             }
 
                             // update the file name / folder values
@@ -661,6 +665,17 @@ public class ContentServiceImpl implements ContentService {
         }
 
         return retNewFileName;
+    }
+
+    protected Document replaceCopyDependency(Document document, String depPath, String copyDepPath) {
+        Element root = document.getRootElement();
+        List<Node> includes = root.selectNodes(COPY_DEP_XPATH.replace(COPY_DEP, depPath));
+        if (includes != null) {
+            for(Node includeNode : includes) {
+                includeNode.setText(includeNode.getText().replace(depPath, copyDepPath));
+            }
+        }
+        return document;
     }
 
     protected Map<String, String> getCopyDependencies(String site, String sourceContentPath, String dependencyPath) throws ServiceException {
