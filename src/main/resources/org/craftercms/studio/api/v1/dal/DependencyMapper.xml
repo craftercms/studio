@@ -138,6 +138,14 @@
         </foreach>
     </select>
 
+    <update id="moveDependency" databaseId="oracle" parameterType="java.util.Map" >
+        UPDATE cstudio_DEPENDENCY
+        SET source_path = CASE WHEN source_path = #{oldPath} THEN #{newPath} ELSE TO_CHAR(source_path) END,
+        target_path = CASE WHEN target_path = #{oldPath} THEN #{newPath} ELSE TO_CHAR(target_path) END
+        WHERE site = #{siteId}
+        AND (source_path = #{oldPath} OR target_path = #{oldPath})
+    </update>
+
     <update id="moveDependency" parameterType="java.util.Map" >
         UPDATE cstudio_DEPENDENCY
         SET source_path = CASE WHEN source_path = #{oldPath} THEN #{newPath} ELSE source_path END,
