@@ -72,7 +72,6 @@ public class DmPageNavigationOrderServiceImpl extends AbstractRegistrableService
     public double getNewNavOrder(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, @ValidateDoubleParam(name = "currentMaxNavOrder") double currentMaxNavOrder) {
 
         String lockId = site + ":" + path;
-        generalLockService.lock(lockId);
         double lastNavOrder = 1000D;
         try {
             Map<String, String> params = new HashMap<String, String>();
@@ -109,8 +108,6 @@ public class DmPageNavigationOrderServiceImpl extends AbstractRegistrableService
             lastNavOrder = navigationOrderSequence.getMaxCount();
         } catch (Exception e) {
             logger.error("Unexpected error: ", e);
-        } finally {
-            generalLockService.unlock(lockId);
         }
         return lastNavOrder;
 

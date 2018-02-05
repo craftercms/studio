@@ -42,8 +42,6 @@ public class GeneralLockServiceImpl extends AbstractRegistrableService implement
     @Override
     @ValidateParams
     public void lock(@ValidateStringParam(name = "objectId") String objectId) {
-        // Locking is no longer required, disabling here as the code evolves
-        /*
         ReentrantLock nodeLock;
         if (logger.isDebugEnabled()) {
             logger.debug("[" + Thread.currentThread().getName() + "]" + " Obtaining lock for id " + objectId);
@@ -69,15 +67,11 @@ public class GeneralLockServiceImpl extends AbstractRegistrableService implement
         if (logger.isDebugEnabled()) {
             logger.debug("[" + Thread.currentThread().getName() + "]" + " Locked all threads for id " + objectId);
         }
-        */
     }
 
     @Override
     @ValidateParams
     public boolean tryLock(@ValidateStringParam(name = "objectId") String objectId) {
-        // Locking is no longer required, disabling here as the code evolves
-        return true;
-        /*
         ReentrantLock nodeLock;
         if (logger.isDebugEnabled()) {
             logger.debug("[" + Thread.currentThread().getName() + "]" + " Trying to get lock for id " + objectId);
@@ -104,14 +98,11 @@ public class GeneralLockServiceImpl extends AbstractRegistrableService implement
             logger.debug("[" + Thread.currentThread().getName() + "]" + " Result for tryLock on id " + objectId + " : " + toRet);
         }
         return toRet;
-        */
     }
 
     @Override
     @ValidateParams
     public void unlock(@ValidateStringParam(name = "objectId") String objectId) {
-        // Locking is no longer required, disabling here as the code evolves
-        /*
         ReentrantLock nodeLock = null;
         if (logger.isDebugEnabled()) {
             logger.debug("[" + Thread.currentThread().getName() + "]" + " Unlocking id " + objectId);
@@ -134,6 +125,6 @@ public class GeneralLockServiceImpl extends AbstractRegistrableService implement
         if (logger.isDebugEnabled()) {
             logger.debug("[" + Thread.currentThread().getName() + "]" + " Finished unlocking id " + objectId);
         }
-        */
+
     }
 }

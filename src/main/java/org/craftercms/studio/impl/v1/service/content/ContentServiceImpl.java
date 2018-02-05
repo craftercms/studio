@@ -189,7 +189,6 @@ public class ContentServiceImpl implements ContentService {
         if (contentExists) {
             lockKey = site + ":" + path;
         }
-        generalLockService.lock(lockKey);
         try {
             // Check if the user is saving and closing (releasing the lock) or just saving and will continue to edit
             // If "unlock" is empty, it means it's a save and close operation
@@ -289,8 +288,6 @@ public class ContentServiceImpl implements ContentService {
             objectStateService.setSystemProcessing(site, relativePath, false);
             objectStateService.setSystemProcessing(site, path, false);
             throw e;
-        } finally {
-            generalLockService.unlock(lockKey);
         }
     }
 
@@ -306,21 +303,12 @@ public class ContentServiceImpl implements ContentService {
         logger.debug("Write and rename for site '{}' path '{}' targetPath '{}' "
                 + "fileName '{}' content type '{}'", site, path, targetPath, fileName, contentType);
 
-        // TODO: SJ: The block below seems to be there to fix a stuck lock, refactor and remove in 2.7.x
-        if (!generalLockService.tryLock(id)) {
-            generalLockService.lock(id);
-            generalLockService.unlock(id);
-            return;
-        }
-
         try {
             writeContent(site, path, fileName, contentType, input, createFolders, edit, unlock);
             moveContent(site, path, targetPath);
         } catch (ServiceException | RuntimeException e) {
             logger.error("Error while executing write and rename for site '{}' path '{}' targetPath '{}' "
                     + "fileName '{}' content type '{}'", e, site, path, targetPath, fileName, contentType);
-        } finally {
-            generalLockService.unlock(id);
         }
     }
 
@@ -630,37 +618,30 @@ public class ContentServiceImpl implements ContentService {
 
                         String id = site + ":" + copyPathOnly + ":" + copyFileName + ":" + contentType;
 
-                        try {
-                            generalLockService.lock(id);
-
-                            // processContent will close the input stream
-                            if (!StringUtils.isEmpty(contentType)) {
+                        // processContent will close the input stream
+                        if (!StringUtils.isEmpty(contentType)) {
+                            processContent(id, copyContent, true, params, DmConstants.CONTENT_CHAIN_FORM);
+                        } else {
+                            if (copyFileName.endsWith(DmConstants.XML_PATTERN)) {
                                 processContent(id, copyContent, true, params, DmConstants.CONTENT_CHAIN_FORM);
                             } else {
-                                if (copyFileName.endsWith(DmConstants.XML_PATTERN)) {
-                                    processContent(id, copyContent, true, params, DmConstants.CONTENT_CHAIN_FORM);
-                                } else {
-                                    processContent(id, fromContent, false, params, DmConstants.CONTENT_CHAIN_ASSET);
-                                }
+                                processContent(id, fromContent, false, params, DmConstants.CONTENT_CHAIN_ASSET);
                             }
-
-                            ItemState itemState = objectStateService.getObjectState(site, copyPath);
-
-                            if (itemState == null) {
-                                ContentItemTO copyItem = getContentItem(site, copyPath, 0);
-                                objectStateService.insertNewEntry(site, copyItem);
-                                objectStateService.setSystemProcessing(site, copyPath, false);
-                            }
-
-                            // copy was successful, return the new name
-                            retNewFileName = copyPath;
-
-                            // track that we already copied so we don't follow a circular dependency
-                            processedPaths.add(copyPath);
-
-                        } finally {
-                            generalLockService.unlock(id);
                         }
+
+                        ItemState itemState = objectStateService.getObjectState(site, copyPath);
+
+                        if (itemState == null) {
+                            ContentItemTO copyItem = getContentItem(site, copyPath, 0);
+                            objectStateService.insertNewEntry(site, copyItem);
+                            objectStateService.setSystemProcessing(site, copyPath, false);
+                        }
+
+                        // copy was successful, return the new name
+                        retNewFileName = copyPath;
+
+                        // track that we already copied so we don't follow a circular dependency
+                        processedPaths.add(copyPath);
                     } catch (ContentNotFoundException eContentNotFound) {
                         logger.debug("Content not found while copying content for site {0} from {1} to {2}, new name is {3}", eContentNotFound, site, fromPath, toPath, copyPath);
                     } catch (DocumentException eParseException) {
