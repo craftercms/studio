@@ -2089,7 +2089,7 @@ public class ContentServiceImpl implements ContentService {
     protected void childDeleteItems(String site, ContentItemTO contentItem, GoLiveDeleteCandidates items) throws ServiceException {
 
         if (contentItem.isFolder()) {
-            contentItem = getContentItemTree(site, contentItem.getUri(), 1);
+            contentItem = getContentItemTree(site, contentItem.getUri(), 2);
             if (contentItem.getChildren() != null && contentItem.getNumOfChildren() > 0) {
                 for (ContentItemTO child : contentItem.getChildren()) {
                     childDeleteItems(site, child, items);
