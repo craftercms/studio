@@ -543,11 +543,11 @@ public class SiteServiceImpl implements SiteService {
                             if (StringUtils.isNotEmpty(content)) {
                                 StringBuffer sb = new StringBuffer(content);
                                 if (isCss) {
-                                    dmDependencyService.extractDependenciesStyle(site, childPath, sb, globalDeps);
+                                    dmDependencyService.extractDependenciesStyle(site, childPath);
                                 } else if (isJs) {
-                                    dmDependencyService.extractDependenciesJavascript(site, childPath, sb, globalDeps);
+                                    dmDependencyService.extractDependenciesJavascript(site, childPath);
                                 } else if (isTemplate) {
-                                    dmDependencyService.extractDependenciesTemplate(site, childPath, sb, globalDeps);
+                                    dmDependencyService.extractDependenciesTemplate(site, childPath);
                                 }
                             }
                         }
@@ -1426,17 +1426,16 @@ public class SiteServiceImpl implements SiteService {
 			    boolean isTemplate = ContentUtils.matchesPatterns(path, servicesConfig.getRenderingTemplatePatterns
 				    (site));
 			    if (isCss || isJs || isTemplate) {
-				    StringBuffer sb = new StringBuffer(IOUtils.toString(content));
 				    if (isCss) {
-					    dmDependencyService.extractDependenciesStyle(site, path, sb, new HashMap<>());
+					    dmDependencyService.extractDependenciesStyle(site, path);
 				    } else if (isJs) {
-					    dmDependencyService.extractDependenciesJavascript(site, path, sb, new HashMap<>());
+					    dmDependencyService.extractDependenciesJavascript(site, path);
 				    } else if (isTemplate) {
-					    dmDependencyService.extractDependenciesTemplate(site, path, sb, new HashMap<>());
+					    dmDependencyService.extractDependenciesTemplate(site, path);
 				    }
 			    }
 		    }
-	    } catch (DocumentException | ServiceException | IOException e) {
+	    } catch (DocumentException | ServiceException e) {
 		    logger.error("Error extracting dependencies for site " + site + " file: " + path, e);
 		    toReturn = false;
 	    }
