@@ -95,11 +95,11 @@ public interface DmDependencyService {
      */
     Map<String, String> getCopyDependencies(String site,String relativePath, String dependencyPath) throws ServiceException;
 
-    void extractDependenciesTemplate(String site, String path, StringBuffer templateContent, Map<String, Set<String>> globalDeps) throws ServiceException;
+    void extractDependenciesTemplate(String site, String path) throws ServiceException;
 
-    void extractDependenciesStyle(String site, String path, StringBuffer styleContent, Map<String, Set<String>> globalDeps) throws ServiceException;
+    void extractDependenciesStyle(String site, String path) throws ServiceException;
 
-    void extractDependenciesJavascript(String site, String path, StringBuffer javascriptContent, Map<String, Set<String>> globalDeps) throws ServiceException;
+    void extractDependenciesJavascript(String site, String path) throws ServiceException;
 
     List<String> getDependencyPaths(String site, String path);
 

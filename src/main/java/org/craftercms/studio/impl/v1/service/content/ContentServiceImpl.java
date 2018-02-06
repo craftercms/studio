@@ -834,15 +834,13 @@ public class ContentServiceImpl implements ContentService {
 
             String content = getContentAsString(site, movePath);
             if (StringUtils.isNotEmpty(content)) {
-                StringBuffer assetContent = new StringBuffer(content);
-                Map<String, Set<String>> globalDeps = new HashMap<String, Set<String>>();
                 try {
                     if (isCss) {
-                        dependencyService.extractDependenciesStyle(site, movePath, assetContent, globalDeps);
+                        dependencyService.extractDependenciesStyle(site, movePath);
                     } else if (isJs) {
-                        dependencyService.extractDependenciesJavascript(site, movePath, assetContent, globalDeps);
+                        dependencyService.extractDependenciesJavascript(site, movePath);
                     } else if (isTemplate) {
-                        dependencyService.extractDependenciesTemplate(site, movePath, assetContent, globalDeps);
+                        dependencyService.extractDependenciesTemplate(site, movePath);
                     }
                 } catch (ServiceException e) {
                     logger.error("Error while updating dependencies on move content site: " + site + " path: " + movePath, e);
