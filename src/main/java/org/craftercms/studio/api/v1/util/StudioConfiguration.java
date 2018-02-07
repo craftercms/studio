@@ -118,6 +118,7 @@ public interface StudioConfiguration {
     String SECURITY_URLS_TO_INCLUDE = "security.urlsToInclude";
     String SECURITY_URLS_TO_EXCLUDE = "studio.security.urlsToExclude";
     String SECURITY_EXCEPTION_URLS = "studio.security.exceptionUrls";
+    String SECURITY_PUBLIC_URLS = "studio.security.publicUrls";
     String SECURITY_IGNORE_RENEW_TOKEN_URLS = "studio.security.ignoreRenewTokenUrls";
     String SECURITY_TYPE = "studio.security.type";
     String SECURITY_CIPHER_SALT = "studio.security.cipher.salt";
