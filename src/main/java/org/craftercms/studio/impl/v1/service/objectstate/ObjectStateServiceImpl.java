@@ -74,24 +74,19 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
         String cleanPath = FilenameUtils.normalize(path, true);
         String lockId = site + ":" + cleanPath;
         ItemState state = null;
-        generalLockService.lock(lockId);
-        try {
-            Map<String, String> params = new HashMap<String, String>();
-            params.put("site", site);
-            params.put("path", cleanPath);
-            state = itemStateMapper.getObjectStateBySiteAndPath(params);
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("site", site);
+        params.put("path", cleanPath);
+        state = itemStateMapper.getObjectStateBySiteAndPath(params);
 
-            if (state == null && insert) {
-                if (contentService.contentExists(site, cleanPath)) {
-                    ContentItemTO item = contentService.getContentItem(site, cleanPath, 0);
-                    if (!item.isFolder()) {
-                        insertNewEntry(site, item);
-                        state = itemStateMapper.getObjectStateBySiteAndPath(params);
-                    }
+        if (state == null && insert) {
+            if (contentService.contentExists(site, cleanPath)) {
+                ContentItemTO item = contentService.getContentItem(site, cleanPath, 0);
+                if (!item.isFolder()) {
+                    insertNewEntry(site, item);
+                    state = itemStateMapper.getObjectStateBySiteAndPath(params);
                 }
             }
-        } finally {
-            generalLockService.unlock(lockId);
         }
         return state;
     }
@@ -101,19 +96,12 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     public void setSystemProcessing(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, boolean isSystemProcessing) {
         String cleanPath = FilenameUtils.normalize(path, true);
         String lockId = site + ":" + cleanPath;
-        logger.debug("Locking with ID: {0}", lockId);
-        generalLockService.lock(lockId);
-        try {
-            Map<String, Object> params = new HashMap<String, Object>();
-            params.put("site", site);
-            params.put("path", cleanPath);
-            params.put("systemProcessing", isSystemProcessing);
-            logger.debug("Updating system processing in DB: {0}:{1} - {2}", site, cleanPath, isSystemProcessing);
-            itemStateMapper.setSystemProcessingBySiteAndPath(params);
-        } finally {
-            logger.debug("Unlocking with ID: {0}", lockId);
-            generalLockService.unlock(lockId);
-        }
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("site", site);
+        params.put("path", cleanPath);
+        params.put("systemProcessing", isSystemProcessing);
+        logger.debug("Updating system processing in DB: {0}:{1} - {2}", site, cleanPath, isSystemProcessing);
+        itemStateMapper.setSystemProcessingBySiteAndPath(params);
     }
 
     @Override
@@ -156,16 +144,17 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     @Override
     @ValidateParams
     public void transition(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, TransitionEvent event) {
-        String lockId = site + ":" + path;
-        generalLockService.lock(lockId);
+        String itemPath = FilenameUtils.normalize(path, true);
+        String lockKey = site + ":" + path;
+        generalLockService.lock(lockKey);
         try {
             Map<String, String> params = new HashMap<String, String>();
             params.put("site", site);
-            params.put("path", path);
+            params.put("path", itemPath);
             ItemState currentState = itemStateMapper.getObjectStateBySiteAndPath(params);
             State nextState = null;
             if (currentState == null) {
-                logger.debug("Preforming transition event " + event.name() + " on object " + lockId + " without current state");
+                logger.debug("Preforming transition event " + event.name() + " on object " + lockKey + " without current state");
                 switch (event) {
                     case SAVE:
                         nextState = State.NEW_UNPUBLISHED_UNLOCKED;
@@ -177,7 +166,7 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
                         nextState = State.NEW_UNPUBLISHED_UNLOCKED;
                 }
             } else {
-                logger.debug("Preforming transition event " + event + " on object " + lockId + " with " + currentState.getState() + " state");
+                logger.debug("Preforming transition event " + event + " on object " + lockKey + " with " + currentState.getState() + " state");
                 State currentStateValue = State.valueOf(currentState.getState());
                 nextState = transitionTable[currentStateValue.ordinal()][event.ordinal()];
             }
@@ -185,7 +174,7 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
                 ItemState newEntry = new ItemState();
                 newEntry.setObjectId(UUID.randomUUID().toString());
                 newEntry.setSite(site);
-                newEntry.setPath(path);
+                newEntry.setPath(itemPath);
                 newEntry.setSystemProcessing(0);
                 newEntry.setState(nextState.name());
                 itemStateMapper.insertEntry(newEntry);
@@ -198,9 +187,9 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
         } catch (Exception e) {
             logger.error("Transition not defined for event", e);
         } finally {
-            generalLockService.unlock(lockId);
+            generalLockService.unlock(lockKey);
         }
-        logger.debug("Transition finished for " + event.name() + " on object " + lockId);
+        logger.debug("Transition finished for " + event.name() + " on object " + lockKey);
     }
 
     @Override
@@ -217,31 +206,56 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     @ValidateParams
     public void insertNewEntry(@ValidateStringParam(name = "site") String site, ContentItemTO item) {
         String path = FilenameUtils.normalize(item.getUri(), true);
-        ItemState newEntry = new ItemState();
-        if (StringUtils.isEmpty(item.getNodeRef())) {
-            newEntry.setObjectId(UUID.randomUUID().toString());
-        } else {
-            newEntry.setObjectId(item.getNodeRef());
+        String lockKey = site + ":" + path;
+        generalLockService.lock(lockKey);
+        try {
+            Map<String, String> params = new HashMap<String, String>();
+            params.put("site", site);
+            params.put("path", path);
+            ItemState state = itemStateMapper.getObjectStateBySiteAndPath(params);
+            if (state == null) {
+
+                ItemState newEntry = new ItemState();
+                if (StringUtils.isEmpty(item.getNodeRef())) {
+                    newEntry.setObjectId(UUID.randomUUID().toString());
+                } else {
+                    newEntry.setObjectId(item.getNodeRef());
+                }
+                newEntry.setSite(site);
+                newEntry.setPath(path);
+                newEntry.setSystemProcessing(0);
+                newEntry.setState(State.NEW_UNPUBLISHED_UNLOCKED.name());
+                itemStateMapper.insertEntry(newEntry);
+            }
+        } finally {
+            generalLockService.unlock(lockKey);
         }
-        newEntry.setSite(site);
-        newEntry.setPath(path);
-        newEntry.setSystemProcessing(0);
-        newEntry.setState(State.NEW_UNPUBLISHED_UNLOCKED.name());
-        itemStateMapper.insertEntry(newEntry);
     }
 
     @Override
     @ValidateParams
     public void insertNewEntry(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
-        path = FilenameUtils.normalize(path, true);
-        ItemState newEntry = new ItemState();
-        newEntry.setObjectId(UUID.randomUUID().toString());
+        String itemPath = FilenameUtils.normalize(path, true);
+        String lockKey = site + ":" + path;
+        generalLockService.lock(lockKey);
+        try {
+            Map<String, String> params = new HashMap<String, String>();
+            params.put("site", site);
+            params.put("path", itemPath);
+            ItemState state = itemStateMapper.getObjectStateBySiteAndPath(params);
+            if (state == null) {
+                ItemState newEntry = new ItemState();
+                newEntry.setObjectId(UUID.randomUUID().toString());
 
-        newEntry.setSite(site);
-        newEntry.setPath(path);
-        newEntry.setSystemProcessing(0);
-        newEntry.setState(State.NEW_UNPUBLISHED_UNLOCKED.name());
-        itemStateMapper.insertEntry(newEntry);
+                newEntry.setSite(site);
+                newEntry.setPath(itemPath);
+                newEntry.setSystemProcessing(0);
+                newEntry.setState(State.NEW_UNPUBLISHED_UNLOCKED.name());
+                itemStateMapper.insertEntry(newEntry);
+            }
+        } finally {
+            generalLockService.unlock(lockKey);
+        }
     }
 
     @Override
@@ -381,13 +395,7 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     @Override
     @ValidateParams
     public void deleteObjectState(@ValidateStringParam(name = "objectId") String objectId) {
-        GeneralLockService nodeLockService = getService(GeneralLockService.class);
-        nodeLockService.lock(objectId);
-        try {
-            itemStateMapper.deleteObjectState(objectId);
-        } finally {
-            nodeLockService.unlock(objectId);
-        }
+        itemStateMapper.deleteObjectState(objectId);
     }
 
     @Override
