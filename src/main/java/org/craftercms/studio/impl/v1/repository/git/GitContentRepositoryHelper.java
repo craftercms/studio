@@ -21,6 +21,8 @@ package org.craftercms.studio.impl.v1.repository.git;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.git.auth.BasicUsernamePasswordAuthConfigurator;
+import org.craftercms.commons.git.auth.SshUsernamePasswordAuthConfigurator;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
@@ -30,8 +32,6 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
-import org.craftercms.studio.impl.v1.util.git.BasicUsernamePasswordAuthConfigurator;
-import org.craftercms.studio.impl.v1.util.git.SshUsernamePasswordAuthConfigurator;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.Status;
@@ -666,7 +666,7 @@ public class GitContentRepositoryHelper {
         CloneCommand cloneCommand = Git.cloneRepository();
         Git cloneResult = null;
         try {
-            configureTransportConfiguration(cloneCommand, remotePassword, remoteUsername, remoteUrl);
+            configureTransportAuthenticaion(cloneCommand, remotePassword, remoteUsername, remoteUrl);
             cloneResult = cloneCommand
                     .setURI(remoteUrl)
                     .setDirectory(localPath)
@@ -696,7 +696,7 @@ public class GitContentRepositoryHelper {
         return toRet;
     }
 
-    private void configureTransportConfiguration(final CloneCommand cloneCommand, final String remotePassword,
+    private void configureTransportAuthenticaion(final CloneCommand cloneCommand, final String remotePassword,
                                                  final String remoteUsername, final String remoteUrl) {
         // Check if this remote git repository has username/password provided
         if (!StringUtils.isEmpty(remoteUsername)) {

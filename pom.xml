@@ -92,7 +92,7 @@
         <dependency>
             <groupId>org.craftercms</groupId>
             <artifactId>crafter-engine</artifactId>
-            <version>3.0.5-SNAPSHOT</version>
+            <version>${project.version}</version>
             <type>war</type>
             <exclusions>
                 <exclusion>
@@ -117,9 +117,15 @@
         <dependency>
             <groupId>org.craftercms</groupId>
             <artifactId>crafter-engine</artifactId>
-            <version>3.0.5-SNAPSHOT</version>
+            <version>${project.version}</version>
             <classifier>classes</classifier>
             <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.craftercms</groupId>
+            <artifactId>crafter-commons-git</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
 
