@@ -32,10 +32,7 @@ public interface StudioConfiguration {
     String PUBLISHED_PATH = "studio.repo.sitePublishedPath";
     String BLUE_PRINTS_PATH = "studio.repo.blueprintsPath";
     String BOOTSTRAP_REPO = "studio.repo.bootstrapRepo";
-    String REPO_PREVIEW_ROOT_PATH = "studio.repo.previewRootPath";
     String REPO_REBUILD_METADATA_BATCH_SIZE = "studio.repo.rebuildMetadata.batchSize";
-    String REPO_PUBLISHED_CHERRY_PICK_MESSAGE = "studio.repo.published.cherryPickMessage";
-    String REPO_PUBLISHED_CHERRY_PICK_MESSAGE_REPLACE = "studio.repo.published.cherryPickMessage.replace";
     String REPO_PUBLISHED_CHERRY_PICK_MESSAGE_COMMIT_ID_REGEX = "studio.repo.published.cherryPickMessage.commitId.regex";
     String REPO_PUBLISHED_COMMIT_MESSAGE = "studio.repo.published.commitMessage";
 
@@ -73,7 +70,6 @@ public interface StudioConfiguration {
     String CONFIGURATION_GLOBAL_SYSTEM_SITE = "studio.configuration.global.systemSite";
     String CONFIGURATION_SITE_CONFIG_BASE_PATH = "studio.configuration.site.configBasePath";
     String CONFIGURATION_SITE_ENVIRONMENT_CONFIG_BASE_PATH = "studio.configuration.site.environment.configBasePath";
-    String CONFIGURATION_SITE_DEPLOYMENT_CONFIG_BASE_PATH = "studio.configuration.site.deployment.configBasePath";
     String CONFIGURATION_SITE_CONTENT_TYPES_CONFIG_BASE_PATH = "studio.configuration.site.contentTypes.configBasePath";
     String CONFIGURATION_SITE_CONTENT_TYPES_CONFIG_PATH = "studio.configuration.site.contentTypes.configPath";
     String CONFIGURATION_SITE_GENERAL_CONFIG_FILE_NAME = "studio.configuration.site.generalConfigFileName";
@@ -81,7 +77,6 @@ public interface StudioConfiguration {
     String CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME = "studio.configuration.site.roleMappingsFileName";
     String CONFIGURATION_SITE_ENVIRONMENT = "studio.configuration.site.environment";
     String CONFIGURATION_SITE_ENVIRONMENT_CONFIG_FILE_NAME = "studio.configuration.site.environment.configFileName";
-    String CONFIGURATION_SITE_DEPLOYMENT_CONFIG_FILE_NAME = "studio.configuration.site.deployment.configFileName";
     String CONFIGURATION_SITE_CONTENT_TYPES_CONFIG_FILE_NAME = "studio.configuration.site.contentTypes.configFileName";
     String CONFIGURATION_SITE_DEFAULT_GROUPS = "studio.configuration.site.defaultGroups";
     String CONFIGURATION_SITE_DEFAULT_ADMIN_GROUP = "studio.configuration.site.defaultAdminGroup";
@@ -115,9 +110,6 @@ public interface StudioConfiguration {
 
     /** Security Service */
     String SECURITY_SESSION_TIMEOUT = "studio.security.sessionTimeout";
-    String SECURITY_URLS_TO_INCLUDE = "security.urlsToInclude";
-    String SECURITY_URLS_TO_EXCLUDE = "studio.security.urlsToExclude";
-    String SECURITY_EXCEPTION_URLS = "studio.security.exceptionUrls";
     String SECURITY_PUBLIC_URLS = "studio.security.publicUrls";
     String SECURITY_IGNORE_RENEW_TOKEN_URLS = "studio.security.ignoreRenewTokenUrls";
     String SECURITY_TYPE = "studio.security.type";
@@ -181,7 +173,6 @@ public interface StudioConfiguration {
     String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED_USER = "studio.job.deployContentToEnvironment.status.message.stopped.user";
     String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STARTED_USER = "studio.job.deployContentToEnvironment.status.message.started.user";
     String JOB_DEPLOYMENT_MASTER_PUBLISHING_NODE = "studio.job.deployment.masterPublishingNode";
-    String JOB_SYNC_TARGETS_MAX_TOLERABLE_RETRIES = "studio.job.syncTargets.maxTolerableRetries";
 
     /** Content Types Filter Patterns */
     String CONTENT_TYPES_FILTER_PAGES_INCLUDE_PATTERN = "studio.contentTypes.filter.pages.includePattern";
@@ -204,11 +195,7 @@ public interface StudioConfiguration {
 
     /** Publishing Manager */
     String PUBLISHING_MANAGER_INDEX_FILE = "studio.publishingManager.indexFile";
-    String PUBLISHING_MANAGER_IMPORT_MODE_ENABLED  = "studio.publishingManager.importModeEnabled";
     String PUBLISHING_MANAGER_PUBLISHING_WITHOUT_DEPENDENCIES_ENABLED = "studio.publishingManager.publishingWithoutDependencies.enabled";
-
-    /** Studio Groovy Scripts **/
-    String SCRIPTS_GROOVY_CLASSPATH = "studio.scripts.groovy.classpath";
 
     void loadConfig();
 
