@@ -672,7 +672,7 @@ public class GitContentRepositoryHelper {
                     .setDirectory(localPath)
                     .setRemote(remoteName)
                     .call();
-            Repository sandboxRepo = cloneCommand.getRepository();
+            Repository sandboxRepo = checkIfCloneWasOk(cloneResult, remoteName, remoteUrl) ;
             sandboxes.put(siteId, sandboxRepo);
         } catch (InvalidRemoteException e) {
             logger.error("Invalid remote repository: " + remoteName + " (" + remoteUrl + ")", e);
@@ -694,6 +694,40 @@ public class GitContentRepositoryHelper {
             }
         }
         return toRet;
+    }
+
+    /**
+     * Checks if the clone was executed ok (mostly check for null references and
+     * if the clone folder was created as a folder and current user has RW permissions.
+     * <b> Never returns null</b>
+     * @param cloneResult Clone Result to check.
+     * @param remoteName Name of the remote we clone.
+     * @param remoteUrl Clone URL
+     * @return A {@link Repository} if all checks pass , never returns null.
+     * @throws InvalidRemoteRepositoryException If a check does not pass.
+     */
+    private Repository checkIfCloneWasOk(Git cloneResult, String remoteName, String remoteUrl) throws InvalidRemoteRepositoryException {
+        // Check if cloneResult is null , if so die.
+        if (cloneResult == null) {
+            String msg = "Remote Clone Error:: " + remoteName + " (" + remoteUrl + ")  cloneResult object null";
+            logger.error(msg);
+            throw new InvalidRemoteRepositoryException(msg);
+        }
+        Repository repository = cloneResult.getRepository();
+        // Check if cloneResult is null , if so die.
+        if (repository==null){
+            String msg = "Remote Clone Error:: " + remoteName + " (" + remoteUrl + ")  sandboxRepo object null";
+            logger.error(msg);
+            throw new InvalidRemoteRepositoryException(msg);
+        }
+        File repoDir = repository.getDirectory();
+        // Check if  sandbox repo,: exists, is a dir, we can RW to it.
+        if (!repoDir.exists() ||  !repoDir.isDirectory() || !repoDir.canRead() || !repoDir.canWrite() ){
+            String msg = "Remote Clone Error::  " +repository.getDirectory()+" doesn't exist, is not a dir or user don't have RW permissions";
+            logger.error(msg);
+            throw new InvalidRemoteRepositoryException(msg);
+        }
+        return repository;
     }
 
     private void configureTransportAuthenticaion(final CloneCommand cloneCommand, final String remotePassword,
