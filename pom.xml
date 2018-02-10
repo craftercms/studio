@@ -9,7 +9,7 @@
     <url>https://github.com/craftercms/studio</url>
 
     <packaging>war</packaging>
-    <version>3.0.4</version>
+    <version>3.0.5</version>
     <organization>
         <name>CrafterCMS</name>
         <url>http://craftercms.org</url>
@@ -92,7 +92,7 @@
         <dependency>
             <groupId>org.craftercms</groupId>
             <artifactId>crafter-engine</artifactId>
-            <version>3.0.4</version>
+            <version>${project.version}</version>
             <type>war</type>
             <exclusions>
                 <exclusion>
@@ -117,9 +117,15 @@
         <dependency>
             <groupId>org.craftercms</groupId>
             <artifactId>crafter-engine</artifactId>
-            <version>3.0.4</version>
+            <version>${project.version}</version>
             <classifier>classes</classifier>
             <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.craftercms</groupId>
+            <artifactId>crafter-commons-git</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
 

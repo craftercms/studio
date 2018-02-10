@@ -655,20 +655,12 @@ public class WorkflowServiceImpl implements WorkflowService {
     @Override
     @ValidateParams
     public ResultTO goDelete(@ValidateStringParam(name = "site") String site, String request, @ValidateStringParam(name = "user") String user) {
-        String md5 = ContentUtils.getMd5ForFile(request);
-        String id = site + ":" + user + ":" + md5;
-        if (!generalLockService.tryLock(id)) {
-            generalLockService.lock(id);
-            generalLockService.unlock(id);
-            return new ResultTO();
-        }
-        try {
-            Map<String, String> map = new HashMap<String, String>();
-            map.put(StudioConstants.USER, user);
-            return approve(site, request, Operation.DELETE);
-        } finally {
-            generalLockService.unlock(id);
-        }
+        String id = site + ":" + user + ":" + request;
+
+        Map<String, String> map = new HashMap<String, String>();
+        map.put(StudioConstants.USER, user);
+        return approve(site, request, Operation.DELETE);
+
     }
 
     /**
@@ -755,19 +747,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                             resolveSubmittedPaths(site, goLiveItem, goLivePaths, processedPaths);
                         }
                         List<String> nodeRefs = new ArrayList<>();
-                        for (String path : goLivePaths) {
-                            String lockId = site + ":" + path;
-                            generalLockService.lock(lockId);
-
-                        }
-                        try {
-                            goLive(site, goLiveItems, approver, mcpContext);
-                        } finally {
-                            for (String path : goLivePaths) {
-                                String lockId = site + ":" + path;
-                                generalLockService.unlock(lockId);
-                            }
-                        }
+                        goLive(site, goLiveItems, approver, mcpContext);
                     }
 
                     if (!renameItems.isEmpty()) {
@@ -914,19 +894,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                         for (DmDependencyTO goLiveItem : goLiveItems) {
                             goLivePaths.add(goLiveItem.getUri());
                         }
-                        for (String path : goLivePaths) {
-                            String lockId = site + ":" + path;
-                            generalLockService.lock(lockId);
-
-                        }
-                        try {
-                            goLive(site, goLiveItems, approver, mcpContext);
-                        } finally {
-                            for (String path : goLivePaths) {
-                                String lockId = site + ":" + path;
-                                generalLockService.unlock(lockId);
-                            }
-                        }
+                        goLive(site, goLiveItems, approver, mcpContext);
                     }
 
                     if (!renameItems.isEmpty()) {
@@ -1072,19 +1040,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                         for (DmDependencyTO goLiveItem : goLiveItems) {
                             resolveSubmittedPaths(site, goLiveItem, goLivePaths, processedPaths);
                         }
-                        for (String path : goLivePaths) {
-                            String lockId = site + ":" + path;
-                            generalLockService.lock(lockId);
-
-                        }
-                        try {
-                            goLive(site, goLiveItems, approver, mcpContext);
-                        } finally {
-                            for (String path : goLivePaths) {
-                                String lockId = site + ":" + path;
-                                generalLockService.unlock(lockId);
-                            }
-                        }
+                        goLive(site, goLiveItems, approver, mcpContext);
                     }
 
                     if (!renameItems.isEmpty()) {
@@ -1859,22 +1815,15 @@ public class WorkflowServiceImpl implements WorkflowService {
     @ValidateParams
     public ResultTO goLive(@ValidateStringParam(name = "site") final String site, final String request) throws ServiceException {
         String lockKey = DmConstants.PUBLISHING_LOCK_KEY.replace("{SITE}", site.toUpperCase());
-        generalLockService.lock(lockKey);
         try {
-            try {
-                if (isEnablePublishingWithoutDependencies()) {
-                    return approveWithoutDependencies(site, request, Operation.GO_LIVE);
-                } else {
-                    return approve_new(site, request, Operation.GO_LIVE);
-                }
-            } catch (RuntimeException e) {
-                logger.error("error making go live", e);
-                throw e;
+            if (isEnablePublishingWithoutDependencies()) {
+                return approveWithoutDependencies(site, request, Operation.GO_LIVE);
+            } else {
+                return approve_new(site, request, Operation.GO_LIVE);
             }
         } catch (RuntimeException e) {
+            logger.error("error making go live", e);
             throw e;
-        } finally {
-            generalLockService.unlock(lockKey);
         }
     }
 

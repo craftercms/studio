@@ -42,34 +42,9 @@ class DeploymentServices {
         return deploymentServicesImpl.getAvailablePublishingChannelGroups(site, path);
     }
 
-    static getDeploymentQueue(context, site) {
-        def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context);
-        return deploymentServicesImpl.getDeploymentQueue(site);
-    }
-
-    static getSyncTargetQueue(context, site, endpoint, targetVersion) {
-        def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context);
-        return deploymentServicesImpl.getSyncTargetQueue(site, endpoint, targetVersion);
-    }
-
-    static getDeploymentEndpoints(context, site) {
-        def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context);
-        return deploymentServicesImpl.getDeploymentEndpoints(site);
-    }
-
-    static cancelDeployment(context, site, path, deploymentId) {
-        def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context);
-        return deploymentServicesImpl.cancelDeployment(site, path, deploymentId);
-    }
-
     static bulkGoLive(context, site, environment, path) {
         def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context);
         return deploymentServicesImpl.bulkGoLive(site, environment, path);
-    }
-
-    static getDeploymentJobs(context) {
-        def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context);
-        return deploymentServicesImpl.getDeploymentJobs();
     }
 
     static getStatus(context, siteId) {

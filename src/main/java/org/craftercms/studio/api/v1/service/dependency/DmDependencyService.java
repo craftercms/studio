@@ -1,6 +1,6 @@
-/*******************************************************************************
- * Crafter Studio Web-content authoring solution
- *     Copyright (C) 2007-2016 Crafter Software Corporation.
+/********************************************************************************
+ * Crafter Studio
+ *     Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
  *
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
- ******************************************************************************/
+ *******************************************************************************/
 package org.craftercms.studio.api.v1.service.dependency;
 
 import org.craftercms.studio.api.v1.to.ContentItemTO;
@@ -95,11 +95,11 @@ public interface DmDependencyService {
      */
     Map<String, String> getCopyDependencies(String site,String relativePath, String dependencyPath) throws ServiceException;
 
-    void extractDependenciesTemplate(String site, String path, StringBuffer templateContent, Map<String, Set<String>> globalDeps) throws ServiceException;
+    void extractDependenciesTemplate(String site, String path) throws ServiceException;
 
-    void extractDependenciesStyle(String site, String path, StringBuffer styleContent, Map<String, Set<String>> globalDeps) throws ServiceException;
+    void extractDependenciesStyle(String site, String path) throws ServiceException;
 
-    void extractDependenciesJavascript(String site, String path, StringBuffer javascriptContent, Map<String, Set<String>> globalDeps) throws ServiceException;
+    void extractDependenciesJavascript(String site, String path) throws ServiceException;
 
     List<String> getDependencyPaths(String site, String path);
 

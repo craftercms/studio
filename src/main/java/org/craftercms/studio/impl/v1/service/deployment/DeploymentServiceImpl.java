@@ -728,52 +728,8 @@ public class DeploymentServiceImpl implements DeploymentService {
 
     @Override
     @ValidateParams
-    public List<PublishRequest> getDeploymentQueue(@ValidateStringParam(name = "site") String site) throws ServiceException {
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put("site", site);
-        List<String> states = new ArrayList<String>();
-        states.add(PublishRequest.State.READY_FOR_LIVE);
-        states.add(PublishRequest.State.PROCESSING);
-        params.put("states", states);
-        params.put("now", ZonedDateTime.now(ZoneOffset.UTC));
-        return publishRequestMapper.getItemsBySiteAndStates(params);
-    }
-
-    @Override
-    @ValidateParams
-    public boolean cancelDeployment(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, @ValidateLongParam(name = "deploymentId") long deploymentId) throws ServiceException {
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put("site", site);
-        params.put("path", path);
-        params.put("id", deploymentId);
-        params.put("canceledState", PublishRequest.State.CANCELLED);
-        publishRequestMapper.cancelDeployment(params);
-        return true;
-    }
-
-    @Override
-    @ValidateParams
     public void bulkGoLive(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "environment") String environment, @ValidateSecurePathParam(name = "path") String path) {
         dmPublishService.bulkGoLive(site, environment, path);
-    }
-
-    @Override
-    public List<DeploymentJobTO> getDeploymentJobs() {
-        List<DeploymentJobTO> jobList = new ArrayList<DeploymentJobTO>();
-
-        DeploymentJobTO copyToEnvStoreJob = new DeploymentJobTO();
-        copyToEnvStoreJob.setId(deployContentToEnvironmentStoreJob.getClass().getCanonicalName());
-        copyToEnvStoreJob.setName(deployContentToEnvironmentStoreJob.getClass().getSimpleName());
-        copyToEnvStoreJob.setEnabled(deployContentToEnvironmentStoreJob.isMasterPublishingNode());
-        copyToEnvStoreJob.setRunning(false);
-        try {
-            copyToEnvStoreJob.setHost(InetAddress.getLocalHost().toString());
-        } catch (UnknownHostException e) {
-            logger.debug("Error while getting host information");
-        }
-        jobList.add(copyToEnvStoreJob);
-
-        return jobList;
     }
 
     @Override

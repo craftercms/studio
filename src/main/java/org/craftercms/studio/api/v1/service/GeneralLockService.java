@@ -19,11 +19,11 @@ package org.craftercms.studio.api.v1.service;
 
 public interface GeneralLockService {
 
-    public final static String MASTER_LOCK = "MASTER LOCK";
+    String MASTER_LOCK = "MASTER LOCK";
 
-    public void lock(String objectId);
+    void lock(String objectId);
 
-    public void unlock(String objectId);
+    void unlock(String objectId);
 
-    public boolean tryLock(String objectId);
+    boolean tryLock(String objectId);
 }

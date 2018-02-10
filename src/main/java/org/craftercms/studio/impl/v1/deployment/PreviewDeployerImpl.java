@@ -172,7 +172,7 @@ public class PreviewDeployerImpl implements PreviewDeployer {
 
         try {
             CloseableHttpResponse response = httpClient.execute(postRequest);
-            if (response.getStatusLine().getStatusCode() != 200) {
+            if (!HttpStatus.valueOf(response.getStatusLine().getStatusCode()).is2xxSuccessful()) {
                 toReturn = false;
             }
         } catch (IOException e) {

@@ -1,6 +1,6 @@
-/*******************************************************************************
- * Crafter Studio Web-content authoring solution
- *     Copyright (C) 2007-2016 Crafter Software Corporation.
+/********************************************************************************
+ * Crafter Studio
+ *     Copyright (C) 2007-2016 Crafter Software Corporation. All rights reserved.
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -14,11 +14,10 @@
  *
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
- ******************************************************************************/
+ *******************************************************************************/
 package org.craftercms.studio.impl.v1.service.content;
 
 import java.io.*;
-import java.io.InputStream;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -107,6 +106,12 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     @ValidateParams
+    public long getContentSize(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "path") String path) {
+        return _contentRepository.getContentSize(site, path);
+    }
+
+    @Override
+    @ValidateParams
     public String getContentAsString(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path)  {
         // TODO: SJ: Refactor in 4.x as this already exists in Crafter Core (which is part of the new Studio)
         String content = null;
@@ -184,7 +189,6 @@ public class ContentServiceImpl implements ContentService {
         if (contentExists) {
             lockKey = site + ":" + path;
         }
-        generalLockService.lock(lockKey);
         try {
             // Check if the user is saving and closing (releasing the lock) or just saving and will continue to edit
             // If "unlock" is empty, it means it's a save and close operation
@@ -284,8 +288,6 @@ public class ContentServiceImpl implements ContentService {
             objectStateService.setSystemProcessing(site, relativePath, false);
             objectStateService.setSystemProcessing(site, path, false);
             throw e;
-        } finally {
-            generalLockService.unlock(lockKey);
         }
     }
 
@@ -301,21 +303,12 @@ public class ContentServiceImpl implements ContentService {
         logger.debug("Write and rename for site '{}' path '{}' targetPath '{}' "
                 + "fileName '{}' content type '{}'", site, path, targetPath, fileName, contentType);
 
-        // TODO: SJ: The block below seems to be there to fix a stuck lock, refactor and remove in 2.7.x
-        if (!generalLockService.tryLock(id)) {
-            generalLockService.lock(id);
-            generalLockService.unlock(id);
-            return;
-        }
-
         try {
             writeContent(site, path, fileName, contentType, input, createFolders, edit, unlock);
             moveContent(site, path, targetPath);
         } catch (ServiceException | RuntimeException e) {
             logger.error("Error while executing write and rename for site '{}' path '{}' targetPath '{}' "
                     + "fileName '{}' content type '{}'", e, site, path, targetPath, fileName, contentType);
-        } finally {
-            generalLockService.unlock(id);
         }
     }
 
@@ -625,37 +618,30 @@ public class ContentServiceImpl implements ContentService {
 
                         String id = site + ":" + copyPathOnly + ":" + copyFileName + ":" + contentType;
 
-                        try {
-                            generalLockService.lock(id);
-
-                            // processContent will close the input stream
-                            if (!StringUtils.isEmpty(contentType)) {
+                        // processContent will close the input stream
+                        if (!StringUtils.isEmpty(contentType)) {
+                            processContent(id, copyContent, true, params, DmConstants.CONTENT_CHAIN_FORM);
+                        } else {
+                            if (copyFileName.endsWith(DmConstants.XML_PATTERN)) {
                                 processContent(id, copyContent, true, params, DmConstants.CONTENT_CHAIN_FORM);
                             } else {
-                                if (copyFileName.endsWith(DmConstants.XML_PATTERN)) {
-                                    processContent(id, copyContent, true, params, DmConstants.CONTENT_CHAIN_FORM);
-                                } else {
-                                    processContent(id, fromContent, false, params, DmConstants.CONTENT_CHAIN_ASSET);
-                                }
+                                processContent(id, fromContent, false, params, DmConstants.CONTENT_CHAIN_ASSET);
                             }
-
-                            ItemState itemState = objectStateService.getObjectState(site, copyPath);
-
-                            if (itemState == null) {
-                                ContentItemTO copyItem = getContentItem(site, copyPath, 0);
-                                objectStateService.insertNewEntry(site, copyItem);
-                                objectStateService.setSystemProcessing(site, copyPath, false);
-                            }
-
-                            // copy was successful, return the new name
-                            retNewFileName = copyPath;
-
-                            // track that we already copied so we don't follow a circular dependency
-                            processedPaths.add(copyPath);
-
-                        } finally {
-                            generalLockService.unlock(id);
                         }
+
+                        ItemState itemState = objectStateService.getObjectState(site, copyPath);
+
+                        if (itemState == null) {
+                            ContentItemTO copyItem = getContentItem(site, copyPath, 0);
+                            objectStateService.insertNewEntry(site, copyItem);
+                            objectStateService.setSystemProcessing(site, copyPath, false);
+                        }
+
+                        // copy was successful, return the new name
+                        retNewFileName = copyPath;
+
+                        // track that we already copied so we don't follow a circular dependency
+                        processedPaths.add(copyPath);
                     } catch (ContentNotFoundException eContentNotFound) {
                         logger.debug("Content not found while copying content for site {0} from {1} to {2}, new name is {3}", eContentNotFound, site, fromPath, toPath, copyPath);
                     } catch (DocumentException eParseException) {
@@ -829,15 +815,13 @@ public class ContentServiceImpl implements ContentService {
 
             String content = getContentAsString(site, movePath);
             if (StringUtils.isNotEmpty(content)) {
-                StringBuffer assetContent = new StringBuffer(content);
-                Map<String, Set<String>> globalDeps = new HashMap<String, Set<String>>();
                 try {
                     if (isCss) {
-                        dependencyService.extractDependenciesStyle(site, movePath, assetContent, globalDeps);
+                        dependencyService.extractDependenciesStyle(site, movePath);
                     } else if (isJs) {
-                        dependencyService.extractDependenciesJavascript(site, movePath, assetContent, globalDeps);
+                        dependencyService.extractDependenciesJavascript(site, movePath);
                     } else if (isTemplate) {
-                        dependencyService.extractDependenciesTemplate(site, movePath, assetContent, globalDeps);
+                        dependencyService.extractDependenciesTemplate(site, movePath);
                     }
                 } catch (ServiceException e) {
                     logger.error("Error while updating dependencies on move content site: " + site + " path: " + movePath, e);
@@ -1462,7 +1446,7 @@ public class ContentServiceImpl implements ContentService {
             item.isPage = item.page;
             item.previewable = item.page;
             item.isPreviewable = item.previewable;
-            item.asset = ContentUtils.matchesPatterns(item.getUri(), servicesConfig.getAssetPatterns(site)) || ContentUtils.matchesPatterns(item.getUri(), servicesConfig.getRenderingTemplatePatterns(site)) || ContentUtils.matchesPatterns(item.getUri(), servicesConfig.getScriptsPatterns(site));;
+            item.asset = ContentUtils.matchesPatterns(item.getUri(), servicesConfig.getAssetPatterns(site)) || ContentUtils.matchesPatterns(item.getUri(), servicesConfig.getRenderingTemplatePatterns(site)) || ContentUtils.matchesPatterns(item.getUri(), servicesConfig.getScriptsPatterns(site));
             item.isAsset = item.asset;
             item.component = ContentUtils.matchesPatterns(item.getUri(), servicesConfig.getComponentPatterns(site)) || item.isLevelDescriptor() || item.asset;
             item.isComponent = item.component;

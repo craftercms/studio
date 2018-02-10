@@ -46,19 +46,6 @@
         ORDER BY scheduleddate ASC
     </select>
 
-    <select id="getItemsBySiteAndStates" resultMap="PublishRequestMap" parameterType="java.util.Map">
-        SELECT *
-        FROM publish_request
-        WHERE site = #{site}
-        AND state in
-        <foreach item="state" index="index" collection="states"
-                 open="(" separator="," close=")">
-            #{state}
-        </foreach>
-        AND scheduleddate &gt; #{now}
-        ORDER BY scheduleddate ASC, id asc
-    </select>
-
     <insert id="insertItemForDeployment" parameterType="org.craftercms.studio.api.v1.dal.PublishRequest">
         INSERT INTO publish_request (site, environment, path, oldpath, username, scheduleddate, state, action, contenttypeclass, submissioncomment, commit_id)
         values (#{site}, #{environment}, #{path}, #{oldPath}, #{user}, #{scheduledDate}, #{state}, #{action}, #{contentTypeClass}, #{submissionComment}, #{commitId})
@@ -73,14 +60,6 @@
         AND scheduleddate &gt; #{now}
     </update>
 
-    <update id="cancelDeployment" parameterType="java.util.Map">
-        UPDATE publish_request
-        SET state = #{canceledState}
-        WHERE id = #{id}
-        AND site = #{site}
-        AND path = #{path}
-    </update>
-
     <select id="getItemsReadyForDeployment" resultMap="PublishRequestMap">
         SELECT *
         FROM publish_request
@@ -89,21 +68,6 @@
         AND environment = #{environment}
         AND scheduleddate &lt;= #{now}
         ORDER BY scheduleddate ASC
-    </select>
-
-    <select id="checkIfItemWasPublished" resultType="java.lang.Integer">
-        SELECT count(1) FROM publish_request
-        WHERE site = #{site}
-        AND path = #{path}
-        AND state = #{state}
-    </select>
-
-    <select id="checkIfItemWasPublishedForEnvironment" resultType="java.lang.Integer">
-        SELECT count(1) FROM publish_request
-        WHERE site = #{site}
-        AND environment = #{environment}
-        AND path = #{path}
-        AND state = #{state}
     </select>
 
     <update id="updateItemDeploymentState" parameterType="org.craftercms.studio.api.v1.dal.PublishRequest">
@@ -139,24 +103,6 @@
         AND state = #{state}
         ORDER BY scheduleddate ASC
         LIMIT 0, 1
-    </select>
-
-    <select id="getLastDeployedItem" resultMap="PublishRequestMap">
-        SELECT *
-        FROM publish_request
-        WHERE site = #{site}
-        AND state = #{state}
-        AND scheduleddate &lt;= #{now}
-        ORDER BY scheduleddate DESC
-        LIMIT 0, 1
-    </select>
-
-    <select id="getQueuedPaths" resultType="String" parameterType="java.util.Map">
-        SELECT path
-        FROM publish_request
-        WHERE site = #{site_id}
-        AND environment = #{environment}
-        AND state = #{state}
     </select>
 
     <select id="checkItemQueued" resultType="int" parameterType="java.util.Map">

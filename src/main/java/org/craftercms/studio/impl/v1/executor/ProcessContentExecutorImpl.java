@@ -18,7 +18,6 @@
 
 package org.craftercms.studio.impl.v1.executor;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
@@ -34,8 +33,6 @@ import org.craftercms.studio.impl.v1.content.pipeline.PipelineContentImpl;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 
@@ -56,24 +53,10 @@ public class ProcessContentExecutorImpl implements ProcessContentExecutor {
                     params.put(DmConstants.KEY_USER, user);
                 }
 
-                byte[] inputBytes= null;
-                try {
-                    if (input != null) {
-                        inputBytes = IOUtils.toByteArray(input);
-                    }
-                } catch (IOException e) {
-                    throw new ServiceException("Error while creating byte array",e);
-                }finally{
-                    ContentUtils.release(input);
-                }
-
                 final ResultTO result = new ResultTO();
-                final byte[] inputBytesFinal = inputBytes;
-
-                InputStream newByteArrayStream=null;
                 try {
-                    newByteArrayStream = (inputBytesFinal != null) ? new ByteArrayInputStream(inputBytesFinal) : null;
-                    final PipelineContent content = new PipelineContentImpl(id, newByteArrayStream, isXml, null, StudioConstants.CONTENT_ENCODING, params);
+                    final PipelineContent content = new PipelineContentImpl(id, input, isXml, null,
+                        StudioConstants.CONTENT_ENCODING, params);
                     chain.processContent(content, result);
 
                 } catch (ContentProcessException e) {
@@ -83,7 +66,7 @@ public class ProcessContentExecutorImpl implements ProcessContentExecutor {
                     logger.error("Error in chain for write content", e);
                     throw e;
                 }finally{
-                    ContentUtils.release(newByteArrayStream);
+                    ContentUtils.release(input);
                 }
                 return result;
 

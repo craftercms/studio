@@ -173,22 +173,8 @@ public class ImportDmContentProcessor extends PathMatchProcessor implements DmCo
                 // look up the path content first
                 if (parentContent.getName().equals(fileName)) {
                     InputStream existingContent = contentService.getContent(site, path);
-                    String existingMd5 = ContentUtils.getMd5ForFile(existingContent);
-                    String newMd5 = ContentUtils.getMd5ForFile(input);
-                    if (!existingMd5.equals(newMd5)) {
-                        updateFile(site, parentContent, path, input, user, unlock);
-                        content.addProperty(DmConstants.KEY_ACTIVITY_TYPE, ActivityService.ActivityType.UPDATED.toString());
-                    } else {
-                        if (!isPreview) {
-                            if (cancelWorkflow(site, path)) {
-                                workflowService.removeFromWorkflow(site, path, true);
-                            } else {
-                                if(updateWorkFlow(site, path)) {
-                                    workflowService.updateWorkflowSandboxes(site, path);
-                                }
-                            }
-                        }
-                    }
+                    updateFile(site, parentContent, path, input, user, unlock);
+                    content.addProperty(DmConstants.KEY_ACTIVITY_TYPE, ActivityService.ActivityType.UPDATED.toString());
                     if (unlock) {
                         //TODO: unlock content
                         contentService.unLockContent(site, path);
@@ -207,21 +193,8 @@ public class ImportDmContentProcessor extends PathMatchProcessor implements DmCo
                     boolean exists = contentService.contentExists(site, filePath);
                     if (exists && overwrite) {
                         InputStream existingContent = contentService.getContent(site, filePath);
-                        String existingMd5 = ContentUtils.getMd5ForFile(existingContent);
-                        String newMd5 = ContentUtils.getMd5ForFile(input);
-                        if (!existingMd5.equals(newMd5)) {
-                            updateFile(site, fileItem, filePath, input, user, unlock);
-                            content.addProperty(DmConstants.KEY_ACTIVITY_TYPE, ActivityService.ActivityType.UPDATED.toString());
-                        } else {
-                                if (cancelWorkflow(site, filePath)) {
-                                    workflowService.removeFromWorkflow(site, filePath, true);
-                                } else {
-                                    if(updateWorkFlow(site, filePath)) {
-                                        workflowService.updateWorkflowSandboxes(site, filePath);
-                                    }
-                                }
-
-                        }
+                        updateFile(site, fileItem, filePath, input, user, unlock);
+                        content.addProperty(DmConstants.KEY_ACTIVITY_TYPE, ActivityService.ActivityType.UPDATED.toString());
                         if (unlock) {
                             //TODO: unlock content
                             contentService.unLockContent(site, filePath);

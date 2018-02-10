@@ -93,7 +93,7 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
                     try {
                         syncRepository(site);
                     } catch (Exception e) {
-                        logger.error("Failed to sync database from repository for site " + site);
+                        logger.error("Failed to sync database from repository for site " + site, e);
                         siteService.enablePublishing(site, false);
                     }
                     if (siteService.isPublishingEnabled(site)) {
@@ -109,11 +109,6 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
                                         logger.info("Starting publishing on environment " + environment + " for site " + site);
                                         logger.debug("Site \"{0}\" has {1} items ready for deployment", site, itemsToDeploy.size());
 
-                                        for (PublishRequest item : itemsToDeploy) {
-                                            String lockKey = item.getSite() + ":" + item.getPath();
-                                            generalLockService.lock(lockKey);
-                                        }
-
                                         String author = itemsToDeploy.get(0).getUser();
                                         StringBuilder sbComment = new StringBuilder();
                                         List<DeploymentItemTO> completeDeploymentItemList = new ArrayList<DeploymentItemTO>();
@@ -121,47 +116,31 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
                                         SimpleDateFormat sdf = new SimpleDateFormat(StudioConstants.DATE_PATTERN_WORKFLOW_WITH_TZ);
                                         String messagePath = StringUtils.EMPTY;
                                         try {
-                                            try {
-                                                logger.debug("Mark items as processing for site \"{0}\"", site);
-                                                for (PublishRequest item : itemsToDeploy) {
-                                                    processPublishingRequest(site, environment, item, completeDeploymentItemList, processedPaths);
-                                                }
-                                                deploy(site, environment, completeDeploymentItemList, author, sbComment.toString());
-                                                publishingManager.markItemsCompleted(site, environment, itemsToDeploy);
-
-                                                siteService.updatePublishingStatusMessage(site, statusMessage);
-                                                logger.debug("Mark deployment completed for processed items for site \"{0}\"", site);
-                                                logger.info("Finished publishing environment " + environment + " for site " + site);
-                                            } catch (DeploymentException err) {
-                                                logger.error("Error while executing deployment to environment store for site \"{0}\", number of items \"{1}\"", err, site, itemsToDeploy.size());
-                                                publishingManager.markItemsReady(site, environment, itemsToDeploy);
-                                                siteService.enablePublishing(site, false);
-                                                statusMessage = studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED_ERROR);
-                                                statusMessage = statusMessage.replace("{item_path}", messagePath).replace("{datetime}", ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern(sdf.toPattern())));
-                                                siteService.updatePublishingStatusMessage(site, statusMessage);
-                                                throw err;
-                                            } catch (Exception err){
-                                                logger.error("Unexpected error while executing deployment to environment " +
-                                                        "store for site \"{0}\", number of items \"{1}\"", err, site, itemsToDeploy.size());
-                                                publishingManager.markItemsReady(site, environment, itemsToDeploy);
-                                                siteService.enablePublishing(site, false);
-                                                statusMessage = studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED_ERROR);
-                                                statusMessage = statusMessage.replace("{item_path}", messagePath).replace("{datetime}", ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern(sdf.toPattern())));
-                                                siteService.updatePublishingStatusMessage(site, statusMessage);
-                                                throw err;
-                                            }
-                                        } finally {
+                                            logger.debug("Mark items as processing for site \"{0}\"", site);
                                             for (PublishRequest item : itemsToDeploy) {
-                                                String itemSite = item.getSite();
-                                                String itemPath = item.getPath();
-                                                String lockKey = itemSite + ":" + itemPath;
-
-                                                try {
-                                                    generalLockService.unlock(lockKey);
-                                                } catch (Exception eUnlockError) {
-                                                    logger.error("Unable to unlock item after deploy site:{0} path:{1} error:{2}", itemSite, itemPath, "" + eUnlockError);
-                                                }
+                                                processPublishingRequest(site, environment, item, completeDeploymentItemList, processedPaths);
                                             }
+                                            deploy(site, environment, completeDeploymentItemList, author, sbComment.toString());
+                                            publishingManager.markItemsCompleted(site, environment, itemsToDeploy);
+                                            logger.debug("Mark deployment completed for processed items for site \"{0}\"", site);
+                                            logger.info("Finished publishing environment " + environment + " for site " + site);
+                                        } catch (DeploymentException err) {
+                                            logger.error("Error while executing deployment to environment store for site \"{0}\", number of items \"{1}\"", err, site, itemsToDeploy.size());
+                                            publishingManager.markItemsReady(site, environment, itemsToDeploy);
+                                            siteService.enablePublishing(site, false);
+                                            statusMessage = studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED_ERROR);
+                                            statusMessage = statusMessage.replace("{item_path}", messagePath).replace("{datetime}", ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern(sdf.toPattern())));
+                                            siteService.updatePublishingStatusMessage(site, statusMessage);
+                                            throw err;
+                                        } catch (Exception err){
+                                            logger.error("Unexpected error while executing deployment to environment " +
+                                                    "store for site \"{0}\", number of items \"{1}\"", err, site, itemsToDeploy.size());
+                                            publishingManager.markItemsReady(site, environment, itemsToDeploy);
+                                            siteService.enablePublishing(site, false);
+                                            statusMessage = studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED_ERROR);
+                                            statusMessage = statusMessage.replace("{item_path}", messagePath).replace("{datetime}", ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern(sdf.toPattern())));
+                                            siteService.updatePublishingStatusMessage(site, statusMessage);
+                                            throw err;
                                         }
                                     }
                                 }
@@ -195,8 +174,6 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
         publishingManager.markItemsProcessing(site, environment, Arrays.asList(item));
         String lockKey2 = item.getSite() + ":" + item.getPath();
         try {
-            generalLockService.lock(lockKey2);
-
             List<DeploymentItemTO> deploymentItemList = new ArrayList<DeploymentItemTO>();
 
 
@@ -219,6 +196,7 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
             completeDeploymentItemList.addAll(deploymentItemList);
             statusMessage = studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_IDLE);
             statusMessage = statusMessage.replace("{item_path}", messagePath).replace("{datetime}", ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern(sdf.toPattern())));
+            siteService.updatePublishingStatusMessage(site, statusMessage);
         } catch (DeploymentException err) {
             logger.error("Error while executing deployment to environment store for site \"{0}\",", err, site);
             publishingManager.markItemsReady(site, environment, Arrays.asList(item));
@@ -236,8 +214,6 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
             statusMessage = statusMessage.replace("{item_path}", messagePath).replace("{datetime}", ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern(sdf.toPattern())));
             siteService.updatePublishingStatusMessage(site, statusMessage);
             throw err;
-        } finally {
-            generalLockService.unlock(lockKey2);
         }
     }
 
@@ -260,11 +236,14 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
     }
 
     private void syncRepository(String site) throws SiteNotFoundException {
+        logger.debug("Getting last verified commit for site: " + site);
         SiteFeed siteFeed = siteService.getSite(site);
         String lastProcessedCommit = siteFeed.getLastVerifiedGitlogCommitId();
         if (StringUtils.isNotEmpty(lastProcessedCommit)) {
+            logger.debug("Syncing database with repository for site " + site + " from last processed commit " + lastProcessedCommit);
             siteService.syncDatabaseWithRepo(site, lastProcessedCommit);
         } else {
+            logger.debug("Syncing database with repository for site " + site + " from initial commit");
             siteService.syncDatabaseWithRepo(site, contentRepository.getRepoFirstCommitId(site));
         }
     }

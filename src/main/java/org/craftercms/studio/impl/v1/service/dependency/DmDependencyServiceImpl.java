@@ -1,6 +1,6 @@
 /*
- * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2016 Crafter Software Corporation.
+ * Crafter Studio
+ * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -778,30 +778,19 @@ public class DmDependencyServiceImpl extends AbstractRegistrableService implemen
 
     @Override
     @ValidateParams
-    public void extractDependenciesTemplate(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, StringBuffer templateContent, Map<String, Set<String>> globalDeps) throws ServiceException {
-        if (globalDeps == null) {
-            globalDeps = new HashMap<>();
-        }
+    public void extractDependenciesTemplate(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) throws ServiceException {
         extractDirectDependenciesRecursively(site, path, new HashSet<>());
     }
 
     @Override
     @ValidateParams
-    public void extractDependenciesStyle(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, StringBuffer styleContent, Map<String, Set<String>> globalDeps) throws ServiceException {
-        if (globalDeps == null) {
-            globalDeps = new HashMap<>();
-        }
-
+    public void extractDependenciesStyle(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) throws ServiceException {
         extractDirectDependenciesRecursively(site, path, new HashSet<>());
-
     }
 
     @Override
     @ValidateParams
-    public void extractDependenciesJavascript(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, StringBuffer javascriptContent, Map<String, Set<String>> globalDeps) throws ServiceException {
-        if (globalDeps == null) {
-            globalDeps = new HashMap<>();
-        }
+    public void extractDependenciesJavascript(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) throws ServiceException {
         extractDirectDependenciesRecursively(site, path, new HashSet<>());
     }
 
