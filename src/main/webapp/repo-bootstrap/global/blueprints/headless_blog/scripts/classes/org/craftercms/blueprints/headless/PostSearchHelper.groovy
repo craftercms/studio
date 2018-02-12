@@ -36,13 +36,13 @@ class PostSearchHelper extends SearchHelper {
 		def item = super.processItem(doc)
 		return [
 			id: item.objectId.text,
-			title: item.title_s.text,
+			title: item.title_s,
 			authors: getAuthors(doc),
 			categories: getCategories(doc),
 			tags: getTags(doc),
 			date: item.createdDate_dt.toInstant() as String,
-			body: item.body_html.text,
-			featuredImage: item.featuredImage_s.text,
+			body: item.body_html,
+			featuredImage: item.featuredImage_s,
 			itemUrl: doc.localId
 		]
 	}
