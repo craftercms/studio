@@ -15,12 +15,12 @@ class CompanySearchHelper extends SearchHelper {
 		def item = super.processItem(doc)
 		[
 			id: item.objectId.text,
-			name: item.name_s.text,
-			logo: item.logo_s.text,
-			website: item.website_s.text,
-			email: item.email_s.text,
-			phone: item.phone_s.text,
-			description: item.description_html.text,
+			name: item.name_s,
+			logo: item.logo_s,
+			website: item.website_s,
+			email: item.email_s,
+			phone: item.phone_s,
+			description: item.description_html,
             itemUrl: doc.localId
 		]
 	}

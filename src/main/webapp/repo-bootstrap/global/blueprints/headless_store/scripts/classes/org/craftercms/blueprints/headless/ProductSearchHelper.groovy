@@ -23,13 +23,13 @@ class ProductSearchHelper extends SearchHelper {
 		def item = super.processItem(doc)
 		[
 			id: doc.objectId,
-			name: item.name_s.text,
+			name: item.name_s,
 			company: doc["company.item.component.name_s"],
 			categories: getCategories(doc),
 			tags: getTags(doc),
 			date: item.createdDate_dt.toInstant() as String,
-			description: item.description_html.text,
-			image: item.image_s.text,
+			description: item.description_html,
+			image: item.image_s,
 			price: item.price_d,
             itemUrl: doc.localId
 		]

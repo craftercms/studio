@@ -15,11 +15,11 @@ class AuthorSearchHelper extends SearchHelper {
 		def item = super.processItem(doc)
 		[
 			id: item.objectId.text,
-			name: item.name_s.text,
-			photo: item.photo_s.text,
-			website: item.website_s.text,
-			photo: item.photo_s.text,
-			biography: item.biography_html.text,
+			name: item.name_s,
+			photo: item.photo_s,
+			website: item.website_s,
+			photo: item.photo_s,
+			biography: item.biography_html,
 			itemUrl: doc.localId
 		]
 	}
