@@ -168,4 +168,34 @@ public interface DependencyService {
      * @throws ServiceException Internal error, see exception details
      */
     void deleteSiteDependencies(String site) throws SiteNotFoundException, ServiceException;
+
+    /**
+     * Get a all delete dependencies of a item. A delete
+     * dependency is:
+     * * Children - subtree
+     * * Item-specific dependencies
+     * * Content type defined delete dependencies
+     *
+     * @param site Site to operate on
+     * @param path Paths to item to retrieve deps for
+     * @throws SiteNotFoundException Site doesn't exist
+     * @throws ContentNotFoundException Path doesn't exist
+     * @throws ServiceException Internal error, see exception details
+     */
+    Set<String> getDeleteDepenencies(String site, String path) throws SiteNotFoundException, ContentNotFoundException, ServiceException;
+
+    /**
+     * Get a all delete dependencies of a list of items. A delete
+     * dependency is:
+     * * Children - subtree
+     * * Item-specific dependencies
+     * * Content type defined delete dependencies
+     *
+     * @param site Site to operate on
+     * @param paths List of paths to items to retrieve deps for
+     * @throws SiteNotFoundException Site doesn't exist
+     * @throws ContentNotFoundException One or more paths doesn't exist
+     * @throws ServiceException Internal error, see exception details
+     */
+    Set<String> getDeleteDepenencies(String site, List<String> paths) throws SiteNotFoundException, ContentNotFoundException, ServiceException;
 }

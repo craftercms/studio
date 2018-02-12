@@ -55,10 +55,8 @@ class SpringDependencyServices {
         def toProcess = []
         toProcess.addAll(paths)
         if (deleteDependencies) {
-            paths.each {
-                def dependencyPaths = springBackendService.getItemSpecificDependencies(site, it, -1)
-                toProcess.addAll(dependencyPaths)
-            }
+            def dependencyPaths = springBackendService.getDeleteDepenencies(site, paths)
+            toProcess.addAll(dependencyPaths)
         } else {
             def dependencyPaths = springBackendService.getPublishingDepenencies(site, paths)
             toProcess.addAll(dependencyPaths)

@@ -12,6 +12,8 @@ import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.repository.ContentRepository;
+import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
 import org.craftercms.studio.api.v1.service.dependency.DependencyResolver;
@@ -42,6 +44,7 @@ public class DependencyServiceImpl implements DependencyService {
     protected PlatformTransactionManager transactionManager;
     protected List<String> itemSpecificDependencies;
     protected ObjectMetadataManager objectMetadataManager;
+    protected ContentRepository contentRepository;
 
 
     @Override
@@ -479,6 +482,82 @@ public class DependencyServiceImpl implements DependencyService {
         dependencyMapper.deleteDependenciesForSite(params);
     }
 
+    @Override
+    public Set<String> getDeleteDepenencies(String site, String path) throws SiteNotFoundException, ContentNotFoundException, ServiceException {
+        List<String> paths = new ArrayList<String>();
+        paths.add(path);
+        Set<String> processedPaths = new HashSet<String>();
+        return getDeleteDependenciesInternal(site, paths, processedPaths);
+    }
+
+    @Override
+    public Set<String> getDeleteDepenencies(String site, List<String> paths) throws SiteNotFoundException, ContentNotFoundException, ServiceException {
+        Set<String> processedPaths = new HashSet<String>();
+        return getDeleteDependenciesInternal(site, paths, processedPaths);
+    }
+
+    private Set<String> getDeleteDependenciesInternal(String site, List<String> paths, Set<String> processedPaths) {
+        Set<String> toRet = new HashSet<String>();
+        // Step 1: collect all content from subtree
+        Set<String> children = getAllChildrenRecursively(site, paths);
+        toRet.addAll(children);
+
+        // Step 2: collect all dependencies from DB
+        Set<String> dependencies = getItemDeleteDependencies(site, paths);
+        toRet.addAll(dependencies);
+        boolean doItAgain = false;
+
+        doItAgain = doItAgain || processedPaths.addAll(children);
+        doItAgain = doItAgain || processedPaths.addAll(dependencies);
+        if (doItAgain) {
+            List<String> pathsToProces = new ArrayList<String>();
+            pathsToProces.addAll(children);
+            pathsToProces.addAll(dependencies);
+            toRet.addAll(getDeleteDependenciesInternal(site, pathsToProces, processedPaths));
+        }
+
+        // Step 4: recursion ???
+        return toRet;
+    }
+
+    private Set<String> getItemDeleteDependencies(String site, List<String> paths) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        Set<String> toRet = new HashSet<String>();
+        boolean exitCondition;
+        do {
+            params = new HashMap<String, Object>();
+            params.put("site", site);
+            params.put("paths", paths);
+            List<String> deps = dependencyMapper.getDependenciesForList(params);
+            Set<String> filtered = new HashSet<String>();
+            filtered.addAll(deps);
+            filtered = filterItemSpecificDependencies(filtered);
+            exitCondition = !toRet.addAll(filtered);
+            paths.clear();
+            paths.addAll(deps);
+        } while (!exitCondition);
+        return toRet;
+    }
+
+    private Set<String> getAllChildrenRecursively(String site, List<String> paths) {
+        Set<String> toRet = new HashSet<String>();
+
+        for (String path : paths) {
+            RepositoryItem[] children = contentRepository.getContentChildren(contentService.expandRelativeSitePath(site, path), true);
+            if (children != null) {
+                List<String> childrenPaths = new ArrayList<String>();
+                for (RepositoryItem child : children) {
+                    String childPath = child.path + "/" + child.name;
+                    String relativePath = contentService.getRelativeSitePath(site, childPath);
+                    childrenPaths.add(relativePath);
+                }
+                toRet.addAll(childrenPaths);
+                toRet.addAll(getAllChildrenRecursively(site, childrenPaths));
+            }
+        }
+        return toRet;
+    }
+
     public SiteService getSiteService() { return siteService; }
     public void setSiteService(SiteService siteService) { this.siteService = siteService; }
 
@@ -496,4 +575,7 @@ public class DependencyServiceImpl implements DependencyService {
 
     public ObjectMetadataManager getObjectMetadataManager() { return objectMetadataManager; }
     public void setObjectMetadataManager(ObjectMetadataManager objectMetadataManager) { this.objectMetadataManager = objectMetadataManager; }
+
+    public ContentRepository getContentRepository() { return contentRepository; }
+    public void setContentRepository(ContentRepository contentRepository) { this.contentRepository = contentRepository; }
 }
