@@ -29,8 +29,6 @@ studio.repo.blueprintsPath: blueprints
 studio.repo.bootstrapRepo: true
 # Defines size of a batch when rebuilding crafter repository metadata stored in database.
 studio.repo.rebuildMetadata.batchSize: 100
-# Repository mechanics, don't change unless you REALLY know what you're doing.
-studio.repo.published.cherryPickMessage.commitId.regex: (.*\W*)(\(cherry\spicked\sfrom\scommit\s)([a-f0-9]*)(\))
 # Published repository commit message
 studio.repo.published.commitMessage: "Publish event triggered by {username} on {datetime} via {source}.\n\nPublish note from user: \"{message}\"\n\nCommit ID: {commit_id}"
 
