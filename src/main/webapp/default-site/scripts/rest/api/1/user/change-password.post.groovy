@@ -23,7 +23,6 @@ import groovy.json.JsonSlurper
 import org.apache.commons.lang3.StringUtils
 import org.craftercms.studio.api.v1.exception.security.PasswordDoesNotMatchException
 import org.craftercms.studio.api.v1.exception.security.UserExternallyManagedException
-import org.craftercms.studio.api.v1.exception.security.UserNotFoundException
 import scripts.api.SecurityServices
 
 def result = [:]
@@ -96,9 +95,6 @@ try {
         } catch (UserExternallyManagedException e) {
             response.setStatus(403)
             result.message = "Externally managed user"
-        } catch (UserNotFoundException e) {
-            response.setStatus(404)
-            result.message = "User not found"
         } catch (Exception e) {
             response.setStatus(500)
             result.message = "Internal server error: \n" + e
