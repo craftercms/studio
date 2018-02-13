@@ -1496,7 +1496,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                 Date launchDate = scheduledDate.equals(now) ? null : scheduledDate;
                 for (DmDependencyTO dmDependencyTO : deletePackage) {
                     if (launchDate != null) {
-                        handleReferences(site, submitpackage, dmDependencyTO, true, null, "", rescheduledUris);
+                        handleReferencesDelete(site, submitpackage, dmDependencyTO, true, null, "", rescheduledUris);
                     } else {
                         applyDeleteDependencyRule(site, submitpackage, dmDependencyTO);
                     }
@@ -1606,6 +1606,40 @@ public class WorkflowServiceImpl implements WorkflowService {
         }
     }
 
+    protected void handleReferencesDelete(String site, SubmitPackage submitpackage, DmDependencyTO dmDependencyTO, boolean isNotScheduled, SubmitPackage dependencyPackage, String approver, Set<String> rescheduledUris) throws ServiceException {//,boolean isReferencePage) {
+        String path = contentService.expandRelativeSitePath(site, dmDependencyTO.getUri());
+        ObjectMetadata properties = objectMetadataManager.getProperties(site, dmDependencyTO.getUri());
+        Date scheduledDate = null;
+        if (properties != null) {
+            scheduledDate = properties.getLaunchDate();
+        }
+        ObjectState state = objectStateService.getObjectState(site, dmDependencyTO.getUri());
+        if (state != null) {
+            if (!State.isSubmitted(State.valueOf(state.getState())) && scheduledDate != null && scheduledDate.equals(dmDependencyTO.getScheduledDate())) {
+                if (objectStateService.isScheduled(site, dmDependencyTO.getUri())) {
+                    return;
+                } else {
+                    submitpackage.addToPackage(dmDependencyTO);
+                }
+            }
+        }
+        if (!dmDependencyTO.isReference()) {
+            submitpackage.addToPackage(dmDependencyTO);
+        }
+
+        Set<String> dependencySet = dependencyService.getDeleteDepenencies(site, dmDependencyTO.getUri());
+        for (String dependency : dependencySet) {
+            submitpackage.addToPackage(dependency);
+            if (!isNotScheduled) {
+                dependencyPackage.addToPackage(dependency);
+            }
+        }
+
+        if (isRescheduleRequest(dmDependencyTO, site)) {
+            rescheduledUris.add(dmDependencyTO.getUri());
+        }
+    }
+
     protected boolean areEqual(Date oldDate, Date newDate) {
         if (oldDate == null && newDate == null) {
             return true;
@@ -1616,14 +1650,11 @@ public class WorkflowServiceImpl implements WorkflowService {
         return false;
     }
 
-    protected void applyDeleteDependencyRule(String site, SubmitPackage pack, DmDependencyTO dmDependencyTO) {
+    protected void applyDeleteDependencyRule(String site, SubmitPackage pack, DmDependencyTO dmDependencyTO) throws ServiceException {
         pack.addToPackage(dmDependencyTO);
-        DependencyRules rule = new DependencyRules(site);
-        rule.setObjectStateService(objectStateService);
-        rule.setContentService(contentService);
-        Set<DmDependencyTO> dependencyTOSet = rule.applyDeleteDependencyRule(dmDependencyTO);
-        for (DmDependencyTO dependencyTO : dependencyTOSet) {
-            pack.addToPackage(dependencyTO);
+        Set<String> deps = dependencyService.getDeleteDepenencies(site, dmDependencyTO.getUri());
+        for (String dependency : deps) {
+            pack.addToPackage(dependency);
         }
     }
 
