@@ -42,13 +42,7 @@ import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.dal.*;
 import org.craftercms.studio.api.v1.deployment.PreviewDeployer;
 import org.craftercms.studio.api.v1.ebus.PreviewEventContext;
-import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
-import org.craftercms.studio.api.v1.exception.PreviewDeployerUnreachableException;
-import org.craftercms.studio.api.v1.exception.SearchUnreachableException;
-import org.craftercms.studio.api.v1.exception.ServiceException;
-import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
-import org.craftercms.studio.api.v1.exception.SiteCreationException;
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.*;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotBareException;
@@ -290,9 +284,13 @@ public class SiteServiceImpl implements SiteService {
    	@Override
     @ValidateParams
    	public void createSiteFromBlueprint(@ValidateStringParam(name = "blueprintName") String blueprintName, @ValidateNoTagsParam(name = "siteName") String siteName, @ValidateStringParam(name = "siteId") String siteId, @ValidateNoTagsParam(name = "desc") String desc) throws
-	    SiteAlreadyExistsException, SiteCreationException, PreviewDeployerUnreachableException, SearchUnreachableException {
+            SiteAlreadyExistsException, SiteCreationException, PreviewDeployerUnreachableException, SearchUnreachableException, BlueprintNotFoundException {
 	    if (exists(siteId)) {
 	        throw new SiteAlreadyExistsException();
+        }
+
+        if (!contentService.contentExists(StringUtils.EMPTY, StudioConfiguration.BLUE_PRINTS_PATH + FILE_SEPARATOR + blueprintName)) {
+            throw new BlueprintNotFoundException();
         }
 
         boolean success = true;
@@ -575,7 +573,7 @@ public class SiteServiceImpl implements SiteService {
 
     @Override
     @ValidateParams
-    public void createSiteWithRemoteOption(@ValidateStringParam(name = "siteId") String siteId, @ValidateNoTagsParam(name = "description") String description, String blueprintName, @ValidateStringParam(name = "remoteName") String remoteName, @ValidateStringParam(name = "remoteUrl") String remoteUrl, String remoteUsername, String remotePassword, @ValidateStringParam(name = "createOption") String createOption) throws SiteAlreadyExistsException, SearchUnreachableException, PreviewDeployerUnreachableException, SiteCreationException, InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException, RemoteRepositoryNotBareException {
+    public void createSiteWithRemoteOption(@ValidateStringParam(name = "siteId") String siteId, @ValidateNoTagsParam(name = "description") String description, String blueprintName, @ValidateStringParam(name = "remoteName") String remoteName, @ValidateStringParam(name = "remoteUrl") String remoteUrl, String remoteUsername, String remotePassword, @ValidateStringParam(name = "createOption") String createOption) throws SiteAlreadyExistsException, SearchUnreachableException, PreviewDeployerUnreachableException, SiteCreationException, InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException, RemoteRepositoryNotBareException, BlueprintNotFoundException {
         if (exists(siteId)) {
             throw new SiteAlreadyExistsException();
         }
@@ -746,11 +744,13 @@ public class SiteServiceImpl implements SiteService {
         }
     }
 
-    private void createSitePushToRemote(String siteId, String description, String blueprintName, String remoteName, String remoteUrl, String remoteUsername, String remotePassword) throws SiteAlreadyExistsException, SearchUnreachableException, PreviewDeployerUnreachableException, SiteCreationException, InvalidRemoteRepositoryCredentialsException, InvalidRemoteRepositoryException, RemoteRepositoryNotFoundException, RemoteRepositoryNotBareException {
+    private void createSitePushToRemote(String siteId, String description, String blueprintName, String remoteName, String remoteUrl, String remoteUsername, String remotePassword) throws SiteAlreadyExistsException, SearchUnreachableException, PreviewDeployerUnreachableException, SiteCreationException, InvalidRemoteRepositoryCredentialsException, InvalidRemoteRepositoryException, RemoteRepositoryNotFoundException, RemoteRepositoryNotBareException, BlueprintNotFoundException {
         if (exists(siteId)) {
             throw new SiteAlreadyExistsException();
         }
-
+        if (!contentService.contentExists(StringUtils.EMPTY, StudioConfiguration.BLUE_PRINTS_PATH + FILE_SEPARATOR + blueprintName)) {
+            throw new BlueprintNotFoundException();
+        }
         boolean success = true;
 
         // TODO: SJ: We must fail site creation if any of the site creations steps fail and rollback

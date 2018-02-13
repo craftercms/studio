@@ -19,12 +19,7 @@
 package org.craftercms.studio.api.v1.service.site;
 
 import org.craftercms.studio.api.v1.dal.SiteFeed;
-import org.craftercms.studio.api.v1.exception.PreviewDeployerUnreachableException;
-import org.craftercms.studio.api.v1.exception.SearchUnreachableException;
-import org.craftercms.studio.api.v1.exception.ServiceException;
-import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
-import org.craftercms.studio.api.v1.exception.SiteCreationException;
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.*;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotBareException;
@@ -103,7 +98,7 @@ public interface SiteService {
      * @param siteId
      * @param desc
      */
-    void createSiteFromBlueprint(String blueprintName, String siteName, String siteId, String desc) throws SiteAlreadyExistsException, SiteCreationException, PreviewDeployerUnreachableException, SearchUnreachableException;
+    void createSiteFromBlueprint(String blueprintName, String siteName, String siteId, String desc) throws SiteAlreadyExistsException, SiteCreationException, PreviewDeployerUnreachableException, SearchUnreachableException, BlueprintNotFoundException;
 
     /**
      * Create a new site with remote option (clone from remote or push to remote repository)
@@ -117,7 +112,7 @@ public interface SiteService {
      * @param remotePassword
      * @param createOption
      */
-    void createSiteWithRemoteOption(String siteId, String description, String blueprintName, String remoteName, String remoteUrl, String remoteUsername, String remotePassword, String createOption) throws SiteAlreadyExistsException, SearchUnreachableException, PreviewDeployerUnreachableException, SiteCreationException, InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException, RemoteRepositoryNotBareException;
+    void createSiteWithRemoteOption(String siteId, String description, String blueprintName, String remoteName, String remoteUrl, String remoteUsername, String remotePassword, String createOption) throws SiteAlreadyExistsException, SearchUnreachableException, PreviewDeployerUnreachableException, SiteCreationException, InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException, RemoteRepositoryNotBareException, BlueprintNotFoundException;
 
     /**
      * remove a site from the system

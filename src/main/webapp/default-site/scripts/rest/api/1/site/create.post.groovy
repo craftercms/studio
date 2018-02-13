@@ -18,6 +18,7 @@
 
 import groovy.json.JsonException
 import org.apache.commons.lang3.StringUtils
+import org.craftercms.studio.api.v1.exception.BlueprintNotFoundException
 import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException
@@ -143,6 +144,9 @@ try {
         } catch (InvalidRemoteRepositoryCredentialsException e) {
             response.setStatus(400)
             result.message = "Remote repository credentials invalid"
+        } catch (BlueprintNotFoundException e) {
+            response.setStatus(404)
+            result.message = "Blueprint not found"
         } catch (RemoteRepositoryNotFoundException e) {
             response.setStatus(404)
             result.message = "Remote repository not found"
