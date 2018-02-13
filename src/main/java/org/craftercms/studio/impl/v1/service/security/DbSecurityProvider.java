@@ -766,19 +766,20 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public boolean changePassword(String username, String current, String newPassword) throws UserNotFoundException, PasswordDoesNotMatchException, UserExternallyManagedException {
-        if (!userExists(username)) {
-            throw new UserNotFoundException();
+    public boolean changePassword(String username, String current, String newPassword) throws PasswordDoesNotMatchException, UserExternallyManagedException {
+        User user = securityMapper.getUser(username);
+        if (user.getExternallyManaged() > 0) {
+            throw new UserExternallyManagedException();
         } else {
-            User user = securityMapper.getUser(username);
-            if (user.getExternallyManaged() > 0) {
-                throw new UserExternallyManagedException();
+            if (CryptoUtils.matchPassword(user.getPassword(), current)) {
+                String hashedPassword = CryptoUtils.hashPassword(newPassword);
+                Map<String, String> params = new HashMap<String, String>();
+                params.put(KEY_USERNAME, username);
+                params.put("password", hashedPassword);
+                securityMapper.setUserPassword(params);
+                return true;
             } else {
-                if (CryptoUtils.matchPassword(user.getPassword(), current)) {
-                    return setUserPassword(username, newPassword);
-                } else {
-                    throw new PasswordDoesNotMatchException();
-                }
+                throw new PasswordDoesNotMatchException();
             }
         }
     }

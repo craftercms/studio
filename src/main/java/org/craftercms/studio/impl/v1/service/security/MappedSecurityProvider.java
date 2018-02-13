@@ -275,7 +275,7 @@ public class MappedSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public boolean changePassword(String username, String current, String newPassword) throws UserNotFoundException, PasswordDoesNotMatchException, UserExternallyManagedException {
+    public boolean changePassword(String username, String current, String newPassword) throws PasswordDoesNotMatchException, UserExternallyManagedException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.changePassword(username, current, newPassword);
     }
