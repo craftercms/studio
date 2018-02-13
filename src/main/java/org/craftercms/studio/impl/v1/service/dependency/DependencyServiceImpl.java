@@ -484,6 +484,17 @@ public class DependencyServiceImpl implements DependencyService {
 
     @Override
     public Set<String> getDeleteDepenencies(String site, String path) throws SiteNotFoundException, ContentNotFoundException, ServiceException {
+        // Check if site exists
+        if (!siteService.exists(site)) {
+            throw new SiteNotFoundException();
+        }
+
+        // Check if content exists
+        if (!contentService.contentExists(site, path)) {
+            throw new ContentNotFoundException();
+        }
+
+        logger.debug("Get delete dependencies for content - site " + site + " path " + path);
         List<String> paths = new ArrayList<String>();
         paths.add(path);
         Set<String> processedPaths = new HashSet<String>();
@@ -492,6 +503,20 @@ public class DependencyServiceImpl implements DependencyService {
 
     @Override
     public Set<String> getDeleteDepenencies(String site, List<String> paths) throws SiteNotFoundException, ContentNotFoundException, ServiceException {
+        // Check if site exists
+        if (!siteService.exists(site)) {
+            throw new SiteNotFoundException();
+        }
+        StringBuilder sbPaths = new StringBuilder();
+        for (String path : paths) {
+            // Check if content exists
+            if (!contentService.contentExists(site, path)) {
+                throw new ContentNotFoundException();
+            }
+            sbPaths.append("\n").append(path);
+        }
+
+        logger.debug("Gete delete dependencies for content - site: " + site + " paths: " + sbPaths.toString());
         Set<String> processedPaths = new HashSet<String>();
         return getDeleteDependenciesInternal(site, paths, processedPaths);
     }
@@ -499,38 +524,47 @@ public class DependencyServiceImpl implements DependencyService {
     private Set<String> getDeleteDependenciesInternal(String site, List<String> paths, Set<String> processedPaths) {
         Set<String> toRet = new HashSet<String>();
         // Step 1: collect all content from subtree
+        logger.debug("Get all children from subtree");
         Set<String> children = getAllChildrenRecursively(site, paths);
         toRet.addAll(children);
 
         // Step 2: collect all dependencies from DB
-        Set<String> dependencies = getItemDeleteDependencies(site, paths);
+        logger.debug("Get dependencies from DB for all paths in subtree(s) and filter them by item specific and content type");
+        List<String> depsSource = new ArrayList<String>();
+        depsSource.addAll(paths);
+        depsSource.addAll(children);
+        Set<String> dependencies = getContentTypeFilteredDeleteDependencies(site, depsSource);
         toRet.addAll(dependencies);
         boolean doItAgain = false;
 
+        // Step 3: recursion
+        logger.debug("Repeat process for newly collected dependencies that have not been processed yet");
         doItAgain = doItAgain || processedPaths.addAll(children);
         doItAgain = doItAgain || processedPaths.addAll(dependencies);
         if (doItAgain) {
-            List<String> pathsToProces = new ArrayList<String>();
-            pathsToProces.addAll(children);
-            pathsToProces.addAll(dependencies);
-            toRet.addAll(getDeleteDependenciesInternal(site, pathsToProces, processedPaths));
+            List<String> pathsToProcess = new ArrayList<String>();
+            pathsToProcess.addAll(children);
+            pathsToProcess.addAll(dependencies);
+            toRet.addAll(getDeleteDependenciesInternal(site, pathsToProcess, processedPaths));
         }
 
-        // Step 4: recursion ???
+        logger.debug("Return collected set of dependencies");
         return toRet;
     }
 
-    private Set<String> getItemDeleteDependencies(String site, List<String> paths) {
+    private Set<String> getContentTypeFilteredDeleteDependencies(String site, List<String> paths) {
         Map<String, Object> params = new HashMap<String, Object>();
         Set<String> toRet = new HashSet<String>();
         boolean exitCondition;
         do {
+            logger.debug("Get dependencies from database");
             params = new HashMap<String, Object>();
             params.put("site", site);
             params.put("paths", paths);
             List<String> deps = dependencyMapper.getDependenciesForList(params);
             Set<String> filtered = new HashSet<String>();
             filtered.addAll(deps);
+            logger.debug("Filter collected dependencies");
             filtered = filterItemSpecificDependencies(filtered);
             exitCondition = !toRet.addAll(filtered);
             paths.clear();
@@ -540,9 +574,11 @@ public class DependencyServiceImpl implements DependencyService {
     }
 
     private Set<String> getAllChildrenRecursively(String site, List<String> paths) {
+        logger.debug("Get all content from subtree(s) for list of pats");
         Set<String> toRet = new HashSet<String>();
 
         for (String path : paths) {
+            logger.debug("Get children from repository for content at site " + site + " path " + path);
             RepositoryItem[] children = contentRepository.getContentChildren(contentService.expandRelativeSitePath(site, path), true);
             if (children != null) {
                 List<String> childrenPaths = new ArrayList<String>();
@@ -551,6 +587,7 @@ public class DependencyServiceImpl implements DependencyService {
                     String relativePath = contentService.getRelativeSitePath(site, childPath);
                     childrenPaths.add(relativePath);
                 }
+                logger.debug("Adding all collected children paths");
                 toRet.addAll(childrenPaths);
                 toRet.addAll(getAllChildrenRecursively(site, childrenPaths));
             }
