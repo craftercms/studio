@@ -18,6 +18,38 @@
 
 package org.craftercms.studio.impl.v1.repository.git;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.git.auth.BasicUsernamePasswordAuthConfigurator;
+import org.craftercms.commons.git.auth.SshUsernamePasswordAuthConfigurator;
+import org.craftercms.studio.api.v1.constant.GitRepositories;
+import org.craftercms.studio.api.v1.constant.StudioConstants;
+import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
+import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
+import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
+import org.craftercms.studio.api.v1.log.Logger;
+import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.service.security.SecurityProvider;
+import org.craftercms.studio.api.v1.util.StudioConfiguration;
+import org.eclipse.jgit.api.CloneCommand;
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.Status;
+import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.InvalidRemoteException;
+import org.eclipse.jgit.api.errors.TransportException;
+import org.eclipse.jgit.diff.DiffEntry;
+import org.eclipse.jgit.dircache.DirCache;
+import org.eclipse.jgit.errors.AmbiguousObjectException;
+import org.eclipse.jgit.errors.IncorrectObjectTypeException;
+import org.eclipse.jgit.errors.MissingObjectException;
+import org.eclipse.jgit.lib.*;
+import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.revwalk.RevTree;
+import org.eclipse.jgit.revwalk.RevWalk;
+import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
+import org.eclipse.jgit.treewalk.CanonicalTreeParser;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -32,34 +64,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.craftercms.studio.api.v1.constant.GitRepositories;
-import org.craftercms.studio.api.v1.constant.StudioConstants;
-import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
-import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
-import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v1.service.security.SecurityProvider;
-import org.craftercms.studio.api.v1.util.StudioConfiguration;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.Status;
-import org.eclipse.jgit.api.errors.*;
-import org.eclipse.jgit.diff.DiffEntry;
-import org.eclipse.jgit.dircache.DirCache;
-import org.eclipse.jgit.errors.AmbiguousObjectException;
-import org.eclipse.jgit.errors.IncorrectObjectTypeException;
-import org.eclipse.jgit.errors.MissingObjectException;
-import org.eclipse.jgit.lib.*;
-import org.eclipse.jgit.revwalk.RevCommit;
-import org.eclipse.jgit.revwalk.RevTree;
-import org.eclipse.jgit.revwalk.RevWalk;
-import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
-import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
-import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 
 import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
 import static org.craftercms.studio.api.v1.constant.SecurityConstants.*;
@@ -656,28 +660,19 @@ public class GitContentRepositoryHelper {
         Path siteSandboxPath = buildRepoPath(SANDBOX, siteId);
         File localPath = siteSandboxPath.toFile();
         localPath.delete();
-
         logger.debug("Add user credentials if provided");
-        UsernamePasswordCredentialsProvider credentialsProvider = null;
-
-        // Check if this remote git repository has username/password provided
-        if (!StringUtils.isEmpty(remoteUsername)) {
-            if (StringUtils.isEmpty(remotePassword)) {
-                // Username was provided but password is empty
-                logger.debug("Password field is empty while cloning from remote repository: " + remoteUrl);
-            }
-            credentialsProvider = new UsernamePasswordCredentialsProvider(remoteUsername, remotePassword);
-        }
-
         // then clone
         logger.debug("Cloning from " + remoteUrl + " to " + localPath);
-        try (Git result = Git.cloneRepository()
-                .setURI(remoteUrl)
-                .setDirectory(localPath)
-                .setCredentialsProvider(credentialsProvider)
-                .setRemote(remoteName)
-                .call()) {
-            Repository sandboxRepo = result.getRepository();
+        CloneCommand cloneCommand = Git.cloneRepository();
+        Git cloneResult = null;
+        try {
+            configureTransportAuthenticaion(cloneCommand, remotePassword, remoteUsername, remoteUrl);
+            cloneResult = cloneCommand
+                    .setURI(remoteUrl)
+                    .setDirectory(localPath)
+                    .setRemote(remoteName)
+                    .call();
+            Repository sandboxRepo = checkIfCloneWasOk(cloneResult, remoteName, remoteUrl) ;
             sandboxes.put(siteId, sandboxRepo);
         } catch (InvalidRemoteException e) {
             logger.error("Invalid remote repository: " + remoteName + " (" + remoteUrl + ")", e);
@@ -693,7 +688,64 @@ public class GitContentRepositoryHelper {
         } catch (GitAPIException e) {
             logger.error("Error while creating repository for site with path" + siteSandboxPath.toString(), e);
             toRet = false;
+        } finally {
+            if (cloneResult != null) {
+                cloneResult.close();
+            }
         }
         return toRet;
+    }
+
+    /**
+     * Checks if the clone was executed ok (mostly check for null references and
+     * if the clone folder was created as a folder and current user has RW permissions.
+     * <b> Never returns null</b>
+     * @param cloneResult Clone Result to check.
+     * @param remoteName Name of the remote we clone.
+     * @param remoteUrl Clone URL
+     * @return A {@link Repository} if all checks pass , never returns null.
+     * @throws InvalidRemoteRepositoryException If a check does not pass.
+     */
+    private Repository checkIfCloneWasOk(Git cloneResult, String remoteName, String remoteUrl) throws InvalidRemoteRepositoryException {
+        // Check if cloneResult is null , if so die.
+        if (cloneResult == null) {
+            String msg = "Remote Clone Error:: " + remoteName + " (" + remoteUrl + ")  cloneResult object null";
+            logger.error(msg);
+            throw new InvalidRemoteRepositoryException(msg);
+        }
+        Repository repository = cloneResult.getRepository();
+        // Check if cloneResult is null , if so die.
+        if (repository==null){
+            String msg = "Remote Clone Error:: " + remoteName + " (" + remoteUrl + ")  sandboxRepo object null";
+            logger.error(msg);
+            throw new InvalidRemoteRepositoryException(msg);
+        }
+        File repoDir = repository.getDirectory();
+        // Check if  sandbox repo,: exists, is a dir, we can RW to it.
+        if (!repoDir.exists() ||  !repoDir.isDirectory() || !repoDir.canRead() || !repoDir.canWrite() ){
+            String msg = "Remote Clone Error::  " +repository.getDirectory()+" doesn't exist, is not a dir or user don't have RW permissions";
+            logger.error(msg);
+            throw new InvalidRemoteRepositoryException(msg);
+        }
+        return repository;
+    }
+
+    private void configureTransportAuthenticaion(final CloneCommand cloneCommand, final String remotePassword,
+                                                 final String remoteUsername, final String remoteUrl) {
+        // Check if this remote git repository has username/password provided
+        if (!StringUtils.isEmpty(remoteUsername)) {
+            if (StringUtils.isEmpty(remotePassword)) {
+                // Username was provided but password is empty
+                logger.debug("Password field is empty while cloning from remote repository: " + remoteUrl);
+            }
+            // Studio should only support usr/pwd ssh repo.
+            // until we add per user + per server private key configuration.
+            if (remoteUrl.toLowerCase().contains("ssh://")) {
+                new SshUsernamePasswordAuthConfigurator(remotePassword).configureAuthentication(cloneCommand);
+            } else {
+                new BasicUsernamePasswordAuthConfigurator(remoteUsername, remotePassword)
+                        .configureAuthentication(cloneCommand);
+            }
+        }
     }
 }

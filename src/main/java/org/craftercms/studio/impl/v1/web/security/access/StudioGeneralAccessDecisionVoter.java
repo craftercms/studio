@@ -20,23 +20,19 @@ package org.craftercms.studio.impl.v1.web.security.access;
 
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.FilterInvocation;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
+
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_PUBLIC_URLS;
 
 public class StudioGeneralAccessDecisionVoter extends StudioAbstractAccessDecisionVoter {
 
     private final static Logger logger = LoggerFactory.getLogger(StudioGeneralAccessDecisionVoter.class);
-
-    private final List<String> PUBLIC_URLS = Arrays.asList(
-            "/api/1/services/api/1/server/get-available-languages.json",
-            "/api/1/services/api/1/server/get-ui-resource-override.json"
-    );
 
     @Override
     public boolean supports(ConfigAttribute attribute) {
@@ -51,7 +47,7 @@ public class StudioGeneralAccessDecisionVoter extends StudioAbstractAccessDecisi
             FilterInvocation filterInvocation = (FilterInvocation) object;
             HttpServletRequest request = filterInvocation.getRequest();
             requestUri = request.getRequestURI().replace(request.getContextPath(), "");
-            if (PUBLIC_URLS.contains(requestUri)) {
+            if (getPublicUrls().contains(requestUri)) {
                 toRet = ACCESS_GRANTED;
             }
         }
@@ -63,4 +59,14 @@ public class StudioGeneralAccessDecisionVoter extends StudioAbstractAccessDecisi
     public boolean supports(Class clazz) {
         return true;
     }
+
+    protected List<String> getPublicUrls() {
+        StringTokenizer st = new StringTokenizer(studioConfiguration.getProperty(SECURITY_PUBLIC_URLS), ",");
+        List<String> publicUrls = new ArrayList<String>(st.countTokens());
+        while (st.hasMoreTokens()) {
+            publicUrls.add(st.nextToken().trim());
+        }
+        return publicUrls;
+    }
+
 }
