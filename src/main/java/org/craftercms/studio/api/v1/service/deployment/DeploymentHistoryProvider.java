@@ -46,14 +46,4 @@ public interface DeploymentHistoryProvider {
      * @return last deployment date or null if never deployed
      */
     ZonedDateTime getLastDeploymentDate(String site, String path);
-
-    /**
-     * Get last commit id that was published for given site and path on given environment
-     *
-     * @param site site id
-     * @param environment publishing environment
-     * @param path path
-     * @return commit id
-     */
-    String getLastPublishedCommitId(String site, String environment, String path);
 }

@@ -1317,33 +1317,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     @Override
-    public String getLastPublishedCommitId(String site, String environment, String path) {
-        String toRet = null;
-        Repository publishedRepo = helper.getRepository(site, PUBLISHED);
-        try (Git git = new Git(publishedRepo)) {
-            Iterable<RevCommit> logs = git.log()
-                    .add(publishedRepo.resolve(environment))
-                    .addPath(helper.getGitPath(path))
-                    .setMaxCount(1)
-                    .call();
-            Iterator<RevCommit> iter = logs.iterator();
-            if (iter.hasNext()) {
-                RevCommit revCommit = iter.next();
-                String message = revCommit.getFullMessage();
-                String commitIdPattern = studioConfiguration.getProperty(REPO_PUBLISHED_CHERRY_PICK_MESSAGE_COMMIT_ID_REGEX);
-                Pattern p = Pattern.compile(commitIdPattern);
-                Matcher m = p.matcher(message);
-                if (m.lookingAt()) {
-                    toRet = m.group(3);
-                }
-            }
-        } catch (IOException | GitAPIException e) {
-            logger.error("Error while getting last commit id for site " + site + ", path " + path + " on environment " + environment, e);
-        }
-        return toRet;
-    }
-
-    @Override
     public List<String> getEditCommitIds(String site, String path, String commitIdFrom, String commitIdTo) {
         List<String> commitIds = new ArrayList<String>();
 
