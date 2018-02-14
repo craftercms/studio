@@ -998,6 +998,13 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                             git.rm().addFilepattern(oldPath).setCached(false).call();
                             cleanUpMoveFolders(git, oldPath);
                         }
+
+                        if (deploymentItem.isDelete()) {
+                            String deletePath = helper.getGitPath(deploymentItem.getPath());
+                            git.rm().addFilepattern(deletePath).setCached(false).call();
+                            Path parentToDelete = Paths.get(path).getParent();
+                            deleteParentFolder(git, parentToDelete);
+                        }
                         deployedCommits.add(commitId);
                     }
 
