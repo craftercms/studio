@@ -141,7 +141,8 @@ public class PublishingManagerImpl implements PublishingManager {
                         deleteFolder(site, oldPath.replace(FILE_SEPARATOR + DmConstants.INDEX_FILE, ""), user);
                     }
                 }
-
+                deploymentItem.setMove(true);
+                deploymentItem.setOldPath(oldPath);
                 objectMetadataManager.clearRenamed(site, path);
             }
 
@@ -166,6 +167,7 @@ public class PublishingManagerImpl implements PublishingManager {
                     deleteFolder(site, path.replace(FILE_SEPARATOR + DmConstants.INDEX_FILE, ""), user);
                 }
             }
+            deploymentItem.setDelete(true);
         } else {
             if (StringUtils.equals(action, PublishRequest.Action.MOVE)) {
                 deploymentItem.setMove(true);
