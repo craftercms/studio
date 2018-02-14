@@ -998,6 +998,13 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                             git.rm().addFilepattern(oldPath).setCached(false).call();
                             cleanUpMoveFolders(git, oldPath);
                         }
+
+                        if (deploymentItem.isDelete()) {
+                            String deletePath = helper.getGitPath(deploymentItem.getPath());
+                            git.rm().addFilepattern(deletePath).setCached(false).call();
+                            Path parentToDelete = Paths.get(path).getParent();
+                            deleteParentFolder(git, parentToDelete);
+                        }
                         deployedCommits.add(commitId);
                     }
 
@@ -1312,33 +1319,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             }
         } catch (IOException | GitAPIException e) {
             logger.error("Error while getting last deployment date for site " + site + ", path " + path, e);
-        }
-        return toRet;
-    }
-
-    @Override
-    public String getLastPublishedCommitId(String site, String environment, String path) {
-        String toRet = null;
-        Repository publishedRepo = helper.getRepository(site, PUBLISHED);
-        try (Git git = new Git(publishedRepo)) {
-            Iterable<RevCommit> logs = git.log()
-                    .add(publishedRepo.resolve(environment))
-                    .addPath(helper.getGitPath(path))
-                    .setMaxCount(1)
-                    .call();
-            Iterator<RevCommit> iter = logs.iterator();
-            if (iter.hasNext()) {
-                RevCommit revCommit = iter.next();
-                String message = revCommit.getFullMessage();
-                String commitIdPattern = studioConfiguration.getProperty(REPO_PUBLISHED_CHERRY_PICK_MESSAGE_COMMIT_ID_REGEX);
-                Pattern p = Pattern.compile(commitIdPattern);
-                Matcher m = p.matcher(message);
-                if (m.lookingAt()) {
-                    toRet = m.group(3);
-                }
-            }
-        } catch (IOException | GitAPIException e) {
-            logger.error("Error while getting last commit id for site " + site + ", path " + path + " on environment " + environment, e);
         }
         return toRet;
     }

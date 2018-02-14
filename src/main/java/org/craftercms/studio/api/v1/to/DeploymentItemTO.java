@@ -27,6 +27,7 @@ public class DeploymentItemTO implements Serializable {
     protected String path;
     protected String commitId;
     protected boolean move;
+    protected boolean delete;
     protected String oldPath;
 
     public String getSite() { return site; }
@@ -40,6 +41,9 @@ public class DeploymentItemTO implements Serializable {
 
     public boolean isMove() { return move; }
     public void setMove(boolean move) { this.move = move; }
+
+    public boolean isDelete() { return delete; }
+    public void setDelete(boolean delete) { this.delete = delete; }
 
     public String getOldPath() { return oldPath; }
     public void setOldPath(String oldPath) { this.oldPath = oldPath; }

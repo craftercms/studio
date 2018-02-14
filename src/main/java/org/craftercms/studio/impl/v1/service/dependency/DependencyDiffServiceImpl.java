@@ -36,7 +36,7 @@ public class DependencyDiffServiceImpl implements DependencyDiffService {
     /**
      * Computes addedDependenices and removedDependenices based on the DiffRequest information provided
      * @param diffRequest
-     * @return
+     * @return diff response object
      * @throws ServiceException
      */
     public DiffResponse diff(DiffRequest diffRequest) throws ServiceException {

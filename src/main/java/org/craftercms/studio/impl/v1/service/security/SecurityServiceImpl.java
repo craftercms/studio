@@ -895,7 +895,7 @@ public class SecurityServiceImpl implements SecurityService {
 
     @Override
     @ValidateParams
-    public boolean changePassword(@ValidateStringParam(name = "username") String username, @ValidateStringParam(name = "current") String current, @ValidateStringParam(name = "newPassword") String newPassword) throws UserNotFoundException, PasswordDoesNotMatchException, UserExternallyManagedException {
+    public boolean changePassword(@ValidateStringParam(name = "username") String username, @ValidateStringParam(name = "current") String current, @ValidateStringParam(name = "newPassword") String newPassword) throws PasswordDoesNotMatchException, UserExternallyManagedException {
         return securityProvider.changePassword(username, current, newPassword);
     }
 

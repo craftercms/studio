@@ -272,7 +272,7 @@ public interface SecurityProvider {
      * @return true if password is succcessfully changed
      */
     boolean changePassword(String username, String current,
-                           String newPassword) throws UserNotFoundException, PasswordDoesNotMatchException, UserExternallyManagedException;
+                           String newPassword) throws PasswordDoesNotMatchException, UserExternallyManagedException;
 
     /**
      * Set user password
