@@ -29,7 +29,7 @@ public interface DependencyDiffService {
     /**
      * Computes addedDependenices and removedDependenices based on the DiffRequest information provided
      * @param diffRequest
-     * @return
+     * @return Diff response object
      * @throws ServiceException
      */
     DiffResponse diff(DiffRequest diffRequest) throws ServiceException;

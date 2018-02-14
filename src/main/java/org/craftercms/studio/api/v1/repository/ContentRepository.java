@@ -339,34 +339,34 @@ public interface ContentRepository {
     /**
      * Create new site as a clone from remote repository
      *
-     * @param siteId
-     * @param remoteName
-     * @param remoteUrl
-     * @param remoteUsername
-     * @param remotePassword
-     * @return
+     * @param siteId site identifier
+     * @param remoteName remote name
+     * @param remoteUrl remote repository url
+     * @param remoteUsername remote username
+     * @param remotePassword remote password
+     * @return true if success
      */
     boolean createSiteCloneRemote(String siteId, String remoteName, String remoteUrl, String remoteUsername, String remotePassword) throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException;
 
     /**
      * Push new site to remote repository
      *
-     * @param siteId
-     * @param remoteName
-     * @param remoteUrl
-     * @param remoteUsername
-     * @param remotePassword
-     * @return
+     * @param siteId site identifier
+     * @param remoteName remote name
+     * @param remoteUrl remote repository url
+     * @param remoteUsername remote username
+     * @param remotePassword remote password
+     * @return true if success
      */
     boolean createSitePushToRemote(String siteId, String remoteName, String remoteUrl, String remoteUsername, String remotePassword) throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException, RemoteRepositoryNotBareException;
 
     /**
      * Validate remote repository connection parameters
-     * @param remoteName
-     * @param remoteUrl
-     * @param remoteUsername
-     * @param remotePassword
-     * @return
+     * @param remoteName remote name
+     * @param remoteUrl remote repository url
+     * @param remoteUsername remote username
+     * @param remotePassword remote password
+     * @return true if success
      */
     boolean validateRemoteRepositoryConnection(String remoteName, String remoteUrl, String remoteUsername, String remotePassword);
 
