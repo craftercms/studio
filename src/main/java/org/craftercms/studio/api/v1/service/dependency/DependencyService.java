@@ -66,7 +66,7 @@ public interface DependencyService {
 	 * * Item-specific dependency that has been modified but not published
 	 * 
 	 * @param site Site to operate on
-	 * @param paths List of paths to items to retrieve deps for
+	 * @param path Paths to item to retrieve deps for
 	 * @throws SiteNotFoundException Site doesn't exist
 	 * @throws ContentNotFoundException Path doesn't exist
 	 * @throws ServiceException Internal error, see exception details

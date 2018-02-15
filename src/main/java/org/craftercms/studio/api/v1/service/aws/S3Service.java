@@ -19,7 +19,7 @@ public interface S3Service {
      * @param profileId  the id of the {@link org.craftercms.studio.api.v1.aws.s3.S3Profile} to use.
      * @param filename   the name of the file to upload
      * @param content    the file itself
-     * @return
+     * @return metadata of an AWS S3 upload
      * @throws AwsException if an error occurs
      */
     S3Output uploadFile(String site, String profileId, String filename, InputStream content) throws AwsException;
