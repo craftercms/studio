@@ -21,6 +21,7 @@
 import groovy.json.JsonException
 import groovy.json.JsonSlurper
 import org.apache.commons.lang3.StringUtils
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException
 import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException
 import scripts.api.SecurityServices
 
@@ -69,6 +70,9 @@ try {
             def success = SecurityServices.deleteGroup(context, siteId, groupName)
             result.message = "OK"
             response.setStatus(204)
+        } catch (SiteNotFoundException e) {
+            response.setStatus(404)
+            result.message = "Site not found"
         } catch (GroupNotFoundException e) {
             response.setStatus(404)
             result.message = "Group not found"
