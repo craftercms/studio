@@ -748,7 +748,7 @@ public class SiteServiceImpl implements SiteService {
         if (exists(siteId)) {
             throw new SiteAlreadyExistsException();
         }
-        if (!contentService.contentExists(StringUtils.EMPTY, StudioConfiguration.BLUE_PRINTS_PATH + FILE_SEPARATOR + blueprintName)) {
+        if (!contentService.contentExists(StringUtils.EMPTY, studioConfiguration.getProperty(StudioConfiguration.BLUE_PRINTS_PATH) + FILE_SEPARATOR + blueprintName)) {
             throw new BlueprintNotFoundException();
         }
         boolean success = true;
