@@ -43,6 +43,12 @@
         <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
+    <bean id="studioDependencyService" class="org.craftercms.studio.impl.v1.service.dependency.DependencyServiceImpl">
+        <property name="studioConfiguration" ref="studioConfiguration" />
+        <property name="siteService" ref="cstudioSiteServiceSimple" />
+        <property name="contentService" ref="cstudioContentService" />
+    </bean>
+
     <!-- all of these beans below need to move off contentRepository and on to content service.  Repository is a very NARROW interface -->
 
 
