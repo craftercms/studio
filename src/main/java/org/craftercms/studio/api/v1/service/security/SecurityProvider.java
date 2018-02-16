@@ -84,7 +84,7 @@ public interface SecurityProvider {
      * @param user username
      */
     boolean addUserToGroup(String siteId, String groupName,
-                           String user) throws UserAlreadyExistsException, UserNotFoundException, GroupNotFoundException;
+                           String user) throws UserAlreadyExistsException, UserNotFoundException, GroupNotFoundException, SiteNotFoundException;
 
     void addContentWritePermission(String path, String group);
 
@@ -190,7 +190,7 @@ public interface SecurityProvider {
      * @param group group name
      * @return group details
      */
-    Map<String, Object> getGroup(String site, String group) throws GroupNotFoundException;
+    Map<String, Object> getGroup(String site, String group) throws GroupNotFoundException, SiteNotFoundException;
 
     /**
      * Get all groups
@@ -226,7 +226,7 @@ public interface SecurityProvider {
      * @param number number of records to retrieve in the result set
      * @return list of users of the group paginated
      */
-    List<Map<String, Object>> getUsersPerGroup(String site, String group, int start, int number) throws GroupNotFoundException;
+    List<Map<String, Object>> getUsersPerGroup(String site, String group, int start, int number) throws GroupNotFoundException, SiteNotFoundException;
 
     /**
      * Get number of all users for given site and group
@@ -235,7 +235,7 @@ public interface SecurityProvider {
      * @return total number of users for given group
      */
     int getUsersPerGroupTotal(String site, String group) throws
-            GroupNotFoundException;
+            GroupNotFoundException, SiteNotFoundException;
 
     /**
      * Update group with given parameters
@@ -245,7 +245,7 @@ public interface SecurityProvider {
      * @param siteId
      * @return true if group is successfully updated
      */
-    boolean updateGroup(String siteId, String groupName, String description) throws GroupNotFoundException;
+    boolean updateGroup(String siteId, String groupName, String description) throws GroupNotFoundException, SiteNotFoundException;
 
     /**
      * Delete group with given site id and group name
@@ -254,7 +254,7 @@ public interface SecurityProvider {
      * @param siteId
      * @return true if group is successfully deleted
      */
-    boolean deleteGroup(String siteId, String groupName) throws GroupNotFoundException;
+    boolean deleteGroup(String siteId, String groupName) throws GroupNotFoundException, SiteNotFoundException;
 
     /**
      * Remove user from the group
@@ -262,7 +262,7 @@ public interface SecurityProvider {
      * @param groupName group name
      * @param user username
      */
-    boolean removeUserFromGroup(String siteId, String groupName, String user) throws UserNotFoundException, GroupNotFoundException;
+    boolean removeUserFromGroup(String siteId, String groupName, String user) throws UserNotFoundException, GroupNotFoundException, SiteNotFoundException;
 
     /**
      * Change password

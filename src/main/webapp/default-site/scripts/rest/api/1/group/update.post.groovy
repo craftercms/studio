@@ -21,6 +21,7 @@
 import groovy.json.JsonException
 import groovy.json.JsonSlurper
 import org.apache.commons.lang3.StringUtils
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException
 import scripts.api.SecurityServices
 import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException
 
@@ -72,6 +73,9 @@ try {
             response.setStatus(200)
             def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/group/get.json?group_name=" + groupName
             response.addHeader("Location", locationHeader)
+        } catch (SiteNotFoundException e) {
+            response.setStatus(404)
+            result.message = "Site not found"
         } catch (GroupNotFoundException e) {
             response.setStatus(404)
             result.message = "Group not found"

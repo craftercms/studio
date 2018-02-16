@@ -137,7 +137,7 @@ public class MappedSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public boolean addUserToGroup(String siteId, String groupName, String user) throws UserNotFoundException, UserAlreadyExistsException, GroupNotFoundException {
+    public boolean addUserToGroup(String siteId, String groupName, String user) throws UserNotFoundException, UserAlreadyExistsException, GroupNotFoundException, SiteNotFoundException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.addUserToGroup(siteId, groupName, user);
     }
@@ -221,7 +221,7 @@ public class MappedSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public Map<String, Object> getGroup(String site, String group) throws GroupNotFoundException {
+    public Map<String, Object> getGroup(String site, String group) throws GroupNotFoundException, SiteNotFoundException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.getGroup(site, group);
     }
@@ -245,31 +245,31 @@ public class MappedSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public List<Map<String, Object>> getUsersPerGroup(String site, String group, int start, int number) throws GroupNotFoundException {
+    public List<Map<String, Object>> getUsersPerGroup(String site, String group, int start, int number) throws GroupNotFoundException, SiteNotFoundException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.getUsersPerGroup(site, group, start, number);
     }
 
     @Override
-    public int getUsersPerGroupTotal(String site, String group) throws GroupNotFoundException {
+    public int getUsersPerGroupTotal(String site, String group) throws GroupNotFoundException, SiteNotFoundException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.getUsersPerGroupTotal(site, group);
     }
 
     @Override
-    public boolean updateGroup(String siteId, String groupName, String description) throws GroupNotFoundException {
+    public boolean updateGroup(String siteId, String groupName, String description) throws GroupNotFoundException, SiteNotFoundException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.updateGroup(siteId, groupName, description);
     }
 
     @Override
-    public boolean deleteGroup(String siteId, String groupName) throws GroupNotFoundException {
+    public boolean deleteGroup(String siteId, String groupName) throws GroupNotFoundException, SiteNotFoundException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.deleteGroup(siteId, groupName);
     }
 
     @Override
-    public boolean removeUserFromGroup(String siteId, String groupName, String user) throws UserNotFoundException, GroupNotFoundException {
+    public boolean removeUserFromGroup(String siteId, String groupName, String user) throws UserNotFoundException, GroupNotFoundException, SiteNotFoundException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.removeUserFromGroup(siteId, groupName, user);
     }
