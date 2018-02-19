@@ -27,7 +27,7 @@
 
     <bean id="crafter.httpProxyRegistry" class="org.craftercms.engine.http.HttpProxyRegistry"/>
 
-    <bean id="crafter.searchService" class="org.craftercms.search.service.impl.SolrRestClientSearchService">
+    <bean id="crafter.searchService" class="org.craftercms.search.service.impl.v2.SolrRestClientSearchService">
         <property name="serverUrl" value="${crafter.engine.search.server.url}"/>
     </bean>
 
