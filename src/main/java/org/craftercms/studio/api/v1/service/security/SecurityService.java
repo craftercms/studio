@@ -171,7 +171,7 @@ public interface SecurityService {
      * @param group group name
      * @return group details
      */
-    Map<String, Object> getGroup(String site, String group) throws GroupNotFoundException;
+    Map<String, Object> getGroup(String site, String group) throws GroupNotFoundException, SiteNotFoundException;
 
     /**
      * Get all groups
@@ -209,7 +209,7 @@ public interface SecurityService {
      * @return list of users
      */
     List<Map<String, Object>> getUsersPerGroup(String site, String group, int start, int number) throws
-	    GroupNotFoundException;
+            GroupNotFoundException, SiteNotFoundException;
 
     /**
      * Get number of all users for given site and group
@@ -219,7 +219,7 @@ public interface SecurityService {
      * @return list of users
      */
     int getUsersPerGroupTotal(String site, String group) throws
-            GroupNotFoundException;
+            GroupNotFoundException, SiteNotFoundException;
 
     /**
      * Update group with given parameters
@@ -229,7 +229,7 @@ public interface SecurityService {
      * @param siteId
      * @return true if group is successfully updated
      */
-    boolean updateGroup(String siteId, String groupName, String description) throws GroupNotFoundException;
+    boolean updateGroup(String siteId, String groupName, String description) throws GroupNotFoundException, SiteNotFoundException;
 
     /**
      * Delete group for given site with given name
@@ -238,7 +238,7 @@ public interface SecurityService {
      * @param group group name
      * @return true if group is successfully deleted
      */
-    boolean deleteGroup(String site, String group) throws GroupNotFoundException;
+    boolean deleteGroup(String site, String group) throws GroupNotFoundException, SiteNotFoundException;
 
     /**
      * Add user to the group
@@ -249,7 +249,7 @@ public interface SecurityService {
      * @return true if user is successfully added to the group
      */
     boolean addUserToGroup(String siteId, String groupName, String username) throws UserAlreadyExistsException,
-	    UserNotFoundException, GroupNotFoundException;
+            UserNotFoundException, GroupNotFoundException, SiteNotFoundException;
 
     /**
      * Remove user from the group
@@ -260,7 +260,7 @@ public interface SecurityService {
      * @return true if user is successfully removed from the group
      */
     boolean removeUserFromGroup(String siteId, String groupName, String username) throws UserNotFoundException,
-	    GroupNotFoundException;
+            GroupNotFoundException, SiteNotFoundException;
 
     /**
      * Forgot password for given user

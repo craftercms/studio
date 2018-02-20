@@ -19,6 +19,7 @@
 
 
 import org.apache.commons.lang3.StringUtils
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException
 import scripts.api.SecurityServices
 import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException
 
@@ -68,6 +69,9 @@ if (invalidParams) {
             response.setStatus(500)
             result.message = "Internal server error"
         }
+    } catch (SiteNotFoundException e) {
+        response.setStatus(404)
+        result.message = "Site not found"
     } catch (GroupNotFoundException e) {
         response.setStatus(404)
         result.message = "Group not found"
