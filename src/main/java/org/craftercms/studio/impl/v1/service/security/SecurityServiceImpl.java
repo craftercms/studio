@@ -676,7 +676,7 @@ public class SecurityServiceImpl implements SecurityService {
 
     @Override
     @ValidateParams
-    public Map<String, Object> getGroup(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "group") String group) throws GroupNotFoundException {
+    public Map<String, Object> getGroup(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "group") String group) throws GroupNotFoundException, SiteNotFoundException {
         return securityProvider.getGroup(site, group);
     }
 
@@ -701,33 +701,33 @@ public class SecurityServiceImpl implements SecurityService {
     @Override
     @ValidateParams
     public List<Map<String, Object>> getUsersPerGroup(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "group") String group, @ValidateIntegerParam(name = "start") int start, @ValidateIntegerParam(name = "number") int number) throws
-	    GroupNotFoundException {
+            GroupNotFoundException, SiteNotFoundException {
         return securityProvider.getUsersPerGroup(site, group, start, number);
     }
 
     @Override
     @ValidateParams
     public int getUsersPerGroupTotal(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "group") String group) throws
-            GroupNotFoundException {
+            GroupNotFoundException, SiteNotFoundException {
         return securityProvider.getUsersPerGroupTotal(site, group);
     }
 
     @Override
     @ValidateParams
-    public boolean updateGroup(@ValidateStringParam(name = "siteId") String siteId, @ValidateNoTagsParam(name = "groupName") String groupName, @ValidateNoTagsParam(name = "description") String description) throws GroupNotFoundException {
+    public boolean updateGroup(@ValidateStringParam(name = "siteId") String siteId, @ValidateNoTagsParam(name = "groupName") String groupName, @ValidateNoTagsParam(name = "description") String description) throws GroupNotFoundException, SiteNotFoundException {
         return securityProvider.updateGroup(siteId, groupName, description);
     }
 
     @Override
     @ValidateParams
-    public boolean deleteGroup(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "group") String group) throws GroupNotFoundException {
+    public boolean deleteGroup(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "group") String group) throws GroupNotFoundException, SiteNotFoundException {
         return securityProvider.deleteGroup(site, group);
     }
 
     @Override
     @ValidateParams
     public boolean addUserToGroup(@ValidateStringParam(name = "siteId") String siteId, @ValidateStringParam(name = "groupName") String groupName, @ValidateStringParam(name = "username") String username) throws
-	    UserAlreadyExistsException, UserNotFoundException, GroupNotFoundException {
+            UserAlreadyExistsException, UserNotFoundException, GroupNotFoundException, SiteNotFoundException {
         boolean toRet = securityProvider.addUserToGroup(siteId, groupName, username);
         if (toRet) {
             ActivityService.ActivityType activityType = ActivityService.ActivityType.ADD_USER_TO_GROUP;
@@ -742,7 +742,7 @@ public class SecurityServiceImpl implements SecurityService {
     @Override
     @ValidateParams
     public boolean removeUserFromGroup(@ValidateStringParam(name = "siteId") String siteId, @ValidateStringParam(name = "groupName") String groupName, @ValidateStringParam(name = "username") String username) throws
-	    UserNotFoundException, GroupNotFoundException {
+            UserNotFoundException, GroupNotFoundException, SiteNotFoundException {
         boolean toRet = securityProvider.removeUserFromGroup(siteId, groupName, username);
         if (toRet) {
             ActivityService.ActivityType activityType = ActivityService.ActivityType.REMOVE_USER_FROM_GROUP;

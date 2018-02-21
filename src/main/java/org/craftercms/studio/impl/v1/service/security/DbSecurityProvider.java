@@ -382,8 +382,10 @@ public class DbSecurityProvider implements SecurityProvider {
 
     @Override
     public boolean addUserToGroup(String siteId, String groupName, String user) throws UserAlreadyExistsException,
-        UserNotFoundException, GroupNotFoundException {
-        if (!groupExists(siteId, groupName)) {
+            UserNotFoundException, GroupNotFoundException, SiteNotFoundException {
+        if (!(siteFeedMapper.exists(siteId) > 0)) {
+            throw new SiteNotFoundException();
+        } else if (!groupExists(siteId, groupName)) {
             throw new GroupNotFoundException();
         } else if (!userExists(user)) {
             throw new UserNotFoundException();
@@ -404,8 +406,10 @@ public class DbSecurityProvider implements SecurityProvider {
 
     @Override
     public boolean removeUserFromGroup(String siteId, String groupName, String user) throws UserNotFoundException,
-        GroupNotFoundException {
-        if (!groupExists(siteId, groupName)) {
+            GroupNotFoundException, SiteNotFoundException {
+        if (!(siteFeedMapper.exists(siteId) > 0)) {
+            throw new SiteNotFoundException();
+        } else if (!groupExists(siteId, groupName)) {
             throw new GroupNotFoundException();
         } else if (!userExists(user) || !userExistsInGroup(siteId, groupName, user)) {
             throw new UserNotFoundException();
@@ -558,8 +562,10 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public Map<String, Object> getGroup(String site, String group) throws GroupNotFoundException {
-        if (!groupExists(site, group)) {
+    public Map<String, Object> getGroup(String site, String group) throws GroupNotFoundException, SiteNotFoundException {
+        if (!(siteFeedMapper.exists(site) > 0)) {
+            throw new SiteNotFoundException();
+        } else if (!groupExists(site, group)) {
             throw new GroupNotFoundException();
         } else {
             Map<String, Object> params = new HashMap<String, Object>();
@@ -694,8 +700,10 @@ public class DbSecurityProvider implements SecurityProvider {
 
     @Override
     public List<Map<String, Object>> getUsersPerGroup(String site, String group, int start, int number) throws
-        GroupNotFoundException {
-        if (!groupExists(site, group)) {
+            GroupNotFoundException, SiteNotFoundException {
+        if (!(siteFeedMapper.exists(site) > 0)) {
+            throw new SiteNotFoundException();
+        } else if (!groupExists(site, group)) {
             throw new GroupNotFoundException();
         } else {
             Map<String, Object> params = new HashMap<String, Object>();
@@ -721,8 +729,10 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public int getUsersPerGroupTotal(String site, String group) throws GroupNotFoundException {
-        if (!groupExists(site, group)) {
+    public int getUsersPerGroupTotal(String site, String group) throws GroupNotFoundException, SiteNotFoundException {
+        if (!(siteFeedMapper.exists(site) > 0)) {
+            throw new SiteNotFoundException();
+        } else if (!groupExists(site, group)) {
             throw new GroupNotFoundException();
         } else {
             Map<String, Object> params = new HashMap<String, Object>();
@@ -733,8 +743,10 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public boolean updateGroup(String siteId, String groupName, String description) throws GroupNotFoundException {
-        if (!groupExists(siteId, groupName)) {
+    public boolean updateGroup(String siteId, String groupName, String description) throws GroupNotFoundException, SiteNotFoundException {
+        if (!(siteFeedMapper.exists(siteId) > 0)) {
+            throw new SiteNotFoundException();
+        } else if (!groupExists(siteId, groupName)) {
             throw new GroupNotFoundException();
         } else {
             Map<String, Object> params = new HashMap<String, Object>();
@@ -750,8 +762,10 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public boolean deleteGroup(String siteId, String groupName) throws GroupNotFoundException {
-        if (!groupExists(siteId, groupName)) {
+    public boolean deleteGroup(String siteId, String groupName) throws GroupNotFoundException, SiteNotFoundException {
+        if (!(siteFeedMapper.exists(siteId) > 0)) {
+            throw new SiteNotFoundException();
+        } else if (!groupExists(siteId, groupName)) {
             throw new GroupNotFoundException();
         } else {
             Map<String, Object> params = new HashMap<String, Object>();
