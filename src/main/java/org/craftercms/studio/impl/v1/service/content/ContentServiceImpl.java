@@ -1695,6 +1695,9 @@ public class ContentServiceImpl implements ContentService {
         else {
             success = _contentRepository.revertContent(expandRelativeSitePath(site, path), version, major, comment);
 
+            ContentItemTO item = getContentItem(site, path);
+            objectStateService.transition(site, item, TransitionEvent.REVERT);
+
             removeItemFromCache(site, path);
 
             RepositoryEventMessage message = new RepositoryEventMessage();
@@ -1768,12 +1771,13 @@ public class ContentServiceImpl implements ContentService {
 
                 ObjectState objectState = objectStateService.getObjectState(site, path);
 
+                ContentItemTO versionItem = getContentItem(site, path, 0);
                 if (objectState == null) {
-                    ContentItemTO versionItem = getContentItem(site, path, 0);
                     objectStateService.insertNewEntry(site, versionItem);
                     objectState = objectStateService.getObjectState(site, path);
                 }
 
+                objectStateService.transition(site, versionItem, TransitionEvent.REVERT);
                 objectStateService.setSystemProcessing(site, path, false);
 
                 // Fire update events and preview sync
