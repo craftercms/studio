@@ -60,9 +60,9 @@ public interface WorkflowService {
 	 * 			cancel the pending workflow instance this content belongs to?
 	 * @throws ServiceException
 	 */
-	boolean removeFromWorkflow(String site, String path, boolean cancelWorkflow);
+	boolean removeFromWorkflow(String site, String path, boolean cancelWorkflow) throws ServiceException;
 
-	List<ContentItemTO> getWorkflowAffectedPaths(String site, String path);
+	List<ContentItemTO> getWorkflowAffectedPaths(String site, String path) throws ServiceException;
 
 	/**
 	 * update workflow sandboxes if the content at the given path is in workflow
@@ -107,5 +107,5 @@ public interface WorkflowService {
 
     void fillQueue(String site, GoLiveQueue goLiveQueue, GoLiveQueue inProcessQueue) throws ServiceException;
 
-    boolean cleanWorkflow(final String url, final String site, final Set<DmDependencyTO> dependents);
+    boolean cleanWorkflow(final String url, final String site, final Set<DmDependencyTO> dependents) throws ServiceException;
 }

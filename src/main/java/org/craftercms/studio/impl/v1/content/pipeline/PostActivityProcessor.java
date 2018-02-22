@@ -23,7 +23,6 @@ import org.craftercms.studio.api.v1.exception.ContentProcessException;
 import org.craftercms.studio.api.v1.service.activity.ActivityService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
-import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
 import org.craftercms.studio.api.v1.to.ContentAssetInfoTO;
 import org.craftercms.studio.api.v1.to.ResultTO;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
@@ -82,7 +81,6 @@ public class PostActivityProcessor extends BaseContentProcessor {
     protected ServicesConfig servicesConfig;
     protected ContentService contentService;
     protected ActivityService activityService;
-    protected DmDependencyService dmDependencyService;
 
     public ServicesConfig getServicesConfig() { return servicesConfig; }
     public void setServicesConfig(ServicesConfig servicesConfig) { this.servicesConfig = servicesConfig; }
@@ -92,7 +90,4 @@ public class PostActivityProcessor extends BaseContentProcessor {
 
     public ActivityService getActivityService() { return activityService; }
     public void setActivityService(ActivityService activityService) { this.activityService = activityService; }
-
-    public DmDependencyService getDmDependencyService() { return dmDependencyService; }
-    public void setDmDependencyService(DmDependencyService dmDependencyService) { this.dmDependencyService = dmDependencyService; }
 }

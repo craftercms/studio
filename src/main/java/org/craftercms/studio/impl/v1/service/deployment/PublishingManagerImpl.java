@@ -33,6 +33,7 @@ import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.PublishRequest;
 import org.craftercms.studio.api.v1.dal.PublishRequestMapper;
 import org.craftercms.studio.api.v1.dal.ItemMetadata;
+import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
@@ -40,7 +41,7 @@ import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
-import org.craftercms.studio.api.v1.service.dependency.DependencyRule;
+import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentHistoryProvider;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
@@ -75,7 +76,7 @@ public class PublishingManagerImpl implements PublishingManager {
     protected ServicesConfig servicesConfig;
     protected SecurityProvider securityProvider;
     protected StudioConfiguration studioConfiguration;
-    protected DependencyRule deploymentDependencyRule;
+    protected DependencyService dependencyService;
     protected DeploymentHistoryProvider deploymentHistoryProvider;
 
     @Autowired
@@ -262,7 +263,7 @@ public class PublishingManagerImpl implements PublishingManager {
     }
 
     @Override
-    public List<DeploymentItemTO> processMandatoryDependencies(PublishRequest item, Set<String> pathsToDeploy, Set<String> missingDependenciesPaths) throws DeploymentException {
+    public List<DeploymentItemTO> processMandatoryDependencies(PublishRequest item, Set<String> pathsToDeploy, Set<String> missingDependenciesPaths) throws DeploymentException, ServiceException {
         List<DeploymentItemTO> mandatoryDependencies = new ArrayList<DeploymentItemTO>();
         String site = item.getSite();
         String path = item.getPath();
@@ -285,7 +286,7 @@ public class PublishingManagerImpl implements PublishingManager {
             }
 
             if (!isEnablePublishingWithoutDependencies()) {
-                Set<String> dependentPaths = deploymentDependencyRule.applyRule(site, path);
+                Set<String> dependentPaths = dependencyService.getPublishingDepenencies(site, path);
                 for (String dependentPath : dependentPaths) {
                     // TODO: SJ: This bypasses the Content Service, fix
                     if (objectStateService.isNew(site, dependentPath) || objectMetadataManager.isRenamed(site, dependentPath)) {
@@ -388,8 +389,8 @@ public class PublishingManagerImpl implements PublishingManager {
     public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
 
-    public DependencyRule getDeploymentDependencyRule() { return deploymentDependencyRule; }
-    public void setDeploymentDependencyRule(DependencyRule deploymentDependencyRule) { this.deploymentDependencyRule = deploymentDependencyRule; }
+    public DependencyService getDependencyService() { return dependencyService; }
+    public void setDependencyService(DependencyService dependencyService) { this.dependencyService = dependencyService; }
 
     public DeploymentHistoryProvider getDeploymentHistoryProvider() { return deploymentHistoryProvider; }
     public void setDeploymentHistoryProvider(DeploymentHistoryProvider deploymentHistoryProvider) { this.deploymentHistoryProvider = deploymentHistoryProvider; }

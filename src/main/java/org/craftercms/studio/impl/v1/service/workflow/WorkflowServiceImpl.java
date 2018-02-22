@@ -51,9 +51,8 @@ import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
-import org.craftercms.studio.api.v1.service.dependency.DependencyRule;
 import org.craftercms.studio.api.v1.service.dependency.DependencyRules;
-import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
+import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.deployment.DmPublishService;
@@ -269,7 +268,7 @@ public class WorkflowServiceImpl implements WorkflowService {
         }
     }
 
-    protected void doSubmit(final String site, final DmDependencyTO dependencyTO, final ZonedDateTime scheduledDate, final boolean sendEmail, final boolean submitForDeletion, final String user, final boolean notifyAdmin, final String submissionComment) {
+    protected void doSubmit(final String site, final DmDependencyTO dependencyTO, final ZonedDateTime scheduledDate, final boolean sendEmail, final boolean submitForDeletion, final String user, final boolean notifyAdmin, final String submissionComment) throws ServiceException {
         //first remove from workflow
         removeFromWorkflow(site, dependencyTO.getUri(), true);
         ContentItemTO item = contentService.getContentItem(site, dependencyTO.getUri());
@@ -536,12 +535,12 @@ public class WorkflowServiceImpl implements WorkflowService {
 
     @Override
     @ValidateParams
-    public boolean removeFromWorkflow(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, boolean cancelWorkflow) {
+    public boolean removeFromWorkflow(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, boolean cancelWorkflow) throws ServiceException {
         Set<String> processedPaths = new HashSet<>();
         return removeFromWorkflow(site, path, processedPaths, cancelWorkflow);
     }
 
-    protected boolean removeFromWorkflow(String site,  String path, Set<String> processedPaths, boolean cancelWorkflow) {
+    protected boolean removeFromWorkflow(String site,  String path, Set<String> processedPaths, boolean cancelWorkflow) throws ServiceException {
         // remove submitted aspects from all dependent items
         if (!processedPaths.contains(path)) {
             processedPaths.add(path);
@@ -556,7 +555,7 @@ public class WorkflowServiceImpl implements WorkflowService {
         return false;
     }
 
-    protected void _cancelWorkflow(String site, String path) {
+    protected void _cancelWorkflow(String site, String path) throws ServiceException {
         List<String> allItemsToCancel = getWorkflowAffectedPathsInternal(site, path);
         List<String> paths = new ArrayList<String>();
         for (String affectedItem : allItemsToCancel) {
@@ -579,7 +578,7 @@ public class WorkflowServiceImpl implements WorkflowService {
         objectStateService.transitionBulk(site, paths, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.REJECT, State.NEW_UNPUBLISHED_UNLOCKED);
     }
 
-    protected List<String> getWorkflowAffectedPathsInternal(String site, String path) {
+    protected List<String> getWorkflowAffectedPathsInternal(String site, String path) throws ServiceException {
         List<String> affectedPaths = new ArrayList<String>();
         List<String> filteredPaths = new ArrayList<String>();
         if (objectStateService.isInWorkflow(site, path)) {
@@ -591,9 +590,7 @@ public class WorkflowServiceImpl implements WorkflowService {
             }
 
             List<String> dependencyPaths = new ArrayList<String>();
-            for (String affectedPath : affectedPaths) {
-                dependencyPaths.addAll(deploymentDependencyRule.applyRule(site, affectedPath));
-            }
+            dependencyPaths.addAll(dependencyService.getPublishingDepenencies(site, affectedPaths));
             affectedPaths.addAll(dependencyPaths);
             List<String> candidates = new ArrayList<String>();
             for (String p : affectedPaths) {
@@ -614,7 +611,7 @@ public class WorkflowServiceImpl implements WorkflowService {
 
     @Override
     @ValidateParams
-    public List<ContentItemTO> getWorkflowAffectedPaths(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
+    public List<ContentItemTO> getWorkflowAffectedPaths(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) throws ServiceException {
         List<String> affectedPaths = getWorkflowAffectedPathsInternal(site, path);
         return getWorkflowAffectedItems(site, affectedPaths);
     }
@@ -1110,7 +1107,7 @@ public class WorkflowServiceImpl implements WorkflowService {
      * @return submitted item
      * @throws net.sf.json.JSONException
      */
-    protected DmDependencyTO getSubmittedItem(String site, JSONObject item, SimpleDateFormat format, String globalSchDate) throws JSONException {
+    protected DmDependencyTO getSubmittedItem(String site, JSONObject item, SimpleDateFormat format, String globalSchDate) throws JSONException, ServiceException {
         DmDependencyTO submittedItem = new DmDependencyTO();
         String uri = item.getString(JSON_KEY_URI);
         submittedItem.setUri(uri);
@@ -1174,49 +1171,32 @@ public class WorkflowServiceImpl implements WorkflowService {
             /**
              * Get dependent pages
              */
-            DmDependencyTO dmDependencyTo = dmDependencyService.getDependenciesNoCalc(site, item.getString(JSON_KEY_URI), false, true, null);
+            Set<String> deps = dependencyService.getItemDependencies(site, uri, 1);
+            List<String> pagePatterns = servicesConfig.getPagePatterns(site);
+            List<String> documentPatterns = servicesConfig.getDocumentPatterns(site);
             List<DmDependencyTO> dependentPages = new ArrayList<>();
-            if (dmDependencyTo != null) {
-                dependentPages = dmDependencyTo.getPages();
+            List<DmDependencyTO> dependentDocuments = new ArrayList<>();
+            for (String dep : deps) {
+                if (ContentUtils.matchesPatterns(dep, pagePatterns)) {
+                    DmDependencyTO dmDependencyTO = new DmDependencyTO();
+                    dmDependencyTO.setUri(dep);
+                    dependentPages.add(dmDependencyTO);
+                } else if (ContentUtils.matchesPatterns(dep, documentPatterns)) {
+                    DmDependencyTO dmDependencyTO = new DmDependencyTO();
+                    dmDependencyTO.setUri(dep);
+                    dependentDocuments.add(dmDependencyTO);
+                }
             }
             submittedItem.setPages(dependentPages);
-
-            /**
-             * Get Dependent Documents
-             */
-            if (submittedItem.getDocuments() == null) {
-                List<DmDependencyTO> dependentDocuments = new ArrayList<>();
-                if (dmDependencyTo != null) {
-                    dmDependencyTo.getDocuments();
-                }
-                submittedItem.setDocuments(dependentDocuments);
-            }
-
-            /**
-             * get sendEmail property if it is there
-             */
-        /* TODO: implement send email
-            try {
-                String fullPath = contentService.expandRelativeSitePath(site, submittedItem.getUri());
-                Serializable sendEmailValue = persistenceManagerService.getProperty(persistenceManagerService.getNodeRef(fullPath), CStudioContentModel.PROP_WEB_WF_SEND_EMAIL);
-                boolean sendEmail = (sendEmailValue != null) ? Boolean.parseBoolean(sendEmailValue.toString()) : false;
-                submittedItem.setSendEmail(sendEmail);
-
-                String user = item.getString(JSON_KEY_USER);
-                submittedItem.setSubmittedBy(user);
-            } catch (Exception e) {
-                e.printStackTrace(); // To change body of catch statement use
-                // File | Settings | File Templates.
-            }
-            */
+            submittedItem.setDocuments(dependentDocuments);
         }
 
         return submittedItem;
     }
 
     protected DmDependencyTO getSubmittedItem(String site, String itemPath, SimpleDateFormat format, String globalSchDate, Set<String> processedDependencies) throws JSONException {
-        DmDependencyTO submittedItem = dmDependencyService.getDependenciesNoCalc(site, itemPath, false, true, processedDependencies);
-        // TODO: check scheduled date to make sure it is not null when isNow =
+        DmDependencyTO submittedItem = new DmDependencyTO();
+        submittedItem.setUri(itemPath);
         // true and also it is not past
         ZonedDateTime scheduledDate = null;
         if (globalSchDate != null && !StringUtils.isEmpty(globalSchDate)) {
@@ -1285,7 +1265,8 @@ public class WorkflowServiceImpl implements WorkflowService {
     }
 
     protected DmDependencyTO getSubmittedItem_new(String site, String itemPath, SimpleDateFormat format, String globalSchDate) throws JSONException {
-        DmDependencyTO submittedItem = dmDependencyService.getDependenciesNoCalc(site, itemPath, false, true, null);
+        DmDependencyTO submittedItem = new DmDependencyTO();
+        submittedItem.setUri(itemPath);
         // TODO: check scheduled date to make sure it is not null when isNow =
         // true and also it is not past
         ZonedDateTime scheduledDate = null;
@@ -1334,7 +1315,7 @@ public class WorkflowServiceImpl implements WorkflowService {
      * @return submitted items
      * @throws JSONException
      */
-    protected List<DmDependencyTO> getSubmittedItems(String site, JSONArray items, SimpleDateFormat format, String schDate) throws JSONException {
+    protected List<DmDependencyTO> getSubmittedItems(String site, JSONArray items, SimpleDateFormat format, String schDate) throws JSONException, ServiceException {
         if (items != null) {
             int length = items.size();
             if (length > 0) {
@@ -1593,7 +1574,7 @@ public class WorkflowServiceImpl implements WorkflowService {
         }
     }
 
-    protected List<DmDependencyTO> getRefAndChildOfDiffDateFromParent(String site, List<DmDependencyTO> submittedItems, boolean removeInPages) {
+    protected List<DmDependencyTO> getRefAndChildOfDiffDateFromParent(String site, List<DmDependencyTO> submittedItems, boolean removeInPages) throws ServiceException {
         List<DmDependencyTO> childAndReferences = new ArrayList<>();
         for (DmDependencyTO submittedItem : submittedItems) {
             List<DmDependencyTO> children = submittedItem.getChildren();
@@ -1636,9 +1617,11 @@ public class WorkflowServiceImpl implements WorkflowService {
                 }
             }
 
-            Set<String> dependenciesPaths = deploymentDependencyRule.applyRule(site, submittedItem.getUri());
+            Set<String> dependenciesPaths = dependencyService.getPublishingDepenencies(site, submittedItem.getUri());
             for (String depPath : dependenciesPaths) {
-                childAndReferences.add(dmDependencyService.getDependenciesNoCalc(site, depPath, false, true, null));
+                DmDependencyTO dmDependencyTO = new DmDependencyTO();
+                dmDependencyTO.setUri(depPath);
+                childAndReferences.add(dmDependencyTO);
             }
         }
         return childAndReferences;
@@ -1690,13 +1673,13 @@ public class WorkflowServiceImpl implements WorkflowService {
         return childAndReferences;
     }
 
-    protected List<DmDependencyTO> addDependenciesForSubmittedItems(String site, List<DmDependencyTO> submittedItems, SimpleDateFormat format, String globalScheduledDate) {
+    protected List<DmDependencyTO> addDependenciesForSubmittedItems(String site, List<DmDependencyTO> submittedItems, SimpleDateFormat format, String globalScheduledDate) throws ServiceException {
         List<DmDependencyTO> dependencies = new ArrayList<DmDependencyTO>();
         Set<String> dependenciesPaths = new HashSet<String>();
         int i = 0;
         for (DmDependencyTO submittedItem : submittedItems) {
             if (!dependenciesPaths.contains(submittedItem.getUri())) {
-                dependenciesPaths.addAll(deploymentDependencyRule.applyRule(site, submittedItem.getUri()));
+                dependenciesPaths.addAll(dependencyService.getPublishingDepenencies(site, submittedItem.getUri()));
             }
         }
         int j = 0;
@@ -1706,11 +1689,11 @@ public class WorkflowServiceImpl implements WorkflowService {
         return dependencies;
     }
 
-    protected List<DmDependencyTO> addDependenciesForSubmitForApproval(String site, List<DmDependencyTO> submittedItems, SimpleDateFormat format, String globalScheduledDate) {
+    protected List<DmDependencyTO> addDependenciesForSubmitForApproval(String site, List<DmDependencyTO> submittedItems, SimpleDateFormat format, String globalScheduledDate) throws ServiceException {
         List<DmDependencyTO> dependencies = new ArrayList<DmDependencyTO>();
         Set<String> dependenciesPaths = new HashSet<String>();
         for (DmDependencyTO submittedItem : submittedItems) {
-            dependenciesPaths.addAll(submitForApprovalDependencyRule.applyRule(site, submittedItem.getUri()));
+            dependenciesPaths.addAll(dependencyService.getPublishingDepenencies(site, submittedItem.getUri()));
         }
         for (String depPath : dependenciesPaths) {
             dependencies.add(getSubmittedItem(site, depPath, format, globalScheduledDate, null));
@@ -1718,7 +1701,7 @@ public class WorkflowServiceImpl implements WorkflowService {
         return dependencies;
     }
 
-    protected void resolveSubmittedPaths(String site, DmDependencyTO item, List<String> submittedPaths, Set<String> processedPaths) {
+    protected void resolveSubmittedPaths(String site, DmDependencyTO item, List<String> submittedPaths, Set<String> processedPaths) throws ServiceException {
         if (!processedPaths.contains(item.getUri())) {
             if (!submittedPaths.contains(item.getUri())) {
                 submittedPaths.add(item.getUri());
@@ -1735,7 +1718,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                     }
                 }
             }
-            Set<String> dependencyPaths = deploymentDependencyRule.applyRule(site, item.getUri());
+            Set<String> dependencyPaths = dependencyService.getPublishingDepenencies(site, item.getUri());
             submittedPaths.addAll(dependencyPaths);
             processedPaths.addAll(dependencyPaths);
             processedPaths.add(item.getUri());
@@ -1795,7 +1778,7 @@ public class WorkflowServiceImpl implements WorkflowService {
         //return contentService.deleteContents(site, itemsToDelete, generateActivity, approver);
     }
 
-    protected void cleanUrisFromWorkflow(final Set<String> uris, final String site) {
+    protected void cleanUrisFromWorkflow(final Set<String> uris, final String site) throws ServiceException {
         if (uris != null && !uris.isEmpty()) {
             for (String uri : uris) {
                 cleanWorkflow(uri, site, Collections.<DmDependencyTO>emptySet());
@@ -1829,7 +1812,7 @@ public class WorkflowServiceImpl implements WorkflowService {
 
     @Override
     @ValidateParams
-    public boolean cleanWorkflow(@ValidateSecurePathParam(name = "url") final String url, @ValidateStringParam(name = "site") final String site, final Set<DmDependencyTO> dependents) {
+    public boolean cleanWorkflow(@ValidateSecurePathParam(name = "url") final String url, @ValidateStringParam(name = "site") final String site, final Set<DmDependencyTO> dependents) throws ServiceException {
         _cancelWorkflow(site, url);
         return true;
     }
@@ -2162,7 +2145,7 @@ public class WorkflowServiceImpl implements WorkflowService {
     public ServicesConfig getServicesConfig() { return servicesConfig; }
     public void setServicesConfig(ServicesConfig servicesConfig) { this.servicesConfig = servicesConfig; }
 
-    public void setDmDependencyService(DmDependencyService dmDependencyService) { this.dmDependencyService = dmDependencyService; }
+    public void setDependencyService(DependencyService dependencyService) { this.dependencyService = dependencyService; }
 
     public void setDmFilterWrapper(DmFilterWrapper dmFilterWrapper) { this.dmFilterWrapper = dmFilterWrapper; }
 
@@ -2190,14 +2173,14 @@ public class WorkflowServiceImpl implements WorkflowService {
     public ObjectMetadataManager getObjectMetadataManager() { return objectMetadataManager; }
     public void setObjectMetadataManager(ObjectMetadataManager objectMetadataManager) { this.objectMetadataManager = objectMetadataManager; }
 
-    public DependencyRule getDeploymentDependencyRule() { return deploymentDependencyRule; }
-    public void setDeploymentDependencyRule(DependencyRule deploymentDependencyRule) { this.deploymentDependencyRule = deploymentDependencyRule; }
+    //public DependencyRule getDeploymentDependencyRule() { return deploymentDependencyRule; }
+    //public void setDeploymentDependencyRule(DependencyRule deploymentDependencyRule) { this.deploymentDependencyRule = deploymentDependencyRule; }
 
     public NotificationService getNotificationService() { return notificationService; }
     public void setNotificationService(final org.craftercms.studio.api.v2.service.notification.NotificationService notificationService) { this.notificationService = notificationService; }
 
-    public DependencyRule getSubmitForApprovalDependencyRule() { return submitForApprovalDependencyRule; }
-    public void setSubmitForApprovalDependencyRule(DependencyRule submitForApprovalDependencyRule) { this.submitForApprovalDependencyRule = submitForApprovalDependencyRule; }
+    //public DependencyRule getSubmitForApprovalDependencyRule() { return submitForApprovalDependencyRule; }
+    //public void setSubmitForApprovalDependencyRule(DependencyRule submitForApprovalDependencyRule) { this.submitForApprovalDependencyRule = submitForApprovalDependencyRule; }
 
     public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
@@ -2211,7 +2194,7 @@ public class WorkflowServiceImpl implements WorkflowService {
     protected DeploymentService deploymentService;
     protected ContentService contentService;
     protected DmFilterWrapper dmFilterWrapper;
-    protected DmDependencyService dmDependencyService;
+    protected DependencyService dependencyService;
     protected ObjectStateService objectStateService;
     protected DmPublishService dmPublishService;
     protected GeneralLockService generalLockService;
@@ -2219,8 +2202,8 @@ public class WorkflowServiceImpl implements WorkflowService {
     protected SiteService siteService;
     protected WorkflowProcessor workflowProcessor;
     protected ObjectMetadataManager objectMetadataManager;
-    protected DependencyRule deploymentDependencyRule;
-    protected DependencyRule submitForApprovalDependencyRule;
+    //protected DependencyRule deploymentDependencyRule;
+    //protected DependencyRule submitForApprovalDependencyRule;
     protected NotificationService notificationService;
     protected StudioConfiguration studioConfiguration;
 

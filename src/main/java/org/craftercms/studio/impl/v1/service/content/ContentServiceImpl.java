@@ -22,6 +22,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -46,7 +47,7 @@ import org.craftercms.studio.api.v1.service.activity.ActivityService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.*;
 import org.craftercms.studio.api.v1.service.dependency.DependencyDiffService;
-import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
+import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v1.service.event.EventService;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.api.v1.service.objectstate.TransitionEvent;
@@ -473,7 +474,11 @@ public class ContentServiceImpl implements ContentService {
 
         objectStateService.deleteObjectStateForPath(site, path);
         objectMetadataManager.deleteObjectMetadata(site, path);
-        dependencyService.deleteDependenciesForSiteAndPath(site, path);
+        try {
+            dependencyService.deleteItemDependencies(site, path);
+        } catch (ServiceException e) {
+            logger.error("Error deleting dependencies for site " + site + " path " + path, e);
+        }
 
         if (StringUtils.isNotEmpty(commitId)) {
             _contentRepository.insertGitLog(site, commitId, 1);
@@ -573,7 +578,7 @@ public class ContentServiceImpl implements ContentService {
                         // come up with a new object ID and group ID for the object
                         Map<String, String> copyObjectIds = contentItemIdGenerator.getIds();
 
-                        Map<String, String> copyDependencies = dependencyService.getCopyDependencies(site, fromPath,
+                        Map<String, String> copyDependencies = getCopyDependencies(site, fromPath,
                                 fromPath);
                         copyDependencies = getItemSpecificDependencies(fromDocument, copyDependencies);
                         logger.debug("Calculated copy dependencies: {0}, {1}", fromPath, copyDependencies);
@@ -660,6 +665,38 @@ public class ContentServiceImpl implements ContentService {
         }
 
         return retNewFileName;
+    }
+
+    private Map<String, String> getCopyDependencies(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "sourceContentPath") String sourceContentPath, @ValidateSecurePathParam(name = "dependencyPath") String dependencyPath) throws ServiceException {
+        Map<String,String> copyDependency = new HashMap<String,String>();
+        if(sourceContentPath.endsWith(DmConstants.XML_PATTERN) && dependencyPath.endsWith(DmConstants.XML_PATTERN)){
+            ContentItemTO dependencyItem = getContentItem(site, sourceContentPath);
+            if (dependencyItem != null) {
+                String contentType = dependencyItem.getContentType();
+                List<CopyDependencyConfigTO> copyDependencyPatterns = servicesConfig.getCopyDependencyPatterns(site, contentType);
+                if (copyDependencyPatterns != null && copyDependencyPatterns.size() > 0) {
+                    logger.debug("Copy Pattern provided for contentType" + contentType);
+                    Set<String> dependencies = dependencyService.getItemDependencies(site, dependencyPath, 1);
+                    if (CollectionUtils.isNotEmpty(dependencies)) {
+                        for (String dependency : dependencies) {
+                            for (CopyDependencyConfigTO copyConfig : copyDependencyPatterns) {
+                                if (StringUtils.isNotEmpty(copyConfig.getPattern()) &&
+                                        StringUtils.isNotEmpty(copyConfig.getTarget()) && dependency.matches(copyConfig.getPattern())) {
+                                    if (contentExists(site, dependency)) {
+                                        copyDependency.put(dependency, copyConfig.getTarget());
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    logger.debug("Copy Pattern is not provided for contentType" + contentType);
+                }
+            } else {
+                logger.debug("Not found dependency item at site {0} path {!}", site, sourceContentPath);
+            }
+        }
+        return copyDependency;
     }
 
     @Override
@@ -790,13 +827,15 @@ public class ContentServiceImpl implements ContentService {
     }
 
     protected void updateDependenciesOnMove(String site, String fromPath, String movePath) {
-        dependencyService.deleteDependenciesForSiteAndPath(site, fromPath);
+        try {
+            dependencyService.deleteItemDependencies(site, fromPath);
+        } catch (ServiceException e) {
+            logger.error("Error while deleting dependencies for site " + site + " path " + fromPath, e);
+        }
         if (movePath.endsWith(DmConstants.XML_PATTERN)) {
             try {
-                Document document = getContentAsDocument(site, movePath);
-                Map<String, Set<String>> globalDeps = new HashMap<>();
-                dependencyService.extractDependencies(site, movePath, document, globalDeps);
-            } catch (ServiceException | DocumentException e) {
+                dependencyService.upsertDependencies(site, movePath);
+            } catch (ServiceException  e) {
                 logger.error("Error while updating dependencies on move content site: " + site + " path: " + movePath, e);
             }
         } else {
@@ -816,13 +855,7 @@ public class ContentServiceImpl implements ContentService {
             String content = getContentAsString(site, movePath);
             if (StringUtils.isNotEmpty(content)) {
                 try {
-                    if (isCss) {
-                        dependencyService.extractDependenciesStyle(site, movePath);
-                    } else if (isJs) {
-                        dependencyService.extractDependenciesJavascript(site, movePath);
-                    } else if (isTemplate) {
-                        dependencyService.extractDependenciesTemplate(site, movePath);
-                    }
+                    dependencyService.upsertDependencies(site, movePath);
                 } catch (ServiceException e) {
                     logger.error("Error while updating dependencies on move content site: " + site + " path: " + movePath, e);
                 }
@@ -1894,15 +1927,10 @@ public class ContentServiceImpl implements ContentService {
     protected void addDependenciesToDelete(String site, String sourceContentPath, String dependencyPath, GoLiveDeleteCandidates candidates) throws ServiceException {
         Set<String> dependencyParentFolder = new HashSet<String>();
         //add dependencies as well
-        Set<DmDependencyTO> dmDependencyTOs = dependencyService.getDeleteDependencies(site, sourceContentPath, dependencyPath);
-        for (DmDependencyTO dependency : dmDependencyTOs) {
-            if (candidates.addDependency(dependency.getUri())) {
-                logger.debug("Added to delete" + dependency.getUri());
-                if (dependency.isDeleteEmptyParentFolder()) {
-                    dependencyParentFolder.add(ContentUtils.getParentUrl(dependency.getUri()));
-                }
-            }
-            addDependenciesToDelete(site, sourceContentPath, dependency.getUri(), candidates); //recursively add dependencies of the dependency
+        Set<String> dependencies = dependencyService.getDeleteDependencies(site, sourceContentPath);
+        for (String dependency : dependencies) {
+            candidates.addDependency(dependency);
+            logger.debug("Added to delete" + dependency);
         }
 
         //Find if any folder would get empty if remove the items and add just the folder
@@ -1922,12 +1950,51 @@ public class ContentServiceImpl implements ContentService {
     protected void addRemovedDependenicesToDelete(String site, String relativePath, GoLiveDeleteCandidates candidates) throws ServiceException {
         if (relativePath.endsWith(DmConstants.XML_PATTERN) && !objectStateService.isNew(site, relativePath)) {
             DependencyDiffService.DiffRequest diffRequest = new DependencyDiffService.DiffRequest(site, relativePath, null, null, site, true);
-            List<String> deleted = dependencyService.getRemovedDependenices(diffRequest, true);
+            List<String> deleted = getRemovedDependenices(diffRequest, true);
             logger.debug("Removed dependenices for path[" + relativePath + "] : " + deleted);
             for (String dependency : deleted) {
                 candidates.getLiveDependencyItems().add(dependency);
             }
         }
+    }
+
+    protected List<String> getRemovedDependenices(DependencyDiffService.DiffRequest diffRequest,
+                                                  boolean matchDeletePattern) throws ServiceException {
+        DependencyDiffService.DiffResponse diffResponse = dependencyDiffService.diff(diffRequest);
+        List<String> removedDep = diffResponse.getRemovedDependencies();
+        if(matchDeletePattern){
+            removedDep = filterDependenicesMatchingDeletePattern(diffRequest.getSite(), diffRequest.getSourcePath(),diffResponse.getRemovedDependencies());
+        }
+        return removedDep;
+    }
+
+    protected List<String> filterDependenicesMatchingDeletePattern(String site, String sourcePath, List<String> dependencies) throws ServiceException{
+        List<String> matchingDep = new ArrayList<String>();
+        if(sourcePath.endsWith(DmConstants.XML_PATTERN) && sourcePath.endsWith(DmConstants.XML_PATTERN)){
+            List<DeleteDependencyConfigTO> deleteAssociations = getDeletePatternConfig(site,sourcePath);
+            if (deleteAssociations != null && deleteAssociations.size() > 0) {
+                for(String dependency:dependencies){
+                    for (DeleteDependencyConfigTO deleteAssoc : deleteAssociations) {
+                        if (dependency.matches(deleteAssoc.getPattern())) {
+                            matchingDep.add(dependency);
+                        }
+                    }
+                }
+            }
+        }
+        return matchingDep;
+    }
+
+    protected List<DeleteDependencyConfigTO> getDeletePatternConfig(String site, String relativePath,boolean isInLiveRepo) throws ServiceException{
+        List<DeleteDependencyConfigTO> deleteAssociations  = new ArrayList<DeleteDependencyConfigTO>();
+        ContentItemTO dependencyItem = getContentItem(site, relativePath, 0);
+        String contentType = dependencyItem.getContentType();
+        deleteAssociations  = servicesConfig.getDeleteDependencyPatterns(site, contentType);
+        return deleteAssociations;
+    }
+
+    protected List<DeleteDependencyConfigTO> getDeletePatternConfig(String site, String relativePath) throws ServiceException{
+        return getDeletePatternConfig(site,relativePath,false);
     }
 
     @Override
@@ -2121,7 +2188,7 @@ public class ContentServiceImpl implements ContentService {
     protected ServicesConfig servicesConfig;
     protected GeneralLockService generalLockService;
     protected ObjectStateService objectStateService;
-    protected DmDependencyService dependencyService;
+    protected DependencyService dependencyService;
     protected ProcessContentExecutor contentProcessor;
     protected ObjectMetadataManager objectMetadataManager;
     protected SecurityService securityService;
@@ -2133,6 +2200,7 @@ public class ContentServiceImpl implements ContentService {
     protected SiteService siteService;
     protected ContentItemIdGenerator contentItemIdGenerator;
     protected StudioConfiguration studioConfiguration;
+    protected DependencyDiffService dependencyDiffService;
 
     public ContentRepository getContentRepository() { return _contentRepository; }
     public void setContentRepository(ContentRepository contentRepository) { this._contentRepository = contentRepository; }
@@ -2146,8 +2214,8 @@ public class ContentServiceImpl implements ContentService {
     public ObjectStateService getObjectStateService() { return objectStateService; }
     public void setObjectStateService(ObjectStateService objectStateService) { this.objectStateService = objectStateService; }
 
-    public DmDependencyService getDependencyService() { return dependencyService; }
-    public void setDependencyService(DmDependencyService dependencyService) { this.dependencyService = dependencyService; }
+    public DependencyService getDependencyService() { return dependencyService; }
+    public void setDependencyService(DependencyService dependencyService) { this.dependencyService = dependencyService; }
 
     public ProcessContentExecutor getContentProcessor() { return contentProcessor; }
     public void setContentProcessor(ProcessContentExecutor contentProcessor) { this.contentProcessor = contentProcessor; }
@@ -2181,4 +2249,7 @@ public class ContentServiceImpl implements ContentService {
 
     public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
+
+    public DependencyDiffService getDependencyDiffService() { return dependencyDiffService; }
+    public void setDependencyDiffService(DependencyDiffService dependencyDiffService) { this.dependencyDiffService = dependencyDiffService; }
 }

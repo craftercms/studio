@@ -18,6 +18,7 @@
 package org.craftercms.studio.api.v1.service.deployment;
 
 import org.craftercms.studio.api.v1.dal.PublishRequest;
+import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 
 import java.util.List;
@@ -40,7 +41,7 @@ public interface PublishingManager {
 
     void markItemsBlocked(String site, String environment, List<PublishRequest> copyToEnvironmentItems) throws DeploymentException;
 
-    List<DeploymentItemTO> processMandatoryDependencies(PublishRequest item, Set<String> pathsToDeploy, Set<String> missingDependenciesPaths) throws DeploymentException;
+    List<DeploymentItemTO> processMandatoryDependencies(PublishRequest item, Set<String> pathsToDeploy, Set<String> missingDependenciesPaths) throws DeploymentException, ServiceException;
 
     boolean isPublishingBlocked(String site);
 

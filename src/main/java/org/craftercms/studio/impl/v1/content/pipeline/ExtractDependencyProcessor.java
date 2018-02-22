@@ -23,7 +23,7 @@ import org.craftercms.studio.api.v1.exception.ContentProcessException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
+import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v1.to.ResultTO;
 import org.dom4j.Document;
 
@@ -61,17 +61,15 @@ public class ExtractDependencyProcessor extends PathMatchProcessor {
         String folderPath = content.getProperty(DmConstants.KEY_FOLDER_PATH);
         String fileName = content.getProperty(DmConstants.KEY_FILE_NAME);
         String path = (folderPath.endsWith(FILE_SEPARATOR)) ? folderPath + fileName : folderPath + FILE_SEPARATOR + fileName;
-        Document document = content.getDocument();
         try {
-            Map<String, Set<String>> globalDeps = new HashMap<>();
-            dmDependencyService.extractDependencies(site, path, document, globalDeps);
+            dependencyService.upsertDependencies(site, path);
         } catch (ServiceException e) {
             throw new ContentProcessException(e);
         }
     }
 
-    public DmDependencyService getDmDependencyService() { return dmDependencyService; }
-    public void setDmDependencyService(DmDependencyService dmDependencyService) { this.dmDependencyService = dmDependencyService; }
+    public DependencyService getDependencyService() { return dependencyService; }
+    public void setDmDependencyService(DependencyService dmDependencyService) { this.dependencyService = dependencyService; }
 
-    protected DmDependencyService dmDependencyService;
+    protected DependencyService dependencyService;
 }

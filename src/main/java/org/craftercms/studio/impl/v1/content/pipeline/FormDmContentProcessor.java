@@ -33,7 +33,6 @@ import org.craftercms.studio.api.v1.service.activity.ActivityService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
-import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
 import org.craftercms.studio.api.v1.service.workflow.WorkflowService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.ResultTO;
@@ -386,7 +385,6 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 
     protected ContentService contentService;
     protected WorkflowService workflowService;
-    protected DmDependencyService dmDependencyService;
     protected ServicesConfig servicesConfig;
     protected ObjectMetadataManager objectMetadataManager;
     protected ContentRepository contentRepository;
@@ -396,9 +394,6 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 
     public WorkflowService getWorkflowService() { return workflowService; }
     public void setWorkflowService(WorkflowService workflowService) { this.workflowService = workflowService; }
-
-    public DmDependencyService getDmDependencyService() { return dmDependencyService; }
-    public void setDmDependencyService(DmDependencyService dmDependencyService) { this.dmDependencyService = dmDependencyService; }
 
     public ServicesConfig getServicesConfig() { return servicesConfig; }
     public void setServicesConfig(ServicesConfig servicesConfig) { this.servicesConfig = servicesConfig; }

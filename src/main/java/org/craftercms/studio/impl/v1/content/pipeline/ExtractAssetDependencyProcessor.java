@@ -28,7 +28,7 @@ import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
-import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
+import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v1.to.ResultTO;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
@@ -75,13 +75,7 @@ public class ExtractAssetDependencyProcessor extends PathMatchProcessor {
         }
         try {
             if (isCss || isJs || isTemplate) {
-                if (isCss) {
-                    dmDependencyService.extractDependenciesStyle(site, path);
-                } else if (isJs) {
-                    dmDependencyService.extractDependenciesJavascript(site, path);
-                } else if (isTemplate) {
-                    dmDependencyService.extractDependenciesTemplate(site, path);
-                }
+                dependencyService.upsertDependencies(site, path);
             }
         } catch (ServiceException e) {
             throw new ContentProcessException(e);
@@ -89,11 +83,11 @@ public class ExtractAssetDependencyProcessor extends PathMatchProcessor {
     }
 
     protected ServicesConfig servicesConfig;
-    protected DmDependencyService dmDependencyService;
+    protected DependencyService dependencyService;
 
     public ServicesConfig getServicesConfig() { return servicesConfig; }
     public void setServicesConfig(ServicesConfig servicesConfig) { this.servicesConfig = servicesConfig; }
 
-    public DmDependencyService getDmDependencyService() { return dmDependencyService; }
-    public void setDmDependencyService(DmDependencyService dmDependencyService) { this.dmDependencyService = dmDependencyService; }
+    public DependencyService getDependencyService() { return dependencyService; }
+    public void setDependencyService(DependencyService dependencyService) { this.dependencyService = dependencyService; }
 }
