@@ -21,6 +21,7 @@ public abstract class AbstractXmlProfileReader<T extends AwsProfile> implements 
 
     public static List<HierarchicalConfiguration> getRequiredConfigurationsAt(HierarchicalConfiguration config,
                                                                               String key) throws AwsConfigurationException {
+        @SuppressWarnings("unchecked")
         List<HierarchicalConfiguration> configs = config.configurationsAt(key);
         if (CollectionUtils.isEmpty(configs)) {
             throw new AwsConfigurationException("Missing required property '" + key + "'");

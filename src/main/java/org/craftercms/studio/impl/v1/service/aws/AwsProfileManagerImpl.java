@@ -73,6 +73,7 @@ public class AwsProfileManagerImpl implements AwsProfileManager {
         try {
             InputStream content = contentService.getContent(site, basePath + "/" + fileName);
             HierarchicalConfiguration config = getConfiguration(content);
+            @SuppressWarnings("unchecked")
             List<HierarchicalConfiguration> profiles = config.configurationsAt("profile");
             Optional<HierarchicalConfiguration> profile =
                 profiles.stream()
