@@ -69,7 +69,7 @@ public class ExtractDependencyProcessor extends PathMatchProcessor {
     }
 
     public DependencyService getDependencyService() { return dependencyService; }
-    public void setDmDependencyService(DependencyService dmDependencyService) { this.dependencyService = dependencyService; }
+    public void setDependencyService(DependencyService dependencyService) { this.dependencyService = dependencyService; }
 
     protected DependencyService dependencyService;
 }
