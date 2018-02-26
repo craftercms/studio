@@ -590,7 +590,7 @@ public class WorkflowServiceImpl implements WorkflowService {
             }
 
             List<String> dependencyPaths = new ArrayList<String>();
-            dependencyPaths.addAll(dependencyService.getPublishingDepenencies(site, affectedPaths));
+            dependencyPaths.addAll(dependencyService.getPublishingDependencies(site, affectedPaths));
             affectedPaths.addAll(dependencyPaths);
             List<String> candidates = new ArrayList<String>();
             for (String p : affectedPaths) {
@@ -1617,7 +1617,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                 }
             }
 
-            Set<String> dependenciesPaths = dependencyService.getPublishingDepenencies(site, submittedItem.getUri());
+            Set<String> dependenciesPaths = dependencyService.getPublishingDependencies(site, submittedItem.getUri());
             for (String depPath : dependenciesPaths) {
                 DmDependencyTO dmDependencyTO = new DmDependencyTO();
                 dmDependencyTO.setUri(depPath);
@@ -1679,7 +1679,7 @@ public class WorkflowServiceImpl implements WorkflowService {
         int i = 0;
         for (DmDependencyTO submittedItem : submittedItems) {
             if (!dependenciesPaths.contains(submittedItem.getUri())) {
-                dependenciesPaths.addAll(dependencyService.getPublishingDepenencies(site, submittedItem.getUri()));
+                dependenciesPaths.addAll(dependencyService.getPublishingDependencies(site, submittedItem.getUri()));
             }
         }
         int j = 0;
@@ -1693,7 +1693,7 @@ public class WorkflowServiceImpl implements WorkflowService {
         List<DmDependencyTO> dependencies = new ArrayList<DmDependencyTO>();
         Set<String> dependenciesPaths = new HashSet<String>();
         for (DmDependencyTO submittedItem : submittedItems) {
-            dependenciesPaths.addAll(dependencyService.getPublishingDepenencies(site, submittedItem.getUri()));
+            dependenciesPaths.addAll(dependencyService.getPublishingDependencies(site, submittedItem.getUri()));
         }
         for (String depPath : dependenciesPaths) {
             dependencies.add(getSubmittedItem(site, depPath, format, globalScheduledDate, null));
@@ -1718,7 +1718,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                     }
                 }
             }
-            Set<String> dependencyPaths = dependencyService.getPublishingDepenencies(site, item.getUri());
+            Set<String> dependencyPaths = dependencyService.getPublishingDependencies(site, item.getUri());
             submittedPaths.addAll(dependencyPaths);
             processedPaths.addAll(dependencyPaths);
             processedPaths.add(item.getUri());

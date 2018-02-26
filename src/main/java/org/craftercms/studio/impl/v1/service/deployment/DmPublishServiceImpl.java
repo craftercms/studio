@@ -155,7 +155,7 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
                 List<String> candidatesToPublish = new ArrayList<String>();
                 pathsToPublish.add(childPath);
                 candidatesToPublish.addAll(objectMetadataManager.getSameCommitItems(site, childPath));
-                candidatesToPublish.addAll(dependencyService.getPublishingDepenencies(site, childPath));
+                candidatesToPublish.addAll(dependencyService.getPublishingDependencies(site, childPath));
                 for (String pathToAdd : candidatesToPublish) {
                     String hash = DigestUtils.md2Hex(pathToAdd);
                     if (processedPaths.add(hash)) {

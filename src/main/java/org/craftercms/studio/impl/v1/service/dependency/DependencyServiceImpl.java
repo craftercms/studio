@@ -181,15 +181,15 @@ public class DependencyServiceImpl implements DependencyService {
     }
 
     @Override
-    public Set<String> getPublishingDepenencies(String site, String path) throws SiteNotFoundException, ContentNotFoundException, ServiceException {
+    public Set<String> getPublishingDependencies(String site, String path) throws SiteNotFoundException, ContentNotFoundException, ServiceException {
         logger.debug("Get publishing dependencies for site: " + site + " path:" + path);
         List<String> paths = new ArrayList<String>();
         paths.add(path);
-        return getPublishingDepenencies(site, paths);
+        return getPublishingDependencies(site, paths);
     }
 
     @Override
-    public Set<String> getPublishingDepenencies(String site, List<String> paths) throws SiteNotFoundException, ContentNotFoundException, ServiceException {
+    public Set<String> getPublishingDependencies(String site, List<String> paths) throws SiteNotFoundException, ContentNotFoundException, ServiceException {
         Map<String, Object> params = new HashMap<String, Object>();
 
         Set<String> toRet = new HashSet<String>();
@@ -410,9 +410,6 @@ public class DependencyServiceImpl implements DependencyService {
     public void deleteItemDependencies(String site, String path) throws SiteNotFoundException, ContentNotFoundException, ServiceException {
         if (!siteService.exists(site)) {
             throw new SiteNotFoundException();
-        }
-        if (!contentService.contentExists(site, path)) {
-            throw new ContentNotFoundException();
         }
 
         logger.debug("Delete dependencies for content site: " + site + " path: " + path);

@@ -286,7 +286,7 @@ public class PublishingManagerImpl implements PublishingManager {
             }
 
             if (!isEnablePublishingWithoutDependencies()) {
-                Set<String> dependentPaths = dependencyService.getPublishingDepenencies(site, path);
+                Set<String> dependentPaths = dependencyService.getPublishingDependencies(site, path);
                 for (String dependentPath : dependentPaths) {
                     // TODO: SJ: This bypasses the Content Service, fix
                     if (objectStateService.isNew(site, dependentPath) || objectMetadataManager.isRenamed(site, dependentPath)) {
