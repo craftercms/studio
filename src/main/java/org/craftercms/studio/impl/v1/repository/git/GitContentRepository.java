@@ -1407,7 +1407,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         try {
             gitLogMapper.insertGitLog(params);
         } catch (DuplicateKeyException e) {
-            logger.error("Failed to insert commit id: " + commitId + " for site: " + siteId + " into gitlog table, because it is duplicate entry. Marking it as not processed so it can be processed by sync database task.", e);
+            logger.debug("Failed to insert commit id: " + commitId + " for site: " + siteId + " into gitlog table, because it is duplicate entry. Marking it as not processed so it can be processed by sync database task.");
             params = new HashMap<String, Object>();
             params.put("siteId", siteId);
             params.put("commitId", commitId);

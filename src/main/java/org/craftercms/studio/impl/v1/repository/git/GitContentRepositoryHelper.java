@@ -188,22 +188,28 @@ public class GitContentRepositoryHelper {
             toReturn = FileRepositoryBuilder.create(path.toFile());
             toReturn.create();
 
-            // Get git configuration
-            StoredConfig config = toReturn.getConfig();
-            // Set compression level (core.compression)
-            config.setInt(CONFIG_SECTION_CORE, null, CONFIG_PARAMETER_COMPRESSION, CONFIG_PARAMETER_COMPRESSION_DEFAULT);
-            // Set big file threshold (core.bigFileThreshold)
-            config.setString(CONFIG_SECTION_CORE, null, CONFIG_PARAMETER_BIG_FILE_THRESHOLD, CONFIG_PARAMETER_BIG_FILE_THRESHOLD_DEFAULT);
-            // Set fileMode
-            config.setBoolean(CONFIG_SECTION_CORE, null, CONFIG_PARAMETER_FILE_MODE, CONFIG_PARAMETER_FILE_MODE_DEFAULT);
-            // Save configuration changes
-            config.save();
+            toReturn = optimizeRepository(toReturn);
         } catch (IOException e) {
             logger.error("Error while creating repository for site with path" + path.toString(), e);
             toReturn = null;
         }
 
         return toReturn;
+    }
+
+    private Repository optimizeRepository(Repository repo) throws IOException {
+        // Get git configuration
+        StoredConfig config = repo.getConfig();
+        // Set compression level (core.compression)
+        config.setInt(CONFIG_SECTION_CORE, null, CONFIG_PARAMETER_COMPRESSION, CONFIG_PARAMETER_COMPRESSION_DEFAULT);
+        // Set big file threshold (core.bigFileThreshold)
+        config.setString(CONFIG_SECTION_CORE, null, CONFIG_PARAMETER_BIG_FILE_THRESHOLD, CONFIG_PARAMETER_BIG_FILE_THRESHOLD_DEFAULT);
+        // Set fileMode
+        config.setBoolean(CONFIG_SECTION_CORE, null, CONFIG_PARAMETER_FILE_MODE, CONFIG_PARAMETER_FILE_MODE_DEFAULT);
+        // Save configuration changes
+        config.save();
+
+        return repo;
     }
 
     public Path buildRepoPath(GitRepositories repoType) {
@@ -418,7 +424,10 @@ public class GitContentRepositoryHelper {
                     .setURI(sitePublishedPath.relativize(siteSandboxPath).toString())
                     .setDirectory(sitePublishedPath.normalize().toAbsolutePath().toFile())
                     .call()) {
-            } catch (GitAPIException e) {
+                Repository publishedRepo = publishedGit.getRepository();
+                publishedRepo = optimizeRepository(publishedRepo);
+                published.put(site, publishedRepo);
+            } catch (GitAPIException | IOException e) {
                 logger.error("Error adding origin (sandbox) to published repository", e);
             }
         } catch (GitAPIException err) {
@@ -673,6 +682,9 @@ public class GitContentRepositoryHelper {
                     .setRemote(remoteName)
                     .call();
             Repository sandboxRepo = checkIfCloneWasOk(cloneResult, remoteName, remoteUrl) ;
+
+            sandboxRepo = optimizeRepository(sandboxRepo);
+
             sandboxes.put(siteId, sandboxRepo);
         } catch (InvalidRemoteException e) {
             logger.error("Invalid remote repository: " + remoteName + " (" + remoteUrl + ")", e);
@@ -685,7 +697,7 @@ public class GitContentRepositoryHelper {
                 logger.error("Remote repository not found: " + remoteName + " (" + remoteUrl + ")", e);
                 throw new RemoteRepositoryNotFoundException("Remote repository not found: " + remoteName + " (" + remoteUrl + ")");
             }
-        } catch (GitAPIException e) {
+        } catch (GitAPIException | IOException e) {
             logger.error("Error while creating repository for site with path" + siteSandboxPath.toString(), e);
             toRet = false;
         } finally {
