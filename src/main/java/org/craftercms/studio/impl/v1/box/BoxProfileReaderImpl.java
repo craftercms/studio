@@ -77,6 +77,7 @@ public class BoxProfileReaderImpl implements BoxProfileReader {
     public BoxProfile getProfile(final String site, final String profileId) throws BoxException {
         try {
             HierarchicalConfiguration config = getConfiguration(site);
+            @SuppressWarnings("unchecked")
             List<HierarchicalConfiguration> profiles = config.configurationsAt(KEY_PROFILE);
             Optional<HierarchicalConfiguration> profileConfig = profiles.stream().filter(item -> profileId.equals(item.getString(KEY_ID))).findFirst();
 
