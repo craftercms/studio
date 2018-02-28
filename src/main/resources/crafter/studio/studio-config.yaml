@@ -21,6 +21,8 @@ studio.repo.globalRepoPath: global
 studio.repo.sitesRepoBasePath: sites
 # Sandbox git repository name under every site
 studio.repo.siteSandboxPath: sandbox
+# Sandbox git repository branch for every site
+studio.repo.siteSandboxBranch: master
 # Published git repository name under every site
 studio.repo.sitePublishedPath: published
 # Blueprints folder name under global

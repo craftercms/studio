@@ -29,6 +29,7 @@ public interface StudioConfiguration {
     String GLOBAL_REPO_PATH = "studio.repo.globalRepoPath";
     String SITES_REPOS_PATH = "studio.repo.sitesRepoBasePath";
     String SANDBOX_PATH = "studio.repo.siteSandboxPath";
+    String REPO_SANDBOX_BRANCH = "studio.repo.siteSandboxBranch";
     String PUBLISHED_PATH = "studio.repo.sitePublishedPath";
     String BLUE_PRINTS_PATH = "studio.repo.blueprintsPath";
     String BOOTSTRAP_REPO = "studio.repo.bootstrapRepo";
