@@ -87,8 +87,9 @@ public class BoxProfileReaderImpl implements BoxProfileReader {
             boxProfile.setClientId(profile.getString(KEY_CLIENT_ID));
             boxProfile.setClientSecret(profile.getString(KEY_CLIENT_SECRET));
             boxProfile.setEnterpriseId(profile.getString(KEY_ENTERPRISE_ID));
-            if (StringUtils.isNotBlank(profile.getString(KEY_PRIVATE_KEY))) {
-
+            String boxPrivateKey = profile.getString(KEY_PRIVATE_KEY);
+            if (StringUtils.isNotBlank(boxPrivateKey)) {
+				boxProfile.setPrivateKey(boxPrivateKey);
 			}else{
 				boxProfile.setPrivateKey(new String(
 						Files.readAllBytes(Paths.get(profile.getString(KEY_PRIVATE_KEY_PATH)))));
