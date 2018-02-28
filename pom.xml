@@ -516,7 +516,7 @@
                     High 	7.0-8.9
   	            	Critical 	9.0-10.0
               -->
-              <failBuildOnCVSS>5</failBuildOnCVSS>
+              <failBuildOnCVSS>11</failBuildOnCVSS>
               </configuration>
               <executions>
                   <execution>

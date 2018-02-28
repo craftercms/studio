@@ -12,6 +12,7 @@ import org.apache.commons.configuration2.XMLConfiguration;
 import org.apache.commons.configuration2.builder.FileBasedConfigurationBuilder;
 import org.apache.commons.configuration2.builder.fluent.Parameters;
 import org.apache.commons.configuration2.io.FileHandler;
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.box.BoxProfile;
 import org.craftercms.studio.api.v1.box.BoxProfileReader;
 import org.craftercms.studio.api.v1.exception.BoxException;
@@ -31,6 +32,7 @@ public class BoxProfileReaderImpl implements BoxProfileReader {
     public static final String KEY_PUBLIC_KEY_ID = "publicKeyId";
     public static final String KEY_PRIVATE_KEY_PASS = "privateKeyPassword";
     public static final String KEY_PRIVATE_KEY_PATH = "privateKeyPath";
+    public static final String KEY_PRIVATE_KEY = "privateKey";
     public static final String KEY_UPLOAD_FOLDER = "uploadFolder";
 
     /**
@@ -84,8 +86,13 @@ public class BoxProfileReaderImpl implements BoxProfileReader {
             boxProfile.setClientId(profile.getString(KEY_CLIENT_ID));
             boxProfile.setClientSecret(profile.getString(KEY_CLIENT_SECRET));
             boxProfile.setEnterpriseId(profile.getString(KEY_ENTERPRISE_ID));
-            boxProfile.setPrivateKey(new String(
-                Files.readAllBytes(Paths.get(profile.getString(KEY_PRIVATE_KEY_PATH)))));
+            if (StringUtils.isNotBlank(profile.getString(KEY_PRIVATE_KEY))) {
+
+			}else{
+				boxProfile.setPrivateKey(new String(
+						Files.readAllBytes(Paths.get(profile.getString(KEY_PRIVATE_KEY_PATH)))));
+			}
+
             boxProfile.setPrivateKeyPassword(profile.getString(KEY_PRIVATE_KEY_PASS));
             boxProfile.setPublicKeyId(profile.getString(KEY_PUBLIC_KEY_ID));
             boxProfile.setUploadFolder(profile.getString(KEY_UPLOAD_FOLDER));
