@@ -102,6 +102,35 @@ public class SiteServiceImpl implements SiteService {
 
 	private final static Logger logger = LoggerFactory.getLogger(SiteServiceImpl.class);
 
+    protected PreviewDeployer previewDeployer;
+    protected SiteServiceDAL _siteServiceDAL;
+    protected ServicesConfig servicesConfig;
+    protected ContentService contentService;
+    protected SiteEnvironmentConfig environmentConfig;
+    protected ContentRepository contentRepository;
+    protected ObjectStateService objectStateService;
+    protected DependencyService dependencyService;
+    protected SecurityService securityService;
+    protected ActivityService activityService;
+    protected DeploymentService deploymentService;
+    protected ObjectMetadataManager objectMetadataManager;
+    protected DmPageNavigationOrderService dmPageNavigationOrderService;
+    protected ContentTypeService contentTypeService;
+    protected SecurityProvider securityProvider;
+    protected ImportService importService;
+    protected NotificationService notificationService;
+    protected GeneralLockService generalLockService;
+    protected RebuildRepositoryMetadata rebuildRepositoryMetadata;
+    protected SyncDatabaseWithRepository syncDatabaseWithRepository;
+    protected EventService eventService;
+
+    protected StudioConfiguration studioConfiguration;
+
+    @Autowired
+    protected SiteFeedMapper siteFeedMapper;
+
+    protected SearchService searchService;
+
     @Override
     @ValidateParams
     public boolean writeConfiguration(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, InputStream content) throws ServiceException {
@@ -1644,33 +1673,4 @@ public class SiteServiceImpl implements SiteService {
 	public void setPreviewDeployer(final PreviewDeployer previewDeployer) {
 		this.previewDeployer = previewDeployer;
 	}
-
-	protected PreviewDeployer previewDeployer;
-    protected SiteServiceDAL _siteServiceDAL;
-	protected ServicesConfig servicesConfig;
-	protected ContentService contentService;
-	protected SiteEnvironmentConfig environmentConfig;
-	protected ContentRepository contentRepository;
-	protected ObjectStateService objectStateService;
-	protected DependencyService dependencyService;
-	protected SecurityService securityService;
-	protected ActivityService activityService;
-	protected DeploymentService deploymentService;
-    protected ObjectMetadataManager objectMetadataManager;
-    protected DmPageNavigationOrderService dmPageNavigationOrderService;
-    protected ContentTypeService contentTypeService;
-    protected SecurityProvider securityProvider;
-    protected ImportService importService;
-	protected NotificationService notificationService;
-    protected GeneralLockService generalLockService;
-    protected RebuildRepositoryMetadata rebuildRepositoryMetadata;
-    protected SyncDatabaseWithRepository syncDatabaseWithRepository;
-    protected EventService eventService;
-
-    protected StudioConfiguration studioConfiguration;
-
-	@Autowired
-	protected SiteFeedMapper siteFeedMapper;
-
-	protected SearchService searchService;
 }

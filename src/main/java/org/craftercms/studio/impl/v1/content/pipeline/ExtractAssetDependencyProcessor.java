@@ -39,6 +39,9 @@ public class ExtractAssetDependencyProcessor extends PathMatchProcessor {
 
     public static final String NAME = "ExtractAssetDependencyProcessor";
 
+    protected ServicesConfig servicesConfig;
+    protected DependencyService dependencyService;
+
 
     /**
      * default constructor
@@ -61,29 +64,12 @@ public class ExtractAssetDependencyProcessor extends PathMatchProcessor {
         String folderPath = content.getProperty(DmConstants.KEY_FOLDER_PATH);
         String fileName = content.getProperty(DmConstants.KEY_FILE_NAME);
         String path = (folderPath.endsWith(FILE_SEPARATOR)) ? folderPath + fileName : folderPath + FILE_SEPARATOR + fileName;
-        boolean isCss = path.endsWith(DmConstants.CSS_PATTERN);
-        boolean isJs = path.endsWith(DmConstants.JS_PATTERN);
-        List<String> templatePatterns = servicesConfig.getRenderingTemplatePatterns(site);
-        boolean isTemplate = false;
-        for (String templatePattern : templatePatterns) {
-            Pattern pattern = Pattern.compile(templatePattern);
-            Matcher matcher = pattern.matcher(path);
-            if (matcher.matches()) {
-                isTemplate = true;
-                break;
-            }
-        }
         try {
-            if (isCss || isJs || isTemplate) {
-                dependencyService.upsertDependencies(site, path);
-            }
+            dependencyService.upsertDependencies(site, path);
         } catch (ServiceException e) {
             throw new ContentProcessException(e);
         }
     }
-
-    protected ServicesConfig servicesConfig;
-    protected DependencyService dependencyService;
 
     public ServicesConfig getServicesConfig() { return servicesConfig; }
     public void setServicesConfig(ServicesConfig servicesConfig) { this.servicesConfig = servicesConfig; }

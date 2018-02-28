@@ -39,6 +39,7 @@ public class ExtractDependencyProcessor extends PathMatchProcessor {
 
     public static final String NAME = "ExtractDependencyProcessor";
 
+    protected DependencyService dependencyService;
 
     /**
      * default constructor
@@ -70,6 +71,4 @@ public class ExtractDependencyProcessor extends PathMatchProcessor {
 
     public DependencyService getDependencyService() { return dependencyService; }
     public void setDependencyService(DependencyService dependencyService) { this.dependencyService = dependencyService; }
-
-    protected DependencyService dependencyService;
 }

@@ -633,12 +633,10 @@ public class DeploymentServiceImpl implements DeploymentService {
                                                      Set<String>dependencies) throws ServiceException {
         if(dependencies != null) {
             for(String dependency : dependencies) {
-                if (objectStateService.isNew(site, dependency)) {
-                    if(objectStateService.isScheduled(site, dependency)) {
-                        addScheduledItem(site,launchDate,format,dependency,scheduledItems,comparator,subComparator,displayPatterns,filterType);
-                        if(dependency.endsWith(DmConstants.XML_PATTERN)) {
-                            addDependendenciesToSchdeuleList(site,launchDate,format,scheduledItems,comparator,subComparator,displayPatterns,filterType,dependency);
-                        }
+                if (objectStateService.isNew(site, dependency) && objectStateService.isScheduled(site, dependency)) {
+                    addScheduledItem(site,launchDate,format,dependency,scheduledItems,comparator,subComparator,displayPatterns,filterType);
+                    if(dependency.endsWith(DmConstants.XML_PATTERN)) {
+                        addDependendenciesToSchdeuleList(site,launchDate,format,scheduledItems,comparator,subComparator,displayPatterns,filterType,dependency);
                     }
                 }
             }

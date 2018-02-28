@@ -89,7 +89,7 @@ public class DependencyServiceImpl implements DependencyService {
                 logger.debug("Delete all source dependencies for site: " + site + " path: " + path);
                 deleteAllSourceDependencies(site, path);
                 logger.debug("Insert all extracted dependencies entries for site: " + site + " path: " + path);
-                insertDependencies(dependencyEntities);
+                insertDependenciesIntoDatabase(dependencyEntities);
                 logger.debug("Committing transaction.");
                 transactionManager.commit(txStatus);
             } catch (Exception e) {
@@ -130,7 +130,7 @@ public class DependencyServiceImpl implements DependencyService {
                 deleteAllSourceDependencies(site, path);
             }
             logger.debug("Insert all extracted dependencies entries lof list of paths for site: " + site);
-            insertDependencies(dependencyEntities);
+            insertDependenciesIntoDatabase(dependencyEntities);
             logger.debug("Committing transaction.");
             transactionManager.commit(txStatus);
         } catch (Exception e) {
@@ -171,7 +171,7 @@ public class DependencyServiceImpl implements DependencyService {
         return path.replaceAll("//", "/");
     }
 
-    private void insertDependencies(List<DependencyEntity> dependencyEntities) {
+    private void insertDependenciesIntoDatabase(List<DependencyEntity> dependencyEntities) {
         logger.debug("Insert list of dependency entities into database");
         if (CollectionUtils.isNotEmpty(dependencyEntities)) {
             Map<String, Object> params = new HashMap<>();
@@ -190,8 +190,6 @@ public class DependencyServiceImpl implements DependencyService {
 
     @Override
     public Set<String> getPublishingDependencies(String site, List<String> paths) throws SiteNotFoundException, ContentNotFoundException, ServiceException {
-        Map<String, Object> params = new HashMap<String, Object>();
-
         Set<String> toRet = new HashSet<String>();
         Set<String> pathsParams = new HashSet<String>();
         Set<String> parentPaths = getMandatoryParents(site, paths);
@@ -235,11 +233,12 @@ public class DependencyServiceImpl implements DependencyService {
     protected Set<String> getMandatoryParent(String site, String path) {
         Set<String> parentPaths = new HashSet<String>();
         int idx = path.lastIndexOf(FILE_SEPARATOR + INDEX_FILE);
+        String aPath = path;
         if (idx > 0) {
-            path = path.substring(0, idx);
+            aPath = path.substring(0, idx);
         }
-        logger.debug("Calculate parent url for " + path);
-        String parentPath = ContentUtils.getParentUrl(path);
+        logger.debug("Calculate parent url for " + aPath);
+        String parentPath = ContentUtils.getParentUrl(aPath);
         if (StringUtils.isNotEmpty(parentPath)) {
             logger.debug("If parent exists and it is NEW or RENAMED it is mandatory.");
             if (contentService.contentExists(site, parentPath)) {

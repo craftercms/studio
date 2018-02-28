@@ -680,11 +680,9 @@ public class ContentServiceImpl implements ContentService {
                     if (CollectionUtils.isNotEmpty(dependencies)) {
                         for (String dependency : dependencies) {
                             for (CopyDependencyConfigTO copyConfig : copyDependencyPatterns) {
-                                if (StringUtils.isNotEmpty(copyConfig.getPattern()) &&
+                                if (contentExists(site, dependency) && StringUtils.isNotEmpty(copyConfig.getPattern()) &&
                                         StringUtils.isNotEmpty(copyConfig.getTarget()) && dependency.matches(copyConfig.getPattern())) {
-                                    if (contentExists(site, dependency)) {
-                                        copyDependency.put(dependency, copyConfig.getTarget());
-                                    }
+                                    copyDependency.put(dependency, copyConfig.getTarget());
                                 }
                             }
                         }
@@ -816,13 +814,6 @@ public class ContentServiceImpl implements ContentService {
         }
         activityService.postActivity(site, user, movePath, activityType, ActivityService.ActivitySource.UI, extraInfo);
 
-        Map<String, String> activityInfo = new HashMap<String, String>();
-        String contentClass = getContentTypeClass(site, movePath);
-
-        if(movePath.endsWith(DmConstants.XML_PATTERN)) {
-            activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
-        }
-
         updateDependenciesOnMove(site, fromPath, movePath);
     }
 
@@ -832,34 +823,10 @@ public class ContentServiceImpl implements ContentService {
         } catch (ServiceException e) {
             logger.error("Error while deleting dependencies for site " + site + " path " + fromPath, e);
         }
-        if (movePath.endsWith(DmConstants.XML_PATTERN)) {
-            try {
-                dependencyService.upsertDependencies(site, movePath);
-            } catch (ServiceException  e) {
-                logger.error("Error while updating dependencies on move content site: " + site + " path: " + movePath, e);
-            }
-        } else {
-            boolean isCss = movePath.endsWith(DmConstants.CSS_PATTERN);
-            boolean isJs = movePath.endsWith(DmConstants.JS_PATTERN);
-            List<String> templatePatterns = servicesConfig.getRenderingTemplatePatterns(site);
-            boolean isTemplate = false;
-            for (String templatePattern : templatePatterns) {
-                Pattern pattern = Pattern.compile(templatePattern);
-                Matcher matcher = pattern.matcher(movePath);
-                if (matcher.matches()) {
-                    isTemplate = true;
-                    break;
-                }
-            }
-
-            String content = getContentAsString(site, movePath);
-            if (StringUtils.isNotEmpty(content)) {
-                try {
-                    dependencyService.upsertDependencies(site, movePath);
-                } catch (ServiceException e) {
-                    logger.error("Error while updating dependencies on move content site: " + site + " path: " + movePath, e);
-                }
-            }
+        try {
+            dependencyService.upsertDependencies(site, movePath);
+        } catch (ServiceException  e) {
+            logger.error("Error while updating dependencies on move content site: " + site + " path: " + movePath, e);
         }
     }
 

@@ -52,6 +52,14 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
 
     private static final Logger logger = LoggerFactory.getLogger(DmPublishServiceImpl.class);
 
+    protected DeploymentService deploymentService;
+    protected SecurityService securityService;
+    protected SiteService siteService;
+    protected ContentService contentService;
+    protected ContentRepository contentRepository;
+    protected ObjectMetadataManager objectMetadataManager;
+    protected ObjectStateService objectStateService;
+    protected DependencyService dependencyService;
 
     @Override
     public void register() {
@@ -202,13 +210,4 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
 
     public DependencyService getDependencyService() { return dependencyService; }
     public void setDependencyService(DependencyService dependencyService) { this.dependencyService = dependencyService; }
-
-    protected DeploymentService deploymentService;
-    protected SecurityService securityService;
-    protected SiteService siteService;
-    protected ContentService contentService;
-    protected ContentRepository contentRepository;
-    protected ObjectMetadataManager objectMetadataManager;
-    protected ObjectStateService objectStateService;
-    protected DependencyService dependencyService;
 }
