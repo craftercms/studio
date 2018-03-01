@@ -66,6 +66,16 @@ public class BoxServiceImpl implements BoxService {
      * {@inheritDoc}
      */
     @Override
+    public String getAccessToken(final String site, final String profileId) throws BoxException {
+        BoxProfile profile = getProfile(site, profileId);
+        BoxAPIConnection api = getConnection(profile);
+        return api.getAccessToken();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public BoxUploadResult uploadFile(final String site, final String profileId, final String filename,
                                       final InputStream content) throws BoxException {
         try {
