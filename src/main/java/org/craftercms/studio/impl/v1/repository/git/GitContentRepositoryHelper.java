@@ -35,9 +35,7 @@ import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.Status;
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.api.errors.InvalidRemoteException;
-import org.eclipse.jgit.api.errors.TransportException;
+import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.dircache.DirCache;
 import org.eclipse.jgit.errors.AmbiguousObjectException;
@@ -68,6 +66,7 @@ import java.util.*;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
 import static org.craftercms.studio.api.v1.constant.SecurityConstants.*;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_SANDBOX_BRANCH;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.*;
 
 /**
@@ -252,11 +251,41 @@ public class GitContentRepositoryHelper {
         toReturn = (sandboxRepo != null);
 
         if (toReturn) {
+            checkoutSandboxBranch(site, sandboxRepo);
             sandboxes.put(site, sandboxRepo);
         }
 
         return toReturn;
     }
+
+    private boolean checkoutSandboxBranch(String site, Repository sandboxRepo) {
+        try (Git git = new Git(sandboxRepo)) {
+            if (!StringUtils.equals(sandboxRepo.getBranch(), studioConfiguration.getProperty(REPO_SANDBOX_BRANCH))) {
+                List<Ref> branchList = git.branchList().call();
+                boolean createBranch = true;
+                for (Ref branch : branchList) {
+                    if (StringUtils.equals(branch.getName(), studioConfiguration.getProperty(REPO_SANDBOX_BRANCH)) || StringUtils.equals(branch.getName(), Constants.R_HEADS + studioConfiguration.getProperty(REPO_SANDBOX_BRANCH))) {
+                        createBranch = false;
+                        break;
+                    }
+                }
+                if (sandboxRepo.isBare() || sandboxRepo.resolve(Constants.HEAD) == null) {
+                    git.commit().setAllowEmpty(true).setMessage("Create " + studioConfiguration.getProperty(StudioConfiguration.REPO_SANDBOX_BRANCH) + " branch.").call();
+                }
+                git.checkout()
+                        .setCreateBranch(createBranch)
+                        .setName(studioConfiguration.getProperty(StudioConfiguration.REPO_SANDBOX_BRANCH))
+                        .setForce(false)
+                        .call();
+            }
+            return true;
+        } catch (GitAPIException | IOException e) {
+            logger.error("Error checking out sandbox branch " + studioConfiguration.getProperty(StudioConfiguration.REPO_SANDBOX_BRANCH) + " for site " + site, e);
+            return false;
+        }
+    }
+
+
 
     public boolean createGlobalRepo() {
         boolean toReturn = false;
@@ -450,6 +479,7 @@ public class GitContentRepositoryHelper {
                 if (repo == null) {
                     if (buildSiteRepo(site)) {
                         repo = sandboxes.get(site);
+                        checkoutSandboxBranch(site, repo);
                     } else {
                         logger.error("error getting the sandbox repository for site: " + site);
                     }
