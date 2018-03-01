@@ -1427,7 +1427,6 @@ public class SiteServiceImpl implements SiteService {
 		boolean toReturn = true;
 
 	    try {
-		    InputStream content = contentRepository.getContent(site, path);
 		    if (path.endsWith(DmConstants.XML_PATTERN)) {
 			    SAXReader saxReader = new SAXReader();
 				try {

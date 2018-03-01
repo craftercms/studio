@@ -652,12 +652,7 @@ public class WorkflowServiceImpl implements WorkflowService {
     @Override
     @ValidateParams
     public ResultTO goDelete(@ValidateStringParam(name = "site") String site, String request, @ValidateStringParam(name = "user") String user) {
-        String id = site + ":" + user + ":" + request;
-
-        Map<String, String> map = new HashMap<String, String>();
-        map.put(StudioConstants.USER, user);
         return approve(site, request, Operation.DELETE);
-
     }
 
     /**
