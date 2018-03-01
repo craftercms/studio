@@ -864,7 +864,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         Repository repo = helper.getRepository(site, GitRepositories.PUBLISHED);
         String commitId = StringUtils.EMPTY;
         String path = StringUtils.EMPTY;
-        synchronized (helper.getRepository(site, GitRepositories.PUBLISHED)) {
+        synchronized (repo) {
             try (Git git = new Git(repo)) {
 
                 // fetch "origin/master"
@@ -898,7 +898,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 ZonedDateTime publishDate = ZonedDateTime.now(ZoneOffset.UTC);
                 String tagName = publishDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX")) + "_published_on_" + publishDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX"));
                 git.tag().setTagger(authorIdent).setName(tagName).setMessage(comment).call();
-
+                git.close();
             } catch (Exception e) {
                 logger.error("Error when publishing site " + site + " to environment " + environment, e);
                 throw new DeploymentException("Error when publishing site " + site + " to environment " + environment + " [commit ID = " + commitId + "]");
@@ -912,7 +912,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         Repository repo = helper.getRepository(site, GitRepositories.PUBLISHED);
         String commitId = StringUtils.EMPTY;
         String path = StringUtils.EMPTY;
-        synchronized (helper.getRepository(site, GitRepositories.PUBLISHED)) {
+        synchronized (repo) {
             try (Git git = new Git(repo)) {
 
                 String inProgressBranchName = environment + IN_PROGRESS_BRANCH_NAME_SUFIX;
@@ -1048,6 +1048,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     // clean up
                     logger.debug("Delete in-progress branch (clean up) for site " + site);
                     git.branchDelete().setBranchNames(inProgressBranchName).setForce(true).call();
+                    git.close();
                 }
             } catch (Exception e) {
                 logger.error("Error when publishing site " + site + " to environment " + environment, e);
