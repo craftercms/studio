@@ -1671,13 +1671,11 @@ public class WorkflowServiceImpl implements WorkflowService {
     protected List<DmDependencyTO> addDependenciesForSubmittedItems(String site, List<DmDependencyTO> submittedItems, SimpleDateFormat format, String globalScheduledDate) throws ServiceException {
         List<DmDependencyTO> dependencies = new ArrayList<DmDependencyTO>();
         Set<String> dependenciesPaths = new HashSet<String>();
-        int i = 0;
         for (DmDependencyTO submittedItem : submittedItems) {
             if (!dependenciesPaths.contains(submittedItem.getUri())) {
                 dependenciesPaths.addAll(dependencyService.getPublishingDependencies(site, submittedItem.getUri()));
             }
         }
-        int j = 0;
         for (String depPath : dependenciesPaths) {
             dependencies.add(getSubmittedItem_new(site, depPath, format, globalScheduledDate));
         }
