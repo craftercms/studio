@@ -349,10 +349,12 @@ public class GitContentRepositoryHelper {
             Repository sboxRepo = sandboxes.get(site);
             sboxRepo.close();
             sandboxes.remove(site);
+            RepositoryCache.close(sboxRepo);
             sboxRepo = null;
             Repository pubRepo = published.get(site);
             pubRepo.close();
             published.remove(site);
+            RepositoryCache.close(pubRepo);
             pubRepo = null;
             FileUtils.deleteDirectory(siteFolder);
 
