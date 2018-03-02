@@ -1875,7 +1875,6 @@ public class WorkflowServiceImpl implements WorkflowService {
                 }
             }
         }
-        long end = System.currentTimeMillis();
     }
 
     protected void goLivepackage(String site, SubmitPackage submitpackage, DmDependencyTO dmDependencyTO, boolean isNotScheduled, SubmitPackage dependencyPackage, String approver, Set<String> rescheduledUris, Set<String> processedUris) {
