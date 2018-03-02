@@ -1789,7 +1789,6 @@ public class WorkflowServiceImpl implements WorkflowService {
     @Override
     @ValidateParams
     public ResultTO goLive(@ValidateStringParam(name = "site") final String site, final String request) throws ServiceException {
-        String lockKey = DmConstants.PUBLISHING_LOCK_KEY.replace("{SITE}", site.toUpperCase());
         try {
             if (isEnablePublishingWithoutDependencies()) {
                 return approveWithoutDependencies(site, request, Operation.GO_LIVE);
