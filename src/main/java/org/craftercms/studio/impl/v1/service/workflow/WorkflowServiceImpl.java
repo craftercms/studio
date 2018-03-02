@@ -128,6 +128,21 @@ public class WorkflowServiceImpl implements WorkflowService {
     protected String JSON_KEY_REASON = "reason";
     public static final String COMPLETE_SUBMIT_TO_GO_LIVE_MSG = "submitToGoLive";
 
+    protected ServicesConfig servicesConfig;
+    protected DeploymentService deploymentService;
+    protected ContentService contentService;
+    protected DmFilterWrapper dmFilterWrapper;
+    protected DependencyService dependencyService;
+    protected ObjectStateService objectStateService;
+    protected DmPublishService dmPublishService;
+    protected GeneralLockService generalLockService;
+    protected SecurityService securityService;
+    protected SiteService siteService;
+    protected WorkflowProcessor workflowProcessor;
+    protected ObjectMetadataManager objectMetadataManager;
+    protected NotificationService notificationService;
+    protected StudioConfiguration studioConfiguration;
+
     @Override
     @ValidateParams
     public ResultTO submitToGoLive(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "username") String username, String request) throws ServiceException {
@@ -2171,21 +2186,6 @@ public class WorkflowServiceImpl implements WorkflowService {
         boolean toReturn = Boolean.parseBoolean(studioConfiguration.getProperty(WORKFLOW_PUBLISHING_WITHOUT_DEPENDENCIES_ENABLED));
         return toReturn;
     }
-
-    protected ServicesConfig servicesConfig;
-    protected DeploymentService deploymentService;
-    protected ContentService contentService;
-    protected DmFilterWrapper dmFilterWrapper;
-    protected DependencyService dependencyService;
-    protected ObjectStateService objectStateService;
-    protected DmPublishService dmPublishService;
-    protected GeneralLockService generalLockService;
-    protected SecurityService securityService;
-    protected SiteService siteService;
-    protected WorkflowProcessor workflowProcessor;
-    protected ObjectMetadataManager objectMetadataManager;
-    protected NotificationService notificationService;
-    protected StudioConfiguration studioConfiguration;
 
     public static class SubmitPackage {
         protected String pathPrefix;
