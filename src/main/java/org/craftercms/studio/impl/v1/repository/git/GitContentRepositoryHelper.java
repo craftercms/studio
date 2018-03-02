@@ -356,7 +356,16 @@ public class GitContentRepositoryHelper {
             published.remove(site);
             RepositoryCache.close(pubRepo);
             pubRepo = null;
-            FileUtils.deleteDirectory(siteFolder);
+            try {
+                FileUtils.deleteDirectory(siteFolder);
+            } catch (IOException e) {
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e1) {
+                    e1.printStackTrace();
+                }
+                FileUtils.deleteDirectory(siteFolder);
+            }
 
             toReturn = true;
 
