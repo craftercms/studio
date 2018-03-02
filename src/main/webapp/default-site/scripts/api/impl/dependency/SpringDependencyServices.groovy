@@ -77,7 +77,7 @@ class SpringDependencyServices {
         def result = [:]
         result.items = dependencies
         result.submissionComment = sb.toString()
-        result.dependecies = dependencies
+        result.dependencies = dependencies
         return result
         return springBackendService.getDependencies(site, requestBody, deleteDependencies);
     }
