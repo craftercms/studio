@@ -16,17 +16,10 @@ import org.craftercms.studio.api.v1.exception.AssetProcessingException;
 
 public abstract class AbstractAssetProcessor implements AssetProcessor {
 
-    protected ProcessorConfiguration config;
-
     @Override
-    public void init(ProcessorConfiguration config) {
-        this.config = config;
-    }
-
-    @Override
-    public Asset processAsset(Matcher inputPathMatcher, Asset input) throws AssetProcessingException {
+    public Asset processAsset(ProcessorConfiguration config, Matcher inputPathMatcher, Asset input) throws AssetProcessingException {
         try {
-            String outputRepoPath = getOutputRepoPath(inputPathMatcher);
+            String outputRepoPath = getOutputRepoPath(config, inputPathMatcher);
             if (StringUtils.isEmpty(outputRepoPath)) {
                 // No output repo path means write to the same input. So move the original file to a tmp location
                 // and make the output file be the input file
@@ -63,7 +56,7 @@ public abstract class AbstractAssetProcessor implements AssetProcessor {
         return Files.createTempFile(FilenameUtils.getBaseName(repoPath), "." + FilenameUtils.getExtension(repoPath));
     }
 
-    protected String getOutputRepoPath(Matcher inputPathMatcher) {
+    protected String getOutputRepoPath(ProcessorConfiguration config, Matcher inputPathMatcher) {
         if (StringUtils.isNotEmpty(config.getOutputPathFormat())) {
             int groupCount = inputPathMatcher.groupCount();
             String outputPath = config.getOutputPathFormat();

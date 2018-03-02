@@ -3,8 +3,10 @@ package org.craftercms.studio.impl.v1.asset.processing;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -20,36 +22,25 @@ import org.craftercms.studio.api.v1.exception.AssetProcessingException;
 public class AssetProcessorPipelineImpl implements AssetProcessorPipeline {
 
     private AssetProcessorFactory processorFactory;
-    private ProcessorPipelineConfiguration config;
-    private List<AssetProcessor> processors;
 
     public AssetProcessorPipelineImpl(AssetProcessorFactory processorFactory) {
         this.processorFactory = processorFactory;
     }
 
     @Override
-    public void init(ProcessorPipelineConfiguration config) {
-        this.config = config;
-        this.processors = new ArrayList<>(config.getProcessorsConfig().size());
-
-        for (ProcessorConfiguration processorConfig : config.getProcessorsConfig()) {
-            processors.add(processorFactory.getProcessor(processorConfig));
-        }
-    }
-
-    @Override
-    public Collection<Asset> processAsset(Asset input) throws AssetProcessingException {
-        Matcher inputPatMatcher = matchForProcessing(input);
+    public Collection<Asset> processAsset(ProcessorPipelineConfiguration config, Asset input) throws AssetProcessingException {
+        Matcher inputPatMatcher = matchForProcessing(config, input);
         if (inputPatMatcher != null) {
             Set<Asset> outputs = new LinkedHashSet<>();
             Asset originalInput = input;
+            Map<ProcessorConfiguration, AssetProcessor> processors = getProcessors(config);
 
             if (config.isKeepOriginal()) {
                 outputs.add(originalInput);
             }
 
-            for (AssetProcessor processor : processors) {
-                Asset output = processor.processAsset(inputPatMatcher, input);
+            for (Map.Entry<ProcessorConfiguration, AssetProcessor> entry : processors.entrySet()) {
+                Asset output = entry.getValue().processAsset(entry.getKey(), inputPatMatcher, input);
                 outputs.add(output);
 
                 input = output;
@@ -65,7 +56,7 @@ public class AssetProcessorPipelineImpl implements AssetProcessorPipeline {
         }
     }
 
-    private Matcher matchForProcessing(Asset input) {
+    private Matcher matchForProcessing(ProcessorPipelineConfiguration config, Asset input) {
         Pattern inputPathPattern = Pattern.compile(config.getInputPathPattern());
         Matcher inputPathMatcher = inputPathPattern.matcher(input.getRepoPath());
 
@@ -74,6 +65,16 @@ public class AssetProcessorPipelineImpl implements AssetProcessorPipeline {
         } else {
             return null;
         }
+    }
+
+    private Map<ProcessorConfiguration, AssetProcessor> getProcessors(ProcessorPipelineConfiguration config) {
+        Map<ProcessorConfiguration, AssetProcessor> processors = new LinkedHashMap<>(config.getProcessorsConfig().size());
+
+        for (ProcessorConfiguration processorConfig : config.getProcessorsConfig()) {
+            processors.put(processorConfig, processorFactory.getProcessor(processorConfig));
+        }
+
+        return processors;
     }
 
 }

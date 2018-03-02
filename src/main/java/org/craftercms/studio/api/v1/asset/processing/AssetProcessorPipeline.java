@@ -7,8 +7,6 @@ import org.craftercms.studio.api.v1.exception.AssetProcessingException;
 
 public interface AssetProcessorPipeline {
 
-    void init(ProcessorPipelineConfiguration config);
-
-    Collection<Asset> processAsset(Asset input) throws AssetProcessingException;
+    Collection<Asset> processAsset(ProcessorPipelineConfiguration config, Asset input) throws AssetProcessingException;
 
 }

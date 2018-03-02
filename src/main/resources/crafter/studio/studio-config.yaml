@@ -89,6 +89,8 @@ studio.configuration.site.aws.configFileName: aws.xml
 studio.configuration.site.box.configurationPath: /config/studio/box/box.xml
 # Regex pattern for item specific dependencies
 studio.configuration.dependency.itemSpecificPatterns: /site/components/page/.*,/static-assets/page/.*
+# Repo path to the asset processing config
+studio.configuration.site.asset.processing.configurationPath: /config/studio/asset-processing.xml
 
 ########################################################
 ##                   Import Service                   ##
@@ -369,3 +371,9 @@ studio.db.dataPath: ./data/db
 studio.db.port: 33306
 # Socket path for the embedded database
 studio.db.socket: /tmp/MariaDB4j.33306.sock
+
+##########################################################
+##                   Asset Processing                   ##
+##########################################################
+# The global Tinify API key used for image processing (empty by default)
+studio.configuration.asset.processing.tinify.apiKey:

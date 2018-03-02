@@ -81,7 +81,7 @@ public class AssetProcessingServiceImpl implements AssetProcessingService {
 
             for (ProcessorPipelineConfiguration pipelineConfig : pipelinesConfig) {
                 AssetProcessorPipeline pipeline = pipelineFactory.getPipeline(pipelineConfig);
-                Collection<Asset> outputs = pipeline.processAsset(input);
+                Collection<Asset> outputs = pipeline.processAsset(pipelineConfig, input);
 
                 if (CollectionUtils.isNotEmpty(outputs)) {
                     finalOutputs.addAll(outputs);
