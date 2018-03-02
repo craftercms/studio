@@ -1834,7 +1834,6 @@ public class WorkflowServiceImpl implements WorkflowService {
             // group submitted items into packages by their scheduled date
             Map<ZonedDateTime, List<DmDependencyTO>> groupedPackages = groupByDate(submittedItems, now);
 
-            int i = 0;
             for (ZonedDateTime scheduledDate : groupedPackages.keySet()) {
                 List<DmDependencyTO> goLivePackage = groupedPackages.get(scheduledDate);
                 if (goLivePackage != null) {
@@ -1885,7 +1884,6 @@ public class WorkflowServiceImpl implements WorkflowService {
             handleReferences(site, submitpackage, dmDependencyTO, isNotScheduled, dependencyPackage, approver, rescheduledUris, processedUris);
             List<DmDependencyTO> children = dmDependencyTO.getChildren();
             if (children != null) {
-                int i = 1;
                 for (DmDependencyTO child : children) {
                     handleReferences(site, submitpackage, child, isNotScheduled, dependencyPackage, approver, rescheduledUris, processedUris);
                     goLivepackage(site, submitpackage, child, isNotScheduled, dependencyPackage, approver, rescheduledUris, processedUris);

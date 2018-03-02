@@ -265,7 +265,6 @@ public class DependencyServiceImpl implements DependencyService {
             throw new ContentNotFoundException();
         }
 
-        Map<String, Object> params = new HashMap<String, Object>();
         Set<String> toRet = new HashSet<String>();
         Set<String> paths = new HashSet<String>();
         boolean exitCondition = false;

@@ -85,6 +85,24 @@ public class ContentServiceImpl implements ContentService {
     // TODO: SJ: make that feature available to end user.
     private static final Logger logger = LoggerFactory.getLogger(ContentServiceImpl.class);
 
+    private ContentRepository _contentRepository;
+    protected ServicesConfig servicesConfig;
+    protected GeneralLockService generalLockService;
+    protected ObjectStateService objectStateService;
+    protected DependencyService dependencyService;
+    protected ProcessContentExecutor contentProcessor;
+    protected ObjectMetadataManager objectMetadataManager;
+    protected SecurityService securityService;
+    protected DmPageNavigationOrderService dmPageNavigationOrderService;
+    protected SecurityProvider securityProvider;
+    protected ActivityService activityService;
+    protected DmContentLifeCycleService dmContentLifeCycleService;
+    protected EventService eventService;
+    protected SiteService siteService;
+    protected ContentItemIdGenerator contentItemIdGenerator;
+    protected StudioConfiguration studioConfiguration;
+    protected DependencyDiffService dependencyDiffService;
+
     /**
      * file and folder name patterns for copied files and folders
      */
@@ -2150,24 +2168,6 @@ public class ContentServiceImpl implements ContentService {
 
         return toRet;
     }
-
-    private ContentRepository _contentRepository;
-    protected ServicesConfig servicesConfig;
-    protected GeneralLockService generalLockService;
-    protected ObjectStateService objectStateService;
-    protected DependencyService dependencyService;
-    protected ProcessContentExecutor contentProcessor;
-    protected ObjectMetadataManager objectMetadataManager;
-    protected SecurityService securityService;
-    protected DmPageNavigationOrderService dmPageNavigationOrderService;
-    protected SecurityProvider securityProvider;
-    protected ActivityService activityService;
-    protected DmContentLifeCycleService dmContentLifeCycleService;
-    protected EventService eventService;
-    protected SiteService siteService;
-    protected ContentItemIdGenerator contentItemIdGenerator;
-    protected StudioConfiguration studioConfiguration;
-    protected DependencyDiffService dependencyDiffService;
 
     public ContentRepository getContentRepository() { return _contentRepository; }
     public void setContentRepository(ContentRepository contentRepository) { this._contentRepository = contentRepository; }
