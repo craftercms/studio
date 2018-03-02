@@ -13,6 +13,7 @@ import org.apache.commons.configuration2.io.FileHandler;
 import org.craftercms.studio.api.v1.exception.AwsConfigurationException;
 import org.craftercms.studio.api.v1.service.aws.AwsProfileManager;
 import org.craftercms.studio.api.v1.service.content.ContentService;
+import org.craftercms.studio.impl.v1.util.ConfigUtils;
 import org.springframework.beans.factory.annotation.Required;
 
 /**
@@ -54,26 +55,18 @@ public class AwsProfileManagerImpl implements AwsProfileManager {
 
     protected HierarchicalConfiguration getConfiguration(InputStream input) throws Exception {
         try {
-            Parameters params = new Parameters();
-            FileBasedConfigurationBuilder<XMLConfiguration> builder = new FileBasedConfigurationBuilder<>(XMLConfiguration.class);
-            XMLConfiguration config = builder.configure(params.xml()).getConfiguration();
-            FileHandler fileHandler = new FileHandler(config);
-
-            fileHandler.setEncoding("UTF-8");
-            fileHandler.load(input);
-
-            return config;
+            return ConfigUtils.readXmlConfiguration(input);
         } catch (ConfigurationException e) {
             throw new Exception("Unable to read the AWS configuration", e);
         }
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public HierarchicalConfiguration getProfile(String site, String profileId) throws AwsConfigurationException {
         try {
             InputStream content = contentService.getContent(site, basePath + "/" + fileName);
             HierarchicalConfiguration config = getConfiguration(content);
-            @SuppressWarnings("unchecked")
             List<HierarchicalConfiguration> profiles = config.configurationsAt("profile");
             Optional<HierarchicalConfiguration> profile =
                 profiles.stream()
