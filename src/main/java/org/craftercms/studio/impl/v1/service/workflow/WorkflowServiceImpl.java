@@ -1701,7 +1701,6 @@ public class WorkflowServiceImpl implements WorkflowService {
             }
             List<DmDependencyTO> children = item.getChildren();
             if (children != null) {
-                int i = 0;
                 for (DmDependencyTO child : children) {
                     if (objectStateService.isUpdatedOrNew(site, child.getUri())) {
                         if (!submittedPaths.contains(child.getUri())) {
@@ -2166,14 +2165,8 @@ public class WorkflowServiceImpl implements WorkflowService {
     public ObjectMetadataManager getObjectMetadataManager() { return objectMetadataManager; }
     public void setObjectMetadataManager(ObjectMetadataManager objectMetadataManager) { this.objectMetadataManager = objectMetadataManager; }
 
-    //public DependencyRule getDeploymentDependencyRule() { return deploymentDependencyRule; }
-    //public void setDeploymentDependencyRule(DependencyRule deploymentDependencyRule) { this.deploymentDependencyRule = deploymentDependencyRule; }
-
     public NotificationService getNotificationService() { return notificationService; }
     public void setNotificationService(final org.craftercms.studio.api.v2.service.notification.NotificationService notificationService) { this.notificationService = notificationService; }
-
-    //public DependencyRule getSubmitForApprovalDependencyRule() { return submitForApprovalDependencyRule; }
-    //public void setSubmitForApprovalDependencyRule(DependencyRule submitForApprovalDependencyRule) { this.submitForApprovalDependencyRule = submitForApprovalDependencyRule; }
 
     public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
@@ -2195,8 +2188,6 @@ public class WorkflowServiceImpl implements WorkflowService {
     protected SiteService siteService;
     protected WorkflowProcessor workflowProcessor;
     protected ObjectMetadataManager objectMetadataManager;
-    //protected DependencyRule deploymentDependencyRule;
-    //protected DependencyRule submitForApprovalDependencyRule;
     protected NotificationService notificationService;
     protected StudioConfiguration studioConfiguration;
 
