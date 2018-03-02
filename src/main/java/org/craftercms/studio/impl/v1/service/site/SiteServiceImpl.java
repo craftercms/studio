@@ -62,7 +62,7 @@ import org.craftercms.studio.api.v1.service.content.ContentTypeService;
 import org.craftercms.studio.api.v1.service.content.DmPageNavigationOrderService;
 import org.craftercms.studio.api.v1.service.content.ImportService;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
-import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
+import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.event.EventService;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
@@ -101,6 +101,35 @@ import static org.craftercms.studio.api.v1.util.StudioConfiguration.*;
 public class SiteServiceImpl implements SiteService {
 
 	private final static Logger logger = LoggerFactory.getLogger(SiteServiceImpl.class);
+
+    protected PreviewDeployer previewDeployer;
+    protected SiteServiceDAL _siteServiceDAL;
+    protected ServicesConfig servicesConfig;
+    protected ContentService contentService;
+    protected SiteEnvironmentConfig environmentConfig;
+    protected ContentRepository contentRepository;
+    protected ObjectStateService objectStateService;
+    protected DependencyService dependencyService;
+    protected SecurityService securityService;
+    protected ActivityService activityService;
+    protected DeploymentService deploymentService;
+    protected ObjectMetadataManager objectMetadataManager;
+    protected DmPageNavigationOrderService dmPageNavigationOrderService;
+    protected ContentTypeService contentTypeService;
+    protected SecurityProvider securityProvider;
+    protected ImportService importService;
+    protected NotificationService notificationService;
+    protected GeneralLockService generalLockService;
+    protected RebuildRepositoryMetadata rebuildRepositoryMetadata;
+    protected SyncDatabaseWithRepository syncDatabaseWithRepository;
+    protected EventService eventService;
+
+    protected StudioConfiguration studioConfiguration;
+
+    @Autowired
+    protected SiteFeedMapper siteFeedMapper;
+
+    protected SearchService searchService;
 
     @Override
     @ValidateParams
@@ -512,13 +541,10 @@ public class SiteServiceImpl implements SiteService {
 
                 if (childPath.endsWith(DmConstants.XML_PATTERN)) {
                     try {
-                        Document doc = contentService.getContentAsDocument(site, childPath);
-                        dmDependencyService.extractDependencies(site, childPath, doc, globalDeps);
+                        dependencyService.upsertDependencies(site, childPath);
                     } catch (ContentNotFoundException e) {
                         logger.error("Failed to extract dependencies for document: site " + site + " path " + childPath, e);
                     } catch (ServiceException e) {
-                        logger.error("Failed to extract dependencies for document: site " + site + " path " + childPath, e);
-                    } catch (DocumentException e) {
                         logger.error("Failed to extract dependencies for document: site " + site + " path " + childPath, e);
                     }
                 } else {
@@ -537,17 +563,7 @@ public class SiteServiceImpl implements SiteService {
                     }
                     try {
                         if (isCss || isJs || isTemplate) {
-                            String content = contentService.getContentAsString(site, childPath);
-                            if (StringUtils.isNotEmpty(content)) {
-                                StringBuffer sb = new StringBuffer(content);
-                                if (isCss) {
-                                    dmDependencyService.extractDependenciesStyle(site, childPath);
-                                } else if (isJs) {
-                                    dmDependencyService.extractDependenciesJavascript(site, childPath);
-                                } else if (isTemplate) {
-                                    dmDependencyService.extractDependenciesTemplate(site, childPath);
-                                }
-                            }
+                            dependencyService.upsertDependencies(site, childPath);
                         }
                     } catch (ServiceException e) {
                         logger.error("Failed to extract dependencies for: site " + site + " path " + childPath, e);
@@ -1005,7 +1021,7 @@ public class SiteServiceImpl implements SiteService {
 		    logger.debug("Deleting database records");
 			siteFeedMapper.deleteSite(siteId);
 			activityService.deleteActivitiesForSite(siteId);
-			dmDependencyService.deleteDependenciesForSite(siteId);
+			dependencyService.deleteSiteDependencies(siteId);
 	        deploymentService.deleteDeploymentDataForSite(siteId);
 	        objectStateService.deleteObjectStatesForSite(siteId);
 	        objectMetadataManager.deleteObjectMetadataForSite(siteId);
@@ -1282,7 +1298,11 @@ public class SiteServiceImpl implements SiteService {
                         logger.debug("Delete item metadata for site: " + site + " path: " + repoOperation.getPath());
                         objectMetadataManager.deleteObjectMetadata(site, repoOperation.getPath());
                         logger.debug("Extract dependencies for site: " + site + " path: " + repoOperation.getPath());
-                        dmDependencyService.deleteDependenciesForSiteAndPath(site, repoOperation.getPath());
+                        try {
+                            dependencyService.deleteItemDependencies(site, repoOperation.getPath());
+                        } catch (ServiceException e) {
+                            logger.error("Error deleting dependencies for site " + site + " file: " + repoOperation.getPath(), e);
+                        }
                         contentClass = contentService.getContentTypeClass(site, repoOperation.getPath());
                         if (repoOperation.getPath().endsWith(DmConstants.XML_PATTERN)) {
                             activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
@@ -1407,7 +1427,6 @@ public class SiteServiceImpl implements SiteService {
 		boolean toReturn = true;
 
 	    try {
-		    InputStream content = contentRepository.getContent(site, path);
 		    if (path.endsWith(DmConstants.XML_PATTERN)) {
 			    SAXReader saxReader = new SAXReader();
 				try {
@@ -1417,25 +1436,18 @@ public class SiteServiceImpl implements SiteService {
 				}catch (SAXException ex){
 					logger.error("Unable to turn off external entity loading, This could be a security risk.", ex);
 				}
-			    Document doc = saxReader.read(content);
 
-			    dmDependencyService.extractDependencies(site, path, doc, new HashMap<>());
+			    dependencyService.upsertDependencies(site, path);
 		    } else {
 			    boolean isCss = path.endsWith(DmConstants.CSS_PATTERN);
 			    boolean isJs = path.endsWith(DmConstants.JS_PATTERN);
 			    boolean isTemplate = ContentUtils.matchesPatterns(path, servicesConfig.getRenderingTemplatePatterns
 				    (site));
 			    if (isCss || isJs || isTemplate) {
-				    if (isCss) {
-					    dmDependencyService.extractDependenciesStyle(site, path);
-				    } else if (isJs) {
-					    dmDependencyService.extractDependenciesJavascript(site, path);
-				    } else if (isTemplate) {
-					    dmDependencyService.extractDependenciesTemplate(site, path);
-				    }
+				    dependencyService.upsertDependencies(site, path);
 			    }
 		    }
-	    } catch (DocumentException | ServiceException e) {
+	    } catch (ServiceException e) {
 		    logger.error("Error extracting dependencies for site " + site + " file: " + path, e);
 		    toReturn = false;
 	    }
@@ -1605,8 +1617,8 @@ public class SiteServiceImpl implements SiteService {
 	public ObjectStateService getObjectStateService() { return objectStateService; }
 	public void setObjectStateService(ObjectStateService objectStateService) { this.objectStateService = objectStateService; }
 
-	public DmDependencyService getDmDependencyService() { return dmDependencyService; }
-	public void setDmDependencyService(DmDependencyService dmDependencyService) { this.dmDependencyService = dmDependencyService; }
+	public DependencyService getDependencyService() { return dependencyService; }
+	public void setDependencyService(DependencyService dependencyService) { this.dependencyService = dependencyService; }
 
 	public SecurityService getSecurityService() { return securityService; }
 	public void setSecurityService(SecurityService securityService) { this.securityService = securityService; }
@@ -1660,33 +1672,4 @@ public class SiteServiceImpl implements SiteService {
 	public void setPreviewDeployer(final PreviewDeployer previewDeployer) {
 		this.previewDeployer = previewDeployer;
 	}
-
-	protected PreviewDeployer previewDeployer;
-    protected SiteServiceDAL _siteServiceDAL;
-	protected ServicesConfig servicesConfig;
-	protected ContentService contentService;
-	protected SiteEnvironmentConfig environmentConfig;
-	protected ContentRepository contentRepository;
-	protected ObjectStateService objectStateService;
-	protected DmDependencyService dmDependencyService;
-	protected SecurityService securityService;
-	protected ActivityService activityService;
-	protected DeploymentService deploymentService;
-    protected ObjectMetadataManager objectMetadataManager;
-    protected DmPageNavigationOrderService dmPageNavigationOrderService;
-    protected ContentTypeService contentTypeService;
-    protected SecurityProvider securityProvider;
-    protected ImportService importService;
-	protected NotificationService notificationService;
-    protected GeneralLockService generalLockService;
-    protected RebuildRepositoryMetadata rebuildRepositoryMetadata;
-    protected SyncDatabaseWithRepository syncDatabaseWithRepository;
-    protected EventService eventService;
-
-    protected StudioConfiguration studioConfiguration;
-
-	@Autowired
-	protected SiteFeedMapper siteFeedMapper;
-
-	protected SearchService searchService;
 }

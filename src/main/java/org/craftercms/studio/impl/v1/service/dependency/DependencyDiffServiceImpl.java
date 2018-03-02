@@ -21,17 +21,18 @@ package org.craftercms.studio.impl.v1.service.dependency;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.service.dependency.DependencyDiffService;
-import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
+import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class DependencyDiffServiceImpl implements DependencyDiffService {
 
-    protected DmDependencyService dependencyService;
+    protected DependencyService dependencyService;
 
-    public DmDependencyService getDependencyService() { return dependencyService; }
-    public void setDependencyService(DmDependencyService dependencyService) { this.dependencyService = dependencyService; }
+    public DependencyService getDependencyService() { return dependencyService; }
+    public void setDependencyService(DependencyService dependencyService) { this.dependencyService = dependencyService; }
 
     /**
      * Computes addedDependenices and removedDependenices based on the DiffRequest information provided
@@ -75,7 +76,7 @@ public class DependencyDiffServiceImpl implements DependencyDiffService {
     }
 
     protected List<String> findDependencies(String site, String sandbox, String relativePath, boolean isRecursive, List<String> dependencies) throws ServiceException{
-        List<String> dependenciesFromDoc = dependencyService.getDependencyPaths(site, relativePath);
+        Set<String> dependenciesFromDoc = dependencyService.getItemDependencies(site, relativePath, 1);
         dependencies.addAll(dependenciesFromDoc);
         if(isRecursive){
             for(String dependency:dependenciesFromDoc){

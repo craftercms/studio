@@ -29,7 +29,7 @@
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
         <property name="generalLockService" ref="cstudioGeneralLockService" />
         <property name="contentProcessor" ref="cstudioProcessContentExecutor" />
-        <property name="dependencyService" ref="cstudioDmDependencyService"/>
+        <property name="dependencyService" ref="studioDependencyService"/>
         <property name="objectStateService" ref="cstudioObjectStateService" />
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager" />
         <property name="securityService" ref="cstudioSecurityService" />
@@ -41,6 +41,18 @@
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="contentItemIdGenerator" ref="cstudioContentIdGenerator" />
         <property name="studioConfiguration" ref="studioConfiguration" />
+        <property name="dependencyDiffService" ref="cstudioDependencyDiffService" />
+    </bean>
+
+    <bean id="studioDependencyService" class="org.craftercms.studio.impl.v1.service.dependency.DependencyServiceImpl">
+        <property name="studioConfiguration" ref="studioConfiguration" />
+        <property name="siteService" ref="cstudioSiteServiceSimple" />
+        <property name="contentService" ref="cstudioContentService" />
+        <property name="dependencyResolver" ref="studioDependencyResolver" />
+        <property name="transactionManager" ref="transactionManager" />
+        <property name="contentRepository" ref="contentRepository" />
+        <property name="objectMetadataManager" ref="cstudioObjectMetadataManager" />
+        <property name="servicesConfig" ref="cstudioServicesConfig" />
     </bean>
 
     <!-- all of these beans below need to move off contentRepository and on to content service.  Repository is a very NARROW interface -->
@@ -62,7 +74,7 @@
         <property name="contentRepository" ref="contentRepository"/>
         <property name="environmentConfig" ref="cstudioEnvironmentConfig"/>
         <property name="objectStateService" ref="cstudioObjectStateService" />
-        <property name="dmDependencyService" ref="cstudioDmDependencyService"/>
+        <property name="dependencyService" ref="studioDependencyService"/>
         <property name="securityService" ref="cstudioSecurityService"/>
         <property name="activityService" ref="cstudioActivityService"/>
         <property name="deploymentService" ref="cstudioDeploymentService"/>
@@ -100,7 +112,7 @@
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
         <property name="contentService" ref="cstudioContentService"/>
         <property name="deploymentService" ref="cstudioDeploymentService"/>
-        <property name="dmDependencyService" ref="cstudioDmDependencyService"/>
+        <property name="dependencyService" ref="studioDependencyService"/>
         <property name="dmFilterWrapper" ref="cstudioDmFilterWrapper"/>
         <property name="objectStateService" ref="cstudioObjectStateService"/>
         <property name="dmPublishService" ref="cstudioDmPublishService"/>
@@ -109,8 +121,6 @@
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="workflowProcessor" ref="cstudioWorkflowProcessor"/>
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
-        <property name="deploymentDependencyRule" ref="studioDeplymentDependencyRule"/>
-        <property name="submitForApprovalDependencyRule" ref="studioSubmitToApproveDependencyRule" />
         <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
@@ -118,7 +128,7 @@
          <property name="contentService" ref="cstudioContentService"/>
          <property name="activityService" ref="cstudioActivityService" />
          <property name="servicesConfig" ref="cstudioServicesConfig"/>
-         <property name="dmDependencyService" ref="cstudioDmDependencyService" />
+         <property name="dependencyService" ref="studioDependencyService" />
          <property name="dmFilterWrapper" ref="cstudioDmFilterWrapper" />
          <property name="siteService" ref="cstudioSiteServiceSimple" />
          <property name="objectStateService" ref="cstudioObjectStateService" />
@@ -168,20 +178,8 @@
         <property name="deploymentService" ref="cstudioDeploymentService" />
     </bean>
 
-    <bean id="cstudioDmDependencyService" class="org.craftercms.studio.impl.v1.service.dependency.DmDependencyServiceImpl"
-          parent="cstudioRegistrableService">
-        <property name="contentService" ref="cstudioContentService"/>
-        <property name="servicesConfig" ref="cstudioServicesConfig"/>
-        <property name="objectStateService" ref="cstudioObjectStateService"/>
-        <property name="submitToApproveDependencyRule" ref="studioSubmitToApproveDependencyRule"/>
-        <property name="studioConfiguration" ref="studioConfiguration" />
-        <property name="objectMetadataManager" ref="cstudioObjectMetadataManager" />
-        <property name="dependencyResolver" ref="studioDependencyResolver" />
-        <property name="dependencyDiffService" ref="cstudioDependencyDiffService" />
-    </bean>
-
     <bean id="cstudioDependencyDiffService" class="org.craftercms.studio.impl.v1.service.dependency.DependencyDiffServiceImpl">
-        <property name="dependencyService" ref="cstudioDmDependencyService" />
+        <property name="dependencyService" ref="studioDependencyService" />
     </bean>
 
     <bean id="cstudioObjectStateService" class="org.craftercms.studio.impl.v1.service.objectstate.ObjectStateServiceImpl"
@@ -230,9 +228,8 @@
         <property name="contentService" ref="cstudioContentService"/>
         <property name="contentRepository" ref="contentRepository" />
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
-        <property name="dmDependencyService" ref="cstudioDmDependencyService"/>
         <property name="objectStateService" ref="cstudioObjectStateService"/>
-        <property name="deploymentDependencyRule" ref="studioDeplymentDependencyRule" />
+        <property name="dependencyService" ref="studioDependencyService" />
     </bean>
 
     <bean id="cstudioPageNavOrderService" class="org.craftercms.studio.impl.v1.service.content.DmPageNavigationOrderServiceImpl"
@@ -517,7 +514,6 @@
                 <ref bean="cstudioFileFolderPathProcessor"></ref>
                 <ref bean="cstudioCleanWorkContentProcessor"></ref>
                 <ref bean="cstudioFormDmContentProcessor"></ref>
-                <!--<ref bean="cstudioWcmSnapshotProcessor"></ref>-->
                 <ref bean="cstudioCleanPreviewContentProcessor"></ref>
                 <ref bean="cstudioExtractDependencyProcessor"></ref>
                 <ref bean="cstudioDmWorkflowProcessor"></ref>
@@ -543,7 +539,6 @@
                 <ref bean="cstudioExtractParamsProcessor"></ref>
                 <ref bean="cstudioFormNavOrderProcessor"></ref>
                 <ref bean="cstudioFileFolderPathProcessor"></ref>
-                <ref bean="cstudioImportContentProcessor"></ref>
                 <ref bean="cstudioExtractDependencyProcessor"></ref>
                 <ref bean="cstudioPostActivityProcessor"></ref>
                 <ref bean="cstudioContentLifeCycleProcessor"></ref>
@@ -561,7 +556,6 @@
     <bean id="cstudioAssetDmContentProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.AssetDmContentProcessor">
         <property name="workflowService" ref="cstudioWorkflowService" />
         <property name="contentService" ref="cstudioContentService" />
-        <property name="dmDependencyService" ref="cstudioDmDependencyService"/>
         <property name="objectStateService" ref="cstudioObjectStateService"/>
         <property name="servicesConfig" ref="cstudioServicesConfig" />
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager" />
@@ -570,13 +564,12 @@
 
     <bean id="cstudioExtractAssetDependencyProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.ExtractAssetDependencyProcessor">
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
-        <property name="dmDependencyService" ref="cstudioDmDependencyService"/>
+        <property name="dependencyService" ref="studioDependencyService" />
     </bean>
 
     <bean id="cstudioPostActivityProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.PostActivityProcessor">
         <property name="activityService" ref="cstudioActivityService"/>
         <property name="contentService" ref="cstudioContentService"/>
-        <property name="dmDependencyService" ref="cstudioDmDependencyService"/>
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
     </bean>
 
@@ -588,7 +581,6 @@
 
     <bean id="cstudioFormDmContentProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.FormDmContentProcessor">
         <property name="contentService" ref="cstudioContentService"/>
-        <property name="dmDependencyService" ref="cstudioDmDependencyService"/>
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
         <property name="workflowService" ref="cstudioWorkflowService"/>
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
@@ -611,20 +603,13 @@
     <bean id="cstudioCleanWorkContentProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.CleanWorkContentProcessor"/>
 
     <bean id="cstudioExtractDependencyProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.ExtractDependencyProcessor">
-        <property name="dmDependencyService" ref="cstudioDmDependencyService"/>
+        <property name="dependencyService" ref="studioDependencyService"/>
     </bean>
 
     <bean id="cstudioDmWorkflowProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.DmWorkflowProcessor"/>
 
     <bean id="cstudioContentLifeCycleProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.ContentLifeCycleProcessor">
         <property name="dmContentLifeCycleService" ref="cstudioContentLifeCycleService"/>
-    </bean>
-
-    <bean id="cstudioImportContentProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.ImportDmContentProcessor">
-        <property name="dmDependencyService" ref="cstudioDmDependencyService"/>
-        <property name="contentService" ref="cstudioContentService"/>
-        <property name="servicesConfig" ref="cstudioServicesConfig"/>
-        <property name="workflowService" ref="cstudioWorkflowService"/>
     </bean>
 
     <!-- ////////////////////////////////////// -->
@@ -658,8 +643,8 @@
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
         <property name="securityProvider" ref="securityProvider" />
         <property name="studioConfiguration" ref="studioConfiguration" />
-        <property name="deploymentDependencyRule" ref="studioDeplymentDependencyRule" />
         <property name="deploymentHistoryProvider" ref="contentRepository" />
+        <property name="dependencyService" ref="studioDependencyService" />
     </bean>
 
     <bean id="cstudioDeploymentEventLoggerListener" class="org.craftercms.studio.impl.v1.ebus.DeploymentEventLoggerListener" init-method="subscribeToDeploymentEngineDeployEvents">
@@ -670,32 +655,6 @@
     <!-- ////////////////////////////////////// -->
     <!--         Dependencies                   -->
     <!-- ////////////////////////////////////// -->
-    <bean id="studioDeplymentDependencyRule" class="org.craftercms.studio.impl.v1.service.dependency.DeploymentDependencyRule">
-        <property name="dmDependencyService" ref="cstudioDmDependencyService"/>
-        <property name="objectStateService" ref="cstudioObjectStateService"/>
-        <property name="contentService" ref="cstudioContentService"/>
-        <property name="contentSpecificDependencies">
-            <list>
-                <value>/site/components/page/.*</value>
-                <value>/static-assets/page/.*</value>
-            </list>
-        </property>
-        <property name="objectMetadataManager" ref="cstudioObjectMetadataManager" />
-    </bean>
-
-    <bean id="studioSubmitToApproveDependencyRule" class="org.craftercms.studio.impl.v1.service.dependency.SubmitToApproveDependencyRule">
-        <property name="dmDependencyService" ref="cstudioDmDependencyService"/>
-        <property name="objectStateService" ref="cstudioObjectStateService"/>
-        <property name="contentService" ref="cstudioContentService"/>
-        <property name="contentSpecificDependencies">
-            <list>
-                <value>/site/components/page/.*</value>
-                <value>/static-assets/page/.*</value>
-            </list>
-        </property>
-        <property name="objectMetadataManager" ref="cstudioObjectMetadataManager" />
-    </bean>
-
     <bean id="studioDependencyResolver" class="org.craftercms.studio.impl.v1.service.dependency.RegexDependencyResolver">
         <property name="contentService" ref="cstudioContentService"/>
         <property name="studioConfiguration" ref="studioConfiguration" />
@@ -746,7 +705,7 @@
 
     <bean id="studioRebuildRepositoryMetadata" class="org.craftercms.studio.impl.v1.repository.job.RebuildRepositoryMetadata">
         <property name="contentService" ref="cstudioContentService"/>
-        <property name="dmDependencyService" ref="cstudioDmDependencyService"/>
+        <property name="dependencyService" ref="studioDependencyService"/>
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
         <property name="objectStateService" ref="cstudioObjectStateService"/>
         <property name="securityService" ref="cstudioSecurityService"/>

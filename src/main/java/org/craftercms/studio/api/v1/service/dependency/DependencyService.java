@@ -71,7 +71,7 @@ public interface DependencyService {
 	 * @throws ContentNotFoundException Path doesn't exist
 	 * @throws ServiceException Internal error, see exception details
 	 */
-	Set<String> getPublishingDepenencies(String site, String path) throws SiteNotFoundException, ContentNotFoundException, ServiceException;
+	Set<String> getPublishingDependencies(String site, String path) throws SiteNotFoundException, ContentNotFoundException, ServiceException;
 
 	/**
 	 * Get a all publishing dependencies of a list of items. A publishing
@@ -85,7 +85,7 @@ public interface DependencyService {
 	 * @throws ContentNotFoundException One or more paths doesn't exist
 	 * @throws ServiceException Internal error, see exception details
 	 */
-	Set<String> getPublishingDepenencies(String site, List<String> paths) throws SiteNotFoundException, ContentNotFoundException, ServiceException;
+	Set<String> getPublishingDependencies(String site, List<String> paths) throws SiteNotFoundException, ContentNotFoundException, ServiceException;
 
 	/**
 	 * Get item-specific dependencies of an item. An item-specific
@@ -157,4 +157,26 @@ public interface DependencyService {
 	 * @throws ServiceException Internal error, see exception details
 	 */
 	void deleteSiteDependencies(String site) throws SiteNotFoundException, ServiceException;
+
+    /**
+     *
+     * @param site Site to operate on
+     * @param path Path to item to retrieve delete dependencies for
+     * @return Set of paths included as delete dependencies
+     * @throws SiteNotFoundException Site doesn't exist
+     * @throws ContentNotFoundException Content doesn't exist
+     * @throws ServiceException Internal error
+     */
+	Set<String> getDeleteDependencies(String site, String path) throws SiteNotFoundException, ContentNotFoundException, ServiceException;
+
+    /**
+     *
+     * @param site Site to operate on
+     * @param path Paths to items to retrieve delete dependencies for
+     * @return Set of paths included as delete dependencies
+     * @throws SiteNotFoundException Site doesn't exist
+     * @throws ContentNotFoundException Content doesn't exist
+     * @throws ServiceException Internal error
+     */
+	Set<String> getDeleteDependencies(String site, List<String> paths) throws SiteNotFoundException, ContentNotFoundException, ServiceException;
 }

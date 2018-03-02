@@ -70,7 +70,7 @@ public interface DeploymentService {
 
     void syncAllContentToPreview(String site, boolean waitTillDone) throws ServiceException;
 
-    void bulkGoLive(String site, String environment, String path);
+    void bulkGoLive(String site, String environment, String path) throws ServiceException;
 
     /**
      * Get last deployment date time for given site and path
