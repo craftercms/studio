@@ -803,7 +803,9 @@ public class ContentServiceImpl implements ContentService {
             // ultimately orphan deployed content.  Old Path is always the OLDEST DEPLOYED PATH
             ItemMetadata metadata = objectMetadataManager.getProperties(site, fromPath);
             if (metadata == null && !renamedItem.isFolder()) {
-                objectMetadataManager.insertNewObjectMetadata(site, fromPath);
+                if (!objectMetadataManager.metadataExist(site, fromPath)) {
+                    objectMetadataManager.insertNewObjectMetadata(site, fromPath);
+                }
                 metadata = objectMetadataManager.getProperties(site, fromPath);
             }
 
