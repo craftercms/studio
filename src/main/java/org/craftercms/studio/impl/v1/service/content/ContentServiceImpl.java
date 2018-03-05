@@ -85,6 +85,9 @@ public class ContentServiceImpl implements ContentService {
     // TODO: SJ: make that feature available to end user.
     private static final Logger logger = LoggerFactory.getLogger(ContentServiceImpl.class);
 
+    private static final String COPY_DEP_XPATH = "//*/text()[normalize-space(.)='{copyDep}']/parent::*";
+    private static final String COPY_DEP = "{copyDep}";
+
     private ContentRepository _contentRepository;
     protected ServicesConfig servicesConfig;
     protected GeneralLockService generalLockService;
@@ -587,43 +590,52 @@ public class ContentServiceImpl implements ContentService {
                     try {
                         String contentType = fromItem.getContentType();
                         InputStream fromContent = getContent(site, fromPath);
-                        Document fromDocument = ContentUtils.convertStreamToXml(fromContent);
-                        Map<String, String> fromPageIds = getContentIds(fromDocument);
+                        if (fromPath.endsWith(DmConstants.XML_PATTERN)) {
+                            Document fromDocument = ContentUtils.convertStreamToXml(fromContent);
 
-                        logger.debug("copying file for site {0} from {1} to {2}, new name is {3}", site, fromPath,
-                                toPath, copyPath);
+                            Map<String, String> fromPageIds = getContentIds(fromDocument);
 
-                        // come up with a new object ID and group ID for the object
-                        Map<String, String> copyObjectIds = contentItemIdGenerator.getIds();
+                            logger.debug("copying file for site {0} from {1} to {2}, new name is {3}", site, fromPath,
+                                    toPath, copyPath);
 
-                        Map<String, String> copyDependencies = getCopyDependencies(site, fromPath,
-                                fromPath);
-                        copyDependencies = getItemSpecificDependencies(fromDocument, copyDependencies);
-                        logger.debug("Calculated copy dependencies: {0}, {1}", fromPath, copyDependencies);
+                            // come up with a new object ID and group ID for the object
+                            Map<String, String> copyObjectIds = contentItemIdGenerator.getIds();
 
-                        // Duplicate the children
-                        for (String dependencyKey : copyDependencies.keySet()) {
-                            String dependencyPath = copyDependencies.get(dependencyKey);
-                            String copyDepPath = dependencyPath;
+                            Map<String, String> copyDependencies = getCopyDependencies(site, fromPath,
+                                    fromPath);
+                            copyDependencies = getItemSpecificDependencies(site, fromPath, fromDocument, copyDependencies);
 
-                            // try a simple substitution
-                            copyDepPath = copyDepPath.replaceAll(
-                                    fromPageIds.get(DmConstants.KEY_PAGE_ID),
-                                    copyObjectIds.get(DmConstants.KEY_PAGE_ID));
+                            logger.debug("Calculated copy dependencies: {0}, {1}", fromPath, copyDependencies);
 
-                            copyDepPath = copyDepPath.replaceAll(
-                                    fromPageIds.get(DmConstants.KEY_PAGE_GROUP_ID),
-                                    copyObjectIds.get(DmConstants.KEY_PAGE_GROUP_ID));
-                            logger.debug("Translated dependency path from {0} to {1}", dependencyPath, copyDepPath);
+                            // Duplicate the children
+                            for (String dependencyKey : copyDependencies.keySet()) {
+                                String dependencyPath = copyDependencies.get(dependencyKey);
+                                String copyDepPath = dependencyPath;
 
-                            copyContent(site, dependencyPath, copyDepPath, processedPaths);
+                                // try a simple substitution
+                                copyDepPath = copyDepPath.replaceAll(
+                                        fromPageIds.get(DmConstants.KEY_PAGE_ID),
+                                        copyObjectIds.get(DmConstants.KEY_PAGE_ID));
+
+                                copyDepPath = copyDepPath.replaceAll(
+                                        fromPageIds.get(DmConstants.KEY_PAGE_GROUP_ID),
+                                        copyObjectIds.get(DmConstants.KEY_PAGE_GROUP_ID));
+                                
+                                if (!copyDepPath.endsWith(DmConstants.XML_PATTERN)) {
+                                    copyDepPath = ContentUtils.getParentUrl(copyDepPath);
+                                }
+                                logger.debug("Translated dependency path from {0} to {1}", dependencyPath, copyDepPath);
+
+                                String newCopyDepthPath = copyContent(site, dependencyPath, copyDepPath, processedPaths);
+                                fromDocument = replaceCopyDependency(fromDocument, dependencyPath, newCopyDepthPath);
+                            }
+
+                            // update the file name / folder values
+                            Document copyDocument = updateContentOnCopy(fromDocument, copyPathFileName, copyPathFolder,
+                                    copyObjectIds, copyPathModifier);
+
+                            copyContent = ContentUtils.convertDocumentToStream(copyDocument, CONTENT_ENCODING);
                         }
-
-                        // update the file name / folder values
-                        Document copyDocument = updateContentOnCopy(fromDocument, copyPathFileName, copyPathFolder,
-                                copyObjectIds, copyPathModifier);
-
-                        copyContent = ContentUtils.convertDocumentToStream(copyDocument, CONTENT_ENCODING);
 
                         // This code is very similar to what is in writeContent. Consolidate this code?
                         Map<String, String> params = new HashMap<String, String>();
@@ -642,15 +654,12 @@ public class ContentServiceImpl implements ContentService {
                         String id = site + ":" + copyPathOnly + ":" + copyFileName + ":" + contentType;
 
                         // processContent will close the input stream
-                        if (!StringUtils.isEmpty(contentType)) {
+                        if (copyFileName.endsWith(DmConstants.XML_PATTERN)) {
                             processContent(id, copyContent, true, params, DmConstants.CONTENT_CHAIN_FORM);
                         } else {
-                            if (copyFileName.endsWith(DmConstants.XML_PATTERN)) {
-                                processContent(id, copyContent, true, params, DmConstants.CONTENT_CHAIN_FORM);
-                            } else {
-                                processContent(id, fromContent, false, params, DmConstants.CONTENT_CHAIN_ASSET);
-                            }
+                            processContent(id, fromContent, false, params, DmConstants.CONTENT_CHAIN_ASSET);
                         }
+
 
                         ItemState itemState = objectStateService.getObjectState(site, copyPath);
 
@@ -683,6 +692,17 @@ public class ContentServiceImpl implements ContentService {
         }
 
         return retNewFileName;
+    }
+
+    protected Document replaceCopyDependency(Document document, String depPath, String copyDepPath) {
+        Element root = document.getRootElement();
+        List<Node> includes = root.selectNodes(COPY_DEP_XPATH.replace(COPY_DEP, depPath));
+        if (includes != null) {
+            for(Node includeNode : includes) {
+                includeNode.setText(includeNode.getText().replace(depPath, copyDepPath));
+            }
+        }
+        return document;
     }
 
     private Map<String, String> getCopyDependencies(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "sourceContentPath") String sourceContentPath, @ValidateSecurePathParam(name = "dependencyPath") String dependencyPath) throws ServiceException {
@@ -1031,8 +1051,12 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @SuppressWarnings("unchecked")
-    protected Map<String, String> getItemSpecificDependencies(Document document, Map<String, String> copyDependencies) {
-        // TODO: RD: This should move to the dependency service to be fully computed there
+    protected Map<String, String> getItemSpecificDependencies(String site, String path, Document document, Map<String, String> copyDependencies) throws ServiceException {
+        Set<String> deps = dependencyService.getItemSpecificDependencies(site, path, 1);
+        for (String dep : deps) {
+            copyDependencies.put(dep, dep);
+        }
+
         //update pageId and groupId with the new one
         Element root = document.getRootElement();
 
@@ -1066,18 +1090,18 @@ public class ContentServiceImpl implements ContentService {
      */
     protected Map<String, String> getContentIds(Document document) {
         Map<String, String> ids = new HashMap<String, String>();
+        if (document != null) {
+            Element root = document.getRootElement();
+            Node pageIdNode = root.selectSingleNode("//" + DmXmlConstants.ELM_PAGE_ID);
+            if (pageIdNode != null) {
+                ids.put(DmConstants.KEY_PAGE_ID, ((Element) pageIdNode).getText());
+            }
 
-        Element root = document.getRootElement();
-        Node pageIdNode = root.selectSingleNode("//" + DmXmlConstants.ELM_PAGE_ID);
-        if (pageIdNode != null) {
-            ids.put(DmConstants.KEY_PAGE_ID, ((Element)pageIdNode).getText());
+            Node groupIdNode = root.selectSingleNode("//" + DmXmlConstants.ELM_GROUP_ID);
+            if (groupIdNode != null) {
+                ids.put(DmConstants.KEY_PAGE_GROUP_ID, ((Element) groupIdNode).getText());
+            }
         }
-
-        Node groupIdNode = root.selectSingleNode("//" + DmXmlConstants.ELM_GROUP_ID);
-        if (groupIdNode != null) {
-            ids.put(DmConstants.KEY_PAGE_GROUP_ID, ((Element)groupIdNode).getText());
-        }
-
         return ids;
     }
 
