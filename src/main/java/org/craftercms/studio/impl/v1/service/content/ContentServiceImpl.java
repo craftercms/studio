@@ -820,6 +820,9 @@ public class ContentServiceImpl implements ContentService {
         }
 
         if (!renamedItem.isFolder()) {
+            if (objectMetadataManager.metadataExist(site, movePath)) {
+                objectMetadataManager.deleteObjectMetadata(site, movePath);
+            }
             objectMetadataManager.updateObjectPath(site, fromPath, movePath);
         }
 
