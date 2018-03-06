@@ -35,9 +35,7 @@ import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.Status;
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.api.errors.InvalidRemoteException;
-import org.eclipse.jgit.api.errors.TransportException;
+import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.dircache.DirCache;
 import org.eclipse.jgit.errors.AmbiguousObjectException;
@@ -68,6 +66,7 @@ import java.util.*;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
 import static org.craftercms.studio.api.v1.constant.SecurityConstants.*;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_SANDBOX_BRANCH;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.*;
 
 /**
@@ -188,22 +187,28 @@ public class GitContentRepositoryHelper {
             toReturn = FileRepositoryBuilder.create(path.toFile());
             toReturn.create();
 
-            // Get git configuration
-            StoredConfig config = toReturn.getConfig();
-            // Set compression level (core.compression)
-            config.setInt(CONFIG_SECTION_CORE, null, CONFIG_PARAMETER_COMPRESSION, CONFIG_PARAMETER_COMPRESSION_DEFAULT);
-            // Set big file threshold (core.bigFileThreshold)
-            config.setString(CONFIG_SECTION_CORE, null, CONFIG_PARAMETER_BIG_FILE_THRESHOLD, CONFIG_PARAMETER_BIG_FILE_THRESHOLD_DEFAULT);
-            // Set fileMode
-            config.setBoolean(CONFIG_SECTION_CORE, null, CONFIG_PARAMETER_FILE_MODE, CONFIG_PARAMETER_FILE_MODE_DEFAULT);
-            // Save configuration changes
-            config.save();
+            toReturn = optimizeRepository(toReturn);
         } catch (IOException e) {
             logger.error("Error while creating repository for site with path" + path.toString(), e);
             toReturn = null;
         }
 
         return toReturn;
+    }
+
+    private Repository optimizeRepository(Repository repo) throws IOException {
+        // Get git configuration
+        StoredConfig config = repo.getConfig();
+        // Set compression level (core.compression)
+        config.setInt(CONFIG_SECTION_CORE, null, CONFIG_PARAMETER_COMPRESSION, CONFIG_PARAMETER_COMPRESSION_DEFAULT);
+        // Set big file threshold (core.bigFileThreshold)
+        config.setString(CONFIG_SECTION_CORE, null, CONFIG_PARAMETER_BIG_FILE_THRESHOLD, CONFIG_PARAMETER_BIG_FILE_THRESHOLD_DEFAULT);
+        // Set fileMode
+        config.setBoolean(CONFIG_SECTION_CORE, null, CONFIG_PARAMETER_FILE_MODE, CONFIG_PARAMETER_FILE_MODE_DEFAULT);
+        // Save configuration changes
+        config.save();
+
+        return repo;
     }
 
     public Path buildRepoPath(GitRepositories repoType) {
@@ -246,11 +251,41 @@ public class GitContentRepositoryHelper {
         toReturn = (sandboxRepo != null);
 
         if (toReturn) {
+            checkoutSandboxBranch(site, sandboxRepo);
             sandboxes.put(site, sandboxRepo);
         }
 
         return toReturn;
     }
+
+    private boolean checkoutSandboxBranch(String site, Repository sandboxRepo) {
+        try (Git git = new Git(sandboxRepo)) {
+            if (!StringUtils.equals(sandboxRepo.getBranch(), studioConfiguration.getProperty(REPO_SANDBOX_BRANCH))) {
+                List<Ref> branchList = git.branchList().call();
+                boolean createBranch = true;
+                for (Ref branch : branchList) {
+                    if (StringUtils.equals(branch.getName(), studioConfiguration.getProperty(REPO_SANDBOX_BRANCH)) || StringUtils.equals(branch.getName(), Constants.R_HEADS + studioConfiguration.getProperty(REPO_SANDBOX_BRANCH))) {
+                        createBranch = false;
+                        break;
+                    }
+                }
+                if (sandboxRepo.isBare() || sandboxRepo.resolve(Constants.HEAD) == null) {
+                    git.commit().setAllowEmpty(true).setMessage("Create " + studioConfiguration.getProperty(StudioConfiguration.REPO_SANDBOX_BRANCH) + " branch.").call();
+                }
+                git.checkout()
+                        .setCreateBranch(createBranch)
+                        .setName(studioConfiguration.getProperty(StudioConfiguration.REPO_SANDBOX_BRANCH))
+                        .setForce(false)
+                        .call();
+            }
+            return true;
+        } catch (GitAPIException | IOException e) {
+            logger.error("Error checking out sandbox branch " + studioConfiguration.getProperty(StudioConfiguration.REPO_SANDBOX_BRANCH) + " for site " + site, e);
+            return false;
+        }
+    }
+
+
 
     public boolean createGlobalRepo() {
         boolean toReturn = false;
@@ -418,7 +453,10 @@ public class GitContentRepositoryHelper {
                     .setURI(sitePublishedPath.relativize(siteSandboxPath).toString())
                     .setDirectory(sitePublishedPath.normalize().toAbsolutePath().toFile())
                     .call()) {
-            } catch (GitAPIException e) {
+                Repository publishedRepo = publishedGit.getRepository();
+                publishedRepo = optimizeRepository(publishedRepo);
+                published.put(site, publishedRepo);
+            } catch (GitAPIException | IOException e) {
                 logger.error("Error adding origin (sandbox) to published repository", e);
             }
         } catch (GitAPIException err) {
@@ -441,6 +479,7 @@ public class GitContentRepositoryHelper {
                 if (repo == null) {
                     if (buildSiteRepo(site)) {
                         repo = sandboxes.get(site);
+                        checkoutSandboxBranch(site, repo);
                     } else {
                         logger.error("error getting the sandbox repository for site: " + site);
                     }
@@ -673,6 +712,9 @@ public class GitContentRepositoryHelper {
                     .setRemote(remoteName)
                     .call();
             Repository sandboxRepo = checkIfCloneWasOk(cloneResult, remoteName, remoteUrl) ;
+
+            sandboxRepo = optimizeRepository(sandboxRepo);
+
             sandboxes.put(siteId, sandboxRepo);
         } catch (InvalidRemoteException e) {
             logger.error("Invalid remote repository: " + remoteName + " (" + remoteUrl + ")", e);
@@ -685,7 +727,7 @@ public class GitContentRepositoryHelper {
                 logger.error("Remote repository not found: " + remoteName + " (" + remoteUrl + ")", e);
                 throw new RemoteRepositoryNotFoundException("Remote repository not found: " + remoteName + " (" + remoteUrl + ")");
             }
-        } catch (GitAPIException e) {
+        } catch (GitAPIException | IOException e) {
             logger.error("Error while creating repository for site with path" + siteSandboxPath.toString(), e);
             toRet = false;
         } finally {

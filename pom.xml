@@ -9,7 +9,7 @@
     <url>https://github.com/craftercms/studio</url>
 
     <packaging>war</packaging>
-    <version>3.0.8</version>
+    <version>3.0.9</version>
     <organization>
         <name>CrafterCMS</name>
         <url>http://craftercms.org</url>

@@ -17,10 +17,6 @@
  */
 package org.craftercms.studio.impl.v1.content.pipeline;
 
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.content.pipeline.PipelineContent;
 import org.craftercms.studio.api.v1.exception.ContentProcessException;
@@ -28,7 +24,7 @@ import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
-import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
+import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v1.to.ResultTO;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
@@ -38,6 +34,9 @@ public class ExtractAssetDependencyProcessor extends PathMatchProcessor {
     private static final Logger logger = LoggerFactory.getLogger(ExtractAssetDependencyProcessor.class);
 
     public static final String NAME = "ExtractAssetDependencyProcessor";
+
+    protected ServicesConfig servicesConfig;
+    protected DependencyService dependencyService;
 
 
     /**
@@ -61,39 +60,16 @@ public class ExtractAssetDependencyProcessor extends PathMatchProcessor {
         String folderPath = content.getProperty(DmConstants.KEY_FOLDER_PATH);
         String fileName = content.getProperty(DmConstants.KEY_FILE_NAME);
         String path = (folderPath.endsWith(FILE_SEPARATOR)) ? folderPath + fileName : folderPath + FILE_SEPARATOR + fileName;
-        boolean isCss = path.endsWith(DmConstants.CSS_PATTERN);
-        boolean isJs = path.endsWith(DmConstants.JS_PATTERN);
-        List<String> templatePatterns = servicesConfig.getRenderingTemplatePatterns(site);
-        boolean isTemplate = false;
-        for (String templatePattern : templatePatterns) {
-            Pattern pattern = Pattern.compile(templatePattern);
-            Matcher matcher = pattern.matcher(path);
-            if (matcher.matches()) {
-                isTemplate = true;
-                break;
-            }
-        }
         try {
-            if (isCss || isJs || isTemplate) {
-                if (isCss) {
-                    dmDependencyService.extractDependenciesStyle(site, path);
-                } else if (isJs) {
-                    dmDependencyService.extractDependenciesJavascript(site, path);
-                } else if (isTemplate) {
-                    dmDependencyService.extractDependenciesTemplate(site, path);
-                }
-            }
+            dependencyService.upsertDependencies(site, path);
         } catch (ServiceException e) {
             throw new ContentProcessException(e);
         }
     }
 
-    protected ServicesConfig servicesConfig;
-    protected DmDependencyService dmDependencyService;
-
     public ServicesConfig getServicesConfig() { return servicesConfig; }
     public void setServicesConfig(ServicesConfig servicesConfig) { this.servicesConfig = servicesConfig; }
 
-    public DmDependencyService getDmDependencyService() { return dmDependencyService; }
-    public void setDmDependencyService(DmDependencyService dmDependencyService) { this.dmDependencyService = dmDependencyService; }
+    public DependencyService getDependencyService() { return dependencyService; }
+    public void setDependencyService(DependencyService dependencyService) { this.dependencyService = dependencyService; }
 }

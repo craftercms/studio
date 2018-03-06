@@ -124,4 +124,6 @@ package org.craftercms.studio.api.v1.constant;
      */
     String REMOTE_REPOSITORY_CREATE_OPTION_CLONE = "clone";
     String REMOTE_REPOSITORY_CREATE_OPTION_PUSH = "push";
+
+    String INDEX_FILE = "index.xml";
 }

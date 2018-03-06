@@ -29,14 +29,14 @@ import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.DmConstants;
+import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.service.AbstractRegistrableService;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
-import org.craftercms.studio.api.v1.service.dependency.DependencyRule;
-import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
+import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.deployment.DmPublishService;
@@ -52,6 +52,14 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
 
     private static final Logger logger = LoggerFactory.getLogger(DmPublishServiceImpl.class);
 
+    protected DeploymentService deploymentService;
+    protected SecurityService securityService;
+    protected SiteService siteService;
+    protected ContentService contentService;
+    protected ContentRepository contentRepository;
+    protected ObjectMetadataManager objectMetadataManager;
+    protected ObjectStateService objectStateService;
+    protected DependencyService dependencyService;
 
     @Override
     public void register() {
@@ -131,7 +139,7 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
 
     @Override
     @ValidateParams
-    public void bulkGoLive(@ValidateStringParam(name = "site") String site, @ValidateStringParam String environment, @ValidateSecurePathParam(name = "path") String path) {
+    public void bulkGoLive(@ValidateStringParam(name = "site") String site, @ValidateStringParam String environment, @ValidateSecurePathParam(name = "path") String path) throws ServiceException {
         logger.info("Starting Bulk Go Live for path " + path + " site " + site);
 
         String queryPath = path;
@@ -155,7 +163,7 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
                 List<String> candidatesToPublish = new ArrayList<String>();
                 pathsToPublish.add(childPath);
                 candidatesToPublish.addAll(objectMetadataManager.getSameCommitItems(site, childPath));
-                candidatesToPublish.addAll(deploymentDependencyRule.applyRule(site, childPath));
+                candidatesToPublish.addAll(dependencyService.getPublishingDependencies(site, childPath));
                 for (String pathToAdd : candidatesToPublish) {
                     String hash = DigestUtils.md2Hex(pathToAdd);
                     if (processedPaths.add(hash)) {
@@ -197,22 +205,9 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
     public ObjectMetadataManager getObjectMetadataManager() { return objectMetadataManager; }
     public void setObjectMetadataManager(ObjectMetadataManager objectMetadataManager) { this.objectMetadataManager = objectMetadataManager; }
 
-    public DmDependencyService getDmDependencyService() { return dmDependencyService; }
-    public void setDmDependencyService(DmDependencyService dmDependencyService) { this.dmDependencyService = dmDependencyService; }
-
     public ObjectStateService getObjectStateService() { return objectStateService; }
     public void setObjectStateService(ObjectStateService objectStateService) { this.objectStateService = objectStateService; }
 
-    public DependencyRule getDeploymentDependencyRule() { return deploymentDependencyRule; }
-    public void setDeploymentDependencyRule(DependencyRule deploymentDependencyRule) { this.deploymentDependencyRule = deploymentDependencyRule; }
-
-    protected DeploymentService deploymentService;
-    protected SecurityService securityService;
-    protected SiteService siteService;
-    protected ContentService contentService;
-    protected ContentRepository contentRepository;
-    protected ObjectMetadataManager objectMetadataManager;
-    protected DmDependencyService dmDependencyService;
-    protected ObjectStateService objectStateService;
-    protected DependencyRule deploymentDependencyRule;
+    public DependencyService getDependencyService() { return dependencyService; }
+    public void setDependencyService(DependencyService dependencyService) { this.dependencyService = dependencyService; }
 }

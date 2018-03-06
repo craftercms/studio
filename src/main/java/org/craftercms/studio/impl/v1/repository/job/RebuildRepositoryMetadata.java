@@ -26,7 +26,7 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
-import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
+import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
@@ -50,7 +50,7 @@ public class RebuildRepositoryMetadata {
 
     protected ObjectMetadataManager objectMetadataManager;
     protected ObjectStateService objectStateService;
-    protected DmDependencyService dmDependencyService;
+    protected DependencyService dependencyService;
     protected ContentService contentService;
     protected SecurityService securityService;
     protected TaskExecutor taskExecutor;
@@ -103,7 +103,7 @@ public class RebuildRepositoryMetadata {
         try {
             // Delete all dependencies
             logger.debug("Deleting dependencies for site " + site);
-            dmDependencyService.deleteDependenciesForSite(site);
+            dependencyService.deleteSiteDependencies(site);
         } catch (Exception error) {
             logger.error("Failed to delete dependencies for site " + site);
         }
@@ -152,8 +152,8 @@ public class RebuildRepositoryMetadata {
     public ObjectStateService getObjectStateService() { return objectStateService; }
     public void setObjectStateService(ObjectStateService objectStateService) { this.objectStateService = objectStateService; }
 
-    public DmDependencyService getDmDependencyService() { return dmDependencyService; }
-    public void setDmDependencyService(DmDependencyService dmDependencyService) { this.dmDependencyService = dmDependencyService; }
+    public DependencyService getDependencyService() { return dependencyService; }
+    public void setDependencyService(DependencyService dependencyService) { this.dependencyService = dependencyService; }
 
     public ContentService getContentService() { return contentService; }
     public void setContentService(ContentService contentService) { this.contentService = contentService; }

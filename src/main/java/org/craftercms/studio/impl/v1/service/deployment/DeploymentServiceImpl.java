@@ -39,7 +39,7 @@ import org.craftercms.studio.api.v1.service.activity.ActivityService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
-import org.craftercms.studio.api.v1.service.dependency.DmDependencyService;
+import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v1.service.deployment.*;
 import org.craftercms.studio.api.v1.service.event.EventService;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
@@ -54,8 +54,6 @@ import org.craftercms.studio.impl.v1.service.deployment.job.DeployContentToEnvir
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
@@ -78,7 +76,7 @@ public class DeploymentServiceImpl implements DeploymentService {
     protected ServicesConfig servicesConfig;
     protected ContentService contentService;
     protected ActivityService activityService;
-    protected DmDependencyService dmDependencyService;
+    protected DependencyService dependencyService;
     protected DmFilterWrapper dmFilterWrapper;
     protected SiteService siteService;
     protected ObjectStateService objectStateService;
@@ -537,7 +535,7 @@ public class DeploymentServiceImpl implements DeploymentService {
             if(!(path.endsWith(FILE_SEPARATOR + DmConstants.INDEX_FILE) || path.endsWith(DmConstants.XML_PATTERN))) {
                 path = path + FILE_SEPARATOR + DmConstants.INDEX_FILE;
             }
-            addDependendenciesToSchdeuleList(site,launchDate,format,scheduledItems,comparator,subComparator,displayPatterns,filterType,path);
+            //addDependendenciesToSchdeuleList(site,launchDate,format,scheduledItems,comparator,subComparator,displayPatterns,filterType,path);
         } catch (ServiceException e) {
             logger.error("failed to read site " + site + " path " + path + ". " + e.getMessage());
         }
@@ -605,22 +603,10 @@ public class DeploymentServiceImpl implements DeploymentService {
                                                     DmContentItemComparator subComparator,
                                                     List<String> displayPatterns,
                                                     String filterType,
-                                                    String relativePath) {
+                                                    String relativePath) throws ServiceException {
 
-        DmDependencyTO dmDependencyTo = dmDependencyService.getDependencies(site, relativePath, false, true);
-
-        if (dmDependencyTo != null) {
-
-            List<DmDependencyTO> pages = dmDependencyTo.getPages();
-            _addDependendenciesToSchdeuleList(site, launchDate, format, scheduledItems, comparator, subComparator, displayPatterns, filterType, pages);
-
-            List<DmDependencyTO> components = dmDependencyTo.getComponents();
-            _addDependendenciesToSchdeuleList(site, launchDate, format, scheduledItems, comparator, subComparator, displayPatterns, filterType, components);
-
-            List<DmDependencyTO> documents = dmDependencyTo.getDocuments();
-            _addDependendenciesToSchdeuleList(site, launchDate, format, scheduledItems, comparator, subComparator, displayPatterns, filterType, documents);
-        }
-
+        Set<String> dependencyPaths = dependencyService.getItemDependencies(site, relativePath, 1);
+        _addDependendenciesToSchdeuleList(site, launchDate, format, scheduledItems, comparator, subComparator, displayPatterns, filterType, dependencyPaths);
     }
 
     protected ContentItemTO createDateItem(String name, ContentItemTO itemToAdd, DmContentItemComparator comparator, String timeZone) {
@@ -642,16 +628,13 @@ public class DeploymentServiceImpl implements DeploymentService {
                                                      DmContentItemComparator subComparator,
                                                      List<String> displayPatterns,
                                                      String filterType,
-                                                     List<DmDependencyTO>dependencies) {
+                                                     Set<String>dependencies) throws ServiceException {
         if(dependencies != null) {
-            for(DmDependencyTO dependencyTo:dependencies) {
-                if (objectStateService.isNew(site, dependencyTo.getUri())) {
-                    String uri = dependencyTo.getUri();
-                    if(objectStateService.isScheduled(site, uri)) {
-                        addScheduledItem(site,launchDate,format,uri,scheduledItems,comparator,subComparator,displayPatterns,filterType);
-                        if(dependencyTo.getUri().endsWith(DmConstants.XML_PATTERN)) {
-                            addDependendenciesToSchdeuleList(site,launchDate,format,scheduledItems,comparator,subComparator,displayPatterns,filterType,uri);
-                        }
+            for(String dependency : dependencies) {
+                if (objectStateService.isNew(site, dependency) && objectStateService.isScheduled(site, dependency)) {
+                    addScheduledItem(site,launchDate,format,dependency,scheduledItems,comparator,subComparator,displayPatterns,filterType);
+                    if(dependency.endsWith(DmConstants.XML_PATTERN)) {
+                        addDependendenciesToSchdeuleList(site,launchDate,format,scheduledItems,comparator,subComparator,displayPatterns,filterType,dependency);
                     }
                 }
             }
@@ -728,7 +711,7 @@ public class DeploymentServiceImpl implements DeploymentService {
 
     @Override
     @ValidateParams
-    public void bulkGoLive(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "environment") String environment, @ValidateSecurePathParam(name = "path") String path) {
+    public void bulkGoLive(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "environment") String environment, @ValidateSecurePathParam(name = "path") String path) throws ServiceException {
         dmPublishService.bulkGoLive(site, environment, path);
     }
 
@@ -824,8 +807,8 @@ public class DeploymentServiceImpl implements DeploymentService {
         this.activityService = activityService;
     }
 
-    public void setDmDependencyService(DmDependencyService dmDependencyService) {
-        this.dmDependencyService = dmDependencyService;
+    public void setDependencyService(DependencyService dependencyService) {
+        this.dependencyService = dependencyService;
     }
 
     public void setDmFilterWrapper(DmFilterWrapper dmFilterWrapper) {

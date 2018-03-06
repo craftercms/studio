@@ -874,8 +874,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 logger.debug("Checkout published/master branch for site " + site);
                 try {
 
-                    Ref checkoutMasterResult = git.checkout().setName(Constants.MASTER).call();
-                    PullResult pullResult = git.pull().setRemote(Constants.DEFAULT_REMOTE_NAME).setRemoteBranchName(Constants.MASTER).setStrategy(MergeStrategy.THEIRS).call();
+                    Ref checkoutMasterResult = git.checkout().setName(studioConfiguration.getProperty(REPO_SANDBOX_BRANCH)).call();
+                    PullResult pullResult = git.pull().setRemote(Constants.DEFAULT_REMOTE_NAME).setRemoteBranchName(studioConfiguration.getProperty(REPO_SANDBOX_BRANCH)).setStrategy(MergeStrategy.THEIRS).call();
                 } catch (RefNotFoundException e) {
                     logger.error("Failed to checkout published master and to pull content from sandbox for site " + site, e);
                     throw new DeploymentException("Failed to checkout published master and to pull content from sandbox for site " + site);
@@ -929,12 +929,12 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         git.reset().setMode(ResetCommand.ResetType.HARD).call();
                     }
 
-                    Ref checkoutMasterResult = git.checkout().setName(Constants.MASTER).call();
+                    Ref checkoutMasterResult = git.checkout().setName(studioConfiguration.getProperty(REPO_SANDBOX_BRANCH)).call();
 
                     logger.debug("Delete in-progress branch, in case it was not cleaned up for site " + site);
                     git.branchDelete().setBranchNames(inProgressBranchName).setForce(true).call();
 
-                    PullResult pullResult = git.pull().setRemote(Constants.DEFAULT_REMOTE_NAME).setRemoteBranchName(Constants.MASTER).setStrategy(MergeStrategy.THEIRS).call();
+                    PullResult pullResult = git.pull().setRemote(Constants.DEFAULT_REMOTE_NAME).setRemoteBranchName(studioConfiguration.getProperty(REPO_SANDBOX_BRANCH)).setStrategy(MergeStrategy.THEIRS).call();
                 } catch (RefNotFoundException e) {
                     logger.error("Failed to checkout published master and to pull content from sandbox for site " + site, e);
                     throw new DeploymentException("Failed to checkout published master and to pull content from sandbox for site " + site);
@@ -1266,7 +1266,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             for (int i = 0; i < environments.size() && counter < numberOfItems; i++) {
                 Ref env = environments.get(i);
                 String environment = env.getName();
-                if (!environment.equals(Constants.MASTER) && !environment.equals(Constants.R_HEADS + Constants.MASTER)) {
+                if (!environment.equals(studioConfiguration.getProperty(REPO_SANDBOX_BRANCH)) && !environment.equals(Constants.R_HEADS + studioConfiguration.getProperty(REPO_SANDBOX_BRANCH))) {
                     Iterable<RevCommit> branchLog = git.log()
                             .add(env.getObjectId())
                             .setRevFilter(AndRevFilter.create(CommitTimeRevFilter.after(fromDate.toInstant().toEpochMilli()), CommitTimeRevFilter.before(toDate.toInstant().toEpochMilli())))
@@ -1407,7 +1407,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         try {
             gitLogMapper.insertGitLog(params);
         } catch (DuplicateKeyException e) {
-            logger.error("Failed to insert commit id: " + commitId + " for site: " + siteId + " into gitlog table, because it is duplicate entry. Marking it as not processed so it can be processed by sync database task.", e);
+            logger.debug("Failed to insert commit id: " + commitId + " for site: " + siteId + " into gitlog table, because it is duplicate entry. Marking it as not processed so it can be processed by sync database task.");
             params = new HashMap<String, Object>();
             params.put("siteId", siteId);
             params.put("commitId", commitId);

@@ -29,6 +29,7 @@ public interface StudioConfiguration {
     String GLOBAL_REPO_PATH = "studio.repo.globalRepoPath";
     String SITES_REPOS_PATH = "studio.repo.sitesRepoBasePath";
     String SANDBOX_PATH = "studio.repo.siteSandboxPath";
+    String REPO_SANDBOX_BRANCH = "studio.repo.siteSandboxBranch";
     String PUBLISHED_PATH = "studio.repo.sitePublishedPath";
     String BLUE_PRINTS_PATH = "studio.repo.blueprintsPath";
     String BOOTSTRAP_REPO = "studio.repo.bootstrapRepo";
@@ -84,6 +85,7 @@ public interface StudioConfiguration {
     String CONFIGURATION_SITE_PREVIEW_DESTROY_CONTEXT_URL = "studio.configuration.site.preview.destroy.sontext.url";
     String CONFIGURATION_SITE_DEPENDENCY_RESOLVER_CONFIG_FILE_NAME = "studio.configuration.site.dependencyResolver.configFileName";
     String CONFIGURATION_SITE_DEPENDENCY_RESOLVER_CONFIG_BASE_PATH = "studio.configuration.site.dependencyResolver.configBasePath";
+    String CONFIGURATION_DEPENDENCY_ITEM_SPECIFIC_PATTERNS = "studio.configuration.dependency.itemSpecificPatterns";
 
     /** Import Service */
     String IMPORT_ASSIGNEE = "studio.import.assignee";

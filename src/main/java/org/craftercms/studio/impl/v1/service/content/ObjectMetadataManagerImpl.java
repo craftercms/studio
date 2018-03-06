@@ -28,6 +28,7 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
 
 import java.util.HashMap;
 import java.util.List;
@@ -47,7 +48,11 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
         Map<String, String> params = new HashMap<>();
         params.put("site", site);
         params.put("path", path);
+        try {
         itemMetadataMapper.insertEntry(params);
+        } catch (DuplicateKeyException e) {
+            logger.debug("Failed to insert metadata for site: " + site + " and path: " + path + " into item_metadata table, because it is duplicate entry.");
+        }
     }
 
     @Override
