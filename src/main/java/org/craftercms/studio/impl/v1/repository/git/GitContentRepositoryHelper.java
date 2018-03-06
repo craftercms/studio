@@ -466,6 +466,7 @@ public class GitContentRepositoryHelper {
                 Repository publishedRepo = publishedGit.getRepository();
                 publishedRepo = optimizeRepository(publishedRepo);
                 published.put(site, publishedRepo);
+                publishedRepo.close();
                 publishedGit.close();
             } catch (GitAPIException | IOException e) {
                 logger.error("Error adding origin (sandbox) to published repository", e);

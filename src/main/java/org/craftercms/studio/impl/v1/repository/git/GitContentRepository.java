@@ -1298,6 +1298,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     }
                 }
             }
+            git.close();
         } catch (IOException | GitAPIException e1) {
             logger.error("Error while getting deployment history for site " + site, e1);
         }
@@ -1319,6 +1320,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 RevCommit commit = iter.next();
                 toRet = Instant.ofEpochMilli(1000l * commit.getCommitTime()).atZone(ZoneOffset.UTC);
             }
+            git.close();
         } catch (IOException | GitAPIException e) {
             logger.error("Error while getting last deployment date for site " + site + ", path " + path, e);
         }
