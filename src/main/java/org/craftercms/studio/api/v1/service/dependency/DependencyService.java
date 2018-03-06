@@ -153,10 +153,9 @@ public interface DependencyService {
 	 * Delete all dependencies from the database for a given site.
 	 * 
 	 * @param site Site to operate on
-	 * @throws SiteNotFoundException Site doesn't exist
 	 * @throws ServiceException Internal error, see exception details
 	 */
-	void deleteSiteDependencies(String site) throws SiteNotFoundException, ServiceException;
+	void deleteSiteDependencies(String site) throws ServiceException;
 
     /**
      *
