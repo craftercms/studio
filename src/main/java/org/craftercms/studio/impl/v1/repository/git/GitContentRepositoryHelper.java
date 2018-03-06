@@ -356,16 +356,7 @@ public class GitContentRepositoryHelper {
             published.remove(site);
             RepositoryCache.close(pubRepo);
             pubRepo = null;
-            try {
-                FileUtils.deleteDirectory(siteFolder);
-            } catch (IOException e) {
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e1) {
-                    e1.printStackTrace();
-                }
-                FileUtils.deleteDirectory(siteFolder);
-            }
+            FileUtils.deleteDirectory(siteFolder);
 
             toReturn = true;
 
@@ -465,7 +456,6 @@ public class GitContentRepositoryHelper {
                     .call()) {
                 Repository publishedRepo = publishedGit.getRepository();
                 publishedRepo = optimizeRepository(publishedRepo);
-                published.put(site, publishedRepo);
                 publishedRepo.close();
                 publishedGit.close();
             } catch (GitAPIException | IOException e) {
