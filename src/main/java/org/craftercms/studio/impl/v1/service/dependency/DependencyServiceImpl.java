@@ -418,10 +418,7 @@ public class DependencyServiceImpl implements DependencyService {
     }
 
     @Override
-    public void deleteSiteDependencies(String site) throws SiteNotFoundException, ServiceException {
-        if (!siteService.exists(site)) {
-            throw new SiteNotFoundException();
-        }
+    public void deleteSiteDependencies(String site) throws ServiceException {
         logger.debug("Delete all dependencies for site: " + site);
         Map<String, String> params = new HashMap<String, String>();
         params.put("site", site);
