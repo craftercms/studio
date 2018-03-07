@@ -840,7 +840,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         Repository repository = helper.getRepository(site, StringUtils.isEmpty(site) ? GitRepositories.GLOBAL : SANDBOX);
         if (repository != null) {
             synchronized (repository) {
-                synchronized (helper.getRepository(site, GitRepositories.PUBLISHED)) {
+                Repository publishedRepository = helper.getRepository(site, GitRepositories.PUBLISHED);
+                synchronized (publishedRepository) {
                     toReturn = helper.deleteSiteGitRepo(site);
                 }
             }
@@ -863,19 +864,19 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         Repository repo = helper.getRepository(site, GitRepositories.PUBLISHED);
         String commitId = StringUtils.EMPTY;
         String path = StringUtils.EMPTY;
-        synchronized (helper.getRepository(site, GitRepositories.PUBLISHED)) {
+        synchronized (repo) {
             try (Git git = new Git(repo)) {
 
                 // fetch "origin/master"
                 logger.debug("Fetch from sandbox for site " + site);
-                FetchResult fetchResult = git.fetch().call();
+                git.fetch().call();
 
                 // checkout master and pull from sandbox
                 logger.debug("Checkout published/master branch for site " + site);
                 try {
 
-                    Ref checkoutMasterResult = git.checkout().setName(studioConfiguration.getProperty(REPO_SANDBOX_BRANCH)).call();
-                    PullResult pullResult = git.pull().setRemote(Constants.DEFAULT_REMOTE_NAME).setRemoteBranchName(studioConfiguration.getProperty(REPO_SANDBOX_BRANCH)).setStrategy(MergeStrategy.THEIRS).call();
+                    git.checkout().setName(studioConfiguration.getProperty(REPO_SANDBOX_BRANCH)).call();
+                    git.pull().setRemote(Constants.DEFAULT_REMOTE_NAME).setRemoteBranchName(studioConfiguration.getProperty(REPO_SANDBOX_BRANCH)).setStrategy(MergeStrategy.THEIRS).call();
                 } catch (RefNotFoundException e) {
                     logger.error("Failed to checkout published master and to pull content from sandbox for site " + site, e);
                     throw new DeploymentException("Failed to checkout published master and to pull content from sandbox for site " + site);
@@ -884,7 +885,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 // checkout environment branch
                 logger.debug("Checkout environment branch " + environment + " for site " + site);
                 try {
-                    Ref checkoutResult = git.checkout().setCreateBranch(true).setForce(true).setStartPoint("master")
+                    git.checkout().setCreateBranch(true).setForce(true).setStartPoint("master")
                             .setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK)
                             .setName(environment)
                             .call();
@@ -896,8 +897,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 PersonIdent authorIdent = helper.getAuthorIdent(author);
                 ZonedDateTime publishDate = ZonedDateTime.now(ZoneOffset.UTC);
                 String tagName = publishDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX")) + "_published_on_" + publishDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX"));
-                Ref tagResult = git.tag().setTagger(authorIdent).setName(tagName).setMessage(comment).call();
-
+                git.tag().setTagger(authorIdent).setName(tagName).setMessage(comment).call();
+                git.close();
             } catch (Exception e) {
                 logger.error("Error when publishing site " + site + " to environment " + environment, e);
                 throw new DeploymentException("Error when publishing site " + site + " to environment " + environment + " [commit ID = " + commitId + "]");
@@ -911,14 +912,14 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         Repository repo = helper.getRepository(site, GitRepositories.PUBLISHED);
         String commitId = StringUtils.EMPTY;
         String path = StringUtils.EMPTY;
-        synchronized (helper.getRepository(site, GitRepositories.PUBLISHED)) {
+        synchronized (repo) {
             try (Git git = new Git(repo)) {
 
                 String inProgressBranchName = environment + IN_PROGRESS_BRANCH_NAME_SUFIX;
 
                 // fetch "origin/master"
                 logger.debug("Fetch from sandbox for site " + site);
-                FetchResult fetchResult = git.fetch().call();
+                git.fetch().call();
 
                 // checkout master and pull from sandbox
                 logger.debug("Checkout published/master branch for site " + site);
@@ -929,12 +930,12 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         git.reset().setMode(ResetCommand.ResetType.HARD).call();
                     }
 
-                    Ref checkoutMasterResult = git.checkout().setName(studioConfiguration.getProperty(REPO_SANDBOX_BRANCH)).call();
+                    git.checkout().setName(studioConfiguration.getProperty(REPO_SANDBOX_BRANCH)).call();
 
                     logger.debug("Delete in-progress branch, in case it was not cleaned up for site " + site);
                     git.branchDelete().setBranchNames(inProgressBranchName).setForce(true).call();
 
-                    PullResult pullResult = git.pull().setRemote(Constants.DEFAULT_REMOTE_NAME).setRemoteBranchName(studioConfiguration.getProperty(REPO_SANDBOX_BRANCH)).setStrategy(MergeStrategy.THEIRS).call();
+                    git.pull().setRemote(Constants.DEFAULT_REMOTE_NAME).setRemoteBranchName(studioConfiguration.getProperty(REPO_SANDBOX_BRANCH)).setStrategy(MergeStrategy.THEIRS).call();
                 } catch (RefNotFoundException e) {
                     logger.error("Failed to checkout published master and to pull content from sandbox for site " + site, e);
                     throw new DeploymentException("Failed to checkout published master and to pull content from sandbox for site " + site);
@@ -944,14 +945,14 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 logger.debug("Checkout environment branch " + environment + " for site " + site);
                 boolean newBranch = false;
                 try {
-                    Ref checkoutResult = git.checkout()
+                    git.checkout()
                             .setName(environment)
                             .call();
                 } catch (RefNotFoundException e) {
                     logger.info("Not able to find branch " + environment + " for site " + site + ". Creating new branch");
                     // checkout environment branch
                     newBranch = true;
-                    Ref checkoutResult = git.checkout().setCreateBranch(true).setForce(true).setStartPoint("master")
+                    git.checkout().setCreateBranch(true).setForce(true).setStartPoint("master")
                             .setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK)
                             .setName(environment)
                             .call();
@@ -968,7 +969,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
                         // Create in progress branch
                         logger.debug("Create in-progress branch for site " + site);
-                        Ref checkoutResult = git.checkout()
+                        git.checkout()
                                 .setCreateBranch(true)
                                 .setForce(true)
                                 .setStartPoint(environment)
@@ -991,7 +992,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         RevCommit rc = rw.parseCommit(objCommitId);
 
                         CheckoutCommand checkout = git.checkout();
-                        Ref result = checkout.setStartPoint(commitId).addPath(path).call();
+                        checkout.setStartPoint(commitId).addPath(path).call();
 
                         if (deploymentItem.isMove()) {
                             String oldPath = helper.getGitPath(deploymentItem.getOldPath());
@@ -1030,11 +1031,11 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     ZonedDateTime publishDate = ZonedDateTime.now(ZoneOffset.UTC);
                     String tagName2 = tagDate2.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX")) + "_published_on_" + publishDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX"));
                     PersonIdent authorIdent2 = helper.getAuthorIdent(author);
-                    Ref tagResult2 = git.tag().setTagger(authorIdent2).setName(tagName2).setMessage(commitMessage).call();
+                    git.tag().setTagger(authorIdent2).setName(tagName2).setMessage(commitMessage).call();
 
                     // checkout environment
                     logger.debug("Checkout environment " + environment + " branch for site " + site);
-                    Ref checkoutResult = git.checkout()
+                    git.checkout()
                             .setName(environment)
                             .call();
 
@@ -1047,6 +1048,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     // clean up
                     logger.debug("Delete in-progress branch (clean up) for site " + site);
                     git.branchDelete().setBranchNames(inProgressBranchName).setForce(true).call();
+                    git.close();
                 }
             } catch (Exception e) {
                 logger.error("Error when publishing site " + site + " to environment " + environment, e);
@@ -1296,6 +1298,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     }
                 }
             }
+            git.close();
         } catch (IOException | GitAPIException e1) {
             logger.error("Error while getting deployment history for site " + site, e1);
         }
@@ -1317,6 +1320,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 RevCommit commit = iter.next();
                 toRet = Instant.ofEpochMilli(1000l * commit.getCommitTime()).atZone(ZoneOffset.UTC);
             }
+            git.close();
         } catch (IOException | GitAPIException e) {
             logger.error("Error while getting last deployment date for site " + site + ", path " + path, e);
         }

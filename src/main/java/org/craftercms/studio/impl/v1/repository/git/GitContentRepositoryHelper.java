@@ -349,10 +349,12 @@ public class GitContentRepositoryHelper {
             Repository sboxRepo = sandboxes.get(site);
             sboxRepo.close();
             sandboxes.remove(site);
+            RepositoryCache.close(sboxRepo);
             sboxRepo = null;
             Repository pubRepo = published.get(site);
             pubRepo.close();
             published.remove(site);
+            RepositoryCache.close(pubRepo);
             pubRepo = null;
             FileUtils.deleteDirectory(siteFolder);
 
@@ -427,10 +429,9 @@ public class GitContentRepositoryHelper {
     public boolean performInitialCommit(String site, String message) {
         boolean toReturn = true;
 
-        try {
-            Repository repo = getRepository(site, GitRepositories.SANDBOX);
+        Repository repo = getRepository(site, GitRepositories.SANDBOX);
 
-            Git git = new Git(repo);
+        try (Git git = new Git(repo)) {
 
             Status status = git.status().call();
 
@@ -455,10 +456,12 @@ public class GitContentRepositoryHelper {
                     .call()) {
                 Repository publishedRepo = publishedGit.getRepository();
                 publishedRepo = optimizeRepository(publishedRepo);
-                published.put(site, publishedRepo);
+                publishedRepo.close();
+                publishedGit.close();
             } catch (GitAPIException | IOException e) {
                 logger.error("Error adding origin (sandbox) to published repository", e);
             }
+            git.close();
         } catch (GitAPIException err) {
             logger.error("error creating initial commit for site:  " + site, err);
             toReturn = false;
