@@ -1,22 +1,11 @@
 package org.craftercms.studio.impl.v1.service.box;
 
-import java.io.InputStream;
-
+import com.box.sdk.*;
 import org.craftercms.studio.api.v1.box.BoxProfile;
 import org.craftercms.studio.api.v1.box.BoxProfileReader;
 import org.craftercms.studio.api.v1.exception.BoxException;
 import org.craftercms.studio.api.v1.service.box.BoxService;
-import org.craftercms.studio.api.v1.box.BoxUploadResult;
 import org.springframework.beans.factory.annotation.Required;
-import com.box.sdk.BoxAPIConnection;
-import com.box.sdk.BoxAPIException;
-import com.box.sdk.BoxConfig;
-import com.box.sdk.BoxDeveloperEditionAPIConnection;
-import com.box.sdk.BoxFile;
-import com.box.sdk.BoxFolder;
-import com.box.sdk.BoxItem;
-import com.box.sdk.EncryptionAlgorithm;
-import com.box.sdk.JWTEncryptionPreferences;
 
 /**
  * {@inheritDoc}
@@ -51,17 +40,6 @@ public class BoxServiceImpl implements BoxService {
         return BoxDeveloperEditionAPIConnection.getAppEnterpriseConnection(config);
     }
 
-    protected BoxFolder getUploadFolder(String uploadFolder, BoxAPIConnection api) {
-        BoxFolder root = BoxFolder.getRootFolder(api);
-        Iterable<BoxItem.Info> items = root.getChildren("name", "id");
-        for(BoxItem.Info info : items) {
-            if(info instanceof BoxFolder.Info && info.getName().equals(uploadFolder)) {
-                return (BoxFolder) info.getResource();
-            }
-        }
-        return root.createFolder(uploadFolder).getResource();
-    }
-
     /**
      * {@inheritDoc}
      */
@@ -70,26 +48,5 @@ public class BoxServiceImpl implements BoxService {
         BoxProfile profile = getProfile(site, profileId);
         BoxAPIConnection api = getConnection(profile);
         return api.getAccessToken();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public BoxUploadResult uploadFile(final String site, final String profileId, final String filename,
-                                      final InputStream content) throws BoxException {
-        try {
-            BoxProfile profile = getProfile(site, profileId);
-            BoxAPIConnection api = getConnection(profile);
-            String uploadFolder = profile.getUploadFolder();
-            BoxFolder folder = getUploadFolder(uploadFolder, api);
-            BoxFile.Info info = folder.uploadFile(content, filename);
-            BoxUploadResult result = new BoxUploadResult();
-            result.setId(info.getID());
-            result.setName(info.getName());
-            return result;
-        } catch (BoxAPIException e) {
-            throw new BoxException("Error during file upload", e);
-        }
     }
 }
