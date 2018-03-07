@@ -1421,6 +1421,33 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     @Override
+    public void insertFullGitLog(String siteId, int processed) {
+        List<GitLog> gitLogs = new ArrayList<>();
+
+        synchronized (helper.getRepository(siteId, SANDBOX)) {
+            Repository repo = helper.getRepository(siteId, SANDBOX);
+            try (Git git = new Git(repo)) {
+                Iterable<RevCommit> logs = git.log().call();
+                for (RevCommit rev : logs) {
+                    GitLog gitLog = new GitLog();
+                    gitLog.setCommitId(rev.getId().getName());
+                    gitLog.setProcessed(processed);
+                    gitLog.setSiteId(siteId);
+                    gitLogs.add(gitLog);
+                }
+            } catch (GitAPIException e) {
+                logger.error("Error getting full git log for site " + siteId, e);
+            }
+        }
+
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("siteId", siteId);
+        params.put("gitLogs", gitLogs);
+        params.put("processed", 1);
+        gitLogMapper.insertGitLogList(params);
+    }
+
+    @Override
     public void markGitLogVerifiedProcessed(String siteId, String commitId) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("siteId", siteId);
