@@ -324,6 +324,13 @@ public interface ContentRepository {
     void insertGitLog(String siteId, String commitId, int processed);
 
     /**
+     * Insert Full Git Log
+     * @param siteId site
+     * @param processed processed
+     */
+    void insertFullGitLog(String siteId, int processed);
+
+    /**
      * Mark Git log as verified
      * @param siteId site identifier
      * @param commitId commit id

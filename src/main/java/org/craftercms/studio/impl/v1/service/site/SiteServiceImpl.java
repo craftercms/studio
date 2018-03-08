@@ -724,6 +724,9 @@ public class SiteServiceImpl implements SiteService {
                 }
                 objectStateService.setStateForSiteContent(siteId, State.EXISTING_UNEDITED_UNLOCKED);
 
+                logger.debug("Adding git log to database for site " + siteId);
+                contentRepository.insertFullGitLog(siteId, 1);
+
                 // insert database records
                 logger.debug("Adding site record to database for site " + siteId);
                 SiteFeed siteFeed = new SiteFeed();
@@ -733,9 +736,6 @@ public class SiteServiceImpl implements SiteService {
                 siteFeed.setLastCommitId(lastCommitId);
                 siteFeed.setPublishingStatusMessage(studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT));
                 siteFeedMapper.createSite(siteFeed);
-
-                logger.debug("Adding git log to database for site " + siteId);
-                contentRepository.insertGitLog(siteId, lastCommitId, 1);
 
                 // Add default groups
                 logger.debug("Adding default groups for site " + siteId);
