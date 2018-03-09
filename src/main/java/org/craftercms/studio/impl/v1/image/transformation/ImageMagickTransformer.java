@@ -19,24 +19,24 @@ public class ImageMagickTransformer implements ImageTransformer {
     private static final Logger logger = LoggerFactory.getLogger(ImageMagickTransformer.class);
 
     private static final String DEFAULT_IMG_MGK_PATH = "convert";
-    private static final int DEFAULT_PROCESS_TIME_TO_WAIT_SECS = 15;
+    private static final int DEFAULT_PROCESS_TIMEOUT_SECS = 30;
 
     private static final String PARAM_OPTIONS = "options";
 
     private String imgMgkPath;
-    private int processTimeToWaitSecs;
+    private int processTimeoutSecs;
 
     public ImageMagickTransformer() {
         imgMgkPath = DEFAULT_IMG_MGK_PATH;
-        processTimeToWaitSecs = DEFAULT_PROCESS_TIME_TO_WAIT_SECS;
+        processTimeoutSecs = DEFAULT_PROCESS_TIMEOUT_SECS;
     }
 
     public void setImgMgkPath(String imgMgkPath) {
         this.imgMgkPath = imgMgkPath;
     }
 
-    public void setProcessTimeToWaitSecs(int processTimeToWaitSecs) {
-        this.processTimeToWaitSecs = processTimeToWaitSecs;
+    public void setProcessTimeoutSecs(int processTimeoutSecs) {
+        this.processTimeoutSecs = processTimeoutSecs;
     }
 
     public void transform(Path sourcePath, Path targetPath, Map<String, String> parameters) throws ImageTransformationException {
@@ -46,7 +46,7 @@ public class ImageMagickTransformer implements ImageTransformer {
             logger.info("Executing command: {}", cmdLine);
 
             Process proc = Runtime.getRuntime().exec(cmdLine);
-            proc.waitFor(processTimeToWaitSecs, TimeUnit.SECONDS);
+            proc.waitFor(processTimeoutSecs, TimeUnit.SECONDS);
 
             String stdOut = getProcessStdOut(proc);
             String stdErr = getProcessStdErr(proc);
