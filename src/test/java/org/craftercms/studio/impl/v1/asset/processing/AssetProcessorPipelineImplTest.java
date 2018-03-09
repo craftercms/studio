@@ -4,15 +4,13 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
-import java.util.regex.Matcher;
 
 import org.apache.commons.io.FilenameUtils;
 import org.craftercms.studio.api.v1.asset.Asset;
 import org.craftercms.studio.api.v1.asset.processing.AssetProcessor;
-import org.craftercms.studio.api.v1.asset.processing.AssetProcessorFactory;
+import org.craftercms.studio.api.v1.asset.processing.AssetProcessorResolver;
 import org.craftercms.studio.api.v1.asset.processing.ProcessorConfiguration;
 import org.craftercms.studio.api.v1.asset.processing.ProcessorPipelineConfiguration;
 import org.craftercms.studio.api.v1.exception.AssetProcessingException;
@@ -138,7 +136,7 @@ public class AssetProcessorPipelineImplTest {
         return config;
     }
 
-    private AssetProcessorFactory createProcessorFactory() {
+    private AssetProcessorResolver createProcessorFactory() {
         return config -> {
             if (config.getType().equals(SAME_INPUT_AS_OUTPUT_PROCESSOR_TYPE)) {
                 return createProcessorThatReturnsSameInputAsOutput();

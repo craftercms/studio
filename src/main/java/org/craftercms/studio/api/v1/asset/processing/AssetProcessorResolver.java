@@ -14,25 +14,25 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.studio.api.v1.exception;
+package org.craftercms.studio.api.v1.asset.processing;
+
+import org.craftercms.studio.api.v1.exception.AssetProcessingException;
 
 /**
- * General exception used by classes related to asset processing.
+ * Resolves a {@link AssetProcessor} based on configuration.
  *
  * @author avasquez
  */
-public class AssetProcessingException extends ServiceException {
+public interface AssetProcessorResolver {
 
-    public AssetProcessingException(Throwable t) {
-        super(t);
-    }
-
-    public AssetProcessingException(String message) {
-        super(message);
-    }
-
-    public AssetProcessingException(String message, Exception e) {
-        super(message, e);
-    }
+    /**
+     * Returns an {@link AssetProcessor} that's compatible with the specified configuration
+     *
+     * @param config the configuration
+     *
+     * @return the asset processor for the given configuration
+     * @throws AssetProcessingException if there's an error while retrieving the processor or if the configuration is invalid
+     */
+    AssetProcessor getProcessor(ProcessorConfiguration config) throws AssetProcessingException;
 
 }

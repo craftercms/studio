@@ -754,12 +754,12 @@
         </constructor-arg>
     </bean>
 
-    <bean id="studioAssetProcessorFactory" class="org.craftercms.studio.impl.v1.asset.processing.AssetProcessorFactoryImpl">
+    <bean id="studioAssetProcessorResolver" class="org.craftercms.studio.impl.v1.asset.processing.AssetProcessorResolverImpl">
         <property name="beanNameFormat" value="studio%s"/>
     </bean>
 
-    <bean id="studioAssetProcessorPipelineFactory" class="org.craftercms.studio.impl.v1.asset.processing.AssetProcessorPipelineFactoryImpl">
-        <property name="processorFactory" ref="studioAssetProcessorFactory"/>
+    <bean id="studioAssetProcessorPipelineResolver" class="org.craftercms.studio.impl.v1.asset.processing.AssetProcessorPipelineResolverImpl">
+        <property name="processorResolver" ref="studioAssetProcessorResolver"/>
     </bean>
 
     <bean id="studioAssetProcessingConfigReader" class="org.craftercms.studio.impl.v1.asset.processing.AssetProcessingConfigReaderImpl"/>
@@ -769,7 +769,7 @@
                   value="#{studioConfiguration.getProperty('studio.configuration.site.asset.processing.configurationPath')}"/>
         <property name="contentService" ref="cstudioContentService"/>
         <property name="configReader" ref="studioAssetProcessingConfigReader"/>
-        <property name="pipelineFactory" ref="studioAssetProcessorPipelineFactory"/>
+        <property name="pipelineResolver" ref="studioAssetProcessorPipelineResolver"/>
     </bean>
 
     <import resource="classpath:crafter/studio/studio-security-context.xml"/>
