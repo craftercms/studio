@@ -35,12 +35,12 @@ public class ImageTransformingProcessorTest {
 
     @Test
     public void testProcessWithNoOutputPathPattern() throws Exception {
-        processor.init(createProcessorConfigWithNoOutputPattern());
+        ProcessorConfiguration config = createProcessorConfigWithNoOutputPattern();
 
         Path inputFile = createInputFile();
         Asset input = new Asset(INPUT_REPO_PATH, inputFile);
 
-        Asset output = processor.processAsset(createInputPathMatcher(), input);
+        Asset output = processor.processAsset(config, createInputPathMatcher(), input);
 
         assertNotNull(output);
         assertEquals(output.getRepoPath(), input.getRepoPath());
@@ -50,12 +50,12 @@ public class ImageTransformingProcessorTest {
 
     @Test
     public void testProcessWithOutputPathPattern() throws Exception {
-        processor.init(createProcessorConfigWithOutputPattern());
+        ProcessorConfiguration config = createProcessorConfigWithOutputPattern();
 
         Path inputFile = createInputFile();
         Asset input = new Asset(INPUT_REPO_PATH, inputFile);
 
-        Asset output = processor.processAsset(createInputPathMatcher(), input);
+        Asset output = processor.processAsset(config, createInputPathMatcher(), input);
 
         assertNotNull(output);
         assertNotEquals(output.getRepoPath(), input.getRepoPath());

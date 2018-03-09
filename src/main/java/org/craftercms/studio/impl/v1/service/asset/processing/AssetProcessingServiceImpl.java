@@ -5,16 +5,20 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.io.FileUtils;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
+import org.craftercms.commons.lang.UrlUtils;
 import org.craftercms.studio.api.v1.asset.Asset;
 import org.craftercms.studio.api.v1.asset.processing.AssetProcessingConfigReader;
 import org.craftercms.studio.api.v1.asset.processing.AssetProcessorPipeline;
@@ -59,54 +63,69 @@ public class AssetProcessingServiceImpl implements AssetProcessingService {
     }
 
     @Override
-    public void processAsset(String site, String path, String assetName, InputStream in, String isImage, String allowedWidth,
-                             String allowedHeight, String allowLessSize, String draft, String unlock,
-                             String systemAsset) throws AssetProcessingException {
-        InputStream configIn = null;
-        boolean skipProcessing = false;
+    public Map<String, Object> processAsset(String site, String folder, String assetName, InputStream in, String isImage,
+                                            String allowedWidth, String allowedHeight, String allowLessSize, String draft,
+                                            String unlock, String systemAsset){
+        String repoPath = UrlUtils.concat(folder, assetName);
+        InputStream configIn;
 
         try {
-            configIn = contentService.getContent(site, configPath);
-        } catch (ContentNotFoundException e) {
-           // Ignore if file couldn't be found
-            logger.debug("No asset processing config found at {0}. Skipping asset processing...", path);
+            try {
+                configIn = contentService.getContent(site, configPath);
+            } catch (ContentNotFoundException e) {
+                // Ignore if file couldn't be found
+                configIn = null;
+            }
 
-            skipProcessing = true;
-        }
+            if (configIn != null) {
+                List<ProcessorPipelineConfiguration> pipelinesConfig = configReader.readConfig(configIn);
+                if (CollectionUtils.isNotEmpty(pipelinesConfig)) {
+                    Asset input = createAssetFromInputStream(repoPath, in);
+                    Set<Asset> finalOutputs = new LinkedHashSet<>();
 
-        List<ProcessorPipelineConfiguration> pipelinesConfig = configReader.readConfig(configIn);
-        if (CollectionUtils.isNotEmpty(pipelinesConfig)) {
-            Asset input = createAssetFromInputStream(path, in);
-            Set<Asset> finalOutputs = new LinkedHashSet<>();
+                    for (ProcessorPipelineConfiguration pipelineConfig : pipelinesConfig) {
+                        AssetProcessorPipeline pipeline = pipelineFactory.getPipeline(pipelineConfig);
+                        List<Asset> outputs = pipeline.processAsset(pipelineConfig, input);
 
-            for (ProcessorPipelineConfiguration pipelineConfig : pipelinesConfig) {
-                AssetProcessorPipeline pipeline = pipelineFactory.getPipeline(pipelineConfig);
-                Collection<Asset> outputs = pipeline.processAsset(pipelineConfig, input);
+                        if (CollectionUtils.isNotEmpty(outputs)) {
+                            finalOutputs.addAll(outputs);
+                        }
+                    }
 
-                if (CollectionUtils.isNotEmpty(outputs)) {
-                    finalOutputs.addAll(outputs);
+                    if (CollectionUtils.isNotEmpty(finalOutputs)) {
+                        List<Map<String, Object>> results = writeOutputs(site, finalOutputs, isImage, allowedWidth, allowedHeight,
+                                                                         allowLessSize, draft, unlock, systemAsset);
+
+                        // Return first result for now, might be good in the future to consider returning several results or just
+                        // one main result specified by config -- Alfonso
+                        if (CollectionUtils.isNotEmpty(results)) {
+                            return results.get(0);
+                        } else {
+                            return Collections.emptyMap();
+                        }
+                    } else {
+                        // No outputs mean that the input wasn't matched by any pipeline and processing was skipped
+                        logger.debug("No pipeline matched for {0}. Skipping asset processing...", repoPath);
+                    }
+                } else {
+                    // Ignore if no pipelines config
+                    logger.debug("No asset processing pipelines config found at {0}. Skipping asset processing...", repoPath);
                 }
+            } else {
+                logger.debug("No asset processing config found at {0}. Skipping asset processing...", repoPath);
             }
 
-            try {
-                writeOutputs(site, finalOutputs, isImage, allowedWidth, allowedHeight, allowLessSize, draft, unlock, systemAsset);
-            } catch (Exception e) {
-                throw new AssetProcessingException("Error while writing asset pipeline outputs: " + finalOutputs, e);
-            }
-        } else {
-            // Ignore if no pipelines config
-            logger.debug("No asset processing pipelines config found at {0}. Skipping asset processing...", path);
+            return contentService.writeContentAsset(site, folder, assetName, in, isImage, allowedWidth, allowedHeight, allowLessSize,
+                                                    draft, unlock, systemAsset);
+        } catch (Exception e) {
+            logger.error("Error processing asset", e);
 
-            skipProcessing = true;
-        }
+            Map<String, Object> result = new HashMap<>();
+            result.put("success", true);
+            result.put("message", e.getMessage());
+            result.put("error", e);
 
-        if (skipProcessing) {
-            try {
-                contentService.writeContentAsset(site, path, assetName, in, isImage, allowedWidth, allowedHeight, allowLessSize,
-                                                 draft, unlock, systemAsset);
-            } catch (ServiceException e) {
-                throw new AssetProcessingException(e.getMessage(), e);
-            }
+            return result;
         }
     }
 
@@ -124,20 +143,33 @@ public class AssetProcessingServiceImpl implements AssetProcessingService {
         }
     }
 
-    private void writeOutputs(String site, Collection<Asset> outputs, String isImage, String allowedWidth, String allowedHeight,
-                              String allowLessSize, String draft, String unlock, String systemAsset) throws AssetProcessingException {
-        if (CollectionUtils.isNotEmpty(outputs)) {
-            for (Asset output : outputs) {
-                try {
-                    try (InputStream in = Files.newInputStream(output.getFile())) {
-                        contentService.writeContentAsset(site, output.getRepoPath(), FilenameUtils.getName(output.getRepoPath()), in,
-                                                         isImage, allowedWidth, allowedHeight, allowLessSize, draft, unlock, systemAsset);
+    private List<Map<String, Object>> writeOutputs(String site, Collection<Asset> outputs, String isImage, String allowedWidth,
+                                                   String allowedHeight, String allowLessSize, String draft, String unlock,
+                                                   String systemAsset) throws AssetProcessingException {
+        List<Map<String, Object>> results = new ArrayList<>();
+
+        for (Asset output : outputs) {
+            try {
+                try (InputStream in = Files.newInputStream(output.getFile())) {
+                    Map<String, Object> result = contentService.writeContentAsset(site,
+                                                                                  FilenameUtils.getFullPath(output.getRepoPath()),
+                                                                                  FilenameUtils.getName(output.getRepoPath()),
+                                                                                  in, isImage, allowedWidth, allowedHeight,
+                                                                                  allowLessSize, draft, unlock, systemAsset);
+                    if (MapUtils.isNotEmpty(result)) {
+                        if (result.containsKey("error")) {
+                            throw new AssetProcessingException("Error writing output " + output, (Exception)result.get("error"));
+                        } else {
+                            results.add(result);
+                        }
                     }
-                } catch (Exception e) {
-                    throw new AssetProcessingException("Error writing output " + output, e);
                 }
+            } catch (IOException | ServiceException e) {
+                throw new AssetProcessingException("Error writing output " + output, e);
             }
         }
+
+        return results;
     }
 
 }

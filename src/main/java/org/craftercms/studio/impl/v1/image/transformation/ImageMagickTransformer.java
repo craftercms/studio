@@ -43,6 +43,8 @@ public class ImageMagickTransformer implements ImageTransformer {
         String cmdLine = createCmdLine(sourcePath, targetPath, parameters);
 
         try {
+            logger.info("Executing command: {}", cmdLine);
+
             Process proc = Runtime.getRuntime().exec(cmdLine);
             proc.waitFor(processTimeToWaitSecs, TimeUnit.SECONDS);
 

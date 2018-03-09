@@ -13,8 +13,12 @@ import org.craftercms.studio.api.v1.asset.Asset;
 import org.craftercms.studio.api.v1.asset.processing.AssetProcessor;
 import org.craftercms.studio.api.v1.asset.processing.ProcessorConfiguration;
 import org.craftercms.studio.api.v1.exception.AssetProcessingException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class AbstractAssetProcessor implements AssetProcessor {
+
+    private static final Logger logger = LoggerFactory.getLogger(AbstractAssetProcessor.class);
 
     @Override
     public Asset processAsset(ProcessorConfiguration config, Matcher inputPathMatcher, Asset input) throws AssetProcessingException {
@@ -25,6 +29,9 @@ public abstract class AbstractAssetProcessor implements AssetProcessor {
                 // and make the output file be the input file
                 Path inputFile = moveToTmpFile(input.getRepoPath(), input.getFile());
                 Path outputFile = input.getFile();
+                Asset output = new Asset(input.getRepoPath(), outputFile);
+
+                logger.info("Asset processing: Type = {}, Input = {}, Output = {}", config.getType(), input, output);
 
                 try {
                     doProcessAsset(inputFile, outputFile, config.getParams());
@@ -32,14 +39,17 @@ public abstract class AbstractAssetProcessor implements AssetProcessor {
                     Files.delete(inputFile);
                 }
 
-                return new Asset(input.getRepoPath(), outputFile);
+                return output;
             } else {
                 Path inputFile = input.getFile();
                 Path outputFile = createTmpFile(outputRepoPath);
+                Asset output = new Asset(outputRepoPath, outputFile);
+
+                logger.info("Asset processing: Type = {}, Input = {}, Output = {}", config.getType(), input, output);
 
                 doProcessAsset(inputFile, outputFile, config.getParams());
 
-                return new Asset(outputRepoPath, outputFile);
+                return output;
             }
         } catch (Exception e) {
             throw new AssetProcessingException("Error while executing asset processor of type '" + config.getType() + "'", e);

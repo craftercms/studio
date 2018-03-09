@@ -17,6 +17,7 @@ import org.craftercms.studio.api.v1.asset.processing.AssetProcessorFactory;
 import org.craftercms.studio.api.v1.asset.processing.AssetProcessorPipeline;
 import org.craftercms.studio.api.v1.asset.processing.ProcessorConfiguration;
 import org.craftercms.studio.api.v1.asset.processing.ProcessorPipelineConfiguration;
+import org.craftercms.studio.api.v1.exception.AssetProcessingConfigurationException;
 import org.craftercms.studio.api.v1.exception.AssetProcessingException;
 
 public class AssetProcessorPipelineImpl implements AssetProcessorPipeline {
@@ -28,7 +29,7 @@ public class AssetProcessorPipelineImpl implements AssetProcessorPipeline {
     }
 
     @Override
-    public Collection<Asset> processAsset(ProcessorPipelineConfiguration config, Asset input) throws AssetProcessingException {
+    public List<Asset> processAsset(ProcessorPipelineConfiguration config, Asset input) throws AssetProcessingException {
         Matcher inputPatMatcher = matchForProcessing(config, input);
         if (inputPatMatcher != null) {
             Set<Asset> outputs = new LinkedHashSet<>();
@@ -50,9 +51,9 @@ public class AssetProcessorPipelineImpl implements AssetProcessorPipeline {
                 outputs.remove(originalInput);
             }
 
-            return outputs;
+            return new ArrayList<>(outputs);
         } else {
-            return Collections.singletonList(input);
+            return Collections.emptyList();
         }
     }
 
@@ -67,7 +68,8 @@ public class AssetProcessorPipelineImpl implements AssetProcessorPipeline {
         }
     }
 
-    private Map<ProcessorConfiguration, AssetProcessor> getProcessors(ProcessorPipelineConfiguration config) {
+    private Map<ProcessorConfiguration, AssetProcessor> getProcessors(ProcessorPipelineConfiguration config)
+        throws AssetProcessingConfigurationException {
         Map<ProcessorConfiguration, AssetProcessor> processors = new LinkedHashMap<>(config.getProcessorsConfig().size());
 
         for (ProcessorConfiguration processorConfig : config.getProcessorsConfig()) {

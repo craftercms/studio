@@ -17,10 +17,7 @@ public class AssetProcessorPipelineFactoryImpl implements AssetProcessorPipeline
 
     @Override
     public AssetProcessorPipeline getPipeline(ProcessorPipelineConfiguration config) {
-        AssetProcessorPipeline pipeline = new AssetProcessorPipelineImpl(processorFactory);
-        pipeline.init(config);
-
-        return pipeline;
+        return new AssetProcessorPipelineImpl(processorFactory);
     }
 
 }

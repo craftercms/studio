@@ -8,6 +8,7 @@ import scripts.api.impl.search.SolrSearch;
 class SpringContentServices {
 
 	static CONTENT_SERVICES_BEAN = "cstudioContentService"
+	static ASSET_PROCESSING_SERVICE_BEAN = "studioAssetProcessingService"
 
 	def context = null
 
@@ -212,8 +213,8 @@ class SpringContentServices {
 	}
 
 	def writeContentAsset(site, path, fileName, content, isImage, allowedWidth, allowedHeight, allowLessSize, draft, unlock, systemAsset) {
-		def springBackendService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN);
-		return springBackendService.writeContentAsset(site, path, fileName, content, isImage, allowedWidth, allowedHeight, allowLessSize, draft, unlock, systemAsset);
+		def springBackendService = this.context.applicationContext.get(ASSET_PROCESSING_SERVICE_BEAN);
+		return springBackendService.processAsset(site, path, fileName, content, isImage, allowedWidth, allowedHeight, allowLessSize, draft, unlock, systemAsset);
 	}
 
     def reorderItems(site, path, before, after) {

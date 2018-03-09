@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 import java.util.regex.Matcher;
@@ -36,12 +37,12 @@ public class AssetProcessorPipelineImplTest {
 
     @Test
     public void testProcessSameInputAsOutput() throws Exception {
-        pipeline.init(createPipelineConfig(true, SAME_INPUT_AS_OUTPUT_PROCESSOR_TYPE, SAME_INPUT_AS_OUTPUT_PROCESSOR_TYPE));
-
         Path inputFile = createInputFile();
         Asset input = new Asset(INPUT_REPO_PATH, inputFile);
+        ProcessorPipelineConfiguration config = createPipelineConfig(true, SAME_INPUT_AS_OUTPUT_PROCESSOR_TYPE,
+                                                                     SAME_INPUT_AS_OUTPUT_PROCESSOR_TYPE);
 
-        List<Asset> outputs = pipeline.processAsset(input);
+        List<Asset> outputs = pipeline.processAsset(config, input);
 
         assertNotNull(outputs);
         assertEquals(outputs.size(), 1);
@@ -51,12 +52,13 @@ public class AssetProcessorPipelineImplTest {
 
     @Test
     public void testProcessNewOutputKeepOriginal() throws Exception {
-        pipeline.init(createPipelineConfig(true, SAME_INPUT_AS_OUTPUT_PROCESSOR_TYPE, RANDOM_OUTPUT_PROCESSOR_TYPE));
+        ProcessorPipelineConfiguration config = createPipelineConfig(true, SAME_INPUT_AS_OUTPUT_PROCESSOR_TYPE,
+                                                                     RANDOM_OUTPUT_PROCESSOR_TYPE);
 
         Path inputFile = createInputFile();
         Asset input = new Asset(INPUT_REPO_PATH, inputFile);
 
-        List<Asset> outputs = pipeline.processAsset(input);
+        List<Asset> outputs = pipeline.processAsset(config, input);
 
         assertNotNull(outputs);
         assertEquals(2, outputs.size());
@@ -68,12 +70,13 @@ public class AssetProcessorPipelineImplTest {
 
     @Test
     public void testProcessNewOutputDropOriginal() throws Exception {
-        pipeline.init(createPipelineConfig(false, SAME_INPUT_AS_OUTPUT_PROCESSOR_TYPE, RANDOM_OUTPUT_PROCESSOR_TYPE));
+        ProcessorPipelineConfiguration config = createPipelineConfig(false, SAME_INPUT_AS_OUTPUT_PROCESSOR_TYPE,
+                                                                     RANDOM_OUTPUT_PROCESSOR_TYPE);
 
         Path inputFile = createInputFile();
         Asset input = new Asset(INPUT_REPO_PATH, inputFile);
 
-        List<Asset> outputs = pipeline.processAsset(input);
+        List<Asset> outputs = pipeline.processAsset(config, input);
 
         assertNotNull(outputs);
         assertEquals(outputs.size(), 1);
@@ -83,12 +86,12 @@ public class AssetProcessorPipelineImplTest {
 
     @Test
     public void testProcessMultipleNewOutputsKeepOriginal() throws Exception {
-        pipeline.init(createPipelineConfig(true, RANDOM_OUTPUT_PROCESSOR_TYPE, RANDOM_OUTPUT_PROCESSOR_TYPE));
+        ProcessorPipelineConfiguration config = createPipelineConfig(true, RANDOM_OUTPUT_PROCESSOR_TYPE, RANDOM_OUTPUT_PROCESSOR_TYPE);
 
         Path inputFile = createInputFile();
         Asset input = new Asset(INPUT_REPO_PATH, inputFile);
 
-        List<Asset> outputs = pipeline.processAsset(input);
+        List<Asset> outputs = pipeline.processAsset(config, input);
 
         assertNotNull(outputs);
         assertEquals(outputs.size(), 3);
@@ -102,12 +105,12 @@ public class AssetProcessorPipelineImplTest {
 
     @Test
     public void testProcessMultipleNewOutputsDropOriginal() throws Exception {
-        pipeline.init(createPipelineConfig(false, RANDOM_OUTPUT_PROCESSOR_TYPE, RANDOM_OUTPUT_PROCESSOR_TYPE));
+        ProcessorPipelineConfiguration config = createPipelineConfig(false, RANDOM_OUTPUT_PROCESSOR_TYPE, RANDOM_OUTPUT_PROCESSOR_TYPE);
 
         Path inputFile = createInputFile();
         Asset input = new Asset(INPUT_REPO_PATH, inputFile);
 
-        List<Asset> outputs = pipeline.processAsset(input);
+        List<Asset> outputs = pipeline.processAsset(config, input);
 
         assertNotNull(outputs);
         assertEquals(outputs.size(), 2);
@@ -146,39 +149,19 @@ public class AssetProcessorPipelineImplTest {
     }
 
     private AssetProcessor createProcessorThatReturnsSameInputAsOutput() {
-        return new AssetProcessor() {
-
-            @Override
-            public void init(ProcessorConfiguration config) {
-            }
-
-            @Override
-            public Asset processAsset(Matcher inputPathMatcher, Asset input) throws AssetProcessingException {
-                return input;
-            }
-
-        };
+        return (config, inputPathMatcher, input) -> input;
     }
 
     private AssetProcessor createProcessorThatReturnsRandomOutput() {
-        return new AssetProcessor() {
+        return (config, inputPathMatcher, input) -> {
+            String filename = UUID.randomUUID().toString();
+            String repoPath = "/static-assets/images/transformed/" + filename + ".jpg";
 
-            @Override
-            public void init(ProcessorConfiguration config) {
+            try {
+                return new Asset(repoPath, Files.createTempFile(filename, "." + ".jpg"));
+            } catch (IOException e) {
+                throw new AssetProcessingException(e);
             }
-
-            @Override
-            public Asset processAsset(Matcher inputPathMatcher, Asset input) throws AssetProcessingException {
-                String filename = UUID.randomUUID().toString();
-                String repoPath = "/static-assets/images/transformed/" + filename + ".jpg";
-
-                try {
-                    return new Asset(repoPath, Files.createTempFile(filename, "." + ".jpg"));
-                } catch (IOException e) {
-                    throw new AssetProcessingException(e);
-                }
-            }
-
         };
     }
 

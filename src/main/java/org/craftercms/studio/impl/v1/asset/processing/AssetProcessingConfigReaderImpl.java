@@ -88,22 +88,22 @@ public class AssetProcessingConfigReaderImpl implements AssetProcessingConfigRea
     }
 
     private Map<String, String > getProcessorParams(HierarchicalConfiguration processorConfig) {
-        HierarchicalConfiguration paramsConfig = processorConfig.configurationAt(PROCESSOR_PARAMS_CONFIG_KEY);
-        if (paramsConfig != null) {
-            Map<String, String> params = new HashMap<>();
-            Iterator<String> keysIter = paramsConfig.getKeys();
+        Map<String, String> params = new HashMap<>();
+        Iterator<String> keysIter = processorConfig.getKeys();
+        String paramsPrefix = PROCESSOR_PARAMS_CONFIG_KEY + ".";
 
-            while (keysIter.hasNext()) {
-                String key = keysIter.next();
-                String value = paramsConfig.getString(key);
+        while (keysIter.hasNext()) {
+            String key = keysIter.next();
 
-                params.put(key, value);
+            if (key.startsWith(paramsPrefix)) {
+                String paramName = StringUtils.substringAfter(key, paramsPrefix);
+                String paramValue = processorConfig.getString(key);
+
+                params.put(paramName, paramValue);
             }
-
-            return params;
-        } else {
-            return Collections.emptyMap();
         }
+
+        return params;
     }
 
     @SuppressWarnings("unchecked")

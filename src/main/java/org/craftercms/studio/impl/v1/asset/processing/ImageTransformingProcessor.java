@@ -16,7 +16,7 @@ public class ImageTransformingProcessor extends AbstractAssetProcessor {
 
     @Override
     protected void doProcessAsset(Path inputFile, Path outputFile, Map<String, String> params) throws ImageTransformationException {
-        transformer.transform(inputFile, outputFile, config.getParams());
+        transformer.transform(inputFile, outputFile, params);
     }
 
 }
