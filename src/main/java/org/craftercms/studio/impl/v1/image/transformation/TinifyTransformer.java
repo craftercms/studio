@@ -19,10 +19,8 @@ package org.craftercms.studio.impl.v1.image.transformation;
 import com.tinify.Source;
 import com.tinify.Tinify;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Map;
-import javax.annotation.PostConstruct;
 
 import org.craftercms.studio.api.v1.exception.ImageTransformationException;
 import org.craftercms.studio.api.v1.image.transformation.ImageTransformer;

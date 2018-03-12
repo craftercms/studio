@@ -19,8 +19,6 @@ package org.craftercms.studio.api.v1.service.asset.processing;
 import java.io.InputStream;
 import java.util.Map;
 
-import org.craftercms.studio.api.v1.exception.AssetProcessingException;
-
 /**
  * Service to run an asset through processor pipelines. Asset processing can be used to perform image transformation like
  * ImageMagick and Tinify.

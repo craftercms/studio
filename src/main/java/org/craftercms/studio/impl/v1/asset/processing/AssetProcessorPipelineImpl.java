@@ -32,7 +32,6 @@ import org.craftercms.studio.api.v1.asset.processing.AssetProcessorResolver;
 import org.craftercms.studio.api.v1.asset.processing.AssetProcessorPipeline;
 import org.craftercms.studio.api.v1.asset.processing.ProcessorConfiguration;
 import org.craftercms.studio.api.v1.asset.processing.ProcessorPipelineConfiguration;
-import org.craftercms.studio.api.v1.exception.AssetProcessingConfigurationException;
 import org.craftercms.studio.api.v1.exception.AssetProcessingException;
 
 /**
