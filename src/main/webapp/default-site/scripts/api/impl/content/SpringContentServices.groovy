@@ -232,4 +232,14 @@ class SpringContentServices {
         def springBackedService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN)
         return springBackedService.renameFolder(site, path, name)
     }
+
+    def addRemote(siteId, remoteName, remoteUrl, authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey) {
+        def springBackedService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN)
+        return springBackedService.addRemote(siteId, remoteName, remoteUrl, authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey)
+    }
+
+    def removeRemote(siteId, remoteName) {
+        def springBackedService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN)
+        return springBackedService.removeRemote(siteId, remoteName)
+    }
 }
