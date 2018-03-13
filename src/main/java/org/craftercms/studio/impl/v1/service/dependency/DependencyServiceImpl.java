@@ -245,7 +245,9 @@ public class DependencyServiceImpl implements DependencyService {
                 ContentItemTO item = contentService.getContentItem(site, parentPath);
                 if (item.isNew() || objectMetadataManager.isRenamed(site, item.getUri())) {
                     logger.debug("Parent exists and it is NEW or RENAMED, it is mandatory.");
-                    parentPaths.add(item.getUri());
+                    if (!item.isFolder()) {
+                        parentPaths.add(item.getUri());
+                    }
                     parentPaths.addAll(getMandatoryParent(site, item.getUri()));
                 }
             }
