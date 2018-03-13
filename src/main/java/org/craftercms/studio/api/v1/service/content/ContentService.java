@@ -246,4 +246,6 @@ public interface ContentService {
      * @return return the reference to the folder renamed
      */
     boolean renameFolder(String site, String path, String name) throws ServiceException;
+
+    boolean addRemote(String siteId, String remoteName, String remoteUrl, String authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey)
 }
