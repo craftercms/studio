@@ -5,11 +5,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
-import org.apache.commons.configuration2.XMLConfiguration;
-import org.apache.commons.configuration2.builder.FileBasedConfigurationBuilder;
-import org.apache.commons.configuration2.builder.fluent.Parameters;
 import org.apache.commons.configuration2.ex.ConfigurationException;
-import org.apache.commons.configuration2.io.FileHandler;
 import org.craftercms.studio.api.v1.exception.AwsConfigurationException;
 import org.craftercms.studio.api.v1.service.aws.AwsProfileManager;
 import org.craftercms.studio.api.v1.service.content.ContentService;
