@@ -135,10 +135,10 @@
             <samplePath>/studio/administration/samples/sample-box.xml</samplePath>
         </file>
         <file>
-            <path>/studio/asset-processing.xml</path>
+            <path>/studio/asset-processing/asset-processing-config.xml</path>
             <title>Asset Processing</title>
             <description>Asset Processing</description>
-            <samplePath>/studio/administration/samples/sample-asset-processing.xml</samplePath>
+            <samplePath>/studio/administration/samples/sample-asset-processing-config.xml</samplePath>
         </file>
     </files>
 </config>

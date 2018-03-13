@@ -171,7 +171,7 @@ public class AssetProcessingServiceImpl implements AssetProcessingService {
 
         for (Asset output : outputs) {
             try {
-                try (InputStream in = Files.newInputStream(output.getFile())) {
+                try (InputStream in = Files.newInputStream(output.getFilePath())) {
                     Map<String, Object> result = contentService.writeContentAsset(site,
                                                                                   FilenameUtils.getFullPath(output.getRepoPath()),
                                                                                   FilenameUtils.getName(output.getRepoPath()),

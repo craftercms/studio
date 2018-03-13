@@ -48,27 +48,27 @@ public abstract class AbstractAssetProcessor implements AssetProcessor {
             if (StringUtils.isEmpty(outputRepoPath)) {
                 // No output repo path means write to the same input. So move the original file to a tmp location
                 // and make the output file be the input file
-                Path inputFile = moveToTmpFile(input.getRepoPath(), input.getFile());
-                Path outputFile = input.getFile();
-                Asset output = new Asset(input.getRepoPath(), outputFile);
+                Path inputFilePath = moveToTmpFile(input.getRepoPath(), input.getFilePath());
+                Path outputFilePath = input.getFilePath();
+                Asset output = new Asset(input.getRepoPath(), outputFilePath);
 
                 logger.info("Asset processing: Type = {}, Input = {}, Output = {}", config.getType(), input, output);
 
                 try {
-                    doProcessAsset(inputFile, outputFile, config.getParams());
+                    doProcessAsset(inputFilePath, outputFilePath, config.getParams());
                 } finally {
-                    Files.delete(inputFile);
+                    Files.delete(inputFilePath);
                 }
 
                 return output;
             } else {
-                Path inputFile = input.getFile();
-                Path outputFile = createTmpFile(outputRepoPath);
-                Asset output = new Asset(outputRepoPath, outputFile);
+                Path inputFilePath = input.getFilePath();
+                Path outputFilePath = createTmpFile(outputRepoPath);
+                Asset output = new Asset(outputRepoPath, outputFilePath);
 
                 logger.info("Asset processing: Type = {}, Input = {}, Output = {}", config.getType(), input, output);
 
-                doProcessAsset(inputFile, outputFile, config.getParams());
+                doProcessAsset(inputFilePath, outputFilePath, config.getParams());
 
                 return output;
             }
@@ -77,10 +77,10 @@ public abstract class AbstractAssetProcessor implements AssetProcessor {
         }
     }
 
-    private Path moveToTmpFile(String repoPath, Path file) throws IOException {
-        Path tmpFile = createTmpFile(repoPath);
+    private Path moveToTmpFile(String repoPath, Path filePath) throws IOException {
+        Path tmpFilePath = createTmpFile(repoPath);
 
-        return Files.move(file, tmpFile, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+        return Files.move(filePath, tmpFilePath, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
     }
 
     private Path createTmpFile(String repoPath) throws IOException {

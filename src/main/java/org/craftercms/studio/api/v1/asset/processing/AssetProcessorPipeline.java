@@ -30,7 +30,7 @@ public interface AssetProcessorPipeline {
 
     /**
      * Processes the asset, only if there's a match with {@link ProcessorPipelineConfiguration#getInputPathPattern()}. If there's no
-     * match, and empty list is returned. Multiple outputs can be returned depending whether or not the processors of the pipeline
+     * match, an empty list is returned. Multiple outputs can be returned depending whether or not the processors of the pipeline
      * have an output different than their input.
      *
      * @param config    the configuration to use for the pipeline execution

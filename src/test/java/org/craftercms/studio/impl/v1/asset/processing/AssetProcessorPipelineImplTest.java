@@ -45,7 +45,7 @@ public class AssetProcessorPipelineImplTest {
         assertNotNull(outputs);
         assertEquals(outputs.size(), 1);
         assertEquals(outputs.get(0).getRepoPath(), input.getRepoPath());
-        assertEquals(outputs.get(0).getFile(), input.getFile());
+        assertEquals(outputs.get(0).getFilePath(), input.getFilePath());
     }
 
     @Test
@@ -61,9 +61,9 @@ public class AssetProcessorPipelineImplTest {
         assertNotNull(outputs);
         assertEquals(2, outputs.size());
         assertEquals(outputs.get(0).getRepoPath(), input.getRepoPath());
-        assertEquals(outputs.get(0).getFile(), input.getFile());
+        assertEquals(outputs.get(0).getFilePath(), input.getFilePath());
         assertNotEquals(outputs.get(1).getRepoPath(), input.getRepoPath());
-        assertNotEquals(outputs.get(1).getFile(), input.getFile());
+        assertNotEquals(outputs.get(1).getFilePath(), input.getFilePath());
     }
 
     @Test
@@ -79,7 +79,7 @@ public class AssetProcessorPipelineImplTest {
         assertNotNull(outputs);
         assertEquals(outputs.size(), 1);
         assertNotEquals(outputs.get(0).getRepoPath(), input.getRepoPath());
-        assertNotEquals(outputs.get(0).getFile(), input.getFile());
+        assertNotEquals(outputs.get(0).getFilePath(), input.getFilePath());
     }
 
     @Test
@@ -94,11 +94,11 @@ public class AssetProcessorPipelineImplTest {
         assertNotNull(outputs);
         assertEquals(outputs.size(), 3);
         assertEquals(outputs.get(0).getRepoPath(), input.getRepoPath());
-        assertEquals(outputs.get(0).getFile(), input.getFile());
+        assertEquals(outputs.get(0).getFilePath(), input.getFilePath());
         assertNotEquals(outputs.get(1).getRepoPath(), input.getRepoPath());
-        assertNotEquals(outputs.get(1).getFile(), input.getFile());
+        assertNotEquals(outputs.get(1).getFilePath(), input.getFilePath());
         assertNotEquals(outputs.get(2).getRepoPath(), input.getRepoPath());
-        assertNotEquals(outputs.get(2).getFile(), input.getFile());
+        assertNotEquals(outputs.get(2).getFilePath(), input.getFilePath());
     }
 
     @Test
@@ -113,9 +113,9 @@ public class AssetProcessorPipelineImplTest {
         assertNotNull(outputs);
         assertEquals(outputs.size(), 2);
         assertNotEquals(outputs.get(0).getRepoPath(), input.getRepoPath());
-        assertNotEquals(outputs.get(0).getFile(), input.getFile());
+        assertNotEquals(outputs.get(0).getFilePath(), input.getFilePath());
         assertNotEquals(outputs.get(1).getRepoPath(), input.getRepoPath());
-        assertNotEquals(outputs.get(1).getFile(), input.getFile());
+        assertNotEquals(outputs.get(1).getFilePath(), input.getFilePath());
     }
 
     private ProcessorPipelineConfiguration createPipelineConfig(boolean keepOriginal, String... processorTypes) {

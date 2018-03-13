@@ -26,11 +26,11 @@ import java.nio.file.Path;
 public class Asset {
 
     private String repoPath;
-    private Path file;
+    private Path filePath;
 
-    public Asset(String repoPath, Path file) {
+    public Asset(String repoPath, Path filePath) {
         this.repoPath = repoPath;
-        this.file = file;
+        this.filePath = filePath;
     }
 
     /**
@@ -41,10 +41,10 @@ public class Asset {
     }
 
     /**
-     * Sets the file where the asset is temporarily being stored.
+     * Sets the file path where the asset is temporarily being stored.
      */
-    public Path getFile() {
-        return file;
+    public Path getFilePath() {
+        return filePath;
     }
 
     @Override

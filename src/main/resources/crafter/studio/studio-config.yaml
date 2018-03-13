@@ -90,7 +90,7 @@ studio.configuration.site.box.configurationPath: /config/studio/box/box.xml
 # Regex pattern for item specific dependencies
 studio.configuration.dependency.itemSpecificPatterns: /site/components/page/.*,/static-assets/page/.*
 # Repo path to the asset processing config
-studio.configuration.site.asset.processing.configurationPath: /config/studio/asset-processing.xml
+studio.configuration.site.asset.processing.configurationPath: /config/studio/asset-processing/asset-processing-config.xml
 
 ########################################################
 ##                   Import Service                   ##

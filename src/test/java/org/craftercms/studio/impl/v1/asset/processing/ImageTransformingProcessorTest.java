@@ -44,7 +44,7 @@ public class ImageTransformingProcessorTest {
 
         assertNotNull(output);
         assertEquals(output.getRepoPath(), input.getRepoPath());
-        assertEquals(output.getFile(), inputFile);
+        assertEquals(output.getFilePath(), inputFile);
         verify(transformer).transform(any(Path.class), eq(inputFile), eq(Collections.emptyMap()));
     }
 
@@ -60,7 +60,7 @@ public class ImageTransformingProcessorTest {
         assertNotNull(output);
         assertNotEquals(output.getRepoPath(), input.getRepoPath());
         assertEquals(output.getRepoPath(), OUTPUT_REPO_PATH);
-        verify(transformer).transform(eq(inputFile), eq(output.getFile()), eq(Collections.emptyMap()));
+        verify(transformer).transform(eq(inputFile), eq(output.getFilePath()), eq(Collections.emptyMap()));
     }
 
     private ImageTransformer createImageTransformer() {
