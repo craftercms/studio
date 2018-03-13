@@ -130,11 +130,6 @@
                  open="(" separator="," close=")">
             #{state}
         </foreach>
-        AND
-        <foreach item="pattern" index="index" collection="regex"
-                 open="(" separator=" OR " close=")">
-            cd1.target_path RLIKE #{pattern}
-        </foreach>
         UNION
         SELECT target_path
         FROM (dependency cd2 INNER JOIN item_state co2 ON cd2.target_path = co2.path AND cd2.site = co2.site)
