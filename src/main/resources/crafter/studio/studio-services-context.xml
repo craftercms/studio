@@ -736,5 +736,41 @@
         <property name="configLocation" value="crafter/studio/studio-config.yaml"/>
     </bean>
 
+    <!-- ////////////////////////////////////// -->
+    <!--         Asset Processing               -->
+    <!-- ////////////////////////////////////// -->
+
+    <bean id="studioImageMagickTransformer" class="org.craftercms.studio.impl.v1.asset.processing.ImageTransformingProcessor">
+        <constructor-arg>
+            <bean class="org.craftercms.studio.impl.v1.image.transformation.ImageMagickTransformer"/>
+        </constructor-arg>
+    </bean>
+
+    <bean id="studioTinifyTransformer" class="org.craftercms.studio.impl.v1.asset.processing.ImageTransformingProcessor">
+        <constructor-arg>
+            <bean class="org.craftercms.studio.impl.v1.image.transformation.TinifyTransformer">
+                <property name="apiKey" value="#{studioConfiguration.getProperty('studio.configuration.asset.processing.tinify.apiKey')}"/>
+            </bean>
+        </constructor-arg>
+    </bean>
+
+    <bean id="studioAssetProcessorResolver" class="org.craftercms.studio.impl.v1.asset.processing.AssetProcessorResolverImpl">
+        <property name="beanNameFormat" value="studio%s"/>
+    </bean>
+
+    <bean id="studioAssetProcessorPipelineResolver" class="org.craftercms.studio.impl.v1.asset.processing.AssetProcessorPipelineResolverImpl">
+        <property name="processorResolver" ref="studioAssetProcessorResolver"/>
+    </bean>
+
+    <bean id="studioAssetProcessingConfigReader" class="org.craftercms.studio.impl.v1.asset.processing.AssetProcessingConfigReaderImpl"/>
+
+    <bean id="studioAssetProcessingService" class="org.craftercms.studio.impl.v1.service.asset.processing.AssetProcessingServiceImpl">
+        <property name="configPath"
+                  value="#{studioConfiguration.getProperty('studio.configuration.site.asset.processing.configurationPath')}"/>
+        <property name="contentService" ref="cstudioContentService"/>
+        <property name="configReader" ref="studioAssetProcessingConfigReader"/>
+        <property name="pipelineResolver" ref="studioAssetProcessorPipelineResolver"/>
+    </bean>
+
     <import resource="classpath:crafter/studio/studio-security-context.xml"/>
 </beans>
