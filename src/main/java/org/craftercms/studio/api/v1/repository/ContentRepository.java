@@ -368,14 +368,26 @@ public interface ContentRepository {
     boolean createSitePushToRemote(String siteId, String remoteName, String remoteUrl, String remoteUsername, String remotePassword) throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException, RemoteRepositoryNotBareException;
 
     /**
-     * Validate remote repository connection parameters
+     * Add remote repository for site content repository
+     * @param siteId site identifier
      * @param remoteName remote name
-     * @param remoteUrl remote repository url
+     * @param remoteUrl remote url
+     * @param authenticationType authentication type
      * @param remoteUsername remote username
      * @param remotePassword remote password
-     * @return true if success
+     * @param remoteToken remote token
+     * @param remotePrivateKey remote private key
+     * @return true if operation was successful
      */
-    boolean validateRemoteRepositoryConnection(String remoteName, String remoteUrl, String remoteUsername, String remotePassword);
+    boolean addRemote(String siteId, String remoteName, String remoteUrl, String authenticationType, String remoteUsername, String remotePassword, String remoteToken, String remotePrivateKey);
+
+    /**
+     * Remove remote with given name for site
+     * @param siteId site identifier
+     * @param remoteName remote name
+     * @return true if operation was successful
+     */
+    boolean removeRemote(String siteId, String remoteName);
 
     /*
     List<PublishTO> getPublishEvents(String site, String commitIdFrom, String commitIdTo);
