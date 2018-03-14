@@ -41,12 +41,18 @@ import javax.servlet.ServletContext;
 import org.apache.commons.collections4.iterators.ReverseListIterator;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.crypto.CryptoException;
+import org.craftercms.commons.crypto.CryptoUtils;
+import org.craftercms.commons.crypto.TextEncryptor;
+import org.craftercms.commons.crypto.impl.PbkAesTextEncryptor;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.constant.RepoOperation;
 import org.craftercms.studio.api.v1.dal.DeploymentSyncHistory;
 import org.craftercms.studio.api.v1.dal.GitLog;
 import org.craftercms.studio.api.v1.dal.GitLogMapper;
+import org.craftercms.studio.api.v1.dal.SiteRemoteMapper;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
@@ -1550,9 +1556,58 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         return toRet;
     }
 
-    public boolean validateRemoteRepositoryConnection(String remoteName, String remoteUrl, String remoteUsername, String remotePassword) {
-        boolean toRet = true;
-        return true;
+    @Override
+    public boolean addRemote(String siteId, String remoteName, String remoteUrl, String authenticationType, String remoteUsername, String remotePassword, String remoteToken, String remotePrivateKey) {
+        try {
+            Map<String, String> params = new HashMap<String, String>();
+            params.put("siteId", siteId);
+            params.put(remoteName, remoteName);
+            params.put(remoteUrl, remoteUrl);
+            params.put(authenticationType, authenticationType);
+            params.put(remoteUsername, remoteUsername);
+            String salt = RandomStringUtils.randomAlphanumeric(16);
+            TextEncryptor encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY), salt);
+            String hashedPassword = encryptor.encrypt(remotePassword);
+            params.put(remotePassword, remotePassword);
+            params.put(remoteToken, remoteToken);
+            params.put(remotePrivateKey, remotePrivateKey);
+            params.put(salt, salt);
+            siteRemoteMapper.insertSiteRemote(params);
+
+            Repository repo = helper.getRepository(siteId, SANDBOX);
+            try (Git git = new Git(repo)) {
+                RemoteAddCommand remoteAddCommand = git.remoteAdd();
+                remoteAddCommand.setName(remoteName);
+                remoteAddCommand.setUri(new URIish(remoteUrl));
+                remoteAddCommand.call();
+            } catch (URISyntaxException e) {
+                e.printStackTrace();
+            } catch (GitAPIException e) {
+                e.printStackTrace();
+            }
+        } catch (CryptoException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    @Override
+    public boolean removeRemote(String siteId, String remoteName) {
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("siteId", siteId);
+        params.put("remoteName", remoteName);
+        siteRemoteMapper.deleteSiteRemote(params);
+
+        Repository repo = helper.getRepository(siteId, SANDBOX);
+        try (Git git = new Git(repo)) {
+            RemoteRemoveCommand remoteRemoveCommand = git.remoteRemove();
+            remoteRemoveCommand.setName(remoteName);
+            remoteRemoveCommand.call();
+            return true;
+        } catch (GitAPIException e) {
+            logger.error("Failed to remove remote " + remoteName + " for site " + siteId, e);
+            return false;
+        }
     }
 
     public void setServletContext(ServletContext ctx) {
@@ -1577,4 +1632,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
     @Autowired
     GitLogMapper gitLogMapper;
+
+    @Autowired
+    SiteRemoteMapper siteRemoteMapper;
 }

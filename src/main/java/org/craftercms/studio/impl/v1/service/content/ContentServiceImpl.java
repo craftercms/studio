@@ -2198,6 +2198,16 @@ public class ContentServiceImpl implements ContentService {
         return toRet;
     }
 
+    @Override
+    public boolean addRemote(String siteId, String remoteName, String remoteUrl, String authenticationType, String remoteUsername, String remotePassword, String remoteToken, String remotePrivateKey) {
+        return _contentRepository.addRemote(siteId, remoteName, remoteUrl, authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey);
+    }
+
+    @Override
+    public boolean removeRemote(String siteId, String remoteName) {
+        return _contentRepository.removeRemote(siteId, remoteName);
+    }
+
     public ContentRepository getContentRepository() { return _contentRepository; }
     public void setContentRepository(ContentRepository contentRepository) { this._contentRepository = contentRepository; }
 
