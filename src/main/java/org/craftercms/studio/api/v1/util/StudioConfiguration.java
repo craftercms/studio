@@ -135,6 +135,7 @@ public interface StudioConfiguration {
     String SECURITY_LDAP_USER_ATTRIBUTE_EMAIL = "studio.security.ldap.userAttribute.email";
     String SECURITY_LDAP_USER_ATTRIBUTE_SITE_ID = "studio.security.ldap.userAttribute.siteId";
     String SECURITY_LDAP_USER_ATTRIBUTE_GROUP_NAME = "studio.security.ldap.userAttribute.groupName";
+    String SECURITY_LDAP_DEFAULT_SITE_ID = "studio.security.ldap.defaultSiteId";
 
     /** Authentication headers **/
     String AUTHENTICATION_HEADERS_ENABLED = "studio.authentication.headers.enabled";
