@@ -134,7 +134,33 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
                             }
                         }
                     } else {
-                        logger.warn("No LDAP attribute " + siteIdAttribName + " found for username " + username);
+                        String defaultSiteId = studioConfiguration.getProperty(SECURITY_LDAP_DEFAULT_SITE_ID);
+                        logger.debug("Assigning user " + username +" to default site " + defaultSiteId);
+                        Map<String, Object> params = new HashMap<String, Object>();
+                        params.put("siteId", defaultSiteId);
+                        siteFeed = siteFeedMapper.getSite(params);
+                        if (siteFeed != null) {
+                            if (groupNameAttrib != null && groupNameAttrib.size() > 0) {
+                                NamingEnumeration groupAttribValues = groupNameAttrib.getAll();
+                                while (groupAttribValues.hasMore()) {
+                                    Object groupNameObj = groupAttribValues.next();
+                                    if (groupNameObj != null) {
+                                        String groupName = groupNameObj.toString();
+                                        Group g = new Group();
+                                        g.setName(groupName);
+                                        g.setExternallyManaged(1);
+                                        g.setDescription("Externally managed group");
+                                        g.setSiteId(siteFeed.getId());
+                                        g.setSite(siteFeed.getSiteId());
+                                        user.getGroups().add(g);
+                                    }
+                                }
+                            } else {
+                                logger.warn("No LDAP attribute " + groupNameAttribName + " found for username " + username);
+                            }
+                        } else {
+                            logger.warn("No LDAP attribute " + siteIdAttribName + " found for username " + username);
+                        }
                     }
 
                     return user;

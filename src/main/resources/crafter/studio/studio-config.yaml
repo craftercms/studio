@@ -187,6 +187,8 @@ studio.security.ldap.userAttribute.email: mail
 studio.security.ldap.userAttribute.siteId: crafterSite
 # LDAP groups attribute
 studio.security.ldap.userAttribute.groupName: crafterGroup
+# LDAP default site if site ID attribute not found
+studio.security.ldap.defaultSiteId: default
 # Global admin group
 studio.security.global.adminGroup: crafter-admin
 # Authentication via headers enabled
