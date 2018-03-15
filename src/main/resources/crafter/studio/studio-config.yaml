@@ -187,6 +187,10 @@ studio.security.ldap.userAttribute.email: mail
 studio.security.ldap.userAttribute.siteId: crafterSite
 # LDAP groups attribute
 studio.security.ldap.userAttribute.groupName: crafterGroup
+# LDAP groups attribute name regex
+studio.security.ldap.userAttribute.groupName.regex: cn=Crafter_([a-zAZ]+),.*
+# LDAP groups attribute match index
+studio.security.ldap.userAttribute.groupName.matchIndex: 1
 # Global admin group
 studio.security.global.adminGroup: crafter-admin
 # Authentication via headers enabled
