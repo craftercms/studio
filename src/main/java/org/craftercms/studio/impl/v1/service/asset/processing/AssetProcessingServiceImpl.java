@@ -102,42 +102,60 @@ public class AssetProcessingServiceImpl implements AssetProcessingService {
                 List<ProcessorPipelineConfiguration> pipelinesConfig = configReader.readConfig(configIn);
                 if (CollectionUtils.isNotEmpty(pipelinesConfig)) {
                     Asset input = createAssetFromInputStream(repoPath, in);
-                    Set<Asset> finalOutputs = new LinkedHashSet<>();
+                    try {
+                        Set<Asset> finalOutputs = new LinkedHashSet<>();
 
-                    for (ProcessorPipelineConfiguration pipelineConfig : pipelinesConfig) {
-                        AssetProcessorPipeline pipeline = pipelineResolver.getPipeline(pipelineConfig);
-                        List<Asset> outputs = pipeline.processAsset(pipelineConfig, input);
+                        for (ProcessorPipelineConfiguration pipelineConfig : pipelinesConfig) {
+                            AssetProcessorPipeline pipeline = pipelineResolver.getPipeline(pipelineConfig);
+                            List<Asset> outputs = pipeline.processAsset(pipelineConfig, input);
 
-                        if (CollectionUtils.isNotEmpty(outputs)) {
-                            finalOutputs.addAll(outputs);
+                            if (CollectionUtils.isNotEmpty(outputs)) {
+                                finalOutputs.addAll(outputs);
+                            }
                         }
-                    }
 
-                    if (CollectionUtils.isNotEmpty(finalOutputs)) {
-                        List<Map<String, Object>> results = writeOutputs(site, finalOutputs, isImage, allowedWidth, allowedHeight,
-                                                                         allowLessSize, draft, unlock, systemAsset);
+                        if (CollectionUtils.isNotEmpty(finalOutputs)) {
+                            List<Map<String, Object>> results = writeOutputs(site, finalOutputs, isImage, allowedWidth, allowedHeight,
+                                                                             allowLessSize, draft, unlock, systemAsset);
 
-                        // Return first result for now, might be good in the future to consider returning several results or just
-                        // one main result specified by config -- Alfonso
-                        if (CollectionUtils.isNotEmpty(results)) {
-                            return results.get(0);
+
+                            // Return first result for now, might be good in the future to consider returning several results or just
+                            // one main result specified by config -- Alfonso
+                            if (CollectionUtils.isNotEmpty(results)) {
+                                return results.get(0);
+                            } else {
+                                return Collections.emptyMap();
+                            }
                         } else {
-                            return Collections.emptyMap();
+                            // No outputs mean that the input wasn't matched by any pipeline and processing was skipped
+                            logger.debug("No pipeline matched for {0}. Skipping asset processing...", repoPath);
+
+                            // We already read input so open the temp file
+                            try (InputStream assetIn = Files.newInputStream(input.getFilePath())) {
+                                return contentService.writeContentAsset(site, folder, assetName, assetIn, isImage, allowedWidth,
+                                                                        allowedHeight, allowLessSize, draft, unlock, systemAsset);
+                            }
                         }
-                    } else {
-                        // No outputs mean that the input wasn't matched by any pipeline and processing was skipped
-                        logger.debug("No pipeline matched for {0}. Skipping asset processing...", repoPath);
+                    } finally {
+                        try {
+                            Files.delete(input.getFilePath());
+                        } catch (IOException e) {
+                            // delete silently
+                        }
                     }
                 } else {
                     // Ignore if no pipelines config
                     logger.debug("No asset processing pipelines config found at {0}. Skipping asset processing...", repoPath);
+
+                    return contentService.writeContentAsset(site, folder, assetName, in, isImage, allowedWidth, allowedHeight,
+                                                            allowLessSize, draft, unlock, systemAsset);
                 }
             } else {
                 logger.debug("No asset processing config found at {0}. Skipping asset processing...", repoPath);
-            }
 
-            return contentService.writeContentAsset(site, folder, assetName, in, isImage, allowedWidth, allowedHeight, allowLessSize,
-                                                    draft, unlock, systemAsset);
+                return contentService.writeContentAsset(site, folder, assetName, in, isImage, allowedWidth, allowedHeight, allowLessSize,
+                                                        draft, unlock, systemAsset);
+            }
         } catch (Exception e) {
             logger.error("Error processing asset", e);
 
