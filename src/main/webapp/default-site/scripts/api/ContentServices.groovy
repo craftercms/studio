@@ -290,7 +290,7 @@ class ContentServices {
      * @return
      */
     static addRemote(context, siteId, remoteName, remoteUrl, authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey) {
-        def contentServicesImpl = ServicesFactory.getContentServices(context)
+        def contentServicesImpl = ServiceFactory.getContentServices(context)
         return contentServicesImpl.addRemote(siteId, remoteName, remoteUrl, authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey)
     }
 
@@ -302,7 +302,7 @@ class ContentServices {
      * @return
      */
     static removeRemote(context, siteId, remoteName) {
-        def contentServiceImpl = ServicesFactory.getContentServices(context)
+        def contentServiceImpl = ServiceFactory.getContentServices(context)
         return contentServiceImpl.removeRemote(siteId, remoteName)
     }
 }	

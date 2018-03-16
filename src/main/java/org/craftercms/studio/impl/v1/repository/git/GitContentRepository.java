@@ -54,10 +54,8 @@ import org.craftercms.studio.api.v1.dal.GitLog;
 import org.craftercms.studio.api.v1.dal.GitLogMapper;
 import org.craftercms.studio.api.v1.dal.SiteRemoteMapper;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
-import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
-import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
-import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotBareException;
-import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
+import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.repository.*;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
@@ -1557,21 +1555,21 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     @Override
-    public boolean addRemote(String siteId, String remoteName, String remoteUrl, String authenticationType, String remoteUsername, String remotePassword, String remoteToken, String remotePrivateKey) {
+    public boolean addRemote(String siteId, String remoteName, String remoteUrl, String authenticationType, String remoteUsername, String remotePassword, String remoteToken, String remotePrivateKey) throws InvalidRemoteUrlException, ServiceException {
         try {
             Map<String, String> params = new HashMap<String, String>();
             params.put("siteId", siteId);
-            params.put(remoteName, remoteName);
-            params.put(remoteUrl, remoteUrl);
-            params.put(authenticationType, authenticationType);
-            params.put(remoteUsername, remoteUsername);
+            params.put("remoteName", remoteName);
+            params.put("remoteUrl", remoteUrl);
+            params.put("authenticationType", authenticationType);
+            params.put("remoteUsername", remoteUsername);
             String salt = RandomStringUtils.randomAlphanumeric(16);
             TextEncryptor encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY), salt);
             String hashedPassword = encryptor.encrypt(remotePassword);
-            params.put(remotePassword, remotePassword);
-            params.put(remoteToken, remoteToken);
-            params.put(remotePrivateKey, remotePrivateKey);
-            params.put(salt, salt);
+            params.put("remotePassword", hashedPassword);
+            params.put("remoteToken", remoteToken);
+            params.put("remotePrivateKey", remotePrivateKey);
+            params.put("salt", salt);
             siteRemoteMapper.insertSiteRemote(params);
 
             Repository repo = helper.getRepository(siteId, SANDBOX);
@@ -1581,12 +1579,14 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 remoteAddCommand.setUri(new URIish(remoteUrl));
                 remoteAddCommand.call();
             } catch (URISyntaxException e) {
-                e.printStackTrace();
+                logger.error("Remote URL is invalid " + remoteUrl, e);
+                throw new InvalidRemoteUrlException();
             } catch (GitAPIException e) {
-                e.printStackTrace();
+                logger.error("Error while adding remote " + remoteName + " (url: " + remoteUrl + ") for site " + siteId, e);
+                throw new ServiceException("Error while adding remote " + remoteName + " (url: " + remoteUrl + ") for site " + siteId, e);
             }
         } catch (CryptoException e) {
-            e.printStackTrace();
+            throw new ServiceException(e);
         }
         return false;
     }

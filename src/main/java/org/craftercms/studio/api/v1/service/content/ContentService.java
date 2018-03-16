@@ -23,6 +23,8 @@ import java.util.Map;
 
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v1.to.*;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
@@ -259,7 +261,7 @@ public interface ContentService {
      * @param remotePrivateKey remote private key
      * @return true if operation was successful
      */
-    boolean addRemote(String siteId, String remoteName, String remoteUrl, String authenticationType, String remoteUsername, String remotePassword, String remoteToken, String remotePrivateKey);
+    boolean addRemote(String siteId, String remoteName, String remoteUrl, String authenticationType, String remoteUsername, String remotePassword, String remoteToken, String remotePrivateKey) throws InvalidRemoteUrlException, ServiceException;
 
     /**
      * Remove remote with given name for site
@@ -267,5 +269,5 @@ public interface ContentService {
      * @param remoteName remote name
      * @return true if operation was successful
      */
-    boolean removeRemote(String siteId, String remoteName);
+    boolean removeRemote(String siteId, String remoteName) throws SiteNotFoundException;
 }

@@ -37,6 +37,8 @@ import org.craftercms.studio.api.v1.dal.ItemState;
 import org.craftercms.studio.api.v1.ebus.PreviewEventContext;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v1.executor.ProcessContentExecutor;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -2199,12 +2201,18 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public boolean addRemote(String siteId, String remoteName, String remoteUrl, String authenticationType, String remoteUsername, String remotePassword, String remoteToken, String remotePrivateKey) {
+    public boolean addRemote(String siteId, String remoteName, String remoteUrl, String authenticationType, String remoteUsername, String remotePassword, String remoteToken, String remotePrivateKey) throws InvalidRemoteUrlException, ServiceException {
+        if (!siteService.exists(siteId)) {
+            throw new SiteNotFoundException();
+        }
         return _contentRepository.addRemote(siteId, remoteName, remoteUrl, authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey);
     }
 
     @Override
-    public boolean removeRemote(String siteId, String remoteName) {
+    public boolean removeRemote(String siteId, String remoteName) throws SiteNotFoundException {
+        if (!siteService.exists(siteId)) {
+            throw new SiteNotFoundException();
+        }
         return _contentRepository.removeRemote(siteId, remoteName);
     }
 

@@ -48,6 +48,6 @@
     </delete>
 
     <delete id="deleteSiteRemote" parameterType="java.util.Map">
-        DELETE FROM site_remote WHERE site_id = #{siteId} AND remote_name = #{remote_name}
+        DELETE FROM site_remote WHERE site_id = #{siteId} AND remote_name = #{remoteName}
     </delete>
 </mapper>

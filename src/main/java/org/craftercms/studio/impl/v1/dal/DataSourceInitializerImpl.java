@@ -43,7 +43,8 @@ import static org.craftercms.studio.api.v1.util.StudioConfiguration.*;
 public class DataSourceInitializerImpl implements DataSourceInitializer, DisposableBean {
 
     private final static Logger logger = LoggerFactory.getLogger(DataSourceInitializerImpl.class);
-    private final static String CURRENT_DB_VERSION = "3.0.2.1";
+    private final static String CURRENT_DB_VERSION = "3.0.10";
+    private final static String DB_VERSION_3_0_10 = "3.0.10";
     private final static String DB_VERSION_3_0_2 = "3.0.2";
     private final static String DB_VERSION_3_0_1 = "3.0.1";
     private final static String DB_VERSION_3_0_0 = "3.0.0";
