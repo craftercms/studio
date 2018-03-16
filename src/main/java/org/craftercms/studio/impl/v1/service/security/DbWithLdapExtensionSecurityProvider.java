@@ -18,6 +18,7 @@
 
 package org.craftercms.studio.impl.v1.service.security;
 
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.dal.Group;
@@ -46,6 +47,8 @@ import javax.naming.directory.DirContext;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.*;
 import static org.springframework.ldap.query.LdapQueryBuilder.query;
@@ -117,14 +120,16 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
                                         while (groupAttribValues.hasMore()) {
                                             Object groupNameObj = groupAttribValues.next();
                                             if (groupNameObj != null) {
-                                                String groupName = groupNameObj.toString();
-                                                Group g = new Group();
-                                                g.setName(groupName);
-                                                g.setExternallyManaged(1);
-                                                g.setDescription("Externally managed group");
-                                                g.setSiteId(siteFeed.getId());
-                                                g.setSite(siteFeed.getSiteId());
-                                                user.getGroups().add(g);
+                                                String groupName = extractGroupNameFromAttributeValue(groupNameObj.toString());
+                                                if (StringUtils.isNotEmpty(groupName)) {
+                                                    Group g = new Group();
+                                                    g.setName(groupName);
+                                                    g.setExternallyManaged(1);
+                                                    g.setDescription("Externally managed group");
+                                                    g.setSiteId(siteFeed.getId());
+                                                    g.setSite(siteFeed.getSiteId());
+                                                    user.getGroups().add(g);
+                                                }
                                             }
                                         }
                                     } else {
@@ -145,14 +150,16 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
                                 while (groupAttribValues.hasMore()) {
                                     Object groupNameObj = groupAttribValues.next();
                                     if (groupNameObj != null) {
-                                        String groupName = groupNameObj.toString();
-                                        Group g = new Group();
-                                        g.setName(groupName);
-                                        g.setExternallyManaged(1);
-                                        g.setDescription("Externally managed group");
-                                        g.setSiteId(siteFeed.getId());
-                                        g.setSite(siteFeed.getSiteId());
-                                        user.getGroups().add(g);
+                                        String groupName = extractGroupNameFromAttributeValue(groupNameObj.toString());
+                                        if (StringUtils.isNotEmpty(groupName)) {
+                                            Group g = new Group();
+                                            g.setName(groupName);
+                                            g.setExternallyManaged(1);
+                                            g.setDescription("Externally managed group");
+                                            g.setSiteId(siteFeed.getId());
+                                            g.setSite(siteFeed.getSiteId());
+                                            user.getGroups().add(g);
+                                        }
                                     }
                                 }
                             } else {
@@ -247,6 +254,16 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
 
             throw new AuthenticationSystemException("Failed to retrieve LDAP user details");
         }
+    }
+
+    private String extractGroupNameFromAttributeValue(String groupAttributeValue) {
+        Pattern pattern = Pattern.compile(studioConfiguration.getProperty(SECURITY_LDAP_USER_ATTRIBUTE_GROUP_NAME_REGEX));
+        Matcher matcher = pattern.matcher(groupAttributeValue);
+        if (matcher.matches()) {
+            int index = Integer.parseInt(studioConfiguration.getProperty(SECURITY_LDAP_USER_ATTRIBUTE_GROUP_NAME_MATCH_INDEX));
+            return matcher.group(index);
+        }
+        return StringUtils.EMPTY;
     }
 
     protected boolean updateUserInternal(String username, String firstName, String lastName, String email) throws UserNotFoundException {
