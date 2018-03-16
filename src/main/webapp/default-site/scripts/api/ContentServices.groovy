@@ -305,4 +305,30 @@ class ContentServices {
         def contentServiceImpl = ServiceFactory.getContentServices(context)
         return contentServiceImpl.removeRemote(siteId, remoteName)
     }
+
+    /**
+     * Push content to remote
+     * @param context container for passing request, token and other values that may be needed by the implementation
+     * @param siteId site identifier
+     * @param remoteName remote name
+     * @param remoteBranch remote branch to push to
+     * @return
+     */
+    static pushToRemote(context, siteId, remoteName, remoteBranch) {
+        def contentServiceImpl = ServiceFactory.getContentServices(context)
+        return contentServiceImpl.pushToRemote(siteId, remoteName, remoteBranch)
+    }
+
+    /**
+     * Pull content from remote
+     * @param context container for passing request, token and other values that may be needed by the implementation
+     * @param siteId site identifier
+     * @param remoteName remote name
+     * @param remoteBranch remote branch to pull from
+     * @return
+     */
+    static pullFromRemote(context, siteId, remoteName, remoteBranch) {
+        def contentServiceImpl = ServiceFactory.getContentServices(context)
+        return contentServiceImpl.removeRemote(siteId, remoteName)
+    }
 }	
