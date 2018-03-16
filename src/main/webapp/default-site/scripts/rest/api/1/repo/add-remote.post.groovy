@@ -21,6 +21,7 @@ import groovy.json.JsonException
 import groovy.json.JsonSlurper
 import org.apache.commons.lang3.StringUtils
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException
+import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException
 import scripts.api.ContentServices
 
 def result = [:]
@@ -89,7 +90,7 @@ try {
 
     // remote_username
     try {
-        if (StringUtils.equalsIgnoreCase('basic') && (StringUtils.isEmpty(remoteUsername))) {
+        if (StringUtils.equalsIgnoreCase('basic', authenticationType) && (StringUtils.isEmpty(remoteUsername))) {
             invalidParams = true
             paramsList.add("remote_username")
         }
@@ -100,7 +101,7 @@ try {
 
     // remote_password
     try {
-        if (StringUtils.equalsIgnoreCase('basic') && (StringUtils.isEmpty(remotePassword))) {
+        if (StringUtils.equalsIgnoreCase('basic', authenticationType) && (StringUtils.isEmpty(remotePassword))) {
             invalidParams = true
             paramsList.add("remote_passsword")
         }
@@ -111,7 +112,7 @@ try {
 
     // remote_token
     try {
-        if (StringUtils.equalsIgnoreCase('token') && (StringUtils.isEmpty(remoteToken))) {
+        if (StringUtils.equalsIgnoreCase('token', authenticationType) && (StringUtils.isEmpty(remoteToken))) {
             invalidParams = true
             paramsList.add("remote_token")
         }
@@ -122,7 +123,7 @@ try {
 
     // remote_private_key
     try {
-        if (StringUtils.equalsIgnoreCase('key') && (StringUtils.isEmpty(remotePrivateKey))) {
+        if (StringUtils.equalsIgnoreCase('key', authenticationType) && (StringUtils.isEmpty(remotePrivateKey))) {
             invalidParams = true
             paramsList.add("remote_private_key")
         }
@@ -141,6 +142,9 @@ try {
             ContentServices.addRemote(context, siteId, remoteName, remoteUrl, authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey)
             response.setStatus(200)
             result.message = "OK"
+        } catch (InvalidRemoteUrlException e) {
+            response.setStatus(400)
+            result.message = "Remote repository URL invalid"
         } catch (SiteNotFoundException e) {
             response.setStatus(404)
             result.message = "Site not found"

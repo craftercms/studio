@@ -1,9 +1,3 @@
-ALTER TABLE `gitlog` DROP COLUMN `verified` ;
-
-ALTER TABLE `gitlog` DROP COLUMN `commit_date` ;
-
-ALTER TABLE `site` ADD COLUMN `last_verified_gitlog_commit_id` VARCHAR(50) NULL ;
-
 CREATE TABLE IF NOT EXISTS site_remote
 (
   `id`                    BIGINT(20)    NOT NULL AUTO_INCREMENT,

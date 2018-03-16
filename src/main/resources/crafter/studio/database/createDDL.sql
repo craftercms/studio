@@ -27,7 +27,7 @@ USE crafter ;
 
 CREATE TABLE _meta (`version` VARCHAR(10) NOT NULL , PRIMARY KEY (`version`)) ;
 
-INSERT INTO _meta (version) VALUES ('3.0.2.1') ;
+INSERT INTO _meta (version) VALUES ('3.0.10') ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`             BIGINT(20)   NOT NULL AUTO_INCREMENT,
@@ -230,6 +230,26 @@ CREATE TABLE IF NOT EXISTS gitlog
   ENGINE = InnoDB
   DEFAULT CHARSET = utf8
   ROW_FORMAT = DYNAMIC ;
+
+CREATE TABLE IF NOT EXISTS site_remote
+(
+  `id`                    BIGINT(20)    NOT NULL AUTO_INCREMENT,
+  `site_id`               VARCHAR(50)   NOT NULL,
+  `remote_name`           VARCHAR(255)   NOT NULL,
+  `remote_url`            VARCHAR(255)   NOT NULL,
+  `authentication_type`   VARCHAR(255)   NOT NULL,
+  `remote_username`       VARCHAR(255)   NULL,
+  `remote_password`       VARCHAR(255)   NULL,
+  `remote_token`          VARCHAR(255)   NULL,
+  `remote_private_key`    VARCHAR(255)   NULL,
+  `salt`                  VARCHAR(255)   NULL,
+  PRIMARY KEY (`id`),
+  INDEX `siteremote_site_idx` (`site_id` ASC)
+)
+  ENGINE = InnoDB
+  DEFAULT CHARSET = utf8
+  ROW_FORMAT = DYNAMIC ;
+
 
 INSERT IGNORE INTO site (site_id, name, description, system)
 VALUES ('studio_root', 'Studio Root', 'Studio Root for global permissions', 1) ;
