@@ -18,9 +18,7 @@
 
 package org.craftercms.studio.impl.v1.repository.git;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.URISyntaxException;
 import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
@@ -34,17 +32,17 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import javax.servlet.ServletContext;
 
+import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.JSchException;
+import com.jcraft.jsch.Session;
 import org.apache.commons.collections4.iterators.ReverseListIterator;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
-import org.craftercms.commons.crypto.CryptoUtils;
 import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.commons.crypto.impl.PbkAesTextEncryptor;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
@@ -84,6 +82,7 @@ import org.eclipse.jgit.transport.*;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
+import org.eclipse.jgit.util.FS;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.web.context.ServletContextAware;
@@ -1636,6 +1635,15 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     pushCommand.call();
                     break;
                 case SiteRemote.AuthenticationType.PRIVATE_KEY:
+                    final File tempKey = File.createTempFile("tmp", ".key");
+                    pushCommand.setTransportConfigCallback(new TransportConfigCallback() {
+                        @Override
+                        public void configure(Transport transport) {
+                            SshTransport sshTransport = (SshTransport)transport;
+                            sshTransport.setSshSessionFactory(getSshSessionFactory(siteRemote, tempKey));
+                        }
+                    });
+                    pushCommand.call();
                     break;
                 default:
                     throw new ServiceException("Unsupported autehentication type " + siteRemote.getAuthenticationType());
@@ -1647,7 +1655,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         } catch (GitAPIException e) {
             logger.error("Error while pushing to remote " + remoteName + ") for site " + siteId, e);
             throw new ServiceException("Error while pushing to remote " + remoteName + ") for site " + siteId, e);
-        } catch (CryptoException e) {
+        } catch (CryptoException | IOException e) {
             throw new ServiceException(e);
         }
     }
@@ -1681,6 +1689,15 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     pullCommand.call();
                     break;
                 case SiteRemote.AuthenticationType.PRIVATE_KEY:
+                    final File tempKey = File.createTempFile("tmp", ".key");
+                    pullCommand.setTransportConfigCallback(new TransportConfigCallback() {
+                        @Override
+                        public void configure(Transport transport) {
+                            SshTransport sshTransport = (SshTransport)transport;
+                            sshTransport.setSshSessionFactory(getSshSessionFactory(siteRemote, tempKey));
+                        }
+                    });
+                    pullCommand.call();
                     break;
                 default:
                     throw new ServiceException("Unsupported autehentication type " + siteRemote.getAuthenticationType());
@@ -1692,9 +1709,34 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         } catch (GitAPIException e) {
             logger.error("Error while pulling from remote " + remoteName + ") for site " + siteId, e);
             throw new ServiceException("Error while pulling from remote " + remoteName + ") for site " + siteId, e);
-        } catch (CryptoException e) {
+        } catch (CryptoException | IOException e) {
             throw new ServiceException(e);
         }
+    }
+
+    private SshSessionFactory getSshSessionFactory(SiteRemote siteRemote, final File tempKey) {
+        try {
+
+            FileUtils.write(tempKey, siteRemote.getRemotePrivateKey());
+
+            SshSessionFactory sshSessionFactory = new JschConfigSessionFactory() {
+                @Override
+                protected void configure(OpenSshConfig.Host hc, Session session) {
+                    // do nothing
+                }
+
+                @Override
+                protected JSch createDefaultJSch(FS fs) throws JSchException {
+                    JSch defaultJSch = super.createDefaultJSch(fs);
+                    defaultJSch.addIdentity(tempKey.getAbsolutePath());
+                    return defaultJSch;
+                }
+            };
+        return sshSessionFactory;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     public void setServletContext(ServletContext ctx) {
