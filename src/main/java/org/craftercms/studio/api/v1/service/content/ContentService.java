@@ -270,4 +270,22 @@ public interface ContentService {
      * @return true if operation was successful
      */
     boolean removeRemote(String siteId, String remoteName) throws SiteNotFoundException;
+
+    /**
+     * Push content to remote repository
+     * @param siteId site identifier
+     * @param remoteName remote name
+     * @param remoteBranch remote branch
+     * @return true if operation was successful
+     */
+    boolean pushToRemote(String siteId, String remoteName, String remoteBranch) throws ServiceException, InvalidRemoteUrlException;
+
+    /**
+     * Pull from remote repository
+     * @param siteId site identifier
+     * @param remoteName remote name
+     * @param remoteBranch remote branch
+     * @return true if operation was successful
+     */
+    boolean pullFromRemote(String siteId, String remoteName, String remoteBranch) throws ServiceException, InvalidRemoteUrlException;
 }

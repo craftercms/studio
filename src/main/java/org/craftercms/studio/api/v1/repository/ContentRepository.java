@@ -386,6 +386,24 @@ public interface ContentRepository {
      */
     boolean removeRemote(String siteId, String remoteName);
 
+    /**
+     * Push content to remote repository
+     * @param siteId site identifier
+     * @param remoteName remote name
+     * @param remoteBranch remote branch
+     * @return true if operation was successful
+     */
+    boolean pushToRemote(String siteId, String remoteName, String remoteBranch) throws ServiceException, InvalidRemoteUrlException;
+
+    /**
+     * Pull from remote repository
+     * @param siteId site identifier
+     * @param remoteName remote name
+     * @param remoteBranch remote branch
+     * @return true if operation was successful
+     */
+    boolean pullFromRemote(String siteId, String remoteName, String remoteBranch) throws ServiceException, InvalidRemoteUrlException;
+
     /*
     List<PublishTO> getPublishEvents(String site, String commitIdFrom, String commitIdTo);
     List<PublishTO> getPublishEvents(String site, String commitIdFrom);

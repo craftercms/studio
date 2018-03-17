@@ -242,4 +242,14 @@ class SpringContentServices {
         def springBackedService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN)
         return springBackedService.removeRemote(siteId, remoteName)
     }
+
+    def pushToRemote(siteId, remoteName, remoteBranch) {
+        def springBackedService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN)
+        return springBackedService.pushToRemote(siteId, remoteName, remoteBranch)
+    }
+
+    def pullFromRemote(siteId, remoteName, remoteBranch) {
+        def springBackedService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN)
+        return springBackedService.pullFromRemote(siteId, remoteName, remoteBranch)
+    }
 }

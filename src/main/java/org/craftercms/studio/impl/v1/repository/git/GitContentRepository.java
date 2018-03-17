@@ -49,10 +49,7 @@ import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.commons.crypto.impl.PbkAesTextEncryptor;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.constant.RepoOperation;
-import org.craftercms.studio.api.v1.dal.DeploymentSyncHistory;
-import org.craftercms.studio.api.v1.dal.GitLog;
-import org.craftercms.studio.api.v1.dal.GitLogMapper;
-import org.craftercms.studio.api.v1.dal.SiteRemoteMapper;
+import org.craftercms.studio.api.v1.dal.*;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.exception.repository.*;
@@ -1607,6 +1604,96 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         } catch (GitAPIException e) {
             logger.error("Failed to remove remote " + remoteName + " for site " + siteId, e);
             return false;
+        }
+    }
+
+    @Override
+    public boolean pushToRemote(String siteId, String remoteName, String remoteBranch) throws ServiceException, InvalidRemoteUrlException {
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("siteId", siteId);
+        params.put("remoteName", remoteName);
+        SiteRemote siteRemote = siteRemoteMapper.getSiteRemote(params);
+
+        Repository repo = helper.getRepository(siteId, SANDBOX);
+        try (Git git = new Git(repo)) {
+            PushCommand pushCommand = git.push();
+            pushCommand.setRemote(siteRemote.getRemoteName());
+            pushCommand.setRefSpecs(new RefSpec(remoteBranch + ":" + remoteBranch));
+            switch (siteRemote.getAuthenticationType()) {
+                case SiteRemote.AuthenticationType.NONE:
+                    pushCommand.call();
+                    break;
+                case SiteRemote.AuthenticationType.BASIC:
+                    String hashedPassword = siteRemote.getRemotePassword();
+                    TextEncryptor encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY), siteRemote.getSalt());
+                    String password = encryptor.decrypt(hashedPassword);
+                    pushCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(siteRemote.getRemoteUsername(), password));
+
+                    Iterable<PushResult> results = pushCommand.call();
+                    break;
+                case SiteRemote.AuthenticationType.TOKEN:
+                    pushCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(siteRemote.getRemoteToken(), StringUtils.EMPTY));
+                    pushCommand.call();
+                    break;
+                case SiteRemote.AuthenticationType.PRIVATE_KEY:
+                    break;
+                default:
+                    throw new ServiceException("Unsupported autehentication type " + siteRemote.getAuthenticationType());
+            }
+            return true;
+        } catch (InvalidRemoteException e) {
+            logger.error("Remote is invalid " + remoteName, e);
+            throw new InvalidRemoteUrlException();
+        } catch (GitAPIException e) {
+            logger.error("Error while pushing to remote " + remoteName + ") for site " + siteId, e);
+            throw new ServiceException("Error while pushing to remote " + remoteName + ") for site " + siteId, e);
+        } catch (CryptoException e) {
+            throw new ServiceException(e);
+        }
+    }
+
+    @Override
+    public boolean pullFromRemote(String siteId, String remoteName, String remoteBranch) throws ServiceException, InvalidRemoteUrlException {
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("siteId", siteId);
+        params.put("remoteName", remoteName);
+        SiteRemote siteRemote = siteRemoteMapper.getSiteRemote(params);
+
+        Repository repo = helper.getRepository(siteId, SANDBOX);
+        try (Git git = new Git(repo)) {
+            PullCommand pullCommand = git.pull();
+            pullCommand.setRemote(siteRemote.getRemoteName());
+            pullCommand.setRemoteBranchName(remoteBranch);
+            switch (siteRemote.getAuthenticationType()) {
+                case SiteRemote.AuthenticationType.NONE:
+                    pullCommand.call();
+                    break;
+                case SiteRemote.AuthenticationType.BASIC:
+                    String hashedPassword = siteRemote.getRemotePassword();
+                    TextEncryptor encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY), siteRemote.getSalt());
+                    String password = encryptor.decrypt(hashedPassword);
+                    pullCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(siteRemote.getRemoteUsername(), password));
+
+                    PullResult result = pullCommand.call();
+                    break;
+                case SiteRemote.AuthenticationType.TOKEN:
+                    pullCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(siteRemote.getRemoteToken(), StringUtils.EMPTY));
+                    pullCommand.call();
+                    break;
+                case SiteRemote.AuthenticationType.PRIVATE_KEY:
+                    break;
+                default:
+                    throw new ServiceException("Unsupported autehentication type " + siteRemote.getAuthenticationType());
+            }
+            return true;
+        } catch (InvalidRemoteException e) {
+            logger.error("Remote is invalid " + remoteName, e);
+            throw new InvalidRemoteUrlException();
+        } catch (GitAPIException e) {
+            logger.error("Error while pulling from remote " + remoteName + ") for site " + siteId, e);
+            throw new ServiceException("Error while pulling from remote " + remoteName + ") for site " + siteId, e);
+        } catch (CryptoException e) {
+            throw new ServiceException(e);
         }
     }
 

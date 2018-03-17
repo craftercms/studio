@@ -329,6 +329,6 @@ class ContentServices {
      */
     static pullFromRemote(context, siteId, remoteName, remoteBranch) {
         def contentServiceImpl = ServiceFactory.getContentServices(context)
-        return contentServiceImpl.removeRemote(siteId, remoteName)
+        return contentServiceImpl.pullFromRemote(siteId, remoteName, remoteBranch)
     }
 }	
