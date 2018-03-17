@@ -2216,6 +2216,22 @@ public class ContentServiceImpl implements ContentService {
         return _contentRepository.removeRemote(siteId, remoteName);
     }
 
+    @Override
+    public boolean pushToRemote(String siteId, String remoteName, String remoteBranch) throws ServiceException, InvalidRemoteUrlException {
+        if (!siteService.exists(siteId)) {
+            throw new SiteNotFoundException();
+        }
+        return _contentRepository.pushToRemote(siteId, remoteName, remoteBranch);
+    }
+
+    @Override
+    public boolean pullFromRemote(String siteId, String remoteName, String remoteBranch) throws ServiceException, InvalidRemoteUrlException {
+        if (!siteService.exists(siteId)) {
+            throw new SiteNotFoundException(siteId);
+        }
+        return _contentRepository.pullFromRemote(siteId, remoteName, remoteBranch);
+    }
+
     public ContentRepository getContentRepository() { return _contentRepository; }
     public void setContentRepository(ContentRepository contentRepository) { this._contentRepository = contentRepository; }
 
