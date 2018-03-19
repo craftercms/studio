@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS site_remote
   `remote_username`       VARCHAR(255)   NULL,
   `remote_password`       VARCHAR(255)   NULL,
   `remote_token`          VARCHAR(255)   NULL,
-  `remote_private_key`    VARCHAR(255)   NULL,
+  `remote_private_key`    TEXT           NULL,
   `salt`                  VARCHAR(255)   NULL,
   PRIMARY KEY (`id`),
   INDEX `siteremote_site_idx` (`site_id` ASC)
