@@ -620,10 +620,15 @@ public class ContentServiceImpl implements ContentService {
                                 copyDepPath = copyDepPath.replaceAll(
                                         fromPageIds.get(DmConstants.KEY_PAGE_GROUP_ID),
                                         copyObjectIds.get(DmConstants.KEY_PAGE_GROUP_ID));
-                                
-                                if (!copyDepPath.endsWith(DmConstants.XML_PATTERN)) {
+
+                                ContentItemTO targetPathItem = getContentItem(site, copyDepPath);
+                                if (targetPathItem != null && targetPathItem.isFolder()) {
+                                    copyDepPath = copyDepPath + FILE_SEPARATOR + FilenameUtils.getName(dependencyKey);
+                                    copyDepPath = copyDepPath.replaceAll(FILE_SEPARATOR + FILE_SEPARATOR, FILE_SEPARATOR);
+                                } else if (!copyDepPath.endsWith(DmConstants.XML_PATTERN)) {
                                     copyDepPath = ContentUtils.getParentUrl(copyDepPath);
                                 }
+                                
                                 logger.debug("Translated dependency path from {0} to {1}", dependencyPath, copyDepPath);
 
                                 String newCopyDepthPath = copyContent(site, dependencyPath, copyDepPath, processedPaths);
