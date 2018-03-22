@@ -23,13 +23,6 @@ public class RemoteRepository implements Serializable {
 
     private static final long serialVersionUID = -5031083831374591061L;
 
-    public interface AuthenticationType {
-        String NONE = "none";
-        String BASIC = "basic";
-        String TOKEN = "token";
-        String PRIVATE_KEY = "key";
-    }
-
     private long id;
     private String siteId;
     private String remoteName;
@@ -66,4 +59,11 @@ public class RemoteRepository implements Serializable {
 
     public String getRemotePrivateKey() { return remotePrivateKey; }
     public void setRemotePrivateKey(String remotePrivateKey) { this.remotePrivateKey = remotePrivateKey; }
+
+    public interface AuthenticationType {
+        String NONE = "none";
+        String BASIC = "basic";
+        String TOKEN = "token";
+        String PRIVATE_KEY = "key";
+    }
 }

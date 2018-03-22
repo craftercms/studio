@@ -44,7 +44,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
-import java.util.concurrent.locks.ReentrantLock;
 import javax.servlet.ServletContext;
 
 import com.jcraft.jsch.JSch;
@@ -87,7 +86,6 @@ import org.eclipse.jgit.api.CheckoutCommand;
 import org.eclipse.jgit.api.CreateBranchCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.PullCommand;
-import org.eclipse.jgit.api.PullResult;
 import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.api.RemoteAddCommand;
 import org.eclipse.jgit.api.RemoteRemoveCommand;
@@ -156,6 +154,16 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     private GitContentRepositoryHelper helper = null;
 
     private final static String IN_PROGRESS_BRANCH_NAME_SUFIX = "_in_progress";
+
+    ServletContext ctx;
+    SecurityProvider securityProvider;
+    StudioConfiguration studioConfiguration;
+
+    @Autowired
+    GitLogMapper gitLogMapper;
+
+    @Autowired
+    RemoteRepositoryMapper remoteRepositoryMapper;
 
     @Override
     public boolean contentExists(String site, String path) {
@@ -1854,14 +1862,4 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     public void setStudioConfiguration(final StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
     }
-
-    ServletContext ctx;
-    SecurityProvider securityProvider;
-    StudioConfiguration studioConfiguration;
-
-    @Autowired
-    GitLogMapper gitLogMapper;
-
-    @Autowired
-    RemoteRepositoryMapper remoteRepositoryMapper;
 }
