@@ -18,15 +18,18 @@
 
 package org.craftercms.studio.api.v1.dal;
 
+import java.util.List;
 import java.util.Map;
 
-public interface SiteRemoteMapper {
+public interface RemoteRepositoryMapper {
 
-    SiteRemote getSiteRemote(Map params);
+    RemoteRepository getRemoteRepository(Map params);
 
-    void insertSiteRemote(Map params);
+    void insertRemoteRepository(Map params);
 
-    void deleteSiteRemoteForSite(Map params);
+    void deleteRemoteRepositoryForSite(Map params);
 
-    void deleteSiteRemote(Map params);
+    void deleteRemoteRepository(Map params);
+
+    List<RemoteRepository> listRemoteRepositories(Map params);
 }

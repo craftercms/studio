@@ -116,4 +116,46 @@ class SiteServices {
         def siteServicesImpl = ServiceFactory.getSiteServices(context)
         return siteServicesImpl.getSite(siteId)
     }
+
+    /**
+     * Add remote
+     * @param context container for passing request, token and other values that may be needed by the implementation
+     * @param siteId site identifier
+     * @param remoteName remote name
+     * @param remoteUrl remote url
+     * @param authenticationType authentication type
+     * @param remoteUsername remote username
+     * @param remotePassword remote password
+     * @param remoteToken remote token
+     * @param remotePrivateKey remote private key
+     * @return
+     */
+    static addRemote(context, siteId, remoteName, remoteUrl, authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey) {
+        def siteServicesImpl = ServiceFactory.getSiteServices(context)
+        return siteServicesImpl.addRemote(siteId, remoteName, remoteUrl, authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey)
+    }
+
+    /**
+     * Remove remote
+     * @param context container for passing request, token and other values that may be needed by the implementation
+     * @param siteId site identifier
+     * @param remoteName remote name
+     * @return
+     */
+    static removeRemote(context, siteId, remoteName) {
+        def siteServiceImpl = ServiceFactory.getSiteServices(context)
+        return siteServiceImpl.removeRemote(siteId, remoteName)
+    }
+
+    /**
+     * List remote repositories
+     *
+     * @param context container for passing request, token and other values that may be needed by the implementation
+     * @param siteId site identifier
+     * @return
+     */
+    static listRemotes(context, siteId) {
+        def siteServiceImpl = ServiceFactory.getSiteServices(context)
+        return siteServiceImpl.listRemotes(siteId)
+    }
 }

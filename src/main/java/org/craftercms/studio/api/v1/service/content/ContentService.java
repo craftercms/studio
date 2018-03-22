@@ -250,28 +250,6 @@ public interface ContentService {
     boolean renameFolder(String site, String path, String name) throws ServiceException;
 
     /**
-     * Add remote repository for site content repository
-     * @param siteId site identifier
-     * @param remoteName remote name
-     * @param remoteUrl remote url
-     * @param authenticationType authentication type
-     * @param remoteUsername remote username
-     * @param remotePassword remote password
-     * @param remoteToken remote token
-     * @param remotePrivateKey remote private key
-     * @return true if operation was successful
-     */
-    boolean addRemote(String siteId, String remoteName, String remoteUrl, String authenticationType, String remoteUsername, String remotePassword, String remoteToken, String remotePrivateKey) throws InvalidRemoteUrlException, ServiceException;
-
-    /**
-     * Remove remote with given name for site
-     * @param siteId site identifier
-     * @param remoteName remote name
-     * @return true if operation was successful
-     */
-    boolean removeRemote(String siteId, String remoteName) throws SiteNotFoundException;
-
-    /**
      * Push content to remote repository
      * @param siteId site identifier
      * @param remoteName remote name

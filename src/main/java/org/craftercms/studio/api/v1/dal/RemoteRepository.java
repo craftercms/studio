@@ -20,7 +20,7 @@ package org.craftercms.studio.api.v1.dal;
 
 import java.io.Serializable;
 
-public class SiteRemote implements Serializable {
+public class RemoteRepository implements Serializable {
 
     private static final long serialVersionUID = -5031083831374591061L;
 
@@ -40,7 +40,6 @@ public class SiteRemote implements Serializable {
     private String remotePassword;
     private String remoteToken;
     private String remotePrivateKey;
-    private String salt;
 
     public long getId() { return id; }
     public void setId(long id) { this.id = id; }
@@ -68,7 +67,4 @@ public class SiteRemote implements Serializable {
 
     public String getRemotePrivateKey() { return remotePrivateKey; }
     public void setRemotePrivateKey(String remotePrivateKey) { this.remotePrivateKey = remotePrivateKey; }
-
-    public String getSalt() { return salt; }
-    public void setSalt(String salt) { this.salt = salt; }
 }

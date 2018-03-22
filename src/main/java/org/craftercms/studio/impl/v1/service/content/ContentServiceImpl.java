@@ -2201,22 +2201,6 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public boolean addRemote(String siteId, String remoteName, String remoteUrl, String authenticationType, String remoteUsername, String remotePassword, String remoteToken, String remotePrivateKey) throws InvalidRemoteUrlException, ServiceException {
-        if (!siteService.exists(siteId)) {
-            throw new SiteNotFoundException();
-        }
-        return _contentRepository.addRemote(siteId, remoteName, remoteUrl, authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey);
-    }
-
-    @Override
-    public boolean removeRemote(String siteId, String remoteName) throws SiteNotFoundException {
-        if (!siteService.exists(siteId)) {
-            throw new SiteNotFoundException();
-        }
-        return _contentRepository.removeRemote(siteId, remoteName);
-    }
-
-    @Override
     public boolean pushToRemote(String siteId, String remoteName, String remoteBranch) throws ServiceException, InvalidRemoteUrlException {
         if (!siteService.exists(siteId)) {
             throw new SiteNotFoundException();

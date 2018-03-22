@@ -21,7 +21,7 @@ import groovy.json.JsonException
 import groovy.json.JsonSlurper
 import org.apache.commons.lang3.StringUtils
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException
-import scripts.api.ContentServices
+import scripts.api.SiteServices
 
 def result = [:]
 try {
@@ -64,10 +64,10 @@ try {
         response.setStatus(400)
         result.message = "Invalid parameter(s): " + paramsList
     } else {
-        def context = ContentServices.createContext(applicationContext, request)
+        def context = SiteServices.createContext(applicationContext, request)
 
         try {
-            ContentServices.removeRemote(context, siteId, remoteName)
+            SiteServices.removeRemote(context, siteId, remoteName)
             response.setStatus(200)
             result.message = "OK"
         } catch (SiteNotFoundException e) {

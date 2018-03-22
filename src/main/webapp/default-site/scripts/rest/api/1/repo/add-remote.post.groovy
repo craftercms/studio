@@ -22,7 +22,7 @@ import groovy.json.JsonSlurper
 import org.apache.commons.lang3.StringUtils
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException
-import scripts.api.ContentServices
+import scripts.api.SiteServices
 
 def result = [:]
 try {
@@ -136,10 +136,10 @@ try {
         response.setStatus(400)
         result.message = "Invalid parameter: "  + paramsList
     } else {
-        def context = ContentServices.createContext(applicationContext, request)
+        def context = SiteServices.createContext(applicationContext, request)
 
         try {
-            ContentServices.addRemote(context, siteId, remoteName, remoteUrl, authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey)
+            SiteServices.addRemote(context, siteId, remoteName, remoteUrl, authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey)
             response.setStatus(200)
             result.message = "OK"
         } catch (InvalidRemoteUrlException e) {

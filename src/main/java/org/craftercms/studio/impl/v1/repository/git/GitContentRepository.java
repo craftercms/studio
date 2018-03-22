@@ -53,7 +53,6 @@ import com.jcraft.jsch.Session;
 import org.apache.commons.collections4.iterators.ReverseListIterator;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
@@ -63,8 +62,8 @@ import org.craftercms.studio.api.v1.constant.RepoOperation;
 import org.craftercms.studio.api.v1.dal.DeploymentSyncHistory;
 import org.craftercms.studio.api.v1.dal.GitLog;
 import org.craftercms.studio.api.v1.dal.GitLogMapper;
-import org.craftercms.studio.api.v1.dal.SiteRemote;
-import org.craftercms.studio.api.v1.dal.SiteRemoteMapper;
+import org.craftercms.studio.api.v1.dal.RemoteRepository;
+import org.craftercms.studio.api.v1.dal.RemoteRepositoryMapper;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
@@ -102,6 +101,7 @@ import org.eclipse.jgit.api.errors.RefNotFoundException;
 import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.internal.storage.file.LockFile;
+import org.eclipse.jgit.lib.Config;
 import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.ObjectLoader;
@@ -139,7 +139,11 @@ import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.BOOTSTRAP_REPO_GLOBAL_PATH;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.BOOTSTRAP_REPO_PATH;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.*;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.BOOTSTRAP_REPO;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_PUBLISHED_COMMIT_MESSAGE;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_SANDBOX_BRANCH;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_KEY;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_SALT;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.EMPTY_FILE;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_COMMIT_ALL_ITEMS;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
@@ -1623,11 +1627,9 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             params.put("authenticationType", authenticationType);
             params.put("remoteUsername", remoteUsername);
 
-            logger.debug("Generate salt to encrypt password");
-            String salt = RandomStringUtils.randomAlphanumeric(16);
             if (StringUtils.isNotEmpty(remotePassword)) {
                 logger.debug("Encrypt password before inserting to database");
-                TextEncryptor encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY), salt);
+                TextEncryptor encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY), studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
                 String hashedPassword = encryptor.encrypt(remotePassword);
                 params.put("remotePassword", hashedPassword);
             } else {
@@ -1635,10 +1637,9 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             }
             params.put("remoteToken", remoteToken);
             params.put("remotePrivateKey", remotePrivateKey);
-            params.put("salt", salt);
 
             logger.debug("Insert site remote record into database");
-            siteRemoteMapper.insertSiteRemote(params);
+            remoteRepositoryMapper.insertRemoteRepository(params);
         } catch (CryptoException e) {
             throw new ServiceException(e);
         }
@@ -1663,9 +1664,29 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         Map<String, String> params = new HashMap<String, String>();
         params.put("siteId", siteId);
         params.put("remoteName", remoteName);
-        siteRemoteMapper.deleteSiteRemote(params);
+        remoteRepositoryMapper.deleteRemoteRepository(params);
 
         return true;
+    }
+
+    @Override
+    public List<String> listRemotes(String siteId) {
+        List<String> toRet = new ArrayList<String>();
+        try (Repository repo = helper.getRepository(siteId, SANDBOX)) {
+            Config storedConfig = repo.getConfig();
+            Set<String> remotes = storedConfig.getSubsections("remote");
+
+            Map<String, String> params = new HashMap<String, String>();
+            params.put("siteId", siteId);
+            List<RemoteRepository> remoteRepositories = remoteRepositoryMapper.listRemoteRepositories(params);
+
+            for (RemoteRepository remote : remoteRepositories) {
+                if (remotes.contains(remote.getRemoteName())) {
+                    toRet.add(remote.getRemoteName());
+                }
+            }
+        }
+        return toRet;
     }
 
     @Override
@@ -1674,36 +1695,36 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         Map<String, String> params = new HashMap<String, String>();
         params.put("siteId", siteId);
         params.put("remoteName", remoteName);
-        SiteRemote siteRemote = siteRemoteMapper.getSiteRemote(params);
+        RemoteRepository remoteRepository = remoteRepositoryMapper.getRemoteRepository(params);
 
         logger.debug("Prepare push command.");
         Repository repo = helper.getRepository(siteId, SANDBOX);
         try (Git git = new Git(repo)) {
             PushCommand pushCommand = git.push();
             logger.debug("Set remote " + remoteName);
-            pushCommand.setRemote(siteRemote.getRemoteName());
+            pushCommand.setRemote(remoteRepository.getRemoteName());
             logger.debug("Set branch to be " + remoteBranch);
             pushCommand.setRefSpecs(new RefSpec(remoteBranch + ":" + remoteBranch));
-            switch (siteRemote.getAuthenticationType()) {
-                case SiteRemote.AuthenticationType.NONE:
+            switch (remoteRepository.getAuthenticationType()) {
+                case RemoteRepository.AuthenticationType.NONE:
                     logger.debug("No authentication");
                     pushCommand.call();
                     break;
-                case SiteRemote.AuthenticationType.BASIC:
+                case RemoteRepository.AuthenticationType.BASIC:
                     logger.debug("Basic authentication");
-                    String hashedPassword = siteRemote.getRemotePassword();
-                    TextEncryptor encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY), siteRemote.getSalt());
+                    String hashedPassword = remoteRepository.getRemotePassword();
+                    TextEncryptor encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY), studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
                     String password = encryptor.decrypt(hashedPassword);
-                    pushCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(siteRemote.getRemoteUsername(), password));
+                    pushCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(remoteRepository.getRemoteUsername(), password));
 
                     Iterable<PushResult> results = pushCommand.call();
                     break;
-                case SiteRemote.AuthenticationType.TOKEN:
+                case RemoteRepository.AuthenticationType.TOKEN:
                     logger.debug("Token based authentication");
-                    pushCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(siteRemote.getRemoteToken(), StringUtils.EMPTY));
+                    pushCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(remoteRepository.getRemoteToken(), StringUtils.EMPTY));
                     pushCommand.call();
                     break;
-                case SiteRemote.AuthenticationType.PRIVATE_KEY:
+                case RemoteRepository.AuthenticationType.PRIVATE_KEY:
                     logger.debug("Private key authentication");
                     final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(),".tmp");
                     tempKey.toFile().deleteOnExit();
@@ -1711,14 +1732,14 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         @Override
                         public void configure(Transport transport) {
                             SshTransport sshTransport = (SshTransport)transport;
-                            sshTransport.setSshSessionFactory(getSshSessionFactory(siteRemote, tempKey));
+                            sshTransport.setSshSessionFactory(getSshSessionFactory(remoteRepository, tempKey));
                         }
                     });
                     pushCommand.call();
                     Files.delete(tempKey);
                     break;
                 default:
-                    throw new ServiceException("Unsupported autehentication type " + siteRemote.getAuthenticationType());
+                    throw new ServiceException("Unsupported autehentication type " + remoteRepository.getAuthenticationType());
             }
             return true;
         } catch (InvalidRemoteException e) {
@@ -1738,36 +1759,36 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         Map<String, String> params = new HashMap<String, String>();
         params.put("siteId", siteId);
         params.put("remoteName", remoteName);
-        SiteRemote siteRemote = siteRemoteMapper.getSiteRemote(params);
+        RemoteRepository remoteRepository = remoteRepositoryMapper.getRemoteRepository(params);
 
         logger.debug("Prepare pull command");
         Repository repo = helper.getRepository(siteId, SANDBOX);
         try (Git git = new Git(repo)) {
             PullCommand pullCommand = git.pull();
             logger.debug("Set remote " + remoteName);
-            pullCommand.setRemote(siteRemote.getRemoteName());
+            pullCommand.setRemote(remoteRepository.getRemoteName());
             logger.debug("Set branch to be " + remoteBranch);
             pullCommand.setRemoteBranchName(remoteBranch);
-            switch (siteRemote.getAuthenticationType()) {
-                case SiteRemote.AuthenticationType.NONE:
+            switch (remoteRepository.getAuthenticationType()) {
+                case RemoteRepository.AuthenticationType.NONE:
                     logger.debug("No authentication");
                     pullCommand.call();
                     break;
-                case SiteRemote.AuthenticationType.BASIC:
+                case RemoteRepository.AuthenticationType.BASIC:
                     logger.debug("Basic authentication");
-                    String hashedPassword = siteRemote.getRemotePassword();
-                    TextEncryptor encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY), siteRemote.getSalt());
+                    String hashedPassword = remoteRepository.getRemotePassword();
+                    TextEncryptor encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY), studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
                     String password = encryptor.decrypt(hashedPassword);
-                    pullCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(siteRemote.getRemoteUsername(), password));
+                    pullCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(remoteRepository.getRemoteUsername(), password));
 
                     PullResult result = pullCommand.call();
                     break;
-                case SiteRemote.AuthenticationType.TOKEN:
+                case RemoteRepository.AuthenticationType.TOKEN:
                     logger.debug("Token based authentication");
-                    pullCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(siteRemote.getRemoteToken(), StringUtils.EMPTY));
+                    pullCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(remoteRepository.getRemoteToken(), StringUtils.EMPTY));
                     pullCommand.call();
                     break;
-                case SiteRemote.AuthenticationType.PRIVATE_KEY:
+                case RemoteRepository.AuthenticationType.PRIVATE_KEY:
                     logger.debug("Private key authentication");
                     final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
                     tempKey.toFile().deleteOnExit();
@@ -1775,14 +1796,14 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         @Override
                         public void configure(Transport transport) {
                             SshTransport sshTransport = (SshTransport)transport;
-                            sshTransport.setSshSessionFactory(getSshSessionFactory(siteRemote, tempKey));
+                            sshTransport.setSshSessionFactory(getSshSessionFactory(remoteRepository, tempKey));
                         }
                     });
                     pullCommand.call();
                     Files.delete(tempKey);
                     break;
                 default:
-                    throw new ServiceException("Unsupported autehentication type " + siteRemote.getAuthenticationType());
+                    throw new ServiceException("Unsupported autehentication type " + remoteRepository.getAuthenticationType());
             }
             return true;
         } catch (InvalidRemoteException e) {
@@ -1796,10 +1817,10 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         }
     }
 
-    private SshSessionFactory getSshSessionFactory(SiteRemote siteRemote, final Path tempKey) {
+    private SshSessionFactory getSshSessionFactory(RemoteRepository remoteRepository, final Path tempKey) {
         try {
 
-            Files.write(tempKey, siteRemote.getRemotePrivateKey().getBytes());
+            Files.write(tempKey, remoteRepository.getRemotePrivateKey().getBytes());
             SshSessionFactory sshSessionFactory = new JschConfigSessionFactory() {
                 @Override
                 protected void configure(OpenSshConfig.Host hc, Session session) {
@@ -1846,5 +1867,5 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     GitLogMapper gitLogMapper;
 
     @Autowired
-    SiteRemoteMapper siteRemoteMapper;
+    RemoteRepositoryMapper remoteRepositoryMapper;
 }

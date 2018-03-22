@@ -277,36 +277,6 @@ class ContentServices {
     }
 
     /**
-     * Add remote
-     * @param context container for passing request, token and other values that may be needed by the implementation
-     * @param siteId site identifier
-     * @param remoteName remote name
-     * @param remoteUrl remote url
-     * @param authenticationType authentication type
-     * @param remoteUsername remote username
-     * @param remotePassword remote password
-     * @param remoteToken remote token
-     * @param remotePrivateKey remote private key
-     * @return
-     */
-    static addRemote(context, siteId, remoteName, remoteUrl, authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey) {
-        def contentServicesImpl = ServiceFactory.getContentServices(context)
-        return contentServicesImpl.addRemote(siteId, remoteName, remoteUrl, authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey)
-    }
-
-    /**
-     * Remove remote
-     * @param context container for passing request, token and other values that may be needed by the implementation
-     * @param siteId site identifier
-     * @param remoteName remote name
-     * @return
-     */
-    static removeRemote(context, siteId, remoteName) {
-        def contentServiceImpl = ServiceFactory.getContentServices(context)
-        return contentServiceImpl.removeRemote(siteId, remoteName)
-    }
-
-    /**
      * Push content to remote
      * @param context container for passing request, token and other values that may be needed by the implementation
      * @param siteId site identifier

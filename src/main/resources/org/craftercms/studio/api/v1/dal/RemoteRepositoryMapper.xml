@@ -20,8 +20,8 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="org.craftercms.studio.api.v1.dal.SiteRemoteMapper">
-    <resultMap id="SiteRemoteMap" type="org.craftercms.studio.api.v1.dal.SiteRemote">
+<mapper namespace="org.craftercms.studio.api.v1.dal.RemoteRepositoryMapper">
+    <resultMap id="RemoteRepositoryMap" type="org.craftercms.studio.api.v1.dal.RemoteRepository">
         <id property="id" column="id"/>
         <result property="siteId" column="site_id"/>
         <result property="remoteName" column="remote_name"/>
@@ -31,23 +31,26 @@
         <result property="remotePassword" column="remote_password"/>
         <result property="remoteToken" column="remote_token"/>
         <result property="remotePrivateKey" column="remote_private_key"/>
-        <result property="salt" column="salt"/>
     </resultMap>
 
-    <select id="getSiteRemote" resultMap="SiteRemoteMap" parameterType="java.util.Map">
-        SELECT * FROM site_remote WHERE site_id = #{siteId} AND remote_name = #{remoteName}
+    <select id="getRemoteRepository" resultMap="RemoteRepositoryMap" parameterType="java.util.Map">
+        SELECT * FROM remote_repository WHERE site_id = #{siteId} AND remote_name = #{remoteName}
     </select>
 
-    <insert id="insertSiteRemote" parameterType="java.util.Map">
-        INSERT INTO site_remote (site_id, remote_name, remote_url, authentication_type, remote_username, remote_password, remote_token, remote_private_key, salt)
-        VALUES (#{siteId}, #{remoteName}, #{remoteUrl}, #{authenticationType}, #{remoteUsername}, #{remotePassword}, #{remoteToken}, #{remotePrivateKey}, #{salt})
+    <select id="listRemoteRepositories" resultMap="RemoteRepositoryMap" parameterType="java.util.Map">
+        SELECT * FROM remote_repository WHERE site_id = #{siteId}
+    </select>
+
+    <insert id="insertRemoteRepository" parameterType="java.util.Map">
+        INSERT INTO remote_repository (site_id, remote_name, remote_url, authentication_type, remote_username, remote_password, remote_token, remote_private_key)
+        VALUES (#{siteId}, #{remoteName}, #{remoteUrl}, #{authenticationType}, #{remoteUsername}, #{remotePassword}, #{remoteToken}, #{remotePrivateKey})
     </insert>
 
-    <delete id="deleteSiteRemoteForSite" parameterType="java.util.Map">
-        DELETE FROM site_remote WHERE site_id = #{siteId}
+    <delete id="deleteRemoteRepositoryForSite" parameterType="java.util.Map">
+        DELETE FROM remote_repository WHERE site_id = #{siteId}
     </delete>
 
-    <delete id="deleteSiteRemote" parameterType="java.util.Map">
-        DELETE FROM site_remote WHERE site_id = #{siteId} AND remote_name = #{remoteName}
+    <delete id="deleteRemoteRepository" parameterType="java.util.Map">
+        DELETE FROM remote_repository WHERE site_id = #{siteId} AND remote_name = #{remoteName}
     </delete>
 </mapper>

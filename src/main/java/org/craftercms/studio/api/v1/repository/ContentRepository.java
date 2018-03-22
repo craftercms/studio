@@ -387,6 +387,14 @@ public interface ContentRepository {
     boolean removeRemote(String siteId, String remoteName);
 
     /**
+     * List remote repositories for given site
+     *
+     * @param siteId site identifier
+     * @return list of names of remote repositories
+     */
+    List<String> listRemotes(String siteId);
+
+    /**
      * Push content to remote repository
      * @param siteId site identifier
      * @param remoteName remote name
