@@ -154,8 +154,8 @@ class SiteServices {
      * @param siteId site identifier
      * @return
      */
-    static listRemotes(context, siteId) {
+    static listRemote(context, siteId) {
         def siteServiceImpl = ServiceFactory.getSiteServices(context)
-        return siteServiceImpl.listRemotes(siteId)
+        return siteServiceImpl.listRemote(siteId)
     }
 }

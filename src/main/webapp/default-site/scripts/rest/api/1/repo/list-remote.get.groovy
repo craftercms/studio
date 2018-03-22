@@ -42,7 +42,7 @@ if (invalidParams) {
     def context = SiteServices.createContext(applicationContext, request)
 
     try {
-        result.remotes = SiteServices.listRemotes(context, siteId)
+        result.remotes = SiteServices.listRemote(context, siteId)
         response.setStatus(200)
         result.message = "OK"
     } catch (SiteNotFoundException e) {

@@ -126,8 +126,8 @@ class SpringSiteServices {
         return springBackedService.removeRemote(siteId, remoteName)
     }
 
-    def listRemotes(siteId) {
+    def listRemote(siteId) {
         def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
-        return springBackedService.listRemotes(siteId)
+        return springBackedService.listRemote(siteId)
     }
 }

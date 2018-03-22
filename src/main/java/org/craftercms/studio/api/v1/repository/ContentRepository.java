@@ -392,7 +392,7 @@ public interface ContentRepository {
      * @param siteId site identifier
      * @return list of names of remote repositories
      */
-    List<String> listRemotes(String siteId);
+    List<String> listRemote(String siteId);
 
     /**
      * Push content to remote repository

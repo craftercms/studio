@@ -1670,7 +1670,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     @Override
-    public List<String> listRemotes(String siteId) {
+    public List<String> listRemote(String siteId) {
         List<String> toRet = new ArrayList<String>();
         try (Repository repo = helper.getRepository(siteId, SANDBOX)) {
             Config storedConfig = repo.getConfig();
