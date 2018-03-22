@@ -1,5 +1,5 @@
 /*
- * Crafter Studio Web-content authoring solution
+ * Crafter Studio
  * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
