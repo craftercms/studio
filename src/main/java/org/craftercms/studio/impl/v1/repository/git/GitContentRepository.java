@@ -155,8 +155,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     private static final Logger logger = LoggerFactory.getLogger(GitContentRepository.class);
     private GitContentRepositoryHelper helper = null;
 
-    private final static Map<String, ReentrantLock> repositoryLocks = new HashMap<String, ReentrantLock>();
-
     private final static String IN_PROGRESS_BRANCH_NAME_SUFIX = "_in_progress";
 
     @Override
@@ -400,9 +398,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         }
                     } else if (sourceFile.isDirectory()) {
                         // Check if we're moving a single file or whole subtree
-                        //FileUtils.moveToDirectory(sourceFile, targetFile, true);
                         File[] dirList = sourceFile.listFiles();
-                        //Collection<File> dirList = FileUtils.listFilesAndDirs(sourceFile, FileFileFilter.FILE, DirectoryFileFilter.INSTANCE);
                         for (File child : dirList) {
                             if (!child.equals(sourceFile)) {
                                 FileUtils.moveToDirectory(child, targetFile, true);
@@ -1717,7 +1713,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     String password = encryptor.decrypt(hashedPassword);
                     pushCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(remoteRepository.getRemoteUsername(), password));
 
-                    Iterable<PushResult> results = pushCommand.call();
+                    pushCommand.call();
                     break;
                 case RemoteRepository.AuthenticationType.TOKEN:
                     logger.debug("Token based authentication");
@@ -1739,7 +1735,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     Files.delete(tempKey);
                     break;
                 default:
-                    throw new ServiceException("Unsupported autehentication type " + remoteRepository.getAuthenticationType());
+                    throw new ServiceException("Unsupported authentication type " + remoteRepository.getAuthenticationType());
             }
             return true;
         } catch (InvalidRemoteException e) {
@@ -1781,7 +1777,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     String password = encryptor.decrypt(hashedPassword);
                     pullCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(remoteRepository.getRemoteUsername(), password));
 
-                    PullResult result = pullCommand.call();
+                    pullCommand.call();
                     break;
                 case RemoteRepository.AuthenticationType.TOKEN:
                     logger.debug("Token based authentication");
@@ -1803,7 +1799,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     Files.delete(tempKey);
                     break;
                 default:
-                    throw new ServiceException("Unsupported autehentication type " + remoteRepository.getAuthenticationType());
+                    throw new ServiceException("Unsupported authentication type " + remoteRepository.getAuthenticationType());
             }
             return true;
         } catch (InvalidRemoteException e) {
