@@ -415,6 +415,15 @@ public interface ContentRepository {
      */
     boolean pullFromRemote(String siteId, String remoteName, String remoteBranch) throws ServiceException, InvalidRemoteUrlException;
 
+    /**
+     * Check if content at given path is folder
+     *
+     * @param siteId site identifier
+     * @param path content path
+     * @return true if path is folder, otherwise false
+     */
+    boolean isFolder(String siteId, String path);
+
     /*
     List<PublishTO> getPublishEvents(String site, String commitIdFrom, String commitIdTo);
     List<PublishTO> getPublishEvents(String site, String commitIdFrom);

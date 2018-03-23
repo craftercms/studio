@@ -1847,6 +1847,14 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         return null;
     }
 
+    @Override
+    public boolean isFolder(String siteId, String path) {
+        Repository repo = helper.getRepository(siteId, SANDBOX);
+        Path p = Paths.get(helper.buildRepoPath(SANDBOX, siteId).toAbsolutePath().toString(), path);
+        File file = p.toFile();
+        return file.isDirectory();
+    }
+
     public void setServletContext(ServletContext ctx) {
         this.ctx = ctx;
     }
