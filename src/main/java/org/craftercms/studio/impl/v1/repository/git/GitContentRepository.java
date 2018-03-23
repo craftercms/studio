@@ -523,7 +523,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         }
                         tw.close();
                     } else {
-                        logger.error("Error getChildren invoked for a file for site: " + site + " path: " + path);
+                        logger.debug("Object is not tree for site: " + site + " path: " + path + " - it does not have children");
                     }
                 } else {
                     String gitPath = helper.getGitPath(path);
