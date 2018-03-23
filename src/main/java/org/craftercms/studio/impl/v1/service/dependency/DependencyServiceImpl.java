@@ -292,6 +292,9 @@ public class DependencyServiceImpl implements DependencyService {
     }
 
     private List<String> getItemSpecificDependenciesFromDB(String site, Set<String> paths) {
+        if (CollectionUtils.isEmpty(paths)) {
+            return new ArrayList<String>();
+        }
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("site", site);
         params.put("paths", paths);
@@ -336,6 +339,9 @@ public class DependencyServiceImpl implements DependencyService {
     }
 
     private List<String> getItemDependenciesFromDB(String site, Set<String> paths) {
+        if (CollectionUtils.isEmpty(paths)) {
+            return new ArrayList<String>();
+        }
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("site", site);
         params.put("paths", paths);
@@ -379,6 +385,9 @@ public class DependencyServiceImpl implements DependencyService {
     }
 
     private List<String> getItemsDependingOnFromDB(String site, Set<String> paths) {
+        if (CollectionUtils.isEmpty(paths)) {
+            return new ArrayList<String>();
+        }
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("site", site);
         params.put("paths", paths);
