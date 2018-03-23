@@ -1,5 +1,4 @@
 /*
- * Crafter Studio Web-content authoring solution
  * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -22,6 +21,7 @@ import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.*;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
+import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotBareException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
@@ -230,4 +230,35 @@ public interface SiteService {
      * @return publish status
      */
     PublishStatus getPublishStatus(String site) throws SiteNotFoundException;
+
+    /**
+     * Add remote repository for site content repository
+     * @param siteId site identifier
+     * @param remoteName remote name
+     * @param remoteUrl remote url
+     * @param authenticationType authentication type
+     * @param remoteUsername remote username
+     * @param remotePassword remote password
+     * @param remoteToken remote token
+     * @param remotePrivateKey remote private key
+     * @return true if operation was successful
+     */
+    boolean addRemote(String siteId, String remoteName, String remoteUrl, String authenticationType, String remoteUsername, String remotePassword, String remoteToken, String remotePrivateKey) throws InvalidRemoteUrlException, ServiceException;
+
+    /**
+     * Remove remote with given name for site
+     * @param siteId site identifier
+     * @param remoteName remote name
+     * @return true if operation was successful
+     */
+    boolean removeRemote(String siteId, String remoteName) throws SiteNotFoundException;
+
+    /**
+     * List remote repositories for given site
+     *
+     * @param siteId site identifier
+     * @return list of names of remote repositories
+     * @throws SiteNotFoundException
+     */
+    List<String> listRemote(String siteId) throws SiteNotFoundException;
 }

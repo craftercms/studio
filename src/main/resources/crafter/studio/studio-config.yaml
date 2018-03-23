@@ -152,9 +152,9 @@ studio.security.publicUrls: /api/1/services/api/1/server/get-available-languages
 # ldap (users are imported from LDAP into the database)
 studio.security.type: db
 # Salt for encrypting
-studio.security.cipher.salt: STUDIO_SALT
+studio.security.cipher.salt: DgGN9xhq3GOn6zxg
 # Key for encrypting
-studio.security.cipher.key: MYSUPERSECRETKEY
+studio.security.cipher.key: zEtRii1jWUuUUB0W
 # Cipher type
 studio.security.cipher.type: AES
 # Cipher algorithm

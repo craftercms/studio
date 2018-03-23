@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.craftercms.studio.api.v1.dal.RemoteRepositoryMapper">
+    <resultMap id="RemoteRepositoryMap" type="org.craftercms.studio.api.v1.dal.RemoteRepository">
+        <id property="id" column="id"/>
+        <result property="siteId" column="site_id"/>
+        <result property="remoteName" column="remote_name"/>
+        <result property="remoteUrl" column="remote_url"/>
+        <result property="authenticationType" column="authentication_type"/>
+        <result property="remoteUsername" column="remote_username"/>
+        <result property="remotePassword" column="remote_password"/>
+        <result property="remoteToken" column="remote_token"/>
+        <result property="remotePrivateKey" column="remote_private_key"/>
+    </resultMap>
+
+    <select id="getRemoteRepository" resultMap="RemoteRepositoryMap" parameterType="java.util.Map">
+        SELECT * FROM remote_repository WHERE site_id = #{siteId} AND remote_name = #{remoteName}
+    </select>
+
+    <select id="listRemoteRepositories" resultMap="RemoteRepositoryMap" parameterType="java.util.Map">
+        SELECT * FROM remote_repository WHERE site_id = #{siteId}
+    </select>
+
+    <insert id="insertRemoteRepository" parameterType="java.util.Map">
+        INSERT INTO remote_repository (site_id, remote_name, remote_url, authentication_type, remote_username, remote_password, remote_token, remote_private_key)
+        VALUES (#{siteId}, #{remoteName}, #{remoteUrl}, #{authenticationType}, #{remoteUsername}, #{remotePassword}, #{remoteToken}, #{remotePrivateKey})
+    </insert>
+
+    <delete id="deleteRemoteRepositoryForSite" parameterType="java.util.Map">
+        DELETE FROM remote_repository WHERE site_id = #{siteId}
+    </delete>
+
+    <delete id="deleteRemoteRepository" parameterType="java.util.Map">
+        DELETE FROM remote_repository WHERE site_id = #{siteId} AND remote_name = #{remoteName}
+    </delete>
+</mapper>

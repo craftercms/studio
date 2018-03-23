@@ -45,6 +45,7 @@ import org.craftercms.studio.api.v1.ebus.PreviewEventContext;
 import org.craftercms.studio.api.v1.exception.*;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
+import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotBareException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
@@ -1571,6 +1572,30 @@ public class SiteServiceImpl implements SiteService {
             }
         }
         return ps;
+    }
+
+    @Override
+    public boolean addRemote(String siteId, String remoteName, String remoteUrl, String authenticationType, String remoteUsername, String remotePassword, String remoteToken, String remotePrivateKey) throws InvalidRemoteUrlException, ServiceException {
+        if (!exists(siteId)) {
+            throw new SiteNotFoundException();
+        }
+        return contentRepository.addRemote(siteId, remoteName, remoteUrl, authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey);
+    }
+
+    @Override
+    public boolean removeRemote(String siteId, String remoteName) throws SiteNotFoundException {
+        if (!exists(siteId)) {
+            throw new SiteNotFoundException();
+        }
+        return contentRepository.removeRemote(siteId, remoteName);
+    }
+
+    @Override
+    public List<String> listRemote(String siteId) throws SiteNotFoundException {
+        if (!exists(siteId)) {
+            throw new SiteNotFoundException();
+        }
+        return contentRepository.listRemote(siteId);
     }
 
     public String getGlobalConfigRoot() {

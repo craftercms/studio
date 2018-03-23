@@ -37,6 +37,8 @@ import org.craftercms.studio.api.v1.dal.ItemState;
 import org.craftercms.studio.api.v1.ebus.PreviewEventContext;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v1.executor.ProcessContentExecutor;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -2201,6 +2203,22 @@ public class ContentServiceImpl implements ContentService {
         }
 
         return toRet;
+    }
+
+    @Override
+    public boolean pushToRemote(String siteId, String remoteName, String remoteBranch) throws ServiceException, InvalidRemoteUrlException {
+        if (!siteService.exists(siteId)) {
+            throw new SiteNotFoundException();
+        }
+        return _contentRepository.pushToRemote(siteId, remoteName, remoteBranch);
+    }
+
+    @Override
+    public boolean pullFromRemote(String siteId, String remoteName, String remoteBranch) throws ServiceException, InvalidRemoteUrlException {
+        if (!siteService.exists(siteId)) {
+            throw new SiteNotFoundException(siteId);
+        }
+        return _contentRepository.pullFromRemote(siteId, remoteName, remoteBranch);
     }
 
     public ContentRepository getContentRepository() { return _contentRepository; }
