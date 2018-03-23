@@ -1221,7 +1221,8 @@ public class ContentServiceImpl implements ContentService {
         item.submittedForDeletion = false;
         item.inProgress = true;
         item.live = false;
-        item.folder = (item.name.contains(".")==false); // TODO: SJ: This seems hokey, fix in 3.1+
+        // TODO: DB: Review again in 3.1+
+        item.folder = _contentRepository.isFolder(site, contentPath);
 
         return item;
     }
@@ -1394,7 +1395,7 @@ public class ContentServiceImpl implements ContentService {
                     }
                 }
 
-                if(!indexFound) {
+                if(!indexFound && _contentRepository.isFolder(item.site, contentPath)) {
                     // ITEM IS A FOLDER
                     item.folder = true;
                     item.isContainer = true;
