@@ -891,7 +891,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 String[] cmd = new String[] {"rsync", "-avz", "--delete", source.toAbsolutePath().toString() + FILE_SEPARATOR, blueprintsPath.toAbsolutePath().toString() };
                 Process p = Runtime.getRuntime().exec(cmd);
                 p.waitFor();
-                Path globalRepoPath = helper.buildRepoPath(GitRepositories.GLOBAL);
                 Repository globalRepo = helper.getRepository(StringUtils.EMPTY, GitRepositories.GLOBAL);
                 try (Git git = new Git(globalRepo)) {
 
