@@ -137,11 +137,13 @@ import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.BOOTSTRAP_REPO_GLOBAL_PATH;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.BOOTSTRAP_REPO_PATH;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.BLUE_PRINTS_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.BOOTSTRAP_REPO;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_PUBLISHED_COMMIT_MESSAGE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_SANDBOX_BRANCH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_KEY;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_SALT;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.BLUEPRINTS_UPDATED_COMMIT;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.EMPTY_FILE;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_COMMIT_ALL_ITEMS;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
@@ -848,6 +850,32 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         // TODO: Consider what to do with the commitId in the future
                         git.add().addFilepattern(GIT_COMMIT_ALL_ITEMS).call();
                         git.commit().setMessage(INITIAL_COMMIT).call();
+                    }
+
+                    git.close();
+                } catch (GitAPIException err) {
+                    logger.error("error creating initial commit for global configuration", err);
+                }
+            } else {
+                // rsync blueprints
+                String bootstrapFolderPath = this.ctx.getRealPath(FILE_SEPARATOR + BOOTSTRAP_REPO_PATH + FILE_SEPARATOR + BOOTSTRAP_REPO_GLOBAL_PATH + FILE_SEPARATOR + studioConfiguration.getProperty(BLUE_PRINTS_PATH));
+                Path source = java.nio.file.FileSystems.getDefault().getPath(bootstrapFolderPath);
+                Path globalConfigPath = helper.buildRepoPath(GitRepositories.GLOBAL);
+                Path blueprintsPath = Paths.get(globalConfigPath.toAbsolutePath().toString(), studioConfiguration.getProperty(BLUE_PRINTS_PATH));
+                String[] cmd = new String[] {"rsync", "-avz", source.toAbsolutePath().toString() + FILE_SEPARATOR, blueprintsPath.toAbsolutePath().toString() };
+                Process p = Runtime.getRuntime().exec(cmd);
+                p.waitFor();
+                Path globalRepoPath = helper.buildRepoPath(GitRepositories.GLOBAL);
+                Repository globalRepo = helper.getRepository(StringUtils.EMPTY, GitRepositories.GLOBAL);
+                try (Git git = new Git(globalRepo)) {
+
+                    Status status = git.status().call();
+
+                    if (status.hasUncommittedChanges() || !status.isClean()) {
+                        // Commit everything
+                        // TODO: Consider what to do with the commitId in the future
+                        git.add().addFilepattern(GIT_COMMIT_ALL_ITEMS).call();
+                        git.commit().setMessage(BLUEPRINTS_UPDATED_COMMIT).call();
                     }
 
                     git.close();
