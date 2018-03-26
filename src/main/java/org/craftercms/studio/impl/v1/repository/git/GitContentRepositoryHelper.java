@@ -535,6 +535,14 @@ public class GitContentRepositoryHelper {
                 }
                 break;
             case GLOBAL:
+                if (globalRepo == null) {
+                    Path globalConfigRepoPath = buildRepoPath(GitRepositories.GLOBAL).resolve(GIT_ROOT);
+                    try {
+                        globalRepo = openRepository(globalConfigRepoPath);
+                    } catch (IOException e) {
+                        logger.error("error getting the global repository.", e);
+                    }
+                }
                 repo = globalRepo;
                 break;
             default:
