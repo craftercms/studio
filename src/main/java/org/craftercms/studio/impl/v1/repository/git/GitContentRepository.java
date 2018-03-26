@@ -118,6 +118,7 @@ import org.eclipse.jgit.transport.JschConfigSessionFactory;
 import org.eclipse.jgit.transport.OpenSshConfig;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.RefSpec;
+import org.eclipse.jgit.transport.RemoteConfig;
 import org.eclipse.jgit.transport.RemoteRefUpdate;
 import org.eclipse.jgit.transport.SshSessionFactory;
 import org.eclipse.jgit.transport.SshTransport;
@@ -1677,6 +1678,17 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     public List<String> listRemote(String siteId) {
         List<String> toRet = new ArrayList<String>();
         try (Repository repo = helper.getRepository(siteId, SANDBOX)) {
+
+            try (Git git = new Git(repo)) {
+                List<RemoteConfig> result = git.remoteList().call();
+                for (RemoteConfig conf : result) {
+                    logger.error(conf.toString());
+                    logger.error(conf.getReceivePack());
+                }
+            } catch (GitAPIException e) {
+                e.printStackTrace();
+            }
+
             Config storedConfig = repo.getConfig();
             Set<String> remotes = storedConfig.getSubsections("remote");
 
