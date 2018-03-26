@@ -888,7 +888,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 Path source = java.nio.file.FileSystems.getDefault().getPath(bootstrapFolderPath);
                 Path globalConfigPath = helper.buildRepoPath(GitRepositories.GLOBAL);
                 Path blueprintsPath = Paths.get(globalConfigPath.toAbsolutePath().toString(), studioConfiguration.getProperty(BLUE_PRINTS_PATH));
-                String[] cmd = new String[] {"rsync", "-avz", source.toAbsolutePath().toString() + FILE_SEPARATOR, blueprintsPath.toAbsolutePath().toString() };
+                String[] cmd = new String[] {"rsync", "-avz", "--delete", source.toAbsolutePath().toString() + FILE_SEPARATOR, blueprintsPath.toAbsolutePath().toString() };
                 Process p = Runtime.getRuntime().exec(cmd);
                 p.waitFor();
                 Path globalRepoPath = helper.buildRepoPath(GitRepositories.GLOBAL);
@@ -901,7 +901,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         // Commit everything
                         // TODO: Consider what to do with the commitId in the future
                         git.add().addFilepattern(GIT_COMMIT_ALL_ITEMS).call();
-                        git.commit().setMessage(BLUEPRINTS_UPDATED_COMMIT).call();
+                        git.commit().setAll(true).setMessage(BLUEPRINTS_UPDATED_COMMIT).call();
                     }
 
                     git.close();
