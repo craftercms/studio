@@ -28,6 +28,7 @@ import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotBare
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
+import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
 import org.craftercms.studio.api.v1.to.RepoOperationTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
 
@@ -395,7 +396,7 @@ public interface ContentRepository {
      * @param siteId site identifier
      * @return list of names of remote repositories
      */
-    List<String> listRemote(String siteId);
+    List<RemoteRepositoryInfoTO> listRemote(String siteId);
 
     /**
      * Push content to remote repository
