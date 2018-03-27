@@ -49,6 +49,7 @@ import javax.servlet.ServletContext;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.iterators.ReverseListIterator;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -78,6 +79,7 @@ import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentHistoryProvider;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
+import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
 import org.craftercms.studio.api.v1.to.RepoOperationTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
@@ -99,7 +101,6 @@ import org.eclipse.jgit.api.errors.RefNotFoundException;
 import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.internal.storage.file.LockFile;
-import org.eclipse.jgit.lib.Config;
 import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.ObjectLoader;
@@ -118,6 +119,7 @@ import org.eclipse.jgit.transport.JschConfigSessionFactory;
 import org.eclipse.jgit.transport.OpenSshConfig;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.RefSpec;
+import org.eclipse.jgit.transport.RemoteConfig;
 import org.eclipse.jgit.transport.RemoteRefUpdate;
 import org.eclipse.jgit.transport.SshSessionFactory;
 import org.eclipse.jgit.transport.SshTransport;
@@ -1674,23 +1676,54 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     @Override
-    public List<String> listRemote(String siteId) {
-        List<String> toRet = new ArrayList<String>();
+    public List<RemoteRepositoryInfoTO> listRemote(String siteId) {
+        List<RemoteRepositoryInfoTO> res = new ArrayList<RemoteRepositoryInfoTO>();
         try (Repository repo = helper.getRepository(siteId, SANDBOX)) {
-            Config storedConfig = repo.getConfig();
-            Set<String> remotes = storedConfig.getSubsections("remote");
 
-            Map<String, String> params = new HashMap<String, String>();
-            params.put("siteId", siteId);
-            List<RemoteRepository> remoteRepositories = remoteRepositoryMapper.listRemoteRepositories(params);
+            try (Git git = new Git(repo)) {
+                List<RemoteConfig> result = git.remoteList().call();
+                for (RemoteConfig conf : result) {
+                    RemoteRepositoryInfoTO rri = new RemoteRepositoryInfoTO();
+                    rri.setName(conf.getName());
+                    StringBuilder sbUrl = new StringBuilder();
+                    if (CollectionUtils.isNotEmpty(conf.getURIs())) {
+                        for (int i = 0; i < conf.getURIs().size(); i++) {
+                            sbUrl.append(conf.getURIs().get(i).toString());
+                            if (i < conf.getURIs().size() - 1) {
+                                sbUrl.append(":");
+                            }
+                        }
+                    }
+                    rri.setUrl(sbUrl.toString());
 
-            for (RemoteRepository remote : remoteRepositories) {
-                if (remotes.contains(remote.getRemoteName())) {
-                    toRet.add(remote.getRemoteName());
+                    StringBuilder sbFetch = new StringBuilder();
+                    if (CollectionUtils.isNotEmpty(conf.getFetchRefSpecs())) {
+                        for (int i = 0; i < conf.getFetchRefSpecs().size(); i++) {
+                            sbFetch.append(conf.getFetchRefSpecs().get(i).toString());
+                            if (i < conf.getFetchRefSpecs().size() - 1) {
+                                sbFetch.append(":");
+                            }
+                        }
+                    }
+                    rri.setFetch(sbFetch.toString());
+
+                    StringBuilder sbPushUrl = new StringBuilder();
+                    if (CollectionUtils.isNotEmpty(conf.getPushURIs())) {
+                        for (int i = 0; i < conf.getPushURIs().size(); i++) {
+                            sbPushUrl.append(conf.getPushURIs().get(i).toString());
+                            if (i < conf.getPushURIs().size() - 1) {
+                                sbPushUrl.append(":");
+                            }
+                        }
+                    }
+                    rri.setPush_url(sbPushUrl.toString());
+                    res.add(rri);
                 }
+            } catch (GitAPIException e) {
+                logger.error("Error getting remote repositories for site " + siteId, e);
             }
         }
-        return toRet;
+        return res;
     }
 
     @Override

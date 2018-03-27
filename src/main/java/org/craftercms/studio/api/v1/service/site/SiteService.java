@@ -27,6 +27,7 @@ import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoun
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.to.PublishStatus;
 import org.craftercms.studio.api.v1.to.PublishingTargetTO;
+import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
 import org.dom4j.Document;
 
 import java.util.List;
@@ -260,5 +261,5 @@ public interface SiteService {
      * @return list of names of remote repositories
      * @throws SiteNotFoundException
      */
-    List<String> listRemote(String siteId) throws SiteNotFoundException;
+    List<RemoteRepositoryInfoTO> listRemote(String siteId) throws SiteNotFoundException;
 }

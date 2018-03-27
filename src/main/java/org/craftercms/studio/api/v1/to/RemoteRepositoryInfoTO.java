@@ -1,0 +1,43 @@
+/*
+ * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
+package org.craftercms.studio.api.v1.to;
+
+import java.io.Serializable;
+
+public class RemoteRepositoryInfoTO implements Serializable {
+
+    private static final long serialVersionUID = -2365497763591332370L;
+
+    private String name;
+    private String url;
+    private String fetch;
+    private String push_url;
+
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+
+    public String getUrl() { return url; }
+    public void setUrl(String url) { this.url = url; }
+
+    public String getFetch() { return fetch; }
+    public void setFetch(String fetch) { this.fetch = fetch; }
+
+    public String getPush_url() { return push_url; }
+    public void setPush_url(String push_url) { this.push_url = push_url; }
+}
