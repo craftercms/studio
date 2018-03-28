@@ -41,13 +41,22 @@ import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.TransportConfigCallback;
-import org.eclipse.jgit.api.errors.*;
+import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.InvalidRemoteException;
+import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.dircache.DirCache;
 import org.eclipse.jgit.errors.AmbiguousObjectException;
 import org.eclipse.jgit.errors.IncorrectObjectTypeException;
 import org.eclipse.jgit.errors.MissingObjectException;
-import org.eclipse.jgit.lib.*;
+import org.eclipse.jgit.lib.Constants;
+import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.lib.ObjectReader;
+import org.eclipse.jgit.lib.PersonIdent;
+import org.eclipse.jgit.lib.Ref;
+import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.lib.RepositoryCache;
+import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
@@ -74,13 +83,33 @@ import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.UUID;
 
 import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
-import static org.craftercms.studio.api.v1.constant.SecurityConstants.*;
+import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_EMAIL;
+import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_FIRSTNAME;
+import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_LASTNAME;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_GENERAL_CONFIG_FILE_NAME;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_PERMISSION_MAPPINGS_FILE_NAME;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_SANDBOX_BRANCH;
-import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.*;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_PARAMETER_BIG_FILE_THRESHOLD;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_PARAMETER_BIG_FILE_THRESHOLD_DEFAULT;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_PARAMETER_COMPRESSION;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_PARAMETER_COMPRESSION_DEFAULT;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_PARAMETER_FILE_MODE;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_PARAMETER_FILE_MODE_DEFAULT;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_SECTION_CORE;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_COMMIT_ALL_ITEMS;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_ROOT;
 
 /**
  * Created by Sumer Jabri
@@ -403,21 +432,18 @@ public class GitContentRepositoryHelper {
         String siteConfigFolder = "/config/studio";
         if (!replaceSitenameVariable(site,
                 Paths.get(buildRepoPath(GitRepositories.SANDBOX, site).toAbsolutePath().toString(),
-                        studioConfiguration.getProperty(StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH),
-                        studioConfiguration.getProperty(
-                                StudioConfiguration.CONFIGURATION_SITE_GENERAL_CONFIG_FILE_NAME)))) {
+                        studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH),
+                        studioConfiguration.getProperty(CONFIGURATION_SITE_GENERAL_CONFIG_FILE_NAME)))) {
             toReturn = false;
         } else if (!replaceSitenameVariable(site,
                 Paths.get(buildRepoPath(GitRepositories.SANDBOX, site).toAbsolutePath().toString(),
-                        studioConfiguration.getProperty(StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH),
-                        studioConfiguration.getProperty(
-                                StudioConfiguration.CONFIGURATION_SITE_PERMISSION_MAPPINGS_FILE_NAME)))) {
+                        studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH),
+                studioConfiguration.getProperty(CONFIGURATION_SITE_PERMISSION_MAPPINGS_FILE_NAME)))) {
             toReturn = false;
         } else if (!replaceSitenameVariable(site,
                 Paths.get(buildRepoPath(GitRepositories.SANDBOX, site).toAbsolutePath().toString(),
-                        studioConfiguration.getProperty(StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH),
-                        studioConfiguration.getProperty(
-                                StudioConfiguration.CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME)))) {
+                        studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH),
+                studioConfiguration.getProperty(CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME)))) {
             toReturn = false;
         }
         return toReturn;
