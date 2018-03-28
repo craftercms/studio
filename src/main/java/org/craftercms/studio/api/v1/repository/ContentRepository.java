@@ -39,6 +39,7 @@ import java.util.Map;
 /**
  * This interface represents the repository layer of Crafter Studio.  All interaction with the backend
  * Store must go through this interface.
+ *
  * @author russdanner
  */
 public interface ContentRepository {
@@ -73,8 +74,8 @@ public interface ContentRepository {
     /**
      * write content
      *
-     * @param site site id where the operation will be executed
-     * @param path path to content
+     * @param site    site id where the operation will be executed
+     * @param path    path to content
      * @param content stream of content to write
      * @return Commit Id if successful, null otherwise
      */
@@ -93,8 +94,8 @@ public interface ContentRepository {
     /**
      * delete content
      *
-     * @param site site id where the operation will be executed
-     * @param path path to content
+     * @param site     site id where the operation will be executed
+     * @param path     path to content
      * @param approver user that approves delete content
      * @return Commit ID if successful, null otherwise
      */
@@ -103,9 +104,9 @@ public interface ContentRepository {
     /**
      * move content from PathA to pathB
      *
-     * @param site site id where the operation will be executed
+     * @param site     site id where the operation will be executed
      * @param fromPath source content
-     * @param toPath target path
+     * @param toPath   target path
      * @return Commit ID if successful, null otherwise
      */
     Map<String, String> moveContent(String site, String fromPath, String toPath);
@@ -113,10 +114,10 @@ public interface ContentRepository {
     /**
      * move content from PathA to pathB
      *
-     * @param site site id where the operation will be executed
+     * @param site     site id where the operation will be executed
      * @param fromPath source content
-     * @param toPath target path
-     * @param newName new file name for rename
+     * @param toPath   target path
+     * @param newName  new file name for rename
      * @return Commit ID if successful, empty string otherwise
      */
     // TODO: SJ: Should refactor to be from path to path without the newName param
@@ -125,9 +126,9 @@ public interface ContentRepository {
     /**
      * copy content from PathA to pathB
      *
-     * @param site site id where the operation will be executed
+     * @param site     site id where the operation will be executed
      * @param fromPath paths to content
-     * @param toPath target path
+     * @param toPath   target path
      * @return Commit ID if successful, empty string otherwise
      */
     String copyContent(String site, String fromPath, String toPath);
@@ -153,8 +154,8 @@ public interface ContentRepository {
     /**
      * create a version
      *
-     * @param site site id where the operation will be executed
-     * @param path location of content
+     * @param site         site id where the operation will be executed
+     * @param path         location of content
      * @param majorVersion true if major
      * @return the created version ID or null on failure
      */
@@ -163,9 +164,9 @@ public interface ContentRepository {
     /**
      * create a version
      *
-     * @param site site id where the operation will be executed
-     * @param path location of content
-     * @param comment version history comment
+     * @param site         site id where the operation will be executed
+     * @param path         location of content
+     * @param comment      version history comment
      * @param majorVersion true if major
      * @return the created version ID or null on failure
      */
@@ -174,8 +175,8 @@ public interface ContentRepository {
     /**
      * revert a version (create a new version based on an old version)
      *
-     * @param site site id where the operation will be executed
-     * @param path - the path of the item to "revert"
+     * @param site    site id where the operation will be executed
+     * @param path    - the path of the item to "revert"
      * @param version - old version ID to base to version on
      * @return Commit ID if successful, empty string otherwise
      */
@@ -184,8 +185,8 @@ public interface ContentRepository {
     /**
      * return a specific version of the content
      *
-     * @param site site id where the operation will be executed
-     * @param path path of the content
+     * @param site    site id where the operation will be executed
+     * @param path    path of the content
      * @param version version to return
      * @return input stream
      */
@@ -262,14 +263,15 @@ public interface ContentRepository {
      * @param author
      * @param comment
      */
-    void publish(String site, List<DeploymentItemTO> deploymentItems, String environment, String author, String comment) throws DeploymentException;
+    void publish(String site, List<DeploymentItemTO> deploymentItems, String environment, String author, String comment)
+            throws DeploymentException;
 
     /**
      * Get a list of operations since the commit ID provided (compare that commit to HEAD)
      *
-     * @param site site to use
+     * @param site         site to use
      * @param commitIdFrom commit ID to start at
-     * @param commitIdTo commit ID to end at
+     * @param commitIdTo   commit ID to end at
      * @return commit ID of current HEAD, updated operationsSinceCommit
      */
     List<RepoOperationTO> getOperations(String site, String commitIdFrom, String commitIdTo);
@@ -292,17 +294,19 @@ public interface ContentRepository {
 
     /**
      * Get a list of commits for updates on a content
-     * @param site site id
-     * @param path path
+     *
+     * @param site         site id
+     * @param path         path
      * @param commitIdFrom range from commit id (inclusive)
-     * @param commitIdTo range to commit id (inclusive)
+     * @param commitIdTo   range to commit id (inclusive)
      * @return list of edit commit ids
      */
     List<String> getEditCommitIds(String site, String path, String commitIdFrom, String commitIdTo);
 
     /**
      * Check if given commit id exists
-     * @param site site id
+     *
+     * @param site     site id
      * @param commitId commit id to check
      * @return true if it exists in site repository, otherwise false
      */
@@ -310,7 +314,8 @@ public interface ContentRepository {
 
     /**
      * Get git log object from database
-     * @param siteId site id
+     *
+     * @param siteId   site id
      * @param commitId commit ID
      * @return git log object
      */
@@ -318,28 +323,32 @@ public interface ContentRepository {
 
     /**
      * Insert Git Log
-     * @param siteId site
-     * @param commitId commit ID
+     *
+     * @param siteId    site
+     * @param commitId  commit ID
      * @param processed processed
      */
     void insertGitLog(String siteId, String commitId, int processed);
 
     /**
      * Insert Full Git Log
-     * @param siteId site
+     *
+     * @param siteId    site
      * @param processed processed
      */
     void insertFullGitLog(String siteId, int processed);
 
     /**
      * Mark Git log as verified
-     * @param siteId site identifier
+     *
+     * @param siteId   site identifier
      * @param commitId commit id
      */
     void markGitLogVerifiedProcessed(String siteId, String commitId);
 
     /**
      * Delete Git log for site
+     *
      * @param siteId site identifier
      */
     void deleteGitLogForSite(String siteId);
@@ -347,44 +356,56 @@ public interface ContentRepository {
     /**
      * Create new site as a clone from remote repository
      *
-     * @param siteId site identifier
-     * @param remoteName remote name
-     * @param remoteUrl remote repository url
+     * @param siteId         site identifier
+     * @param remoteName     remote name
+     * @param remoteUrl      remote repository url
      * @param remoteUsername remote username
      * @param remotePassword remote password
      * @return true if success
      */
-    boolean createSiteCloneRemote(String siteId, String remoteName, String remoteUrl, String remoteUsername, String remotePassword) throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException;
+    boolean createSiteCloneRemote(String siteId, String remoteName, String remoteUrl, String authenticationType,
+                                  String remoteUsername, String remotePassword, String remoteToken,
+                                  String remotePrivateKey) throws InvalidRemoteRepositoryException,
+            InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException,
+            InvalidRemoteUrlException,  ServiceException;
 
     /**
      * Push new site to remote repository
      *
-     * @param siteId site identifier
-     * @param remoteName remote name
-     * @param remoteUrl remote repository url
+     * @param siteId         site identifier
+     * @param remoteName     remote name
+     * @param remoteUrl      remote repository url
      * @param remoteUsername remote username
      * @param remotePassword remote password
      * @return true if success
      */
-    boolean createSitePushToRemote(String siteId, String remoteName, String remoteUrl, String remoteUsername, String remotePassword) throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException, RemoteRepositoryNotBareException;
+    boolean createSitePushToRemote(String siteId, String remoteName, String remoteUrl, String authenticationType,
+                                   String remoteUsername, String remotePassword, String remoteToken,
+                                   String remotePrivateKey) throws InvalidRemoteRepositoryException,
+            InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException,
+            RemoteRepositoryNotBareException, ServiceException;
 
     /**
      * Add remote repository for site content repository
-     * @param siteId site identifier
-     * @param remoteName remote name
-     * @param remoteUrl remote url
+     *
+     * @param siteId             site identifier
+     * @param remoteName         remote name
+     * @param remoteUrl          remote url
      * @param authenticationType authentication type
-     * @param remoteUsername remote username
-     * @param remotePassword remote password
-     * @param remoteToken remote token
-     * @param remotePrivateKey remote private key
+     * @param remoteUsername     remote username
+     * @param remotePassword     remote password
+     * @param remoteToken        remote token
+     * @param remotePrivateKey   remote private key
      * @return true if operation was successful
      */
-    boolean addRemote(String siteId, String remoteName, String remoteUrl, String authenticationType, String remoteUsername, String remotePassword, String remoteToken, String remotePrivateKey) throws InvalidRemoteUrlException, ServiceException;
+    boolean addRemote(String siteId, String remoteName, String remoteUrl, String authenticationType,
+                      String remoteUsername, String remotePassword, String remoteToken, String remotePrivateKey)
+            throws InvalidRemoteUrlException, ServiceException;
 
     /**
      * Remove remote with given name for site
-     * @param siteId site identifier
+     *
+     * @param siteId     site identifier
      * @param remoteName remote name
      * @return true if operation was successful
      */
@@ -400,27 +421,31 @@ public interface ContentRepository {
 
     /**
      * Push content to remote repository
-     * @param siteId site identifier
-     * @param remoteName remote name
+     *
+     * @param siteId       site identifier
+     * @param remoteName   remote name
      * @param remoteBranch remote branch
      * @return true if operation was successful
      */
-    boolean pushToRemote(String siteId, String remoteName, String remoteBranch) throws ServiceException, InvalidRemoteUrlException;
+    boolean pushToRemote(String siteId, String remoteName, String remoteBranch) throws ServiceException,
+            InvalidRemoteUrlException;
 
     /**
      * Pull from remote repository
-     * @param siteId site identifier
-     * @param remoteName remote name
+     *
+     * @param siteId       site identifier
+     * @param remoteName   remote name
      * @param remoteBranch remote branch
      * @return true if operation was successful
      */
-    boolean pullFromRemote(String siteId, String remoteName, String remoteBranch) throws ServiceException, InvalidRemoteUrlException;
+    boolean pullFromRemote(String siteId, String remoteName, String remoteBranch) throws ServiceException,
+            InvalidRemoteUrlException;
 
     /**
      * Check if content at given path is folder
      *
      * @param siteId site identifier
-     * @param path content path
+     * @param path   content path
      * @return true if path is folder, otherwise false
      */
     boolean isFolder(String siteId, String path);

@@ -67,9 +67,12 @@ class SiteServices {
         return siteServicesImpl.createSiteFromBlueprint(blueprintName, siteName, siteId, desc)
     }
 
-    static createSiteWithRemoteOption(context, siteId, description, blueprint, remoteName, remoteUrl, remoteUsername, remotePassword, createOption) {
+    static createSiteWithRemoteOption(context, siteId, description, blueprint, remoteName, remoteUrl,
+                                      authenticationType, remoteUsername, remotePassword, remoteToken,
+                                      remotePrivateKey, createOption) {
         def siteServicesImpl = ServiceFactory.getSiteServices(context)
-        return siteServicesImpl.createSiteWithRemoteOption(siteId, description, blueprint, remoteName, remoteUrl, remoteUsername, remotePassword, createOption)
+        return siteServicesImpl.createSiteWithRemoteOption(siteId, description, blueprint, remoteName, remoteUrl,
+                authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey, createOption)
     }
 
     static deleteSite(context, siteId) {
@@ -130,9 +133,11 @@ class SiteServices {
      * @param remotePrivateKey remote private key
      * @return
      */
-    static addRemote(context, siteId, remoteName, remoteUrl, authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey) {
+    static addRemote(context, siteId, remoteName, remoteUrl, authenticationType, remoteUsername, remotePassword,
+                     remoteToken, remotePrivateKey) {
         def siteServicesImpl = ServiceFactory.getSiteServices(context)
-        return siteServicesImpl.addRemote(siteId, remoteName, remoteUrl, authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey)
+        return siteServicesImpl.addRemote(siteId, remoteName, remoteUrl, authenticationType, remoteUsername,
+                remotePassword, remoteToken, remotePrivateKey)
     }
 
     /**
