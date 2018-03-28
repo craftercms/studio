@@ -19,6 +19,7 @@
 package org.craftercms.studio.impl.v1.repository.git;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
@@ -44,6 +45,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
+import java.util.jar.Manifest;
 import javax.servlet.ServletContext;
 
 import com.jcraft.jsch.JSch;
@@ -57,6 +59,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.commons.crypto.impl.PbkAesTextEncryptor;
+import org.craftercms.commons.monitoring.VersionMonitor;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.constant.RepoOperation;
 import org.craftercms.studio.api.v1.dal.DeploymentSyncHistory;
@@ -157,7 +160,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     private static final Logger logger = LoggerFactory.getLogger(GitContentRepository.class);
     private GitContentRepositoryHelper helper = null;
 
-    private final static String IN_PROGRESS_BRANCH_NAME_SUFIX = "_in_progress";
+    private static final String IN_PROGRESS_BRANCH_NAME_SUFIX = "_in_progress";
+    private static final String STUDIO_MANIFEST_LOCATION = "/META-INF/MANIFEST.MF";
 
     ServletContext ctx;
     SecurityProvider securityProvider;
@@ -842,6 +846,9 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 EnumSet<FileVisitOption> opts = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
                 Files.walkFileTree(source, opts, Integer.MAX_VALUE, tc);
 
+                String studioManifestLocation = this.ctx.getRealPath(STUDIO_MANIFEST_LOCATION);
+                FileUtils.copyFile(Paths.get(studioManifestLocation).toFile(), Paths.get(globalConfigPath.toAbsolutePath().toString(), studioConfiguration.getProperty(BLUE_PRINTS_PATH), "BLUEPRINTS.MF").toFile());
+
                 Repository globalConfigRepo = helper.getRepository(StringUtils.EMPTY, GitRepositories.GLOBAL);
                 try (Git git = new Git(globalConfigRepo)) {
 
@@ -860,13 +867,40 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 }
             } else {
                 // rsync blueprints
-                String bootstrapFolderPath = this.ctx.getRealPath(FILE_SEPARATOR + BOOTSTRAP_REPO_PATH + FILE_SEPARATOR + BOOTSTRAP_REPO_GLOBAL_PATH + FILE_SEPARATOR + studioConfiguration.getProperty(BLUE_PRINTS_PATH));
-                Path source = java.nio.file.FileSystems.getDefault().getPath(bootstrapFolderPath);
                 Path globalConfigPath = helper.buildRepoPath(GitRepositories.GLOBAL);
                 Path blueprintsPath = Paths.get(globalConfigPath.toAbsolutePath().toString(), studioConfiguration.getProperty(BLUE_PRINTS_PATH));
-                String[] cmd = new String[] {"rsync", "-avz", "--delete", source.toAbsolutePath().toString() + FILE_SEPARATOR, blueprintsPath.toAbsolutePath().toString() };
-                Process p = Runtime.getRuntime().exec(cmd);
-                p.waitFor();
+
+                String studioManifestLocation = this.ctx.getRealPath(STUDIO_MANIFEST_LOCATION);
+                String blueprintsManifestLocation = Paths.get(blueprintsPath.toAbsolutePath().toString(), "BLUEPRINTS.MF").toAbsolutePath().toString();
+                InputStream studioManifestStream = FileUtils.openInputStream(new File(studioManifestLocation));
+                Manifest studioManifest = new Manifest(studioManifestStream);
+                InputStream blueprintsManifestStream = FileUtils.openInputStream(new File(blueprintsManifestLocation));
+                Manifest blueprintsManifest = new Manifest(blueprintsManifestStream);
+
+                VersionMonitor studioVersion = VersionMonitor.getVersion(studioManifest);
+                VersionMonitor blueprintsVersion = VersionMonitor.getVersion(blueprintsManifest);
+
+                if (!StringUtils.equals(studioVersion.getBuild(), blueprintsVersion.getBuild()) || (StringUtils.equals(studioVersion.getBuild(), blueprintsVersion.getBuild()) && !StringUtils.equals(studioVersion.getBuild_date(), blueprintsVersion.getBuild_date()))) {
+                    String bootstrapBlueprintsFolderPath = this.ctx.getRealPath(FILE_SEPARATOR + BOOTSTRAP_REPO_PATH + FILE_SEPARATOR + BOOTSTRAP_REPO_GLOBAL_PATH + FILE_SEPARATOR + studioConfiguration.getProperty(BLUE_PRINTS_PATH));
+                    File bootstrapBlueprintsFolder = new File(bootstrapBlueprintsFolderPath);
+                    File[] blueprintFolders = bootstrapBlueprintsFolder.listFiles(new FileFilter() {
+                        @Override
+                        public boolean accept(File pathname) {
+                            return pathname.isDirectory();
+                        }
+                    });
+                    for (File blueprintFolder : blueprintFolders) {
+                        String blueprintName = blueprintFolder.getName();
+                        FileUtils.deleteDirectory(Paths.get(blueprintsPath.toAbsolutePath().toString(), blueprintName).toFile());
+                        TreeCopier tc = new TreeCopier(Paths.get(blueprintFolder.getAbsolutePath()),
+                                Paths.get(blueprintsPath.toAbsolutePath().toString(), blueprintName));
+                        EnumSet<FileVisitOption> opts = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
+                        Files.walkFileTree(Paths.get(blueprintFolder.getAbsolutePath()), opts, Integer.MAX_VALUE, tc);
+                    }
+
+                    FileUtils.copyFile(Paths.get(studioManifestLocation).toFile(), Paths.get(globalConfigPath.toAbsolutePath().toString(), studioConfiguration.getProperty(BLUE_PRINTS_PATH), "BLUEPRINTS.MF").toFile());
+                }
+
                 Repository globalRepo = helper.getRepository(StringUtils.EMPTY, GitRepositories.GLOBAL);
                 try (Git git = new Git(globalRepo)) {
 
