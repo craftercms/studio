@@ -1027,8 +1027,12 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                                 .call();
                     }
 
+                    Ref ref = repo.exactRef(Constants.R_HEADS + studioConfiguration.getProperty(REPO_SANDBOX_BRANCH));
+                    boolean createBranch = (ref == null);
+
                     git.checkout()
                             .setName(studioConfiguration.getProperty(REPO_SANDBOX_BRANCH))
+                            .setCreateBranch(createBranch)
                             .call();
 
                     logger.debug("Delete in-progress branch, in case it was not cleaned up for site " + site);
@@ -1058,7 +1062,10 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                             ". Creating new branch");
                     // checkout environment branch
                     newBranch = true;
-                    git.checkout().setCreateBranch(true).setForce(true).setStartPoint("master")
+                    git.checkout()
+                            .setCreateBranch(true)
+                            .setForce(true)
+                            .setStartPoint(studioConfiguration.getProperty(REPO_SANDBOX_BRANCH))
                             .setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK)
                             .setName(environment)
                             .call();
