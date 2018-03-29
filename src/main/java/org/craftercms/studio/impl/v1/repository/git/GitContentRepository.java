@@ -899,18 +899,24 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 String studioManifestLocation = this.ctx.getRealPath(STUDIO_MANIFEST_LOCATION);
                 String blueprintsManifestLocation = Paths.get(blueprintsPath.toAbsolutePath().toString(),
                         "BLUEPRINTS.MF").toAbsolutePath().toString();
+                boolean blueprintManifestExists = Files.exists(Paths.get(blueprintsManifestLocation));
                 InputStream studioManifestStream = FileUtils.openInputStream(new File(studioManifestLocation));
                 Manifest studioManifest = new Manifest(studioManifestStream);
-                InputStream blueprintsManifestStream = FileUtils.openInputStream(new File(blueprintsManifestLocation));
-                Manifest blueprintsManifest = new Manifest(blueprintsManifestStream);
-
                 VersionMonitor studioVersion = VersionMonitor.getVersion(studioManifest);
-                VersionMonitor blueprintsVersion = VersionMonitor.getVersion(blueprintsManifest);
+                InputStream blueprintsManifestStream = null;
+                Manifest blueprintsManifest = null;
+                VersionMonitor blueprintsVersion = null;
+                if (blueprintManifestExists) {
+                    blueprintsManifestStream = FileUtils.openInputStream(new File(blueprintsManifestLocation));
+                    blueprintsManifest = new Manifest(blueprintsManifestStream);
+                    blueprintsVersion = VersionMonitor.getVersion(blueprintsManifest);
+                }
 
-                if (!StringUtils.equals(studioVersion.getBuild(), blueprintsVersion.getBuild()) ||
+                if (!blueprintManifestExists ||
+                        !StringUtils.equals(studioVersion.getBuild(), blueprintsVersion.getBuild()) ||
                         (StringUtils.equals(studioVersion.getBuild(), blueprintsVersion.getBuild()) &&
-                                !StringUtils.equals(studioVersion.getBuild_date(),
-                                        blueprintsVersion.getBuild_date()))) {
+                                !StringUtils.equals(studioVersion.getBuild_date(), blueprintsVersion.getBuild_date())
+                        )) {
                     String bootstrapBlueprintsFolderPath = this.ctx.getRealPath(FILE_SEPARATOR +
                             BOOTSTRAP_REPO_PATH + FILE_SEPARATOR + BOOTSTRAP_REPO_GLOBAL_PATH + FILE_SEPARATOR +
                             studioConfiguration.getProperty(BLUE_PRINTS_PATH));
