@@ -19,6 +19,7 @@
 package org.craftercms.studio.impl.v1.repository.git;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
@@ -44,6 +45,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
+import java.util.jar.Manifest;
 import javax.servlet.ServletContext;
 
 import com.jcraft.jsch.JSch;
@@ -57,6 +59,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.commons.crypto.impl.PbkAesTextEncryptor;
+import org.craftercms.commons.monitoring.VersionMonitor;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.constant.RepoOperation;
 import org.craftercms.studio.api.v1.dal.DeploymentSyncHistory;
@@ -139,11 +142,13 @@ import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.BOOTSTRAP_REPO_GLOBAL_PATH;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.BOOTSTRAP_REPO_PATH;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.BLUE_PRINTS_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.BOOTSTRAP_REPO;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_PUBLISHED_COMMIT_MESSAGE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_SANDBOX_BRANCH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_KEY;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_SALT;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.BLUEPRINTS_UPDATED_COMMIT;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.EMPTY_FILE;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_COMMIT_ALL_ITEMS;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
@@ -155,7 +160,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     private static final Logger logger = LoggerFactory.getLogger(GitContentRepository.class);
     private GitContentRepositoryHelper helper = null;
 
-    private final static String IN_PROGRESS_BRANCH_NAME_SUFIX = "_in_progress";
+    private static final String IN_PROGRESS_BRANCH_NAME_SUFIX = "_in_progress";
+    private static final String STUDIO_MANIFEST_LOCATION = "/META-INF/MANIFEST.MF";
 
     ServletContext ctx;
     SecurityProvider securityProvider;
@@ -413,9 +419,9 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                             sourceFile.renameTo(targetFile);
                         } else {
                             // This is not a valid operation
-                            logger.error("Invalid move operation: Trying to rename a directory to a file for" +
-                                    " site: " + site + " fromPath: " + fromPath + " toPath: " + toPath + " newName: "
-                                    + newName);
+                            logger.error("Invalid move operation: Trying to rename a directory to a file " +
+                                    "for site: " + site + " fromPath: " + fromPath + " toPath: " + toPath +
+                                    " newName: " + newName);
                         }
                     } else if (sourceFile.isDirectory()) {
                         // Check if we're moving a single file or whole subtree
@@ -498,7 +504,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 git.close();
             } catch (IOException | GitAPIException e) {
                 logger.error("Error while copying content for site: " + site + " fromPath: " + fromPath +
-                        " toPath:" + " " + toPath + " newName: ");
+                        " toPath: " + toPath + " newName: ");
             }
         }
 
@@ -711,8 +717,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 }
             } catch (IOException e) {
                 logger.error("Error while getting content for file at site: " + site + " path: " + path +
-                        " version:"
-                        + " " + version, e);
+                        " version: " + version, e);
             }
         } catch (IOException e) {
             logger.error("Failed to create RevTree for site: " + site + " path: " + path + " version: " +
@@ -864,6 +869,11 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 EnumSet<FileVisitOption> opts = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
                 Files.walkFileTree(source, opts, Integer.MAX_VALUE, tc);
 
+                String studioManifestLocation = this.ctx.getRealPath(STUDIO_MANIFEST_LOCATION);
+                FileUtils.copyFile(Paths.get(studioManifestLocation).toFile(),
+                        Paths.get(globalConfigPath.toAbsolutePath().toString(),
+                                studioConfiguration.getProperty(BLUE_PRINTS_PATH), "BLUEPRINTS.MF").toFile());
+
                 Repository globalConfigRepo = helper.getRepository(StringUtils.EMPTY, GitRepositories.GLOBAL);
                 try (Git git = new Git(globalConfigRepo)) {
 
@@ -874,6 +884,68 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         // TODO: Consider what to do with the commitId in the future
                         git.add().addFilepattern(GIT_COMMIT_ALL_ITEMS).call();
                         git.commit().setMessage(INITIAL_COMMIT).call();
+                    }
+
+                    git.close();
+                } catch (GitAPIException err) {
+                    logger.error("error creating initial commit for global configuration", err);
+                }
+            } else {
+                // rsync blueprints
+                Path globalConfigPath = helper.buildRepoPath(GitRepositories.GLOBAL);
+                Path blueprintsPath = Paths.get(globalConfigPath.toAbsolutePath().toString(),
+                        studioConfiguration.getProperty(BLUE_PRINTS_PATH));
+
+                String studioManifestLocation = this.ctx.getRealPath(STUDIO_MANIFEST_LOCATION);
+                String blueprintsManifestLocation = Paths.get(blueprintsPath.toAbsolutePath().toString(),
+                        "BLUEPRINTS.MF").toAbsolutePath().toString();
+                InputStream studioManifestStream = FileUtils.openInputStream(new File(studioManifestLocation));
+                Manifest studioManifest = new Manifest(studioManifestStream);
+                InputStream blueprintsManifestStream = FileUtils.openInputStream(new File(blueprintsManifestLocation));
+                Manifest blueprintsManifest = new Manifest(blueprintsManifestStream);
+
+                VersionMonitor studioVersion = VersionMonitor.getVersion(studioManifest);
+                VersionMonitor blueprintsVersion = VersionMonitor.getVersion(blueprintsManifest);
+
+                if (!StringUtils.equals(studioVersion.getBuild(), blueprintsVersion.getBuild()) ||
+                        (StringUtils.equals(studioVersion.getBuild(), blueprintsVersion.getBuild()) &&
+                                !StringUtils.equals(studioVersion.getBuild_date(),
+                                        blueprintsVersion.getBuild_date()))) {
+                    String bootstrapBlueprintsFolderPath = this.ctx.getRealPath(FILE_SEPARATOR +
+                            BOOTSTRAP_REPO_PATH + FILE_SEPARATOR + BOOTSTRAP_REPO_GLOBAL_PATH + FILE_SEPARATOR +
+                            studioConfiguration.getProperty(BLUE_PRINTS_PATH));
+                    File bootstrapBlueprintsFolder = new File(bootstrapBlueprintsFolderPath);
+                    File[] blueprintFolders = bootstrapBlueprintsFolder.listFiles(new FileFilter() {
+                        @Override
+                        public boolean accept(File pathname) {
+                            return pathname.isDirectory();
+                        }
+                    });
+                    for (File blueprintFolder : blueprintFolders) {
+                        String blueprintName = blueprintFolder.getName();
+                        FileUtils.deleteDirectory(
+                                Paths.get(blueprintsPath.toAbsolutePath().toString(), blueprintName).toFile());
+                        TreeCopier tc = new TreeCopier(Paths.get(blueprintFolder.getAbsolutePath()),
+                                Paths.get(blueprintsPath.toAbsolutePath().toString(), blueprintName));
+                        EnumSet<FileVisitOption> opts = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
+                        Files.walkFileTree(Paths.get(blueprintFolder.getAbsolutePath()), opts, Integer.MAX_VALUE, tc);
+                    }
+
+                    FileUtils.copyFile(Paths.get(studioManifestLocation).toFile(),
+                            Paths.get(globalConfigPath.toAbsolutePath().toString(),
+                                    studioConfiguration.getProperty(BLUE_PRINTS_PATH), "BLUEPRINTS.MF").toFile());
+                }
+
+                Repository globalRepo = helper.getRepository(StringUtils.EMPTY, GitRepositories.GLOBAL);
+                try (Git git = new Git(globalRepo)) {
+
+                    Status status = git.status().call();
+
+                    if (status.hasUncommittedChanges() || !status.isClean()) {
+                        // Commit everything
+                        // TODO: Consider what to do with the commitId in the future
+                        git.add().addFilepattern(GIT_COMMIT_ALL_ITEMS).call();
+                        git.commit().setAll(true).setMessage(BLUEPRINTS_UPDATED_COMMIT).call();
                     }
 
                     git.close();
@@ -918,7 +990,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     public boolean deleteSite(String site) {
         boolean toReturn;
 
-        Repository repository = helper.getRepository(site, StringUtils.isEmpty(site) ? GitRepositories.GLOBAL : SANDBOX);
+        Repository repository = helper.getRepository(site, StringUtils.isEmpty(site) ? GitRepositories.GLOBAL :
+                SANDBOX);
         if (repository != null) {
             synchronized (repository) {
                 Repository publishedRepository = helper.getRepository(site, GitRepositories.PUBLISHED);
@@ -994,8 +1067,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 git.close();
             } catch (Exception e) {
                 logger.error("Error when publishing site " + site + " to environment " + environment, e);
-                throw new DeploymentException("Error when publishing site " + site + " to environment " + environment +
-                        " [commit ID = " + commitId + "]");
+                throw new DeploymentException("Error when publishing site " + site + " to environment " +
+                        environment + " [commit ID = " + commitId + "]");
             }
         }
 
@@ -1098,8 +1171,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     for (DeploymentItemTO deploymentItem : deploymentItems) {
                         commitId = deploymentItem.getCommitId();
                         path = helper.getGitPath(deploymentItem.getPath());
-                        logger.debug("Checking out file " + path + " from commit id " + commitId + " for site " +
-                                site);
+                        logger.debug("Checking out file " + path + " from commit id " + commitId +
+                                " for site " + site);
 
                         ObjectId objCommitId = repo.resolve(commitId);
                         RevWalk rw = new RevWalk(repo);
@@ -1129,9 +1202,10 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     git.add().addFilepattern(GIT_COMMIT_ALL_ITEMS).call();
 
                     commitMessage = commitMessage.replace("{username}", author);
-                    commitMessage = commitMessage.replace("{datetime}",
-                            ZonedDateTime.now(ZoneOffset.UTC).format(
-                                    DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX")));
+                    commitMessage =
+                            commitMessage.replace("{datetime}",
+                                    ZonedDateTime.now(ZoneOffset.UTC).format(
+                                            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX")));
                     commitMessage = commitMessage.replace("{source}", "UI");
                     commitMessage = commitMessage.replace("{message}", comment);
                     StringBuilder sb = new StringBuilder();
@@ -1146,8 +1220,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     ZonedDateTime tagDate2 = Instant.ofEpochSecond(commitTime).atZone(ZoneOffset.UTC);
                     ZonedDateTime publishDate = ZonedDateTime.now(ZoneOffset.UTC);
                     String tagName2 = tagDate2.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX")) +
-                            "_published_on_" +
-                            publishDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX"));
+                            "_published_on_" + publishDate.format(
+                                    DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX"));
                     PersonIdent authorIdent2 = helper.getAuthorIdent(author);
                     git.tag().setTagger(authorIdent2).setName(tagName2).setMessage(commitMessage).call();
 
@@ -1171,8 +1245,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 }
             } catch (Exception e) {
                 logger.error("Error when publishing site " + site + " to environment " + environment, e);
-                throw new DeploymentException("Error when publishing site " + site + " to environment " + environment +
-                        " [commit ID = " + commitId + "]");
+                throw new DeploymentException("Error when publishing site " + site + " to environment " +
+                        environment + " [commit ID = " + commitId + "]");
             }
         }
 
@@ -1406,8 +1480,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         !environment.equals(Constants.R_HEADS + studioConfiguration.getProperty(REPO_SANDBOX_BRANCH))) {
                     Iterable<RevCommit> branchLog = git.log()
                             .add(env.getObjectId())
-                            .setRevFilter(AndRevFilter.create(CommitTimeRevFilter.after(
-                                    fromDate.toInstant().toEpochMilli()),
+                            .setRevFilter(AndRevFilter.create(
+                                    CommitTimeRevFilter.after(fromDate.toInstant().toEpochMilli()),
                                     CommitTimeRevFilter.before(toDate.toInstant().toEpochMilli())))
                             .call();
 
@@ -1424,8 +1498,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                                     DeploymentSyncHistory dsh = new DeploymentSyncHistory();
                                     dsh.setSite(site);
                                     dsh.setPath(file);
-                                    dsh.setSyncDate(Instant.ofEpochSecond(
-                                            revCommit.getCommitTime()).atZone(ZoneOffset.UTC));
+                                    dsh.setSyncDate(
+                                            Instant.ofEpochSecond(revCommit.getCommitTime()).atZone(ZoneOffset.UTC));
                                     dsh.setUser(revCommit.getAuthorIdent().getName());
                                     dsh.setEnvironment(environment.replace(Constants.R_HEADS, ""));
                                     toRet.add(dsh);
@@ -1551,9 +1625,9 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         try {
             gitLogMapper.insertGitLog(params);
         } catch (DuplicateKeyException e) {
-            logger.debug("Failed to insert commit id: " + commitId + " for site: " + siteId +
-                    " into gitlog table, because it is duplicate entry. " +
-                    "Marking it as not processed so it can be processed by sync database task.");
+            logger.debug("Failed to insert commit id: " + commitId + " for site: " + siteId + " into" +
+                    " gitlog table, because it is duplicate entry. Marking it as not processed so it can be" +
+                    " processed by sync database task.");
             params = new HashMap<String, Object>();
             params.put("siteId", siteId);
             params.put("commitId", commitId);

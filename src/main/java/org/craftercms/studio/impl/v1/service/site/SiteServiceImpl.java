@@ -1176,18 +1176,20 @@ public class SiteServiceImpl implements SiteService {
 	public SiteBlueprintTO[] getAvailableBlueprints() {
 		RepositoryItem[] blueprintsFolders =
                 contentRepository.getContentChildren("", studioConfiguration.getProperty(BLUE_PRINTS_PATH));
-		SiteBlueprintTO[] blueprints = new SiteBlueprintTO[blueprintsFolders.length];
+		List<SiteBlueprintTO> blueprints = new ArrayList<SiteBlueprintTO>();
 		int idx = 0;
 		for (RepositoryItem folder : blueprintsFolders) {
-			SiteBlueprintTO blueprintTO = new SiteBlueprintTO();
-			blueprintTO.id = folder.name;
-			blueprintTO.label = StringUtils.capitalize(folder.name);
-			blueprintTO.description = ""; // How do we populate this dynamicly
-			blueprintTO.screenshots = null;
-			blueprints[idx++] = blueprintTO;
+		    if (folder.isFolder) {
+                SiteBlueprintTO blueprintTO = new SiteBlueprintTO();
+                blueprintTO.id = folder.name;
+                blueprintTO.label = StringUtils.capitalize(folder.name);
+                blueprintTO.description = ""; // How do we populate this dynamicly
+                blueprintTO.screenshots = null;
+                blueprints.add(blueprintTO);
+            }
 		}
 
-		return blueprints;
+		return blueprints.toArray(new SiteBlueprintTO[blueprints.size()]);
 	}
 
     @Override
