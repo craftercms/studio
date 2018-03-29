@@ -1757,7 +1757,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 Iterable<PushResult> result = pushCommand
                         .setPushAll()
                         .setRemote(remoteName)
-                        .setCredentialsProvider(credentialsProvider)
                         .call();
 
                 logger.debug("Check push result to verify it was success");

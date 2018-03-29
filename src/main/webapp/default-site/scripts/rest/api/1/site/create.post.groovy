@@ -191,8 +191,8 @@ try {
             if (!useRemote) {
                 SiteServices.createSiteFromBlueprint(context, blueprint, siteId, siteId, description)
                 result.message = "OK"
-                def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "")
-                + "/api/1/services/api/1/site/get.json?site_id=" + siteId
+                def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") +
+                        "/api/1/services/api/1/site/get.json?site_id=" + siteId
                 response.addHeader("Location", locationHeader)
                 response.setStatus(201)
             } else {
@@ -200,8 +200,8 @@ try {
                         remoteUrl, authenticationType, remoteUsername, remotePassword, remoteToken,
                         remotePrivateKey, createOption)
                 result.message = "OK"
-                def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "")
-                + "/api/1/services/api/1/site/get.json?site_id=" + siteId
+                def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") +
+                        "/api/1/services/api/1/site/get.json?site_id=" + siteId
                 response.addHeader("Location", locationHeader)
                 response.setStatus(201)
             }
