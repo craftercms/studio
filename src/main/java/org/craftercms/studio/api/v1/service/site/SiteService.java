@@ -99,7 +99,9 @@ public interface SiteService {
      * @param siteId
      * @param desc
      */
-    void createSiteFromBlueprint(String blueprintName, String siteName, String siteId, String desc) throws SiteAlreadyExistsException, SiteCreationException, PreviewDeployerUnreachableException, SearchUnreachableException, BlueprintNotFoundException;
+    void createSiteFromBlueprint(String blueprintName, String siteName, String siteId, String desc)
+            throws SiteAlreadyExistsException, SiteCreationException, PreviewDeployerUnreachableException,
+            SearchUnreachableException, BlueprintNotFoundException;
 
     /**
      * Create a new site with remote option (clone from remote or push to remote repository)
@@ -113,7 +115,12 @@ public interface SiteService {
      * @param remotePassword
      * @param createOption
      */
-    void createSiteWithRemoteOption(String siteId, String description, String blueprintName, String remoteName, String remoteUrl, String remoteUsername, String remotePassword, String createOption) throws SiteAlreadyExistsException, SearchUnreachableException, PreviewDeployerUnreachableException, SiteCreationException, InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException, RemoteRepositoryNotBareException, BlueprintNotFoundException;
+    void createSiteWithRemoteOption(String siteId, String description, String blueprintName, String remoteName,
+                                    String remoteUrl, String authenticationType, String remoteUsername,
+                                    String remotePassword, String remoteToken, String remotePrivateKey,
+                                    String createOption) throws ServiceException, InvalidRemoteRepositoryException,
+            InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException,
+            RemoteRepositoryNotBareException, InvalidRemoteUrlException;
 
     /**
      * remove a site from the system
@@ -244,7 +251,9 @@ public interface SiteService {
      * @param remotePrivateKey remote private key
      * @return true if operation was successful
      */
-    boolean addRemote(String siteId, String remoteName, String remoteUrl, String authenticationType, String remoteUsername, String remotePassword, String remoteToken, String remotePrivateKey) throws InvalidRemoteUrlException, ServiceException;
+    boolean addRemote(String siteId, String remoteName, String remoteUrl, String authenticationType,
+                      String remoteUsername, String remotePassword, String remoteToken, String remotePrivateKey)
+            throws InvalidRemoteUrlException, ServiceException;
 
     /**
      * Remove remote with given name for site

@@ -48,8 +48,11 @@ try {
     }
     def remoteName = parsedReq.remote_name
     def remoteUrl = parsedReq.remote_url
+    def authenticationType = parsedReq.authentication_type
     def remoteUsername = parsedReq.remote_username
     def remotePassword = parsedReq.remote_password
+    def remoteToken = parsedReq.remote_token
+    def remotePrivateKey = parsedReq.remote_private_key
     def createOption = parsedReq.create_option
 
 /** Validate Parameters */
@@ -58,7 +61,8 @@ try {
 
 // blueprint
     try {
-        if (!useRemote || (useRemote && StringUtils.equalsIgnoreCase(REMOTE_REPOSITORY_CREATE_OPTION_PUSH, createOption))) {
+        if (!useRemote || (useRemote && StringUtils.equalsIgnoreCase(REMOTE_REPOSITORY_CREATE_OPTION_PUSH,
+                createOption))) {
             if (StringUtils.isEmpty(blueprint)) {
                 invalidParams = true
                 paramsList.add("blueprint")
@@ -103,6 +107,64 @@ try {
             paramsList.add("remote_url")
         }
 
+        // authentication_type
+        try {
+            if (StringUtils.isEmpty(authenticationType)) {
+                invalidParams = true
+                paramsList.add("authentication_type")
+            }
+        } catch (Exception exc) {
+            invalidParams = true
+            paramsList.add("authentication_type")
+        }
+
+        // remote_username
+        try {
+            if (StringUtils.equalsIgnoreCase('basic', authenticationType) &&
+                    (StringUtils.isEmpty(remoteUsername))) {
+                invalidParams = true
+                paramsList.add("remote_username")
+            }
+        } catch (Exception exc) {
+            invalidParams = true
+            paramsList.add("remote_username")
+        }
+
+        // remote_password
+        try {
+            if (StringUtils.equalsIgnoreCase('basic', authenticationType) &&
+                    (StringUtils.isEmpty(remotePassword))) {
+                invalidParams = true
+                paramsList.add("remote_passsword")
+            }
+        } catch (Exception exc) {
+            invalidParams = true
+            paramsList.add("remote_password")
+        }
+
+        // remote_token
+        try {
+            if (StringUtils.equalsIgnoreCase('token', authenticationType) && (StringUtils.isEmpty(remoteToken))) {
+                invalidParams = true
+                paramsList.add("remote_token")
+            }
+        } catch (Exception exc) {
+            invalidParams = true
+            paramsList.add("remote_token")
+        }
+
+        // remote_private_key
+        try {
+            if (StringUtils.equalsIgnoreCase('key', authenticationType) &&
+                    (StringUtils.isEmpty(remotePrivateKey))) {
+                invalidParams = true
+                paramsList.add("remote_private_key")
+            }
+        } catch (Exception exc) {
+            invalidParams = true
+            paramsList.add("remote_private_key")
+        }
+
         // create_option
         try {
             if (StringUtils.isEmpty(createOption)) {
@@ -119,7 +181,8 @@ try {
     if (invalidParams) {
         response.setStatus(400)
         result.message = "Invalid parameter(s): " + paramsList
-    } else if (useRemote && !StringUtils.equalsAnyIgnoreCase(createOption, REMOTE_REPOSITORY_CREATE_OPTION_CLONE, REMOTE_REPOSITORY_CREATE_OPTION_PUSH)) {
+    } else if (useRemote && !StringUtils.equalsAnyIgnoreCase(createOption, REMOTE_REPOSITORY_CREATE_OPTION_CLONE,
+            REMOTE_REPOSITORY_CREATE_OPTION_PUSH)) {
         response.setStatus(400)
         result.message = "Invalid create option for remote repository"
     } else {
@@ -128,13 +191,17 @@ try {
             if (!useRemote) {
                 SiteServices.createSiteFromBlueprint(context, blueprint, siteId, siteId, description)
                 result.message = "OK"
-                def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/site/get.json?site_id=" + siteId
+                def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "")
+                + "/api/1/services/api/1/site/get.json?site_id=" + siteId
                 response.addHeader("Location", locationHeader)
                 response.setStatus(201)
             } else {
-                SiteServices.createSiteWithRemoteOption(context, siteId, description, blueprint, remoteName, remoteUrl, remoteUsername, remotePassword, createOption)
+                SiteServices.createSiteWithRemoteOption(context, siteId, description, blueprint, remoteName,
+                        remoteUrl, authenticationType, remoteUsername, remotePassword, remoteToken,
+                        remotePrivateKey, createOption)
                 result.message = "OK"
-                def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/site/get.json?site_id=" + siteId
+                def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "")
+                + "/api/1/services/api/1/site/get.json?site_id=" + siteId
                 response.addHeader("Location", locationHeader)
                 response.setStatus(201)
             }
@@ -155,7 +222,8 @@ try {
             result.message = "Remote repository not bare"
         } catch (SiteAlreadyExistsException e) {
             response.setStatus(409)
-            def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/site/get.json?site_id=" + siteId
+            def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") +
+                    "/api/1/services/api/1/site/get.json?site_id=" + siteId
             response.addHeader("Location", locationHeader)
             result.message = "Site already exists"
         } catch (Exception e) {

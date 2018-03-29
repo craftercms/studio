@@ -66,9 +66,11 @@ class SpringSiteServices {
         return springBackedService.createSiteFromBlueprint(blueprintName, siteName, siteId, desc)
     }
 
-    def createSiteWithRemoteOption(siteId, description, blueprint, remoteName, remoteUrl, remoteUsername, remotePassword, createOption) {
+    def createSiteWithRemoteOption(siteId, description, blueprint, remoteName, remoteUrl, authenticationType,
+                                   remoteUsername, remotePassword, remoteToken, remotePrivateKey, createOption) {
         def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
-        return springBackedService.createSiteWithRemoteOption(siteId, description, blueprint, remoteName, remoteUrl, remoteUsername, remotePassword, createOption)
+        return springBackedService.createSiteWithRemoteOption(siteId, description, blueprint, remoteName, remoteUrl,
+                authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey, createOption)
     }
 
     def deleteSite(siteId) {
@@ -116,9 +118,11 @@ class SpringSiteServices {
         return springBackedService.getSite(siteId)
     }
 
-    def addRemote(siteId, remoteName, remoteUrl, authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey) {
+    def addRemote(siteId, remoteName, remoteUrl, authenticationType, remoteUsername, remotePassword, remoteToken,
+                  remotePrivateKey) {
         def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
-        return springBackedService.addRemote(siteId, remoteName, remoteUrl, authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey)
+        return springBackedService.addRemote(siteId, remoteName, remoteUrl, authenticationType, remoteUsername,
+                remotePassword, remoteToken, remotePrivateKey)
     }
 
     def removeRemote(siteId, remoteName) {
