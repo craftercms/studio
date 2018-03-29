@@ -634,7 +634,7 @@ public class ContentServiceImpl implements ContentService {
                                 logger.debug("Translated dependency path from {0} to {1}", dependencyPath, copyDepPath);
 
                                 String newCopyDepthPath = copyContent(site, dependencyPath, copyDepPath, processedPaths);
-                                fromDocument = replaceCopyDependency(fromDocument, dependencyPath, newCopyDepthPath);
+                                fromDocument = replaceCopyDependency(fromDocument, dependencyKey, newCopyDepthPath);
                             }
 
                             // update the file name / folder values
