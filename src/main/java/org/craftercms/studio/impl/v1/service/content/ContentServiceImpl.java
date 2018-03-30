@@ -57,6 +57,7 @@ import org.craftercms.studio.api.v1.service.activity.ActivityService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentItemIdGenerator;
 import org.craftercms.studio.api.v1.service.content.ContentService;
+import org.craftercms.studio.api.v1.service.content.ContentTypeService;
 import org.craftercms.studio.api.v1.service.content.DmContentLifeCycleService;
 import org.craftercms.studio.api.v1.service.content.DmPageNavigationOrderService;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
@@ -99,6 +100,7 @@ import javax.activation.MimetypesFileTypeMap;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_ENCODING;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_ASSET;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_COMPONENT;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_CONTENT_TYPE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_DOCUMENT;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_PAGE;
@@ -141,6 +143,7 @@ public class ContentServiceImpl implements ContentService {
     protected ContentItemIdGenerator contentItemIdGenerator;
     protected StudioConfiguration studioConfiguration;
     protected DependencyDiffService dependencyDiffService;
+    protected ContentTypeService contentTypeService;
 
     /**
      * file and folder name patterns for copied files and folders
@@ -1968,6 +1971,8 @@ public class ContentServiceImpl implements ContentService {
             return CONTENT_TYPE_ASSET;
         } else if (matchesPatterns(uri, servicesConfig.getRenderingTemplatePatterns(site))) {
             return CONTENT_TYPE_RENDERING_TEMPLATE;
+        } else if (StringUtils.startsWith(uri, contentTypeService.getConfigPath())) {
+            return CONTENT_TYPE_CONTENT_TYPE;
         }
         return CONTENT_TYPE_UNKNOWN;
     }
@@ -2524,5 +2529,12 @@ public class ContentServiceImpl implements ContentService {
     }
     public void setDependencyDiffService(DependencyDiffService dependencyDiffService) {
         this.dependencyDiffService = dependencyDiffService;
+    }
+
+    public ContentTypeService getContentTypeService() {
+        return contentTypeService;
+    }
+    public void setContentTypeService(ContentTypeService contentTypeService) {
+        this.contentTypeService = contentTypeService;
     }
 }
