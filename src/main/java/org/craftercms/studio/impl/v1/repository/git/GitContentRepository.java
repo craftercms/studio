@@ -870,10 +870,11 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 Files.walkFileTree(source, opts, Integer.MAX_VALUE, tc);
 
                 String studioManifestLocation = this.ctx.getRealPath(STUDIO_MANIFEST_LOCATION);
-                FileUtils.copyFile(Paths.get(studioManifestLocation).toFile(),
-                        Paths.get(globalConfigPath.toAbsolutePath().toString(),
-                                studioConfiguration.getProperty(BLUE_PRINTS_PATH), "BLUEPRINTS.MF").toFile());
-
+                if (Files.exists(Paths.get(studioManifestLocation))) {
+                    FileUtils.copyFile(Paths.get(studioManifestLocation).toFile(),
+                            Paths.get(globalConfigPath.toAbsolutePath().toString(),
+                                    studioConfiguration.getProperty(BLUE_PRINTS_PATH), "BLUEPRINTS.MF").toFile());
+                }
                 Repository globalConfigRepo = helper.getRepository(StringUtils.EMPTY, GitRepositories.GLOBAL);
                 try (Git git = new Git(globalConfigRepo)) {
 
