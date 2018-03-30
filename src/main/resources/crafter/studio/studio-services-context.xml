@@ -42,6 +42,7 @@
         <property name="contentItemIdGenerator" ref="cstudioContentIdGenerator" />
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="dependencyDiffService" ref="cstudioDependencyDiffService" />
+        <property name="contentTypeService" ref="cstudioContentTypeService" />
     </bean>
 
     <bean id="studioDependencyService" class="org.craftercms.studio.impl.v1.service.dependency.DependencyServiceImpl">
