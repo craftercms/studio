@@ -159,6 +159,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
     private static final Logger logger = LoggerFactory.getLogger(GitContentRepository.class);
     private GitContentRepositoryHelper helper = null;
+    private TextEncryptor encryptor;
 
     private static final String IN_PROGRESS_BRANCH_NAME_SUFIX = "_in_progress";
     private static final String STUDIO_MANIFEST_LOCATION = "/META-INF/MANIFEST.MF";
@@ -851,6 +852,9 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     public void bootstrap() throws Exception {
         // Initialize the helper
         helper = new GitContentRepositoryHelper(studioConfiguration, securityProvider);
+
+        encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
+                studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
 
         if (Boolean.parseBoolean(studioConfiguration.getProperty(BOOTSTRAP_REPO))) {
             if (helper.createGlobalRepo()) {
@@ -1748,16 +1752,12 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     case RemoteRepository.AuthenticationType.PRIVATE_KEY:
                         logger.debug("Private key authentication");
                         final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(),".tmp");
-                        Map<String, String> params = new HashMap<String, String>();
-                        params.put("siteId", siteId);
-                        params.put("remoteName", remoteName);
-                        RemoteRepository remoteRepository = remoteRepositoryMapper.getRemoteRepository(params);
                         tempKey.toFile().deleteOnExit();
                         pushCommand.setTransportConfigCallback(new TransportConfigCallback() {
                             @Override
                             public void configure(Transport transport) {
                                 SshTransport sshTransport = (SshTransport)transport;
-                                sshTransport.setSshSessionFactory(getSshSessionFactory(remoteRepository, tempKey));
+                                sshTransport.setSshSessionFactory(getSshSessionFactory(remotePrivateKey, tempKey));
                             }
                         });
                         pushCommand.call();
@@ -1848,8 +1848,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
             if (StringUtils.isNotEmpty(remotePassword)) {
                 logger.debug("Encrypt password before inserting to database");
-                TextEncryptor encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
-                        studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
                 String hashedPassword = encryptor.encrypt(remotePassword);
                 params.put("remotePassword", hashedPassword);
             } else {
@@ -1857,8 +1855,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             }
             if (StringUtils.isNotEmpty(remoteToken)) {
                 logger.debug("Encrypt token before inserting to database");
-                TextEncryptor encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
-                        studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
                 String hashedToken = encryptor.encrypt(remoteToken);
                 params.put("remoteToken", hashedToken);
             } else {
@@ -1866,8 +1862,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             }
             if (StringUtils.isNotEmpty(remotePrivateKey)) {
                 logger.debug("Encrypt private key before inserting to database");
-                TextEncryptor encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
-                        studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
                 String hashedPrivateKey = encryptor.encrypt(remotePrivateKey);
                 params.put("remotePrivateKey", hashedPrivateKey);
             } else {
@@ -1973,9 +1967,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             pushCommand.setRemote(remoteRepository.getRemoteName());
             logger.debug("Set branch to be " + remoteBranch);
             pushCommand.setRefSpecs(new RefSpec(remoteBranch + ":" + remoteBranch));
-            TextEncryptor encryptor = new PbkAesTextEncryptor(
-                    studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
-                    studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
             switch (remoteRepository.getAuthenticationType()) {
                 case RemoteRepository.AuthenticationType.NONE:
                     logger.debug("No authentication");
@@ -2001,12 +1992,14 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 case RemoteRepository.AuthenticationType.PRIVATE_KEY:
                     logger.debug("Private key authentication");
                     final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(),".tmp");
+                    String hashedPrivateKey = remoteRepository.getRemotePrivateKey();
+                    String privateKey = encryptor.decrypt(hashedPrivateKey);
                     tempKey.toFile().deleteOnExit();
                     pushCommand.setTransportConfigCallback(new TransportConfigCallback() {
                         @Override
                         public void configure(Transport transport) {
                             SshTransport sshTransport = (SshTransport)transport;
-                            sshTransport.setSshSessionFactory(getSshSessionFactory(remoteRepository, tempKey));
+                            sshTransport.setSshSessionFactory(getSshSessionFactory(privateKey, tempKey));
                         }
                     });
                     pushCommand.call();
@@ -2045,9 +2038,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             pullCommand.setRemote(remoteRepository.getRemoteName());
             logger.debug("Set branch to be " + remoteBranch);
             pullCommand.setRemoteBranchName(remoteBranch);
-            TextEncryptor encryptor = new PbkAesTextEncryptor(
-                    studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
-                    studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
             switch (remoteRepository.getAuthenticationType()) {
                 case RemoteRepository.AuthenticationType.NONE:
                     logger.debug("No authentication");
@@ -2073,12 +2063,14 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 case RemoteRepository.AuthenticationType.PRIVATE_KEY:
                     logger.debug("Private key authentication");
                     final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
+                    String hashedPrivateKey = remoteRepository.getRemotePrivateKey();
+                    String privateKey = encryptor.decrypt(hashedPrivateKey);
                     tempKey.toFile().deleteOnExit();
                     pullCommand.setTransportConfigCallback(new TransportConfigCallback() {
                         @Override
                         public void configure(Transport transport) {
                             SshTransport sshTransport = (SshTransport)transport;
-                            sshTransport.setSshSessionFactory(getSshSessionFactory(remoteRepository, tempKey));
+                            sshTransport.setSshSessionFactory(getSshSessionFactory(privateKey, tempKey));
                         }
                     });
                     pullCommand.call();
@@ -2100,13 +2092,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         }
     }
 
-    private SshSessionFactory getSshSessionFactory(RemoteRepository remoteRepository, final Path tempKey)  {
+    private SshSessionFactory getSshSessionFactory(String privateKey, final Path tempKey)  {
         try {
-            String hashedPrivateKey = remoteRepository.getRemotePrivateKey();
-            TextEncryptor encryptor = new PbkAesTextEncryptor(
-                    studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
-                    studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
-            String privateKey = encryptor.decrypt(hashedPrivateKey);
             Files.write(tempKey, privateKey.getBytes());
             SshSessionFactory sshSessionFactory = new JschConfigSessionFactory() {
                 @Override
@@ -2124,7 +2111,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 }
             };
             return sshSessionFactory;
-        } catch (IOException | CryptoException e) {
+        } catch (IOException e) {
             logger.error("Failed to create private key for SSH connection.", e);
         }
         return null;
@@ -2132,7 +2119,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
     @Override
     public boolean isFolder(String siteId, String path) {
-        Repository repo = helper.getRepository(siteId, SANDBOX);
         Path p = Paths.get(helper.buildRepoPath(SANDBOX, siteId).toAbsolutePath().toString(), path);
         File file = p.toFile();
         return file.isDirectory();
