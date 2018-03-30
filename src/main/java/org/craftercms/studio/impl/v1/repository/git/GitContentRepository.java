@@ -1855,8 +1855,24 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             } else {
                 params.put("remotePassword", remotePassword);
             }
-            params.put("remoteToken", remoteToken);
-            params.put("remotePrivateKey", remotePrivateKey);
+            if (StringUtils.isNotEmpty(remoteToken)) {
+                logger.debug("Encrypt token before inserting to database");
+                TextEncryptor encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
+                        studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
+                String hashedToken = encryptor.encrypt(remoteToken);
+                params.put("remoteToken", hashedToken);
+            } else {
+                params.put("remoteToken", remoteToken);
+            }
+            if (StringUtils.isNotEmpty(remotePrivateKey)) {
+                logger.debug("Encrypt private key before inserting to database");
+                TextEncryptor encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
+                        studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
+                String hashedPrivateKey = encryptor.encrypt(remotePrivateKey);
+                params.put("remotePrivateKey", hashedPrivateKey);
+            } else {
+                params.put("remotePrivateKey", remotePrivateKey);
+            }
 
             logger.debug("Insert site remote record into database");
             remoteRepositoryMapper.insertRemoteRepository(params);
@@ -1957,6 +1973,9 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             pushCommand.setRemote(remoteRepository.getRemoteName());
             logger.debug("Set branch to be " + remoteBranch);
             pushCommand.setRefSpecs(new RefSpec(remoteBranch + ":" + remoteBranch));
+            TextEncryptor encryptor = new PbkAesTextEncryptor(
+                    studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
+                    studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
             switch (remoteRepository.getAuthenticationType()) {
                 case RemoteRepository.AuthenticationType.NONE:
                     logger.debug("No authentication");
@@ -1965,9 +1984,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 case RemoteRepository.AuthenticationType.BASIC:
                     logger.debug("Basic authentication");
                     String hashedPassword = remoteRepository.getRemotePassword();
-                    TextEncryptor encryptor = new PbkAesTextEncryptor(
-                            studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
-                            studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
                     String password = encryptor.decrypt(hashedPassword);
                     pushCommand.setCredentialsProvider(
                             new UsernamePasswordCredentialsProvider(remoteRepository.getRemoteUsername(), password));
@@ -1976,9 +1992,10 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     break;
                 case RemoteRepository.AuthenticationType.TOKEN:
                     logger.debug("Token based authentication");
+                    String hashedToken = remoteRepository.getRemoteToken();
+                    String remoteToken = encryptor.decrypt(hashedToken);
                     pushCommand.setCredentialsProvider(
-                            new UsernamePasswordCredentialsProvider(remoteRepository.getRemoteToken(),
-                                    StringUtils.EMPTY));
+                            new UsernamePasswordCredentialsProvider(remoteToken, StringUtils.EMPTY));
                     pushCommand.call();
                     break;
                 case RemoteRepository.AuthenticationType.PRIVATE_KEY:
@@ -2028,6 +2045,9 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             pullCommand.setRemote(remoteRepository.getRemoteName());
             logger.debug("Set branch to be " + remoteBranch);
             pullCommand.setRemoteBranchName(remoteBranch);
+            TextEncryptor encryptor = new PbkAesTextEncryptor(
+                    studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
+                    studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
             switch (remoteRepository.getAuthenticationType()) {
                 case RemoteRepository.AuthenticationType.NONE:
                     logger.debug("No authentication");
@@ -2036,9 +2056,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 case RemoteRepository.AuthenticationType.BASIC:
                     logger.debug("Basic authentication");
                     String hashedPassword = remoteRepository.getRemotePassword();
-                    TextEncryptor encryptor = new PbkAesTextEncryptor(
-                            studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
-                            studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
                     String password = encryptor.decrypt(hashedPassword);
                     pullCommand.setCredentialsProvider(
                             new UsernamePasswordCredentialsProvider(remoteRepository.getRemoteUsername(), password));
@@ -2047,9 +2064,10 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     break;
                 case RemoteRepository.AuthenticationType.TOKEN:
                     logger.debug("Token based authentication");
+                    String hashedToken = remoteRepository.getRemoteToken();
+                    String token = encryptor.decrypt(hashedToken);
                     pullCommand.setCredentialsProvider(
-                            new UsernamePasswordCredentialsProvider(remoteRepository.getRemoteToken(),
-                                    StringUtils.EMPTY));
+                            new UsernamePasswordCredentialsProvider(token, StringUtils.EMPTY));
                     pullCommand.call();
                     break;
                 case RemoteRepository.AuthenticationType.PRIVATE_KEY:
@@ -2082,10 +2100,14 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         }
     }
 
-    private SshSessionFactory getSshSessionFactory(RemoteRepository remoteRepository, final Path tempKey) {
+    private SshSessionFactory getSshSessionFactory(RemoteRepository remoteRepository, final Path tempKey)  {
         try {
-
-            Files.write(tempKey, remoteRepository.getRemotePrivateKey().getBytes());
+            String hashedPrivateKey = remoteRepository.getRemotePrivateKey();
+            TextEncryptor encryptor = new PbkAesTextEncryptor(
+                    studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
+                    studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
+            String privateKey = encryptor.decrypt(hashedPrivateKey);
+            Files.write(tempKey, privateKey.getBytes());
             SshSessionFactory sshSessionFactory = new JschConfigSessionFactory() {
                 @Override
                 protected void configure(OpenSshConfig.Host hc, Session session) {
@@ -2102,7 +2124,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 }
             };
             return sshSessionFactory;
-        } catch (IOException e) {
+        } catch (IOException | CryptoException e) {
             logger.error("Failed to create private key for SSH connection.", e);
         }
         return null;
