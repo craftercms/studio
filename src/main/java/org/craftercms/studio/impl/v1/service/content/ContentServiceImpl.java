@@ -954,7 +954,6 @@ public class ContentServiceImpl implements ContentService {
         }
 
         // write activity stream
-        activityService.renameContentId(site, fromPath, movePath);
         ActivityService.ActivityType activityType = ActivityService.ActivityType.MOVED;
         Map<String, String> extraInfo = new HashMap<String, String>();
         if (renamedItem.isFolder()) {
