@@ -124,6 +124,7 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_DEFAULT
 import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.BLUE_PRINTS_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_GLOBAL_CONFIG_BASE_PATH;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_DEFAULT_ADMIN_GROUP;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_DEFAULT_GROUPS;
@@ -465,6 +466,8 @@ public class SiteServiceImpl implements SiteService {
 			            studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT));
 			    siteFeedMapper.createSite(siteFeed);
 
+                insertCreateSiteAuditLog(siteId);
+
 			    contentRepository.insertGitLog(siteId, lastCommitId, 1);
 
                 // Add default groups
@@ -516,6 +519,15 @@ public class SiteServiceImpl implements SiteService {
 	    } else {
 		    throw new SiteCreationException("Error while creating site: " + siteName + " ID: " + siteId + ".");
 	    }
+    }
+
+    private void insertCreateSiteAuditLog(String siteId) {
+        ActivityService.ActivityType activityType = ActivityService.ActivityType.CREATE_SITE;
+        String user = securityProvider.getCurrentUser();
+        Map<String, String> extraInfo = new HashMap<String, String>();
+        extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_SITE);
+        activityService.postActivity(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE), user,
+                siteId , activityType, ActivityService.ActivitySource.UI, extraInfo);
     }
 
     protected boolean createSiteFromBlueprintGit(String blueprintName, String siteName, String siteId, String desc)
@@ -829,6 +841,8 @@ public class SiteServiceImpl implements SiteService {
                         studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT));
                 siteFeedMapper.createSite(siteFeed);
 
+                insertCreateSiteAuditLog(siteId);
+
                 // Add default groups
                 logger.debug("Adding default groups for site " + siteId);
                 addDefaultGroupsForNewSite(siteId);
@@ -1023,6 +1037,8 @@ public class SiteServiceImpl implements SiteService {
                         studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT));
                 siteFeedMapper.createSite(siteFeed);
 
+                insertCreateSiteAuditLog(siteId);
+
                 logger.debug("Adding git log to database for site " + siteId);
                 contentRepository.insertGitLog(siteId, lastCommitId, 1);
 
@@ -1133,12 +1149,22 @@ public class SiteServiceImpl implements SiteService {
 	        objectMetadataManager.deleteObjectMetadataForSite(siteId);
 	        dmPageNavigationOrderService.deleteSequencesForSite(siteId);
 	        contentRepository.deleteGitLogForSite(siteId);
+	        insertDeleteSiteAuditLog(siteId);
 	    } catch(Exception e) {
 		    success = false;
 		    logger.error("Failed to delete the database for site:" + siteId, e);
 	    }
 
 	 	return success;
+    }
+
+    private void insertDeleteSiteAuditLog(String siteId) {
+        ActivityService.ActivityType activityType = ActivityService.ActivityType.DELETE_SITE;
+        String user = securityProvider.getCurrentUser();
+        Map<String, String> extraInfo = new HashMap<String, String>();
+        extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_SITE);
+        activityService.postActivity(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE), user,
+                siteId , activityType, ActivityService.ActivitySource.UI, extraInfo);
     }
 
     private boolean destroySitePreviewContext(String site) {

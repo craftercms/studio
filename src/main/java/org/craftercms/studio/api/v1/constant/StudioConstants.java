@@ -113,6 +113,7 @@ package org.craftercms.studio.api.v1.constant;
     String CONTENT_TYPE_TAXONOMY_REGEX = "/site/taxonomy/([^<]+)\\.xml";
     String CONTENT_TYPE_ALL = "all";
     String CONTENT_TYPE_FORM_DEFINITION = "formDefinition";
+    String CONTENT_TYPE_SITE = "site";
 
     /**
      * System constants

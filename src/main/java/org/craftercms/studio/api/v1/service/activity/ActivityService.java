@@ -42,7 +42,9 @@ public interface ActivityService {
         ADD_USER_TO_GROUP,
         REMOVE_USER_FROM_GROUP,
         LOGIN,
-        LOGOUT
+        LOGOUT,
+        CREATE_SITE,
+        DELETE_SITE
 	}
 
 	enum ActivitySource {
