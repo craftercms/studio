@@ -1691,9 +1691,9 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     @Override
-    public boolean createSiteCloneRemote(String siteId, String remoteName, String remoteUrl,
-                                         String authenticationType, String remoteUsername, String remotePassword,
-                                         String remoteToken, String remotePrivateKey) throws
+    public boolean createSiteCloneRemote(String siteId, String remoteName, String remoteUrl, String remoteBranch,
+                                         boolean singleBranch, String authenticationType, String remoteUsername,
+                                         String remotePassword, String remoteToken, String remotePrivateKey) throws
             InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
             RemoteRepositoryNotFoundException, InvalidRemoteUrlException, ServiceException {
         boolean toReturn;
@@ -1701,8 +1701,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         // clone remote git repository for site content
         logger.debug("Creating site " + siteId + " as a clone of remote repository " + remoteName +
                 " (" + remoteUrl + ").");
-        toReturn = helper.createSiteCloneRemoteGitRepo(siteId, remoteName, remoteUrl, authenticationType,
-                remoteUsername, remotePassword, remoteToken, remotePrivateKey);
+        toReturn = helper.createSiteCloneRemoteGitRepo(siteId, remoteName, remoteUrl, remoteBranch, singleBranch,
+                authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey);
 
         if (toReturn) {
             addRemote(siteId, remoteName, remoteUrl, authenticationType, remoteUsername, remotePassword, remoteToken,

@@ -769,8 +769,8 @@ public class GitContentRepositoryHelper {
         return files;
     }
 
-    public boolean createSiteCloneRemoteGitRepo(String siteId, String remoteName, String remoteUrl,
-                                                String authenticationType, String remoteUsername,
+    public boolean createSiteCloneRemoteGitRepo(String siteId, String remoteName, String remoteUrl, String remoteBranch,
+                                                boolean singleBranch, String authenticationType, String remoteUsername,
                                                 String remotePassword, String remoteToken, String remotePrivateKey)
             throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
             RemoteRepositoryNotFoundException, ServiceException {
@@ -817,10 +817,14 @@ public class GitContentRepositoryHelper {
                 default:
                     throw new ServiceException("Unsupported authentication type " + authenticationType);
             }
+            if (StringUtils.isNotEmpty(remoteBranch)) {
+                cloneCommand.setBranch(remoteBranch);
+            }
             cloneResult = cloneCommand
                     .setURI(remoteUrl)
                     .setDirectory(localPath)
                     .setRemote(remoteName)
+                    .setCloneAllBranches(!singleBranch)
                     .call();
             Files.deleteIfExists(tempKey);
             Repository sandboxRepo = checkIfCloneWasOk(cloneResult, remoteName, remoteUrl) ;
