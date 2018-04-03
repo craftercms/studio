@@ -363,11 +363,11 @@ public interface ContentRepository {
      * @param remotePassword remote password
      * @return true if success
      */
-    boolean createSiteCloneRemote(String siteId, String remoteName, String remoteUrl, String authenticationType,
-                                  String remoteUsername, String remotePassword, String remoteToken,
-                                  String remotePrivateKey) throws InvalidRemoteRepositoryException,
-            InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException,
-            InvalidRemoteUrlException,  ServiceException;
+    boolean createSiteCloneRemote(String siteId, String remoteName, String remoteUrl, String remoteBranch,
+                                  boolean singleBranch, String authenticationType, String remoteUsername,
+                                  String remotePassword, String remoteToken, String remotePrivateKey)
+            throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
+            RemoteRepositoryNotFoundException, InvalidRemoteUrlException,  ServiceException;
 
     /**
      * Push new site to remote repository

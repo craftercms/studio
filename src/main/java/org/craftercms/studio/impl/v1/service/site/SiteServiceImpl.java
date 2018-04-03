@@ -669,8 +669,9 @@ public class SiteServiceImpl implements SiteService {
                                            String blueprintName,
                                            @ValidateStringParam(name = "remoteName") String remoteName,
                                            @ValidateStringParam(name = "remoteUrl") String remoteUrl,
-                                           String authenticationType, String remoteUsername, String remotePassword,
-                                           String remoteToken, String remotePrivateKey,
+                                           String remoteBranch, boolean singleBranch, String authenticationType,
+                                           String remoteUsername, String remotePassword, String remoteToken,
+                                           String remotePrivateKey,
                                            @ValidateStringParam(name = "createOption") String createOption)
             throws ServiceException, InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
             RemoteRepositoryNotFoundException, RemoteRepositoryNotBareException, InvalidRemoteUrlException {
@@ -680,8 +681,8 @@ public class SiteServiceImpl implements SiteService {
         switch (createOption) {
             case REMOTE_REPOSITORY_CREATE_OPTION_CLONE:
                 logger.debug("Clone from remote repository create option selected");
-                createSiteCloneRemote(siteId, description, remoteName, remoteUrl, authenticationType, remoteUsername,
-                        remotePassword, remoteToken, remotePrivateKey);
+                createSiteCloneRemote(siteId, description, remoteName, remoteUrl, remoteBranch, singleBranch, authenticationType,
+                        remoteUsername, remotePassword, remoteToken, remotePrivateKey);
                 break;
 
             case REMOTE_REPOSITORY_CREATE_OPTION_PUSH:
@@ -699,8 +700,9 @@ public class SiteServiceImpl implements SiteService {
     }
 
     private void createSiteCloneRemote(String siteId, String description, String remoteName, String remoteUrl,
-                                       String authenticationType, String remoteUsername, String remotePassword,
-                                       String remoteToken, String remotePrivateKey) throws ServiceException,
+                                       String remoteBranch, boolean singleBranch, String authenticationType,
+                                       String remoteUsername, String remotePassword, String remoteToken,
+                                       String remotePrivateKey) throws ServiceException,
             InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
             RemoteRepositoryNotFoundException, InvalidRemoteUrlException {
         boolean success = true;
@@ -762,8 +764,8 @@ public class SiteServiceImpl implements SiteService {
                 // create site by cloning remote git repo
                 logger.debug("Creating site " + siteId + " by cloning remote repository " + remoteName +
                         " (" + remoteUrl + ")");
-                contentRepository.createSiteCloneRemote(siteId, remoteName, remoteUrl, authenticationType,
-                        remoteUsername, remotePassword, remoteToken, remotePrivateKey);
+                contentRepository.createSiteCloneRemote(siteId, remoteName, remoteUrl, remoteBranch, singleBranch,
+                        authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey);
             } catch (InvalidRemoteRepositoryException | InvalidRemoteRepositoryCredentialsException |
                     RemoteRepositoryNotFoundException | InvalidRemoteUrlException | ServiceException e) {
 

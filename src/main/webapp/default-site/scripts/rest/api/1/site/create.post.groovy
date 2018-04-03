@@ -48,6 +48,13 @@ try {
     }
     def remoteName = parsedReq.remote_name
     def remoteUrl = parsedReq.remote_url
+    def remoteBranch = parsedReq.remote_branch
+    def singleBranch = parsedReq.single_branch
+    if (singleBranch != null) {
+        singleBranch = singleBranch.toBoolean();
+    } else {
+        singleBranch = false
+    }
     def authenticationType = parsedReq.authentication_type
     def remoteUsername = parsedReq.remote_username
     def remotePassword = parsedReq.remote_password
@@ -197,8 +204,8 @@ try {
                 response.setStatus(201)
             } else {
                 SiteServices.createSiteWithRemoteOption(context, siteId, description, blueprint, remoteName,
-                        remoteUrl, authenticationType, remoteUsername, remotePassword, remoteToken,
-                        remotePrivateKey, createOption)
+                        remoteUrl, remoteBranch, singleBranch, authenticationType, remoteUsername, remotePassword,
+                        remoteToken, remotePrivateKey, createOption)
                 result.message = "OK"
                 def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") +
                         "/api/1/services/api/1/site/get.json?site_id=" + siteId

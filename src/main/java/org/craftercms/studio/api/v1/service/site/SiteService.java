@@ -18,7 +18,13 @@
 package org.craftercms.studio.api.v1.service.site;
 
 import org.craftercms.studio.api.v1.dal.SiteFeed;
-import org.craftercms.studio.api.v1.exception.*;
+import org.craftercms.studio.api.v1.exception.BlueprintNotFoundException;
+import org.craftercms.studio.api.v1.exception.PreviewDeployerUnreachableException;
+import org.craftercms.studio.api.v1.exception.SearchUnreachableException;
+import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
+import org.craftercms.studio.api.v1.exception.SiteCreationException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
@@ -116,11 +122,11 @@ public interface SiteService {
      * @param createOption
      */
     void createSiteWithRemoteOption(String siteId, String description, String blueprintName, String remoteName,
-                                    String remoteUrl, String authenticationType, String remoteUsername,
-                                    String remotePassword, String remoteToken, String remotePrivateKey,
-                                    String createOption) throws ServiceException, InvalidRemoteRepositoryException,
-            InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException,
-            RemoteRepositoryNotBareException, InvalidRemoteUrlException;
+                                    String remoteUrl, String remoteBranch, boolean singleBranch,
+                                    String authenticationType, String remoteUsername, String remotePassword,
+                                    String remoteToken, String remotePrivateKey, String createOption)
+            throws ServiceException, InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
+            RemoteRepositoryNotFoundException, RemoteRepositoryNotBareException, InvalidRemoteUrlException;
 
     /**
      * remove a site from the system
