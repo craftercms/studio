@@ -1096,7 +1096,8 @@ public class ContentServiceImpl implements ContentService {
             // newPath:  "/site/website/products/search.xml"
             if(fromFileNameOnly.equals(newFileNameOnly)) {
                 // Move location
-                if (_contentRepository.isFolder(site, newPathOnly)) {
+                if (!_contentRepository.contentExists(site, newPathOnly) ||
+                        _contentRepository.isFolder(site, newPathOnly)) {
                     proposedDestPath = newPathOnly + FILE_SEPARATOR + fromFileNameOnly;
                 } else {
                     proposedDestPath = newPathOnly;
