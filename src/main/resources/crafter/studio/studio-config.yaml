@@ -89,6 +89,8 @@ studio.configuration.site.aws.configFileName: aws.xml
 studio.configuration.site.box.configurationPath: /config/studio/box/box.xml
 # Regex pattern for item specific dependencies
 studio.configuration.dependency.itemSpecificPatterns: /site/components/page/.*,/static-assets/page/.*
+# Repo path to the asset processing config
+studio.configuration.site.asset.processing.configurationPath: /config/studio/asset-processing/asset-processing-config.xml
 
 ########################################################
 ##                   Import Service                   ##
@@ -150,9 +152,9 @@ studio.security.publicUrls: /api/1/services/api/1/server/get-available-languages
 # ldap (users are imported from LDAP into the database)
 studio.security.type: db
 # Salt for encrypting
-studio.security.cipher.salt: STUDIO_SALT
+studio.security.cipher.salt: DgGN9xhq3GOn6zxg
 # Key for encrypting
-studio.security.cipher.key: MYSUPERSECRETKEY
+studio.security.cipher.key: zEtRii1jWUuUUB0W
 # Cipher type
 studio.security.cipher.type: AES
 # Cipher algorithm
@@ -185,6 +187,14 @@ studio.security.ldap.userAttribute.email: mail
 studio.security.ldap.userAttribute.siteId: crafterSite
 # LDAP groups attribute
 studio.security.ldap.userAttribute.groupName: crafterGroup
+# LDAP default site if site ID attribute not found
+studio.security.ldap.defaultSiteId: default
+# LDAP groups attribute name regex
+studio.security.ldap.userAttribute.groupName.regex: .*
+# LDAP groups attribute match index
+studio.security.ldap.userAttribute.groupName.matchIndex: 0
+# LDAP default site if site ID attribute not found
+studio.security.ldap.defaultSiteId: default
 # Global admin group
 studio.security.global.adminGroup: crafter-admin
 # Authentication via headers enabled
@@ -369,3 +379,9 @@ studio.db.dataPath: ./data/db
 studio.db.port: 33306
 # Socket path for the embedded database
 studio.db.socket: /tmp/MariaDB4j.33306.sock
+
+##########################################################
+##                   Asset Processing                   ##
+##########################################################
+# The global Tinify API key used for image processing (empty by default)
+studio.configuration.asset.processing.tinify.apiKey:

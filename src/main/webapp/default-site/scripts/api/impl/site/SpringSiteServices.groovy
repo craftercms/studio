@@ -23,6 +23,8 @@ import java.util.Locale;
 
 class SpringSiteServices {
 
+    static SITE_SERVICES_BEAN = "cstudioSiteServiceSimple"
+
     def context = null
 
     /**
@@ -35,82 +37,101 @@ class SpringSiteServices {
     }
 
     def writeConfiguration(path, content){
-        def springBackedService = this.context.applicationContext.get("cstudioSiteServiceSimple")
+        def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
         return springBackedService.writeConfiguration(path, content);
     }
 
     def writeConfiguration(site, path, content){
-        def springBackedService = this.context.applicationContext.get("cstudioSiteServiceSimple")
+        def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
         return springBackedService.writeConfiguration(site, path, content);
     }
 
     def getConfiguraiton(path) {
-        def springBackedService = this.context.applicationContext.get("cstudioSiteServiceSimple")
+        def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
         return springBackedService.getConfiguration(site, path);
     }
 
     def getConfiguration(site, path, applyEnvironment) {
-        def springBackedService = this.context.applicationContext.get("cstudioSiteServiceSimple")
+        def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
         return springBackedService.getConfiguration(site, path, applyEnvironment);
     }
 
     def getAllAvailableSites() {
-         def springBackedService = this.context.applicationContext.get("cstudioSiteServiceSimple")
+         def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
         return springBackedService.getAllAvailableSites()
     }
 
     def createSiteFromBlueprint(blueprintName, siteName, siteId, desc) {
-        def springBackedService = this.context.applicationContext.get("cstudioSiteServiceSimple")
+        def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
         return springBackedService.createSiteFromBlueprint(blueprintName, siteName, siteId, desc)
     }
 
-    def createSiteWithRemoteOption(siteId, description, blueprint, remoteName, remoteUrl, remoteUsername, remotePassword, createOption) {
-        def springBackedService = this.context.applicationContext.get("cstudioSiteServiceSimple")
-        return springBackedService.createSiteWithRemoteOption(siteId, description, blueprint, remoteName, remoteUrl, remoteUsername, remotePassword, createOption)
+    def createSiteWithRemoteOption(siteId, description, blueprint, remoteName, remoteUrl, authenticationType,
+                                   remoteUsername, remotePassword, remoteToken, remotePrivateKey, createOption) {
+        def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
+        return springBackedService.createSiteWithRemoteOption(siteId, description, blueprint, remoteName, remoteUrl,
+                authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey, createOption)
     }
 
     def deleteSite(siteId) {
-        def springBackedService = this.context.applicationContext.get("cstudioSiteServiceSimple")
+        def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
         return springBackedService.deleteSite(siteId)
     }
 
     def getAvailableBlueprints() {
-        def springBackedService = this.context.applicationContext.get("cstudioSiteServiceSimple")
+        def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
         return springBackedService.getAvailableBlueprints()
     }
 
     def reloadSiteConfiguration(site) {
-        def springBackedService = this.context.applicationContext.get("cstudioSiteServiceSimple")
+        def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
         return springBackedService.reloadSiteConfiguration(site)
     }
 
     def syncRepository(site) {
-        def springBackedService = this.context.applicationContext.get("cstudioSiteServiceSimple")
+        def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
         return springBackedService.syncRepository(site)
     }
 
     def rebuildDatabase(site) {
-        def springBackedService = this.context.applicationContext.get("cstudioSiteServiceSimple")
+        def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
         return springBackedService.rebuildDatabase(site)
     }
 
     def exists(site) {
-        def springBackedService = this.context.applicationContext.get("cstudioSiteServiceSimple")
+        def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
         return springBackedService.exists(site)
     }
 
     def getSitesPerUserTotal(username) {
-        def springBackedService = this.context.applicationContext.get("cstudioSiteServiceSimple")
+        def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
         return springBackedService.getSitesPerUserTotal(username)
     }
 
     def getSitesPerUser(username, start, number) {
-        def springBackedService = this.context.applicationContext.get("cstudioSiteServiceSimple")
+        def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
         return springBackedService.getSitesPerUser(username, start, number)
     }
 
     def getSite(siteId) {
-        def springBackedService = this.context.applicationContext.get("cstudioSiteServiceSimple")
+        def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
         return springBackedService.getSite(siteId)
+    }
+
+    def addRemote(siteId, remoteName, remoteUrl, authenticationType, remoteUsername, remotePassword, remoteToken,
+                  remotePrivateKey) {
+        def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
+        return springBackedService.addRemote(siteId, remoteName, remoteUrl, authenticationType, remoteUsername,
+                remotePassword, remoteToken, remotePrivateKey)
+    }
+
+    def removeRemote(siteId, remoteName) {
+        def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
+        return springBackedService.removeRemote(siteId, remoteName)
+    }
+
+    def listRemote(siteId) {
+        def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
+        return springBackedService.listRemote(siteId)
     }
 }

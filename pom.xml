@@ -9,7 +9,7 @@
     <url>https://github.com/craftercms/studio</url>
 
     <packaging>war</packaging>
-    <version>3.0.9</version>
+    <version>3.0.10</version>
     <organization>
         <name>CrafterCMS</name>
         <url>http://craftercms.org</url>
@@ -33,6 +33,7 @@
         <spring.version>4.3.7.RELEASE</spring.version>
         <spring.security.version>4.2.2.RELEASE</spring.security.version>
         <box.sdk.version>2.8.2</box.sdk.version>
+        <tinify.version>1.5.1</tinify.version>
     </properties>
 
     <licenses>
@@ -308,6 +309,12 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-all</artifactId>
+            <version>${mockito.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
             <version>3.0.1</version>
@@ -469,6 +476,13 @@
             <groupId>com.box</groupId>
             <artifactId>box-java-sdk</artifactId>
             <version>${box.sdk.version}</version>
+        </dependency>
+
+        <!-- Tinify -->
+        <dependency>
+            <groupId>com.tinify</groupId>
+            <artifactId>tinify</artifactId>
+            <version>${tinify.version}</version>
         </dependency>
     </dependencies>
 

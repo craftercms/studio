@@ -37,6 +37,13 @@
         VALUES (#{siteId}, #{commitId}, #{processed})
     </insert>
 
+    <insert id="insertGitLogList" parameterType="java.util.Map">
+        INSERT INTO gitlog (site_id, commit_id, processed) VALUES
+        <foreach collection="gitLogs" item="element" index="index" separator="," >
+            (#{element.siteId}, #{element.commitId}, #{element.processed})
+        </foreach>
+    </insert>
+
     <update id="markGitLogProcessed" parameterType="java.util.Map">
         UPDATE gitlog SET processed = #{processed} WHERE site_id = #{siteId} AND commit_id = #{commitId}
     </update>

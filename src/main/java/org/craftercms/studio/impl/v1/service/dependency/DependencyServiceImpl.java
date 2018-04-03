@@ -245,7 +245,9 @@ public class DependencyServiceImpl implements DependencyService {
                 ContentItemTO item = contentService.getContentItem(site, parentPath);
                 if (item.isNew() || objectMetadataManager.isRenamed(site, item.getUri())) {
                     logger.debug("Parent exists and it is NEW or RENAMED, it is mandatory.");
-                    parentPaths.add(item.getUri());
+                    if (!item.isFolder()) {
+                        parentPaths.add(item.getUri());
+                    }
                     parentPaths.addAll(getMandatoryParent(site, item.getUri()));
                 }
             }
@@ -290,6 +292,9 @@ public class DependencyServiceImpl implements DependencyService {
     }
 
     private List<String> getItemSpecificDependenciesFromDB(String site, Set<String> paths) {
+        if (CollectionUtils.isEmpty(paths)) {
+            return new ArrayList<String>();
+        }
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("site", site);
         params.put("paths", paths);
@@ -334,6 +339,9 @@ public class DependencyServiceImpl implements DependencyService {
     }
 
     private List<String> getItemDependenciesFromDB(String site, Set<String> paths) {
+        if (CollectionUtils.isEmpty(paths)) {
+            return new ArrayList<String>();
+        }
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("site", site);
         params.put("paths", paths);
@@ -377,6 +385,9 @@ public class DependencyServiceImpl implements DependencyService {
     }
 
     private List<String> getItemsDependingOnFromDB(String site, Set<String> paths) {
+        if (CollectionUtils.isEmpty(paths)) {
+            return new ArrayList<String>();
+        }
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("site", site);
         params.put("paths", paths);

@@ -563,7 +563,7 @@
 					<properties>
 						<property>
 							<name>repoPath</name>
-							<value>/static-assets/images/page/{objectId}/</value>
+							<value>/static-assets/page/images/{objectId}/</value>
 								<type>undefined</type>
 						</property>
 					</properties>

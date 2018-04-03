@@ -8,6 +8,7 @@ import scripts.api.impl.search.SolrSearch;
 class SpringContentServices {
 
 	static CONTENT_SERVICES_BEAN = "cstudioContentService"
+	static ASSET_PROCESSING_SERVICE_BEAN = "studioAssetProcessingService"
 
 	def context = null
 
@@ -212,8 +213,8 @@ class SpringContentServices {
 	}
 
 	def writeContentAsset(site, path, fileName, content, isImage, allowedWidth, allowedHeight, allowLessSize, draft, unlock, systemAsset) {
-		def springBackendService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN);
-		return springBackendService.writeContentAsset(site, path, fileName, content, isImage, allowedWidth, allowedHeight, allowLessSize, draft, unlock, systemAsset);
+		def springBackendService = this.context.applicationContext.get(ASSET_PROCESSING_SERVICE_BEAN);
+		return springBackendService.processAsset(site, path, fileName, content, isImage, allowedWidth, allowedHeight, allowLessSize, draft, unlock, systemAsset);
 	}
 
     def reorderItems(site, path, before, after) {
@@ -230,5 +231,15 @@ class SpringContentServices {
     def renameFolder(site, path, name){
         def springBackedService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN)
         return springBackedService.renameFolder(site, path, name)
+    }
+
+    def pushToRemote(siteId, remoteName, remoteBranch) {
+        def springBackedService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN)
+        return springBackedService.pushToRemote(siteId, remoteName, remoteBranch)
+    }
+
+    def pullFromRemote(siteId, remoteName, remoteBranch) {
+        def springBackedService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN)
+        return springBackedService.pullFromRemote(siteId, remoteName, remoteBranch)
     }
 }

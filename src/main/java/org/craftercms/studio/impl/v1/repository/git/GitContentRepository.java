@@ -19,6 +19,7 @@
 package org.craftercms.studio.impl.v1.repository.git;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
@@ -32,24 +33,45 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
-import java.util.concurrent.locks.ReentrantLock;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.UUID;
+import java.util.jar.Manifest;
 import javax.servlet.ServletContext;
 
+import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.JSchException;
+import com.jcraft.jsch.Session;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.iterators.ReverseListIterator;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.crypto.CryptoException;
+import org.craftercms.commons.crypto.TextEncryptor;
+import org.craftercms.commons.crypto.impl.PbkAesTextEncryptor;
+import org.craftercms.commons.monitoring.VersionMonitor;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.constant.RepoOperation;
 import org.craftercms.studio.api.v1.dal.DeploymentSyncHistory;
 import org.craftercms.studio.api.v1.dal.GitLog;
 import org.craftercms.studio.api.v1.dal.GitLogMapper;
+import org.craftercms.studio.api.v1.dal.RemoteRepository;
+import org.craftercms.studio.api.v1.dal.RemoteRepositoryMapper;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
+import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
+import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotBareException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -60,18 +82,35 @@ import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentHistoryProvider;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
+import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
 import org.craftercms.studio.api.v1.to.RepoOperationTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
-import org.eclipse.jgit.api.*;
+import org.eclipse.jgit.api.CheckoutCommand;
+import org.eclipse.jgit.api.CreateBranchCommand;
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.PullCommand;
+import org.eclipse.jgit.api.PushCommand;
+import org.eclipse.jgit.api.RemoteAddCommand;
+import org.eclipse.jgit.api.RemoteRemoveCommand;
+import org.eclipse.jgit.api.ResetCommand;
+import org.eclipse.jgit.api.Status;
+import org.eclipse.jgit.api.TagCommand;
+import org.eclipse.jgit.api.TransportConfigCallback;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.api.errors.RefNotFoundException;
 import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.internal.storage.file.LockFile;
-import org.eclipse.jgit.lib.*;
+import org.eclipse.jgit.lib.Constants;
+import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.lib.ObjectLoader;
+import org.eclipse.jgit.lib.ObjectReader;
+import org.eclipse.jgit.lib.PersonIdent;
+import org.eclipse.jgit.lib.Ref;
+import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.merge.MergeStrategy;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevSort;
@@ -79,10 +118,21 @@ import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.revwalk.filter.AndRevFilter;
 import org.eclipse.jgit.revwalk.filter.CommitTimeRevFilter;
-import org.eclipse.jgit.transport.*;
+import org.eclipse.jgit.transport.JschConfigSessionFactory;
+import org.eclipse.jgit.transport.OpenSshConfig;
+import org.eclipse.jgit.transport.PushResult;
+import org.eclipse.jgit.transport.RefSpec;
+import org.eclipse.jgit.transport.RemoteConfig;
+import org.eclipse.jgit.transport.RemoteRefUpdate;
+import org.eclipse.jgit.transport.SshSessionFactory;
+import org.eclipse.jgit.transport.SshTransport;
+import org.eclipse.jgit.transport.Transport;
+import org.eclipse.jgit.transport.URIish;
+import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
+import org.eclipse.jgit.util.FS;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.web.context.ServletContextAware;
@@ -92,7 +142,13 @@ import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.BOOTSTRAP_REPO_GLOBAL_PATH;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.BOOTSTRAP_REPO_PATH;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.*;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.BLUE_PRINTS_PATH;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.BOOTSTRAP_REPO;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_PUBLISHED_COMMIT_MESSAGE;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_SANDBOX_BRANCH;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_KEY;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_SALT;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.BLUEPRINTS_UPDATED_COMMIT;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.EMPTY_FILE;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_COMMIT_ALL_ITEMS;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
@@ -103,16 +159,26 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
     private static final Logger logger = LoggerFactory.getLogger(GitContentRepository.class);
     private GitContentRepositoryHelper helper = null;
+    private TextEncryptor encryptor;
 
-    private final static Map<String, ReentrantLock> repositoryLocks = new HashMap<String, ReentrantLock>();
+    private static final String IN_PROGRESS_BRANCH_NAME_SUFIX = "_in_progress";
+    private static final String STUDIO_MANIFEST_LOCATION = "/META-INF/MANIFEST.MF";
 
-    private final static String IN_PROGRESS_BRANCH_NAME_SUFIX = "_in_progress";
+    ServletContext ctx;
+    SecurityProvider securityProvider;
+    StudioConfiguration studioConfiguration;
+
+    @Autowired
+    GitLogMapper gitLogMapper;
+
+    @Autowired
+    RemoteRepositoryMapper remoteRepositoryMapper;
 
     @Override
     public boolean contentExists(String site, String path) {
         boolean toReturn = false;
-        Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GitRepositories.GLOBAL : GitRepositories
-                .SANDBOX);
+        Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GitRepositories.GLOBAL :
+                GitRepositories.SANDBOX);
 
         try {
             RevTree tree = helper.getTreeForLastCommit(repo);
@@ -195,7 +261,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
             if (repo != null) {
                 if (helper.writeFile(repo, site, path, content))
-                    commitId = helper.commitFile(repo, site, path, "Wrote content " + path, helper.getCurrentUserIdent());
+                    commitId = helper.commitFile(repo, site, path, "Wrote content " + path,
+                            helper.getCurrentUserIdent());
                 else
                     logger.error("Failed to write content site: " + site + " path: " + path);
             } else {
@@ -214,7 +281,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
         synchronized (helper.getRepository(site, StringUtils.isEmpty(site) ? GitRepositories.GLOBAL : SANDBOX)) {
             Path emptyFilePath = Paths.get(path, name, EMPTY_FILE);
-            Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GitRepositories.GLOBAL : GitRepositories.SANDBOX);
+            Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GitRepositories.GLOBAL :
+                    GitRepositories.SANDBOX);
 
 
             try {
@@ -251,8 +319,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             }
 
             if (result) {
-                commitId = helper.commitFile(repo, site, emptyFilePath.toString(), "Created folder site: " + site +
-                        " " + "path: " + path + FILE_SEPARATOR + name, helper.getCurrentUserIdent());
+                commitId = helper.commitFile(repo, site, emptyFilePath.toString(), "Created folder site: " +
+                        site + " path: " + path + FILE_SEPARATOR + name, helper.getCurrentUserIdent());
             }
         }
 
@@ -279,7 +347,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 }
 
                 // TODO: SJ: we need to define messages in a string table of sorts
-                commitId = helper.commitFile(repo, site, pathToCommit, "Delete file " + path, StringUtils.isEmpty(approver) ? helper.getCurrentUserIdent() : helper.getAuthorIdent(approver));
+                commitId = helper.commitFile(repo, site, pathToCommit, "Delete file " + path,
+                        StringUtils.isEmpty(approver) ? helper.getCurrentUserIdent() : helper.getAuthorIdent(approver));
 
                 git.close();
             } catch (GitAPIException e) {
@@ -299,10 +368,16 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         if (children != null && children.length < 2) {
             if (children.length == 1 || children[0].equals(".keep")) {
                 Path ancestor = parentFolder.getParent();
-                git.rm().addFilepattern(helper.getGitPath(folderToDelete + FILE_SEPARATOR + ".keep")).setCached(false).call();
+                git.rm()
+                        .addFilepattern(helper.getGitPath(folderToDelete + FILE_SEPARATOR + ".keep"))
+                        .setCached(false)
+                        .call();
             } else {
                 Path ancestor = parentFolder.getParent();
-                git.rm().addFilepattern(helper.getGitPath(parentFolder.toString())).setCached(false).call();
+                git.rm()
+                        .addFilepattern(helper.getGitPath(parentFolder.toString()))
+                        .setCached(false)
+                        .call();
             }
         }
         return toRet;
@@ -345,13 +420,13 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                             sourceFile.renameTo(targetFile);
                         } else {
                             // This is not a valid operation
-                            logger.error("Invalid move operation: Trying to rename a directory to a file for site: " + site + " fromPath: " + fromPath + " toPath: " + toPath + " newName: " + newName);
+                            logger.error("Invalid move operation: Trying to rename a directory to a file " +
+                                    "for site: " + site + " fromPath: " + fromPath + " toPath: " + toPath +
+                                    " newName: " + newName);
                         }
                     } else if (sourceFile.isDirectory()) {
                         // Check if we're moving a single file or whole subtree
-                        //FileUtils.moveToDirectory(sourceFile, targetFile, true);
                         File[] dirList = sourceFile.listFiles();
-                        //Collection<File> dirList = FileUtils.listFilesAndDirs(sourceFile, FileFileFilter.FILE, DirectoryFileFilter.INSTANCE);
                         for (File child : dirList) {
                             if (!child.equals(sourceFile)) {
                                 FileUtils.moveToDirectory(child, targetFile, true);
@@ -375,13 +450,21 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
                 for (String pathToCommit : changeSet) {
                     String pathRemoved = pathToCommit.replace(gitToPath, gitFromPath);
-                    RevCommit commit = git.commit().setOnly(pathToCommit).setOnly(pathRemoved).setAuthor(helper.getCurrentUserIdent()).setCommitter(helper.getCurrentUserIdent()).setMessage("Moving " + fromPath + " to " + toPath + (StringUtils.isNotEmpty(newName) ? newName: StringUtils.EMPTY)).call();
+                    RevCommit commit = git.commit()
+                            .setOnly(pathToCommit)
+                            .setOnly(pathRemoved)
+                            .setAuthor(helper.getCurrentUserIdent())
+                            .setCommitter(helper.getCurrentUserIdent())
+                            .setMessage("Moving " + fromPath + " to " + toPath + (StringUtils.isNotEmpty(newName) ?
+                                    newName: StringUtils.EMPTY))
+                            .call();
                     commitId = commit.getName();
                     toRet.put(pathToCommit, commitId);
                 }
                 git.close();
             } catch (IOException | GitAPIException e) {
-                logger.error("Error while moving content for site: " + site + " fromPath: " + fromPath + " toPath: " + toPath + " newName: " + newName);
+                logger.error("Error while moving content for site: " + site + " fromPath: " + fromPath +
+                        " toPath: " + toPath + " newName: " + newName);
             }
         }
 
@@ -421,8 +504,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
                 git.close();
             } catch (IOException | GitAPIException e) {
-                logger.error("Error while copying content for site: " + site + " fromPath: " + fromPath + " toPath:"
-                        + " " + toPath + " newName: ");
+                logger.error("Error while copying content for site: " + site + " fromPath: " + fromPath +
+                        " toPath: " + toPath + " newName: ");
             }
         }
 
@@ -468,7 +551,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         }
                         tw.close();
                     } else {
-                        logger.error("Error getChildren invoked for a file for site: " + site + " path: " + path);
+                        logger.debug("Object is not tree for site: " + site + " path: " + path +
+                                " - it does not have children");
                     }
                 } else {
                     String gitPath = helper.getGitPath(path);
@@ -535,7 +619,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         VersionTO versionTO = new VersionTO();
                         versionTO.setVersionNumber(revCommit.getName());
                         versionTO.setLastModifier(revCommit.getAuthorIdent().getName());
-                        versionTO.setLastModifiedDate(Instant.ofEpochSecond(revCommit.getCommitTime()).atZone(ZoneOffset.UTC));
+                        versionTO.setLastModifiedDate(
+                                Instant.ofEpochSecond(revCommit.getCommitTime()).atZone(ZoneOffset.UTC));
                         versionTO.setComment(revCommit.getFullMessage());
                         versionHistory.add(versionTO);
                     }
@@ -632,11 +717,12 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     tw.close();
                 }
             } catch (IOException e) {
-                logger.error("Error while getting content for file at site: " + site + " path: " + path + " version:"
-                        + " " + version, e);
+                logger.error("Error while getting content for file at site: " + site + " path: " + path +
+                        " version: " + version, e);
             }
         } catch (IOException e) {
-            logger.error("Failed to create RevTree for site: " + site + " path: " + path + " version: " + version, e);
+            logger.error("Failed to create RevTree for site: " + site + " path: " + path + " version: " +
+                    version, e);
         }
 
         return toReturn;
@@ -767,11 +853,15 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         // Initialize the helper
         helper = new GitContentRepositoryHelper(studioConfiguration, securityProvider);
 
+        encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
+                studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
+
         if (Boolean.parseBoolean(studioConfiguration.getProperty(BOOTSTRAP_REPO))) {
             if (helper.createGlobalRepo()) {
                 // Copy the global config defaults to the global site
                 // Build a path to the bootstrap repo (the repo that ships with Studio)
-                String bootstrapFolderPath = this.ctx.getRealPath(FILE_SEPARATOR + BOOTSTRAP_REPO_PATH + FILE_SEPARATOR + BOOTSTRAP_REPO_GLOBAL_PATH);
+                String bootstrapFolderPath = this.ctx.getRealPath(FILE_SEPARATOR + BOOTSTRAP_REPO_PATH +
+                        FILE_SEPARATOR + BOOTSTRAP_REPO_GLOBAL_PATH);
                 Path source = java.nio.file.FileSystems.getDefault().getPath(bootstrapFolderPath);
 
                 logger.info("Bootstrapping with baseline @ " + source.toFile().toString());
@@ -783,6 +873,12 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 EnumSet<FileVisitOption> opts = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
                 Files.walkFileTree(source, opts, Integer.MAX_VALUE, tc);
 
+                String studioManifestLocation = this.ctx.getRealPath(STUDIO_MANIFEST_LOCATION);
+                if (Files.exists(Paths.get(studioManifestLocation))) {
+                    FileUtils.copyFile(Paths.get(studioManifestLocation).toFile(),
+                            Paths.get(globalConfigPath.toAbsolutePath().toString(),
+                                    studioConfiguration.getProperty(BLUE_PRINTS_PATH), "BLUEPRINTS.MF").toFile());
+                }
                 Repository globalConfigRepo = helper.getRepository(StringUtils.EMPTY, GitRepositories.GLOBAL);
                 try (Git git = new Git(globalConfigRepo)) {
 
@@ -793,6 +889,74 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         // TODO: Consider what to do with the commitId in the future
                         git.add().addFilepattern(GIT_COMMIT_ALL_ITEMS).call();
                         git.commit().setMessage(INITIAL_COMMIT).call();
+                    }
+
+                    git.close();
+                } catch (GitAPIException err) {
+                    logger.error("error creating initial commit for global configuration", err);
+                }
+            } else {
+                // rsync blueprints
+                Path globalConfigPath = helper.buildRepoPath(GitRepositories.GLOBAL);
+                Path blueprintsPath = Paths.get(globalConfigPath.toAbsolutePath().toString(),
+                        studioConfiguration.getProperty(BLUE_PRINTS_PATH));
+
+                String studioManifestLocation = this.ctx.getRealPath(STUDIO_MANIFEST_LOCATION);
+                String blueprintsManifestLocation = Paths.get(blueprintsPath.toAbsolutePath().toString(),
+                        "BLUEPRINTS.MF").toAbsolutePath().toString();
+                boolean blueprintManifestExists = Files.exists(Paths.get(blueprintsManifestLocation));
+                InputStream studioManifestStream = FileUtils.openInputStream(new File(studioManifestLocation));
+                Manifest studioManifest = new Manifest(studioManifestStream);
+                VersionMonitor studioVersion = VersionMonitor.getVersion(studioManifest);
+                InputStream blueprintsManifestStream = null;
+                Manifest blueprintsManifest = null;
+                VersionMonitor blueprintsVersion = null;
+                if (blueprintManifestExists) {
+                    blueprintsManifestStream = FileUtils.openInputStream(new File(blueprintsManifestLocation));
+                    blueprintsManifest = new Manifest(blueprintsManifestStream);
+                    blueprintsVersion = VersionMonitor.getVersion(blueprintsManifest);
+                }
+
+                if (!blueprintManifestExists ||
+                        !StringUtils.equals(studioVersion.getBuild(), blueprintsVersion.getBuild()) ||
+                        (StringUtils.equals(studioVersion.getBuild(), blueprintsVersion.getBuild()) &&
+                                !StringUtils.equals(studioVersion.getBuild_date(), blueprintsVersion.getBuild_date())
+                        )) {
+                    String bootstrapBlueprintsFolderPath = this.ctx.getRealPath(FILE_SEPARATOR +
+                            BOOTSTRAP_REPO_PATH + FILE_SEPARATOR + BOOTSTRAP_REPO_GLOBAL_PATH + FILE_SEPARATOR +
+                            studioConfiguration.getProperty(BLUE_PRINTS_PATH));
+                    File bootstrapBlueprintsFolder = new File(bootstrapBlueprintsFolderPath);
+                    File[] blueprintFolders = bootstrapBlueprintsFolder.listFiles(new FileFilter() {
+                        @Override
+                        public boolean accept(File pathname) {
+                            return pathname.isDirectory();
+                        }
+                    });
+                    for (File blueprintFolder : blueprintFolders) {
+                        String blueprintName = blueprintFolder.getName();
+                        FileUtils.deleteDirectory(
+                                Paths.get(blueprintsPath.toAbsolutePath().toString(), blueprintName).toFile());
+                        TreeCopier tc = new TreeCopier(Paths.get(blueprintFolder.getAbsolutePath()),
+                                Paths.get(blueprintsPath.toAbsolutePath().toString(), blueprintName));
+                        EnumSet<FileVisitOption> opts = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
+                        Files.walkFileTree(Paths.get(blueprintFolder.getAbsolutePath()), opts, Integer.MAX_VALUE, tc);
+                    }
+
+                    FileUtils.copyFile(Paths.get(studioManifestLocation).toFile(),
+                            Paths.get(globalConfigPath.toAbsolutePath().toString(),
+                                    studioConfiguration.getProperty(BLUE_PRINTS_PATH), "BLUEPRINTS.MF").toFile());
+                }
+
+                Repository globalRepo = helper.getRepository(StringUtils.EMPTY, GitRepositories.GLOBAL);
+                try (Git git = new Git(globalRepo)) {
+
+                    Status status = git.status().call();
+
+                    if (status.hasUncommittedChanges() || !status.isClean()) {
+                        // Commit everything
+                        // TODO: Consider what to do with the commitId in the future
+                        git.add().addFilepattern(GIT_COMMIT_ALL_ITEMS).call();
+                        git.commit().setAll(true).setMessage(BLUEPRINTS_UPDATED_COMMIT).call();
                     }
 
                     git.close();
@@ -837,15 +1001,18 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     public boolean deleteSite(String site) {
         boolean toReturn;
 
-        Repository repository = helper.getRepository(site, StringUtils.isEmpty(site) ? GitRepositories.GLOBAL : SANDBOX);
+        Repository repository = helper.getRepository(site, StringUtils.isEmpty(site) ? GitRepositories.GLOBAL :
+                SANDBOX);
         if (repository != null) {
             synchronized (repository) {
-                synchronized (helper.getRepository(site, GitRepositories.PUBLISHED)) {
+                Repository publishedRepository = helper.getRepository(site, GitRepositories.PUBLISHED);
+                synchronized (publishedRepository) {
                     toReturn = helper.deleteSiteGitRepo(site);
                 }
             }
         } else {
-            Path sitePath = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH), studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH), site);
+            Path sitePath = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
+                    studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH), site);
             try {
                 FileUtils.deleteDirectory(sitePath.toFile());
                 toReturn = true;
@@ -859,66 +1026,79 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     @Override
-    public void initialPublish(String site, String environment, String author, String comment) throws DeploymentException {
+    public void initialPublish(String site, String environment, String author, String comment)
+            throws DeploymentException {
         Repository repo = helper.getRepository(site, GitRepositories.PUBLISHED);
         String commitId = StringUtils.EMPTY;
         String path = StringUtils.EMPTY;
-        synchronized (helper.getRepository(site, GitRepositories.PUBLISHED)) {
+        synchronized (repo) {
             try (Git git = new Git(repo)) {
 
                 // fetch "origin/master"
                 logger.debug("Fetch from sandbox for site " + site);
-                FetchResult fetchResult = git.fetch().call();
+                git.fetch().call();
 
                 // checkout master and pull from sandbox
                 logger.debug("Checkout published/master branch for site " + site);
                 try {
 
-                    Ref checkoutMasterResult = git.checkout().setName(studioConfiguration.getProperty(REPO_SANDBOX_BRANCH)).call();
-                    PullResult pullResult = git.pull().setRemote(Constants.DEFAULT_REMOTE_NAME).setRemoteBranchName(studioConfiguration.getProperty(REPO_SANDBOX_BRANCH)).setStrategy(MergeStrategy.THEIRS).call();
+                    git.checkout()
+                            .setName(studioConfiguration.getProperty(REPO_SANDBOX_BRANCH))
+                            .call();
+                    git.pull()
+                            .setRemote(Constants.DEFAULT_REMOTE_NAME)
+                            .setRemoteBranchName(studioConfiguration.getProperty(REPO_SANDBOX_BRANCH))
+                            .setStrategy(MergeStrategy.THEIRS)
+                            .call();
                 } catch (RefNotFoundException e) {
-                    logger.error("Failed to checkout published master and to pull content from sandbox for site " + site, e);
-                    throw new DeploymentException("Failed to checkout published master and to pull content from sandbox for site " + site);
+                    logger.error("Failed to checkout published master and to pull content from sandbox for site "
+                            + site, e);
+                    throw new DeploymentException("Failed to checkout published master and to pull content from " +
+                            "sandbox for site " + site);
                 }
 
                 // checkout environment branch
                 logger.debug("Checkout environment branch " + environment + " for site " + site);
                 try {
-                    Ref checkoutResult = git.checkout().setCreateBranch(true).setForce(true).setStartPoint("master")
+                    git.checkout().setCreateBranch(true).setForce(true).setStartPoint("master")
                             .setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK)
                             .setName(environment)
                             .call();
                 } catch (RefNotFoundException e) {
-                    logger.info("Not able to find branch " + environment + " for site " + site + ". Creating new branch");
+                    logger.info("Not able to find branch " + environment + " for site " + site +
+                            ". Creating new branch");
                 }
 
                 // tag
                 PersonIdent authorIdent = helper.getAuthorIdent(author);
                 ZonedDateTime publishDate = ZonedDateTime.now(ZoneOffset.UTC);
-                String tagName = publishDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX")) + "_published_on_" + publishDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX"));
-                Ref tagResult = git.tag().setTagger(authorIdent).setName(tagName).setMessage(comment).call();
-
+                String tagName = publishDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX")) +
+                        "_published_on_" + publishDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX"));
+                git.tag().setTagger(authorIdent).setName(tagName).setMessage(comment).call();
+                git.close();
             } catch (Exception e) {
                 logger.error("Error when publishing site " + site + " to environment " + environment, e);
-                throw new DeploymentException("Error when publishing site " + site + " to environment " + environment + " [commit ID = " + commitId + "]");
+                throw new DeploymentException("Error when publishing site " + site + " to environment " +
+                        environment + " [commit ID = " + commitId + "]");
             }
         }
 
     }
 
     @Override
-    public void publish(String site, List<DeploymentItemTO> deploymentItems, String environment, String author, String comment) throws DeploymentException {
+    public void publish(String site, List<DeploymentItemTO> deploymentItems, String environment, String author,
+                        String comment) throws DeploymentException {
         Repository repo = helper.getRepository(site, GitRepositories.PUBLISHED);
         String commitId = StringUtils.EMPTY;
         String path = StringUtils.EMPTY;
-        synchronized (helper.getRepository(site, GitRepositories.PUBLISHED)) {
+        synchronized (repo) {
             try (Git git = new Git(repo)) {
 
                 String inProgressBranchName = environment + IN_PROGRESS_BRANCH_NAME_SUFIX;
 
                 // fetch "origin/master"
                 logger.debug("Fetch from sandbox for site " + site);
-                FetchResult fetchResult = git.fetch().call();
+                git.fetch().call();
 
                 // checkout master and pull from sandbox
                 logger.debug("Checkout published/master branch for site " + site);
@@ -926,32 +1106,50 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     // First delete it in case it already exists (ignored if does not exist)
                     String currentBranch = repo.getBranch();
                     if (currentBranch.endsWith(IN_PROGRESS_BRANCH_NAME_SUFIX)) {
-                        git.reset().setMode(ResetCommand.ResetType.HARD).call();
+                        git.reset()
+                                .setMode(ResetCommand.ResetType.HARD)
+                                .call();
                     }
 
-                    Ref checkoutMasterResult = git.checkout().setName(studioConfiguration.getProperty(REPO_SANDBOX_BRANCH)).call();
+                    Ref ref = repo.exactRef(Constants.R_HEADS + studioConfiguration.getProperty(REPO_SANDBOX_BRANCH));
+                    boolean createBranch = (ref == null);
+
+                    git.checkout()
+                            .setName(studioConfiguration.getProperty(REPO_SANDBOX_BRANCH))
+                            .setCreateBranch(createBranch)
+                            .call();
 
                     logger.debug("Delete in-progress branch, in case it was not cleaned up for site " + site);
                     git.branchDelete().setBranchNames(inProgressBranchName).setForce(true).call();
 
-                    PullResult pullResult = git.pull().setRemote(Constants.DEFAULT_REMOTE_NAME).setRemoteBranchName(studioConfiguration.getProperty(REPO_SANDBOX_BRANCH)).setStrategy(MergeStrategy.THEIRS).call();
+                    git.pull().
+                            setRemote(Constants.DEFAULT_REMOTE_NAME)
+                            .setRemoteBranchName(studioConfiguration.getProperty(REPO_SANDBOX_BRANCH))
+                            .setStrategy(MergeStrategy.THEIRS)
+                            .call();
                 } catch (RefNotFoundException e) {
-                    logger.error("Failed to checkout published master and to pull content from sandbox for site " + site, e);
-                    throw new DeploymentException("Failed to checkout published master and to pull content from sandbox for site " + site);
+                    logger.error("Failed to checkout published master and to pull content from sandbox for site "
+                            + site, e);
+                    throw new DeploymentException("Failed to checkout published master and to pull content from " +
+                            "sandbox for site " + site);
                 }
 
                 // checkout environment branch
                 logger.debug("Checkout environment branch " + environment + " for site " + site);
                 boolean newBranch = false;
                 try {
-                    Ref checkoutResult = git.checkout()
+                    git.checkout()
                             .setName(environment)
                             .call();
                 } catch (RefNotFoundException e) {
-                    logger.info("Not able to find branch " + environment + " for site " + site + ". Creating new branch");
+                    logger.info("Not able to find branch " + environment + " for site " + site +
+                            ". Creating new branch");
                     // checkout environment branch
                     newBranch = true;
-                    Ref checkoutResult = git.checkout().setCreateBranch(true).setForce(true).setStartPoint("master")
+                    git.checkout()
+                            .setCreateBranch(true)
+                            .setForce(true)
+                            .setStartPoint(studioConfiguration.getProperty(REPO_SANDBOX_BRANCH))
                             .setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK)
                             .setName(environment)
                             .call();
@@ -968,7 +1166,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
                         // Create in progress branch
                         logger.debug("Create in-progress branch for site " + site);
-                        Ref checkoutResult = git.checkout()
+                        git.checkout()
                                 .setCreateBranch(true)
                                 .setForce(true)
                                 .setStartPoint(environment)
@@ -984,14 +1182,15 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     for (DeploymentItemTO deploymentItem : deploymentItems) {
                         commitId = deploymentItem.getCommitId();
                         path = helper.getGitPath(deploymentItem.getPath());
-                        logger.debug("Checking out file " + path + " from commit id " + commitId + " for site " + site);
+                        logger.debug("Checking out file " + path + " from commit id " + commitId +
+                                " for site " + site);
 
                         ObjectId objCommitId = repo.resolve(commitId);
                         RevWalk rw = new RevWalk(repo);
                         RevCommit rc = rw.parseCommit(objCommitId);
 
                         CheckoutCommand checkout = git.checkout();
-                        Ref result = checkout.setStartPoint(commitId).addPath(path).call();
+                        checkout.setStartPoint(commitId).addPath(path).call();
 
                         if (deploymentItem.isMove()) {
                             String oldPath = helper.getGitPath(deploymentItem.getOldPath());
@@ -1014,7 +1213,10 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     git.add().addFilepattern(GIT_COMMIT_ALL_ITEMS).call();
 
                     commitMessage = commitMessage.replace("{username}", author);
-                    commitMessage = commitMessage.replace("{datetime}", ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX")));
+                    commitMessage =
+                            commitMessage.replace("{datetime}",
+                                    ZonedDateTime.now(ZoneOffset.UTC).format(
+                                            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX")));
                     commitMessage = commitMessage.replace("{source}", "UI");
                     commitMessage = commitMessage.replace("{message}", comment);
                     StringBuilder sb = new StringBuilder();
@@ -1028,29 +1230,34 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     // tag
                     ZonedDateTime tagDate2 = Instant.ofEpochSecond(commitTime).atZone(ZoneOffset.UTC);
                     ZonedDateTime publishDate = ZonedDateTime.now(ZoneOffset.UTC);
-                    String tagName2 = tagDate2.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX")) + "_published_on_" + publishDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX"));
+                    String tagName2 = tagDate2.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX")) +
+                            "_published_on_" + publishDate.format(
+                                    DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX"));
                     PersonIdent authorIdent2 = helper.getAuthorIdent(author);
-                    Ref tagResult2 = git.tag().setTagger(authorIdent2).setName(tagName2).setMessage(commitMessage).call();
+                    git.tag().setTagger(authorIdent2).setName(tagName2).setMessage(commitMessage).call();
 
                     // checkout environment
                     logger.debug("Checkout environment " + environment + " branch for site " + site);
-                    Ref checkoutResult = git.checkout()
+                    git.checkout()
                             .setName(environment)
                             .call();
 
                     Ref branchRef = repo.findRef(inProgressBranchName);
 
                     // merge in-progress branch
-                    logger.debug("Merge in-progress branch into environment " + environment + " for site " + site);
+                    logger.debug("Merge in-progress branch into environment " + environment + " for site " +
+                            site);
                     git.merge().setCommit(true).include(branchRef).call();
 
                     // clean up
                     logger.debug("Delete in-progress branch (clean up) for site " + site);
                     git.branchDelete().setBranchNames(inProgressBranchName).setForce(true).call();
+                    git.close();
                 }
             } catch (Exception e) {
                 logger.error("Error when publishing site " + site + " to environment " + environment, e);
-                throw new DeploymentException("Error when publishing site " + site + " to environment " + environment + " [commit ID = " + commitId + "]");
+                throw new DeploymentException("Error when publishing site " + site + " to environment " +
+                        environment + " [commit ID = " + commitId + "]");
             }
         }
 
@@ -1096,19 +1303,25 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                                 CanonicalTreeParser firstCommitTreeParser = new CanonicalTreeParser();
                                 firstCommitTreeParser.reset();//reset(reader, firstCommitTree.getId());
                                 // Diff the two commit Ids
-                                List<DiffEntry> diffEntries = git.diff().setOldTree(firstCommitTreeParser).setNewTree(null).call();
+                                List<DiffEntry> diffEntries = git.diff()
+                                        .setOldTree(firstCommitTreeParser)
+                                        .setNewTree(null)
+                                        .call();
 
 
                                 // Now that we have a diff, let's itemize the file changes, pack them into a TO
                                 // and add them to the list of RepoOperations to return to the caller
                                 // also include date/time of commit by taking number of seconds and multiply by 1000 and
                                 // convert to java date before sending over
-                                operations.addAll(processDiffEntry(diffEntries, firstCommit.getId(), firstCommit.getCommitterIdent().getName(), Instant.ofEpochSecond(firstCommit.getCommitTime()).atZone(ZoneOffset.UTC)));
+                                operations.addAll(processDiffEntry(diffEntries, firstCommit.getId(),
+                                        firstCommit.getCommitterIdent().getName(),
+                                        Instant.ofEpochSecond(firstCommit.getCommitTime()).atZone(ZoneOffset.UTC)));
                             }
                         }
                     }
 
-                    // If the commitIdFrom is the same as commitIdTo, there is nothing to calculate, otherwise, let's do it
+                    // If the commitIdFrom is the same as commitIdTo, there is nothing to calculate, otherwise,
+                    // let's do it
                     if (!objCommitIdFrom.equals(objCommitIdTo)) {
                         // Compare HEAD with commitId we're given
                         // Get list of commits between commitId and HEAD in chronological order
@@ -1148,14 +1361,18 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                                 nextCommitTreeParser.reset(reader, nextTree.getId());
 
                                 // Diff the two commit Ids
-                                List<DiffEntry> diffEntries = git.diff().setOldTree(prevCommitTreeParser).setNewTree(nextCommitTreeParser).call();
+                                List<DiffEntry> diffEntries = git.diff()
+                                        .setOldTree(prevCommitTreeParser)
+                                        .setNewTree(nextCommitTreeParser)
+                                        .call();
 
 
                                 // Now that we have a diff, let's itemize the file changes, pack them into a TO
                                 // and add them to the list of RepoOperations to return to the caller
                                 // also include date/time of commit by taking number of seconds and multiply by 1000 and
                                 // convert to java date before sending over
-                                operations.addAll(processDiffEntry(diffEntries, nextCommitId, author, Instant.ofEpochSecond(commit.getCommitTime()).atZone(ZoneOffset.UTC)));
+                                operations.addAll(processDiffEntry(diffEntries, nextCommitId, author,
+                                        Instant.ofEpochSecond(commit.getCommitTime()).atZone(ZoneOffset.UTC)));
                                 prevCommitId = nextCommitId;
                             }
                         }
@@ -1166,7 +1383,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                             + " to commit ID: " + commitIdTo, e);
                 }
             } catch (IOException e) {
-                logger.error("Error getting operations for site " + site + " from commit ID: " + commitIdFrom + " to commit ID: " + commitIdTo, e);
+                logger.error("Error getting operations for site " + site + " from commit ID: " + commitIdFrom +
+                        " to commit ID: " + commitIdTo, e);
             }
         }
 
@@ -1212,7 +1430,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         return toReturn;
     }
 
-    private List<RepoOperationTO> processDiffEntry(List<DiffEntry> diffEntries, ObjectId commitId, String author, ZonedDateTime commitTime) {
+    private List<RepoOperationTO> processDiffEntry(List<DiffEntry> diffEntries, ObjectId commitId, String author,
+                                                   ZonedDateTime commitTime) {
         List<RepoOperationTO> toReturn = new ArrayList<RepoOperationTO>();
 
         for (DiffEntry diffEntry : diffEntries) {
@@ -1256,7 +1475,9 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     @Override
-    public List<DeploymentSyncHistory> getDeploymentHistory(String site, ZonedDateTime fromDate, ZonedDateTime toDate, DmFilterWrapper dmFilterWrapper, String filterType, int numberOfItems) {
+    public List<DeploymentSyncHistory> getDeploymentHistory(String site, ZonedDateTime fromDate, ZonedDateTime toDate,
+                                                            DmFilterWrapper dmFilterWrapper, String filterType,
+                                                            int numberOfItems) {
         List<DeploymentSyncHistory> toRet = new ArrayList<DeploymentSyncHistory>();
         Repository publishedRepo = helper.getRepository(site, PUBLISHED);
         int counter = 0;
@@ -1266,10 +1487,13 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             for (int i = 0; i < environments.size() && counter < numberOfItems; i++) {
                 Ref env = environments.get(i);
                 String environment = env.getName();
-                if (!environment.equals(studioConfiguration.getProperty(REPO_SANDBOX_BRANCH)) && !environment.equals(Constants.R_HEADS + studioConfiguration.getProperty(REPO_SANDBOX_BRANCH))) {
+                if (!environment.equals(studioConfiguration.getProperty(REPO_SANDBOX_BRANCH)) &&
+                        !environment.equals(Constants.R_HEADS + studioConfiguration.getProperty(REPO_SANDBOX_BRANCH))) {
                     Iterable<RevCommit> branchLog = git.log()
                             .add(env.getObjectId())
-                            .setRevFilter(AndRevFilter.create(CommitTimeRevFilter.after(fromDate.toInstant().toEpochMilli()), CommitTimeRevFilter.before(toDate.toInstant().toEpochMilli())))
+                            .setRevFilter(AndRevFilter.create(
+                                    CommitTimeRevFilter.after(fromDate.toInstant().toEpochMilli()),
+                                    CommitTimeRevFilter.before(toDate.toInstant().toEpochMilli())))
                             .call();
 
                     Iterator<RevCommit> iterator = branchLog.iterator();
@@ -1285,7 +1509,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                                     DeploymentSyncHistory dsh = new DeploymentSyncHistory();
                                     dsh.setSite(site);
                                     dsh.setPath(file);
-                                    dsh.setSyncDate(Instant.ofEpochSecond(revCommit.getCommitTime()).atZone(ZoneOffset.UTC));
+                                    dsh.setSyncDate(
+                                            Instant.ofEpochSecond(revCommit.getCommitTime()).atZone(ZoneOffset.UTC));
                                     dsh.setUser(revCommit.getAuthorIdent().getName());
                                     dsh.setEnvironment(environment.replace(Constants.R_HEADS, ""));
                                     toRet.add(dsh);
@@ -1296,6 +1521,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     }
                 }
             }
+            git.close();
         } catch (IOException | GitAPIException e1) {
             logger.error("Error while getting deployment history for site " + site, e1);
         }
@@ -1317,6 +1543,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 RevCommit commit = iter.next();
                 toRet = Instant.ofEpochMilli(1000l * commit.getCommitTime()).atZone(ZoneOffset.UTC);
             }
+            git.close();
         } catch (IOException | GitAPIException e) {
             logger.error("Error while getting last deployment date for site " + site + ", path " + path, e);
         }
@@ -1342,7 +1569,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
                 try (Git git = new Git(repo)) {
 
-                    // If the commitIdFrom is the same as commitIdTo, there is nothing to calculate, otherwise, let's do it
+                    // If the commitIdFrom is the same as commitIdTo, there is nothing to calculate, otherwise,
+                    // let's do it
                     if (!objCommitIdFrom.equals(objCommitIdTo)) {
                         // Compare HEAD with commitId we're given
                         // Get list of commits between commitId and HEAD in chronological order
@@ -1362,11 +1590,12 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         }
                     }
                 } catch (GitAPIException e) {
-                    logger.error("Error getting commit ids for site " + site + " and path " + path + " from commit ID: " + commitIdFrom
-                            + " to commit ID: " + commitIdTo, e);
+                    logger.error("Error getting commit ids for site " + site + " and path " + path +
+                            " from commit ID: " + commitIdFrom + " to commit ID: " + commitIdTo, e);
                 }
             } catch (IOException e) {
-                logger.error("Error getting operations for site " + site + " and path " + path + " from commit ID: " + commitIdFrom + " to commit ID: " + commitIdTo, e);
+                logger.error("Error getting operations for site " + site + " and path " + path +
+                        " from commit ID: " + commitIdFrom + " to commit ID: " + commitIdTo, e);
             }
         }
 
@@ -1407,13 +1636,42 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         try {
             gitLogMapper.insertGitLog(params);
         } catch (DuplicateKeyException e) {
-            logger.debug("Failed to insert commit id: " + commitId + " for site: " + siteId + " into gitlog table, because it is duplicate entry. Marking it as not processed so it can be processed by sync database task.");
+            logger.debug("Failed to insert commit id: " + commitId + " for site: " + siteId + " into" +
+                    " gitlog table, because it is duplicate entry. Marking it as not processed so it can be" +
+                    " processed by sync database task.");
             params = new HashMap<String, Object>();
             params.put("siteId", siteId);
             params.put("commitId", commitId);
             params.put("processed", 0);
             gitLogMapper.markGitLogProcessed(params);
         }
+    }
+
+    @Override
+    public void insertFullGitLog(String siteId, int processed) {
+        List<GitLog> gitLogs = new ArrayList<>();
+
+        synchronized (helper.getRepository(siteId, SANDBOX)) {
+            Repository repo = helper.getRepository(siteId, SANDBOX);
+            try (Git git = new Git(repo)) {
+                Iterable<RevCommit> logs = git.log().call();
+                for (RevCommit rev : logs) {
+                    GitLog gitLog = new GitLog();
+                    gitLog.setCommitId(rev.getId().getName());
+                    gitLog.setProcessed(processed);
+                    gitLog.setSiteId(siteId);
+                    gitLogs.add(gitLog);
+                }
+            } catch (GitAPIException e) {
+                logger.error("Error getting full git log for site " + siteId, e);
+            }
+        }
+
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("siteId", siteId);
+        params.put("gitLogs", gitLogs);
+        params.put("processed", 1);
+        gitLogMapper.insertGitLogList(params);
     }
 
     @Override
@@ -1433,14 +1691,22 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     @Override
-    public boolean createSiteCloneRemote(String siteId, String remoteName, String remoteUrl, String remoteUsername, String remotePassword) throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException {
+    public boolean createSiteCloneRemote(String siteId, String remoteName, String remoteUrl,
+                                         String authenticationType, String remoteUsername, String remotePassword,
+                                         String remoteToken, String remotePrivateKey) throws
+            InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
+            RemoteRepositoryNotFoundException, InvalidRemoteUrlException, ServiceException {
         boolean toReturn;
 
         // clone remote git repository for site content
-        logger.debug("Creating site " + siteId + " as a clone of remote repository " + remoteName + " (" + remoteUrl + ").");
-        toReturn = helper.createSiteCloneRemoteGitRepo(siteId, remoteName, remoteUrl, remoteUsername, remotePassword);
+        logger.debug("Creating site " + siteId + " as a clone of remote repository " + remoteName +
+                " (" + remoteUrl + ").");
+        toReturn = helper.createSiteCloneRemoteGitRepo(siteId, remoteName, remoteUrl, authenticationType,
+                remoteUsername, remotePassword, remoteToken, remotePrivateKey);
 
         if (toReturn) {
+            addRemote(siteId, remoteName, remoteUrl, authenticationType, remoteUsername, remotePassword, remoteToken,
+                    remotePrivateKey);
             // update site name variable inside config files
             logger.debug("Update site name configuration variables for site " + siteId);
             toReturn = helper.updateSitenameConfigVar(siteId);
@@ -1452,39 +1718,59 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 toReturn = helper.performInitialCommit(siteId, INITIAL_COMMIT);
             }
         } else {
-            logger.error("Error while creating site " + siteId + " by cloning remote repository " + remoteName + " (" + remoteUrl + ").");
+            logger.error("Error while creating site " + siteId + " by cloning remote repository " + remoteName +
+                    " (" + remoteUrl + ").");
         }
 
         return toReturn;
     }
 
     @Override
-    public boolean createSitePushToRemote(String siteId, String remoteName, String remoteUrl, String remoteUsername, String remotePassword) throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException, RemoteRepositoryNotBareException {
+    public boolean createSitePushToRemote(String siteId, String remoteName, String remoteUrl, String authenticationType,
+                                          String remoteUsername, String remotePassword, String remoteToken,
+                                          String remotePrivateKey) throws InvalidRemoteRepositoryException,
+            InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException,
+            RemoteRepositoryNotBareException, ServiceException {
         boolean toRet = true;
         try (Repository repo = helper.getRepository(siteId, SANDBOX)) {
             try (Git git = new Git(repo)) {
-                logger.debug("Adding remote repository " + remoteName + "(" + remoteUrl +")");
-                RemoteAddCommand remoteAddCommand = git.remoteAdd();
-                remoteAddCommand.setName(remoteName);
-                remoteAddCommand.setUri(new URIish(remoteUrl));
-                remoteAddCommand.call();
-
-                logger.debug("Add user credentials if provided");
-                UsernamePasswordCredentialsProvider credentialsProvider = null;
-                // Check if this remote git repository has username/password provided
-                if (!StringUtils.isEmpty(remoteUsername)) {
-                    if (StringUtils.isEmpty(remotePassword)) {
-                        // Username was provided but password is empty
-                        logger.debug("Password field is empty while cloning from remote repository: " + remoteUrl);
-                    }
-                    credentialsProvider = new UsernamePasswordCredentialsProvider(remoteUsername, remotePassword);
+                PushCommand pushCommand = git.push();
+                switch (authenticationType) {
+                    case RemoteRepository.AuthenticationType.NONE:
+                        logger.debug("No authentication");
+                        break;
+                    case RemoteRepository.AuthenticationType.BASIC:
+                        logger.debug("Basic authentication");
+                        pushCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(remoteUsername,
+                                remotePassword));
+                        break;
+                    case RemoteRepository.AuthenticationType.TOKEN:
+                        logger.debug("Token based authentication");
+                        pushCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(remoteToken,
+                                StringUtils.EMPTY));
+                        break;
+                    case RemoteRepository.AuthenticationType.PRIVATE_KEY:
+                        logger.debug("Private key authentication");
+                        final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(),".tmp");
+                        tempKey.toFile().deleteOnExit();
+                        pushCommand.setTransportConfigCallback(new TransportConfigCallback() {
+                            @Override
+                            public void configure(Transport transport) {
+                                SshTransport sshTransport = (SshTransport)transport;
+                                sshTransport.setSshSessionFactory(getSshSessionFactory(remotePrivateKey, tempKey));
+                            }
+                        });
+                        pushCommand.call();
+                        Files.delete(tempKey);
+                        break;
+                    default:
+                        throw new ServiceException("Unsupported authentication type " + authenticationType);
                 }
 
                 logger.debug("Push site " + siteId + " to remote repository " + remoteName + "(" + remoteUrl +")");
-                Iterable<PushResult> result = git.push()
+                Iterable<PushResult> result = pushCommand
                         .setPushAll()
                         .setRemote(remoteName)
-                        .setCredentialsProvider(credentialsProvider)
                         .call();
 
                 logger.debug("Check push result to verify it was success");
@@ -1495,33 +1781,347 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     if (remoteRefUpdateIterator.hasNext()) {
                         RemoteRefUpdate update = remoteRefUpdateIterator.next();
                         if (update.getStatus().equals(REJECTED_NONFASTFORWARD)) {
-                            logger.error("Remote repository: " + remoteName + " (" + remoteUrl + ") is not bare repository");
-                            throw new RemoteRepositoryNotBareException("Remote repository: " + remoteName + " (" + remoteUrl + ") is not bare repository");
+                            logger.error("Remote repository: " + remoteName + " (" + remoteUrl +
+                                    ") is not bare repository");
+                            throw new RemoteRepositoryNotBareException("Remote repository: " + remoteName +
+                                    " (" + remoteUrl + ") is not bare repository");
                         }
                     }
                 }
             } catch (InvalidRemoteException e) {
                 logger.error("Invalid remote repository: " + remoteName + " (" + remoteUrl + ")", e);
-                throw new InvalidRemoteRepositoryException("Invalid remote repository: " + remoteName + " (" + remoteUrl + ")");
+                throw new InvalidRemoteRepositoryException("Invalid remote repository: " + remoteName + " (" +
+                        remoteUrl + ")");
             } catch (TransportException e) {
                 if (StringUtils.endsWithIgnoreCase(e.getMessage(), "not authorized")) {
-                    logger.error("Bad credentials or read only repository: " + remoteName + " (" + remoteUrl + ")", e);
-                    throw new InvalidRemoteRepositoryCredentialsException("Bad credentials or read only repository: " + remoteName + " (" + remoteUrl + ") for username " + remoteUsername, e);
+                    logger.error("Bad credentials or read only repository: " + remoteName +
+                            " (" + remoteUrl + ")", e);
+                    throw new InvalidRemoteRepositoryCredentialsException("Bad credentials or read only repository: " +
+                            remoteName + " (" + remoteUrl + ") for username " + remoteUsername, e);
                 } else {
                     logger.error("Remote repository not found: " + remoteName + " (" + remoteUrl + ")", e);
-                    throw new RemoteRepositoryNotFoundException("Remote repository not found: " + remoteName + " (" + remoteUrl + ")");
+                    throw new RemoteRepositoryNotFoundException("Remote repository not found: " + remoteName + " (" +
+                            remoteUrl + ")");
                 }
+            } catch (ServiceException | IOException e) {
+                logger.error("Failed to push newly created site " + siteId + " to remote repository " +
+                        remoteUrl, e);
+                throw new ServiceException(e);
             }
-        } catch (URISyntaxException | GitAPIException e) {
-                logger.error("Failed to push newly created site " + siteId + " to remote repository " + remoteUrl, e);
+        } catch (GitAPIException e) {
+                logger.error("Failed to push newly created site " + siteId + " to remote repository " +
+                        remoteUrl, e);
                 toRet = false;
         }
         return toRet;
     }
 
-    public boolean validateRemoteRepositoryConnection(String remoteName, String remoteUrl, String remoteUsername, String remotePassword) {
-        boolean toRet = true;
+    @Override
+    public boolean addRemote(String siteId, String remoteName, String remoteUrl, String authenticationType,
+                             String remoteUsername, String remotePassword, String remoteToken, String remotePrivateKey)
+            throws InvalidRemoteUrlException, ServiceException {
+        try {
+            logger.debug("Add remote " + remoteName + " to the sandbox repo for the site " + siteId);
+            Repository repo = helper.getRepository(siteId, SANDBOX);
+            try (Git git = new Git(repo)) {
+                RemoteAddCommand remoteAddCommand = git.remoteAdd();
+                remoteAddCommand.setName(remoteName);
+                remoteAddCommand.setUri(new URIish(remoteUrl));
+                remoteAddCommand.call();
+            } catch (URISyntaxException e) {
+                logger.error("Remote URL is invalid " + remoteUrl, e);
+                throw new InvalidRemoteUrlException();
+            } catch (GitAPIException e) {
+                logger.error("Error while adding remote " + remoteName + " (url: " + remoteUrl + ") for site " +
+                        siteId, e);
+                throw new ServiceException("Error while adding remote " + remoteName + " (url: " + remoteUrl +
+                        ") for site " + siteId, e);
+            }
+
+            logger.debug("Inserting remote " + remoteName + " for site " + siteId + " into database.");
+            Map<String, String> params = new HashMap<String, String>();
+            params.put("siteId", siteId);
+            params.put("remoteName", remoteName);
+            params.put("remoteUrl", remoteUrl);
+            params.put("authenticationType", authenticationType);
+            params.put("remoteUsername", remoteUsername);
+
+            if (StringUtils.isNotEmpty(remotePassword)) {
+                logger.debug("Encrypt password before inserting to database");
+                String hashedPassword = encryptor.encrypt(remotePassword);
+                params.put("remotePassword", hashedPassword);
+            } else {
+                params.put("remotePassword", remotePassword);
+            }
+            if (StringUtils.isNotEmpty(remoteToken)) {
+                logger.debug("Encrypt token before inserting to database");
+                String hashedToken = encryptor.encrypt(remoteToken);
+                params.put("remoteToken", hashedToken);
+            } else {
+                params.put("remoteToken", remoteToken);
+            }
+            if (StringUtils.isNotEmpty(remotePrivateKey)) {
+                logger.debug("Encrypt private key before inserting to database");
+                String hashedPrivateKey = encryptor.encrypt(remotePrivateKey);
+                params.put("remotePrivateKey", hashedPrivateKey);
+            } else {
+                params.put("remotePrivateKey", remotePrivateKey);
+            }
+
+            logger.debug("Insert site remote record into database");
+            remoteRepositoryMapper.insertRemoteRepository(params);
+        } catch (CryptoException e) {
+            throw new ServiceException(e);
+        }
         return true;
+    }
+
+    @Override
+    public boolean removeRemote(String siteId, String remoteName) {
+        logger.debug("Remove remote " + remoteName + " from the sandbox repo for the site " + siteId);
+        Repository repo = helper.getRepository(siteId, SANDBOX);
+        try (Git git = new Git(repo)) {
+            RemoteRemoveCommand remoteRemoveCommand = git.remoteRemove();
+            remoteRemoveCommand.setName(remoteName);
+            remoteRemoveCommand.call();
+
+        } catch (GitAPIException e) {
+            logger.error("Failed to remove remote " + remoteName + " for site " + siteId, e);
+            return false;
+        }
+
+        logger.debug("Remove remote record from database for remote " + remoteName + " and site " + siteId);
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("siteId", siteId);
+        params.put("remoteName", remoteName);
+        remoteRepositoryMapper.deleteRemoteRepository(params);
+
+        return true;
+    }
+
+    @Override
+    public List<RemoteRepositoryInfoTO> listRemote(String siteId) {
+        List<RemoteRepositoryInfoTO> res = new ArrayList<RemoteRepositoryInfoTO>();
+        try (Repository repo = helper.getRepository(siteId, SANDBOX)) {
+
+            try (Git git = new Git(repo)) {
+                List<RemoteConfig> result = git.remoteList().call();
+                for (RemoteConfig conf : result) {
+                    RemoteRepositoryInfoTO rri = new RemoteRepositoryInfoTO();
+                    rri.setName(conf.getName());
+                    StringBuilder sbUrl = new StringBuilder();
+                    if (CollectionUtils.isNotEmpty(conf.getURIs())) {
+                        for (int i = 0; i < conf.getURIs().size(); i++) {
+                            sbUrl.append(conf.getURIs().get(i).toString());
+                            if (i < conf.getURIs().size() - 1) {
+                                sbUrl.append(":");
+                            }
+                        }
+                    }
+                    rri.setUrl(sbUrl.toString());
+
+                    StringBuilder sbFetch = new StringBuilder();
+                    if (CollectionUtils.isNotEmpty(conf.getFetchRefSpecs())) {
+                        for (int i = 0; i < conf.getFetchRefSpecs().size(); i++) {
+                            sbFetch.append(conf.getFetchRefSpecs().get(i).toString());
+                            if (i < conf.getFetchRefSpecs().size() - 1) {
+                                sbFetch.append(":");
+                            }
+                        }
+                    }
+                    rri.setFetch(sbFetch.toString());
+
+                    StringBuilder sbPushUrl = new StringBuilder();
+                    if (CollectionUtils.isNotEmpty(conf.getPushURIs())) {
+                        for (int i = 0; i < conf.getPushURIs().size(); i++) {
+                            sbPushUrl.append(conf.getPushURIs().get(i).toString());
+                            if (i < conf.getPushURIs().size() - 1) {
+                                sbPushUrl.append(":");
+                            }
+                        }
+                    }
+                    rri.setPush_url(sbPushUrl.toString());
+                    res.add(rri);
+                }
+            } catch (GitAPIException e) {
+                logger.error("Error getting remote repositories for site " + siteId, e);
+            }
+        }
+        return res;
+    }
+
+    @Override
+    public boolean pushToRemote(String siteId, String remoteName, String remoteBranch) throws ServiceException,
+            InvalidRemoteUrlException {
+        logger.debug("Get remote data from database for remote " + remoteName + " and site " + siteId);
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("siteId", siteId);
+        params.put("remoteName", remoteName);
+        RemoteRepository remoteRepository = remoteRepositoryMapper.getRemoteRepository(params);
+
+        logger.debug("Prepare push command.");
+        Repository repo = helper.getRepository(siteId, SANDBOX);
+        try (Git git = new Git(repo)) {
+            PushCommand pushCommand = git.push();
+            logger.debug("Set remote " + remoteName);
+            pushCommand.setRemote(remoteRepository.getRemoteName());
+            logger.debug("Set branch to be " + remoteBranch);
+            pushCommand.setRefSpecs(new RefSpec(remoteBranch + ":" + remoteBranch));
+            switch (remoteRepository.getAuthenticationType()) {
+                case RemoteRepository.AuthenticationType.NONE:
+                    logger.debug("No authentication");
+                    pushCommand.call();
+                    break;
+                case RemoteRepository.AuthenticationType.BASIC:
+                    logger.debug("Basic authentication");
+                    String hashedPassword = remoteRepository.getRemotePassword();
+                    String password = encryptor.decrypt(hashedPassword);
+                    pushCommand.setCredentialsProvider(
+                            new UsernamePasswordCredentialsProvider(remoteRepository.getRemoteUsername(), password));
+
+                    pushCommand.call();
+                    break;
+                case RemoteRepository.AuthenticationType.TOKEN:
+                    logger.debug("Token based authentication");
+                    String hashedToken = remoteRepository.getRemoteToken();
+                    String remoteToken = encryptor.decrypt(hashedToken);
+                    pushCommand.setCredentialsProvider(
+                            new UsernamePasswordCredentialsProvider(remoteToken, StringUtils.EMPTY));
+                    pushCommand.call();
+                    break;
+                case RemoteRepository.AuthenticationType.PRIVATE_KEY:
+                    logger.debug("Private key authentication");
+                    final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(),".tmp");
+                    String hashedPrivateKey = remoteRepository.getRemotePrivateKey();
+                    String privateKey = encryptor.decrypt(hashedPrivateKey);
+                    tempKey.toFile().deleteOnExit();
+                    pushCommand.setTransportConfigCallback(new TransportConfigCallback() {
+                        @Override
+                        public void configure(Transport transport) {
+                            SshTransport sshTransport = (SshTransport)transport;
+                            sshTransport.setSshSessionFactory(getSshSessionFactory(privateKey, tempKey));
+                        }
+                    });
+                    pushCommand.call();
+                    Files.delete(tempKey);
+                    break;
+                default:
+                    throw new ServiceException("Unsupported authentication type " +
+                            remoteRepository.getAuthenticationType());
+            }
+            return true;
+        } catch (InvalidRemoteException e) {
+            logger.error("Remote is invalid " + remoteName, e);
+            throw new InvalidRemoteUrlException();
+        } catch (GitAPIException e) {
+            logger.error("Error while pushing to remote " + remoteName + ") for site " + siteId, e);
+            throw new ServiceException("Error while pushing to remote " + remoteName + ") for site " + siteId, e);
+        } catch (CryptoException | IOException e) {
+            throw new ServiceException(e);
+        }
+    }
+
+    @Override
+    public boolean pullFromRemote(String siteId, String remoteName, String remoteBranch) throws ServiceException,
+            InvalidRemoteUrlException {
+        logger.debug("Get remote data from database for remote " + remoteName + " and site " + siteId);
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("siteId", siteId);
+        params.put("remoteName", remoteName);
+        RemoteRepository remoteRepository = remoteRepositoryMapper.getRemoteRepository(params);
+
+        logger.debug("Prepare pull command");
+        Repository repo = helper.getRepository(siteId, SANDBOX);
+        try (Git git = new Git(repo)) {
+            PullCommand pullCommand = git.pull();
+            logger.debug("Set remote " + remoteName);
+            pullCommand.setRemote(remoteRepository.getRemoteName());
+            logger.debug("Set branch to be " + remoteBranch);
+            pullCommand.setRemoteBranchName(remoteBranch);
+            switch (remoteRepository.getAuthenticationType()) {
+                case RemoteRepository.AuthenticationType.NONE:
+                    logger.debug("No authentication");
+                    pullCommand.call();
+                    break;
+                case RemoteRepository.AuthenticationType.BASIC:
+                    logger.debug("Basic authentication");
+                    String hashedPassword = remoteRepository.getRemotePassword();
+                    String password = encryptor.decrypt(hashedPassword);
+                    pullCommand.setCredentialsProvider(
+                            new UsernamePasswordCredentialsProvider(remoteRepository.getRemoteUsername(), password));
+
+                    pullCommand.call();
+                    break;
+                case RemoteRepository.AuthenticationType.TOKEN:
+                    logger.debug("Token based authentication");
+                    String hashedToken = remoteRepository.getRemoteToken();
+                    String token = encryptor.decrypt(hashedToken);
+                    pullCommand.setCredentialsProvider(
+                            new UsernamePasswordCredentialsProvider(token, StringUtils.EMPTY));
+                    pullCommand.call();
+                    break;
+                case RemoteRepository.AuthenticationType.PRIVATE_KEY:
+                    logger.debug("Private key authentication");
+                    final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
+                    String hashedPrivateKey = remoteRepository.getRemotePrivateKey();
+                    String privateKey = encryptor.decrypt(hashedPrivateKey);
+                    tempKey.toFile().deleteOnExit();
+                    pullCommand.setTransportConfigCallback(new TransportConfigCallback() {
+                        @Override
+                        public void configure(Transport transport) {
+                            SshTransport sshTransport = (SshTransport)transport;
+                            sshTransport.setSshSessionFactory(getSshSessionFactory(privateKey, tempKey));
+                        }
+                    });
+                    pullCommand.call();
+                    Files.delete(tempKey);
+                    break;
+                default:
+                    throw new ServiceException("Unsupported authentication type " +
+                            remoteRepository.getAuthenticationType());
+            }
+            return true;
+        } catch (InvalidRemoteException e) {
+            logger.error("Remote is invalid " + remoteName, e);
+            throw new InvalidRemoteUrlException();
+        } catch (GitAPIException e) {
+            logger.error("Error while pulling from remote " + remoteName + ") for site " + siteId, e);
+            throw new ServiceException("Error while pulling from remote " + remoteName + ") for site " + siteId, e);
+        } catch (CryptoException | IOException e) {
+            throw new ServiceException(e);
+        }
+    }
+
+    private SshSessionFactory getSshSessionFactory(String privateKey, final Path tempKey)  {
+        try {
+            Files.write(tempKey, privateKey.getBytes());
+            SshSessionFactory sshSessionFactory = new JschConfigSessionFactory() {
+                @Override
+                protected void configure(OpenSshConfig.Host hc, Session session) {
+                    Properties config = new Properties();
+                    config.put("StrictHostKeyChecking", "no");
+                    session.setConfig(config);
+                }
+
+                @Override
+                protected JSch createDefaultJSch(FS fs) throws JSchException {
+                    JSch defaultJSch = super.createDefaultJSch(fs);
+                    defaultJSch.addIdentity(tempKey.toAbsolutePath().toString());
+                    return defaultJSch;
+                }
+            };
+            return sshSessionFactory;
+        } catch (IOException e) {
+            logger.error("Failed to create private key for SSH connection.", e);
+        }
+        return null;
+    }
+
+    @Override
+    public boolean isFolder(String siteId, String path) {
+        Path p = Paths.get(helper.buildRepoPath(SANDBOX, siteId).toAbsolutePath().toString(), path);
+        File file = p.toFile();
+        return file.isDirectory();
     }
 
     public void setServletContext(ServletContext ctx) {
@@ -1539,11 +2139,4 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     public void setStudioConfiguration(final StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
     }
-
-    ServletContext ctx;
-    SecurityProvider securityProvider;
-    StudioConfiguration studioConfiguration;
-
-    @Autowired
-    GitLogMapper gitLogMapper;
 }

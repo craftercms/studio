@@ -13,15 +13,16 @@ import com.amazonaws.auth.BasicAWSCredentials;
 
 /**
  * Class with common methods for XML {@link AwsProfileReader} implementations.
+ *
  * @param <T> The type of {@link AwsProfile} that will be parsed.
  *
  * @author joseross
  */
 public abstract class AbstractXmlProfileReader<T extends AwsProfile> implements AwsProfileReader<T> {
 
-    public static List<HierarchicalConfiguration> getRequiredConfigurationsAt(HierarchicalConfiguration config,
-                                                                              String key) throws AwsConfigurationException {
-        @SuppressWarnings("unchecked")
+    @SuppressWarnings("unchecked")
+    protected List<HierarchicalConfiguration> getRequiredConfigurationsAt(HierarchicalConfiguration config,
+                                                                          String key) throws AwsConfigurationException {
         List<HierarchicalConfiguration> configs = config.configurationsAt(key);
         if (CollectionUtils.isEmpty(configs)) {
             throw new AwsConfigurationException("Missing required property '" + key + "'");

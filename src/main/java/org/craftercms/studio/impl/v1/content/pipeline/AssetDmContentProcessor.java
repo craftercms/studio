@@ -25,6 +25,8 @@ import org.craftercms.studio.api.v1.exception.ContentProcessException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.service.activity.ActivityService;
+import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.api.v1.to.ContentAssetInfoTO;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.ResultTO;
@@ -43,7 +45,6 @@ import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONTENT_PROC
 
 public class AssetDmContentProcessor extends FormDmContentProcessor {
 
-    public static final int READ_BUFFER_LENGTH = 32 * 1024;
     public static final String FILE_SIZE_MB = "MB";
     public static final String FILE_SIZE_KB = "KB";
 
@@ -82,14 +83,16 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
         int height = (heightStr != null) ? Integer.parseInt(heightStr) : -1;
         String unlockValue = content.getProperty(DmConstants.KEY_UNLOCK);
         // default is true for unlocking on save
-        boolean unlock = (!StringUtils.isEmpty(unlockValue) && unlockValue.equalsIgnoreCase("false")) ? false : true;
+        boolean unlock = (!StringUtils.isEmpty(unlockValue) &&
+                unlockValue.equalsIgnoreCase("false")) ? false : true;
         boolean isPreview = ContentFormatUtils.getBooleanValue(content.getProperty(DmConstants.KEY_IS_PREVIEW));
         boolean isSystemAsset = ContentFormatUtils.getBooleanValue(content.getProperty(DmConstants.KEY_SYSTEM_ASSET));
         boolean createFolders = ContentFormatUtils.getBooleanValue(content.getProperty(DmConstants.KEY_CREATE_FOLDERS));
         try {
             ContentAssetInfoTO oldAssetInfo = (ContentAssetInfoTO) result.getItem();
-            ContentAssetInfoTO assetInfo = writeContentAsset(site, user, path, fileName,
-                    content.getContentStream(), width, height, createFolders, isPreview, unlock, isSystemAsset, result);
+            ContentAssetInfoTO assetInfo = writeContentAsset(content, site, user, path, fileName,
+                    content.getContentStream(), width, height, createFolders, isPreview, unlock, isSystemAsset,
+                    result);
             if (oldAssetInfo != null) {
                 oldAssetInfo.setFileExtension(assetInfo.getFileExtension());
                 oldAssetInfo.setFileName(assetInfo.getFileName());
@@ -124,10 +127,13 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
      * @return asset information
      * @throws ServiceException
      */
-    protected ContentAssetInfoTO writeContentAsset(String site, String user, String path, String assetName, InputStream in,
-                                                   int width, int height, boolean createFolders, boolean isPreview, boolean unlock, boolean isSystemAsset, ResultTO result)
+    protected ContentAssetInfoTO writeContentAsset(PipelineContent content, String site, String user, String path,
+                                                   String assetName, InputStream in, int width, int height,
+                                                   boolean createFolders, boolean isPreview, boolean unlock,
+                                                   boolean isSystemAsset, ResultTO result)
             throws ServiceException {
-        logger.debug("Writing content asset: [site: " + site + ", path: " + path + ", assetName: " + assetName + ", createFolders: " + createFolders);
+        logger.debug("Writing content asset: [site: " + site + ", path: " + path + ", assetName: "
+                + assetName + ", createFolders: " + createFolders);
 
         String ext = null;
         int index = assetName.lastIndexOf(".");
@@ -151,9 +157,12 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
                 if (exists) {
                     contentItem = contentService.getContentItem(site, path + FILE_SEPARATOR + assetName, 0);
                     updateFile(site, contentItem, contentPath, in, user, isPreview, unlock, result);
+                    content.addProperty(DmConstants.KEY_ACTIVITY_TYPE, ActivityService.ActivityType.UPDATED.toString());
                 } else {
                     // TODO: define content type
-                    contentItem = createNewFile(site, parentContentItem, assetName, null, in, user, unlock, result);
+                    contentItem = createNewFile(site, parentContentItem, assetName, null, in, user,
+                            unlock, result);
+                    content.addProperty(DmConstants.KEY_ACTIVITY_TYPE, ActivityService.ActivityType.CREATED.toString());
                     objectStateService.insertNewEntry(site, contentItem);
                 }
                 ContentAssetInfoTO assetInfo = new ContentAssetInfoTO();
@@ -195,7 +204,8 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
      * 			unlock the content upon update?
      * @throws ServiceException
      */
-    protected void updateFile(String site, ContentItemTO contentItem, String relativePath, InputStream input, String user, boolean isPreview, boolean unlock, ResultTO result)
+    protected void updateFile(String site, ContentItemTO contentItem, String relativePath, InputStream input,
+                              String user, boolean isPreview, boolean unlock, ResultTO result)
             throws ServiceException {
         boolean success = false;
         try {
@@ -238,12 +248,20 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
         }
     }
 
-    protected org.craftercms.studio.api.v1.service.objectstate.ObjectStateService objectStateService;
+    protected ObjectStateService objectStateService;
     protected StudioConfiguration studioConfiguration;
 
-    public org.craftercms.studio.api.v1.service.objectstate.ObjectStateService getObjectStateService() { return objectStateService; }
-    public void setObjectStateService(org.craftercms.studio.api.v1.service.objectstate.ObjectStateService objectStateService) { this.objectStateService = objectStateService; }
+    public ObjectStateService getObjectStateService() {
+        return objectStateService;
+    }
+    public void setObjectStateService(ObjectStateService objectStateService) {
+        this.objectStateService = objectStateService;
+    }
 
-    public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
-    public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
+    public StudioConfiguration getStudioConfiguration() {
+        return studioConfiguration;
+    }
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+        this.studioConfiguration = studioConfiguration;
+    }
 }
