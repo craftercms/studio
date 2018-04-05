@@ -1939,6 +1939,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                                 sbPushUrl.append(":");
                             }
                         }
+                    } else {
+                        sbPushUrl.append(rri.getUrl());
                     }
                     rri.setPush_url(sbPushUrl.toString());
                     res.add(rri);
