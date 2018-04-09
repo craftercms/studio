@@ -1,5 +1,6 @@
 import org.apache.commons.fileupload.servlet.ServletFileUpload
 import org.apache.commons.fileupload.util.Streams
+import org.apache.commons.io.FilenameUtils
 
 def elasticTranscoderService = applicationContext["studioElasticTranscoderService"]
 
@@ -33,6 +34,9 @@ if (ServletFileUpload.isMultipartContent(request)) {
             }
         } else {
             def filename = item.getName()
+            if (filename != null) {
+                filename = FilenameUtils.getName(filename)
+            }
             try {
                 def job = elasticTranscoderService.transcodeFile(site, profileId, filename, stream)
                 def writer = response.writer

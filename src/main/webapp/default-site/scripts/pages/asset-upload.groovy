@@ -1,5 +1,6 @@
 import org.apache.commons.fileupload.servlet.ServletFileUpload
 import org.apache.commons.fileupload.util.Streams
+import org.apache.commons.io.FilenameUtils
 import scripts.api.ContentServices
 
 model.cookieDomain = request.getServerName()
@@ -53,6 +54,9 @@ if(ServletFileUpload.isMultipartContent(request)) {
             }
         } else {
             fileName = item.getName()
+            if (fileName != null) {
+                fileName = FilenameUtils.getName(fileName)
+            }
             result = ContentServices.writeContentAsset(context, site, path, fileName, stream,
                     isImage, allowedWidth, allowedHeight, allowLessSize, draft, unlock, systemAsset)
         }
