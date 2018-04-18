@@ -44,7 +44,9 @@ public interface ActivityService {
         LOGIN,
         LOGOUT,
         CREATE_SITE,
-        DELETE_SITE
+        DELETE_SITE,
+        PUSH_TO_REMOTE,
+        PULL_FROM_REMOTE
 	}
 
 	enum ActivitySource {
