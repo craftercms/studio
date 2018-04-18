@@ -2015,11 +2015,9 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         } catch (InvalidRemoteException e) {
             logger.error("Remote is invalid " + remoteName, e);
             throw new InvalidRemoteUrlException();
-        } catch (GitAPIException e) {
-            logger.error("Error while pushing to remote " + remoteName + ") for site " + siteId, e);
-            throw new ServiceException("Error while pushing to remote " + remoteName + ") for site " + siteId, e);
-        } catch (CryptoException | IOException e) {
-            throw new ServiceException(e);
+        } catch (Exception e) {
+            logger.error("Error while pushing to remote " + remoteName + " for site " + siteId, e);
+            throw new ServiceException("Error while pushing to remote " + remoteName + " for site " + siteId, e);
         }
     }
 
