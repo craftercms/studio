@@ -40,6 +40,7 @@ import org.craftercms.commons.validation.annotations.param.ValidateSecurePathPar
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.DmXmlConstants;
+import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.dal.ItemMetadata;
 import org.craftercms.studio.api.v1.dal.ItemState;
 import org.craftercms.studio.api.v1.ebus.PreviewEventContext;
@@ -2400,7 +2401,16 @@ public class ContentServiceImpl implements ContentService {
         if (!siteService.exists(siteId)) {
             throw new SiteNotFoundException();
         }
-        return _contentRepository.pushToRemote(siteId, remoteName, remoteBranch);
+        boolean toRet = _contentRepository.pushToRemote(siteId, remoteName, remoteBranch);
+
+        ActivityService.ActivityType activityType = ActivityService.ActivityType.PUSH_TO_REMOTE;
+        String user = securityProvider.getCurrentUser();
+        Map<String, String> extraInfo = new HashMap<String, String>();
+        extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_SITE);
+        activityService.postActivity(siteId, user, remoteName + "/" + remoteBranch , activityType,
+                ActivityService.ActivitySource.UI, extraInfo);
+
+        return toRet;
     }
 
     @Override
@@ -2409,7 +2419,16 @@ public class ContentServiceImpl implements ContentService {
         if (!siteService.exists(siteId)) {
             throw new SiteNotFoundException(siteId);
         }
-        return _contentRepository.pullFromRemote(siteId, remoteName, remoteBranch);
+        boolean toRet = _contentRepository.pullFromRemote(siteId, remoteName, remoteBranch);
+
+        ActivityService.ActivityType activityType = ActivityService.ActivityType.PULL_FROM_REMOTE;
+        String user = securityProvider.getCurrentUser();
+        Map<String, String> extraInfo = new HashMap<String, String>();
+        extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_SITE);
+        activityService.postActivity(siteId, user, remoteName + "/" + remoteBranch , activityType,
+                ActivityService.ActivitySource.UI, extraInfo);
+        
+        return toRet;
     }
 
     public ContentRepository getContentRepository() {
