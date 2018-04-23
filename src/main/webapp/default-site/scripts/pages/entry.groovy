@@ -9,6 +9,8 @@ import static org.craftercms.studio.api.v1.util.StudioConfiguration.AUTHENTICATI
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.AUTHENTICATION_HEADERS_LAST_NAME
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.AUTHENTICATION_HEADERS_USERNAME
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SECURITY_AUTHENTICATION_TYPE_HEADERS;
+
 def logger = LoggerFactory.getLogger(this.class)
 
 def context = SecurityServices.createContext(applicationContext, request)
@@ -18,6 +20,7 @@ def currentUser = SecurityServices.getCurrentUser(context)
 def email = ""
 def firstname = ""
 def lastname = ""
+def authenticationType = ""
 
 if (StringUtils.isEmpty(currentUser)) {
     def studioConfigurationSB = context.applicationContext.get("studioConfiguration")
@@ -28,6 +31,7 @@ if (StringUtils.isEmpty(currentUser)) {
         email = request.getHeader(studioConfigurationSB.getProperty(AUTHENTICATION_HEADERS_EMAIL))
         firstname = request.getHeader(studioConfigurationSB.getProperty(AUTHENTICATION_HEADERS_FIRST_NAME))
         lastname = request.getHeader(studioConfigurationSB.getProperty(AUTHENTICATION_HEADERS_LAST_NAME))
+        authenticationType = SECURITY_AUTHENTICATION_TYPE_HEADERS
     }
 }
 
@@ -38,9 +42,11 @@ if (profile == null || profile.isEmpty()) {
     profile.email = email
     profile.first_name = firstname
     profile.last_name = lastname
+    profile.authentication_type = authenticationType;
 }
 model.username = currentUser
 model.userEmail = profile.email 
 model.userFirstName = profile.first_name
 model.userLastName =  profile.last_name
+model.authenticationTYpe =  profile.authentication_type
 model.cookieDomain = request.getServerName();
