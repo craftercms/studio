@@ -76,6 +76,10 @@ import javax.servlet.http.HttpSession;
 import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_EMAIL;
 import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_EXTERNALLY_MANAGED;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SECURITY_AUTHENTICATION_TYPE;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SECURITY_AUTHENTICATION_TYPE_DB;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SECURITY_AUTHENTICATION_TYPE_HEADERS;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SECURITY_AUTHENTICATION_TYPE_LDAP;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.*;
 
 /**
@@ -134,7 +138,23 @@ public class SecurityServiceImpl implements SecurityService {
     @Override
     @ValidateParams
     public Map<String,Object> getUserProfile(@ValidateStringParam(name = "user") String user) {
-        return securityProvider.getUserProfile(user);
+        Map<String, Object> toRet = securityProvider.getUserProfile(user);
+        String authenticationType = studioConfiguration.getProperty(SECURITY_TYPE);
+        switch (authenticationType) {
+            case SECURITY_AUTHENTICATION_TYPE_DB:
+                toRet.put(SECURITY_AUTHENTICATION_TYPE, "internal");
+                break;
+            case SECURITY_AUTHENTICATION_TYPE_LDAP:
+                toRet.put(SECURITY_AUTHENTICATION_TYPE, "external");
+                break;
+            case SECURITY_AUTHENTICATION_TYPE_HEADERS:
+                toRet.put(SECURITY_AUTHENTICATION_TYPE, authenticationType);
+                break;
+            default:
+                toRet.put(SECURITY_AUTHENTICATION_TYPE, authenticationType);
+                break;
+        }
+        return toRet;
     }
 
     @Override
