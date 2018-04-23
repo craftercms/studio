@@ -140,20 +140,7 @@ public class SecurityServiceImpl implements SecurityService {
     public Map<String,Object> getUserProfile(@ValidateStringParam(name = "user") String user) {
         Map<String, Object> toRet = securityProvider.getUserProfile(user);
         String authenticationType = studioConfiguration.getProperty(SECURITY_TYPE);
-        switch (authenticationType) {
-            case SECURITY_AUTHENTICATION_TYPE_DB:
-                toRet.put(SECURITY_AUTHENTICATION_TYPE, "internal");
-                break;
-            case SECURITY_AUTHENTICATION_TYPE_LDAP:
-                toRet.put(SECURITY_AUTHENTICATION_TYPE, "external");
-                break;
-            case SECURITY_AUTHENTICATION_TYPE_HEADERS:
-                toRet.put(SECURITY_AUTHENTICATION_TYPE, authenticationType);
-                break;
-            default:
-                toRet.put(SECURITY_AUTHENTICATION_TYPE, authenticationType);
-                break;
-        }
+        toRet.put(SECURITY_AUTHENTICATION_TYPE, authenticationType);
         return toRet;
     }
 
