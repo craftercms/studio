@@ -127,4 +127,9 @@ package org.craftercms.studio.api.v1.constant;
     String REMOTE_REPOSITORY_CREATE_OPTION_PUSH = "push";
 
     String INDEX_FILE = "index.xml";
+
+    String SECURITY_AUTHENTICATION_TYPE = "authentication_type";
+    String SECURITY_AUTHENTICATION_TYPE_DB = "db";
+    String SECURITY_AUTHENTICATION_TYPE_LDAP = "ldap";
+    String SECURITY_AUTHENTICATION_TYPE_HEADERS = "headers";
 }
