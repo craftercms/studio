@@ -27,7 +27,7 @@ USE crafter ;
 
 CREATE TABLE _meta (`version` VARCHAR(10) NOT NULL , PRIMARY KEY (`version`)) ;
 
-INSERT INTO _meta (version) VALUES ('3.0.10') ;
+INSERT INTO _meta (version) VALUES ('3.0.11') ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`             BIGINT(20)   NOT NULL AUTO_INCREMENT,
@@ -237,6 +237,7 @@ CREATE TABLE IF NOT EXISTS remote_repository
   `site_id`               VARCHAR(50)   NOT NULL,
   `remote_name`           VARCHAR(50)   NOT NULL,
   `remote_url`            VARCHAR(2000)   NOT NULL,
+  `remote_branch`         VARCHAR(50)   NOT NULL,
   `authentication_type`   VARCHAR(16)   NOT NULL,
   `remote_username`       VARCHAR(255)   NULL,
   `remote_password`       VARCHAR(255)   NULL,

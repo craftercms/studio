@@ -134,10 +134,10 @@ class SiteServices {
      * @param remotePrivateKey remote private key
      * @return
      */
-    static addRemote(context, siteId, remoteName, remoteUrl, authenticationType, remoteUsername, remotePassword,
-                     remoteToken, remotePrivateKey) {
+    static addRemote(context, siteId, remoteName, remoteUrl, remoteBranch, authenticationType, remoteUsername,
+                     remotePassword, remoteToken, remotePrivateKey) {
         def siteServicesImpl = ServiceFactory.getSiteServices(context)
-        return siteServicesImpl.addRemote(siteId, remoteName, remoteUrl, authenticationType, remoteUsername,
+        return siteServicesImpl.addRemote(siteId, remoteName, remoteUrl, remoteBranch, authenticationType, remoteUsername,
                 remotePassword, remoteToken, remotePrivateKey)
     }
 

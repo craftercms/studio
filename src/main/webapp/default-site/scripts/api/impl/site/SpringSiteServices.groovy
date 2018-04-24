@@ -119,11 +119,11 @@ class SpringSiteServices {
         return springBackedService.getSite(siteId)
     }
 
-    def addRemote(siteId, remoteName, remoteUrl, authenticationType, remoteUsername, remotePassword, remoteToken,
-                  remotePrivateKey) {
+    def addRemote(siteId, remoteName, remoteUrl, remoteBranch, authenticationType, remoteUsername, remotePassword,
+                  remoteToken, remotePrivateKey) {
         def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
-        return springBackedService.addRemote(siteId, remoteName, remoteUrl, authenticationType, remoteUsername,
-                remotePassword, remoteToken, remotePrivateKey)
+        return springBackedService.addRemote(siteId, remoteName, remoteUrl, remoteBranch, authenticationType,
+                remoteUsername, remotePassword, remoteToken, remotePrivateKey)
     }
 
     def removeRemote(siteId, remoteName) {

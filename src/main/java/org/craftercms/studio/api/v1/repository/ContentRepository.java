@@ -398,8 +398,9 @@ public interface ContentRepository {
      * @param remotePrivateKey   remote private key
      * @return true if operation was successful
      */
-    boolean addRemote(String siteId, String remoteName, String remoteUrl, String authenticationType,
-                      String remoteUsername, String remotePassword, String remoteToken, String remotePrivateKey)
+    boolean addRemote(String siteId, String remoteName, String remoteUrl, String remoteBranch,
+                      String authenticationType, String remoteUsername, String remotePassword, String remoteToken,
+                      String remotePrivateKey)
             throws InvalidRemoteUrlException, ServiceException;
 
     /**
