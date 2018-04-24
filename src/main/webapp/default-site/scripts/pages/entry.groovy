@@ -48,5 +48,5 @@ model.username = currentUser
 model.userEmail = profile.email 
 model.userFirstName = profile.first_name
 model.userLastName =  profile.last_name
-model.authenticationTYpe =  profile.authentication_type
+model.authenticationType =  profile.authentication_type
 model.cookieDomain = request.getServerName();
