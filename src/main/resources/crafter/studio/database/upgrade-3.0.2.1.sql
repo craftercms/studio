@@ -4,7 +4,6 @@ CREATE TABLE IF NOT EXISTS remote_repository
   `site_id`               VARCHAR(50)   NOT NULL,
   `remote_name`           VARCHAR(50)   NOT NULL,
   `remote_url`            VARCHAR(2000)   NOT NULL,
-  `remote_branch`         VARCHAR(50)   NOT NULL,
   `authentication_type`   VARCHAR(16)   NOT NULL,
   `remote_username`       VARCHAR(255)   NULL,
   `remote_password`       VARCHAR(255)   NULL,
@@ -17,4 +16,6 @@ CREATE TABLE IF NOT EXISTS remote_repository
   DEFAULT CHARSET = utf8
   ROW_FORMAT = DYNAMIC ;
 
-UPDATE _meta SET version = '3.0.11' ;
+UPDATE `audit` SET `source` = 'API' WHERE `source` = 'UI' ;
+
+UPDATE _meta SET version = '3.0.11.1' ;
