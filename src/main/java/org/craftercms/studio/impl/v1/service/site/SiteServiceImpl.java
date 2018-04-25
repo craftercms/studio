@@ -687,8 +687,8 @@ public class SiteServiceImpl implements SiteService {
 
             case REMOTE_REPOSITORY_CREATE_OPTION_PUSH:
                 logger.debug("Push to remote repository create option selected");
-                createSitePushToRemote(siteId, description, blueprintName, remoteName, remoteUrl, authenticationType,
-                        remoteUsername, remotePassword, remoteToken, remotePrivateKey);
+                createSitePushToRemote(siteId, description, blueprintName, remoteName, remoteUrl, remoteBranch,
+                        authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey);
                 break;
 
             default:
@@ -869,8 +869,9 @@ public class SiteServiceImpl implements SiteService {
     }
 
     private void createSitePushToRemote(String siteId, String description, String blueprintName, String remoteName,
-                                        String remoteUrl, String authenticationType, String remoteUsername,
-                                        String remotePassword, String remoteToken, String remotePrivateKey)
+                                        String remoteUrl, String remoteBranch, String authenticationType,
+                                        String remoteUsername, String remotePassword, String remoteToken,
+                                        String remotePrivateKey)
             throws ServiceException, InvalidRemoteRepositoryCredentialsException, InvalidRemoteRepositoryException,
             RemoteRepositoryNotFoundException, RemoteRepositoryNotBareException, InvalidRemoteUrlException {
         if (exists(siteId)) {
@@ -962,8 +963,8 @@ public class SiteServiceImpl implements SiteService {
                 try {
                     logger.debug("Pushing site " + siteId + " to remote repository " + remoteName + " (" +
                             remoteUrl + ")");
-                    contentRepository.addRemote(siteId, remoteName, remoteUrl, authenticationType, remoteUsername,
-                            remotePassword, remoteToken, remotePrivateKey);
+                    contentRepository.addRemote(siteId, remoteName, remoteUrl, remoteBranch, authenticationType,
+                            remoteUsername, remotePassword, remoteToken, remotePrivateKey);
                     contentRepository.createSitePushToRemote(siteId, remoteName, remoteUrl, authenticationType,
                             remoteUsername, remotePassword, remoteToken, remotePrivateKey);
                 } catch (RemoteRepositoryNotFoundException | InvalidRemoteRepositoryException |
@@ -1737,13 +1738,14 @@ public class SiteServiceImpl implements SiteService {
     }
 
     @Override
-    public boolean addRemote(String siteId, String remoteName, String remoteUrl, String authenticationType,
-                             String remoteUsername, String remotePassword, String remoteToken, String remotePrivateKey)
+    public boolean addRemote(String siteId, String remoteName, String remoteUrl, String remoteBranch,
+                             String authenticationType, String remoteUsername, String remotePassword,
+                             String remoteToken, String remotePrivateKey)
             throws InvalidRemoteUrlException, ServiceException {
         if (!exists(siteId)) {
             throw new SiteNotFoundException();
         }
-        return contentRepository.addRemote(siteId, remoteName, remoteUrl, authenticationType, remoteUsername,
+        return contentRepository.addRemote(siteId, remoteName, remoteUrl, remoteBranch, authenticationType, remoteUsername,
                 remotePassword, remoteToken, remotePrivateKey);
     }
 

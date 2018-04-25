@@ -25,6 +25,7 @@
         <result property="siteId" column="site_id"/>
         <result property="remoteName" column="remote_name"/>
         <result property="remoteUrl" column="remote_url"/>
+        <result property="remoteBranch" column="remote_branch"/>
         <result property="authenticationType" column="authentication_type"/>
         <result property="remoteUsername" column="remote_username"/>
         <result property="remotePassword" column="remote_password"/>
@@ -41,8 +42,10 @@
     </select>
 
     <insert id="insertRemoteRepository" parameterType="java.util.Map">
-        INSERT INTO remote_repository (site_id, remote_name, remote_url, authentication_type, remote_username, remote_password, remote_token, remote_private_key)
-        VALUES (#{siteId}, #{remoteName}, #{remoteUrl}, #{authenticationType}, #{remoteUsername}, #{remotePassword}, #{remoteToken}, #{remotePrivateKey})
+        INSERT INTO remote_repository (site_id, remote_name, remote_url, remote_branch, authentication_type,
+        remote_username, remote_password, remote_token, remote_private_key)
+        VALUES (#{siteId}, #{remoteName}, #{remoteUrl}, #{remoteBranch}, #{authenticationType}, #{remoteUsername},
+        #{remotePassword}, #{remoteToken}, #{remotePrivateKey})
     </insert>
 
     <delete id="deleteRemoteRepositoryForSite" parameterType="java.util.Map">

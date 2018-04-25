@@ -1705,8 +1705,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey);
 
         if (toReturn) {
-            addRemote(siteId, remoteName, remoteUrl, authenticationType, remoteUsername, remotePassword, remoteToken,
-                    remotePrivateKey);
+            addRemote(siteId, remoteName, remoteUrl, remoteBranch, authenticationType, remoteUsername, remotePassword,
+                    remoteToken, remotePrivateKey);
             // update site name variable inside config files
             logger.debug("Update site name configuration variables for site " + siteId);
             toReturn = helper.updateSitenameConfigVar(siteId);
@@ -1817,8 +1817,9 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     @Override
-    public boolean addRemote(String siteId, String remoteName, String remoteUrl, String authenticationType,
-                             String remoteUsername, String remotePassword, String remoteToken, String remotePrivateKey)
+    public boolean addRemote(String siteId, String remoteName, String remoteUrl, String remoteBranch,
+                             String authenticationType, String remoteUsername, String remotePassword,
+                             String remoteToken, String remotePrivateKey)
             throws InvalidRemoteUrlException, ServiceException {
         try {
             logger.debug("Add remote " + remoteName + " to the sandbox repo for the site " + siteId);
@@ -1839,10 +1840,12 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             }
 
             logger.debug("Inserting remote " + remoteName + " for site " + siteId + " into database.");
+            String branchNameParam = StringUtils.isEmpty(remoteBranch) ? Constants.MASTER : remoteBranch;
             Map<String, String> params = new HashMap<String, String>();
             params.put("siteId", siteId);
             params.put("remoteName", remoteName);
             params.put("remoteUrl", remoteUrl);
+            params.put("remoteBranch", branchNameParam);
             params.put("authenticationType", authenticationType);
             params.put("remoteUsername", remoteUsername);
 
@@ -1909,6 +1912,13 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 for (RemoteConfig conf : result) {
                     RemoteRepositoryInfoTO rri = new RemoteRepositoryInfoTO();
                     rri.setName(conf.getName());
+
+                    Map<String, String> params = new HashMap<String, String>();
+                    params.put("siteId", siteId);
+                    params.put("remoteName", rri.getName());
+                    RemoteRepository remoteRepository = remoteRepositoryMapper.getRemoteRepository(params);
+                    rri.setBranch(remoteRepository.getRemoteBranch());
+
                     StringBuilder sbUrl = new StringBuilder();
                     if (CollectionUtils.isNotEmpty(conf.getURIs())) {
                         for (int i = 0; i < conf.getURIs().size(); i++) {
