@@ -27,7 +27,14 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.StringTokenizer;
 import java.util.concurrent.TimeUnit;
 
 import freemarker.template.Template;
@@ -35,13 +42,25 @@ import freemarker.template.TemplateException;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.http.RequestContext;
-import org.craftercms.commons.validation.annotations.param.*;
+import org.craftercms.commons.validation.annotations.param.ValidateIntegerParam;
+import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
+import org.craftercms.commons.validation.annotations.param.ValidateParams;
+import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
+import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.StudioXmlConstants;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.craftercms.studio.api.v1.exception.security.*;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationSystemException;
+import org.craftercms.studio.api.v1.exception.security.BadCredentialsException;
+import org.craftercms.studio.api.v1.exception.security.DeleteUserNotAllowedException;
+import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
+import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.PasswordDoesNotMatchException;
+import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
+import org.craftercms.studio.api.v1.exception.security.UserExternallyManagedException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
@@ -65,7 +84,10 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.servlet.view.freemarker.FreeMarkerConfig;
 
-import javax.crypto.*;
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import javax.mail.MessagingException;
@@ -99,7 +121,9 @@ public class SecurityServiceImpl implements SecurityService {
 
     @Override
     @ValidateParams
-    public String authenticate(@ValidateStringParam(name = "username") String username, @ValidateStringParam(name = "password") String password) throws BadCredentialsException, AuthenticationSystemException {
+    public String authenticate(@ValidateStringParam(name = "username") String username,
+                               @ValidateStringParam(name = "password") String password)
+            throws BadCredentialsException, AuthenticationSystemException {
         String toRet = securityProvider.authenticate(username, password);
         if (StringUtils.isNotEmpty(toRet)) {
             RequestContext requestContext = RequestContext.getCurrent();
@@ -109,7 +133,8 @@ public class SecurityServiceImpl implements SecurityService {
             ActivityService.ActivityType activityType = ActivityService.ActivityType.LOGIN;
             Map<String, String> extraInfo = new HashMap<String, String>();
             extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
-            activityService.postActivity(getSystemSite(), username, ipAddress, activityType, ActivityService.ActivitySource.UI, extraInfo);
+            activityService.postActivity(getSystemSite(), username, ipAddress, activityType,
+                    ActivityService.ActivitySource.API, extraInfo);
 
             logger.info("User " + username + " logged in from IP: " + ipAddress);
         }
@@ -143,7 +168,9 @@ public class SecurityServiceImpl implements SecurityService {
 
     @Override
     @ValidateParams
-    public Set<String> getUserPermissions(@ValidateStringParam(name = "site") final String site, @ValidateSecurePathParam(name = "path") String path, @ValidateStringParam(name = "user") String user, List<String> groups) {
+    public Set<String> getUserPermissions(@ValidateStringParam(name = "site") final String site,
+                                          @ValidateSecurePathParam(name = "path") String path,
+                                          @ValidateStringParam(name = "user") String user, List<String> groups) {
         Set<String> permissions = new HashSet<String>();
         if (StringUtils.isNotEmpty(site)) {
             PermissionsConfigTO rolesConfig = loadConfiguration(site, getRoleMappingsFileName());
@@ -160,13 +187,15 @@ public class SecurityServiceImpl implements SecurityService {
                     ContentTypeConfigTO config = contentTypeService.getContentTypeForContent(site, path);
                     boolean isAllowed = contentTypeService.isUserAllowed(roles, config);
                     if (!isAllowed) {
-                        logger.debug("The user is not allowed to access " + site + ":" + path + ". adding permission: " + StudioConstants.PERMISSION_VALUE_NOT_ALLOWED);
+                        logger.debug("The user is not allowed to access " + site + ":" + path
+                                + ". adding permission: " + StudioConstants.PERMISSION_VALUE_NOT_ALLOWED);
                         // If no default role is set
                         permissions.add(StudioConstants.PERMISSION_VALUE_NOT_ALLOWED);
                         return permissions;
                     }
                 } catch (ServiceException e) {
-                    logger.debug("Error while getting the content type of " + path + ". skipping user role checking on the content.");
+                    logger.debug("Error while getting the content type of " + path
+                            + ". skipping user role checking on the content.");
                 }
             }
         }
@@ -229,27 +258,32 @@ public class SecurityServiceImpl implements SecurityService {
                             if (path.matches(regex)) {
                                 logger.debug("Global permissions found by matching " + regex + " for " + role);
 
-                                List<Node> permissionNodes = ruleNode.selectNodes(StudioXmlConstants.DOCUMENT_ELM_ALLOWED_PERMISSIONS);
+                                List<Node> permissionNodes =
+                                        ruleNode.selectNodes(StudioXmlConstants.DOCUMENT_ELM_ALLOWED_PERMISSIONS);
                                 for (Node permissionNode : permissionNodes) {
                                     String permission = permissionNode.getText().toLowerCase();
-                                    logger.debug("adding global permissions " + permission + " to " + path + " for " + role);
+                                    logger.debug("adding global permissions " + permission + " to " + path
+                                            + " for " + role);
                                     permissions.add(permission);
                                 }
                             }
                         }
                     } else {
-                        logger.debug("No default role is set. adding default permission: " + StudioConstants.PERMISSION_VALUE_READ);
+                        logger.debug("No default role is set. adding default permission: "
+                                + StudioConstants.PERMISSION_VALUE_READ);
                         // If no default role is set
                         permissions.add(StudioConstants.PERMISSION_VALUE_READ);
                     }
                 } else {
-                    logger.debug("No default site is set. adding default permission: " + StudioConstants.PERMISSION_VALUE_READ);
+                    logger.debug("No default site is set. adding default permission: "
+                            + StudioConstants.PERMISSION_VALUE_READ);
                     // If no default site is set
                     permissions.add(StudioConstants.PERMISSION_VALUE_READ);
                 }
             }
         } else {
-            logger.debug("No user or group matching found. adding default permission: " + StudioConstants.PERMISSION_VALUE_READ);
+            logger.debug("No user or group matching found. adding default permission: "
+                    + StudioConstants.PERMISSION_VALUE_READ);
             // If user or group did not match the roles-mapping file
             permissions.add(StudioConstants.PERMISSION_VALUE_READ);
         }
@@ -278,7 +312,8 @@ public class SecurityServiceImpl implements SecurityService {
 
     @Override
     @ValidateParams
-    public Set<String> getUserRoles(@ValidateStringParam(name = "site") final String site, @ValidateStringParam(name = "user") String user) {
+    public Set<String> getUserRoles(@ValidateStringParam(name = "site") final String site,
+                                    @ValidateStringParam(name = "user") String user) {
 
         Set<String> groups = securityProvider.getUserGroups(user);
         if (groups != null && groups.size() > 0) {
@@ -310,7 +345,8 @@ public class SecurityServiceImpl implements SecurityService {
      * @param groups
      * @param rolesConfig
      */
-    protected void addGroupRoles(Set<String> roles, String site, List<String> groups, PermissionsConfigTO rolesConfig) {
+    protected void addGroupRoles(Set<String> roles, String site, List<String> groups,
+                                 PermissionsConfigTO rolesConfig) {
         if (groups != null) {
             Map<String, List<String>> rolesMap = rolesConfig.getRoles();
             for (String group : groups) {
@@ -351,29 +387,35 @@ public class SecurityServiceImpl implements SecurityService {
                         for (Node ruleNode : ruleNodes) {
                             String regex = ruleNode.valueOf(StudioXmlConstants.DOCUMENT_ATTR_REGEX);
                             if (path.matches(regex)) {
-                                logger.debug("Permissions found by matching " + regex + " for " + role + " in " + site);
+                                logger.debug("Permissions found by matching " + regex + " for " + role
+                                        + " in " + site);
 
-                                List<Node> permissionNodes = ruleNode.selectNodes(StudioXmlConstants.DOCUMENT_ELM_ALLOWED_PERMISSIONS);
+                                List<Node> permissionNodes = ruleNode.selectNodes(
+                                        StudioXmlConstants.DOCUMENT_ELM_ALLOWED_PERMISSIONS);
                                 for (Node permissionNode : permissionNodes) {
                                     String permission = permissionNode.getText().toLowerCase();
-                                    logger.debug("adding permissions " + permission + " to " + path + " for " + role + " in " + site);
+                                    logger.debug("adding permissions " + permission + " to " + path + " for "
+                                            + role + " in " + site);
                                     permissions.add(permission);
                                 }
                             }
                         }
                     } else {
-                        logger.debug("No default role is set. adding default permission: " + StudioConstants.PERMISSION_VALUE_READ);
+                        logger.debug("No default role is set. adding default permission: "
+                                + StudioConstants.PERMISSION_VALUE_READ);
                         // If no default role is set
                         permissions.add(StudioConstants.PERMISSION_VALUE_READ);
                     }
                 } else {
-                    logger.debug("No default site is set. adding default permission: " + StudioConstants.PERMISSION_VALUE_READ);
+                    logger.debug("No default site is set. adding default permission: "
+                            + StudioConstants.PERMISSION_VALUE_READ);
                     // If no default site is set
                     permissions.add(StudioConstants.PERMISSION_VALUE_READ);
                 }
             }
         } else {
-            logger.debug("No user or group matching found. adding default permission: " + StudioConstants.PERMISSION_VALUE_READ);
+            logger.debug("No user or group matching found. adding default permission: "
+                    + StudioConstants.PERMISSION_VALUE_READ);
             // If user or group did not match the roles-mapping file
             permissions.add(StudioConstants.PERMISSION_VALUE_READ);
         }
@@ -474,7 +516,8 @@ public class SecurityServiceImpl implements SecurityService {
 
     @Override
     @ValidateParams
-    public void addUserGroup(@ValidateStringParam(name = "parentGroup") String parentGroup, @ValidateStringParam(name = "groupName") String groupName) {
+    public void addUserGroup(@ValidateStringParam(name = "parentGroup") String parentGroup,
+                             @ValidateStringParam(name = "groupName") String groupName) {
         securityProvider.addUserGroup(parentGroup, groupName);
     }
 
@@ -563,7 +606,8 @@ public class SecurityServiceImpl implements SecurityService {
             ActivityService.ActivityType activityType = ActivityService.ActivityType.LOGOUT;
             Map<String, String> extraInfo = new HashMap<String, String>();
             extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
-            activityService.postActivity(getSystemSite(), username, ipAddress, activityType, ActivityService.ActivitySource.UI, extraInfo);
+            activityService.postActivity(getSystemSite(), username, ipAddress, activityType,
+                    ActivityService.ActivitySource.API, extraInfo);
 
             logger.info("User " + username + " logged out from IP: " + ipAddress);
         }
@@ -572,21 +616,27 @@ public class SecurityServiceImpl implements SecurityService {
 
     @Override
     @ValidateParams
-    public boolean createUser(@ValidateNoTagsParam(name = "username") String username, @ValidateStringParam(name = "password") String password, @ValidateNoTagsParam(name = "firstName") String firstName, @ValidateNoTagsParam(name = "lastName") String lastName, @ValidateNoTagsParam(name = "email") String email) throws UserAlreadyExistsException {
+    public boolean createUser(@ValidateNoTagsParam(name = "username") String username,
+                              @ValidateStringParam(name = "password") String password,
+                              @ValidateNoTagsParam(name = "firstName") String firstName,
+                              @ValidateNoTagsParam(name = "lastName") String lastName,
+                              @ValidateNoTagsParam(name = "email") String email) throws UserAlreadyExistsException {
         boolean toRet = securityProvider.createUser(username, password, firstName, lastName, email, false);
         if (toRet) {
             ActivityService.ActivityType activityType = ActivityService.ActivityType.CREATED;
             String user = getCurrentUser();
             Map<String, String> extraInfo = new HashMap<String, String>();
             extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
-            activityService.postActivity(getSystemSite(), user, username, activityType, ActivityService.ActivitySource.UI, extraInfo);
+            activityService.postActivity(getSystemSite(), user, username, activityType,
+                    ActivityService.ActivitySource.API, extraInfo);
         }
         return toRet;
     }
 
     @Override
     @ValidateParams
-    public boolean deleteUser(@ValidateStringParam(name = "username") String username) throws UserNotFoundException, DeleteUserNotAllowedException {
+    public boolean deleteUser(@ValidateStringParam(name = "username") String username)
+            throws UserNotFoundException, DeleteUserNotAllowedException {
         if (!isDeleteUserAllowed(username)) {
             throw new DeleteUserNotAllowedException();
         } else {
@@ -596,7 +646,8 @@ public class SecurityServiceImpl implements SecurityService {
                 String user = getCurrentUser();
                 Map<String, String> extraInfo = new HashMap<String, String>();
                 extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
-                activityService.postActivity(getSystemSite(), user, username, activityType, ActivityService.ActivitySource.UI, extraInfo);
+                activityService.postActivity(getSystemSite(), user, username, activityType,
+                        ActivityService.ActivitySource.API, extraInfo);
             }
             return toRet;
         }
@@ -625,33 +676,41 @@ public class SecurityServiceImpl implements SecurityService {
 
     @Override
     @ValidateParams
-    public boolean updateUser(@ValidateStringParam(name = "username") String username, @ValidateNoTagsParam(name = "firstName") String firstName, @ValidateNoTagsParam(name = "lastName") String lastName, @ValidateNoTagsParam(name = "email") String email) throws UserNotFoundException, UserExternallyManagedException {
+    public boolean updateUser(@ValidateStringParam(name = "username") String username,
+                              @ValidateNoTagsParam(name = "firstName") String firstName,
+                              @ValidateNoTagsParam(name = "lastName") String lastName,
+                              @ValidateNoTagsParam(name = "email") String email)
+            throws UserNotFoundException, UserExternallyManagedException {
         boolean toRet = securityProvider.updateUser(username, firstName, lastName, email);
         if (toRet) {
             ActivityService.ActivityType activityType = ActivityService.ActivityType.UPDATED;
             String user = getCurrentUser();
             Map<String, String> extraInfo = new HashMap<String, String>();
             extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
-            activityService.postActivity(getSystemSite(), user, username, activityType, ActivityService.ActivitySource.UI, extraInfo);
+            activityService.postActivity(getSystemSite(), user, username, activityType,
+                    ActivityService.ActivitySource.API, extraInfo);
         }
         return toRet;
     }
 
     @Override
     @ValidateParams
-    public boolean enableUser(@ValidateStringParam(name = "username") String username, boolean enabled) throws UserNotFoundException, UserExternallyManagedException {
+    public boolean enableUser(@ValidateStringParam(name = "username") String username, boolean enabled)
+            throws UserNotFoundException, UserExternallyManagedException {
         return securityProvider.enableUser(username, enabled);
     }
 
     @Override
     @ValidateParams
-    public Map<String, Object> getUserStatus(@ValidateStringParam(name = "username") String username) throws UserNotFoundException {
+    public Map<String, Object> getUserStatus(@ValidateStringParam(name = "username") String username)
+            throws UserNotFoundException {
         return securityProvider.getUserStatus(username);
     }
 
     @Override
     @ValidateParams
-    public List<Map<String, Object>> getAllUsers(@ValidateIntegerParam(name = "start") int start, @ValidateIntegerParam(name = "number") int number) {
+    public List<Map<String, Object>> getAllUsers(@ValidateIntegerParam(name = "start") int start,
+                                                 @ValidateIntegerParam(name = "number") int number) {
         return securityProvider.getAllUsers(start, number);
     }
 
@@ -662,7 +721,10 @@ public class SecurityServiceImpl implements SecurityService {
 
     @Override
     @ValidateParams
-    public List<Map<String, Object>> getUsersPerSite(@ValidateStringParam(name = "site") String site, @ValidateIntegerParam(name = "start") int start, @ValidateIntegerParam(name = "number") int number) throws SiteNotFoundException {
+    public List<Map<String, Object>> getUsersPerSite(@ValidateStringParam(name = "site") String site,
+                                                     @ValidateIntegerParam(name = "start") int start,
+                                                     @ValidateIntegerParam(name = "number") int number)
+            throws SiteNotFoundException {
         return securityProvider.getUsersPerSite(site, start, number);
     }
 
@@ -674,25 +736,34 @@ public class SecurityServiceImpl implements SecurityService {
 
     @Override
     @ValidateParams
-    public boolean createGroup(@ValidateNoTagsParam(name = "groupName") String groupName, @ValidateNoTagsParam(name = "description") String description, @ValidateStringParam(name = "siteId") String siteId) throws GroupAlreadyExistsException, SiteNotFoundException {
+    public boolean createGroup(@ValidateNoTagsParam(name = "groupName") String groupName,
+                               @ValidateNoTagsParam(name = "description") String description,
+                               @ValidateStringParam(name = "siteId") String siteId)
+            throws GroupAlreadyExistsException, SiteNotFoundException {
         return securityProvider.createGroup(groupName, description, siteId, false);
     }
 
     @Override
     @ValidateParams
-    public Map<String, Object> getGroup(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "group") String group) throws GroupNotFoundException, SiteNotFoundException {
+    public Map<String, Object> getGroup(@ValidateStringParam(name = "site") String site,
+                                        @ValidateStringParam(name = "group") String group)
+            throws GroupNotFoundException, SiteNotFoundException {
         return securityProvider.getGroup(site, group);
     }
 
     @Override
     @ValidateParams
-    public List<Map<String, Object>> getAllGroups(@ValidateIntegerParam(name = "start") int start, @ValidateIntegerParam(name = "number") int number) {
+    public List<Map<String, Object>> getAllGroups(@ValidateIntegerParam(name = "start") int start,
+                                                  @ValidateIntegerParam(name = "number") int number) {
         return securityProvider.getAllGroups(start, number);
     }
 
     @Override
     @ValidateParams
-    public List<Map<String, Object>> getGroupsPerSite(@ValidateStringParam(name = "site") String site, @ValidateIntegerParam(name = "start") int start, @ValidateIntegerParam(name = "number") int number) throws SiteNotFoundException {
+    public List<Map<String, Object>> getGroupsPerSite(@ValidateStringParam(name = "site") String site,
+                                                      @ValidateIntegerParam(name = "start") int start,
+                                                      @ValidateIntegerParam(name = "number") int number)
+            throws SiteNotFoundException {
         return securityProvider.getGroupsPerSite(site, start, number);
     }
 
@@ -704,63 +775,79 @@ public class SecurityServiceImpl implements SecurityService {
 
     @Override
     @ValidateParams
-    public List<Map<String, Object>> getUsersPerGroup(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "group") String group, @ValidateIntegerParam(name = "start") int start, @ValidateIntegerParam(name = "number") int number) throws
-            GroupNotFoundException, SiteNotFoundException {
+    public List<Map<String, Object>> getUsersPerGroup(@ValidateStringParam(name = "site") String site,
+                                                      @ValidateStringParam(name = "group") String group,
+                                                      @ValidateIntegerParam(name = "start") int start,
+                                                      @ValidateIntegerParam(name = "number") int number)
+            throws GroupNotFoundException, SiteNotFoundException {
         return securityProvider.getUsersPerGroup(site, group, start, number);
     }
 
     @Override
     @ValidateParams
-    public int getUsersPerGroupTotal(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "group") String group) throws
-            GroupNotFoundException, SiteNotFoundException {
+    public int getUsersPerGroupTotal(@ValidateStringParam(name = "site") String site,
+                                     @ValidateStringParam(name = "group") String group)
+            throws GroupNotFoundException, SiteNotFoundException {
         return securityProvider.getUsersPerGroupTotal(site, group);
     }
 
     @Override
     @ValidateParams
-    public boolean updateGroup(@ValidateStringParam(name = "siteId") String siteId, @ValidateNoTagsParam(name = "groupName") String groupName, @ValidateNoTagsParam(name = "description") String description) throws GroupNotFoundException, SiteNotFoundException {
+    public boolean updateGroup(@ValidateStringParam(name = "siteId") String siteId,
+                               @ValidateNoTagsParam(name = "groupName") String groupName,
+                               @ValidateNoTagsParam(name = "description") String description)
+            throws GroupNotFoundException, SiteNotFoundException {
         return securityProvider.updateGroup(siteId, groupName, description);
     }
 
     @Override
     @ValidateParams
-    public boolean deleteGroup(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "group") String group) throws GroupNotFoundException, SiteNotFoundException {
+    public boolean deleteGroup(@ValidateStringParam(name = "site") String site,
+                               @ValidateStringParam(name = "group") String group)
+            throws GroupNotFoundException, SiteNotFoundException {
         return securityProvider.deleteGroup(site, group);
     }
 
     @Override
     @ValidateParams
-    public boolean addUserToGroup(@ValidateStringParam(name = "siteId") String siteId, @ValidateStringParam(name = "groupName") String groupName, @ValidateStringParam(name = "username") String username) throws
-            UserAlreadyExistsException, UserNotFoundException, GroupNotFoundException, SiteNotFoundException {
+    public boolean addUserToGroup(@ValidateStringParam(name = "siteId") String siteId,
+                                  @ValidateStringParam(name = "groupName") String groupName,
+                                  @ValidateStringParam(name = "username") String username)
+            throws UserAlreadyExistsException, UserNotFoundException, GroupNotFoundException, SiteNotFoundException {
         boolean toRet = securityProvider.addUserToGroup(siteId, groupName, username);
         if (toRet) {
             ActivityService.ActivityType activityType = ActivityService.ActivityType.ADD_USER_TO_GROUP;
             String user = getCurrentUser();
             Map<String, String> extraInfo = new HashMap<String, String>();
             extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
-            activityService.postActivity(siteId, user, username + " > " + groupName , activityType, ActivityService.ActivitySource.UI, extraInfo);
+            activityService.postActivity(siteId, user, username + " > " + groupName , activityType,
+                    ActivityService.ActivitySource.API, extraInfo);
         }
         return toRet;
     }
 
     @Override
     @ValidateParams
-    public boolean removeUserFromGroup(@ValidateStringParam(name = "siteId") String siteId, @ValidateStringParam(name = "groupName") String groupName, @ValidateStringParam(name = "username") String username) throws
-            UserNotFoundException, GroupNotFoundException, SiteNotFoundException {
+    public boolean removeUserFromGroup(@ValidateStringParam(name = "siteId") String siteId,
+                                       @ValidateStringParam(name = "groupName") String groupName,
+                                       @ValidateStringParam(name = "username") String username)
+            throws UserNotFoundException, GroupNotFoundException, SiteNotFoundException {
         boolean toRet = securityProvider.removeUserFromGroup(siteId, groupName, username);
         if (toRet) {
             ActivityService.ActivityType activityType = ActivityService.ActivityType.REMOVE_USER_FROM_GROUP;
             String user = getCurrentUser();
             Map<String, String> extraInfo = new HashMap<String, String>();
             extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
-            activityService.postActivity(siteId, user, username + " X " + groupName , activityType, ActivityService.ActivitySource.UI, extraInfo);
+            activityService.postActivity(siteId, user, username + " X " + groupName , activityType,
+                    ActivityService.ActivitySource.API, extraInfo);
         }
         return toRet;
     }
 
     @Override
     @ValidateParams
-    public Map<String, Object> forgotPassword(@ValidateStringParam(name = "username") String username) throws ServiceException, UserNotFoundException, UserExternallyManagedException {
+    public Map<String, Object> forgotPassword(@ValidateStringParam(name = "username") String username)
+            throws ServiceException, UserNotFoundException, UserExternallyManagedException {
         logger.debug("Getting user profile for " + username);
         Map<String, Object> userProfile = securityProvider.getUserProfile(username);
         boolean success = false;
@@ -776,8 +863,8 @@ public class SecurityServiceImpl implements SecurityService {
                     String email = userProfile.get(KEY_EMAIL).toString();
 
                     logger.debug("Creating security token for forgot password");
-                    long timestamp = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(Long.parseLong(studioConfiguration
-                            .getProperty(SECURITY_FORGOT_PASSWORD_TOKEN_TIMEOUT)));
+                    long timestamp = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(
+                            Long.parseLong(studioConfiguration .getProperty(SECURITY_FORGOT_PASSWORD_TOKEN_TIMEOUT)));
                     String salt = studioConfiguration.getProperty(SECURITY_CIPHER_SALT);
 
                     String token = username + "|" + timestamp + "|" + salt;
@@ -804,7 +891,8 @@ public class SecurityServiceImpl implements SecurityService {
 
     @Override
     @ValidateParams
-    public boolean validateToken(@ValidateStringParam(name = "token") String token) throws UserNotFoundException, UserExternallyManagedException {
+    public boolean validateToken(@ValidateStringParam(name = "token") String token)
+            throws UserNotFoundException, UserExternallyManagedException {
         boolean toRet = false;
         String decryptedToken = decryptToken(token);
         if (StringUtils.isNotEmpty(decryptedToken)) {
@@ -834,13 +922,15 @@ public class SecurityServiceImpl implements SecurityService {
 
     private String encryptToken(String token) {
         try {
-            SecretKeySpec key = new SecretKeySpec(studioConfiguration.getProperty(SECURITY_CIPHER_KEY).getBytes(), studioConfiguration.getProperty(SECURITY_CIPHER_TYPE));
+            SecretKeySpec key = new SecretKeySpec(studioConfiguration.getProperty(SECURITY_CIPHER_KEY).getBytes(),
+                    studioConfiguration.getProperty(SECURITY_CIPHER_TYPE));
             Cipher cipher = Cipher.getInstance(studioConfiguration.getProperty(SECURITY_CIPHER_ALGORITHM));
             byte[] tokenBytes = token.getBytes(StandardCharsets.UTF_8);
             cipher.init(Cipher.ENCRYPT_MODE, key, new IvParameterSpec(key.getEncoded()));
             byte[] encrypted = cipher.doFinal(tokenBytes);
             return Base64.getEncoder().encodeToString(encrypted);
-        } catch (NoSuchAlgorithmException | InvalidKeyException | NoSuchPaddingException | BadPaddingException | IllegalBlockSizeException | InvalidAlgorithmParameterException e) {
+        } catch (NoSuchAlgorithmException | InvalidKeyException | NoSuchPaddingException | BadPaddingException |
+                IllegalBlockSizeException | InvalidAlgorithmParameterException e) {
             logger.error("Error while encrypting forgot password token", e);
             return null;
         }
@@ -848,21 +938,25 @@ public class SecurityServiceImpl implements SecurityService {
 
     private String decryptToken(String token) {
         try {
-            SecretKeySpec key = new SecretKeySpec(studioConfiguration.getProperty(SECURITY_CIPHER_KEY).getBytes(), studioConfiguration.getProperty(SECURITY_CIPHER_TYPE));
+            SecretKeySpec key = new SecretKeySpec(studioConfiguration.getProperty(SECURITY_CIPHER_KEY).getBytes(),
+                    studioConfiguration.getProperty(SECURITY_CIPHER_TYPE));
             Cipher cipher = Cipher.getInstance(studioConfiguration.getProperty(SECURITY_CIPHER_ALGORITHM));
             byte[] tokenBytes = Base64.getDecoder().decode(token.getBytes(StandardCharsets.UTF_8));
             cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(key.getEncoded()));
             byte[] decrypted = cipher.doFinal(tokenBytes);
             return new String(decrypted, StandardCharsets.UTF_8);
-        } catch (IllegalArgumentException | NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException | BadPaddingException | IllegalBlockSizeException | InvalidAlgorithmParameterException e) {
+        } catch (IllegalArgumentException | NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException |
+                BadPaddingException | IllegalBlockSizeException | InvalidAlgorithmParameterException e) {
             logger.error("Error while decrypting forgot password token", e);
             return null;
         }
     }
 
-    private void sendForgotPasswordEmail(String emailAddress, String token) throws MessagingException, IOException, TemplateException {
+    private void sendForgotPasswordEmail(String emailAddress, String token)
+            throws MessagingException, IOException, TemplateException {
         try {
-            Template emailTemplate = freeMarkerConfig.getObject().getConfiguration().getTemplate(studioConfiguration.getProperty(SECURITY_FORGOT_PASSWORD_EMAIL_TEMPLATE));
+            Template emailTemplate = freeMarkerConfig.getObject().getConfiguration().getTemplate(
+                    studioConfiguration.getProperty(SECURITY_FORGOT_PASSWORD_EMAIL_TEMPLATE));
 
             Writer out = new StringWriter();
             Map<String, Object> model = new HashMap<String, Object>();
@@ -899,13 +993,18 @@ public class SecurityServiceImpl implements SecurityService {
 
     @Override
     @ValidateParams
-    public boolean changePassword(@ValidateStringParam(name = "username") String username, @ValidateStringParam(name = "current") String current, @ValidateStringParam(name = "newPassword") String newPassword) throws PasswordDoesNotMatchException, UserExternallyManagedException {
+    public boolean changePassword(@ValidateStringParam(name = "username") String username,
+                                  @ValidateStringParam(name = "current") String current,
+                                  @ValidateStringParam(name = "newPassword") String newPassword)
+            throws PasswordDoesNotMatchException, UserExternallyManagedException {
         return securityProvider.changePassword(username, current, newPassword);
     }
 
     @Override
     @ValidateParams
-    public Map<String, Object> setUserPassword(@ValidateStringParam(name = "token") String token, @ValidateStringParam(name = "newPassword") String newPassword) throws UserNotFoundException, UserExternallyManagedException {
+    public Map<String, Object> setUserPassword(@ValidateStringParam(name = "token") String token,
+                                               @ValidateStringParam(name = "newPassword") String newPassword)
+            throws UserNotFoundException, UserExternallyManagedException {
         Map<String, Object> toRet = new HashMap<String, Object>();
         toRet.put("username", StringUtils.EMPTY);
         toRet.put("success", false);
@@ -943,7 +1042,9 @@ public class SecurityServiceImpl implements SecurityService {
 
     @Override
     @ValidateParams
-    public boolean resetPassword(@ValidateStringParam(name = "username") String username, @ValidateStringParam(name = "newPassword") String newPassword) throws UserNotFoundException, UserExternallyManagedException {
+    public boolean resetPassword(@ValidateStringParam(name = "username") String username,
+                                 @ValidateStringParam(name = "newPassword") String newPassword)
+            throws UserNotFoundException, UserExternallyManagedException {
         String currentUser = getCurrentUser();
         if (isAdmin(currentUser)) {
             return securityProvider.setUserPassword(username, newPassword);
@@ -957,7 +1058,8 @@ public class SecurityServiceImpl implements SecurityService {
         boolean toRet = false;
         if (CollectionUtils.isNotEmpty(userGroups)) {
             for (String group : userGroups) {
-                if (StringUtils.equalsIgnoreCase(group, studioConfiguration.getProperty(SECURITY_GLOBAL_ADMIN_GROUP))) {
+                if (StringUtils.equalsIgnoreCase(group,
+                        studioConfiguration.getProperty(SECURITY_GLOBAL_ADMIN_GROUP))) {
                     toRet = true;
                     break;
                 }
@@ -973,7 +1075,8 @@ public class SecurityServiceImpl implements SecurityService {
         boolean toRet = false;
         if (CollectionUtils.isNotEmpty(userGroups)) {
             for (String group : userGroups) {
-                if (StringUtils.equalsIgnoreCase(group, studioConfiguration.getProperty(CONFIGURATION_SITE_DEFAULT_ADMIN_GROUP))) {
+                if (StringUtils.equalsIgnoreCase(group,
+                        studioConfiguration.getProperty(CONFIGURATION_SITE_DEFAULT_ADMIN_GROUP))) {
                     toRet = true;
                     break;
                 }
@@ -1047,33 +1150,83 @@ public class SecurityServiceImpl implements SecurityService {
         return studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE);
     }
 
-    public SecurityProvider getSecurityProvider() { return securityProvider; }
-    public void setSecurityProvider(SecurityProvider securityProvider) { this.securityProvider = securityProvider; }
+    public SecurityProvider getSecurityProvider() {
+        return securityProvider;
+    }
 
-    public ContentTypeService getContentTypeService() { return contentTypeService; }
-    public void setContentTypeService(ContentTypeService contentTypeService) { this.contentTypeService = contentTypeService; }
+    public void setSecurityProvider(SecurityProvider securityProvider) {
+        this.securityProvider = securityProvider;
+    }
 
-    public ContentService getContentService() { return contentService; }
-    public void setContentService(ContentService contentService) { this.contentService = contentService; }
+    public ContentTypeService getContentTypeService() {
+        return contentTypeService;
+    }
 
-    public GeneralLockService getGeneralLockService() { return generalLockService; }
-    public void setGeneralLockService(GeneralLockService generalLockService) { this.generalLockService = generalLockService; }
+    public void setContentTypeService(ContentTypeService contentTypeService) {
+        this.contentTypeService = contentTypeService;
+    }
 
-    public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
-    public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
+    public ContentService getContentService() {
+        return contentService;
+    }
 
-    public JavaMailSender getEmailService() { return emailService; }
-    public void setEmailService(JavaMailSender emailService) { this.emailService = emailService; }
+    public void setContentService(ContentService contentService) {
+        this.contentService = contentService;
+    }
 
-    public JavaMailSender getEmailServiceNoAuth() { return emailServiceNoAuth; }
-    public void setEmailServiceNoAuth(JavaMailSender emailServiceNoAuth) { this.emailServiceNoAuth = emailServiceNoAuth; }
+    public GeneralLockService getGeneralLockService() {
+        return generalLockService;
+    }
 
-    public UserDetailsManager getUserDetailsManager() { return userDetailsManager; }
-    public void setUserDetailsManager(UserDetailsManager userDetailsManager) { this.userDetailsManager = userDetailsManager; }
+    public void setGeneralLockService(GeneralLockService generalLockService) {
+        this.generalLockService = generalLockService;
+    }
 
-    public ObjectFactory<FreeMarkerConfig> getFreeMarkerConfig() { return freeMarkerConfig; }
-    public void setFreeMarkerConfig(ObjectFactory<FreeMarkerConfig> freeMarkerConfig) { this.freeMarkerConfig = freeMarkerConfig; }
+    public StudioConfiguration getStudioConfiguration() {
+        return studioConfiguration;
+    }
 
-    public ActivityService getActivityService() { return activityService; }
-    public void setActivityService(ActivityService activityService) { this.activityService = activityService; }
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+        this.studioConfiguration = studioConfiguration;
+    }
+
+    public JavaMailSender getEmailService() {
+        return emailService;
+    }
+
+    public void setEmailService(JavaMailSender emailService) {
+        this.emailService = emailService;
+    }
+
+    public JavaMailSender getEmailServiceNoAuth() {
+        return emailServiceNoAuth;
+    }
+
+    public void setEmailServiceNoAuth(JavaMailSender emailServiceNoAuth) {
+        this.emailServiceNoAuth = emailServiceNoAuth;
+    }
+
+    public UserDetailsManager getUserDetailsManager() {
+        return userDetailsManager;
+    }
+
+    public void setUserDetailsManager(UserDetailsManager userDetailsManager) {
+        this.userDetailsManager = userDetailsManager;
+    }
+
+    public ObjectFactory<FreeMarkerConfig> getFreeMarkerConfig() {
+        return freeMarkerConfig;
+    }
+
+    public void setFreeMarkerConfig(ObjectFactory<FreeMarkerConfig> freeMarkerConfig) {
+        this.freeMarkerConfig = freeMarkerConfig;
+    }
+
+    public ActivityService getActivityService() {
+        return activityService;
+    }
+
+    public void setActivityService(ActivityService activityService) {
+        this.activityService = activityService;
+    }
 }

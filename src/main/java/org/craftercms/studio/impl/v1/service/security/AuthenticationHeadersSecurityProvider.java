@@ -26,7 +26,12 @@ import org.craftercms.studio.api.v1.dal.Group;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.dal.User;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.craftercms.studio.api.v1.exception.security.*;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationSystemException;
+import org.craftercms.studio.api.v1.exception.security.BadCredentialsException;
+import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
+import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.activity.ActivityService;
@@ -37,27 +42,39 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.*;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.AUTHENTICATION_HEADERS_EMAIL;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.AUTHENTICATION_HEADERS_ENABLED;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.AUTHENTICATION_HEADERS_FIRST_NAME;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.AUTHENTICATION_HEADERS_GROUPS;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.AUTHENTICATION_HEADERS_LAST_NAME;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.AUTHENTICATION_HEADERS_SECURE_KEY_HEADER_NAME;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.AUTHENTICATION_HEADERS_SECURE_KEY_HEADER_VALUE;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.AUTHENTICATION_HEADERS_USERNAME;
 
 public class AuthenticationHeadersSecurityProvider extends DbWithLdapExtensionSecurityProvider {
 
     private final static Logger logger = LoggerFactory.getLogger(AuthenticationHeadersSecurityProvider.class);
 
     @Override
-    public String authenticate(String username, String password) throws BadCredentialsException, AuthenticationSystemException {
+    public String authenticate(String username, String password)
+            throws BadCredentialsException, AuthenticationSystemException {
         if (isAuthenticationHeadersEnabled()) {
             logger.debug("Authenticating user using authentication headers.");
 
             RequestContext requestContext = RequestContext.getCurrent();
             if (requestContext != null) {
                 HttpServletRequest request = requestContext.getRequest();
-                String securekeyHeader = request.getHeader(studioConfiguration.getProperty(AUTHENTICATION_HEADERS_SECURE_KEY_HEADER_NAME));
+                String securekeyHeader = request.getHeader(
+                        studioConfiguration.getProperty(AUTHENTICATION_HEADERS_SECURE_KEY_HEADER_NAME));
                 String secureKey = studioConfiguration.getProperty(AUTHENTICATION_HEADERS_SECURE_KEY_HEADER_VALUE);
                 logger.debug("Verifying authentication header secure key.");
                 if (StringUtils.equals(securekeyHeader, secureKey)) {
-                    String usernameHeader = request.getHeader(studioConfiguration.getProperty(AUTHENTICATION_HEADERS_USERNAME));
-                    String firstName = request.getHeader(studioConfiguration.getProperty(AUTHENTICATION_HEADERS_FIRST_NAME));
-                    String lastName = request.getHeader(studioConfiguration.getProperty(AUTHENTICATION_HEADERS_LAST_NAME));
+                    String usernameHeader = request.getHeader(
+                            studioConfiguration.getProperty(AUTHENTICATION_HEADERS_USERNAME));
+                    String firstName = request.getHeader(
+                            studioConfiguration.getProperty(AUTHENTICATION_HEADERS_FIRST_NAME));
+                    String lastName = request.getHeader(
+                            studioConfiguration.getProperty(AUTHENTICATION_HEADERS_LAST_NAME));
                     String email = request.getHeader(studioConfiguration.getProperty(AUTHENTICATION_HEADERS_EMAIL));
                     String groups = request.getHeader(studioConfiguration.getProperty(AUTHENTICATION_HEADERS_GROUPS));
 
@@ -70,10 +87,12 @@ public class AuthenticationHeadersSecurityProvider extends DbWithLdapExtensionSe
                                     ActivityService.ActivityType activityType = ActivityService.ActivityType.UPDATED;
                                     Map<String, String> extraInfo = new HashMap<String, String>();
                                     extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
-                                    activityService.postActivity(getSystemSite(), usernameHeader, usernameHeader, activityType, ActivityService.ActivitySource.UI, extraInfo);
+                                    activityService.postActivity(getSystemSite(), usernameHeader, usernameHeader,
+                                            activityType, ActivityService.ActivitySource.API, extraInfo);
                                 }
                             } catch (UserNotFoundException e) {
-                                logger.error("Error updating user " + username + " with data from authentication headers", e);
+                                logger.error("Error updating user " + username
+                                        + " with data from authentication headers", e);
 
                                 throw new AuthenticationSystemException("Error updating user " + username +
                                         " with data from external authentication provider", e);
@@ -87,12 +106,14 @@ public class AuthenticationHeadersSecurityProvider extends DbWithLdapExtensionSe
                                 ActivityService.ActivityType activityType = ActivityService.ActivityType.CREATED;
                                 Map<String, String> extraInfo = new HashMap<String, String>();
                                 extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
-                                activityService.postActivity(getSystemSite(), usernameHeader, usernameHeader, activityType, ActivityService.ActivitySource.UI, extraInfo);
+                                activityService.postActivity(getSystemSite(), usernameHeader, usernameHeader,
+                                        activityType, ActivityService.ActivitySource.API, extraInfo);
                             }
                         } catch (UserAlreadyExistsException e) {
                             logger.error("Error adding user " + username + " from authentication headers", e);
 
-                            throw new AuthenticationSystemException("Error adding user " + username + " from external authentication provider", e);
+                            throw new AuthenticationSystemException("Error adding user " + username
+                                    + " from external authentication provider", e);
                         }
                     }
 
@@ -122,8 +143,12 @@ public class AuthenticationHeadersSecurityProvider extends DbWithLdapExtensionSe
                                     user.getGroups().add(g);
                                     try {
                                         upsertUserGroup(siteId, g.getName(), usernameHeader);
-                                    } catch (GroupAlreadyExistsException | SiteNotFoundException | UserNotFoundException | UserAlreadyExistsException | GroupNotFoundException e) {
-                                        logger.error("Failed to upsert user groups data from authentication headers, site ID: " + siteId + " group: " + g.getName() + " username: " + usernameHeader, e);
+                                    } catch (GroupAlreadyExistsException | SiteNotFoundException |
+                                            UserNotFoundException | UserAlreadyExistsException |
+                                            GroupNotFoundException e) {
+                                        logger.error("Failed to upsert user groups data from authentication " +
+                                                "headers, site ID: " + siteId + " group: " + g.getName() +
+                                                " username: " + usernameHeader, e);
                                     }
                                 }
                             }
@@ -136,7 +161,8 @@ public class AuthenticationHeadersSecurityProvider extends DbWithLdapExtensionSe
                     return token;
                 }
             }
-            logger.debug("Unable to authenticate user using authentication headers. Switching to other security provider(s).");
+            logger.debug("Unable to authenticate user using authentication headers. " +
+                    "Switching to other security provider(s).");
             return super.authenticate(username, password);
         } else {
             logger.debug("Authentication using headers disabled. Switching to other security provider(s).");
