@@ -29,7 +29,7 @@
         http://www.springframework.org/schema/ldap
         http://www.springframework.org/schema/ldap/spring-ldap.xsd">
 
-    <security:http pattern="/api/**"
+    <security:http pattern="/**"
             entry-point-ref="studioAuthenticationEntryPoint"
             authentication-manager-ref="studioAuthenticationManager"
             access-decision-manager-ref="studioAccessDecisionManager"
