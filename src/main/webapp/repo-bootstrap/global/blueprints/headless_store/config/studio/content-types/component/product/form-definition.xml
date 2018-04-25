@@ -428,7 +428,7 @@
 					<properties>
 						<property>
 							<name>repoPath</name>
-							<value>/static-assets/images/products</value>
+							<value>/static-assets/item/images/products/{yyyy}/{mm}/{dd}/</value>
 								<type>undefined</type>
 						</property>
 					</properties>
