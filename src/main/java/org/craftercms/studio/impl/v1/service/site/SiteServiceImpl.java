@@ -963,7 +963,7 @@ public class SiteServiceImpl implements SiteService {
                 try {
                     logger.debug("Pushing site " + siteId + " to remote repository " + remoteName + " (" +
                             remoteUrl + ")");
-                    contentRepository.addRemote(siteId, remoteName, remoteUrl, remoteBranch, authenticationType,
+                    contentRepository.addRemote(siteId, remoteName, remoteUrl, authenticationType,
                             remoteUsername, remotePassword, remoteToken, remotePrivateKey);
                     contentRepository.createSitePushToRemote(siteId, remoteName, remoteUrl, authenticationType,
                             remoteUsername, remotePassword, remoteToken, remotePrivateKey);
@@ -1738,14 +1738,14 @@ public class SiteServiceImpl implements SiteService {
     }
 
     @Override
-    public boolean addRemote(String siteId, String remoteName, String remoteUrl, String remoteBranch,
+    public boolean addRemote(String siteId, String remoteName, String remoteUrl,
                              String authenticationType, String remoteUsername, String remotePassword,
                              String remoteToken, String remotePrivateKey)
             throws InvalidRemoteUrlException, ServiceException {
         if (!exists(siteId)) {
             throw new SiteNotFoundException();
         }
-        return contentRepository.addRemote(siteId, remoteName, remoteUrl, remoteBranch, authenticationType, remoteUsername,
+        return contentRepository.addRemote(siteId, remoteName, remoteUrl, authenticationType, remoteUsername,
                 remotePassword, remoteToken, remotePrivateKey);
     }
 
