@@ -998,10 +998,14 @@ public class SecurityServiceImpl implements SecurityService {
 
             UserDetails userDetails = this.userDetailsManager.loadUserByUsername(userName);
 
-            return (SessionTokenUtils.validateToken(authToken, userDetails.getUsername()));
+            if (SessionTokenUtils.validateToken(authToken, userDetails.getUsername())) {
+                return true;
+            }
 
         }
 
+        httpSession.removeAttribute(STUDIO_SESSION_TOKEN_ATRIBUTE);
+        httpSession.invalidate();
         return false;
     }
 
