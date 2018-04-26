@@ -1758,7 +1758,7 @@ public class SiteServiceImpl implements SiteService {
     }
 
     @Override
-    public List<RemoteRepositoryInfoTO> listRemote(String siteId) throws SiteNotFoundException {
+    public List<RemoteRepositoryInfoTO> listRemote(String siteId) throws ServiceException {
         if (!exists(siteId)) {
             throw new SiteNotFoundException();
         }

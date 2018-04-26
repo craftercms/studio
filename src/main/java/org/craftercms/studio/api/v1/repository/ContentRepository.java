@@ -418,7 +418,7 @@ public interface ContentRepository {
      * @param siteId site identifier
      * @return list of names of remote repositories
      */
-    List<RemoteRepositoryInfoTO> listRemote(String siteId);
+    List<RemoteRepositoryInfoTO> listRemote(String siteId) throws ServiceException;
 
     /**
      * Push content to remote repository

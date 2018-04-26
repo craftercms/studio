@@ -277,5 +277,5 @@ public interface SiteService {
      * @return list of names of remote repositories
      * @throws SiteNotFoundException
      */
-    List<RemoteRepositoryInfoTO> listRemote(String siteId) throws SiteNotFoundException;
+    List<RemoteRepositoryInfoTO> listRemote(String siteId) throws ServiceException;
 }
