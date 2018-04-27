@@ -257,7 +257,7 @@ public interface SiteService {
      * @param remotePrivateKey remote private key
      * @return true if operation was successful
      */
-    boolean addRemote(String siteId, String remoteName, String remoteUrl, String remoteBranch,
+    boolean addRemote(String siteId, String remoteName, String remoteUrl,
                       String authenticationType, String remoteUsername, String remotePassword, String remoteToken,
                       String remotePrivateKey)
             throws InvalidRemoteUrlException, ServiceException;
@@ -277,5 +277,5 @@ public interface SiteService {
      * @return list of names of remote repositories
      * @throws SiteNotFoundException
      */
-    List<RemoteRepositoryInfoTO> listRemote(String siteId) throws SiteNotFoundException;
+    List<RemoteRepositoryInfoTO> listRemote(String siteId) throws ServiceException;
 }

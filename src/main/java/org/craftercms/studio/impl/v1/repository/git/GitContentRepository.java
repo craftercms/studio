@@ -90,6 +90,7 @@ import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 import org.eclipse.jgit.api.CheckoutCommand;
 import org.eclipse.jgit.api.CreateBranchCommand;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.ListBranchCommand;
 import org.eclipse.jgit.api.PullCommand;
 import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.api.RemoteAddCommand;
@@ -1705,7 +1706,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey);
 
         if (toReturn) {
-            addRemote(siteId, remoteName, remoteUrl, remoteBranch, authenticationType, remoteUsername, remotePassword,
+            addRemote(siteId, remoteName, remoteUrl, authenticationType, remoteUsername, remotePassword,
                     remoteToken, remotePrivateKey);
             // update site name variable inside config files
             logger.debug("Update site name configuration variables for site " + siteId);
@@ -1817,7 +1818,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     @Override
-    public boolean addRemote(String siteId, String remoteName, String remoteUrl, String remoteBranch,
+    public boolean addRemote(String siteId, String remoteName, String remoteUrl,
                              String authenticationType, String remoteUsername, String remotePassword,
                              String remoteToken, String remotePrivateKey)
             throws InvalidRemoteUrlException, ServiceException {
@@ -1840,12 +1841,10 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             }
 
             logger.debug("Inserting remote " + remoteName + " for site " + siteId + " into database.");
-            String branchNameParam = StringUtils.isEmpty(remoteBranch) ? Constants.MASTER : remoteBranch;
             Map<String, String> params = new HashMap<String, String>();
             params.put("siteId", siteId);
             params.put("remoteName", remoteName);
             params.put("remoteUrl", remoteUrl);
-            params.put("remoteBranch", branchNameParam);
             params.put("authenticationType", authenticationType);
             params.put("remoteUsername", remoteUsername);
 
@@ -1903,59 +1902,116 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     @Override
-    public List<RemoteRepositoryInfoTO> listRemote(String siteId) {
+    public List<RemoteRepositoryInfoTO> listRemote(String siteId) throws ServiceException {
         List<RemoteRepositoryInfoTO> res = new ArrayList<RemoteRepositoryInfoTO>();
         try (Repository repo = helper.getRepository(siteId, SANDBOX)) {
 
             try (Git git = new Git(repo)) {
-                List<RemoteConfig> result = git.remoteList().call();
-                for (RemoteConfig conf : result) {
-                    RemoteRepositoryInfoTO rri = new RemoteRepositoryInfoTO();
-                    rri.setName(conf.getName());
-
-                    Map<String, String> params = new HashMap<String, String>();
-                    params.put("siteId", siteId);
-                    params.put("remoteName", rri.getName());
-                    RemoteRepository remoteRepository = remoteRepositoryMapper.getRemoteRepository(params);
-                    rri.setBranch(remoteRepository.getRemoteBranch());
-
-                    StringBuilder sbUrl = new StringBuilder();
-                    if (CollectionUtils.isNotEmpty(conf.getURIs())) {
-                        for (int i = 0; i < conf.getURIs().size(); i++) {
-                            sbUrl.append(conf.getURIs().get(i).toString());
-                            if (i < conf.getURIs().size() - 1) {
-                                sbUrl.append(":");
-                            }
+                List<RemoteConfig> resultRemotes = git.remoteList().call();
+                if (CollectionUtils.isNotEmpty(resultRemotes)) {
+                    for (RemoteConfig conf : resultRemotes) {
+                        Map<String, String> params = new HashMap<String, String>();
+                        params.put("siteId", siteId);
+                        params.put("remoteName", conf.getName());
+                        RemoteRepository remoteRepository = remoteRepositoryMapper.getRemoteRepository(params);
+                        switch (remoteRepository.getAuthenticationType()) {
+                            case RemoteRepository.AuthenticationType.NONE:
+                                logger.debug("No authentication");
+                                git.fetch().setRemote(conf.getName()).call();
+                                break;
+                            case RemoteRepository.AuthenticationType.BASIC:
+                                logger.debug("Basic authentication");
+                                String hashedPassword = remoteRepository.getRemotePassword();
+                                String password = encryptor.decrypt(hashedPassword);
+                                git.fetch().setRemote(conf.getName()).setCredentialsProvider(
+                                        new UsernamePasswordCredentialsProvider(
+                                                remoteRepository.getRemoteUsername(), password)).call();
+                                break;
+                            case RemoteRepository.AuthenticationType.TOKEN:
+                                logger.debug("Token based authentication");
+                                String hashedToken = remoteRepository.getRemoteToken();
+                                String remoteToken = encryptor.decrypt(hashedToken);
+                                git.fetch().setRemote(conf.getName()).setCredentialsProvider(
+                                        new UsernamePasswordCredentialsProvider(remoteToken, StringUtils.EMPTY)).call();
+                                break;
+                            case RemoteRepository.AuthenticationType.PRIVATE_KEY:
+                                logger.debug("Private key authentication");
+                                final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(),".tmp");
+                                String hashedPrivateKey = remoteRepository.getRemotePrivateKey();
+                                String privateKey = encryptor.decrypt(hashedPrivateKey);
+                                tempKey.toFile().deleteOnExit();
+                                git.fetch().setRemote(conf.getName()).setTransportConfigCallback(
+                                        new TransportConfigCallback() {
+                                    @Override
+                                    public void configure(Transport transport) {
+                                        SshTransport sshTransport = (SshTransport)transport;
+                                        sshTransport.setSshSessionFactory(getSshSessionFactory(privateKey, tempKey));
+                                    }
+                                }).call();
+                                Files.delete(tempKey);
+                                break;
+                            default:
+                                throw new ServiceException("Unsupported authentication type " +
+                                        remoteRepository.getAuthenticationType());
                         }
                     }
-                    rri.setUrl(sbUrl.toString());
+                    List<Ref> resultRemoteBranches = git.branchList()
+                            .setListMode(ListBranchCommand.ListMode.REMOTE)
+                            .call();
+                    Map<String, List<String>> remoteBranches = new HashMap<String, List<String>>();
+                    for (Ref remoteBranchRef : resultRemoteBranches) {
+                        String branchFullName = remoteBranchRef.getName().replace(Constants.R_REMOTES, "");
+                        String[] tokens = branchFullName.split("/");
+                        String remotePart = tokens[0];
+                        String branchNamePart = tokens[1];
+                        if (!remoteBranches.containsKey(remotePart)) {
+                            remoteBranches.put(remotePart, new ArrayList<String>());
+                        }
+                        remoteBranches.get(remotePart).add(branchNamePart);
+                    }
+                    for (RemoteConfig conf : resultRemotes) {
+                        RemoteRepositoryInfoTO rri = new RemoteRepositoryInfoTO();
+                        rri.setName(conf.getName());
+                        rri.setBranches(remoteBranches.get(rri.getName()));
 
-                    StringBuilder sbFetch = new StringBuilder();
-                    if (CollectionUtils.isNotEmpty(conf.getFetchRefSpecs())) {
-                        for (int i = 0; i < conf.getFetchRefSpecs().size(); i++) {
-                            sbFetch.append(conf.getFetchRefSpecs().get(i).toString());
-                            if (i < conf.getFetchRefSpecs().size() - 1) {
-                                sbFetch.append(":");
+                        StringBuilder sbUrl = new StringBuilder();
+                        if (CollectionUtils.isNotEmpty(conf.getURIs())) {
+                            for (int i = 0; i < conf.getURIs().size(); i++) {
+                                sbUrl.append(conf.getURIs().get(i).toString());
+                                if (i < conf.getURIs().size() - 1) {
+                                    sbUrl.append(":");
+                                }
                             }
                         }
-                    }
-                    rri.setFetch(sbFetch.toString());
+                        rri.setUrl(sbUrl.toString());
 
-                    StringBuilder sbPushUrl = new StringBuilder();
-                    if (CollectionUtils.isNotEmpty(conf.getPushURIs())) {
-                        for (int i = 0; i < conf.getPushURIs().size(); i++) {
-                            sbPushUrl.append(conf.getPushURIs().get(i).toString());
-                            if (i < conf.getPushURIs().size() - 1) {
-                                sbPushUrl.append(":");
+                        StringBuilder sbFetch = new StringBuilder();
+                        if (CollectionUtils.isNotEmpty(conf.getFetchRefSpecs())) {
+                            for (int i = 0; i < conf.getFetchRefSpecs().size(); i++) {
+                                sbFetch.append(conf.getFetchRefSpecs().get(i).toString());
+                                if (i < conf.getFetchRefSpecs().size() - 1) {
+                                    sbFetch.append(":");
+                                }
                             }
                         }
-                    } else {
-                        sbPushUrl.append(rri.getUrl());
+                        rri.setFetch(sbFetch.toString());
+
+                        StringBuilder sbPushUrl = new StringBuilder();
+                        if (CollectionUtils.isNotEmpty(conf.getPushURIs())) {
+                            for (int i = 0; i < conf.getPushURIs().size(); i++) {
+                                sbPushUrl.append(conf.getPushURIs().get(i).toString());
+                                if (i < conf.getPushURIs().size() - 1) {
+                                    sbPushUrl.append(":");
+                                }
+                            }
+                        } else {
+                            sbPushUrl.append(rri.getUrl());
+                        }
+                        rri.setPush_url(sbPushUrl.toString());
+                        res.add(rri);
                     }
-                    rri.setPush_url(sbPushUrl.toString());
-                    res.add(rri);
                 }
-            } catch (GitAPIException e) {
+            } catch (GitAPIException | CryptoException | IOException e) {
                 logger.error("Error getting remote repositories for site " + siteId, e);
             }
         }

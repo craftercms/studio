@@ -33,7 +33,6 @@ try {
     def siteId = parsedReq.site_id
     def remoteName = parsedReq.remote_name
     def remoteUrl = parsedReq.remote_url
-    def remoteBranch = parsedReq.remote_branch
     def authenticationType = parsedReq.authentication_type
     def remoteUsername = parsedReq.remote_username
     def remotePassword = parsedReq.remote_password
@@ -139,7 +138,7 @@ try {
         def context = SiteServices.createContext(applicationContext, request)
 
         try {
-            SiteServices.addRemote(context, siteId, remoteName, remoteUrl, remoteBranch, authenticationType,
+            SiteServices.addRemote(context, siteId, remoteName, remoteUrl, authenticationType,
                     remoteUsername, remotePassword, remoteToken, remotePrivateKey)
             response.setStatus(200)
             result.message = "OK"

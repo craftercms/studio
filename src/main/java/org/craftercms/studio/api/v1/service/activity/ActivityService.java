@@ -50,7 +50,7 @@ public interface ActivityService {
 	}
 
 	enum ActivitySource {
-	    UI,
+	    API,
         REPOSITORY
     }
 

@@ -543,7 +543,7 @@ public class ContentServiceImpl implements ContentService {
             Map<String, String> extraInfo = new HashMap<String, String>();
             extraInfo.put(DmConstants.KEY_CONTENT_TYPE, CONTENT_TYPE_FOLDER);
             activityService.postActivity(site, user, path + FILE_SEPARATOR + name, activityType,
-                    ActivityService.ActivitySource.UI, extraInfo);
+                    ActivityService.ActivitySource.API, extraInfo);
             // TODO: SJ: we're currently not keeping meta-data for folders and therefore nothing to update
             // TODO: SJ: rethink this for 3.1+
             toRet = true;
@@ -621,7 +621,7 @@ public class ContentServiceImpl implements ContentService {
             logger.debug("[DELETE] posting delete activity on " + path + " by " + user + " in " + site);
 
             activityService.postActivity(site, user, path, ActivityService.ActivityType.DELETED,
-                    ActivityService.ActivitySource.UI, extraInfo);
+                    ActivityService.ActivitySource.API, extraInfo);
             // process content life cycle
             if (path.endsWith(DmConstants.XML_PATTERN)) {
 
@@ -962,7 +962,7 @@ public class ContentServiceImpl implements ContentService {
         } else {
             extraInfo.put(DmConstants.KEY_CONTENT_TYPE, getContentTypeClass(site, movePath));
         }
-        activityService.postActivity(site, user, movePath, activityType, ActivityService.ActivitySource.UI, extraInfo);
+        activityService.postActivity(site, user, movePath, activityType, ActivityService.ActivitySource.API, extraInfo);
 
         updateDependenciesOnMove(site, fromPath, movePath);
     }
@@ -2408,7 +2408,7 @@ public class ContentServiceImpl implements ContentService {
         Map<String, String> extraInfo = new HashMap<String, String>();
         extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_SITE);
         activityService.postActivity(siteId, user, remoteName + "/" + remoteBranch , activityType,
-                ActivityService.ActivitySource.UI, extraInfo);
+                ActivityService.ActivitySource.API, extraInfo);
 
         return toRet;
     }
@@ -2426,7 +2426,7 @@ public class ContentServiceImpl implements ContentService {
         Map<String, String> extraInfo = new HashMap<String, String>();
         extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_SITE);
         activityService.postActivity(siteId, user, remoteName + "/" + remoteBranch , activityType,
-                ActivityService.ActivitySource.UI, extraInfo);
+                ActivityService.ActivitySource.API, extraInfo);
         
         return toRet;
     }

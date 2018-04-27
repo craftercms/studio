@@ -27,7 +27,6 @@ public class RemoteRepository implements Serializable {
     private String siteId;
     private String remoteName;
     private String remoteUrl;
-    private String remoteBranch;
     private String authenticationType;
     private String remoteUsername;
     private String remotePassword;
@@ -45,9 +44,6 @@ public class RemoteRepository implements Serializable {
 
     public String getRemoteUrl() { return remoteUrl; }
     public void setRemoteUrl(String remoteUrl) { this.remoteUrl = remoteUrl; }
-
-    public String getRemoteBranch() { return remoteBranch; }
-    public void setRemoteBranch(String remoteBranch) { this.remoteBranch = remoteBranch; }
 
     public String getAuthenticationType() { return authenticationType; }
     public void setAuthenticationType(String authenticationType) { this.authenticationType = authenticationType; }

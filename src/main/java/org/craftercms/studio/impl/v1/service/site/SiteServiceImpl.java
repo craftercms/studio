@@ -196,7 +196,7 @@ public class SiteServiceImpl implements SiteService {
         } else {
             extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_CONFIGURATION);
         }
-        activityService.postActivity(site, user, path, activityType, ActivityService.ActivitySource.UI, extraInfo);
+        activityService.postActivity(site, user, path, activityType, ActivityService.ActivitySource.API, extraInfo);
         objectStateService.transition(site, path, TransitionEvent.SAVE);
         if (!objectMetadataManager.metadataExist(site, path)) {
             objectMetadataManager.insertNewObjectMetadata(site, path);
@@ -527,7 +527,7 @@ public class SiteServiceImpl implements SiteService {
         Map<String, String> extraInfo = new HashMap<String, String>();
         extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_SITE);
         activityService.postActivity(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE), user,
-                siteId , activityType, ActivityService.ActivitySource.UI, extraInfo);
+                siteId , activityType, ActivityService.ActivitySource.API, extraInfo);
     }
 
     protected boolean createSiteFromBlueprintGit(String blueprintName, String siteName, String siteId, String desc)
@@ -963,7 +963,7 @@ public class SiteServiceImpl implements SiteService {
                 try {
                     logger.debug("Pushing site " + siteId + " to remote repository " + remoteName + " (" +
                             remoteUrl + ")");
-                    contentRepository.addRemote(siteId, remoteName, remoteUrl, remoteBranch, authenticationType,
+                    contentRepository.addRemote(siteId, remoteName, remoteUrl, authenticationType,
                             remoteUsername, remotePassword, remoteToken, remotePrivateKey);
                     contentRepository.createSitePushToRemote(siteId, remoteName, remoteUrl, authenticationType,
                             remoteUsername, remotePassword, remoteToken, remotePrivateKey);
@@ -1167,7 +1167,7 @@ public class SiteServiceImpl implements SiteService {
         Map<String, String> extraInfo = new HashMap<String, String>();
         extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_SITE);
         activityService.postActivity(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE), user,
-                siteId , activityType, ActivityService.ActivitySource.UI, extraInfo);
+                siteId , activityType, ActivityService.ActivitySource.API, extraInfo);
     }
 
     private boolean destroySitePreviewContext(String site) {
@@ -1738,14 +1738,14 @@ public class SiteServiceImpl implements SiteService {
     }
 
     @Override
-    public boolean addRemote(String siteId, String remoteName, String remoteUrl, String remoteBranch,
+    public boolean addRemote(String siteId, String remoteName, String remoteUrl,
                              String authenticationType, String remoteUsername, String remotePassword,
                              String remoteToken, String remotePrivateKey)
             throws InvalidRemoteUrlException, ServiceException {
         if (!exists(siteId)) {
             throw new SiteNotFoundException();
         }
-        return contentRepository.addRemote(siteId, remoteName, remoteUrl, remoteBranch, authenticationType, remoteUsername,
+        return contentRepository.addRemote(siteId, remoteName, remoteUrl, authenticationType, remoteUsername,
                 remotePassword, remoteToken, remotePrivateKey);
     }
 
@@ -1758,7 +1758,7 @@ public class SiteServiceImpl implements SiteService {
     }
 
     @Override
-    public List<RemoteRepositoryInfoTO> listRemote(String siteId) throws SiteNotFoundException {
+    public List<RemoteRepositoryInfoTO> listRemote(String siteId) throws ServiceException {
         if (!exists(siteId)) {
             throw new SiteNotFoundException();
         }

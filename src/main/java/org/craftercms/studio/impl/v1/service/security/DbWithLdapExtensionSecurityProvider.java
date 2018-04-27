@@ -25,7 +25,12 @@ import org.craftercms.studio.api.v1.dal.Group;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.dal.User;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.craftercms.studio.api.v1.exception.security.*;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationSystemException;
+import org.craftercms.studio.api.v1.exception.security.BadCredentialsException;
+import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
+import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.activity.ActivityService;
@@ -50,7 +55,16 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.*;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_LDAP_DEFAULT_SITE_ID;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_LDAP_USER_ATTRIBUTE_EMAIL;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_LDAP_USER_ATTRIBUTE_FIRST_NAME;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_LDAP_USER_ATTRIBUTE_GROUP_NAME;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_LDAP_USER_ATTRIBUTE_GROUP_NAME_MATCH_INDEX;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_LDAP_USER_ATTRIBUTE_GROUP_NAME_REGEX;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_LDAP_USER_ATTRIBUTE_LAST_NAME;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_LDAP_USER_ATTRIBUTE_SITE_ID;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_LDAP_USER_ATTRIBUTE_USERNAME;
 import static org.springframework.ldap.query.LdapQueryBuilder.query;
 
 public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
@@ -58,7 +72,8 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
     private final static Logger logger = LoggerFactory.getLogger(DbWithLdapExtensionSecurityProvider.class);
 
     @Override
-    public String authenticate(String username, String password) throws BadCredentialsException, AuthenticationSystemException {
+    public String authenticate(String username, String password)
+            throws BadCredentialsException, AuthenticationSystemException {
 
         // Mapper for user data if user is successfully authenticated
         AuthenticatedLdapEntryContextMapper<User> mapper = new AuthenticatedLdapEntryContextMapper<User>() {
@@ -66,13 +81,16 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
             public User mapWithContext(DirContext dirContext, LdapEntryIdentification ldapEntryIdentification) {
                 try {
                     // User entry - extract attributes
-                    DirContextOperations dirContextOperations = (DirContextOperations)dirContext.lookup(ldapEntryIdentification.getRelativeName());
+                    DirContextOperations dirContextOperations =
+                            (DirContextOperations)dirContext.lookup(ldapEntryIdentification.getRelativeName());
                     Attributes attributes = dirContextOperations.getAttributes();
                     String emailAttribName = studioConfiguration.getProperty(SECURITY_LDAP_USER_ATTRIBUTE_EMAIL);
-                    String firstNameAttribName = studioConfiguration.getProperty(SECURITY_LDAP_USER_ATTRIBUTE_FIRST_NAME);
+                    String firstNameAttribName =
+                            studioConfiguration.getProperty(SECURITY_LDAP_USER_ATTRIBUTE_FIRST_NAME);
                     String lastNameAttribName = studioConfiguration.getProperty(SECURITY_LDAP_USER_ATTRIBUTE_LAST_NAME);
                     String siteIdAttribName = studioConfiguration.getProperty(SECURITY_LDAP_USER_ATTRIBUTE_SITE_ID);
-                    String groupNameAttribName = studioConfiguration.getProperty(SECURITY_LDAP_USER_ATTRIBUTE_GROUP_NAME);
+                    String groupNameAttribName =
+                            studioConfiguration.getProperty(SECURITY_LDAP_USER_ATTRIBUTE_GROUP_NAME);
                     Attribute emailAttrib = attributes.get(emailAttribName);
                     Attribute firstNameAttrib = attributes.get(firstNameAttribName);
                     Attribute lastNameAttrib = attributes.get(lastNameAttribName);
@@ -88,19 +106,21 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
                     if (emailAttrib != null && emailAttrib.get() != null) {
                         user.setEmail(emailAttrib.get().toString());
                     } else {
-                        logger.error("No LDAP attribute " + emailAttribName + " found for username " + username + ". User will " +
-                                     "not be imported into DB.");
+                        logger.error("No LDAP attribute " + emailAttribName + " found for username "
+                                + username + ". User will " + "not be imported into DB.");
                         return null;
                     }
                     if (firstNameAttrib != null && firstNameAttrib.get() != null) {
                         user.setFirstname(firstNameAttrib.get().toString());
                     } else {
-                        logger.warn("No LDAP attribute " + firstNameAttribName + " found for username " + username);
+                        logger.warn("No LDAP attribute " + firstNameAttribName + " found for username "
+                                + username);
                     }
                     if (lastNameAttrib != null && lastNameAttrib.get() != null) {
                         user.setLastname(lastNameAttrib.get().toString());
                     } else {
-                        logger.warn("No LDAP attribute " + lastNameAttribName + " found for username " + username);
+                        logger.warn("No LDAP attribute " + lastNameAttribName + " found for username "
+                                + username);
                     }
 
                     String siteId;
@@ -120,7 +140,8 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
                                         while (groupAttribValues.hasMore()) {
                                             Object groupNameObj = groupAttribValues.next();
                                             if (groupNameObj != null) {
-                                                String groupName = extractGroupNameFromAttributeValue(groupNameObj.toString());
+                                                String groupName =
+                                                        extractGroupNameFromAttributeValue(groupNameObj.toString());
                                                 if (StringUtils.isNotEmpty(groupName)) {
                                                     Group g = new Group();
                                                     g.setName(groupName);
@@ -133,7 +154,8 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
                                             }
                                         }
                                     } else {
-                                        logger.warn("No LDAP attribute " + groupNameAttribName + " found for username " + username);
+                                        logger.warn("No LDAP attribute " + groupNameAttribName
+                                                + " found for username " + username);
                                     }
                                 }
                             }
@@ -163,10 +185,12 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
                                     }
                                 }
                             } else {
-                                logger.warn("No LDAP attribute " + groupNameAttribName + " found for username " + username);
+                                logger.warn("No LDAP attribute " + groupNameAttribName + " found for username "
+                                        + username);
                             }
                         } else {
-                            logger.warn("No LDAP attribute " + siteIdAttribName + " found for username " + username);
+                            logger.warn("No LDAP attribute " + siteIdAttribName + " found for username "
+                                    + username);
                         }
                     }
 
@@ -180,16 +204,19 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
         };
 
         // Create ldap query to authenticate user
-        LdapQuery ldapQuery = query().where(studioConfiguration.getProperty(SECURITY_LDAP_USER_ATTRIBUTE_USERNAME)).is(username);
+        LdapQuery ldapQuery = query()
+                .where(studioConfiguration.getProperty(SECURITY_LDAP_USER_ATTRIBUTE_USERNAME)).is(username);
         User user;
         try {
             user = ldapTemplate.authenticate(ldapQuery, password, mapper);
         } catch (EmptyResultDataAccessException e) {
-            logger.info("User " + username + " not found with external security provider. Trying to authenticate against studio database");
+            logger.info("User " + username +
+                    " not found with external security provider. Trying to authenticate against studio database");
             // When user not found try to authenticate against studio database
             return super.authenticate(username, password);
         } catch (CommunicationException e) {
-            logger.info("Failed to connect with external security provider. Trying to authenticate against studio database");
+            logger.info("Failed to connect with external security provider. " +
+                    "Trying to authenticate against studio database");
             // When user not found try to authenticate against studio database
             return super.authenticate(username, password);
         } catch (AuthenticationException e) {
@@ -207,32 +234,38 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
             boolean toRet = true;
             if (super.userExists(username)) {
                 try {
-                    boolean success = updateUserInternal(user.getUsername(), user.getFirstname(), user.getLastname(), user.getEmail());
+                    boolean success = updateUserInternal(user.getUsername(), user.getFirstname(), user.getLastname(),
+                            user.getEmail());
                     if (success) {
                         ActivityService.ActivityType activityType = ActivityService.ActivityType.UPDATED;
                         Map<String, String> extraInfo = new HashMap<String, String>();
                         extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
-                        activityService.postActivity(getSystemSite(), user.getUsername(), user.getUsername(), activityType, ActivityService.ActivitySource.UI, extraInfo);
+                        activityService.postActivity(getSystemSite(), user.getUsername(), user.getUsername(),
+                                activityType, ActivityService.ActivitySource.API, extraInfo);
                     }
                 } catch (UserNotFoundException e) {
-                    logger.error("Error updating user " + username + " with data from external authentication provider", e);
+                    logger.error("Error updating user " + username
+                            + " with data from external authentication provider", e);
 
                     throw new AuthenticationSystemException("Error updating user " + username +
                                                             " with data from external authentication provider", e);
                 }
             } else {
                 try {
-                    boolean success = createUser(user.getUsername(), password, user.getFirstname(), user.getLastname(), user.getEmail(), true);
+                    boolean success = createUser(user.getUsername(), password, user.getFirstname(), user.getLastname(),
+                            user.getEmail(), true);
                     if (success) {
                         ActivityService.ActivityType activityType = ActivityService.ActivityType.CREATED;
                         Map<String, String> extraInfo = new HashMap<String, String>();
                         extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
-                        activityService.postActivity(getSystemSite(), user.getUsername(), user.getUsername(), activityType, ActivityService.ActivitySource.UI, extraInfo);
+                        activityService.postActivity(getSystemSite(), user.getUsername(), user.getUsername(),
+                                activityType, ActivityService.ActivitySource.API, extraInfo);
                     }
                 } catch (UserAlreadyExistsException e) {
                     logger.error("Error adding user " + username + " from external authentication provider", e);
 
-                    throw new AuthenticationSystemException("Error adding user " + username + " from external authentication provider", e);
+                    throw new AuthenticationSystemException("Error adding user " + username
+                            + " from external authentication provider", e);
                 }
             }
             for (Group group : user.getGroups()) {
@@ -257,16 +290,19 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
     }
 
     private String extractGroupNameFromAttributeValue(String groupAttributeValue) {
-        Pattern pattern = Pattern.compile(studioConfiguration.getProperty(SECURITY_LDAP_USER_ATTRIBUTE_GROUP_NAME_REGEX));
+        Pattern pattern =
+                Pattern.compile(studioConfiguration.getProperty(SECURITY_LDAP_USER_ATTRIBUTE_GROUP_NAME_REGEX));
         Matcher matcher = pattern.matcher(groupAttributeValue);
         if (matcher.matches()) {
-            int index = Integer.parseInt(studioConfiguration.getProperty(SECURITY_LDAP_USER_ATTRIBUTE_GROUP_NAME_MATCH_INDEX));
+            int index = Integer.parseInt(
+                    studioConfiguration.getProperty(SECURITY_LDAP_USER_ATTRIBUTE_GROUP_NAME_MATCH_INDEX));
             return matcher.group(index);
         }
         return StringUtils.EMPTY;
     }
 
-    protected boolean updateUserInternal(String username, String firstName, String lastName, String email) throws UserNotFoundException {
+    protected boolean updateUserInternal(String username, String firstName, String lastName, String email)
+            throws UserNotFoundException {
         if (!userExists(username)) {
             throw new UserNotFoundException();
         } else {
@@ -281,8 +317,9 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
         }
     }
 
-    protected boolean upsertUserGroup(String siteId, String groupName, String username) throws GroupAlreadyExistsException,
-        SiteNotFoundException, UserNotFoundException, UserAlreadyExistsException, GroupNotFoundException {
+    protected boolean upsertUserGroup(String siteId, String groupName, String username)
+            throws GroupAlreadyExistsException, SiteNotFoundException, UserNotFoundException,
+            UserAlreadyExistsException, GroupNotFoundException {
         if (!groupExists(siteId, groupName)) {
            createGroup(groupName, "Externally managed group", siteId, true);
         }
@@ -292,7 +329,8 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
                 ActivityService.ActivityType activityType = ActivityService.ActivityType.ADD_USER_TO_GROUP;
                 Map<String, String> extraInfo = new HashMap<String, String>();
                 extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
-                activityService.postActivity(siteId, "LDAP", username + " > " + groupName , activityType, ActivityService.ActivitySource.UI, extraInfo);
+                activityService.postActivity(siteId, "LDAP", username + " > " + groupName , activityType,
+                        ActivityService.ActivitySource.API, extraInfo);
             }
         }
         return true;
