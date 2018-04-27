@@ -46,7 +46,10 @@ public interface ActivityService {
         CREATE_SITE,
         DELETE_SITE,
         PUSH_TO_REMOTE,
-        PULL_FROM_REMOTE
+        PULL_FROM_REMOTE,
+        REQUEST_PUBLISH,
+        APPROVE,
+        REJECT
 	}
 
 	enum ActivitySource {
@@ -63,7 +66,8 @@ public interface ActivityService {
 	 * 			identifies the content that this activity is related to
 	 * @param activity
 	 */
-	void postActivity(String site, String user, String key, ActivityType activity, ActivitySource source, Map<String, String> extraInfo);
+	void postActivity(String site, String user, String key, ActivityType activity, ActivitySource source,
+                      Map<String, String> extraInfo);
 
 	void renameContentId(String site, String oldUrl, String newUrl);
 
@@ -80,7 +84,8 @@ public interface ActivityService {
 	 * @return a list of activities
 	 * @throws org.craftercms.studio.api.v1.exception.ServiceException
 	 */
-	List<ContentItemTO> getActivities(String site, String user, int num, String sort, boolean ascending, boolean excludeLive, String filterType) throws ServiceException;
+	List<ContentItemTO> getActivities(String site, String user, int num, String sort, boolean ascending,
+                                      boolean excludeLive, String filterType) throws ServiceException;
 
 	/**
 	 * Get activity for deleted content
@@ -105,7 +110,8 @@ public interface ActivityService {
      * @return audit list
      * @throws SiteNotFoundException
      */
-    List<AuditFeed> getAuditLogForSite(String site, int start, int number, String user, List<String> actions) throws SiteNotFoundException;
+    List<AuditFeed> getAuditLogForSite(String site, int start, int number, String user, List<String> actions)
+            throws SiteNotFoundException;
 
     long getAuditLogForSiteTotal(String site, String user, List<String> actions) throws SiteNotFoundException;
 }

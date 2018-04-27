@@ -48,6 +48,7 @@ import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
+import org.craftercms.studio.api.v1.service.activity.ActivityService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
@@ -142,15 +143,19 @@ public class WorkflowServiceImpl implements WorkflowService {
     protected ObjectMetadataManager objectMetadataManager;
     protected NotificationService notificationService;
     protected StudioConfiguration studioConfiguration;
+    protected ActivityService activityService;
 
     @Override
     @ValidateParams
-    public ResultTO submitToGoLive(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "username") String username, String request) throws ServiceException {
+    public ResultTO submitToGoLive(@ValidateStringParam(name = "site") String site,
+                                   @ValidateStringParam(name = "username") String username,
+                                   String request) throws ServiceException {
         return submitForApproval(site, username, request, false);
     }
 
     @SuppressWarnings("unchecked")
-    protected ResultTO submitForApproval(final String site, String submittedBy, final String request, final boolean delete) throws ServiceException {
+    protected ResultTO submitForApproval(final String site, String submittedBy, final String request,
+                                         final boolean delete) throws ServiceException {
         RequestContext requestContext = RequestContextBuilder.buildSubmitContext(site, submittedBy);
         ResultTO result = new ResultTO();
         try {
@@ -163,14 +168,18 @@ public class WorkflowServiceImpl implements WorkflowService {
                     objectStateService.setSystemProcessing(site, items.optString(index), true);
                 }
             }
-            boolean isNow = (requestObject.containsKey(JSON_KEY_IS_NOW)) ? requestObject.getBoolean(JSON_KEY_IS_NOW) : false;
+            boolean isNow = (requestObject.containsKey(JSON_KEY_IS_NOW)) ?
+                    requestObject.getBoolean(JSON_KEY_IS_NOW) : false;
             ZonedDateTime scheduledDate = null;
             if (!isNow) {
-                scheduledDate = (requestObject.containsKey(JSON_KEY_SCHEDULED_DATE)) ? getScheduledDate(site, format, requestObject.getString(JSON_KEY_SCHEDULED_DATE)) : null;
+                scheduledDate = (requestObject.containsKey(JSON_KEY_SCHEDULED_DATE)) ?
+                        getScheduledDate(site, format, requestObject.getString(JSON_KEY_SCHEDULED_DATE)) : null;
             }
-            boolean sendEmail = (requestObject.containsKey(JSON_KEY_SEND_EMAIL)) ? requestObject.getBoolean(JSON_KEY_SEND_EMAIL) : false;
+            boolean sendEmail = (requestObject.containsKey(JSON_KEY_SEND_EMAIL)) ?
+                    requestObject.getBoolean(JSON_KEY_SEND_EMAIL) : false;
 
-            String submissionComment = (requestObject != null && requestObject.containsKey(JSON_KEY_SUBMISSION_COMMENT)) ? requestObject.getString(JSON_KEY_SUBMISSION_COMMENT) : null;
+            String submissionComment = (requestObject != null && requestObject.containsKey(JSON_KEY_SUBMISSION_COMMENT))
+                    ? requestObject.getString(JSON_KEY_SUBMISSION_COMMENT) : null;
             // TODO: check scheduled date to make sure it is not null when isNow
             // = true and also it is not past
 
@@ -183,7 +192,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                 List<DmDependencyTO> submittedItems = new ArrayList<DmDependencyTO>();
                 for (int index = 0; index < length; index++) {
                     String stringItem = items.optString(index);
-                    DmDependencyTO submittedItem = getSubmittedItem(site, stringItem, format, schDate, null);
+                    DmDependencyTO submittedItem = getSubmittedItem(site, stringItem, format, schDate,null);
                     String user = submittedBy;
                     submittedItems.add(submittedItem);
                     if (delete) {
@@ -204,7 +213,10 @@ public class WorkflowServiceImpl implements WorkflowService {
                         objectStateService.setSystemProcessing(site, dep.getUri(), true);
                     }
                 }
-                List<DmError> errors = submitToGoLive(submittedItems, scheduledDate, sendEmail, delete, requestContext, submissionComment);
+                List<DmError> errors = submitToGoLive(submittedItems, scheduledDate, sendEmail, delete, requestContext,
+                        submissionComment);
+                generateWorkflowActivity(site, submittedPaths, submittedBy,
+                        ActivityService.ActivityType.REQUEST_PUBLISH);
                 result.setSuccess(true);
                 result.setStatus(200);
                 result.setMessage(notificationService.getNotificationMessage(site, NotificationMessageType
@@ -222,7 +234,9 @@ public class WorkflowServiceImpl implements WorkflowService {
 
     }
 
-    protected List<DmError> submitToGoLive(List<DmDependencyTO> submittedItems, ZonedDateTime scheduledDate, boolean sendEmail, boolean submitForDeletion, RequestContext requestContext, String submissionComment) throws ServiceException {
+    protected List<DmError> submitToGoLive(List<DmDependencyTO> submittedItems, ZonedDateTime scheduledDate,
+                                           boolean sendEmail, boolean submitForDeletion, RequestContext requestContext,
+                                           String submissionComment) throws ServiceException {
         List<DmError> errors = new ArrayList<DmError>();
         String site = requestContext.getSite();
         String submittedBy = requestContext.getUser();
@@ -231,12 +245,14 @@ public class WorkflowServiceImpl implements WorkflowService {
                 DependencyRules rule = new DependencyRules(site);
                 rule.setContentService(contentService);
                 rule.setObjectStateService(objectStateService);
-                submitThisAndReferredComponents(submittedItem, site, scheduledDate, sendEmail, submitForDeletion, submittedBy, rule, submissionComment);
+                submitThisAndReferredComponents(submittedItem, site, scheduledDate, sendEmail, submitForDeletion,
+                        submittedBy, rule, submissionComment);
                 List<DmDependencyTO> children = submittedItem.getChildren();
                 if (children != null && !submitForDeletion) {
                     for (DmDependencyTO child : children) {
                         if (!child.isReference()) {
-                            submitThisAndReferredComponents(child, site, scheduledDate, sendEmail, submitForDeletion, submittedBy, rule, submissionComment);
+                            submitThisAndReferredComponents(child, site, scheduledDate, sendEmail, submitForDeletion,
+                                    submittedBy, rule, submissionComment);
                         }
                     }
                 }
@@ -244,7 +260,8 @@ public class WorkflowServiceImpl implements WorkflowService {
                 errors.add(new DmError(site, submittedItem.getUri(), e));
             }
         }
-        notificationService.notifyApprovesContentSubmission(site,null,getDeploymentPaths(submittedItems),submittedBy,scheduledDate,
+        notificationService.notifyApprovesContentSubmission(site,null,getDeploymentPaths(submittedItems),
+                submittedBy,scheduledDate,
                 submitForDeletion,submissionComment,Locale.ENGLISH);
         return errors;
     }
@@ -257,10 +274,11 @@ public class WorkflowServiceImpl implements WorkflowService {
         return paths;
     }
 
-    protected void submitThisAndReferredComponents(DmDependencyTO submittedItem, String site, ZonedDateTime scheduledDate,
-                                                   boolean sendEmail, boolean submitForDeletion, String submittedBy,
-                                                   DependencyRules rule, String submissionComment) throws
-                                                   ServiceException {
+    protected void submitThisAndReferredComponents(DmDependencyTO submittedItem, String site,
+                                                   ZonedDateTime scheduledDate, boolean sendEmail,
+                                                   boolean submitForDeletion, String submittedBy,
+                                                   DependencyRules rule, String submissionComment)
+            throws ServiceException {
         doSubmit(site, submittedItem, scheduledDate, sendEmail, submitForDeletion, submittedBy, true,
             submissionComment);
         Set<DmDependencyTO> stringSet;
@@ -279,11 +297,14 @@ public class WorkflowServiceImpl implements WorkflowService {
                 .isAsset()));
             lnotifyAdmin = (!contentItem.isDocument() && !contentItem.isComponent() && !contentItem.isAsset());
             // notify admin will always be true, unless for dependent document/banner/other-files
-            doSubmit(site, s, scheduledDate, lsendEmail, submitForDeletion, submittedBy, lnotifyAdmin, submissionComment);
+            doSubmit(site, s, scheduledDate, lsendEmail, submitForDeletion, submittedBy, lnotifyAdmin,
+                    submissionComment);
         }
     }
 
-    protected void doSubmit(final String site, final DmDependencyTO dependencyTO, final ZonedDateTime scheduledDate, final boolean sendEmail, final boolean submitForDeletion, final String user, final boolean notifyAdmin, final String submissionComment) throws ServiceException {
+    protected void doSubmit(final String site, final DmDependencyTO dependencyTO, final ZonedDateTime scheduledDate,
+                            final boolean sendEmail, final boolean submitForDeletion, final String user,
+                            final boolean notifyAdmin, final String submissionComment) throws ServiceException {
         //first remove from workflow
         removeFromWorkflow(site, dependencyTO.getUri(), true);
         ContentItemTO item = contentService.getContentItem(site, dependencyTO.getUri());
@@ -312,7 +333,9 @@ public class WorkflowServiceImpl implements WorkflowService {
 
     @Override
     @ValidateParams
-    public void submitToGoLive(@ValidateStringParam(name = "site") String site, List<String> paths, ZonedDateTime scheduledDate, boolean sendApprovedNotice, @ValidateStringParam(name = "submitter") String submitter) {
+    public void submitToGoLive(@ValidateStringParam(name = "site") String site, List<String> paths,
+                               ZonedDateTime scheduledDate, boolean sendApprovedNotice,
+                               @ValidateStringParam(name = "submitter") String submitter) {
 		/*
 		// this needs to be gutted an re-written as workflow handlers that rely on services like dependency, state, content repository
 		// that use the appropriate DAL objects.  Now is not the time to pull the thread on that sweater :-/
@@ -321,7 +344,9 @@ public class WorkflowServiceImpl implements WorkflowService {
 
     @Override
     @ValidateParams
-    public Map<String, Object> getGoLiveItems(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "sort") String sort, boolean ascending) throws ServiceException {
+    public Map<String, Object> getGoLiveItems(@ValidateStringParam(name = "site") String site,
+                                              @ValidateStringParam(name = "sort") String sort, boolean ascending)
+            throws ServiceException {
         DmContentItemComparator comparator = new DmContentItemComparator(sort, ascending, false, false);
         List<ContentItemTO> items = getGoLiveItems(site, comparator);
 
@@ -339,7 +364,8 @@ public class WorkflowServiceImpl implements WorkflowService {
         return result;
     }
 
-    protected List<ContentItemTO> getGoLiveItems(final String site, final DmContentItemComparator comparator) throws ServiceException {
+    protected List<ContentItemTO> getGoLiveItems(final String site, final DmContentItemComparator comparator)
+            throws ServiceException {
         List<String> displayPatterns = servicesConfig.getDisplayInWidgetPathPatterns(site);
         List<ContentItemTO> categoryItems = getCategoryItems(site);
         GoLiveQueue queue = new GoLiveQueue();
@@ -352,7 +378,8 @@ public class WorkflowServiceImpl implements WorkflowService {
             if (queueItem.getLastEditDate() != null) {
                 queueItem.setEventDate(queueItem.getLastEditDate());
             }
-            goLiveQueueOrganizer.addToGoLiveItems(site, queueItem, categoryItems, comparator, false, displayPatterns);
+            goLiveQueueOrganizer.addToGoLiveItems(site, queueItem, categoryItems, comparator, false,
+                    displayPatterns);
         }
         return categoryItems;
     }
@@ -372,7 +399,8 @@ public class WorkflowServiceImpl implements WorkflowService {
             // if the flag to read direct children is set to true, get direct
             // child folders and add them as categories
             if (folder.isReadDirectChildren()) {
-                ContentItemTO rootItem = contentService.getContentItemTree(site, siteRootPrefix + folder.getPath(), 1);
+                ContentItemTO rootItem =
+                        contentService.getContentItemTree(site, siteRootPrefix + folder.getPath(), 1);
                 if (rootItem != null) {
                     if (rootItem.children != null) {
                         for (ContentItemTO childItem : rootItem.children) {
@@ -398,7 +426,8 @@ public class WorkflowServiceImpl implements WorkflowService {
 
     @Override
     @ValidateParams
-    public void fillQueue(@ValidateStringParam(name = "site") String site, GoLiveQueue goLiveQueue, GoLiveQueue inProcessQueue) throws ServiceException {
+    public void fillQueue(@ValidateStringParam(name = "site") String site, GoLiveQueue goLiveQueue,
+                          GoLiveQueue inProcessQueue) throws ServiceException {
         List<ItemState> changeSet = objectStateService.getSubmittedItems(site);
         // TODO: implement list changed all
 
@@ -410,7 +439,8 @@ public class WorkflowServiceImpl implements WorkflowService {
                 try {
                     if (contentService.contentExists( state.getSite(), state.getPath())) {
                         ContentItemTO item = contentService.getContentItem(state.getSite(), state.getPath(), 0);
-                        Set<String> permissions = securityService.getUserPermissions(site, item.getUri(), securityService.getCurrentUser(), Collections.<String>emptyList());
+                        Set<String> permissions = securityService.getUserPermissions(site, item.getUri(),
+                                securityService.getCurrentUser(), Collections.<String>emptyList());
                         if (permissions.contains(StudioConstants.PERMISSION_VALUE_PUBLISH)) {
                             addToQueue(site, goLiveQueue, inProcessQueue, item, state);
                         }
@@ -420,13 +450,15 @@ public class WorkflowServiceImpl implements WorkflowService {
                         objectMetadataManager.deleteObjectMetadata(site, state.getPath());
                     }
                 } catch (Exception e) {
-                    logger.error("Could not warm cache for [" + state.getSite() + " : " + state.getPath() + "] " + e.getMessage());
+                    logger.error("Could not warm cache for [" + state.getSite() + " : " + state.getPath() + "] "
+                            + e.getMessage());
                 }
             }
         }
     }
 
-    protected void addToQueue(String site, GoLiveQueue queue, GoLiveQueue inProcessQueue, ContentItemTO item, ItemState itemState) throws ServiceException {
+    protected void addToQueue(String site, GoLiveQueue queue, GoLiveQueue inProcessQueue, ContentItemTO item,
+                              ItemState itemState) throws ServiceException {
         if (item != null) {
             State state = State.valueOf(itemState.getState());
             //add only submitted items to go live Q.
@@ -447,8 +479,11 @@ public class WorkflowServiceImpl implements WorkflowService {
 
     @Override
     @ValidateParams
-    public Map<String, Object> getInProgressItems(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "sort") String sort, boolean ascending, boolean inProgressOnly) throws ServiceException {
-        DmContentItemComparator comparator = new DmContentItemComparator(sort, ascending, true, true);
+    public Map<String, Object> getInProgressItems(@ValidateStringParam(name = "site") String site,
+                                                  @ValidateStringParam(name = "sort") String sort, boolean ascending,
+                                                  boolean inProgressOnly) throws ServiceException {
+        DmContentItemComparator comparator =
+                new DmContentItemComparator(sort, ascending, true, true);
         comparator.setSecondLevelCompareRequired(true);
         comparator.setSecondLevelSortBy(DmContentItemComparator.SORT_PATH);
         List<ContentItemTO> items = getInProgressItems(site, comparator, inProgressOnly);
@@ -467,7 +502,8 @@ public class WorkflowServiceImpl implements WorkflowService {
         return result;
     }
 
-    protected List<ContentItemTO> getInProgressItems(final String site, final DmContentItemComparator comparator, final boolean inProgressOnly) throws ServiceException {
+    protected List<ContentItemTO> getInProgressItems(final String site, final DmContentItemComparator comparator,
+                                                     final boolean inProgressOnly) throws ServiceException {
         final List<ContentItemTO> categoryItems = new ArrayList<>();
 
         List<ContentItemTO>categoryItems1 = getCategoryItems(site);
@@ -500,7 +536,8 @@ public class WorkflowServiceImpl implements WorkflowService {
         return categoryItems;
     }
 
-    protected void addInProgressItems(String site, ContentItemTO item, List<ContentItemTO> categoryItems, DmContentItemComparator comparator, boolean inProgressOnly) {
+    protected void addInProgressItems(String site, ContentItemTO item, List<ContentItemTO> categoryItems,
+                                      DmContentItemComparator comparator, boolean inProgressOnly) {
         if (addToQueue(false, inProgressOnly, true)) {
             if (!(item.isSubmitted() || item.isInProgress())) {
                 return;
@@ -550,12 +587,15 @@ public class WorkflowServiceImpl implements WorkflowService {
 
     @Override
     @ValidateParams
-    public boolean removeFromWorkflow(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, boolean cancelWorkflow) throws ServiceException {
+    public boolean removeFromWorkflow(@ValidateStringParam(name = "site") String site,
+                                      @ValidateSecurePathParam(name = "path") String path, boolean cancelWorkflow)
+            throws ServiceException {
         Set<String> processedPaths = new HashSet<>();
         return removeFromWorkflow(site, path, processedPaths, cancelWorkflow);
     }
 
-    protected boolean removeFromWorkflow(String site,  String path, Set<String> processedPaths, boolean cancelWorkflow) throws ServiceException {
+    protected boolean removeFromWorkflow(String site,  String path, Set<String> processedPaths, boolean cancelWorkflow)
+            throws ServiceException {
         // remove submitted aspects from all dependent items
         if (!processedPaths.contains(path)) {
             processedPaths.add(path);
@@ -587,10 +627,13 @@ public class WorkflowServiceImpl implements WorkflowService {
                 }
                 paths.add(affectedItem);
             } catch (DeploymentException e) {
-                logger.error("Error occurred while trying to cancel workflow for path [" + affectedItem + "], site " + site, e);
+                logger.error("Error occurred while trying to cancel workflow for path [" + affectedItem
+                        + "], site " + site, e);
             }
         }
-        objectStateService.transitionBulk(site, paths, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.REJECT, State.NEW_UNPUBLISHED_UNLOCKED);
+        objectStateService.transitionBulk(site, paths,
+                org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.REJECT,
+                State.NEW_UNPUBLISHED_UNLOCKED);
     }
 
     protected List<String> getWorkflowAffectedPathsInternal(String site, String path) throws ServiceException {
@@ -626,7 +669,9 @@ public class WorkflowServiceImpl implements WorkflowService {
 
     @Override
     @ValidateParams
-    public List<ContentItemTO> getWorkflowAffectedPaths(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) throws ServiceException {
+    public List<ContentItemTO> getWorkflowAffectedPaths(@ValidateStringParam(name = "site") String site,
+                                                        @ValidateSecurePathParam(name = "path") String path)
+            throws ServiceException {
         List<String> affectedPaths = getWorkflowAffectedPathsInternal(site, path);
         return getWorkflowAffectedItems(site, affectedPaths);
     }
@@ -666,7 +711,8 @@ public class WorkflowServiceImpl implements WorkflowService {
      */
     @Override
     @ValidateParams
-    public ResultTO goDelete(@ValidateStringParam(name = "site") String site, String request, @ValidateStringParam(name = "user") String user) {
+    public ResultTO goDelete(@ValidateStringParam(name = "site") String site, String request,
+                             @ValidateStringParam(name = "user") String user) {
         return approve(site, request, Operation.DELETE);
     }
 
@@ -689,13 +735,20 @@ public class WorkflowServiceImpl implements WorkflowService {
             if (requestObject.containsKey(JSON_KEY_SCHEDULED_DATE)) {
                 scheduledDate = requestObject.getString(JSON_KEY_SCHEDULED_DATE);
             }
-            boolean isNow = (requestObject.containsKey(JSON_KEY_IS_NOW)) ? requestObject.getBoolean(JSON_KEY_IS_NOW) : false;
+            boolean isNow = (requestObject.containsKey(JSON_KEY_IS_NOW)) ?
+                    requestObject.getBoolean(JSON_KEY_IS_NOW) : false;
 
-            String publishChannelGroupName = (requestObject.containsKey(JSON_KEY_PUBLISH_CHANNEL)) ? requestObject.getString(JSON_KEY_PUBLISH_CHANNEL) : null;
+            String publishChannelGroupName = (requestObject.containsKey(JSON_KEY_PUBLISH_CHANNEL)) ?
+                    requestObject.getString(JSON_KEY_PUBLISH_CHANNEL) : null;
             JSONObject jsonObjectStatus = requestObject.getJSONObject(JSON_KEY_STATUS_SET);
-            String statusMessage = (jsonObjectStatus != null && jsonObjectStatus.containsKey(JSON_KEY_STATUS_MESSAGE)) ? jsonObjectStatus.getString(JSON_KEY_STATUS_MESSAGE) : null;
-            String submissionComment = (requestObject != null && requestObject.containsKey(JSON_KEY_SUBMISSION_COMMENT)) ? requestObject.getString(JSON_KEY_SUBMISSION_COMMENT) : "Test Go Live";
-            MultiChannelPublishingContext mcpContext = new MultiChannelPublishingContext(publishChannelGroupName, statusMessage, submissionComment);
+            String statusMessage =
+                    (jsonObjectStatus != null && jsonObjectStatus.containsKey(JSON_KEY_STATUS_MESSAGE)) ?
+                            jsonObjectStatus.getString(JSON_KEY_STATUS_MESSAGE) : null;
+            String submissionComment =
+                    (requestObject != null && requestObject.containsKey(JSON_KEY_SUBMISSION_COMMENT)) ?
+                            requestObject.getString(JSON_KEY_SUBMISSION_COMMENT) : "Test Go Live";
+            MultiChannelPublishingContext mcpContext = new MultiChannelPublishingContext(publishChannelGroupName,
+                    statusMessage, submissionComment);
 
             int length = items.size();
             if (length == 0) {
@@ -710,7 +763,8 @@ public class WorkflowServiceImpl implements WorkflowService {
                 DmDependencyTO submittedItem = null;
 
                 submittedItem = getSubmittedItem(site, stringItem, format, scheduledDate, null);
-                List<DmDependencyTO> submitForDeleteChildren = removeSubmitToDeleteChildrenForGoLive(submittedItem, operation);
+                List<DmDependencyTO> submitForDeleteChildren =
+                        removeSubmitToDeleteChildrenForGoLive(submittedItem, operation);
                 if (submittedItem.isReference()) {
                     submittedItem.setReference(false);
                 }
@@ -744,8 +798,10 @@ public class WorkflowServiceImpl implements WorkflowService {
                     }
 
                     if (!goLiveItems.isEmpty()) {
-                        List<DmDependencyTO> references = getRefAndChildOfDiffDateFromParent(site, goLiveItems, true);
-                        List<DmDependencyTO> children = getRefAndChildOfDiffDateFromParent(site, goLiveItems, false);
+                        List<DmDependencyTO> references =
+                                getRefAndChildOfDiffDateFromParent(site, goLiveItems, true);
+                        List<DmDependencyTO> children =
+                                getRefAndChildOfDiffDateFromParent(site, goLiveItems, false);
                         goLiveItems.addAll(references);
                         goLiveItems.addAll(children);
                         List<String> goLivePaths = new ArrayList<>();
@@ -773,7 +829,8 @@ public class WorkflowServiceImpl implements WorkflowService {
                         //Set proper information of all renameItems before send them to GoLive
                         for(int i=0;i<renameItems.size();i++){
                             DmDependencyTO renamedItem = renameItems.get(i);
-                            if (renamedItem.getScheduledDate() != null && renamedItem.getScheduledDate().isAfter(ZonedDateTime.now(ZoneOffset.UTC))) {
+                            if (renamedItem.getScheduledDate() != null &&
+                                    renamedItem.getScheduledDate().isAfter(ZonedDateTime.now(ZoneOffset.UTC))) {
                                 renamedItem.setNow(false);
                             } else {
                                 renamedItem.setNow(true);
@@ -834,13 +891,20 @@ public class WorkflowServiceImpl implements WorkflowService {
             if (requestObject.containsKey(JSON_KEY_SCHEDULED_DATE)) {
                 scheduledDate = requestObject.getString(JSON_KEY_SCHEDULED_DATE);
             }
-            boolean isNow = (requestObject.containsKey(JSON_KEY_IS_NOW)) ? requestObject.getBoolean(JSON_KEY_IS_NOW) : false;
+            boolean isNow = (requestObject.containsKey(JSON_KEY_IS_NOW)) ?
+                    requestObject.getBoolean(JSON_KEY_IS_NOW) : false;
 
-            String publishChannelGroupName = (requestObject.containsKey(JSON_KEY_PUBLISH_CHANNEL)) ? requestObject.getString(JSON_KEY_PUBLISH_CHANNEL) : null;
+            String publishChannelGroupName = (requestObject.containsKey(JSON_KEY_PUBLISH_CHANNEL)) ?
+                    requestObject.getString(JSON_KEY_PUBLISH_CHANNEL) : null;
             JSONObject jsonObjectStatus = requestObject.getJSONObject(JSON_KEY_STATUS_SET);
-            String statusMessage = (jsonObjectStatus != null && jsonObjectStatus.containsKey(JSON_KEY_STATUS_MESSAGE)) ? jsonObjectStatus.getString(JSON_KEY_STATUS_MESSAGE) : null;
-            String submissionComment = (requestObject != null && requestObject.containsKey(JSON_KEY_SUBMISSION_COMMENT)) ? requestObject.getString(JSON_KEY_SUBMISSION_COMMENT) : "Test Go Live";
-            MultiChannelPublishingContext mcpContext = new MultiChannelPublishingContext(publishChannelGroupName, statusMessage, submissionComment);
+            String statusMessage =
+                    (jsonObjectStatus != null && jsonObjectStatus.containsKey(JSON_KEY_STATUS_MESSAGE)) ?
+                            jsonObjectStatus.getString(JSON_KEY_STATUS_MESSAGE) : null;
+            String submissionComment =
+                    (requestObject != null && requestObject.containsKey(JSON_KEY_SUBMISSION_COMMENT)) ?
+                            requestObject.getString(JSON_KEY_SUBMISSION_COMMENT) : "Test Go Live";
+            MultiChannelPublishingContext mcpContext =
+                    new MultiChannelPublishingContext(publishChannelGroupName, statusMessage, submissionComment);
 
             int length = items.size();
             if (length == 0) {
@@ -858,7 +922,8 @@ public class WorkflowServiceImpl implements WorkflowService {
                 DmDependencyTO submittedItem = null;
 
                 submittedItem = getSubmittedItem_new(site, stringItem, format, scheduledDate);
-                List<DmDependencyTO> submitForDeleteChildren = removeSubmitToDeleteChildrenForGoLive(submittedItem, operation);
+                List<DmDependencyTO> submitForDeleteChildren =
+                        removeSubmitToDeleteChildrenForGoLive(submittedItem, operation);
                 if (submittedItem.isReference()) {
                     submittedItem.setReference(false);
                 }
@@ -891,17 +956,21 @@ public class WorkflowServiceImpl implements WorkflowService {
                     }
 
                     if (!goLiveItems.isEmpty()) {
-                        List<DmDependencyTO> references = getRefAndChildOfDiffDateFromParent_new(site, goLiveItems, true);
-                        List<DmDependencyTO> children = getRefAndChildOfDiffDateFromParent_new(site, goLiveItems, false);
+                        List<DmDependencyTO> references =
+                                getRefAndChildOfDiffDateFromParent_new(site, goLiveItems, true);
+                        List<DmDependencyTO> children =
+                                getRefAndChildOfDiffDateFromParent_new(site, goLiveItems, false);
                         goLiveItems.addAll(references);
                         goLiveItems.addAll(children);
-                        List<DmDependencyTO> dependencies = addDependenciesForSubmittedItems(site, submittedItems, format, scheduledDate);
+                        List<DmDependencyTO> dependencies =
+                                addDependenciesForSubmittedItems(site, submittedItems, format, scheduledDate);
                         goLiveItems.addAll(dependencies);
                         List<String> goLivePaths = new ArrayList<>();
                         for (DmDependencyTO goLiveItem : goLiveItems) {
                             goLivePaths.add(goLiveItem.getUri());
                         }
                         goLive(site, goLiveItems, approver, mcpContext);
+                        generateWorkflowActivity(site, goLivePaths, approver, ActivityService.ActivityType.APPROVE);
                     }
 
                     if (!renameItems.isEmpty()) {
@@ -920,7 +989,8 @@ public class WorkflowServiceImpl implements WorkflowService {
                         //Set proper information of all renameItems before send them to GoLive
                         for(int i=0;i<renameItems.size();i++){
                             DmDependencyTO renamedItem = renameItems.get(i);
-                            if (renamedItem.getScheduledDate() != null && renamedItem.getScheduledDate().isAfter(ZonedDateTime.now(ZoneOffset.UTC))) {
+                            if (renamedItem.getScheduledDate() != null &&
+                                    renamedItem.getScheduledDate().isAfter(ZonedDateTime.now(ZoneOffset.UTC))) {
                                 renamedItem.setNow(false);
                             } else {
                                 renamedItem.setNow(true);
@@ -940,6 +1010,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                         deletePaths.add(deletedItem.getUri());
                     }
                     doDelete(site, submittedItems, approver);
+                    generateWorkflowActivity(site, deletePaths, approver, ActivityService.ActivityType.APPROVE);
             }
             result.setSuccess(true);
             result.setStatus(200);
@@ -978,13 +1049,20 @@ public class WorkflowServiceImpl implements WorkflowService {
             if (requestObject.containsKey(JSON_KEY_SCHEDULED_DATE)) {
                 scheduledDate = requestObject.getString(JSON_KEY_SCHEDULED_DATE);
             }
-            boolean isNow = (requestObject.containsKey(JSON_KEY_IS_NOW)) ? requestObject.getBoolean(JSON_KEY_IS_NOW) : false;
+            boolean isNow = (requestObject.containsKey(JSON_KEY_IS_NOW)) ?
+                    requestObject.getBoolean(JSON_KEY_IS_NOW) : false;
 
-            String publishChannelGroupName = (requestObject.containsKey(JSON_KEY_PUBLISH_CHANNEL)) ? requestObject.getString(JSON_KEY_PUBLISH_CHANNEL) : null;
+            String publishChannelGroupName = (requestObject.containsKey(JSON_KEY_PUBLISH_CHANNEL)) ?
+                    requestObject.getString(JSON_KEY_PUBLISH_CHANNEL) : null;
             JSONObject jsonObjectStatus = requestObject.getJSONObject(JSON_KEY_STATUS_SET);
-            String statusMessage = (jsonObjectStatus != null && jsonObjectStatus.containsKey(JSON_KEY_STATUS_MESSAGE)) ? jsonObjectStatus.getString(JSON_KEY_STATUS_MESSAGE) : null;
-            String submissionComment = (requestObject != null && requestObject.containsKey(JSON_KEY_SUBMISSION_COMMENT)) ? requestObject.getString(JSON_KEY_SUBMISSION_COMMENT) : "Test Go Live";
-            MultiChannelPublishingContext mcpContext = new MultiChannelPublishingContext(publishChannelGroupName, statusMessage, submissionComment);
+            String statusMessage =
+                    (jsonObjectStatus != null && jsonObjectStatus.containsKey(JSON_KEY_STATUS_MESSAGE)) ?
+                            jsonObjectStatus.getString(JSON_KEY_STATUS_MESSAGE) : null;
+            String submissionComment =
+                    (requestObject != null && requestObject.containsKey(JSON_KEY_SUBMISSION_COMMENT)) ?
+                            requestObject.getString(JSON_KEY_SUBMISSION_COMMENT) : "Test Go Live";
+            MultiChannelPublishingContext mcpContext =
+                    new MultiChannelPublishingContext(publishChannelGroupName, statusMessage, submissionComment);
 
             int length = items.size();
             if (length == 0) {
@@ -1002,7 +1080,8 @@ public class WorkflowServiceImpl implements WorkflowService {
                 DmDependencyTO submittedItem = null;
 
                 submittedItem = getSubmittedItemApproveWithoutDependencies(site, stringItem, format, scheduledDate);
-                List<DmDependencyTO> submitForDeleteChildren = removeSubmitToDeleteChildrenForGoLive(submittedItem, operation);
+                List<DmDependencyTO> submitForDeleteChildren =
+                        removeSubmitToDeleteChildrenForGoLive(submittedItem, operation);
                 if (submittedItem.isReference()) {
                     submittedItem.setReference(false);
                 }
@@ -1036,12 +1115,6 @@ public class WorkflowServiceImpl implements WorkflowService {
                     }
 
                     if (!goLiveItems.isEmpty()) {
-                        //List<DmDependencyTO> references = getRefAndChildOfDiffDateFromParent_new(site, goLiveItems, true);
-                        //List<DmDependencyTO> children = getRefAndChildOfDiffDateFromParent_new(site, goLiveItems, false);
-                        //goLiveItems.addAll(references);
-                        //goLiveItems.addAll(children);
-                        //List<DmDependencyTO> dependencies = addDependenciesForSubmittedItems(site, submittedItems, format, scheduledDate);
-                        //goLiveItems.addAll(dependencies);
                         List<String> goLivePaths = new ArrayList<>();
                         Set<String> processedPaths = new HashSet<String>();
                         for (DmDependencyTO goLiveItem : goLiveItems) {
@@ -1066,7 +1139,8 @@ public class WorkflowServiceImpl implements WorkflowService {
                         //Set proper information of all renameItems before send them to GoLive
                         for(int i=0;i<renameItems.size();i++){
                             DmDependencyTO renamedItem = renameItems.get(i);
-                            if (renamedItem.getScheduledDate() != null && renamedItem.getScheduledDate().isAfter(ZonedDateTime.now(ZoneOffset.UTC))) {
+                            if (renamedItem.getScheduledDate() != null &&
+                                    renamedItem.getScheduledDate().isAfter(ZonedDateTime.now(ZoneOffset.UTC))) {
                                 renamedItem.setNow(false);
                             } else {
                                 renamedItem.setNow(true);
@@ -1117,7 +1191,8 @@ public class WorkflowServiceImpl implements WorkflowService {
      * @return submitted item
      * @throws net.sf.json.JSONException
      */
-    protected DmDependencyTO getSubmittedItem(String site, JSONObject item, SimpleDateFormat format, String globalSchDate) throws JSONException, ServiceException {
+    protected DmDependencyTO getSubmittedItem(String site, JSONObject item, SimpleDateFormat format,
+                                              String globalSchDate) throws JSONException, ServiceException {
         DmDependencyTO submittedItem = new DmDependencyTO();
         String uri = item.getString(JSON_KEY_URI);
         submittedItem.setUri(uri);
@@ -1125,7 +1200,9 @@ public class WorkflowServiceImpl implements WorkflowService {
         submittedItem.setDeleted(deleted);
         boolean isNow = (item.containsKey(JSON_KEY_IS_NOW)) ? item.getBoolean(JSON_KEY_IS_NOW) : false;
         submittedItem.setNow(isNow);
-        boolean submittedForDeletion = (item.containsKey(JSON_KEY_SUBMITTED_FOR_DELETION)) ? item.getBoolean(JSON_KEY_SUBMITTED_FOR_DELETION) : false;
+        boolean submittedForDeletion =
+                (item.containsKey(JSON_KEY_SUBMITTED_FOR_DELETION)) ?
+                        item.getBoolean(JSON_KEY_SUBMITTED_FOR_DELETION) : false;
         boolean submitted = (item.containsKey(JSON_KEY_SUBMITTED)) ? item.getBoolean(JSON_KEY_SUBMITTED) : false;
         boolean inProgress = (item.containsKey(JSON_KEY_IN_PROGRESS)) ? item.getBoolean(JSON_KEY_IN_PROGRESS) : false;
         boolean isReference = (item.containsKey(JSON_KEY_IN_REFERENCE)) ? item.getBoolean(JSON_KEY_IN_REFERENCE) : false;
@@ -1153,23 +1230,33 @@ public class WorkflowServiceImpl implements WorkflowService {
             submittedItem.setNow(true);
         }
         submittedItem.setScheduledDate(scheduledDate);
-        JSONArray components = (item.containsKey(JSON_KEY_COMPONENTS) && !item.getJSONObject(JSON_KEY_COMPONENTS).isNullObject()) ? item.getJSONArray(JSON_KEY_COMPONENTS) : null;
+        JSONArray components =
+                (item.containsKey(JSON_KEY_COMPONENTS) && !item.getJSONObject(JSON_KEY_COMPONENTS).isNullObject()) ?
+                item.getJSONArray(JSON_KEY_COMPONENTS) : null;
         List<DmDependencyTO> submittedComponents = getSubmittedItems(site, components, format, globalSchDate);
         submittedItem.setComponents(submittedComponents);
 
-        JSONArray documents = (item.containsKey(JSON_KEY_DOCUMENTS) && !item.getJSONObject(JSON_KEY_DOCUMENTS).isNullObject()) ? item.getJSONArray(JSON_KEY_DOCUMENTS) : null;
+        JSONArray documents =
+                (item.containsKey(JSON_KEY_DOCUMENTS) && !item.getJSONObject(JSON_KEY_DOCUMENTS).isNullObject()) ?
+                        item.getJSONArray(JSON_KEY_DOCUMENTS) : null;
         List<DmDependencyTO> submittedDocuments = getSubmittedItems(site, documents, format, globalSchDate);
 
         submittedItem.setDocuments(submittedDocuments);
-        JSONArray assets = (item.containsKey(JSON_KEY_ASSETS) && !item.getJSONObject(JSON_KEY_ASSETS).isNullObject()) ? item.getJSONArray(JSON_KEY_ASSETS) : null;
+        JSONArray assets =
+                (item.containsKey(JSON_KEY_ASSETS) && !item.getJSONObject(JSON_KEY_ASSETS).isNullObject()) ?
+                        item.getJSONArray(JSON_KEY_ASSETS) : null;
         List<DmDependencyTO> submittedAssets = getSubmittedItems(site, assets, format, globalSchDate);
         submittedItem.setAssets(submittedAssets);
 
-        JSONArray templates = (item.containsKey(JSON_KEY_RENDERING_TEMPLATES) && !item.getJSONObject(JSON_KEY_RENDERING_TEMPLATES).isNullObject()) ? item.getJSONArray(JSON_KEY_RENDERING_TEMPLATES) : null;
+        JSONArray templates = (item.containsKey(JSON_KEY_RENDERING_TEMPLATES) &&
+                !item.getJSONObject(JSON_KEY_RENDERING_TEMPLATES).isNullObject()) ?
+                item.getJSONArray(JSON_KEY_RENDERING_TEMPLATES) : null;
         List<DmDependencyTO> submittedTemplates = getSubmittedItems(site, templates, format, globalSchDate);
         submittedItem.setRenderingTemplates(submittedTemplates);
 
-        JSONArray deletedItems = (item.containsKey(JSON_KEY_DELETED_ITEMS) && !item.getJSONObject(JSON_KEY_DELETED_ITEMS).isNullObject()) ? item.getJSONArray(JSON_KEY_DELETED_ITEMS) : null;
+        JSONArray deletedItems = (item.containsKey(JSON_KEY_DELETED_ITEMS) &&
+                !item.getJSONObject(JSON_KEY_DELETED_ITEMS).isNullObject()) ?
+                item.getJSONArray(JSON_KEY_DELETED_ITEMS) : null;
         List<DmDependencyTO> deletes = getSubmittedItems(site, deletedItems, format, globalSchDate);
         submittedItem.setDeletedItems(deletes);
 
@@ -1204,7 +1291,9 @@ public class WorkflowServiceImpl implements WorkflowService {
         return submittedItem;
     }
 
-    protected DmDependencyTO getSubmittedItem(String site, String itemPath, SimpleDateFormat format, String globalSchDate, Set<String> processedDependencies) throws JSONException {
+    protected DmDependencyTO getSubmittedItem(String site, String itemPath, SimpleDateFormat format,
+                                              String globalSchDate, Set<String> processedDependencies)
+            throws JSONException {
         DmDependencyTO submittedItem = new DmDependencyTO();
         submittedItem.setUri(itemPath);
         // true and also it is not past
@@ -1213,7 +1302,8 @@ public class WorkflowServiceImpl implements WorkflowService {
             scheduledDate = getScheduledDate(site, format, globalSchDate);
         } else {
             if (submittedItem.getScheduledDate() != null) {
-                scheduledDate = getScheduledDate(site, format, submittedItem.getScheduledDate().format(DateTimeFormatter.ofPattern(format.toPattern())));
+                scheduledDate = getScheduledDate(site, format,
+                        submittedItem.getScheduledDate().format(DateTimeFormatter.ofPattern(format.toPattern())));
             }
         }
         if (scheduledDate == null) {
@@ -1226,7 +1316,8 @@ public class WorkflowServiceImpl implements WorkflowService {
         if (CollectionUtils.isNotEmpty(submittedItem.getComponents())) {
             for (DmDependencyTO component : submittedItem.getComponents()) {
                 if (!processedDependencies.contains(component.getUri())) {
-                    component = getSubmittedItem(site, component.getUri(), format, globalSchDate, processedDependencies);
+                    component =
+                            getSubmittedItem(site, component.getUri(), format, globalSchDate, processedDependencies);
                 }
             }
         }
@@ -1234,7 +1325,8 @@ public class WorkflowServiceImpl implements WorkflowService {
         if (CollectionUtils.isNotEmpty(submittedItem.getDocuments())) {
             for (DmDependencyTO document : submittedItem.getDocuments()) {
                 if (!processedDependencies.contains(document.getUri())) {
-                    document = getSubmittedItem(site, document.getUri(), format, globalSchDate, processedDependencies);
+                    document =
+                            getSubmittedItem(site, document.getUri(), format, globalSchDate, processedDependencies);
                 }
             }
         }
@@ -1258,7 +1350,8 @@ public class WorkflowServiceImpl implements WorkflowService {
         if (CollectionUtils.isNotEmpty(submittedItem.getDeletedItems())) {
             for (DmDependencyTO deletedItem : submittedItem.getDeletedItems()) {
                 if (!processedDependencies.contains(deletedItem.getUri())) {
-                    deletedItem = getSubmittedItem(site, deletedItem.getUri(), format, globalSchDate, processedDependencies);
+                    deletedItem =
+                            getSubmittedItem(site, deletedItem.getUri(), format, globalSchDate, processedDependencies);
                 }
             }
         }
@@ -1274,7 +1367,8 @@ public class WorkflowServiceImpl implements WorkflowService {
         return submittedItem;
     }
 
-    protected DmDependencyTO getSubmittedItem_new(String site, String itemPath, SimpleDateFormat format, String globalSchDate) throws JSONException {
+    protected DmDependencyTO getSubmittedItem_new(String site, String itemPath, SimpleDateFormat format,
+                                                  String globalSchDate) throws JSONException {
         DmDependencyTO submittedItem = new DmDependencyTO();
         submittedItem.setUri(itemPath);
         // TODO: check scheduled date to make sure it is not null when isNow =
@@ -1284,7 +1378,8 @@ public class WorkflowServiceImpl implements WorkflowService {
             scheduledDate = getScheduledDate(site, format, globalSchDate);
         } else {
             if (submittedItem.getScheduledDate() != null) {
-                scheduledDate = getScheduledDate(site, format, submittedItem.getScheduledDate().format(DateTimeFormatter.ofPattern(format.toPattern())));
+                scheduledDate = getScheduledDate(site, format,
+                        submittedItem.getScheduledDate().format(DateTimeFormatter.ofPattern(format.toPattern())));
             }
         }
         if (scheduledDate == null) {
@@ -1295,7 +1390,9 @@ public class WorkflowServiceImpl implements WorkflowService {
         return submittedItem;
     }
 
-    protected DmDependencyTO getSubmittedItemApproveWithoutDependencies(String site, String itemPath, SimpleDateFormat format, String globalSchDate) throws JSONException {
+    protected DmDependencyTO getSubmittedItemApproveWithoutDependencies(String site, String itemPath,
+                                                                        SimpleDateFormat format, String globalSchDate)
+            throws JSONException {
         DmDependencyTO submittedItem = new DmDependencyTO();
         submittedItem.setUri(itemPath);
         // TODO: check scheduled date to make sure it is not null when isNow =
@@ -1305,7 +1402,8 @@ public class WorkflowServiceImpl implements WorkflowService {
             scheduledDate = getScheduledDate(site, format, globalSchDate);
         } else {
             if (submittedItem.getScheduledDate() != null) {
-                scheduledDate = getScheduledDate(site, format, submittedItem.getScheduledDate().format(DateTimeFormatter.ofPattern(format.toPattern())));
+                scheduledDate = getScheduledDate(site, format,
+                        submittedItem.getScheduledDate().format(DateTimeFormatter.ofPattern(format.toPattern())));
             }
         }
         if (scheduledDate == null) {
@@ -1325,7 +1423,8 @@ public class WorkflowServiceImpl implements WorkflowService {
      * @return submitted items
      * @throws JSONException
      */
-    protected List<DmDependencyTO> getSubmittedItems(String site, JSONArray items, SimpleDateFormat format, String schDate) throws JSONException, ServiceException {
+    protected List<DmDependencyTO> getSubmittedItems(String site, JSONArray items, SimpleDateFormat format,
+                                                     String schDate) throws JSONException, ServiceException {
         if (items != null) {
             int length = items.size();
             if (length > 0) {
@@ -1349,7 +1448,8 @@ public class WorkflowServiceImpl implements WorkflowService {
      * @param dependencyTO
      * @param operation
      */
-    protected List<DmDependencyTO> removeSubmitToDeleteChildrenForGoLive(DmDependencyTO dependencyTO, Operation operation) {
+    protected List<DmDependencyTO> removeSubmitToDeleteChildrenForGoLive(DmDependencyTO dependencyTO,
+                                                                         Operation operation) {
         List<DmDependencyTO> submitForDeleteChilds = new ArrayList<>();
         if (operation == Operation.GO_LIVE && !dependencyTO.isSubmittedForDeletion()) {
             List<DmDependencyTO> children = dependencyTO.getChildren();
@@ -1367,7 +1467,8 @@ public class WorkflowServiceImpl implements WorkflowService {
         return submitForDeleteChilds;
     }
 
-    protected void doDelete(String site, List<DmDependencyTO> submittedItems, String approver) throws ServiceException {
+    protected void doDelete(String site, List<DmDependencyTO> submittedItems, String approver)
+            throws ServiceException {
         long start = System.currentTimeMillis();
         String user = securityService.getCurrentUser();
         // get web project information
@@ -1386,11 +1487,13 @@ public class WorkflowServiceImpl implements WorkflowService {
                 if (StringUtils.isNotEmpty(approver)) {
                     // immediate delete
                     if (submittedItem.isSendEmail()) {
-                        sendDeleteApprovalNotification(site, submittedItem, approver);//TODO move it after delete actually happens
+                        sendDeleteApprovalNotification(site, submittedItem, approver);
+                        //TODO move it after delete actually happens
                     }
                 }
                 if (submittedItem.getUri().endsWith(DmConstants.INDEX_FILE)) {
-                    submittedItem.setUri(submittedItem.getUri().replace(FILE_SEPARATOR + DmConstants.INDEX_FILE, ""));
+                    submittedItem.setUri(
+                            submittedItem.getUri().replace(FILE_SEPARATOR + DmConstants.INDEX_FILE, ""));
                 }
                 itemsToDelete.add(uri);
             } else {
@@ -1405,7 +1508,8 @@ public class WorkflowServiceImpl implements WorkflowService {
             }
         }
         GoLiveContext context = new GoLiveContext(approver, site);
-        final String pathPrefix = FILE_SEPARATOR + "wem-projects" + FILE_SEPARATOR + site + FILE_SEPARATOR + site + FILE_SEPARATOR + "work-area";
+        final String pathPrefix = FILE_SEPARATOR + "wem-projects" + FILE_SEPARATOR + site +
+                FILE_SEPARATOR + site + FILE_SEPARATOR + "work-area";
         Map<ZonedDateTime, List<DmDependencyTO>> groupedPackages = groupByDate(deleteItems, now);
         if (groupedPackages.isEmpty()) {
             groupedPackages.put(now, Collections.<DmDependencyTO>emptyList());
@@ -1419,7 +1523,8 @@ public class WorkflowServiceImpl implements WorkflowService {
                 Set<String> processedUris = new HashSet<String>();
                 for (DmDependencyTO dmDependencyTO : deletePackage) {
                     if (launchDate != null) {
-                        handleReferences(site, submitpackage, dmDependencyTO, true, null, "", rescheduledUris, processedUris);
+                        handleReferences(site, submitpackage, dmDependencyTO, true, null, "", rescheduledUris,
+                                processedUris);
                     } else {
                         applyDeleteDependencyRule(site, submitpackage, dmDependencyTO);
                     }
@@ -1438,7 +1543,8 @@ public class WorkflowServiceImpl implements WorkflowService {
 
                 List<String> submitPackPaths = submitpackage.getPaths();
                 if (launchDate != null) {
-                    deleteOperation = new PreScheduleDeleteOperation(this, submitpackage.getUris(), launchDate, context, rescheduledUris);
+                    deleteOperation = new PreScheduleDeleteOperation(this, submitpackage.getUris(),
+                            launchDate, context, rescheduledUris);
                     label = DmConstants.DM_SCHEDULE_SUBMISSION_FLOW + ":" + label;
                 } else {
                     //add dependencies to submitPackage
@@ -1447,12 +1553,14 @@ public class WorkflowServiceImpl implements WorkflowService {
                     }
                     submitPackPaths = submitpackage.getPaths();
 
-                    deleteOperation = new PreSubmitDeleteOperation(this, new HashSet<String>(allItems), context, rescheduledUris);
+                    deleteOperation = new PreSubmitDeleteOperation(this,
+                            new HashSet<String>(allItems), context, rescheduledUris);
                     removeChildFromSubmitPackForDelete(submitPackPaths);
                 }
                 Map<String, String> submittedBy = new HashMap<>();
 
-                workflowProcessor.addToWorkflow(site, new ArrayList<String>(), launchDate, label, deleteOperation, approver, null);
+                workflowProcessor.addToWorkflow(site, new ArrayList<String>(), launchDate, label, deleteOperation,
+                        approver, null);
             }
         }
         long end = System.currentTimeMillis();
@@ -1460,7 +1568,8 @@ public class WorkflowServiceImpl implements WorkflowService {
     }
 
     @Override
-    public Map<ZonedDateTime, List<DmDependencyTO>> groupByDate(List<DmDependencyTO> submittedItems, ZonedDateTime now) {
+    public Map<ZonedDateTime, List<DmDependencyTO>> groupByDate(List<DmDependencyTO> submittedItems,
+                                                                ZonedDateTime now) {
         Map<ZonedDateTime, List<DmDependencyTO>> groupedPackages = new HashMap<>();
         for (DmDependencyTO submittedItem : submittedItems) {
 
@@ -1478,7 +1587,9 @@ public class WorkflowServiceImpl implements WorkflowService {
         return groupedPackages;
     }
 
-    protected void handleReferences(String site, SubmitPackage submitpackage, DmDependencyTO dmDependencyTO, boolean isNotScheduled, SubmitPackage dependencyPackage, String approver, Set<String> rescheduledUris, Set<String> processedUris) {//,boolean isReferencePage) {
+    protected void handleReferences(String site, SubmitPackage submitpackage, DmDependencyTO dmDependencyTO,
+                                    boolean isNotScheduled, SubmitPackage dependencyPackage, String approver,
+                                    Set<String> rescheduledUris, Set<String> processedUris) {
         if (!processedUris.contains(dmDependencyTO.getUri())) {
             ItemMetadata properties = objectMetadataManager.getProperties(site, dmDependencyTO.getUri());
             ZonedDateTime scheduledDate = null;
@@ -1487,7 +1598,8 @@ public class WorkflowServiceImpl implements WorkflowService {
             }
             ItemState state = objectStateService.getObjectState(site, dmDependencyTO.getUri());
             if (state != null) {
-                if (!State.isSubmitted(State.valueOf(state.getState())) && scheduledDate != null && scheduledDate.equals(dmDependencyTO.getScheduledDate())) {
+                if (!State.isSubmitted(State.valueOf(state.getState())) && scheduledDate != null &&
+                        scheduledDate.equals(dmDependencyTO.getScheduledDate())) {
                     if (objectStateService.isScheduled(site, dmDependencyTO.getUri())) {
                         return;
                     } else {
@@ -1570,13 +1682,6 @@ public class WorkflowServiceImpl implements WorkflowService {
                 ContentItemTO contentItem = contentService.getContentItem(site, uri);
                 if (contentItem != null) {
                     //Prepare to send notification
-/*
-                    Serializable submittedByValue = persistenceManagerService.getProperty(node, CStudioContentModel.PROP_WEB_WF_SUBMITTED_BY);
-                    String submittedBy = "";
-                    if (submittedByValue != null) {
-                        submittedBy = (String) submittedByValue;
-                        notificationService.sendDeleteApprovalNotification(site, submittedBy, uri, approver);
-                    }*/
                 }
             }
         } catch (Exception e) {
@@ -1584,7 +1689,8 @@ public class WorkflowServiceImpl implements WorkflowService {
         }
     }
 
-    protected List<DmDependencyTO> getRefAndChildOfDiffDateFromParent(String site, List<DmDependencyTO> submittedItems, boolean removeInPages) throws ServiceException {
+    protected List<DmDependencyTO> getRefAndChildOfDiffDateFromParent(String site, List<DmDependencyTO> submittedItems,
+                                                                      boolean removeInPages) throws ServiceException {
         List<DmDependencyTO> childAndReferences = new ArrayList<>();
         for (DmDependencyTO submittedItem : submittedItems) {
             List<DmDependencyTO> children = submittedItem.getChildren();
@@ -1637,7 +1743,9 @@ public class WorkflowServiceImpl implements WorkflowService {
         return childAndReferences;
     }
 
-    protected List<DmDependencyTO> getRefAndChildOfDiffDateFromParent_new(String site, List<DmDependencyTO> submittedItems, boolean removeInPages) {
+    protected List<DmDependencyTO> getRefAndChildOfDiffDateFromParent_new(String site,
+                                                                          List<DmDependencyTO> submittedItems,
+                                                                          boolean removeInPages) {
         List<DmDependencyTO> childAndReferences = new ArrayList<>();
         for (DmDependencyTO submittedItem : submittedItems) {
             List<DmDependencyTO> children = submittedItem.getChildren();
@@ -1683,7 +1791,9 @@ public class WorkflowServiceImpl implements WorkflowService {
         return childAndReferences;
     }
 
-    protected List<DmDependencyTO> addDependenciesForSubmittedItems(String site, List<DmDependencyTO> submittedItems, SimpleDateFormat format, String globalScheduledDate) throws ServiceException {
+    protected List<DmDependencyTO> addDependenciesForSubmittedItems(String site, List<DmDependencyTO> submittedItems,
+                                                                    SimpleDateFormat format, String globalScheduledDate)
+            throws ServiceException {
         List<DmDependencyTO> dependencies = new ArrayList<DmDependencyTO>();
         Set<String> dependenciesPaths = new HashSet<String>();
         for (DmDependencyTO submittedItem : submittedItems) {
@@ -1697,7 +1807,10 @@ public class WorkflowServiceImpl implements WorkflowService {
         return dependencies;
     }
 
-    protected List<DmDependencyTO> addDependenciesForSubmitForApproval(String site, List<DmDependencyTO> submittedItems, SimpleDateFormat format, String globalScheduledDate) throws ServiceException {
+    protected List<DmDependencyTO> addDependenciesForSubmitForApproval(String site, List<DmDependencyTO> submittedItems,
+                                                                       SimpleDateFormat format,
+                                                                       String globalScheduledDate)
+            throws ServiceException {
         List<DmDependencyTO> dependencies = new ArrayList<DmDependencyTO>();
         Set<String> dependenciesPaths = new HashSet<String>();
         for (DmDependencyTO submittedItem : submittedItems) {
@@ -1709,7 +1822,8 @@ public class WorkflowServiceImpl implements WorkflowService {
         return dependencies;
     }
 
-    protected void resolveSubmittedPaths(String site, DmDependencyTO item, List<String> submittedPaths, Set<String> processedPaths) throws ServiceException {
+    protected void resolveSubmittedPaths(String site, DmDependencyTO item, List<String> submittedPaths,
+                                         Set<String> processedPaths) throws ServiceException {
         if (!processedPaths.contains(item.getUri())) {
             if (!submittedPaths.contains(item.getUri())) {
                 submittedPaths.add(item.getUri());
@@ -1764,7 +1878,8 @@ public class WorkflowServiceImpl implements WorkflowService {
     }
 
     @Override
-    public void preScheduleDelete(Set<String> urisToDelete, final ZonedDateTime scheduleDate, final GoLiveContext context, Set rescheduledUris)
+    public void preScheduleDelete(Set<String> urisToDelete, final ZonedDateTime scheduleDate,
+                                  final GoLiveContext context, Set rescheduledUris)
             throws ServiceException {
         final String site = context.getSite();
         final List<String> itemsToDelete = new ArrayList<String>(urisToDelete);
@@ -1772,14 +1887,19 @@ public class WorkflowServiceImpl implements WorkflowService {
     }
 
     @Override
-    public List<String> preDelete(Set<String> urisToDelete, GoLiveContext context, Set<String> rescheduledUris) throws ServiceException {
+    public List<String> preDelete(Set<String> urisToDelete, GoLiveContext context, Set<String> rescheduledUris)
+            throws ServiceException {
         cleanUrisFromWorkflow(urisToDelete, context.getSite());
         cleanUrisFromWorkflow(rescheduledUris, context.getSite());
-        List<String> deletedItems = deleteInTransaction(context.getSite(), new ArrayList<String>(urisToDelete), true, context.getApprover());
+        List<String> deletedItems =
+                deleteInTransaction(context.getSite(), new ArrayList<String>(urisToDelete), true,
+                        context.getApprover());
         return deletedItems;
     }
 
-    protected List<String> deleteInTransaction(final String site, final List<String> itemsToDelete, final boolean generateActivity, final String approver) throws ServiceException {
+    protected List<String> deleteInTransaction(final String site, final List<String> itemsToDelete,
+                                               final boolean generateActivity, final String approver)
+            throws ServiceException {
         dmPublishService.unpublish(site, itemsToDelete, approver);
         return null;
         //return contentService.deleteContents(site, itemsToDelete, generateActivity, approver);
@@ -1803,7 +1923,8 @@ public class WorkflowServiceImpl implements WorkflowService {
      */
     @Override
     @ValidateParams
-    public ResultTO goLive(@ValidateStringParam(name = "site") final String site, final String request) throws ServiceException {
+    public ResultTO goLive(@ValidateStringParam(name = "site") final String site, final String request)
+            throws ServiceException {
         try {
             if (isEnablePublishingWithoutDependencies()) {
                 return approveWithoutDependencies(site, request, Operation.GO_LIVE);
@@ -1818,7 +1939,9 @@ public class WorkflowServiceImpl implements WorkflowService {
 
     @Override
     @ValidateParams
-    public boolean cleanWorkflow(@ValidateSecurePathParam(name = "url") final String url, @ValidateStringParam(name = "site") final String site, final Set<DmDependencyTO> dependents) throws ServiceException {
+    public boolean cleanWorkflow(@ValidateSecurePathParam(name = "url") final String url,
+                                 @ValidateStringParam(name = "site") final String site,
+                                 final Set<DmDependencyTO> dependents) throws ServiceException {
         _cancelWorkflow(site, url);
         return true;
     }
@@ -1840,7 +1963,8 @@ public class WorkflowServiceImpl implements WorkflowService {
      * @param site
      * @throws ServiceException
      */
-    protected void goLive(final String site, final List<DmDependencyTO> submittedItems, String approver, MultiChannelPublishingContext mcpContext)
+    protected void goLive(final String site, final List<DmDependencyTO> submittedItems, String approver,
+                          MultiChannelPublishingContext mcpContext)
             throws ServiceException {
         // get web project information
         final ZonedDateTime now = ZonedDateTime.now(ZoneOffset.UTC);
@@ -1864,7 +1988,8 @@ public class WorkflowServiceImpl implements WorkflowService {
                     final SubmitPackage dependencyPackage = new SubmitPackage("");
                     Set<String> processedUris = new HashSet<String>();
                     for (final DmDependencyTO dmDependencyTO : goLivePackage) {
-                        goLivepackage(site, submitpackage, dmDependencyTO, isNotScheduled, dependencyPackage, approver, rescheduledUris, processedUris);
+                        goLivepackage(site, submitpackage, dmDependencyTO, isNotScheduled, dependencyPackage, approver,
+                                rescheduledUris, processedUris);
                     }
                     List<String> stringList = submitpackage.getPaths();
                     String label = submitpackage.getLabel();
@@ -1875,9 +2000,11 @@ public class WorkflowServiceImpl implements WorkflowService {
                         uris.addAll(dependencyPackage.getUris());
                         uris.addAll(submitpackage.getUris());
                         label = getScheduleLabel(submitpackage, dependencyPackage);
-                        operation = new PreScheduleOperation(this, uris, launchDate, context, rescheduledUris);
+                        operation = new PreScheduleOperation(this, uris, launchDate, context,
+                                rescheduledUris);
                     } else {
-                        operation = new PreGoLiveOperation(this, submitpackage.getUris(), context, rescheduledUris);
+                        operation = new PreGoLiveOperation(this, submitpackage.getUris(), context,
+                                rescheduledUris);
                     }
                     if (!stringList.isEmpty()) {
                         // get the workflow initiator mapping
@@ -1885,21 +2012,27 @@ public class WorkflowServiceImpl implements WorkflowService {
                         for (String uri : stringList) {
                             dmPublishService.cancelScheduledItem(site, uri);
                         }
-                        workflowProcessor.addToWorkflow(site, stringList, launchDate, label, operation, approver, mcpContext);
+                        workflowProcessor.addToWorkflow(site, stringList, launchDate, label, operation, approver,
+                                mcpContext);
                     }
                 }
             }
         }
     }
 
-    protected void goLivepackage(String site, SubmitPackage submitpackage, DmDependencyTO dmDependencyTO, boolean isNotScheduled, SubmitPackage dependencyPackage, String approver, Set<String> rescheduledUris, Set<String> processedUris) {
+    protected void goLivepackage(String site, SubmitPackage submitpackage, DmDependencyTO dmDependencyTO,
+                                 boolean isNotScheduled, SubmitPackage dependencyPackage, String approver,
+                                 Set<String> rescheduledUris, Set<String> processedUris) {
         if (!processedUris.contains(dmDependencyTO.getUri())) {
-            handleReferences(site, submitpackage, dmDependencyTO, isNotScheduled, dependencyPackage, approver, rescheduledUris, processedUris);
+            handleReferences(site, submitpackage, dmDependencyTO, isNotScheduled, dependencyPackage, approver,
+                    rescheduledUris, processedUris);
             List<DmDependencyTO> children = dmDependencyTO.getChildren();
             if (children != null) {
                 for (DmDependencyTO child : children) {
-                    handleReferences(site, submitpackage, child, isNotScheduled, dependencyPackage, approver, rescheduledUris, processedUris);
-                    goLivepackage(site, submitpackage, child, isNotScheduled, dependencyPackage, approver, rescheduledUris, processedUris);
+                    handleReferences(site, submitpackage, child, isNotScheduled, dependencyPackage, approver,
+                            rescheduledUris, processedUris);
+                    goLivepackage(site, submitpackage, child, isNotScheduled, dependencyPackage, approver,
+                            rescheduledUris, processedUris);
                 }
             }
             processedUris.add(dmDependencyTO.getUri());
@@ -1928,7 +2061,8 @@ public class WorkflowServiceImpl implements WorkflowService {
      * @param paths
      */
     @SuppressWarnings("deprecation")
-    protected void submitToWorkflow(final String site, final ZonedDateTime launchDate, final String label, final List<String> paths) throws ServiceException {
+    protected void submitToWorkflow(final String site, final ZonedDateTime launchDate, final String label,
+                                    final List<String> paths) throws ServiceException {
         submitToWorkflow(site, launchDate, label, paths, null);
     }
 
@@ -1941,11 +2075,14 @@ public class WorkflowServiceImpl implements WorkflowService {
      * @param paths
      */
     @SuppressWarnings("deprecation")
-    protected void submitToWorkflow(final String site, final ZonedDateTime launchDate, final String label, final List<String> paths, final MultiChannelPublishingContext mcpContext) throws ServiceException {
+    protected void submitToWorkflow(final String site, final ZonedDateTime launchDate, final String label,
+                                    final List<String> paths, final MultiChannelPublishingContext mcpContext)
+            throws ServiceException {
         _submit(site, launchDate, label, paths, mcpContext);
     }
 
-    protected void _submit(String site, ZonedDateTime launchDate, String label, List<String> paths, MultiChannelPublishingContext mcpContext) {
+    protected void _submit(String site, ZonedDateTime launchDate, String label, List<String> paths,
+                           MultiChannelPublishingContext mcpContext) {
         if (label.length() > 255) {
             label = label.substring(0, 252) + "..";
         }
@@ -1993,7 +2130,8 @@ public class WorkflowServiceImpl implements WorkflowService {
     }
 
     @Override
-    public void preSchedule(Set<String> uris, final ZonedDateTime date, final GoLiveContext context, Set<String> rescheduledUris) {
+    public void preSchedule(Set<String> uris, final ZonedDateTime date, final GoLiveContext context,
+                            Set<String> rescheduledUris) {
         /* TODO: do we need this?
         preGoLive(uris, context, rescheduledUris);
         DmContentService dmContentService = getService(DmContentService.class);
@@ -2013,7 +2151,8 @@ public class WorkflowServiceImpl implements WorkflowService {
     @Override
     @SuppressWarnings("unchecked")
     @ValidateParams
-    public ResultTO reject(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "user") String user, String request) throws ServiceException {
+    public ResultTO reject(@ValidateStringParam(name = "site") String site,
+                           @ValidateStringParam(name = "user") String user, String request) throws ServiceException {
         ResultTO result = new ResultTO();
         try {
             String approver = user;
@@ -2062,6 +2201,18 @@ public class WorkflowServiceImpl implements WorkflowService {
         return result;
     }
 
+    protected void generateWorkflowActivity(String site, List<String> paths, String username,
+                                            ActivityService.ActivityType activityType) {
+        Map<String, String> extraInfo = new HashMap<String, String>();
+        StringBuilder sb = new StringBuilder();
+        for (String p : paths) {
+            sb.append(p).append("; ");
+        }
+        extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
+        activityService.postActivity(site, username, sb.toString(), activityType,
+                ActivityService.ActivitySource.API, extraInfo);
+    }
+
     protected void reject(String site, List<DmDependencyTO> submittedItems, String reason, String approver) {
         if (submittedItems != null) {
             // for each top level items submitted
@@ -2097,7 +2248,8 @@ public class WorkflowServiceImpl implements WorkflowService {
         // TODO: send the reason to the user
     }
 
-    protected void rejectThisAndReferences(String site, DmDependencyTO dmDependencyTO, DependencyRules rule, String approver, String reason) {
+    protected void rejectThisAndReferences(String site, DmDependencyTO dmDependencyTO, DependencyRules rule,
+                                           String approver, String reason) {
         _reject(site, dmDependencyTO, approver, true, reason);
         Set<DmDependencyTO> dependencyTOSet = rule.applyRejectRule(dmDependencyTO);
         for (DmDependencyTO dependencyTO : dependencyTOSet) {
@@ -2113,7 +2265,8 @@ public class WorkflowServiceImpl implements WorkflowService {
         }
     }
 
-    protected void _reject(String site, DmDependencyTO dmDependencyTO, String approver, boolean sendEmail, String reason) {
+    protected void _reject(String site, DmDependencyTO dmDependencyTO, String approver, boolean sendEmail,
+                           String reason) {
         boolean contentExists = contentService.contentExists(site, dmDependencyTO.getUri());
         if (contentExists) {
             if (!objectMetadataManager.metadataExist(site, dmDependencyTO.getUri())) {
@@ -2145,45 +2298,109 @@ public class WorkflowServiceImpl implements WorkflowService {
      /* ================ */
 
 
-    public ServicesConfig getServicesConfig() { return servicesConfig; }
-    public void setServicesConfig(ServicesConfig servicesConfig) { this.servicesConfig = servicesConfig; }
+    public ServicesConfig getServicesConfig() {
+        return servicesConfig;
+    }
 
-    public void setDependencyService(DependencyService dependencyService) { this.dependencyService = dependencyService; }
+    public void setServicesConfig(ServicesConfig servicesConfig) {
+        this.servicesConfig = servicesConfig;
+    }
 
-    public void setDmFilterWrapper(DmFilterWrapper dmFilterWrapper) { this.dmFilterWrapper = dmFilterWrapper; }
+    public void setDependencyService(DependencyService dependencyService) {
+        this.dependencyService = dependencyService;
+    }
 
-    public void setContentService(ContentService contentService) { this.contentService = contentService; }
+    public void setDmFilterWrapper(DmFilterWrapper dmFilterWrapper) {
+        this.dmFilterWrapper = dmFilterWrapper;
+    }
 
-    public void setDeploymentService(DeploymentService deploymentService) { this.deploymentService = deploymentService; }
+    public void setContentService(ContentService contentService) {
+        this.contentService = contentService;
+    }
 
-    public void setObjectStateService(ObjectStateService objectStateService) { this.objectStateService = objectStateService; }
+    public void setDeploymentService(DeploymentService deploymentService) {
+        this.deploymentService = deploymentService;
+    }
 
-    public DmPublishService getDmPublishService() { return dmPublishService; }
-    public void setDmPublishService(DmPublishService dmPublishService) { this.dmPublishService = dmPublishService; }
+    public void setObjectStateService(ObjectStateService objectStateService) {
+        this.objectStateService = objectStateService;
+    }
 
-    public GeneralLockService getGeneralLockService() { return generalLockService; }
-    public void setGeneralLockService(GeneralLockService generalLockService) { this.generalLockService = generalLockService; }
+    public DmPublishService getDmPublishService() {
+        return dmPublishService;
+    }
 
-    public SecurityService getSecurityService() { return securityService; }
-    public void setSecurityService(SecurityService securityService) { this.securityService = securityService; }
+    public void setDmPublishService(DmPublishService dmPublishService) {
+        this.dmPublishService = dmPublishService;
+    }
 
-    public SiteService getSiteService() { return siteService; }
-    public void setSiteService(SiteService siteService) { this.siteService = siteService; }
+    public GeneralLockService getGeneralLockService() {
+        return generalLockService;
+    }
 
-    public WorkflowProcessor getWorkflowProcessor() { return workflowProcessor; }
-    public void setWorkflowProcessor(WorkflowProcessor workflowProcessor) { this.workflowProcessor = workflowProcessor; }
+    public void setGeneralLockService(GeneralLockService generalLockService) {
+        this.generalLockService = generalLockService;
+    }
 
-    public ObjectMetadataManager getObjectMetadataManager() { return objectMetadataManager; }
-    public void setObjectMetadataManager(ObjectMetadataManager objectMetadataManager) { this.objectMetadataManager = objectMetadataManager; }
+    public SecurityService getSecurityService() {
+        return securityService;
+    }
 
-    public NotificationService getNotificationService() { return notificationService; }
-    public void setNotificationService(final org.craftercms.studio.api.v2.service.notification.NotificationService notificationService) { this.notificationService = notificationService; }
+    public void setSecurityService(SecurityService securityService) {
+        this.securityService = securityService;
+    }
 
-    public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
-    public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
+    public SiteService getSiteService() {
+        return siteService;
+    }
+
+    public void setSiteService(SiteService siteService) {
+        this.siteService = siteService;
+    }
+
+    public WorkflowProcessor getWorkflowProcessor() {
+        return workflowProcessor;
+    }
+
+    public void setWorkflowProcessor(WorkflowProcessor workflowProcessor) {
+        this.workflowProcessor = workflowProcessor;
+    }
+
+    public ObjectMetadataManager getObjectMetadataManager() {
+        return objectMetadataManager;
+    }
+
+    public void setObjectMetadataManager(ObjectMetadataManager objectMetadataManager) {
+        this.objectMetadataManager = objectMetadataManager;
+    }
+
+    public NotificationService getNotificationService() {
+        return notificationService;
+    }
+    public void setNotificationService(
+            final org.craftercms.studio.api.v2.service.notification.NotificationService notificationService) {
+        this.notificationService = notificationService;
+    }
+
+    public StudioConfiguration getStudioConfiguration() {
+        return studioConfiguration;
+    }
+
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+        this.studioConfiguration = studioConfiguration;
+    }
+
+    public ActivityService getActivityService() {
+        return activityService;
+    }
+
+    public void setActivityService(ActivityService activityService) {
+        this.activityService = activityService;
+    }
 
     public boolean isEnablePublishingWithoutDependencies() {
-        boolean toReturn = Boolean.parseBoolean(studioConfiguration.getProperty(WORKFLOW_PUBLISHING_WITHOUT_DEPENDENCIES_ENABLED));
+        boolean toReturn = Boolean.parseBoolean(
+                studioConfiguration.getProperty(WORKFLOW_PUBLISHING_WITHOUT_DEPENDENCIES_ENABLED));
         return toReturn;
     }
 
