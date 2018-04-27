@@ -161,8 +161,10 @@ public class SecurityServiceImpl implements SecurityService {
     @ValidateParams
     public Map<String,Object> getUserProfile(@ValidateStringParam(name = "user") String user) {
         Map<String, Object> toRet = securityProvider.getUserProfile(user);
-        String authenticationType = studioConfiguration.getProperty(SECURITY_TYPE);
-        toRet.put(SECURITY_AUTHENTICATION_TYPE, authenticationType);
+        if (toRet != null && !toRet.isEmpty()) {
+            String authenticationType = studioConfiguration.getProperty(SECURITY_TYPE);
+            toRet.put(SECURITY_AUTHENTICATION_TYPE, authenticationType);
+        }
         return toRet;
     }
 
