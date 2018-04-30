@@ -38,24 +38,24 @@ public interface ActivityService {
 		CREATED,
 		UPDATED,
 		DELETED,
-        MOVED,
-        ADD_USER_TO_GROUP,
-        REMOVE_USER_FROM_GROUP,
-        LOGIN,
-        LOGOUT,
-        CREATE_SITE,
-        DELETE_SITE,
-        PUSH_TO_REMOTE,
-        PULL_FROM_REMOTE,
-        REQUEST_PUBLISH,
-        APPROVE,
-        REJECT
+		MOVED,
+		ADD_USER_TO_GROUP,
+		REMOVE_USER_FROM_GROUP,
+		LOGIN,
+		LOGOUT,
+		CREATE_SITE,
+		DELETE_SITE,
+		PUSH_TO_REMOTE,
+		PULL_FROM_REMOTE,
+		REQUEST_PUBLISH,
+		APPROVE,
+		REJECT
 	}
 
 	enum ActivitySource {
-	    API,
-        REPOSITORY
-    }
+		API,
+		REPOSITORY
+	}
 
 	/**
 	 * post an activity
