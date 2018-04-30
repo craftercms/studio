@@ -101,6 +101,7 @@ import org.eclipse.jgit.api.TagCommand;
 import org.eclipse.jgit.api.TransportConfigCallback;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
+import org.eclipse.jgit.api.errors.JGitInternalException;
 import org.eclipse.jgit.api.errors.RefNotFoundException;
 import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.diff.DiffEntry;
@@ -2081,9 +2082,11 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         } catch (InvalidRemoteException e) {
             logger.error("Remote is invalid " + remoteName, e);
             throw new InvalidRemoteUrlException();
-        } catch (Exception e) {
-            logger.error("Error while pushing to remote " + remoteName + " for site " + siteId, e);
-            throw new ServiceException("Error while pushing to remote " + remoteName + " for site " + siteId, e);
+        } catch (IOException | JGitInternalException | GitAPIException | CryptoException e) {
+            logger.error("Error while pushing to remote " + remoteName + " branch "
+                    + remoteBranch + " for site " + siteId, e);
+            throw new ServiceException("Error while pushing to remote " + remoteName + " branch "
+                    + remoteBranch + " for site " + siteId, e);
         }
     }
 
@@ -2151,8 +2154,10 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             logger.error("Remote is invalid " + remoteName, e);
             throw new InvalidRemoteUrlException();
         } catch (GitAPIException e) {
-            logger.error("Error while pulling from remote " + remoteName + ") for site " + siteId, e);
-            throw new ServiceException("Error while pulling from remote " + remoteName + ") for site " + siteId, e);
+            logger.error("Error while pulling from remote " + remoteName + " branch "
+                    + remoteBranch + " for site " + siteId, e);
+            throw new ServiceException("Error while pulling from remote " + remoteName + " branch "
+                    + remoteBranch + " for site " + siteId, e);
         } catch (CryptoException | IOException e) {
             throw new ServiceException(e);
         }
