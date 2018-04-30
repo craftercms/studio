@@ -2185,6 +2185,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                 }
                 objectStateService.setSystemProcessingBulk(site, paths, true);
                 reject(site, submittedItems, reason, approver);
+                generateWorkflowActivity(site, paths, approver, ActivityService.ActivityType.REJECT);
                 objectStateService.setSystemProcessingBulk(site, paths, false);
                 result.setSuccess(true);
                 result.setStatus(200);
