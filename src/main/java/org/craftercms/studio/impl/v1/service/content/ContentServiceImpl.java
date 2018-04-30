@@ -1833,6 +1833,12 @@ public class ContentServiceImpl implements ContentService {
         String commitId = _contentRepository.revertContent(site, path, version, major, comment);
 
         if (commitId != null) {
+            try {
+                dependencyService.upsertDependencies(site, path);
+            } catch (ServiceException e) {
+                logger.error("Error while extracting dependencies for reverted content. Site: " + site + " path: " +
+                        path + " version: " + version);
+            }
             // Update the database with the commitId for the target item
             objectMetadataManager.updateCommitId(site, path, commitId);
             _contentRepository.insertGitLog(site, commitId, 1);
