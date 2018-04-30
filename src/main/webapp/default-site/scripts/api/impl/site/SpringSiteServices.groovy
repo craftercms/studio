@@ -24,6 +24,8 @@ import java.util.Locale;
 class SpringSiteServices {
 
     static SITE_SERVICES_BEAN = "cstudioSiteServiceSimple"
+    static NOTIFICATION_SERVICES_BEAN = "cstudioNotificationService"
+    static NEW_NOTIFICATION_SERVICES_BEAN = "cstudioNotificationService"
 
     def context = null
 
@@ -87,6 +89,12 @@ class SpringSiteServices {
     def reloadSiteConfiguration(site) {
         def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
         return springBackedService.reloadSiteConfiguration(site)
+    }
+
+    def getCannedMessage(site,messageKey,locale="us"){
+        def notificationSystem=this.context.applicationContext.get(NEW_NOTIFICATION_SERVICES_BEAN)
+        return  notificationSystem.getNotificationMessage(site,NotificationMessageType.CannedMessages,messageKey,Locale
+                    .forLanguageTag(locale))
     }
 
     def syncRepository(site) {
