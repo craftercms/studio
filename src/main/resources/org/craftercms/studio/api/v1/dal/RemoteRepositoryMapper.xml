@@ -43,7 +43,7 @@
     <insert id="insertRemoteRepository" parameterType="java.util.Map">
         INSERT INTO remote_repository (site_id, remote_name, remote_url, authentication_type,
         remote_username, remote_password, remote_token, remote_private_key)
-        VALUES (#{siteId}, #{remoteName}, #{remoteUrl}34, #{authenticationType}, #{remoteUsername},
+        VALUES (#{siteId}, #{remoteName}, #{remoteUrl}, #{authenticationType}, #{remoteUsername},
         #{remotePassword}, #{remoteToken}, #{remotePrivateKey})
     </insert>
 
