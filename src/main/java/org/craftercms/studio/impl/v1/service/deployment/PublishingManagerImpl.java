@@ -1,6 +1,5 @@
 /*
- * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2016 Crafter Software Corporation.
+ * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,6 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 package org.craftercms.studio.impl.v1.service.deployment;
 
@@ -30,6 +30,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.DmConstants;
+import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.dal.PublishRequest;
 import org.craftercms.studio.api.v1.dal.PublishRequestMapper;
 import org.craftercms.studio.api.v1.dal.ItemMetadata;
@@ -38,6 +39,7 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
+import org.craftercms.studio.api.v1.service.activity.ActivityService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
@@ -58,7 +60,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.PUBLISHING_MANAGER_INDEX_FILE;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.PUBLISHING_MANAGER_PUBLISHING_WITHOUT_DEPENDENCIES_ENABLED;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.
+        PUBLISHING_MANAGER_PUBLISHING_WITHOUT_DEPENDENCIES_ENABLED;
 
 public class PublishingManagerImpl implements PublishingManager {
 
@@ -78,13 +81,16 @@ public class PublishingManagerImpl implements PublishingManager {
     protected StudioConfiguration studioConfiguration;
     protected DependencyService dependencyService;
     protected DeploymentHistoryProvider deploymentHistoryProvider;
+    protected ActivityService activityService;
 
     @Autowired
     protected PublishRequestMapper publishRequestMapper;
 
     @Override
     @ValidateParams
-    public List<PublishRequest> getItemsReadyForDeployment(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "environment") String environment) {
+    public List<PublishRequest> getItemsReadyForDeployment(
+            @ValidateStringParam(name = "site") String site,
+            @ValidateStringParam(name = "environment") String environment) {
         Map<String, Object> params = new HashMap<>();
         params.put("site", site);
         params.put("state", PublishRequest.State.READY_FOR_LIVE);
@@ -120,7 +126,8 @@ public class PublishingManagerImpl implements PublishingManager {
                 isLive = true;
             }
         }
-        else if (StringUtils.equalsIgnoreCase(LIVE_ENVIRONMENT, item.getEnvironment()) || StringUtils.equalsIgnoreCase(PRODUCTION_ENVIRONMENT, environment)) {
+        else if (StringUtils.equalsIgnoreCase(LIVE_ENVIRONMENT, item.getEnvironment()) ||
+                StringUtils.equalsIgnoreCase(PRODUCTION_ENVIRONMENT, environment)) {
             isLive = true;
         }
 
@@ -130,16 +137,19 @@ public class PublishingManagerImpl implements PublishingManager {
                 boolean hasRenamedChildren = false;
 
                 if (oldPath.endsWith(FILE_SEPARATOR + DmConstants.INDEX_FILE)) {
-                    if (contentService.contentExists(site, oldPath.replace(FILE_SEPARATOR + DmConstants.INDEX_FILE, ""))) {
+                    if (contentService.contentExists(site,
+                            oldPath.replace(FILE_SEPARATOR + DmConstants.INDEX_FILE, ""))) {
                         // TODO: SJ: This bypasses the Content Service, fix
-                        RepositoryItem[] children = contentRepository.getContentChildren(site, oldPath.replace(FILE_SEPARATOR + DmConstants.INDEX_FILE, ""));
+                        RepositoryItem[] children = contentRepository.getContentChildren(site,
+                                oldPath.replace(FILE_SEPARATOR + DmConstants.INDEX_FILE, ""));
 
                         if (children.length > 1) {
                             hasRenamedChildren = true;
                         }
                     }
                     if (!hasRenamedChildren) {
-                        deleteFolder(site, oldPath.replace(FILE_SEPARATOR + DmConstants.INDEX_FILE, ""), user);
+                        deleteFolder(site,
+                                oldPath.replace(FILE_SEPARATOR + DmConstants.INDEX_FILE, ""), user);
                     }
                 }
                 deploymentItem.setMove(true);
@@ -151,9 +161,11 @@ public class PublishingManagerImpl implements PublishingManager {
             boolean haschildren = false;
 
             if (item.getPath().endsWith(FILE_SEPARATOR + DmConstants.INDEX_FILE)) {
-                if (contentService.contentExists(site, path.replace(FILE_SEPARATOR + DmConstants.INDEX_FILE, ""))) {
+                if (contentService.contentExists(site,
+                        path.replace(FILE_SEPARATOR + DmConstants.INDEX_FILE, ""))) {
                     // TODO: SJ: This bypasses the Content Service, fix
-                    RepositoryItem[] children = contentRepository.getContentChildren(site, path.replace(FILE_SEPARATOR + DmConstants.INDEX_FILE, ""));
+                    RepositoryItem[] children = contentRepository.getContentChildren(site,
+                            path.replace(FILE_SEPARATOR + DmConstants.INDEX_FILE, ""));
 
                     if (children.length > 1) {
                         haschildren = true;
@@ -165,7 +177,8 @@ public class PublishingManagerImpl implements PublishingManager {
                 contentService.deleteContent(site, path, user);
 
                 if (!haschildren) {
-                    deleteFolder(site, path.replace(FILE_SEPARATOR + DmConstants.INDEX_FILE, ""), user);
+                    deleteFolder(site,
+                            path.replace(FILE_SEPARATOR + DmConstants.INDEX_FILE, ""), user);
                 }
             }
             deploymentItem.setDelete(true);
@@ -187,12 +200,20 @@ public class PublishingManagerImpl implements PublishingManager {
             }
 
             if (isLive) {
-                // should consider what should be done if this does not work. Currently the method will bail and the item is stuck in processing.
+                // should consider what should be done if this does not work.
+                // Currently the method will bail and the item is stuck in processing.
                 LOGGER.debug("Environment is live, transition item to LIVE state {0}:{1}", site, path);
 
                 // check if commit id from workflow and from object state match
                 ContentItemTO contentItem = contentService.getContentItem(site, path);
                 if (itemMetadata.getCommitId().equals(item.getCommitId())) {
+                    if (objectStateService.isScheduled(site, path)) {
+                        generateWorkflowActivity(site, path, item.getUser(),
+                                ActivityService.ActivityType.SCHEDULED_PUBLISH);
+                    } else {
+                        generateWorkflowActivity(site, path, item.getUser(),
+                                ActivityService.ActivityType.PUBLISHED);
+                    }
                     objectStateService.transition(site, contentItem, TransitionEvent.DEPLOYMENT);
                 }
                 Map<String, Object> props = new HashMap<String, Object>();
@@ -205,6 +226,14 @@ public class PublishingManagerImpl implements PublishingManager {
             }
         }
         return deploymentItem;
+    }
+
+    protected void generateWorkflowActivity(String site, String path, String username,
+                                            ActivityService.ActivityType activityType) {
+        Map<String, String> extraInfo = new HashMap<String, String>();
+        extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
+        activityService.postActivity(site, username, path, activityType,
+                ActivityService.ActivitySource.API, extraInfo);
     }
 
     private void deleteFolder(String site, String path, String user) {
@@ -228,7 +257,9 @@ public class PublishingManagerImpl implements PublishingManager {
 
     @Override
     @ValidateParams
-    public void markItemsCompleted(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "environment") String environment, List<PublishRequest> processedItems) throws DeploymentException {
+    public void markItemsCompleted(@ValidateStringParam(name = "site") String site,
+                                   @ValidateStringParam(name = "environment") String environment,
+                                   List<PublishRequest> processedItems) throws DeploymentException {
         for (PublishRequest item : processedItems) {
             item.setState(PublishRequest.State.COMPLETED);
             publishRequestMapper.updateItemDeploymentState(item);
@@ -237,7 +268,9 @@ public class PublishingManagerImpl implements PublishingManager {
 
     @Override
     @ValidateParams
-    public void markItemsProcessing(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "environment") String environment, List<PublishRequest> itemsToDeploy) throws DeploymentException {
+    public void markItemsProcessing(@ValidateStringParam(name = "site") String site,
+                                    @ValidateStringParam(name = "environment") String environment,
+                                    List<PublishRequest> itemsToDeploy) throws DeploymentException {
         for (PublishRequest item : itemsToDeploy) {
             item.setState(PublishRequest.State.PROCESSING);
             publishRequestMapper.updateItemDeploymentState(item);
@@ -246,7 +279,9 @@ public class PublishingManagerImpl implements PublishingManager {
 
     @Override
     @ValidateParams
-    public void markItemsReady(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "environment") String environment, List<PublishRequest> copyToEnvironmentItems) throws DeploymentException {
+    public void markItemsReady(@ValidateStringParam(name = "site") String site,
+                               @ValidateStringParam(name = "environment") String environment,
+                               List<PublishRequest> copyToEnvironmentItems) throws DeploymentException {
         for (PublishRequest item : copyToEnvironmentItems) {
             item.setState(PublishRequest.State.READY_FOR_LIVE);
             publishRequestMapper.updateItemDeploymentState(item);
@@ -255,7 +290,9 @@ public class PublishingManagerImpl implements PublishingManager {
 
     @Override
     @ValidateParams
-    public void markItemsBlocked(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "environment") String environment, List<PublishRequest> copyToEnvironmentItems) throws DeploymentException {
+    public void markItemsBlocked(@ValidateStringParam(name = "site") String site,
+                                 @ValidateStringParam(name = "environment") String environment,
+                                 List<PublishRequest> copyToEnvironmentItems) throws DeploymentException {
         for (PublishRequest item : copyToEnvironmentItems) {
             item.setState(PublishRequest.State.BLOCKED);
             publishRequestMapper.updateItemDeploymentState(item);
@@ -263,12 +300,15 @@ public class PublishingManagerImpl implements PublishingManager {
     }
 
     @Override
-    public List<DeploymentItemTO> processMandatoryDependencies(PublishRequest item, Set<String> pathsToDeploy, Set<String> missingDependenciesPaths) throws DeploymentException, ServiceException {
+    public List<DeploymentItemTO> processMandatoryDependencies(PublishRequest item, Set<String> pathsToDeploy,
+                                                               Set<String> missingDependenciesPaths)
+            throws DeploymentException, ServiceException {
         List<DeploymentItemTO> mandatoryDependencies = new ArrayList<DeploymentItemTO>();
         String site = item.getSite();
         String path = item.getPath();
 
-        if (StringUtils.equals(item.getAction(), PublishRequest.Action.NEW) || StringUtils.equals(item.getAction(), PublishRequest.Action.MOVE)) {
+        if (StringUtils.equals(item.getAction(), PublishRequest.Action.NEW) ||
+                StringUtils.equals(item.getAction(), PublishRequest.Action.MOVE)) {
             if (ContentUtils.matchesPatterns(path, servicesConfig.getPagePatterns(site))) {
                 String helpPath = path.replace(FILE_SEPARATOR + getIndexFile(), "");
                 int idx = helpPath.lastIndexOf(FILE_SEPARATOR);
@@ -280,7 +320,8 @@ public class PublishingManagerImpl implements PublishingManager {
                         PublishRequest parentItem = createMissingItem(site, parentPath, item);
                         DeploymentItemTO parentDeploymentItem = processItem(parentItem);
                         mandatoryDependencies.add(parentDeploymentItem);
-                        mandatoryDependencies.addAll(processMandatoryDependencies(parentItem, pathsToDeploy, missingDependenciesPaths));
+                        mandatoryDependencies.addAll(
+                                processMandatoryDependencies(parentItem, pathsToDeploy, missingDependenciesPaths));
                     }
                 }
             }
@@ -289,14 +330,17 @@ public class PublishingManagerImpl implements PublishingManager {
                 Set<String> dependentPaths = dependencyService.getPublishingDependencies(site, path);
                 for (String dependentPath : dependentPaths) {
                     // TODO: SJ: This bypasses the Content Service, fix
-                    if (objectStateService.isNew(site, dependentPath) || objectMetadataManager.isRenamed(site, dependentPath)) {
-                        if (!missingDependenciesPaths.contains(dependentPath) && !pathsToDeploy.contains(dependentPath)) {
+                    if (objectStateService.isNew(site, dependentPath) ||
+                            objectMetadataManager.isRenamed(site, dependentPath)) {
+                        if (!missingDependenciesPaths.contains(dependentPath) &&
+                                !pathsToDeploy.contains(dependentPath)) {
                             deploymentService.cancelWorkflow(site, dependentPath);
                             missingDependenciesPaths.add(dependentPath);
                             PublishRequest dependentItem = createMissingItem(site, dependentPath, item);
                             DeploymentItemTO dependentDeploymentItem = processItem(dependentItem);
                             mandatoryDependencies.add(dependentDeploymentItem);
-                            mandatoryDependencies.addAll(processMandatoryDependencies(dependentItem, pathsToDeploy, missingDependenciesPaths));
+                            mandatoryDependencies.addAll(processMandatoryDependencies(dependentItem, pathsToDeploy,
+                                    missingDependenciesPaths));
                         }
                     }
                 }
@@ -358,40 +402,104 @@ public class PublishingManagerImpl implements PublishingManager {
     }
 
     public boolean isEnablePublishingWithoutDependencies() {
-        boolean toReturn = Boolean.parseBoolean(studioConfiguration.getProperty(PUBLISHING_MANAGER_PUBLISHING_WITHOUT_DEPENDENCIES_ENABLED));
+        boolean toReturn = Boolean.parseBoolean(
+                studioConfiguration.getProperty(PUBLISHING_MANAGER_PUBLISHING_WITHOUT_DEPENDENCIES_ENABLED));
         return toReturn;
     }
 
-    public SiteService getSiteService() { return siteService; }
-    public void setSiteService(SiteService siteService) { this.siteService = siteService; }
+    public SiteService getSiteService() {
+        return siteService;
+    }
 
-    public org.craftercms.studio.api.v1.service.objectstate.ObjectStateService getObjectStateService() { return objectStateService; }
-    public void setObjectStateService(org.craftercms.studio.api.v1.service.objectstate.ObjectStateService objectStateService) { this.objectStateService = objectStateService; }
+    public void setSiteService(SiteService siteService) {
+        this.siteService = siteService;
+    }
 
-    public ContentService getContentService() { return contentService; }
-    public void setContentService(ContentService contentService) { this.contentService = contentService; }
+    public ObjectStateService getObjectStateService() {
+        return objectStateService;
+    }
 
-    public DeploymentService getDeploymentService() { return deploymentService; }
-    public void setDeploymentService(DeploymentService deploymentService) { this.deploymentService = deploymentService; }
+    public void setObjectStateService(ObjectStateService objectStateService) {
+        this.objectStateService = objectStateService;
+    }
 
-    public ContentRepository getContentRepository() { return contentRepository; }
-    public void setContentRepository(ContentRepository contentRepository) { this.contentRepository = contentRepository; }
+    public ContentService getContentService() {
+        return contentService;
+    }
 
-    public ObjectMetadataManager getObjectMetadataManager() { return objectMetadataManager; }
-    public void setObjectMetadataManager(ObjectMetadataManager objectMetadataManager) { this.objectMetadataManager = objectMetadataManager; }
+    public void setContentService(ContentService contentService) {
+        this.contentService = contentService;
+    }
 
-    public ServicesConfig getServicesConfig() { return servicesConfig; }
-    public void setServicesConfig(ServicesConfig servicesConfig) { this.servicesConfig = servicesConfig; }
+    public DeploymentService getDeploymentService() {
+        return deploymentService;
+    }
 
-    public SecurityProvider getSecurityProvider() { return securityProvider; }
-    public void setSecurityProvider(SecurityProvider securityProvider) { this.securityProvider = securityProvider; }
+    public void setDeploymentService(DeploymentService deploymentService) {
+        this.deploymentService = deploymentService;
+    }
 
-    public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
-    public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
+    public ContentRepository getContentRepository() {
+        return contentRepository;
+    }
 
-    public DependencyService getDependencyService() { return dependencyService; }
-    public void setDependencyService(DependencyService dependencyService) { this.dependencyService = dependencyService; }
+    public void setContentRepository(ContentRepository contentRepository) {
+        this.contentRepository = contentRepository;
+    }
 
-    public DeploymentHistoryProvider getDeploymentHistoryProvider() { return deploymentHistoryProvider; }
-    public void setDeploymentHistoryProvider(DeploymentHistoryProvider deploymentHistoryProvider) { this.deploymentHistoryProvider = deploymentHistoryProvider; }
+    public ObjectMetadataManager getObjectMetadataManager() {
+        return objectMetadataManager;
+    }
+
+    public void setObjectMetadataManager(ObjectMetadataManager objectMetadataManager) {
+        this.objectMetadataManager = objectMetadataManager;
+    }
+
+    public ServicesConfig getServicesConfig() {
+        return servicesConfig;
+    }
+
+    public void setServicesConfig(ServicesConfig servicesConfig) {
+        this.servicesConfig = servicesConfig;
+    }
+
+    public SecurityProvider getSecurityProvider() {
+        return securityProvider;
+    }
+
+    public void setSecurityProvider(SecurityProvider securityProvider) {
+        this.securityProvider = securityProvider;
+    }
+
+    public StudioConfiguration getStudioConfiguration() {
+        return studioConfiguration;
+    }
+
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+        this.studioConfiguration = studioConfiguration;
+    }
+
+    public DependencyService getDependencyService() {
+        return dependencyService;
+    }
+
+    public void setDependencyService(DependencyService dependencyService) {
+        this.dependencyService = dependencyService;
+    }
+
+    public DeploymentHistoryProvider getDeploymentHistoryProvider() {
+        return deploymentHistoryProvider;
+    }
+
+    public void setDeploymentHistoryProvider(DeploymentHistoryProvider deploymentHistoryProvider) {
+        this.deploymentHistoryProvider = deploymentHistoryProvider;
+    }
+
+    public ActivityService getActivityService() {
+        return activityService;
+    }
+
+    public void setActivityService(ActivityService activityService) {
+        this.activityService = activityService;
+    }
 }
