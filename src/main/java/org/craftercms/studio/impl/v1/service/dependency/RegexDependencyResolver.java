@@ -1,6 +1,5 @@
 /*
- * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2017 Crafter Software Corporation.
+ * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,11 +13,13 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 
 package org.craftercms.studio.impl.v1.service.dependency;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -31,17 +32,28 @@ import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_DEPENDENCY_RESOLVER_CONFIG_BASE_PATH;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_DEPENDENCY_RESOLVER_CONFIG_FILE_NAME;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.
+        CONFIGURATION_SITE_DEPENDENCY_RESOLVER_CONFIG_BASE_PATH;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.
+        CONFIGURATION_SITE_DEPENDENCY_RESOLVER_CONFIG_FILE_NAME;
 
 public class RegexDependencyResolver implements DependencyResolver {
 
-    private final static Logger logger = LoggerFactory.getLogger(RegexDependencyResolver.class);
+    private static final Logger logger = LoggerFactory.getLogger(RegexDependencyResolver.class);
+
+    private static final String PARENT_DEPENDENCY_TYPE = "parent";
 
     protected ContentService contentService;
     protected StudioConfiguration studioConfiguration;
@@ -59,18 +71,23 @@ public class RegexDependencyResolver implements DependencyResolver {
                         DependencyResolverConfigTO.ItemType itemType = entry.getValue();
                         List<String> includes = itemType.getIncludes();
                         if (ContentUtils.matchesPatterns(path, includes)) {
-                            Map<String, DependencyResolverConfigTO.DependencyType> dependencyTypes = itemType.getDependencyTypes();
-                            for (Map.Entry<String, DependencyResolverConfigTO.DependencyType> dependencyTypeEntry : dependencyTypes.entrySet()) {
+                            Map<String, DependencyResolverConfigTO.DependencyType> dependencyTypes =
+                                    itemType.getDependencyTypes();
+                            for (Map.Entry<String, DependencyResolverConfigTO.DependencyType> dependencyTypeEntry :
+                                    dependencyTypes.entrySet()) {
                                 Set<String> extractedPaths = new HashSet<String>();
                                 DependencyResolverConfigTO.DependencyType dependencyType = dependencyTypeEntry.getValue();
-                                List<DependencyResolverConfigTO.DependencyExtractionPattern> extractionPatterns = dependencyType.getIncludes();
-                                for (DependencyResolverConfigTO.DependencyExtractionPattern extractionPattern : extractionPatterns) {
+                                List<DependencyResolverConfigTO.DependencyExtractionPattern> extractionPatterns =
+                                        dependencyType.getIncludes();
+                                for (DependencyResolverConfigTO.DependencyExtractionPattern extractionPattern :
+                                        extractionPatterns) {
                                     Pattern pattern = Pattern.compile(extractionPattern.getFindRegex());
                                     Matcher matcher = pattern.matcher(content);
                                     while (matcher.find()) {
                                         String matchedPath = matcher.group();
                                         if (CollectionUtils.isNotEmpty(extractionPattern.getTransforms())) {
-                                            for (DependencyResolverConfigTO.DependencyExtractionTransform transform : extractionPattern.getTransforms()) {
+                                            for (DependencyResolverConfigTO.DependencyExtractionTransform transform :
+                                                    extractionPattern.getTransforms()) {
                                                 Pattern find = Pattern.compile(transform.getMatch());
                                                 Matcher replaceMatcher = find.matcher(matchedPath);
                                                 matchedPath = replaceMatcher.replaceAll(transform.getReplace());
@@ -79,8 +96,13 @@ public class RegexDependencyResolver implements DependencyResolver {
                                         if (contentService.contentExists(site, matchedPath)) {
                                             extractedPaths.add(matchedPath);
                                         } else {
-                                            String message = "Found reference to " + matchedPath + " in content at " + path + " but content does not exist in referenced path for site " + site + ".\n"
-                                                    + "Regular expression for extracting dependencies matched string, and after applying transformation rules to get value for dependency path, that dependency path was not found in site repository as a content.";
+                                            String message = "Found reference to " + matchedPath + " in content at " +
+                                                    path + " but content does not exist in referenced path for site " +
+                                                    site + ".\n"
+                                                    + "Regular expression for extracting dependencies matched " +
+                                                    "string, and after applying transformation rules to get value " +
+                                                    "for dependency path, that dependency path was not found in" +
+                                                    " site repository as a content.";
                                             logger.debug(message);
                                         }
                                     }
@@ -91,11 +113,19 @@ public class RegexDependencyResolver implements DependencyResolver {
                     }
                 }
             } else {
-                logger.error("Failed to extract dependencies. Content not found for site: " + site + ", path: " + path);
+                logger.error("Failed to extract dependencies. Content not found for site: " + site + ", path: "
+                        + path);
             }
         } else {
             String configLocation = getConfigLocation(site);
-            logger.error("Failed to load Dependency Resolver configuration. Verify that configuration exists and it is valid XML file: " + configLocation);
+            logger.error("Failed to load Dependency Resolver configuration. Verify that configuration exists" +
+                    " and it is valid XML file: " + configLocation);
+        }
+        String parentDependencyPath = getParentDependency(site, path);
+        if (StringUtils.isNotEmpty(parentDependencyPath)) {
+            Set<String> parentDeps = new HashSet<String>();
+            parentDeps.add(parentDependencyPath);
+            toRet.put(PARENT_DEPENDENCY_TYPE, parentDeps);
         }
         return toRet;
     }
@@ -136,15 +166,19 @@ public class RegexDependencyResolver implements DependencyResolver {
                     Iterator<Element> iterDependencyTypes = dependencyTypesEl.elementIterator("dependency-type");
                     while (iterDependencyTypes.hasNext()) {
                         Element dependencyTypeEl = iterDependencyTypes.next();
-                        DependencyResolverConfigTO.DependencyType dependencyType = new DependencyResolverConfigTO.DependencyType();
+                        DependencyResolverConfigTO.DependencyType dependencyType =
+                                new DependencyResolverConfigTO.DependencyType();
                         List<DependencyResolverConfigTO.DependencyExtractionPattern> patterns = new ArrayList<DependencyResolverConfigTO.DependencyExtractionPattern>();
                         String dependencyTypeName = dependencyTypeEl.valueOf("name");
                         dependencyType.setName(dependencyTypeName);
                         Element dependencyTypeIncludesEl = dependencyTypeEl.element("includes");
-                        Iterator<Element> iterDependencyTypeIncludes = dependencyTypeIncludesEl.elementIterator("pattern");
+                        Iterator<Element> iterDependencyTypeIncludes =
+                                dependencyTypeIncludesEl.elementIterator("pattern");
                         while (iterDependencyTypeIncludes.hasNext()) {
-                            DependencyResolverConfigTO.DependencyExtractionPattern pattern = new DependencyResolverConfigTO.DependencyExtractionPattern();
-                            List<DependencyResolverConfigTO.DependencyExtractionTransform> transforms = new ArrayList<DependencyResolverConfigTO.DependencyExtractionTransform>();
+                            DependencyResolverConfigTO.DependencyExtractionPattern pattern =
+                                    new DependencyResolverConfigTO.DependencyExtractionPattern();
+                            List<DependencyResolverConfigTO.DependencyExtractionTransform> transforms =
+                                    new ArrayList<DependencyResolverConfigTO.DependencyExtractionTransform>();
                             Element patternEl = iterDependencyTypeIncludes.next();
                             Element findRegexEl = patternEl.element("find-regex");
                             pattern.setFindRegex(findRegexEl.getStringValue());
@@ -153,7 +187,8 @@ public class RegexDependencyResolver implements DependencyResolver {
                                 Iterator<Element> iterTransformEl = transformsEl.elementIterator("transform");
                                 while (iterTransformEl.hasNext()) {
                                     Element transformEl = iterTransformEl.next();
-                                    DependencyResolverConfigTO.DependencyExtractionTransform transform = new DependencyResolverConfigTO.DependencyExtractionTransform();
+                                    DependencyResolverConfigTO.DependencyExtractionTransform transform =
+                                            new DependencyResolverConfigTO.DependencyExtractionTransform();
                                     Element matchEl = transformEl.element("match");
                                     Element replaceEl = transformEl.element("replace");
                                     transform.setMatch(matchEl.getStringValue());
@@ -177,6 +212,25 @@ public class RegexDependencyResolver implements DependencyResolver {
         return config;
     }
 
+    private String getParentDependency(String site, String path) {
+        int idx = path.lastIndexOf(FILE_SEPARATOR + INDEX_FILE);
+        String aPath = path;
+        if (idx > 0) {
+            aPath = path.substring(0, idx);
+        }
+        logger.debug("Calculate parent url for " + aPath);
+        String parentPath = ContentUtils.getParentUrl(aPath);
+        if (StringUtils.isNotEmpty(parentPath)) {
+            String parentIndexPath = parentPath + FILE_SEPARATOR + INDEX_FILE;
+            if (contentService.contentExists(site, parentIndexPath)) {
+                return parentIndexPath;
+            } else {
+                return parentPath;
+            }
+        }
+        return StringUtils.EMPTY;
+    }
+
     private String getConfigLocation(String site) {
         String configLocation = getConfigPath().replaceFirst(StudioConstants.PATTERN_SITE, site);
         configLocation = configLocation + FILE_SEPARATOR + getConfigFileName();
@@ -191,9 +245,19 @@ public class RegexDependencyResolver implements DependencyResolver {
         return studioConfiguration.getProperty(CONFIGURATION_SITE_DEPENDENCY_RESOLVER_CONFIG_FILE_NAME);
     }
 
-    public ContentService getContentService() { return contentService; }
-    public void setContentService(ContentService contentService) { this.contentService = contentService; }
+    public ContentService getContentService() {
+        return contentService;
+    }
 
-    public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
-    public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
+    public void setContentService(ContentService contentService) {
+        this.contentService = contentService;
+    }
+
+    public StudioConfiguration getStudioConfiguration() {
+        return studioConfiguration;
+    }
+
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+        this.studioConfiguration = studioConfiguration;
+    }
 }
