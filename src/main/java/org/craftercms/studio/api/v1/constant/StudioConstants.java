@@ -132,4 +132,13 @@ package org.craftercms.studio.api.v1.constant;
     String SECURITY_AUTHENTICATION_TYPE_DB = "db";
     String SECURITY_AUTHENTICATION_TYPE_LDAP = "ldap";
     String SECURITY_AUTHENTICATION_TYPE_HEADERS = "headers";
+
+    String JSON_PROPERTY_ITEM = "item";
+    String JSON_PROPERTY_DEPENDENCIES = "dependencies";
+
+    /**
+     * API Request Parameter Names
+     */
+    String API_REQUEST_PARAM_SITE = "site";
+    String API_REQUEST_PARAM_ENTITIES = "entities";
 }

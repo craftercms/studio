@@ -1,28 +1,30 @@
-/*******************************************************************************
- * Crafter Studio
- *    Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
+/*
+ * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
  *
- *    This program is free software: you can redistribute it and/or modify
- *    it under the terms of the GNU General Public License as published by
- *    the Free Software Foundation, either version 3 of the License, or
- *    (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *    This program is distributed in the hope that it will be useful,
- *    but WITHOUT ANY WARRANTY; without even the implied warranty of
- *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *    GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *    You should have received a copy of the GNU General Public License
- *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
- ******************************************************************************/
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
 package org.craftercms.studio.api.v1.service.dependency;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.to.CalculateDependenciesEntityTO;
 
 /**
  * Dependency Service is the sole custodian of the dependency database
@@ -43,7 +45,8 @@ public interface DependencyService {
 	 * @throws ContentNotFoundException Path doesn't exist
 	 * @throws ServiceException Internal error, see exception details
 	 */
-	Set<String> upsertDependencies(String site, String path) throws SiteNotFoundException, ContentNotFoundException, ServiceException;
+	Set<String> upsertDependencies(String site, String path)
+            throws SiteNotFoundException, ContentNotFoundException, ServiceException;
 
 	/**
 	 * Scan a list of items for direct dependencies and synchroniz
@@ -57,7 +60,8 @@ public interface DependencyService {
 	 *  (database won't be updated for any of the items)
 	 * @throws ServiceException Internal error, see exception details
 	 */
-	Set<String> upsertDependencies(String site, List<String> paths) throws SiteNotFoundException, ContentNotFoundException, ServiceException;
+	Set<String> upsertDependencies(String site, List<String> paths)
+            throws SiteNotFoundException, ContentNotFoundException, ServiceException;
 
 	/**
 	 * Get a all publishing dependencies of a list of items. A publishing
@@ -71,7 +75,8 @@ public interface DependencyService {
 	 * @throws ContentNotFoundException Path doesn't exist
 	 * @throws ServiceException Internal error, see exception details
 	 */
-	Set<String> getPublishingDependencies(String site, String path) throws SiteNotFoundException, ContentNotFoundException, ServiceException;
+	Set<String> getPublishingDependencies(String site, String path)
+            throws SiteNotFoundException, ContentNotFoundException, ServiceException;
 
 	/**
 	 * Get a all publishing dependencies of a list of items. A publishing
@@ -85,7 +90,8 @@ public interface DependencyService {
 	 * @throws ContentNotFoundException One or more paths doesn't exist
 	 * @throws ServiceException Internal error, see exception details
 	 */
-	Set<String> getPublishingDependencies(String site, List<String> paths) throws SiteNotFoundException, ContentNotFoundException, ServiceException;
+	Set<String> getPublishingDependencies(String site, List<String> paths)
+            throws SiteNotFoundException, ContentNotFoundException, ServiceException;
 
 	/**
 	 * Get item-specific dependencies of an item. An item-specific
@@ -100,7 +106,8 @@ public interface DependencyService {
 	 * @throws ContentNotFoundException Path doesn't exist
 	 * @throws ServiceException Internal error, see exception details
 	 */
-	Set<String> getItemSpecificDependencies(String site, String path, int depth) throws SiteNotFoundException, ContentNotFoundException, ServiceException;
+	Set<String> getItemSpecificDependencies(String site, String path, int depth)
+            throws SiteNotFoundException, ContentNotFoundException, ServiceException;
 
 	/**
 	 * Get all item dependencies of an item.
@@ -112,7 +119,8 @@ public interface DependencyService {
 	 * @throws ContentNotFoundException Path doesn't exist
 	 * @throws ServiceException Internal error, see exception details
 	 */
-	Set<String> getItemDependencies(String site, String path, int depth) throws SiteNotFoundException, ContentNotFoundException, ServiceException;
+	Set<String> getItemDependencies(String site, String path, int depth)
+            throws SiteNotFoundException, ContentNotFoundException, ServiceException;
 
 	/**
 	 * Get all items that depend on this item.
@@ -124,7 +132,8 @@ public interface DependencyService {
 	 * @throws ContentNotFoundException Path doesn't exist
 	 * @throws ServiceException Internal error, see exception details
 	 */
-	Set<String> getItemsDependingOn(String site, String path, int depth) throws SiteNotFoundException, ContentNotFoundException, ServiceException;
+	Set<String> getItemsDependingOn(String site, String path, int depth)
+            throws SiteNotFoundException, ContentNotFoundException, ServiceException;
 
 	/**
 	 * Move an item and make sure dependency paths remain correct.
@@ -136,7 +145,8 @@ public interface DependencyService {
 	 * @throws ContentNotFoundException Path doesn't exist
 	 * @throws ServiceException Internal error, see exception details
 	 */
-	Set<String> moveDependencies(String site, String oldPath, String newPath) throws SiteNotFoundException, ContentNotFoundException, ServiceException;
+	Set<String> moveDependencies(String site, String oldPath, String newPath)
+            throws SiteNotFoundException, ContentNotFoundException, ServiceException;
 
 	/**
 	 * Delete an item dependencies from the database.
@@ -147,7 +157,8 @@ public interface DependencyService {
 	 * @throws ContentNotFoundException Path doesn't exist
 	 * @throws ServiceException Internal error, see exception details
 	 */
-	void deleteItemDependencies(String site, String path) throws SiteNotFoundException, ContentNotFoundException, ServiceException;
+	void deleteItemDependencies(String site, String path)
+            throws SiteNotFoundException, ContentNotFoundException, ServiceException;
 
 	/**
 	 * Delete all dependencies from the database for a given site.
@@ -166,16 +177,30 @@ public interface DependencyService {
      * @throws ContentNotFoundException Content doesn't exist
      * @throws ServiceException Internal error
      */
-	Set<String> getDeleteDependencies(String site, String path) throws SiteNotFoundException, ContentNotFoundException, ServiceException;
+	Set<String> getDeleteDependencies(String site, String path)
+            throws SiteNotFoundException, ContentNotFoundException, ServiceException;
 
     /**
      *
      * @param site Site to operate on
-     * @param path Paths to items to retrieve delete dependencies for
+     * @param paths Paths to items to retrieve delete dependencies for
      * @return Set of paths included as delete dependencies
      * @throws SiteNotFoundException Site doesn't exist
      * @throws ContentNotFoundException Content doesn't exist
      * @throws ServiceException Internal error
      */
-	Set<String> getDeleteDependencies(String site, List<String> paths) throws SiteNotFoundException, ContentNotFoundException, ServiceException;
+	Set<String> getDeleteDependencies(String site, List<String> paths)
+            throws SiteNotFoundException, ContentNotFoundException, ServiceException;
+
+    /**
+     * Calucalate dependencies for publishing
+     *
+     * @param site Site to operate on
+     * @param paths List of items to calculate dependencies for
+     * @return Formated result set
+     * @throws SiteNotFoundException site does not exist
+     */
+	Map<String, List<CalculateDependenciesEntityTO>> calculateDependencies(String site, List<String> paths)
+            throws ServiceException;
+
 }

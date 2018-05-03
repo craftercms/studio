@@ -19,6 +19,8 @@
 package org.craftercms.studio.impl.v1.service.dependency;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.dal.DependencyEntity;
 import org.craftercms.studio.api.v1.dal.DependencyMapper;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
@@ -35,6 +37,7 @@ import org.craftercms.studio.api.v1.service.dependency.DependencyResolver;
 import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v1.service.objectstate.State;
 import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v1.to.CalculateDependenciesEntityTO;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.DeleteDependencyConfigTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
@@ -52,6 +55,17 @@ import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
 
+import static org.craftercms.studio.api.v1.dal.DependencyMapper.EDITED_STATES_PARAM;
+import static org.craftercms.studio.api.v1.dal.DependencyMapper.NEW_PATH_PARAM;
+import static org.craftercms.studio.api.v1.dal.DependencyMapper.NEW_STATES_PARAM;
+import static org.craftercms.studio.api.v1.dal.DependencyMapper.OLD_PATH_PARAM;
+import static org.craftercms.studio.api.v1.dal.DependencyMapper.PATHS_PARAM;
+import static org.craftercms.studio.api.v1.dal.DependencyMapper.PATH_PARAM;
+import static org.craftercms.studio.api.v1.dal.DependencyMapper.REGEX_PARAM;
+import static org.craftercms.studio.api.v1.dal.DependencyMapper.SITE_ID_PARAM;
+import static org.craftercms.studio.api.v1.dal.DependencyMapper.SITE_PARAM;
+import static org.craftercms.studio.api.v1.dal.DependencyMapper.SORUCE_PATH_COLUMN_NAME;
+import static org.craftercms.studio.api.v1.dal.DependencyMapper.TARGET_PATH_COLUMN_NAME;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_DEPENDENCY_ITEM_SPECIFIC_PATTERNS;
 
 public class DependencyServiceImpl implements DependencyService {
@@ -152,8 +166,8 @@ public class DependencyServiceImpl implements DependencyService {
     private void deleteAllSourceDependencies(String site, String path) {
         logger.debug("Delete all source dependencies for site: " + site + " path: " + path);
         Map<String, String> params = new HashMap<String, String>();
-        params.put("site", site);
-        params.put("path", path);
+        params.put(SITE_PARAM, site);
+        params.put(PATH_PARAM, path);
         dependencyMapper.deleteAllSourceDependencies(params);
     }
 
@@ -183,7 +197,7 @@ public class DependencyServiceImpl implements DependencyService {
         logger.debug("Insert list of dependency entities into database");
         if (CollectionUtils.isNotEmpty(dependencyEntities)) {
             Map<String, Object> params = new HashMap<>();
-            params.put("dependencies", dependencyEntities);
+            params.put(StudioConstants.JSON_PROPERTY_DEPENDENCIES, dependencyEntities);
             dependencyMapper.insertList(params);
         }
     }
@@ -218,12 +232,12 @@ public class DependencyServiceImpl implements DependencyService {
 
     private List<String> getPublishingDependenciesForListFromDB(String site, Set<String> paths) {
         Map<String, Object> params = new HashMap<String, Object>();
-        params.put("site", site);
-        params.put("paths", paths);
-        params.put("regex", getItemSpecificDependenciesPatterns());
+        params.put(SITE_PARAM, site);
+        params.put(PATHS_PARAM, paths);
+        params.put(REGEX_PARAM, getItemSpecificDependenciesPatterns());
         Collection<State> onlyEditStates = CollectionUtils.removeAll(State.CHANGE_SET_STATES, State.NEW_STATES);
-        params.put("editedStates", onlyEditStates);
-        params.put("newStates", State.NEW_STATES);
+        params.put(EDITED_STATES_PARAM, onlyEditStates);
+        params.put(NEW_STATES_PARAM, State.NEW_STATES);
         return dependencyMapper.getPublishingDependenciesForList(params);
     }
 
@@ -269,9 +283,9 @@ public class DependencyServiceImpl implements DependencyService {
             return new ArrayList<String>();
         }
         Map<String, Object> params = new HashMap<String, Object>();
-        params.put("site", site);
-        params.put("paths", paths);
-        params.put("regex", getItemSpecificDependenciesPatterns());
+        params.put(SITE_PARAM, site);
+        params.put(PATHS_PARAM, paths);
+        params.put(REGEX_PARAM, getItemSpecificDependenciesPatterns());
         return dependencyMapper.getItemSpecificDependenciesForList(params);
     }
 
@@ -317,8 +331,8 @@ public class DependencyServiceImpl implements DependencyService {
             return new ArrayList<String>();
         }
         Map<String, Object> params = new HashMap<String, Object>();
-        params.put("site", site);
-        params.put("paths", paths);
+        params.put(SITE_PARAM, site);
+        params.put(PATHS_PARAM, paths);
         return dependencyMapper.getDependenciesForList(params);
     }
 
@@ -364,8 +378,8 @@ public class DependencyServiceImpl implements DependencyService {
             return new ArrayList<String>();
         }
         Map<String, Object> params = new HashMap<String, Object>();
-        params.put("site", site);
-        params.put("paths", paths);
+        params.put(SITE_PARAM, site);
+        params.put(PATHS_PARAM, paths);
         return dependencyMapper.getItemsDependingOn(params);
     }
 
@@ -383,9 +397,9 @@ public class DependencyServiceImpl implements DependencyService {
         }
 
         Map<String, String> params = new HashMap<String, String>();
-        params.put("siteId", site);
-        params.put("oldPath", oldPath);
-        params.put("newPath", newPath);
+        params.put(SITE_ID_PARAM, site);
+        params.put(OLD_PATH_PARAM, oldPath);
+        params.put(NEW_PATH_PARAM, newPath);
         dependencyMapper.moveDependency(params);
 
         return getItemDependencies(site, newPath, 1);
@@ -400,8 +414,8 @@ public class DependencyServiceImpl implements DependencyService {
 
         logger.debug("Delete dependencies for content site: " + site + " path: " + path);
         Map<String, String> params = new HashMap<String, String>();
-        params.put("site", site);
-        params.put("path", path);
+        params.put(SITE_PARAM, site);
+        params.put(PATH_PARAM, path);
         dependencyMapper.deleteDependenciesForSiteAndPath(params);
     }
 
@@ -409,7 +423,7 @@ public class DependencyServiceImpl implements DependencyService {
     public void deleteSiteDependencies(String site) throws ServiceException {
         logger.debug("Delete all dependencies for site: " + site);
         Map<String, String> params = new HashMap<String, String>();
-        params.put("site", site);
+        params.put(SITE_PARAM, site);
         dependencyMapper.deleteDependenciesForSite(params);
     }
 
@@ -538,6 +552,80 @@ public class DependencyServiceImpl implements DependencyService {
             itemSpecificDependenciesPatterns.add(st.nextToken().trim());
         }
         return itemSpecificDependenciesPatterns;
+    }
+
+    @Override
+    public Map<String, List<CalculateDependenciesEntityTO>> calculateDependencies(String site, List<String> paths)
+            throws ServiceException {
+        Map<String, List<CalculateDependenciesEntityTO>> toRet =
+                new HashMap<String, List<CalculateDependenciesEntityTO>>();
+        List<CalculateDependenciesEntityTO> entities = new ArrayList<CalculateDependenciesEntityTO>();
+            Map<String, String> deps = calcualtePublishingDependencies(site, paths);
+            Map<String, List<Map<String, String>>> temp = new HashMap<String, List<Map<String,String>>>();
+            for (String p : paths) {
+                temp.put(p, new ArrayList<Map<String, String>>());
+            }
+            for (Map.Entry<String, String> d : deps.entrySet()) {
+                if (d.getKey() != d.getValue()) {
+                    List<Map<String, String>> ds = temp.get(d.getValue());
+                    ds.add(new HashMap<String, String>() {{
+                        put(StudioConstants.JSON_PROPERTY_ITEM, d.getKey());
+                    }});
+                }
+            }
+            for (Map.Entry<String, List<Map<String,String >>> t : temp.entrySet()) {
+                CalculateDependenciesEntityTO calculateDependenciesEntityTO = new CalculateDependenciesEntityTO();
+                calculateDependenciesEntityTO.setItem(t.getKey());
+                calculateDependenciesEntityTO.setDependencies(t.getValue());
+                entities.add(calculateDependenciesEntityTO);
+            }
+
+        toRet.put("entities", entities);
+        return toRet;
+    }
+
+    private Map<String, String> calcualtePublishingDependencies(String site, List<String> paths)
+            throws SiteNotFoundException, ContentNotFoundException, ServiceException {
+        Set<String> toRet = new HashSet<String>();
+        Set<String> pathsParams = new HashSet<String>();
+
+        logger.debug("Get all publishing dependencies");
+        pathsParams.addAll(paths);
+        boolean exitCondition = false;
+        Map<String, String> ancestors = new HashMap<String, String>();
+        for (String p : paths) {
+            ancestors.put(p, p);
+        }
+        do {
+            List<Map<String, String>> deps = calculatePublishingDependenciesForListFromDB(site, pathsParams);
+            List<String> targetPaths = new ArrayList<String>();
+            for (Map<String, String> d : deps) {
+                String srcPath = d.get(SORUCE_PATH_COLUMN_NAME);
+                String targetPath = d.get(TARGET_PATH_COLUMN_NAME);
+                if (!ancestors.keySet().contains(targetPath)) {
+                    if (!StringUtils.equals(targetPath, ancestors.get(srcPath))) {
+                        ancestors.put(targetPath, ancestors.get(srcPath));
+                    }
+                }
+                targetPaths.add(targetPath);
+            }
+            exitCondition = !toRet.addAll(targetPaths);
+            pathsParams.clear();
+            pathsParams.addAll(targetPaths);
+        } while (!exitCondition);
+
+        return ancestors;
+    }
+
+    private List<Map<String, String>> calculatePublishingDependenciesForListFromDB(String site, Set<String> paths) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put(SITE_PARAM, site);
+        params.put(PATHS_PARAM, paths);
+        params.put(REGEX_PARAM, getItemSpecificDependenciesPatterns());
+        Collection<State> onlyEditStates = CollectionUtils.removeAll(State.CHANGE_SET_STATES, State.NEW_STATES);
+        params.put(EDITED_STATES_PARAM, onlyEditStates);
+        params.put(NEW_STATES_PARAM, State.NEW_STATES);
+        return dependencyMapper.calculatePublishingDependenciesForList(params);
     }
 
     public StudioConfiguration getStudioConfiguration() {
