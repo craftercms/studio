@@ -28,37 +28,43 @@ class DeploymentServices {
      */
     static getDeploymentHistory(site, daysFromToday, numberOfItems, sort, ascending, filterType, context) {
         def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context)
-        return deploymentServicesImpl.getDeploymentHistory(site, daysFromToday, numberOfItems, sort, ascending, filterType)
+        return deploymentServicesImpl.getDeploymentHistory(site, daysFromToday, numberOfItems, sort, ascending,
+                filterType)
     }
 
 
     static getScheduledItems(context, site, sort, ascending, subSort, subAscending, filterType) {
         def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context)
-        deploymentServicesImpl.getScheduledItems(site, sort, ascending, subSort, subAscending, filterType);
+        deploymentServicesImpl.getScheduledItems(site, sort, ascending, subSort, subAscending, filterType)
     }
 
     static getAvailablePublishingChannelGroups(context, site, path) {
-        def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context);
-        return deploymentServicesImpl.getAvailablePublishingChannelGroups(site, path);
+        def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context)
+        return deploymentServicesImpl.getAvailablePublishingChannelGroups(site, path)
     }
 
     static bulkGoLive(context, site, environment, path) {
-        def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context);
-        return deploymentServicesImpl.bulkGoLive(site, environment, path);
+        def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context)
+        return deploymentServicesImpl.bulkGoLive(site, environment, path)
     }
 
     static getStatus(context, siteId) {
-        def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context);
-        return deploymentServicesImpl.getPublishStatus(siteId);
+        def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context)
+        return deploymentServicesImpl.getPublishStatus(siteId)
     }
 
     static enablePublishing(context, siteId, enabled) {
-        def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context);
-        return deploymentServicesImpl.enablePublishing(siteId, enabled);
+        def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context)
+        return deploymentServicesImpl.enablePublishing(siteId, enabled)
     }
 
     static publishCommits(context, siteId, environment, commitIds) {
-        def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context);
-        return deploymentServicesImpl.publishCommits(siteId, environment, commitIds);
+        def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context)
+        return deploymentServicesImpl.publishCommits(siteId, environment, commitIds)
+    }
+
+    static publishItems(context, site, environment, paths) {
+        def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context)
+        return deploymentServicesImpl.publishItems(site, environment, paths)
     }
 }
