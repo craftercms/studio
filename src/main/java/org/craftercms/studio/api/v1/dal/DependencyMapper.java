@@ -48,5 +48,7 @@ public interface DependencyMapper {
 
     List<String> getPublishingDependenciesForList(Map params);
 
+    List<Map<String, String>> calculatePublishingDependenciesForList(Map params);
+
     void moveDependency(Map params);
 }
