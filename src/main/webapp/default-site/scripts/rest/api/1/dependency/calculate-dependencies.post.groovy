@@ -24,9 +24,12 @@ import org.apache.commons.lang3.StringUtils
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException
 import scripts.api.DependencyServices;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.API_REQUEST_PARAM_SITE
+import static org.craftercms.studio.api.v1.constant.StudioConstants.API_REQUEST_PARAM_ENTITIES
+
 def result = [:]
 try {
-    def site = request.getParameter("site")
+    def site = request.getParameter(API_REQUEST_PARAM_SITE)
     def requestBody = request.reader.text
 
     def slurper = new JsonSlurper()
@@ -43,22 +46,22 @@ try {
     try {
         if (StringUtils.isEmpty(site)) {
             invalidParams = true
-            paramsList.add("site")
+            paramsList.add(API_REQUEST_PARAM_SITE)
         }
     } catch (Exception exc) {
         invalidParams = true
-        paramsList.add("site")
+        paramsList.add(API_REQUEST_PARAM_SITE)
     }
 
 // paths
     try {
         if (CollectionUtils.isEmpty(paths)) {
             invalidParams = true
-            paramsList.add("entities")
+            paramsList.add(API_REQUEST_PARAM_ENTITIES)
         }
     } catch (Exception exc) {
         invalidParams = true
-        paramsList.add("entities")
+        paramsList.add(API_REQUEST_PARAM_ENTITIES)
     }
 
     if (invalidParams) {
