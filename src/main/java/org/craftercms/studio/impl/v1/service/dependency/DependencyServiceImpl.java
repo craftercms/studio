@@ -584,6 +584,12 @@ public class DependencyServiceImpl implements DependencyService {
         return toRet;
     }
 
+    @Override
+    public Set<String> calculateDependenciesPaths(String site, List<String> paths) throws ServiceException {
+        Map<String, String> dependencies = calcualtePublishingDependencies(site, paths);
+        return dependencies.keySet();
+    }
+
     private Map<String, String> calcualtePublishingDependencies(String site, List<String> paths)
             throws SiteNotFoundException, ContentNotFoundException, ServiceException {
         Set<String> toRet = new HashSet<String>();

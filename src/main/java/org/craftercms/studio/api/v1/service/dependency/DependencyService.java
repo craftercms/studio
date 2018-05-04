@@ -193,14 +193,22 @@ public interface DependencyService {
             throws SiteNotFoundException, ContentNotFoundException, ServiceException;
 
     /**
-     * Calucalate dependencies for publishing
+     * Calcualate dependencies for publishing
      *
      * @param site Site to operate on
      * @param paths List of items to calculate dependencies for
-     * @return Formated result set
+     * @return Formatted result set
      * @throws SiteNotFoundException site does not exist
      */
 	Map<String, List<CalculateDependenciesEntityTO>> calculateDependencies(String site, List<String> paths)
             throws ServiceException;
+
+    /**
+     * Calculate dependencies paths for publishing
+     * @param site site to use
+     * @param paths list of items to calculate dependencies for
+     * @return dependencies paths
+     */
+	Set<String> calculateDependenciesPaths(String site, List<String> paths) throws ServiceException;
 
 }

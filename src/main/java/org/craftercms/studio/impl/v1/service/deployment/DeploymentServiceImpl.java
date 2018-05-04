@@ -107,8 +107,8 @@ public class DeploymentServiceImpl implements DeploymentService {
         Map<String, List<String>> groupedPaths = new HashMap<String, List<String>>();
 
         for (String p : paths) {
-            ContentItemTO item = contentService.getContentItem(site, p, 0);
-            if (item.isFolder()) {
+            boolean isFolder = contentRepository.isFolder(site, p);
+            if (isFolder) {
                 logger.debug("Content item at path " + p + " for site " + site + " is folder and will not be added to publishing queue.");
             } else {
                 if (objectStateService.isNew(site, p)) {
@@ -384,6 +384,18 @@ public class DeploymentServiceImpl implements DeploymentService {
         params.put("canceledState", CopyToEnvironmentItem.State.CANCELED);
         params.put("now", ZonedDateTime.now(ZoneOffset.UTC));
         publishRequestMapper.cancelWorkflow(params);
+    }
+
+    @Override
+    @ValidateParams
+    public void cancelWorkflowBulk(@ValidateStringParam(name = "site") String site, Set<String> paths) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("site", site);
+        params.put("paths", paths);
+        params.put("state", CopyToEnvironmentItem.State.READY_FOR_LIVE);
+        params.put("canceledState", CopyToEnvironmentItem.State.CANCELED);
+        params.put("now", ZonedDateTime.now(ZoneOffset.UTC));
+        publishRequestMapper.cancelWorkflowBulk(params);
     }
 
     @Override
@@ -793,6 +805,31 @@ public class DeploymentServiceImpl implements DeploymentService {
             newItems.add(item);
         }
         return newItems;
+    }
+
+    @Override
+    public void publishItems(String site, String environment, ZonedDateTime schedule, List<String> paths,
+                             String submissionComment)
+            throws ServiceException, DeploymentException {
+        // get all publishing dependencies
+        Set<String> dependencies = dependencyService.calculateDependenciesPaths(site, paths);
+        Set<String> allPaths = new HashSet<String>();
+        allPaths.addAll(paths);
+        allPaths.addAll(dependencies);
+
+        // remove all items from existing workflows
+        cancelWorkflowBulk(site, allPaths);
+
+        // send to deployment queue
+        List<String> asList = new ArrayList<String>();
+        asList.addAll(allPaths);
+        String approver = securityService.getCurrentUser();
+        boolean scheduledDateIsNow = false;
+        if (schedule == null) {
+            scheduledDateIsNow = true;
+            schedule = ZonedDateTime.now(ZoneOffset.UTC);
+        }
+        deploy(site, environment, asList, schedule, approver, submissionComment, scheduledDateIsNow);
     }
 
     public void setServicesConfig(ServicesConfig servicesConfig) {

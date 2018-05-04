@@ -63,8 +63,8 @@ class DeploymentServices {
         return deploymentServicesImpl.publishCommits(siteId, environment, commitIds)
     }
 
-    static publishItems(context, site, environment, paths) {
+    static publishItems(context, site, environment, schedule, paths, submissionComment) {
         def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context)
-        return deploymentServicesImpl.publishItems(site, environment, paths)
+        return deploymentServicesImpl.publishItems(site, environment, schedule, paths, submissionComment)
     }
 }

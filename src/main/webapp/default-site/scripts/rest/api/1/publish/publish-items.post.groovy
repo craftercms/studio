@@ -24,24 +24,38 @@ import org.apache.commons.lang3.StringUtils
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException
 import scripts.api.DeploymentServices
 
+import java.time.ZonedDateTime
+
+import static org.craftercms.studio.api.v1.constant.StudioConstants.API_REQUEST_PARAM_ENVIRONMENT
 import static org.craftercms.studio.api.v1.constant.StudioConstants.API_REQUEST_PARAM_SITE
 import static org.craftercms.studio.api.v1.constant.StudioConstants.API_REQUEST_PARAM_ENTITIES
 
 def result = [:]
 try {
     def site = request.getParameter(API_REQUEST_PARAM_SITE)
-    def environment = request.getParameter(API_REQUEST_PARAM_SITE)
     def requestBody = request.reader.text
 
     def slurper = new JsonSlurper()
     def parsedReq = slurper.parseText(requestBody)
 
+    def environment = parsedReq.environment
+
     def entities = parsedReq.entities
 
     def paths = entities.collect { it.item }
+
+    def schedule = null
+    if (StringUtils.isNotEmpty(parsedReq.schedule)) {
+        schedule = ZonedDateTime.parse(parsedReq.schedule)
+    }
+
+    def submissionComment = parsedReq.submission_comment
+
     /** Validate Parameters */
     def invalidParams = false;
     def paramsList = []
+
+
 
 // site
     try {
@@ -72,7 +86,7 @@ try {
 
         def context = DeploymentServices.createContext(applicationContext, request)
         try {
-            result = DeploymentServices.publishItems(context, site, paths)
+            result = DeploymentServices.publishItems(context, site, environment, schedule, paths, submissionComment)
         } catch (SiteNotFoundException e) {
             response.setStatus(404)
             result.message = "Site not found"
