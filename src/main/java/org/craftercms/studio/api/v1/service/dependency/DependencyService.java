@@ -193,7 +193,7 @@ public interface DependencyService {
             throws SiteNotFoundException, ContentNotFoundException, ServiceException;
 
     /**
-     * Calcualate dependencies for publishing
+     * Calculate dependencies for publishing
      *
      * @param site Site to operate on
      * @param paths List of items to calculate dependencies for
