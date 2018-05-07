@@ -560,7 +560,7 @@ public class DependencyServiceImpl implements DependencyService {
         Map<String, List<CalculateDependenciesEntityTO>> toRet =
                 new HashMap<String, List<CalculateDependenciesEntityTO>>();
         List<CalculateDependenciesEntityTO> entities = new ArrayList<CalculateDependenciesEntityTO>();
-            Map<String, String> deps = calcualtePublishingDependencies(site, paths);
+            Map<String, String> deps = calculatePublishingDependencies(site, paths);
             Map<String, List<Map<String, String>>> temp = new HashMap<String, List<Map<String,String>>>();
             for (String p : paths) {
                 temp.put(p, new ArrayList<Map<String, String>>());
@@ -584,7 +584,13 @@ public class DependencyServiceImpl implements DependencyService {
         return toRet;
     }
 
-    private Map<String, String> calcualtePublishingDependencies(String site, List<String> paths)
+    @Override
+    public Set<String> calculateDependenciesPaths(String site, List<String> paths) throws ServiceException {
+        Map<String, String> dependencies = calculatePublishingDependencies(site, paths);
+        return dependencies.keySet();
+    }
+
+    private Map<String, String> calculatePublishingDependencies(String site, List<String> paths)
             throws SiteNotFoundException, ContentNotFoundException, ServiceException {
         Set<String> toRet = new HashSet<String>();
         Set<String> pathsParams = new HashSet<String>();

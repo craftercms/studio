@@ -141,4 +141,5 @@ package org.craftercms.studio.api.v1.constant;
      */
     String API_REQUEST_PARAM_SITE = "site";
     String API_REQUEST_PARAM_ENTITIES = "entities";
+    String API_REQUEST_PARAM_ENVIRONMENT = "environment";
 }

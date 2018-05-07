@@ -28,6 +28,7 @@ import org.craftercms.studio.api.v1.to.*;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * 	// document
@@ -43,6 +44,8 @@ public interface DeploymentService {
     List<PublishRequest> getScheduledItems(String site);
 
     void cancelWorkflow(String site, String path) throws DeploymentException;
+
+    void cancelWorkflowBulk(String site, Set<String> paths) throws DeploymentException;
 
     void deleteDeploymentDataForSite(String site);
 
@@ -103,4 +106,15 @@ public interface DeploymentService {
      * @param commitIds commit IDs to publish
      */
     void publishCommits(String site, String environment, List<String> commitIds) throws SiteNotFoundException, EnvironmentNotFoundException, CommitNotFoundException;
+
+    /**
+     * Publish items in given environment for given site
+     * @param site site id to use for publishing
+     * @param environment environment to use for publishing
+     * @param paths item paths to publish
+     * @throws SiteNotFoundException
+     * @throws EnvironmentNotFoundException
+     */
+    void publishItems(String site, String environment, ZonedDateTime schedule, List<String> paths,
+                      String submissionComment) throws ServiceException, DeploymentException;
 }
