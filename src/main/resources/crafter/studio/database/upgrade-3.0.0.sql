@@ -60,4 +60,6 @@ CREATE TABLE IF NOT EXISTS remote_repository
 
 UPDATE `audit` SET `source` = 'API' WHERE `source` = 'UI' ;
 
-INSERT INTO _meta (version) VALUES ('3.0.11.1') ;
+ALTER TABLE `publish_request` ADD COLUMN `package_id` VARCHAR(50) NULL ;
+
+INSERT INTO _meta (version) VALUES ('3.0.11.2') ;

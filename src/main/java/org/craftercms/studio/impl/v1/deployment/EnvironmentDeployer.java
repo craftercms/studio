@@ -51,6 +51,7 @@ public class EnvironmentDeployer {
             deploymentItem.setSite(item.getSite());
             deploymentItem.setPath(item.getPath());
             deploymentItem.setCommitId(item.getCommitId());
+            deploymentItem.setPackageId(item.getPackageId());
         }
         try {
             contentRepository.publish(context.getSite(), deploymentItems, context.getEnvironment(), context.getAuthor(), context.getComment());

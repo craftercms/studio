@@ -20,12 +20,12 @@ import groovy.json.JsonException
 import groovy.json.JsonSlurper
 import org.apache.commons.collections.CollectionUtils
 import org.apache.commons.lang3.StringUtils
+import org.craftercms.studio.api.v1.exception.EnvironmentNotFoundException
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException
 import scripts.api.DeploymentServices
 
 import java.time.ZonedDateTime
 
-import static org.craftercms.studio.api.v1.constant.StudioConstants.API_REQUEST_PARAM_ENVIRONMENT
 import static org.craftercms.studio.api.v1.constant.StudioConstants.API_REQUEST_PARAM_SITE
 import static org.craftercms.studio.api.v1.constant.StudioConstants.API_REQUEST_PARAM_ENTITIES
 
@@ -85,10 +85,15 @@ try {
 
         def context = DeploymentServices.createContext(applicationContext, request)
         try {
-            result = DeploymentServices.publishItems(context, site, environment, schedule, paths, submissionComment)
+            def res = DeploymentServices.publishItems(context, site, environment, schedule, paths, submissionComment)
+            result.message = "OK"
+            response.setStatus(200);
         } catch (SiteNotFoundException e) {
             response.setStatus(404)
             result.message = "Site not found"
+        } catch (EnvironmentNotFoundException e) {
+            response.setStatus(404)
+            result.message = "Environment not found"
         } catch (Exception e) {
             response.setStatus(500)
             result.message = "Internal server error: \n" + e

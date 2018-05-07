@@ -27,7 +27,7 @@ USE crafter ;
 
 CREATE TABLE _meta (`version` VARCHAR(10) NOT NULL , PRIMARY KEY (`version`)) ;
 
-INSERT INTO _meta (version) VALUES ('3.0.11.1') ;
+INSERT INTO _meta (version) VALUES ('3.0.11.2') ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`             BIGINT(20)   NOT NULL AUTO_INCREMENT,
@@ -103,6 +103,7 @@ CREATE TABLE IF NOT EXISTS `publish_request` (
   `contenttypeclass`  VARCHAR(20)  NULL,
   `submissioncomment` TEXT         NULL,
   `commit_id`         VARCHAR(50)  NULL,
+  `package_id`         VARCHAR(50)  NULL,
   PRIMARY KEY (`id`),
   INDEX `publish_request_site_idx` (`site` ASC),
   INDEX `publish_request_environment_idx` (`environment` ASC),
