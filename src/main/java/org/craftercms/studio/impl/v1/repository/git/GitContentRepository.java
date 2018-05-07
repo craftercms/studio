@@ -1181,6 +1181,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     }
 
                     Set<String> deployedCommits = new HashSet<String>();
+                    Set<String> deployedPackages = new HashSet<String>();
                     for (DeploymentItemTO deploymentItem : deploymentItems) {
                         commitId = deploymentItem.getCommitId();
                         path = helper.getGitPath(deploymentItem.getPath());
@@ -1207,6 +1208,10 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                             deleteParentFolder(git, parentToDelete);
                         }
                         deployedCommits.add(commitId);
+                        String packageId = deploymentItem.getPackageId();
+                        if (StringUtils.isNotEmpty(packageId)) {
+                            deployedPackages.add(deploymentItem.getPackageId());
+                        }
                     }
 
                     // commit all deployed files
@@ -1225,7 +1230,12 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     for (String c : deployedCommits) {
                         sb.append(c).append(" ");
                     }
+                    StringBuilder sbPackage = new StringBuilder();
+                    for (String p : deployedPackages) {
+                        sbPackage.append(p).append(" ");
+                    }
                     commitMessage = commitMessage.replace("{commit_id}", sb.toString().trim());
+                    commitMessage = commitMessage.replace("{package_id}", sbPackage.toString().trim());
                     RevCommit revCommit = git.commit().setMessage(commitMessage).setAuthor(authorIdent).call();
                     int commitTime = revCommit.getCommitTime();
 

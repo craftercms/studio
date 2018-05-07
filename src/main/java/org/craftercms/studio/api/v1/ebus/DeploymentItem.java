@@ -25,6 +25,12 @@ public class DeploymentItem implements Serializable {
 
     private static final long serialVersionUID = -7346034006994497132L;
 
+    protected String site;
+    protected String path;
+    protected String commitId;
+    protected String lastPublishedCommitId;
+    protected String packageId;
+
     public String getSite() {
         return site;
     }
@@ -49,11 +55,19 @@ public class DeploymentItem implements Serializable {
         this.commitId = commitId;
     }
 
-    public String getLastPublishedCommitId() { return lastPublishedCommitId; }
-    public void setLastPublishedCommitId(String lastPublishedCommitId) { this.lastPublishedCommitId = lastPublishedCommitId; }
+    public String getLastPublishedCommitId() {
+        return lastPublishedCommitId;
+    }
 
-    protected String site;
-    protected String path;
-    protected String commitId;
-    protected String lastPublishedCommitId;
+    public void setLastPublishedCommitId(String lastPublishedCommitId) {
+        this.lastPublishedCommitId = lastPublishedCommitId;
+    }
+
+    public String getPackageId() {
+        return packageId;
+    }
+
+    public void setPackageId(String packageId) {
+        this.packageId = packageId;
+    }
 }

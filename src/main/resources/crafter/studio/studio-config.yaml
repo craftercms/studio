@@ -32,7 +32,7 @@ studio.repo.bootstrapRepo: true
 # Defines size of a batch when rebuilding crafter repository metadata stored in database.
 studio.repo.rebuildMetadata.batchSize: 100
 # Published repository commit message
-studio.repo.published.commitMessage: "Publish event triggered by {username} on {datetime} via {source}.\n\nPublish note from user: \"{message}\"\n\nCommit ID: {commit_id}"
+studio.repo.published.commitMessage: "Publish event triggered by {username} on {datetime} via {source}.\n\nPublish note from user: \"{message}\"\n\nCommit ID: {commit_id}\n\nPackage ID: {package_id}"
 
 ############################################################
 ##                   Site Configuration                   ##
