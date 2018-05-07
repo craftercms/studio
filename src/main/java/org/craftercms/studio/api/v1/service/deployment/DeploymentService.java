@@ -108,7 +108,7 @@ public interface DeploymentService {
     void publishCommits(String site, String environment, List<String> commitIds) throws SiteNotFoundException, EnvironmentNotFoundException, CommitNotFoundException;
 
     /**
-     * Publish items on given environment for given site
+     * Publish items in given environment for given site
      * @param site site id to use for publishing
      * @param environment environment to use for publishing
      * @param paths item paths to publish
