@@ -82,4 +82,7 @@ public interface CStudioConstants {
     public static final String LOCKING_CACHE_CREATE_SCOPE = "lockingCacheCreateScope";
 
     String STUDIO_SESSION_TOKEN_ATRIBUTE = "studioSessionToken";
+
+    String JSON_PROPERTY_ITEM = "item";
+    String JSON_PROPERTY_DEPENDENCIES = "dependencies";
 }
