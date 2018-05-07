@@ -103,4 +103,9 @@ class SpringDependencyServices {
         }
         return dependencies
     }
+
+    def calculateDependencies(site, paths) {
+        def springBackendService = this.context.applicationContext.get(DEPENDENCY_SERVICES_BEAN)
+        return springBackendService.calculateDependencies(site, paths)
+    }
 }

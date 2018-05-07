@@ -18,11 +18,13 @@
 package org.craftercms.studio.api.v1.service.dependency;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.to.CalculateDependenciesEntityTO;
 
 /**
  * Dependency Service is the sole custodian of the dependency database
@@ -198,4 +200,15 @@ public interface DependencyService {
      * @throws ServiceException Internal error, see exception details
      */
     Set<String> getDeleteDepenencies(String site, List<String> paths) throws SiteNotFoundException, ContentNotFoundException, ServiceException;
+
+    /**
+     * Calculate dependencies for publishing
+     *
+     * @param site Site to operate on
+     * @param paths List of items to calculate dependencies for
+     * @return Formatted result set
+     * @throws SiteNotFoundException site does not exist
+     */
+    Map<String, List<CalculateDependenciesEntityTO>> calculateDependencies(String site, List<String> paths)
+            throws ServiceException;
 }

@@ -26,6 +26,19 @@ import java.util.Map;
  */
 public interface DependencyMapper {
 
+    String SITE_PARAM = "site";
+    String SITE_ID_PARAM = "siteId";
+    String PATH_PARAM = "path";
+    String PATHS_PARAM = "paths";
+    String OLD_PATH_PARAM = "oldPath";
+    String NEW_PATH_PARAM = "newPath";
+    String REGEX_PARAM = "regex";
+    String EDITED_STATES_PARAM = "editedStates";
+    String NEW_STATES_PARAM = "newStates";
+
+    String SORUCE_PATH_COLUMN_NAME = "source_path";
+    String TARGET_PATH_COLUMN_NAME = "target_path";
+
     List<DependencyEntity> getDependencies(Map params);
 
     List<DependencyEntity> getDependant(Map params);
@@ -47,6 +60,8 @@ public interface DependencyMapper {
     List<String> getPublishingDependenciesForList(Map params);
 
     List<String> getItemsDependingOn(Map params);
+
+    List<Map<String, String>> calculatePublishingDependenciesForList(Map params);
 
     void moveDependency(Map params);
 }
