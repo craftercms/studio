@@ -1,12 +1,3 @@
-SET GLOBAL innodb_large_prefix = TRUE ;
-
-SET GLOBAL innodb_file_format = 'BARRACUDA' ;
-
-SET GLOBAL innodb_file_format_max = 'BARRACUDA' ;
-
-SET GLOBAL innodb_file_per_table = TRUE ;
-
-
 use crafter ;
 -- Rename tables script
 ALTER TABLE `cstudio_activity` RENAME `audit` ;
