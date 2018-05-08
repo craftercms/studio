@@ -76,4 +76,9 @@ class DeploymentServices {
         def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context);
         return deploymentServicesImpl.getDeploymentJobs();
     }
+
+    static publishItems(context, site, environment, schedule, paths, submissionComment) {
+        def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context)
+        return deploymentServicesImpl.publishItems(site, environment, schedule, paths, submissionComment)
+    }
 }

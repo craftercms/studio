@@ -74,6 +74,19 @@
         AND scheduleddate &gt; #{now}
     </update>
 
+    <update id="cancelWorkflowBulk" parameterType="java.util.Map">
+        UPDATE cstudio_copytoenvironment
+        SET state = #{canceledState}
+        WHERE site = #{site}
+        AND state = #{state}
+        AND scheduleddate &gt; #{now}
+        AND path IN
+        <foreach item="path" index="index" collection="paths"
+                 open="(" separator="," close=")">
+            #{path}
+        </foreach>
+    </update>
+
     <update id="cancelDeployment" parameterType="java.util.Map">
         UPDATE cstudio_copytoenvironment
         SET state = #{canceledState}

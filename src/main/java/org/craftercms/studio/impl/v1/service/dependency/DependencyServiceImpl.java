@@ -2,6 +2,8 @@ package org.craftercms.studio.impl.v1.service.dependency;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.validation.annotations.param.ValidateIntegerParam;
+import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.CStudioConstants;
@@ -58,7 +60,10 @@ public class DependencyServiceImpl implements DependencyService {
 
 
     @Override
-    public Set<String> upsertDependencies(String site, String path) throws SiteNotFoundException, ContentNotFoundException, ServiceException {
+    @ValidateParams
+    public Set<String> upsertDependencies(@ValidateStringParam(name = "site") String site,
+                                          @ValidateSecurePathParam(name = "path") String path)
+            throws SiteNotFoundException, ContentNotFoundException, ServiceException {
         Set<String> toRet = new HashSet<String>();
         logger.debug("Resolving dependencies for content site: " + site + " path: " + path);
         Map<String, Set<String>> dependencies = dependencyResolver.resolve(site, path);
@@ -133,7 +138,9 @@ public class DependencyServiceImpl implements DependencyService {
     }
 
     @Override
-    public Set<String> upsertDependencies(String site, List<String> paths) throws SiteNotFoundException, ContentNotFoundException, ServiceException {
+    @ValidateParams
+    public Set<String> upsertDependencies(@ValidateStringParam(name = "site") String site, List<String> paths)
+            throws SiteNotFoundException, ContentNotFoundException, ServiceException {
         Set<String> toRet = new HashSet<String>();
         List<DependencyEntity> dependencyEntities = new ArrayList<>();
         StringBuilder sbPaths = new StringBuilder();
@@ -177,7 +184,10 @@ public class DependencyServiceImpl implements DependencyService {
     }
 
     @Override
-    public Set<String> getPublishingDepenencies(String site, String path) throws SiteNotFoundException, ContentNotFoundException, ServiceException {
+    @ValidateParams
+    public Set<String> getPublishingDepenencies(@ValidateStringParam(name = "site") String site,
+                                                @ValidateSecurePathParam(name = "path") String path)
+            throws SiteNotFoundException, ContentNotFoundException, ServiceException {
         logger.debug("Get publishing dependencies for site: " + site + " path:" + path);
         List<String> paths = new ArrayList<String>();
         paths.add(path);
@@ -185,7 +195,9 @@ public class DependencyServiceImpl implements DependencyService {
     }
 
     @Override
-    public Set<String> getPublishingDepenencies(String site, List<String> paths) throws SiteNotFoundException, ContentNotFoundException, ServiceException {
+    @ValidateParams
+    public Set<String> getPublishingDepenencies(@ValidateStringParam(name = "site") String site, List<String> paths)
+            throws SiteNotFoundException, ContentNotFoundException, ServiceException {
         Map<String, Object> params = new HashMap<String, Object>();
 
         Set<String> toRet = new HashSet<String>();
@@ -244,7 +256,11 @@ public class DependencyServiceImpl implements DependencyService {
     }
 
     @Override
-    public Set<String> getItemSpecificDependencies(String site, String path, int depth) throws SiteNotFoundException, ContentNotFoundException, ServiceException {
+    @ValidateParams
+    public Set<String> getItemSpecificDependencies(@ValidateStringParam(name = "site") String site,
+                                                   @ValidateSecurePathParam(name = "path") String path,
+                                                   @ValidateIntegerParam(name = "depth") int depth)
+            throws SiteNotFoundException, ContentNotFoundException, ServiceException {
         // Check if site exists
         if (!siteService.exists(site)) {
             throw new SiteNotFoundException();
@@ -293,7 +309,11 @@ public class DependencyServiceImpl implements DependencyService {
     }
 
     @Override
-    public Set<String> getItemDependencies(String site, String path, int depth) throws SiteNotFoundException, ContentNotFoundException, ServiceException {
+    @ValidateParams
+    public Set<String> getItemDependencies(@ValidateStringParam(name = "site") String site,
+                                           @ValidateSecurePathParam(name = "path") String path,
+                                           @ValidateIntegerParam(name = "depth") int depth)
+            throws SiteNotFoundException, ContentNotFoundException, ServiceException {
         // Check if site exists
         if (!siteService.exists(site)) {
             throw new SiteNotFoundException();
@@ -336,7 +356,11 @@ public class DependencyServiceImpl implements DependencyService {
     }
 
     @Override
-    public Set<String> getItemsDependingOn(String site, String path, int depth) throws SiteNotFoundException, ContentNotFoundException, ServiceException {
+    @ValidateParams
+    public Set<String> getItemsDependingOn(@ValidateStringParam(name = "site") String site,
+                                           @ValidateSecurePathParam(name = "path") String path,
+                                           @ValidateIntegerParam(name = "depth") int depth)
+            throws SiteNotFoundException, ContentNotFoundException, ServiceException {
         // Check if site exists
         if (!siteService.exists(site)) {
             throw new SiteNotFoundException();
@@ -382,7 +406,11 @@ public class DependencyServiceImpl implements DependencyService {
     }
 
     @Override
-    public Set<String> moveDependencies(String site, String oldPath, String newPath) throws SiteNotFoundException, ContentNotFoundException, ServiceException {
+    @ValidateParams
+    public Set<String> moveDependencies(@ValidateStringParam(name = "site") String site,
+                                        @ValidateSecurePathParam(name = "oldPath") String oldPath,
+                                        @ValidateSecurePathParam(name = "newPath") String newPath)
+            throws SiteNotFoundException, ContentNotFoundException, ServiceException {
         // Check if site exists
         if (!siteService.exists(site)) {
             throw new SiteNotFoundException();
@@ -403,6 +431,7 @@ public class DependencyServiceImpl implements DependencyService {
     }
 
     @Override
+    @ValidateParams
     public void deleteItemDependencies(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) throws SiteNotFoundException, ContentNotFoundException, ServiceException {
         // Check if site exists
         if (!siteService.exists(site)) {
@@ -422,7 +451,9 @@ public class DependencyServiceImpl implements DependencyService {
     }
 
     @Override
-    public void deleteItemDependencies(String site, List<String> paths) throws SiteNotFoundException, ContentNotFoundException, ServiceException {
+    @ValidateParams
+    public void deleteItemDependencies(@ValidateStringParam(name = "site") String site, List<String> paths)
+            throws SiteNotFoundException, ContentNotFoundException, ServiceException {
         // Check if site exists
         if (!siteService.exists(site)) {
             throw new SiteNotFoundException();
@@ -445,6 +476,7 @@ public class DependencyServiceImpl implements DependencyService {
     }
 
     @Override
+    @ValidateParams
     public void deleteSiteDependencies(@ValidateStringParam(name = "site") String site) throws SiteNotFoundException, ServiceException {
         // Check if site exists
         if (!siteService.exists(site)) {
@@ -458,7 +490,10 @@ public class DependencyServiceImpl implements DependencyService {
     }
 
     @Override
-    public Set<String> getDeleteDepenencies(String site, String path) throws SiteNotFoundException, ContentNotFoundException, ServiceException {
+    @ValidateParams
+    public Set<String> getDeleteDepenencies(@ValidateStringParam(name = "site") String site,
+                                            @ValidateSecurePathParam(name = "path") String path)
+            throws SiteNotFoundException, ContentNotFoundException, ServiceException {
         // Check if site exists
         if (!siteService.exists(site)) {
             throw new SiteNotFoundException();
@@ -477,7 +512,9 @@ public class DependencyServiceImpl implements DependencyService {
     }
 
     @Override
-    public Set<String> getDeleteDepenencies(String site, List<String> paths) throws SiteNotFoundException, ContentNotFoundException, ServiceException {
+    @ValidateParams
+    public Set<String> getDeleteDepenencies(@ValidateStringParam(name = "site") String site, List<String> paths)
+            throws SiteNotFoundException, ContentNotFoundException, ServiceException {
         // Check if site exists
         if (!siteService.exists(site)) {
             throw new SiteNotFoundException();
@@ -571,8 +608,9 @@ public class DependencyServiceImpl implements DependencyService {
     }
 
     @Override
-    public Map<String, List<CalculateDependenciesEntityTO>> calculateDependencies(String site, List<String> paths)
-            throws ServiceException {
+    @ValidateParams
+    public Map<String, List<CalculateDependenciesEntityTO>> calculateDependencies(
+            @ValidateStringParam(name = "site")  String  site, List<String> paths) throws ServiceException {
         Map<String, List<CalculateDependenciesEntityTO>> toRet =
                 new HashMap<String, List<CalculateDependenciesEntityTO>>();
         List<CalculateDependenciesEntityTO> entities = new ArrayList<CalculateDependenciesEntityTO>();
@@ -598,6 +636,15 @@ public class DependencyServiceImpl implements DependencyService {
 
         toRet.put("entities", entities);
         return toRet;
+    }
+
+    @Override
+    @ValidateParams
+    public Set<String> calculateDependenciesPaths(@ValidateStringParam(name = "site") String site, List<String> paths)
+            throws
+            ServiceException {
+        Map<String, String> dependencies = calculatePublishingDependencies(site, paths);
+        return dependencies.keySet();
     }
 
     private Map<String, String> calculatePublishingDependencies(String site, List<String> paths)

@@ -85,4 +85,7 @@ public interface CStudioConstants {
 
     String JSON_PROPERTY_ITEM = "item";
     String JSON_PROPERTY_DEPENDENCIES = "dependencies";
+
+    String API_REQUEST_PARAM_SITE = "site";
+    String API_REQUEST_PARAM_ENTITIES = "entities";
 }
