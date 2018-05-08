@@ -95,8 +95,25 @@ public class SecurityServiceImpl implements SecurityService {
 
     @Override
     @ValidateParams
-    public Map<String,String> getUserProfile(@ValidateStringParam(name = "user") String user) {
-        return securityProvider.getUserProfile(user);
+    public Map<String,String> getUserProfile(final @ValidateStringParam(name = "user") String user) {
+        StudioCacheContext cacheContext = new StudioCacheContext("###USERS###", true);
+        CacheService cacheService = cacheTemplate.getCacheService();
+        generalLockService.lock(cacheContext.getId());
+        try {
+            if (!cacheService.hasScope(cacheContext)) {
+                cacheService.addScope(cacheContext);
+            }
+        } finally {
+            generalLockService.unlock(cacheContext.getId());
+        }
+
+        Map<String, String> userProfile = cacheTemplate.getObject(cacheContext, new Callback<Map<String, String>>() {
+            @Override
+            public Map<String, String> execute() {
+                return securityProvider.getUserProfile(user);
+            }
+        }, "###USERS###", user, "profile");
+        return userProfile;
     }
 
     @Override
@@ -171,8 +188,27 @@ public class SecurityServiceImpl implements SecurityService {
         return permissions;
     }
 
-    protected void addGlobalUserRoles(String user, Set<String> roles, PermissionsConfigTO rolesConfig) {
-        Set<String> groups = securityProvider.getUserGroups(user);
+    protected void addGlobalUserRoles( final String user, Set<String> roles, PermissionsConfigTO
+            rolesConfig) {
+
+        StudioCacheContext cacheContext = new StudioCacheContext("###USERS###", true);
+        CacheService cacheService = cacheTemplate.getCacheService();
+        generalLockService.lock(cacheContext.getId());
+        try {
+            if (!cacheService.hasScope(cacheContext)) {
+                cacheService.addScope(cacheContext);
+            }
+        } finally {
+            generalLockService.unlock(cacheContext.getId());
+        }
+
+        Set<String> groups = cacheTemplate.getObject(cacheContext, new Callback<Set<String>>() {
+            @Override
+            public Set<String> execute() {
+                return securityProvider.getUserGroups(user);
+            }
+        }, "###USERS###", user, "groups");
+
         if (rolesConfig != null && groups != null) {
             Map<String, List<String>> rolesMap = rolesConfig.getRoles();
             for (String group : groups) {
@@ -275,16 +311,29 @@ public class SecurityServiceImpl implements SecurityService {
 	 */
     @Override
     @ValidateParams
-    public Set<String> getUserRoles(@ValidateStringParam(name = "site") final String site, @ValidateStringParam(name = "user") String user) {
+    public Set<String> getUserRoles(@ValidateStringParam(name = "site") final String site,
+                                    @ValidateStringParam(name = "user")final  String user) {
 
-        Set<String> groups = securityProvider.getUserGroups(user);
+        StudioCacheContext usersCacheContext = new StudioCacheContext("###USERS###", true);
+        CacheService cacheService = cacheTemplate.getCacheService();
+        generalLockService.lock(usersCacheContext.getId());
+        try {
+            if (!cacheService.hasScope(usersCacheContext)) {
+                cacheService.addScope(usersCacheContext);
+            }
+        } finally {
+            generalLockService.unlock(usersCacheContext.getId());
+        }
+
+        Set<String> groups = cacheTemplate.getObject(usersCacheContext, new Callback<Set<String>>() {
+            @Override
+            public Set<String> execute() {
+                return securityProvider.getUserGroups(user);
+            }
+        }, "###USERS###", user, "groups");
         if (groups != null && groups.size() > 0) {
             logger.debug("Groups for " + user + " in " + site + ": " + groups);
-            // determine whether to refresh the config
-            //checkForUpdate(site);
-            // get the config files from the permissionsConfigMap based on the key
             StudioCacheContext cacheContext = new StudioCacheContext(site, true);
-            CacheService cacheService = cacheTemplate.getCacheService();
             generalLockService.lock(cacheContext.getId());
             try {
                 if (!cacheService.hasScope(cacheContext)) {
@@ -556,6 +605,7 @@ public class SecurityServiceImpl implements SecurityService {
     public void reloadConfiguration(@ValidateStringParam(name = "site") String site) {
         CacheService cacheService = cacheTemplate.getCacheService();
         StudioCacheContext cacheContext = new StudioCacheContext(site, true);
+        StudioCacheContext usersCacheContext = new StudioCacheContext("###USERS###", true);
         Object permissionsKey = cacheTemplate.getKey(site, configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site), permissionsFileName);
         Object rolesKey = cacheTemplate.getKey(site, configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site), roleMappingsFileName);
         generalLockService.lock(cacheContext.getId());
@@ -566,6 +616,7 @@ public class SecurityServiceImpl implements SecurityService {
             } else {
                 cacheService.addScope(cacheContext);
             }
+            cacheService.removeScope(usersCacheContext);
         } finally {
             generalLockService.unlock(cacheContext.getId());
         }
@@ -600,6 +651,7 @@ public class SecurityServiceImpl implements SecurityService {
 
     @Override
     public boolean logout() {
+        String user = getCurrentUser();
         boolean toRet = securityProvider.logout();
         RequestContext context = RequestContext.getCurrent();
         if (context != null) {
