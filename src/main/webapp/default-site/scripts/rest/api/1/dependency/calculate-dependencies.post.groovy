@@ -24,8 +24,8 @@ import org.apache.commons.lang3.StringUtils
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException
 import scripts.api.DependencyServices;
 
-import static org.craftercms.studio.api.v1.constant.StudioConstants.API_REQUEST_PARAM_SITE
-import static org.craftercms.studio.api.v1.constant.StudioConstants.API_REQUEST_PARAM_ENTITIES
+import static org.craftercms.studio.api.v1.constant.CStudioConstants.API_REQUEST_PARAM_SITE
+import static org.craftercms.studio.api.v1.constant.CStudioConstants.API_REQUEST_PARAM_ENTITIES
 
 def result = [:]
 try {
