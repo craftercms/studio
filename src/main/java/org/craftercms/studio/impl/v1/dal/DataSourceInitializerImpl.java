@@ -44,6 +44,7 @@ import java.sql.Statement;
 import java.util.Enumeration;
 
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_DRIVER;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_INITIALIZER_CONFIGURE_DB_SCRIPT_LOCATION;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_INITIALIZER_CREATE_DB_SCRIPT_LOCATION;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_INITIALIZER_ENABLED;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_INITIALIZER_RANDOM_ADMIN_PASSWORD_CHARS;
@@ -83,6 +84,7 @@ public class DataSourceInitializerImpl implements DataSourceInitializer, Disposa
     @Override
     public void initDataSource() throws DatabaseUpgradeUnsupportedVersionException {
         if (isEnabled()) {
+            String configureDbScriptPath = getConfigureDBScriptPath();
             String createDbScriptPath = getCreateDBScriptPath();
 
             logger.debug("Get MariaDB service");
@@ -100,10 +102,26 @@ public class DataSourceInitializerImpl implements DataSourceInitializer, Disposa
                 logger.error("Error while getting connection to DB", e);
             }
 
+            // Configure DB
+            logger.info("Configure database from script " + configureDbScriptPath);
+            ScriptRunner sr = new ScriptRunner(conn);
+
+            sr.setDelimiter(delimiter);
+            sr.setStopOnError(true);
+            sr.setLogWriter(null);
+            InputStream is = getClass().getClassLoader().getResourceAsStream(configureDbScriptPath);
+            Reader reader = new InputStreamReader(is);
+            try {
+                sr.runScript(reader);
+            } catch (RuntimeSqlException e) {
+                logger.error("Error while running configure DB script", e);
+            }
+
             if (conn != null) {
                 try {
                     logger.debug("Check if database schema already exists");
                     statement = conn.createStatement();
+
                     rs = statement.executeQuery(DB_QUERY_CHECK_SCHEMA_EXISTS);
                     if (rs.next()) {
                         logger.debug("Database already exists. Determine version of database");
@@ -151,13 +169,13 @@ public class DataSourceInitializerImpl implements DataSourceInitializer, Disposa
                                 String upgradeScriptPath = getUpgradeDBScriptPath();
                                 upgradeScriptPath = upgradeScriptPath.replace("{version}", dbVersion);
                                 logger.info("Upgrading database from script " + upgradeScriptPath);
-                                ScriptRunner sr = new ScriptRunner(conn);
+                                sr = new ScriptRunner(conn);
 
                                 sr.setDelimiter(delimiter);
                                 sr.setStopOnError(true);
                                 sr.setLogWriter(null);
-                                InputStream is = getClass().getClassLoader().getResourceAsStream(upgradeScriptPath);
-                                Reader reader = new InputStreamReader(is);
+                                is = getClass().getClassLoader().getResourceAsStream(upgradeScriptPath);
+                                reader = new InputStreamReader(is);
                                 try {
                                     sr.runScript(reader);
                                 } catch (RuntimeSqlException e) {
@@ -169,13 +187,13 @@ public class DataSourceInitializerImpl implements DataSourceInitializer, Disposa
                         // Database does not exist
                         logger.info("Database does not exists.");
                         logger.info("Creating database from script " + createDbScriptPath);
-                        ScriptRunner sr = new ScriptRunner(conn);
+                        sr = new ScriptRunner(conn);
 
                         sr.setDelimiter(delimiter);
                         sr.setStopOnError(true);
                         sr.setLogWriter(null);
-                        InputStream is = getClass().getClassLoader().getResourceAsStream(createDbScriptPath);
-                        Reader reader = new InputStreamReader(is);
+                        is = getClass().getClassLoader().getResourceAsStream(createDbScriptPath);
+                        reader = new InputStreamReader(is);
                         try {
                             sr.runScript(reader);
 
@@ -264,6 +282,10 @@ public class DataSourceInitializerImpl implements DataSourceInitializer, Disposa
                 studioConfiguration.getProperty(DB_INITIALIZER_RANDOM_ADMIN_PASSWORD_LENGTH));
         String passwordChars = studioConfiguration.getProperty(DB_INITIALIZER_RANDOM_ADMIN_PASSWORD_CHARS);
         return RandomStringUtils.random(passwordLength, passwordChars);
+    }
+
+    private String getConfigureDBScriptPath() {
+        return studioConfiguration.getProperty(DB_INITIALIZER_CONFIGURE_DB_SCRIPT_LOCATION);
     }
 
     private String getCreateDBScriptPath() {
