@@ -30,6 +30,7 @@ import org.craftercms.studio.api.v1.ebus.EBusConstants;
 import org.craftercms.studio.api.v1.ebus.RepositoryEventContext;
 import org.craftercms.studio.api.v1.ebus.RepositoryEventMessage;
 import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
@@ -338,6 +339,18 @@ public class DeploymentServiceImpl implements DeploymentService {
         params.put("canceledState", CopyToEnvironmentItem.State.CANCELED);
         params.put("now", new Date());
         copyToEnvironmentMapper.cancelWorkflow(params);
+    }
+
+    @Override
+    @ValidateParams
+    public void cancelWorkflowBulk(@ValidateStringParam(name = "site") String site, Set<String> paths) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("site", site);
+        params.put("paths", paths);
+        params.put("state", CopyToEnvironmentItem.State.READY_FOR_LIVE);
+        params.put("canceledState", CopyToEnvironmentItem.State.CANCELED);
+        params.put("now", new Date());
+        copyToEnvironmentMapper.cancelWorkflowBulk(params);
     }
 
     @Override
@@ -887,6 +900,39 @@ public class DeploymentServiceImpl implements DeploymentService {
     @ValidateParams
     public void bulkDelete(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
         dmPublishService.bulkDelete(site, path);
+    }
+
+    @Override
+    @ValidateParams
+    public void publishItems(@ValidateStringParam(name = "site") String site,
+                             @ValidateStringParam(name = "environment") String environment,
+                             Date schedule, List<String> paths,
+                             @ValidateStringParam(name = "submissionComment") String submissionComment)
+            throws ServiceException, DeploymentException {
+
+        if (!siteService.exists(site)) {
+            throw new SiteNotFoundException();
+        }
+
+        // get all publishing dependencies
+        Set<String> dependencies = dependencyService.calculateDependenciesPaths(site, paths);
+        Set<String> allPaths = new HashSet<String>();
+        allPaths.addAll(paths);
+        allPaths.addAll(dependencies);
+
+        // remove all items from existing workflows
+        cancelWorkflowBulk(site, allPaths);
+
+        // send to deployment queue
+        List<String> asList = new ArrayList<String>();
+        asList.addAll(allPaths);
+        String approver = securityService.getCurrentUser();
+        boolean scheduledDateIsNow = false;
+        if (schedule == null) {
+            scheduledDateIsNow = true;
+            schedule = new Date();
+        }
+        deploy(site, environment, asList, schedule, approver, submissionComment, scheduledDateIsNow);
     }
 
     public void setServicesConfig(ServicesConfig servicesConfig) {

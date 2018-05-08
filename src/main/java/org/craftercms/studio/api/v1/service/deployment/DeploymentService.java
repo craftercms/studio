@@ -25,6 +25,7 @@ import org.craftercms.studio.api.v1.to.*;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * 	// document
@@ -40,6 +41,8 @@ public interface DeploymentService {
     List<CopyToEnvironment> getScheduledItems(String site);
 
     void cancelWorkflow(String site, String path) throws DeploymentException;
+
+    void cancelWorkflowBulk(String site, Set<String> paths) throws DeploymentException;
 
     void deleteDeploymentDataForSite(String site);
 
@@ -85,4 +88,13 @@ public interface DeploymentService {
     List<DeploymentJobTO> getDeploymentJobs();
 
     Map<String, List<PublishingChannelTO>> getAvailablePublishingChannelGroups(String site, String path);
+
+    /**
+     * Publish items in given environment for given site
+     * @param site site id to use for publishing
+     * @param environment environment to use for publishing
+     * @param paths item paths to publish
+     */
+    void publishItems(String site, String environment, Date schedule, List<String> paths,
+                      String submissionComment) throws ServiceException, DeploymentException;
 }

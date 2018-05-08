@@ -211,4 +211,12 @@ public interface DependencyService {
      */
     Map<String, List<CalculateDependenciesEntityTO>> calculateDependencies(String site, List<String> paths)
             throws ServiceException;
+
+    /**
+     * Calculate dependencies paths for publishing
+     * @param site site to use
+     * @param paths list of items to calculate dependencies for
+     * @return dependencies paths
+     */
+    Set<String> calculateDependenciesPaths(String site, List<String> paths) throws ServiceException;
 }
