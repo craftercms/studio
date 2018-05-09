@@ -96,7 +96,7 @@ public class SecurityServiceImpl implements SecurityService {
     @Override
     @ValidateParams
     public Map<String,String> getUserProfile(final @ValidateStringParam(name = "user") String user) {
-        StudioCacheContext cacheContext = new StudioCacheContext("###USERS###", true);
+        StudioCacheContext cacheContext = new StudioCacheContext(CStudioConstants.CACHE_USERS_SCOPE, true);
         CacheService cacheService = cacheTemplate.getCacheService();
         generalLockService.lock(cacheContext.getId());
         try {
@@ -112,7 +112,7 @@ public class SecurityServiceImpl implements SecurityService {
             public Map<String, String> execute() {
                 return securityProvider.getUserProfile(user);
             }
-        }, "###USERS###", user, "profile");
+        }, CStudioConstants.CACHE_USERS_SCOPE, user, CStudioConstants.CACHE_KEY_USERS_PROFILE);
         return userProfile;
     }
 
@@ -168,19 +168,19 @@ public class SecurityServiceImpl implements SecurityService {
             }
         }
 
-        StudioCacheContext globalCacheContext = new StudioCacheContext("###GLOBAL###", true);
+        StudioCacheContext globalCacheContext = new StudioCacheContext(CStudioConstants.CACHE_GLOBAL_SCOPE, true);
         PermissionsConfigTO globalRolesConfig = cacheTemplate.getObject(globalCacheContext, new Callback<PermissionsConfigTO>() {
             @Override
             public PermissionsConfigTO execute() {
                 return loadGlobalRolesConfiguration();
             }
-        }, "###GLOBAL###", globalConfigPath, globalRoleMappingsFileName);
+        }, CStudioConstants.CACHE_GLOBAL_SCOPE, globalConfigPath, globalRoleMappingsFileName);
         PermissionsConfigTO globalPermissionsConfig = cacheTemplate.getObject(globalCacheContext, new Callback<PermissionsConfigTO>() {
             @Override
             public PermissionsConfigTO execute() {
                 return loadGlobalPermissionsConfiguration();
             }
-        }, "###GLOBAL###", globalConfigPath, globalPermissionsFileName);
+        }, CStudioConstants.CACHE_GLOBAL_SCOPE, globalConfigPath, globalPermissionsFileName);
         Set<String> roles = new HashSet<String>();
         addGlobalUserRoles(user, roles, globalRolesConfig);
         addGlobalGroupRoles(roles, groups, globalRolesConfig);
@@ -191,7 +191,7 @@ public class SecurityServiceImpl implements SecurityService {
     protected void addGlobalUserRoles( final String user, Set<String> roles, PermissionsConfigTO
             rolesConfig) {
 
-        StudioCacheContext cacheContext = new StudioCacheContext("###USERS###", true);
+        StudioCacheContext cacheContext = new StudioCacheContext(CStudioConstants.CACHE_USERS_SCOPE, true);
         CacheService cacheService = cacheTemplate.getCacheService();
         generalLockService.lock(cacheContext.getId());
         try {
@@ -207,7 +207,7 @@ public class SecurityServiceImpl implements SecurityService {
             public Set<String> execute() {
                 return securityProvider.getUserGroups(user);
             }
-        }, "###USERS###", user, "groups");
+        }, CStudioConstants.CACHE_USERS_SCOPE, user, CStudioConstants.CACHE_KEY_USERS_GROUPS);
 
         if (rolesConfig != null && groups != null) {
             Map<String, List<String>> rolesMap = rolesConfig.getRoles();
@@ -240,7 +240,7 @@ public class SecurityServiceImpl implements SecurityService {
         if (roles != null && !roles.isEmpty()) {
             for (String role : roles) {
                 Map<String, Map<String, List<Node>>> permissionsMap = permissionsConfig.getPermissions();
-                Map<String, List<Node>> siteRoles = permissionsMap.get("###GLOBAL###");
+                Map<String, List<Node>> siteRoles = permissionsMap.get(CStudioConstants.CACHE_GLOBAL_SCOPE);
                 if (siteRoles == null || siteRoles.isEmpty()) {
                     siteRoles = permissionsMap.get("*");
                 }
@@ -314,7 +314,7 @@ public class SecurityServiceImpl implements SecurityService {
     public Set<String> getUserRoles(@ValidateStringParam(name = "site") final String site,
                                     @ValidateStringParam(name = "user")final  String user) {
 
-        StudioCacheContext usersCacheContext = new StudioCacheContext("###USERS###", true);
+        StudioCacheContext usersCacheContext = new StudioCacheContext(CStudioConstants.CACHE_USERS_SCOPE, true);
         CacheService cacheService = cacheTemplate.getCacheService();
         generalLockService.lock(usersCacheContext.getId());
         try {
@@ -330,7 +330,7 @@ public class SecurityServiceImpl implements SecurityService {
             public Set<String> execute() {
                 return securityProvider.getUserGroups(user);
             }
-        }, "###USERS###", user, "groups");
+        }, CStudioConstants.CACHE_USERS_SCOPE, user, CStudioConstants.CACHE_KEY_USERS_GROUPS);
         if (groups != null && groups.size() > 0) {
             logger.debug("Groups for " + user + " in " + site + ": " + groups);
             StudioCacheContext cacheContext = new StudioCacheContext(site, true);
@@ -562,7 +562,7 @@ public class SecurityServiceImpl implements SecurityService {
             // permissions file
             loadPermissions(root, config);
 
-            String globalPermissionsKey = "###GLOBAL###:" + globalPermissionsFileName;
+            String globalPermissionsKey = CStudioConstants.CACHE_GLOBAL_SCOPE + ":" + globalPermissionsFileName;
             config.setKey(globalPermissionsKey);
             config.setLastUpdated(new Date());
 
@@ -589,7 +589,7 @@ public class SecurityServiceImpl implements SecurityService {
             // roles file
             loadRoles(root, config);
 
-            String globalRolesKey = "###GLOBAL###:" + globalRoleMappingsFileName;
+            String globalRolesKey = CStudioConstants.CACHE_GLOBAL_SCOPE + ":" + globalRoleMappingsFileName;
             config.setKey(globalRolesKey);
             config.setLastUpdated(new Date());
 
@@ -605,7 +605,7 @@ public class SecurityServiceImpl implements SecurityService {
     public void reloadConfiguration(@ValidateStringParam(name = "site") String site) {
         CacheService cacheService = cacheTemplate.getCacheService();
         StudioCacheContext cacheContext = new StudioCacheContext(site, true);
-        StudioCacheContext usersCacheContext = new StudioCacheContext("###USERS###", true);
+        StudioCacheContext usersCacheContext = new StudioCacheContext(CStudioConstants.CACHE_USERS_SCOPE, true);
         Object permissionsKey = cacheTemplate.getKey(site, configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site), permissionsFileName);
         Object rolesKey = cacheTemplate.getKey(site, configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site), roleMappingsFileName);
         generalLockService.lock(cacheContext.getId());
@@ -629,9 +629,9 @@ public class SecurityServiceImpl implements SecurityService {
     @Override
     public void reloadGlobalConfiguration() {
         CacheService cacheService = cacheTemplate.getCacheService();
-        StudioCacheContext cacheContext = new StudioCacheContext("###GLOBAL###", true);
-        Object permissionsKey = cacheTemplate.getKey("###GLOBAL###", globalConfigPath, globalPermissionsFileName);
-        Object rolesKey = cacheTemplate.getKey("###GLOBAL###", globalConfigPath, globalRoleMappingsFileName);
+        StudioCacheContext cacheContext = new StudioCacheContext(CStudioConstants.CACHE_GLOBAL_SCOPE, true);
+        Object permissionsKey = cacheTemplate.getKey(CStudioConstants.CACHE_GLOBAL_SCOPE, globalConfigPath, globalPermissionsFileName);
+        Object rolesKey = cacheTemplate.getKey(CStudioConstants.CACHE_GLOBAL_SCOPE, globalConfigPath, globalRoleMappingsFileName);
         generalLockService.lock(cacheContext.getId());
         try {
             if (cacheService.hasScope(cacheContext)) {

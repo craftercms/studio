@@ -91,4 +91,9 @@ public interface CStudioConstants {
 
     String FILE_SEPARATOR = "/";
 
+    // Cache constants
+    String CACHE_GLOBAL_SCOPE = "###GLOBAL###";
+    String CACHE_USERS_SCOPE = "###USERS###";
+    String CACHE_KEY_USERS_GROUPS = "groups";
+    String CACHE_KEY_USERS_PROFILE = "profile";
 }
