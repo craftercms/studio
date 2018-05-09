@@ -19,7 +19,6 @@
 package org.craftercms.studio.impl.v1.service.dependency;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -43,7 +42,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.
         CONFIGURATION_SITE_DEPENDENCY_RESOLVER_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.
@@ -120,12 +118,6 @@ public class RegexDependencyResolver implements DependencyResolver {
             String configLocation = getConfigLocation(site);
             logger.error("Failed to load Dependency Resolver configuration. Verify that configuration exists" +
                     " and it is valid XML file: " + configLocation);
-        }
-        String parentDependencyPath = getParentDependency(site, path);
-        if (StringUtils.isNotEmpty(parentDependencyPath)) {
-            Set<String> parentDeps = new HashSet<String>();
-            parentDeps.add(parentDependencyPath);
-            toRet.put(PARENT_DEPENDENCY_TYPE, parentDeps);
         }
         return toRet;
     }
@@ -210,25 +202,6 @@ public class RegexDependencyResolver implements DependencyResolver {
         }
 
         return config;
-    }
-
-    private String getParentDependency(String site, String path) {
-        int idx = path.lastIndexOf(FILE_SEPARATOR + INDEX_FILE);
-        String aPath = path;
-        if (idx > 0) {
-            aPath = path.substring(0, idx);
-        }
-        logger.debug("Calculate parent url for " + aPath);
-        String parentPath = ContentUtils.getParentUrl(aPath);
-        if (StringUtils.isNotEmpty(parentPath)) {
-            String parentIndexPath = parentPath + FILE_SEPARATOR + INDEX_FILE;
-            if (contentService.contentExists(site, parentIndexPath)) {
-                return parentIndexPath;
-            } else {
-                return parentPath;
-            }
-        }
-        return StringUtils.EMPTY;
     }
 
     private String getConfigLocation(String site) {

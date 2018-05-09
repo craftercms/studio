@@ -23,6 +23,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.dal.DependencyEntity;
 import org.craftercms.studio.api.v1.dal.DependencyMapper;
+import org.craftercms.studio.api.v1.dal.ItemStateMapper;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -55,6 +56,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
 import static org.craftercms.studio.api.v1.dal.DependencyMapper.EDITED_STATES_PARAM;
 import static org.craftercms.studio.api.v1.dal.DependencyMapper.NEW_PATH_PARAM;
 import static org.craftercms.studio.api.v1.dal.DependencyMapper.NEW_STATES_PARAM;
@@ -74,6 +77,8 @@ public class DependencyServiceImpl implements DependencyService {
 
     @Autowired
     protected DependencyMapper dependencyMapper;
+    @Autowired
+    protected ItemStateMapper itemStateMapper;
     protected StudioConfiguration studioConfiguration;
     protected SiteService siteService;
     protected ContentService contentService;
@@ -597,10 +602,20 @@ public class DependencyServiceImpl implements DependencyService {
 
         logger.debug("Get all publishing dependencies");
         pathsParams.addAll(paths);
+        Set<String> mandatoryParents = getMandatoryParentsForPublishing(site, paths);
         boolean exitCondition = false;
         Map<String, String> ancestors = new HashMap<String, String>();
         for (String p : paths) {
             ancestors.put(p, p);
+        }
+        for (String p : mandatoryParents) {
+            String prefix = p.replace(FILE_SEPARATOR + INDEX_FILE, "");
+            for (String p2 : paths) {
+                if (p2.startsWith(prefix)) {
+                    ancestors.put(p, p2);
+                    break;
+                }
+            }
         }
         do {
             List<Map<String, String>> deps = calculatePublishingDependenciesForListFromDB(site, pathsParams);
@@ -621,6 +636,38 @@ public class DependencyServiceImpl implements DependencyService {
         } while (!exitCondition);
 
         return ancestors;
+    }
+
+    private Set<String> getMandatoryParentsForPublishing(String site, List<String> paths) {
+        Set<String> possibleParents = calculatePossibleParents(paths);
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put(ItemStateMapper.SITE_PARAM, site);
+        params.put(ItemStateMapper.POSSIBLE_PARENTS_PARAM, possibleParents);
+        Collection<State> onlyEditStates = CollectionUtils.removeAll(State.CHANGE_SET_STATES, State.NEW_STATES);
+        params.put(ItemStateMapper.EDITED_STATES_PARAM, onlyEditStates);
+        params.put(ItemStateMapper.NEW_STATES_PARAM, State.NEW_STATES);
+        List<String> result = itemStateMapper.getMandatoryParentsForPublishing(params);
+        Set<String> toRet = new HashSet<String>();
+        toRet.addAll(result);
+        return toRet;
+    }
+
+    private Set<String> calculatePossibleParents(List<String> paths) {
+        Set<String> possibleParents = new HashSet<String>();
+        for (String path : paths) {
+            StringTokenizer stPath = new StringTokenizer(path.replace(FILE_SEPARATOR + INDEX_FILE, ""), FILE_SEPARATOR);
+            StringBuilder candidate = new StringBuilder(FILE_SEPARATOR);
+            if (stPath.countTokens() > 0) {
+                do {
+                    String token = stPath.nextToken();
+                    if (stPath.hasMoreTokens()) {
+                        candidate.append(token).append(FILE_SEPARATOR);
+                        possibleParents.add(candidate.toString() + INDEX_FILE);
+                    }
+                } while (stPath.hasMoreTokens());
+            }
+        }
+        return possibleParents;
     }
 
     private List<Map<String, String>> calculatePublishingDependenciesForListFromDB(String site, Set<String> paths) {
