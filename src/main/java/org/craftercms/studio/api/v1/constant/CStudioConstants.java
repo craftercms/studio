@@ -88,4 +88,7 @@ public interface CStudioConstants {
 
     String API_REQUEST_PARAM_SITE = "site";
     String API_REQUEST_PARAM_ENTITIES = "entities";
+
+    String FILE_SEPARATOR = "/";
+
 }

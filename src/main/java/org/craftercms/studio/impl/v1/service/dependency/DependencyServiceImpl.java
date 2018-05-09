@@ -7,9 +7,9 @@ import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.CStudioConstants;
-import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.DependencyEntity;
 import org.craftercms.studio.api.v1.dal.DependencyMapper;
+import org.craftercms.studio.api.v1.dal.ObjectStateMapper;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -24,8 +24,6 @@ import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v1.service.objectstate.State;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.CalculateDependenciesEntityTO;
-import org.craftercms.studio.api.v1.to.ContentItemTO;
-import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
@@ -35,6 +33,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static org.craftercms.studio.api.v1.constant.DmConstants.INDEX_FILE;
 import static org.craftercms.studio.api.v1.dal.DependencyMapper.EDITED_STATES_PARAM;
 import static org.craftercms.studio.api.v1.dal.DependencyMapper.NEW_STATES_PARAM;
 import static org.craftercms.studio.api.v1.dal.DependencyMapper.PATHS_PARAM;
@@ -49,6 +48,8 @@ public class DependencyServiceImpl implements DependencyService {
 
     @Autowired
     protected DependencyMapper dependencyMapper;
+    @Autowired
+    protected ObjectStateMapper objectStateMapper;
 
     protected SiteService siteService;
     protected ContentService contentService;
@@ -654,17 +655,29 @@ public class DependencyServiceImpl implements DependencyService {
 
         logger.debug("Get all publishing dependencies");
         pathsParams.addAll(paths);
+        Set<String> mandatoryParents = getMandatoryParentsForPublishing(site, paths);
         boolean exitCondition = false;
         Map<String, String> ancestors = new HashMap<String, String>();
         for (String p : paths) {
             ancestors.put(p, p);
+        }
+        for (String p : mandatoryParents) {
+            String prefix = p.replace(CStudioConstants.FILE_SEPARATOR + INDEX_FILE, "");
+            for (String p2 : paths) {
+                if (p2.startsWith(prefix)) {
+                    ancestors.put(p, p2);
+                    break;
+                }
+            }
         }
         do {
             List<Map<String, String>> deps = calculatePublishingDependenciesForListFromDB(site, pathsParams);
             List<String> targetPaths = new ArrayList<String>();
             for (Map<String, String> d : deps) {
                 String srcPath = d.get(SORUCE_PATH_COLUMN_NAME);
+                if (srcPath == null) srcPath = d.get(SORUCE_PATH_COLUMN_NAME.toUpperCase());
                 String targetPath = d.get(TARGET_PATH_COLUMN_NAME);
+                if (targetPath == null) targetPath = d.get(TARGET_PATH_COLUMN_NAME.toUpperCase());
                 if (!ancestors.keySet().contains(targetPath)) {
                     if (!StringUtils.equals(targetPath, ancestors.get(srcPath))) {
                         ancestors.put(targetPath, ancestors.get(srcPath));
@@ -678,6 +691,40 @@ public class DependencyServiceImpl implements DependencyService {
         } while (!exitCondition);
 
         return ancestors;
+    }
+
+    private Set<String> getMandatoryParentsForPublishing(String site, List<String> paths) {
+        Set<String> possibleParents = calculatePossibleParents(paths);
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put(ObjectStateMapper.SITE_PARAM, site);
+        params.put(ObjectStateMapper.POSSIBLE_PARENTS_PARAM, possibleParents);
+        Collection<State> onlyEditStates = CollectionUtils.removeAll(State.CHANGE_SET_STATES, State.NEW_STATES);
+        params.put(ObjectStateMapper.EDITED_STATES_PARAM, onlyEditStates);
+        params.put(ObjectStateMapper.NEW_STATES_PARAM, State.NEW_STATES);
+        List<String> result = objectStateMapper.getMandatoryParentsForPublishing(params);
+        Set<String> toRet = new HashSet<String>();
+        toRet.addAll(result);
+        return toRet;
+    }
+
+    private Set<String> calculatePossibleParents(List<String> paths) {
+        Set<String> possibleParents = new HashSet<String>();
+        for (String path : paths) {
+            StringTokenizer stPath = new StringTokenizer(
+                    path.replace(CStudioConstants.FILE_SEPARATOR + INDEX_FILE, ""),
+                    CStudioConstants.FILE_SEPARATOR);
+            StringBuilder candidate = new StringBuilder(CStudioConstants.FILE_SEPARATOR);
+            if (stPath.countTokens() > 0) {
+                do {
+                    String token = stPath.nextToken();
+                    if (stPath.hasMoreTokens()) {
+                        candidate.append(token).append(CStudioConstants.FILE_SEPARATOR);
+                        possibleParents.add(candidate.toString() + INDEX_FILE);
+                    }
+                } while (stPath.hasMoreTokens());
+            }
+        }
+        return possibleParents;
     }
 
     private List<Map<String, String>> calculatePublishingDependenciesForListFromDB(String site, Set<String> paths) {
