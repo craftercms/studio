@@ -169,4 +169,35 @@
         WHERE itstate.site = #{siteId}
         AND itmeta.commit_id = #{commitId}
     </update>
+
+    <select id="getMandatoryParentsForPublishing" parameterType="java.util.Map" resultType="String">
+        SELECT is1.path as path
+        FROM item_state is1
+        WHERE is1.site = #{site}
+        AND is1.path IN
+        <foreach item="path" index="index" collection="possibleParents"
+                 open="(" separator="," close=")">
+            #{path}
+        </foreach>
+        AND is1.state IN
+        <foreach item="state" index="index" collection="newStates"
+                 open="(" separator="," close=")">
+            #{state}
+        </foreach>
+        UNION
+        SELECT is2.path as path
+        FROM (item_state is2 INNER JOIN item_metadata im2 ON is2.path = im2.path AND is2.site = im2.site)
+        WHERE is2.site = #{site}
+        AND im2.renamed > 0
+        AND is2.path IN
+        <foreach item="path" index="index" collection="possibleParents"
+                 open="(" separator="," close=")">
+            #{path}
+        </foreach>
+        AND is2.state IN
+        <foreach item="state" index="index" collection="editedStates"
+                 open="(" separator="," close=")">
+            #{state}
+        </foreach>
+    </select>
 </mapper>

@@ -20,11 +20,17 @@ package org.craftercms.studio.api.v1.dal;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Dejan Brkic
  */
 public interface ItemStateMapper {
+
+    String SITE_PARAM = "site";
+    String EDITED_STATES_PARAM = "editedStates";
+    String NEW_STATES_PARAM = "newStates";
+    String POSSIBLE_PARENTS_PARAM = "possibleParents";
 
     List<ItemState> getObjectStateByStates(Map params);
 
@@ -61,4 +67,6 @@ public interface ItemStateMapper {
     int deletedPathExists(Map params);
 
     void deployCommitId(Map params);
+
+    List<String> getMandatoryParentsForPublishing(Map params);
 }
