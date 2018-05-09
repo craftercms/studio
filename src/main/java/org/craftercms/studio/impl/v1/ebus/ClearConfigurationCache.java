@@ -45,7 +45,7 @@ public class ClearConfigurationCache {
         generalLockService.lock(cacheContext.getId());
         try {
             if (cacheService.hasScope(cacheContext)) {
-                cacheService.removeScope(cacheContext);
+                cacheService.clearScope(cacheContext);
             }
             cacheService.addScope(cacheContext);
         } finally {

@@ -616,7 +616,7 @@ public class SecurityServiceImpl implements SecurityService {
             } else {
                 cacheService.addScope(cacheContext);
             }
-            cacheService.removeScope(usersCacheContext);
+            cacheService.clearScope(usersCacheContext);
         } finally {
             generalLockService.unlock(cacheContext.getId());
         }
