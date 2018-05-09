@@ -1182,6 +1182,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
                     Set<String> deployedCommits = new HashSet<String>();
                     Set<String> deployedPackages = new HashSet<String>();
+                    long start = System.currentTimeMillis();
                     for (DeploymentItemTO deploymentItem : deploymentItems) {
                         commitId = deploymentItem.getCommitId();
                         path = helper.getGitPath(deploymentItem.getPath());
@@ -1213,11 +1214,21 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                             deployedPackages.add(deploymentItem.getPackageId());
                         }
                     }
+                    logger.debug("Checkout deployed files completed in: " +
+                            (System.currentTimeMillis() - start) + "ms");
 
                     // commit all deployed files
                     String commitMessage = studioConfiguration.getProperty(REPO_PUBLISHED_COMMIT_MESSAGE);
+
+                    start = System.currentTimeMillis();
                     PersonIdent authorIdent = helper.getAuthorIdent(author);
+                    logger.debug("Get Author Ident completed in: " +
+                            (System.currentTimeMillis() - start) + "ms");
+
+                    start = System.currentTimeMillis();
                     git.add().addFilepattern(GIT_COMMIT_ALL_ITEMS).call();
+                    logger.debug("Git add all published items completed in: " +
+                            (System.currentTimeMillis() - start) + "ms");
 
                     commitMessage = commitMessage.replace("{username}", author);
                     commitMessage =
@@ -1236,7 +1247,10 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     }
                     commitMessage = commitMessage.replace("{commit_id}", sb.toString().trim());
                     commitMessage = commitMessage.replace("{package_id}", sbPackage.toString().trim());
+                    start = System.currentTimeMillis();
                     RevCommit revCommit = git.commit().setMessage(commitMessage).setAuthor(authorIdent).call();
+                    logger.debug("Git commit all published items completed in: " +
+                            (System.currentTimeMillis() - start) + "ms");
                     int commitTime = revCommit.getCommitTime();
 
                     // tag
@@ -1245,8 +1259,15 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     String tagName2 = tagDate2.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX")) +
                             "_published_on_" + publishDate.format(
                                     DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX"));
+                    start = System.currentTimeMillis();
                     PersonIdent authorIdent2 = helper.getAuthorIdent(author);
+                    logger.debug("Get Author Ident completed in: " +
+                            (System.currentTimeMillis() - start) + "ms");
+
+                    start = System.currentTimeMillis();
                     git.tag().setTagger(authorIdent2).setName(tagName2).setMessage(commitMessage).call();
+                    logger.debug("Git tag completed in: " +
+                            (System.currentTimeMillis() - start) + "ms");
 
                     // checkout environment
                     logger.debug("Checkout environment " + environment + " branch for site " + site);
