@@ -61,6 +61,7 @@ public class StudioAuthenticationTokenProcessingFilter extends GenericFilterBean
 
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
+
         HttpServletRequest httpRequest = this.getAsHttpRequest(servletRequest);
         HttpSession httpSession = httpRequest.getSession();
         semaphore.lock();
@@ -82,13 +83,17 @@ public class StudioAuthenticationTokenProcessingFilter extends GenericFilterBean
                         String newToken = SessionTokenUtils.createToken(userDetails.getUsername(), timeout);
                         httpSession.setAttribute(STUDIO_SESSION_TOKEN_ATRIBUTE, newToken);
                     }
+                } else {
+                    crafterLogger.debug("Session is not valid. Clearing HttpSession");
+                    httpSession.removeAttribute(STUDIO_SESSION_TOKEN_ATRIBUTE);
+                    httpSession.invalidate();
                 }
             } else {
                 if (isAuthenticationHeadersEnabled()) {
                     // If user not authenticated check for authentication headers
                     String usernameHeader = httpRequest.getHeader(studioConfiguration.getProperty(AUTHENTICATION_HEADERS_USERNAME));
                     try {
-                        securityProvider.authenticate(usernameHeader, RandomStringUtils.randomAlphanumeric(16));
+                        securityService.authenticate(usernameHeader, RandomStringUtils.randomAlphanumeric(16));
                         UserDetails userDetails = this.userDetailsManager.loadUserByUsername(usernameHeader);
                         UsernamePasswordAuthenticationToken authentication =
                                 new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());

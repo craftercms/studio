@@ -24,6 +24,8 @@ import java.util.Locale;
 class SpringSiteServices {
 
     static SITE_SERVICES_BEAN = "cstudioSiteServiceSimple"
+    static NOTIFICATION_SERVICES_BEAN = "cstudioNotificationService"
+    static NEW_NOTIFICATION_SERVICES_BEAN = "cstudioNotificationService"
 
     def context = null
 
@@ -66,11 +68,12 @@ class SpringSiteServices {
         return springBackedService.createSiteFromBlueprint(blueprintName, siteName, siteId, desc)
     }
 
-    def createSiteWithRemoteOption(siteId, description, blueprint, remoteName, remoteUrl, authenticationType,
-                                   remoteUsername, remotePassword, remoteToken, remotePrivateKey, createOption) {
+    def createSiteWithRemoteOption(siteId, description, blueprint, remoteName, remoteUrl, remoteBranch, singleBranch,
+            authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey, createOption) {
         def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
         return springBackedService.createSiteWithRemoteOption(siteId, description, blueprint, remoteName, remoteUrl,
-                authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey, createOption)
+                remoteBranch, singleBranch, authenticationType, remoteUsername, remotePassword, remoteToken,
+                remotePrivateKey, createOption)
     }
 
     def deleteSite(siteId) {
@@ -86,6 +89,12 @@ class SpringSiteServices {
     def reloadSiteConfiguration(site) {
         def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
         return springBackedService.reloadSiteConfiguration(site)
+    }
+
+    def getCannedMessage(site,messageKey,locale="us"){
+        def notificationSystem=this.context.applicationContext.get(NEW_NOTIFICATION_SERVICES_BEAN)
+        return  notificationSystem.getNotificationMessage(site,NotificationMessageType.CannedMessages,messageKey,Locale
+                    .forLanguageTag(locale))
     }
 
     def syncRepository(site) {
@@ -118,11 +127,11 @@ class SpringSiteServices {
         return springBackedService.getSite(siteId)
     }
 
-    def addRemote(siteId, remoteName, remoteUrl, authenticationType, remoteUsername, remotePassword, remoteToken,
-                  remotePrivateKey) {
+    def addRemote(siteId, remoteName, remoteUrl, authenticationType, remoteUsername, remotePassword,
+                  remoteToken, remotePrivateKey) {
         def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
-        return springBackedService.addRemote(siteId, remoteName, remoteUrl, authenticationType, remoteUsername,
-                remotePassword, remoteToken, remotePrivateKey)
+        return springBackedService.addRemote(siteId, remoteName, remoteUrl, authenticationType,
+                remoteUsername, remotePassword, remoteToken, remotePrivateKey)
     }
 
     def removeRemote(siteId, remoteName) {

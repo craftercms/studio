@@ -3,6 +3,8 @@ package scripts.libs
 import scripts.api.SiteServices;
 import scripts.api.SecurityServices;
 
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_TYPE;
+
 class EnvironmentOverrides {
 
 	static getValuesForSite(appContext, request, response) {
@@ -26,6 +28,10 @@ class EnvironmentOverrides {
 		try {		
 			result.user = SecurityServices.getCurrentUser(context)
 			result.site = Cookies.getCookieValue("crafterSite", request)
+
+            def studioConfigurationSB = context.applicationContext.get("studioConfiguration")
+            def authenticationType = studioConfigurationSB.getProperty(SECURITY_TYPE)
+            result.authenticationType = authenticationType
    		
    			def language = Cookies.getCookieValue("crafterStudioLanguage", request)
    			if(language == null || language == "" || language == "UNSET") {

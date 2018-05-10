@@ -1,11 +1,3 @@
-SET GLOBAL innodb_large_prefix = TRUE ;
-
-SET GLOBAL innodb_file_format = 'BARRACUDA' ;
-
-SET GLOBAL innodb_file_format_max = 'BARRACUDA' ;
-
-SET GLOBAL innodb_file_per_table = TRUE ;
-
 CREATE DATABASE IF NOT EXISTS crafter
   DEFAULT CHARACTER SET utf8 ;
 
@@ -27,7 +19,7 @@ USE crafter ;
 
 CREATE TABLE _meta (`version` VARCHAR(10) NOT NULL , PRIMARY KEY (`version`)) ;
 
-INSERT INTO _meta (version) VALUES ('3.0.10') ;
+INSERT INTO _meta (version) VALUES ('3.0.11.3') ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`             BIGINT(20)   NOT NULL AUTO_INCREMENT,
@@ -103,6 +95,7 @@ CREATE TABLE IF NOT EXISTS `publish_request` (
   `contenttypeclass`  VARCHAR(20)  NULL,
   `submissioncomment` TEXT         NULL,
   `commit_id`         VARCHAR(50)  NULL,
+  `package_id`         VARCHAR(50)  NULL,
   PRIMARY KEY (`id`),
   INDEX `publish_request_site_idx` (`site` ASC),
   INDEX `publish_request_environment_idx` (`environment` ASC),
@@ -243,6 +236,7 @@ CREATE TABLE IF NOT EXISTS remote_repository
   `remote_token`          VARCHAR(255)   NULL,
   `remote_private_key`    TEXT           NULL,
   PRIMARY KEY (`id`),
+  UNIQUE `uq_rr_site_remote_name` (`site_id`, `remote_name`),
   INDEX `remoterepository_site_idx` (`site_id` ASC)
 )
   ENGINE = InnoDB

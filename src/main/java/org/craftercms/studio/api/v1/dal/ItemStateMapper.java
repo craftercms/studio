@@ -26,6 +26,11 @@ import java.util.Map;
  */
 public interface ItemStateMapper {
 
+    String SITE_PARAM = "site";
+    String EDITED_STATES_PARAM = "editedStates";
+    String NEW_STATES_PARAM = "newStates";
+    String POSSIBLE_PARENTS_PARAM = "possibleParents";
+
     List<ItemState> getObjectStateByStates(Map params);
 
     void deleteObjectState(String objectId);
@@ -61,4 +66,6 @@ public interface ItemStateMapper {
     int deletedPathExists(Map params);
 
     void deployCommitId(Map params);
+
+    List<String> getMandatoryParentsForPublishing(Map params);
 }

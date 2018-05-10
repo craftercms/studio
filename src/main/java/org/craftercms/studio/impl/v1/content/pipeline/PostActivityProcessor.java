@@ -59,21 +59,25 @@ public class PostActivityProcessor extends BaseContentProcessor {
         if (result.getCommitId() != null) {
             String type = content.getProperty(DmConstants.KEY_ACTIVITY_TYPE);
             String user = content.getProperty(DmConstants.KEY_USER);
-            ActivityService.ActivityType activityType = (ActivityService.ActivityType.CREATED.toString().equals(type)) ? ActivityService.ActivityType.CREATED : ActivityService.ActivityType.UPDATED;
+            ActivityService.ActivityType activityType = (ActivityService.ActivityType.CREATED.toString().equals(type))
+                    ? ActivityService.ActivityType.CREATED : ActivityService.ActivityType.UPDATED;
             String site = (String) content.getProperty(DmConstants.KEY_SITE);
             String folderPath = (String) content.getProperty(DmConstants.KEY_FOLDER_PATH);
             String fileName = (String) content.getProperty(DmConstants.KEY_FILE_NAME);
-            boolean isSystemAsset = ContentFormatUtils.getBooleanValue(content.getProperty(DmConstants.KEY_SYSTEM_ASSET));
+            boolean isSystemAsset =
+                    ContentFormatUtils.getBooleanValue(content.getProperty(DmConstants.KEY_SYSTEM_ASSET));
             if (isSystemAsset) {
                 ContentAssetInfoTO assetInfoTO = (ContentAssetInfoTO) result.getItem();
                 fileName = assetInfoTO.getFileName();
             }
-            String uri = (folderPath.endsWith(FILE_SEPARATOR)) ? folderPath + fileName : folderPath + FILE_SEPARATOR + fileName;
+            String uri = (folderPath.endsWith(FILE_SEPARATOR)) ? folderPath + fileName : folderPath + FILE_SEPARATOR
+                    + fileName;
             List<String> displayPatterns = servicesConfig.getDisplayInWidgetPathPatterns(site);
             if (ContentUtils.matchesPatterns(uri, displayPatterns)) {
                 Map<String, String> extraInfo = new HashMap<String, String>();
                 extraInfo.put(DmConstants.KEY_CONTENT_TYPE, contentService.getContentTypeClass(site, uri));
-                activityService.postActivity(site, user, uri, activityType, ActivityService.ActivitySource.UI, extraInfo);
+                activityService.postActivity(site, user, uri, activityType, ActivityService.ActivitySource.API,
+                        extraInfo);
             }
         }
     }

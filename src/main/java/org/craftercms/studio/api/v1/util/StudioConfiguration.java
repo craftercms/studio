@@ -48,6 +48,7 @@ public interface StudioConfiguration {
     String DB_POOL_MAX_WAIT_TIME = "studio.db.pool.maxWaitTime";
     String DB_INITIALIZER_ENABLED = "studio.db.initializer.enabled";
     String DB_INITIALIZER_URL = "studio.db.initializer.url";
+    String DB_INITIALIZER_CONFIGURE_DB_SCRIPT_LOCATION = "studio.db.initializer.configureDbscriptLocation";
     String DB_INITIALIZER_CREATE_DB_SCRIPT_LOCATION = "studio.db.initializer.createDbscriptLocation";
     String DB_INITIALIZER_UPGRADE_DB_SCRIPT_LOCATION = "studio.db.initializer.upgradeDbScriptLocation";
     String DB_INITIALIZER_RANDOM_ADMIN_PASSWORD_ENABLED = "studio.db.initializer.randomAdminPassword.enabled";

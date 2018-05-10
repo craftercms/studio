@@ -44,6 +44,7 @@ import java.sql.Statement;
 import java.util.Enumeration;
 
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_DRIVER;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_INITIALIZER_CONFIGURE_DB_SCRIPT_LOCATION;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_INITIALIZER_CREATE_DB_SCRIPT_LOCATION;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_INITIALIZER_ENABLED;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_INITIALIZER_RANDOM_ADMIN_PASSWORD_CHARS;
@@ -56,23 +57,34 @@ import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_INITIALIZ
 public class DataSourceInitializerImpl implements DataSourceInitializer, DisposableBean {
 
     private final static Logger logger = LoggerFactory.getLogger(DataSourceInitializerImpl.class);
-    private final static String CURRENT_DB_VERSION = "3.0.10";
+    private final static String CURRENT_DB_VERSION = "3.0.11.3";
     private final static String DB_VERSION_3_0_0 = "3.0.0";
     private final static String DB_VERSION_2_5_X = "2.5.x";
 
     /**
      * Database queries
      */
-    private final static String DB_QUERY_CHECK_SCHEMA_EXISTS = "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = 'crafter'";
-    private final static String DB_QUERY_CHECK_META_TABLE_EXISTS = "SELECT * FROM information_schema.tables WHERE table_schema = 'crafter' AND table_name = '_meta' LIMIT 1";
-    private final static String DB_QUERY_GET_META_TABLE_VERSION = "SELECT _meta.version FROM _meta LIMIT 1";
-    private final static String DB_QUERY_CHECK_GROUP_TABLE_EXISTS = "SELECT * FROM information_schema.tables WHERE table_schema = 'crafter' AND table_name = 'cstudio_group' LIMIT 1";
+    private final static String DB_QUERY_CHECK_SCHEMA_EXISTS =
+            "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = 'crafter'";
+    private final static String DB_QUERY_CHECK_META_TABLE_EXISTS =
+            "SELECT * FROM information_schema.tables WHERE table_schema = 'crafter' AND table_name = '_meta' LIMIT 1";
+    private final static String DB_QUERY_GET_META_TABLE_VERSION =
+            "SELECT _meta.version FROM _meta LIMIT 1";
+    private final static String DB_QUERY_CHECK_GROUP_TABLE_EXISTS =
+            "SELECT * FROM information_schema.tables WHERE table_schema = 'crafter' AND table_name = 'cstudio_group' LIMIT 1";
     private final static String DB_QUERY_USE_CRAFTER = "use crafter";
-    private final static String DB_QUERY_SET_ADMIN_PASSWORD = "UPDATE user SET password = '{password}' WHERE username = 'admin'";
+    private final static String DB_QUERY_SET_ADMIN_PASSWORD =
+            "UPDATE user SET password = '{password}' WHERE username = 'admin'";
+
+    protected String delimiter;
+    protected StudioConfiguration studioConfiguration;
+
+    protected MariaDB4jService mariaDB4jService;
 
     @Override
     public void initDataSource() throws DatabaseUpgradeUnsupportedVersionException {
         if (isEnabled()) {
+            String configureDbScriptPath = getConfigureDBScriptPath();
             String createDbScriptPath = getCreateDBScriptPath();
 
             logger.debug("Get MariaDB service");
@@ -90,10 +102,26 @@ public class DataSourceInitializerImpl implements DataSourceInitializer, Disposa
                 logger.error("Error while getting connection to DB", e);
             }
 
+            // Configure DB
+            logger.info("Configure database from script " + configureDbScriptPath);
+            ScriptRunner sr = new ScriptRunner(conn);
+
+            sr.setDelimiter(delimiter);
+            sr.setStopOnError(true);
+            sr.setLogWriter(null);
+            InputStream is = getClass().getClassLoader().getResourceAsStream(configureDbScriptPath);
+            Reader reader = new InputStreamReader(is);
+            try {
+                sr.runScript(reader);
+            } catch (RuntimeSqlException e) {
+                logger.error("Error while running configure DB script", e);
+            }
+
             if (conn != null) {
                 try {
                     logger.debug("Check if database schema already exists");
                     statement = conn.createStatement();
+
                     rs = statement.executeQuery(DB_QUERY_CHECK_SCHEMA_EXISTS);
                     if (rs.next()) {
                         logger.debug("Database already exists. Determine version of database");
@@ -110,7 +138,8 @@ public class DataSourceInitializerImpl implements DataSourceInitializer, Disposa
                                 dbVersion = rs.getString(1);
                             } else {
                                 // TODO: DB: Error ?
-                                throw new DatabaseUpgradeUnsupportedVersionException("Could not determine database version from _meta table");
+                                throw new DatabaseUpgradeUnsupportedVersionException(
+                                        "Could not determine database version from _meta table");
                             }
                         } else {
                             logger.debug("Check if group table exists.");
@@ -132,19 +161,21 @@ public class DataSourceInitializerImpl implements DataSourceInitializer, Disposa
                                 break;
                             case DB_VERSION_2_5_X:
                                 // TODO: DB: Migration not supported yet
-                                throw new DatabaseUpgradeUnsupportedVersionException("Automated migration from 2.5.x DB is not supported yet.");
+                                throw new DatabaseUpgradeUnsupportedVersionException(
+                                        "Automated migration from 2.5.x DB is not supported yet.");
                             default:
-                                logger.info("Database version is " + dbVersion + ", required version is " + CURRENT_DB_VERSION);
+                                logger.info("Database version is " + dbVersion + ", required version is " +
+                                        CURRENT_DB_VERSION);
                                 String upgradeScriptPath = getUpgradeDBScriptPath();
                                 upgradeScriptPath = upgradeScriptPath.replace("{version}", dbVersion);
                                 logger.info("Upgrading database from script " + upgradeScriptPath);
-                                ScriptRunner sr = new ScriptRunner(conn);
+                                sr = new ScriptRunner(conn);
 
                                 sr.setDelimiter(delimiter);
                                 sr.setStopOnError(true);
                                 sr.setLogWriter(null);
-                                InputStream is = getClass().getClassLoader().getResourceAsStream(upgradeScriptPath);
-                                Reader reader = new InputStreamReader(is);
+                                is = getClass().getClassLoader().getResourceAsStream(upgradeScriptPath);
+                                reader = new InputStreamReader(is);
                                 try {
                                     sr.runScript(reader);
                                 } catch (RuntimeSqlException e) {
@@ -156,13 +187,13 @@ public class DataSourceInitializerImpl implements DataSourceInitializer, Disposa
                         // Database does not exist
                         logger.info("Database does not exists.");
                         logger.info("Creating database from script " + createDbScriptPath);
-                        ScriptRunner sr = new ScriptRunner(conn);
+                        sr = new ScriptRunner(conn);
 
                         sr.setDelimiter(delimiter);
                         sr.setStopOnError(true);
                         sr.setLogWriter(null);
-                        InputStream is = getClass().getClassLoader().getResourceAsStream(createDbScriptPath);
-                        Reader reader = new InputStreamReader(is);
+                        is = getClass().getClassLoader().getResourceAsStream(createDbScriptPath);
+                        reader = new InputStreamReader(is);
                         try {
                             sr.runScript(reader);
 
@@ -235,7 +266,8 @@ public class DataSourceInitializerImpl implements DataSourceInitializer, Disposa
             try {
                 DriverManager.deregisterDriver(driver);
             } catch (SQLException e) {
-                logger.error("Failed to unregister driver " + driver.getClass().getCanonicalName() + " on shutdown", e);
+                logger.error("Failed to unregister driver " + driver.getClass().getCanonicalName() +
+                        " on shutdown", e);
             }
         }
     }
@@ -246,9 +278,14 @@ public class DataSourceInitializerImpl implements DataSourceInitializer, Disposa
     }
 
     private String generateRandomPassword() {
-        int passwordLength = Integer.parseInt(studioConfiguration.getProperty(DB_INITIALIZER_RANDOM_ADMIN_PASSWORD_LENGTH));
+        int passwordLength = Integer.parseInt(
+                studioConfiguration.getProperty(DB_INITIALIZER_RANDOM_ADMIN_PASSWORD_LENGTH));
         String passwordChars = studioConfiguration.getProperty(DB_INITIALIZER_RANDOM_ADMIN_PASSWORD_CHARS);
         return RandomStringUtils.random(passwordLength, passwordChars);
+    }
+
+    private String getConfigureDBScriptPath() {
+        return studioConfiguration.getProperty(DB_INITIALIZER_CONFIGURE_DB_SCRIPT_LOCATION);
     }
 
     private String getCreateDBScriptPath() {
@@ -260,23 +297,32 @@ public class DataSourceInitializerImpl implements DataSourceInitializer, Disposa
     }
 
     private boolean isRandomAdminPasswordEnabled() {
-        boolean toRet = Boolean.parseBoolean(studioConfiguration.getProperty(DB_INITIALIZER_RANDOM_ADMIN_PASSWORD_ENABLED));
+        boolean toRet = Boolean.parseBoolean(
+                studioConfiguration.getProperty(DB_INITIALIZER_RANDOM_ADMIN_PASSWORD_ENABLED));
         return toRet;
     }
 
-    public String getDelimiter() { return delimiter; }
-    public void setDelimiter(String delimiter) { this.delimiter = delimiter; }
+    public String getDelimiter() {
+        return delimiter;
+    }
 
-    public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
-    public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
+    public void setDelimiter(String delimiter) {
+        this.delimiter = delimiter;
+    }
 
-    public MariaDB4jService getMariaDB4jService() { return mariaDB4jService; }
-    public void setMariaDB4jService(MariaDB4jService mariaDB4jService) { this.mariaDB4jService = mariaDB4jService; }
+    public StudioConfiguration getStudioConfiguration() {
+        return studioConfiguration;
+    }
 
-    protected String delimiter;
-    protected StudioConfiguration studioConfiguration;
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+        this.studioConfiguration = studioConfiguration;
+    }
 
-    protected MariaDB4jService mariaDB4jService;
+    public MariaDB4jService getMariaDB4jService() {
+        return mariaDB4jService;
+    }
 
-
+    public void setMariaDB4jService(MariaDB4jService mariaDB4jService) {
+        this.mariaDB4jService = mariaDB4jService;
+    }
 }

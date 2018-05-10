@@ -151,6 +151,42 @@
         </foreach>
     </select>
 
+    <select id="calculatePublishingDependenciesForList" parameterType="java.util.Map"
+            resultType="java.util.Map">
+        SELECT cd1.source_path, cd1.target_path
+        FROM (dependency cd1 INNER JOIN item_state co1 ON cd1.target_path = co1.path AND cd1.site = co1.site)
+        WHERE cd1.site = #{site}
+        AND cd1.source_path IN
+        <foreach item="path" index="index" collection="paths"
+                 open="(" separator="," close=")">
+            #{path}
+        </foreach>
+        AND co1.state IN
+        <foreach item="state" index="index" collection="newStates"
+                 open="(" separator="," close=")">
+            #{state}
+        </foreach>
+        UNION
+        SELECT cd2.source_path, cd2.target_path
+        FROM (dependency cd2 INNER JOIN item_state co2 ON cd2.target_path = co2.path AND cd2.site = co2.site)
+        WHERE cd2.site = #{site}
+        AND cd2.source_path IN
+        <foreach item="path" index="index" collection="paths"
+                 open="(" separator="," close=")">
+            #{path}
+        </foreach>
+        AND co2.state IN
+        <foreach item="state" index="index" collection="editedStates"
+                 open="(" separator="," close=")">
+            #{state}
+        </foreach>
+        AND
+        <foreach item="pattern" index="index" collection="regex"
+                 open="(" separator=" OR " close=")">
+            cd2.target_path RLIKE #{pattern}
+        </foreach>
+    </select>
+
     <update id="moveDependency" parameterType="java.util.Map" >
         UPDATE dependency
         SET source_path = CASE WHEN source_path = #{oldPath} THEN #{newPath} ELSE source_path END,

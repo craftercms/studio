@@ -72,6 +72,7 @@ import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
+import org.craftercms.studio.api.v1.exception.repository.RemoteAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotBareException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -90,6 +91,7 @@ import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 import org.eclipse.jgit.api.CheckoutCommand;
 import org.eclipse.jgit.api.CreateBranchCommand;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.ListBranchCommand;
 import org.eclipse.jgit.api.PullCommand;
 import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.api.RemoteAddCommand;
@@ -100,10 +102,12 @@ import org.eclipse.jgit.api.TagCommand;
 import org.eclipse.jgit.api.TransportConfigCallback;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
+import org.eclipse.jgit.api.errors.JGitInternalException;
 import org.eclipse.jgit.api.errors.RefNotFoundException;
 import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.internal.storage.file.LockFile;
+import org.eclipse.jgit.lib.Config;
 import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.ObjectLoader;
@@ -1179,6 +1183,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     }
 
                     Set<String> deployedCommits = new HashSet<String>();
+                    Set<String> deployedPackages = new HashSet<String>();
+                    logger.debug("Checkout deployed files started.");
                     for (DeploymentItemTO deploymentItem : deploymentItems) {
                         commitId = deploymentItem.getCommitId();
                         path = helper.getGitPath(deploymentItem.getPath());
@@ -1205,12 +1211,23 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                             deleteParentFolder(git, parentToDelete);
                         }
                         deployedCommits.add(commitId);
+                        String packageId = deploymentItem.getPackageId();
+                        if (StringUtils.isNotEmpty(packageId)) {
+                            deployedPackages.add(deploymentItem.getPackageId());
+                        }
                     }
+                    logger.debug("Checkout deployed files completed.");
 
                     // commit all deployed files
                     String commitMessage = studioConfiguration.getProperty(REPO_PUBLISHED_COMMIT_MESSAGE);
+
+                    logger.debug("Get Author Ident started.");
                     PersonIdent authorIdent = helper.getAuthorIdent(author);
+                    logger.debug("Get Author Ident completed.");
+
+                    logger.debug("Git add all published items started.");
                     git.add().addFilepattern(GIT_COMMIT_ALL_ITEMS).call();
+                    logger.debug("Git add all published items completed.");
 
                     commitMessage = commitMessage.replace("{username}", author);
                     commitMessage =
@@ -1223,8 +1240,15 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     for (String c : deployedCommits) {
                         sb.append(c).append(" ");
                     }
+                    StringBuilder sbPackage = new StringBuilder();
+                    for (String p : deployedPackages) {
+                        sbPackage.append(p).append(" ");
+                    }
                     commitMessage = commitMessage.replace("{commit_id}", sb.toString().trim());
+                    commitMessage = commitMessage.replace("{package_id}", sbPackage.toString().trim());
+                    logger.debug("Git commit all published items started.");
                     RevCommit revCommit = git.commit().setMessage(commitMessage).setAuthor(authorIdent).call();
+                    logger.debug("Git commit all published items completed.");
                     int commitTime = revCommit.getCommitTime();
 
                     // tag
@@ -1233,8 +1257,13 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     String tagName2 = tagDate2.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX")) +
                             "_published_on_" + publishDate.format(
                                     DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX"));
+                    logger.debug("Get Author Ident started.");
                     PersonIdent authorIdent2 = helper.getAuthorIdent(author);
+                    logger.debug("Get Author Ident completed.");
+
+                    logger.debug("Git tag started.");
                     git.tag().setTagger(authorIdent2).setName(tagName2).setMessage(commitMessage).call();
+                    logger.debug("Git tag completed.");
 
                     // checkout environment
                     logger.debug("Checkout environment " + environment + " branch for site " + site);
@@ -1691,9 +1720,9 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     @Override
-    public boolean createSiteCloneRemote(String siteId, String remoteName, String remoteUrl,
-                                         String authenticationType, String remoteUsername, String remotePassword,
-                                         String remoteToken, String remotePrivateKey) throws
+    public boolean createSiteCloneRemote(String siteId, String remoteName, String remoteUrl, String remoteBranch,
+                                         boolean singleBranch, String authenticationType, String remoteUsername,
+                                         String remotePassword, String remoteToken, String remotePrivateKey) throws
             InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
             RemoteRepositoryNotFoundException, InvalidRemoteUrlException, ServiceException {
         boolean toReturn;
@@ -1701,12 +1730,12 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         // clone remote git repository for site content
         logger.debug("Creating site " + siteId + " as a clone of remote repository " + remoteName +
                 " (" + remoteUrl + ").");
-        toReturn = helper.createSiteCloneRemoteGitRepo(siteId, remoteName, remoteUrl, authenticationType,
-                remoteUsername, remotePassword, remoteToken, remotePrivateKey);
+        toReturn = helper.createSiteCloneRemoteGitRepo(siteId, remoteName, remoteUrl, remoteBranch, singleBranch,
+                authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey);
 
         if (toReturn) {
-            addRemote(siteId, remoteName, remoteUrl, authenticationType, remoteUsername, remotePassword, remoteToken,
-                    remotePrivateKey);
+            addRemote(siteId, remoteName, remoteUrl, authenticationType, remoteUsername, remotePassword,
+                    remoteToken, remotePrivateKey);
             // update site name variable inside config files
             logger.debug("Update site name configuration variables for site " + siteId);
             toReturn = helper.updateSitenameConfigVar(siteId);
@@ -1817,13 +1846,22 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     @Override
-    public boolean addRemote(String siteId, String remoteName, String remoteUrl, String authenticationType,
-                             String remoteUsername, String remotePassword, String remoteToken, String remotePrivateKey)
+    public boolean addRemote(String siteId, String remoteName, String remoteUrl,
+                             String authenticationType, String remoteUsername, String remotePassword,
+                             String remoteToken, String remotePrivateKey)
             throws InvalidRemoteUrlException, ServiceException {
         try {
             logger.debug("Add remote " + remoteName + " to the sandbox repo for the site " + siteId);
             Repository repo = helper.getRepository(siteId, SANDBOX);
             try (Git git = new Git(repo)) {
+
+                Config storedConfig = repo.getConfig();
+                Set<String> remotes = storedConfig.getSubsections("remote");
+
+                if (remotes.contains(remoteName)) {
+                    throw new RemoteAlreadyExistsException(remoteName);
+                }
+
                 RemoteAddCommand remoteAddCommand = git.remoteAdd();
                 remoteAddCommand.setName(remoteName);
                 remoteAddCommand.setUri(new URIish(remoteUrl));
@@ -1900,50 +1938,116 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     @Override
-    public List<RemoteRepositoryInfoTO> listRemote(String siteId) {
+    public List<RemoteRepositoryInfoTO> listRemote(String siteId) throws ServiceException {
         List<RemoteRepositoryInfoTO> res = new ArrayList<RemoteRepositoryInfoTO>();
         try (Repository repo = helper.getRepository(siteId, SANDBOX)) {
 
             try (Git git = new Git(repo)) {
-                List<RemoteConfig> result = git.remoteList().call();
-                for (RemoteConfig conf : result) {
-                    RemoteRepositoryInfoTO rri = new RemoteRepositoryInfoTO();
-                    rri.setName(conf.getName());
-                    StringBuilder sbUrl = new StringBuilder();
-                    if (CollectionUtils.isNotEmpty(conf.getURIs())) {
-                        for (int i = 0; i < conf.getURIs().size(); i++) {
-                            sbUrl.append(conf.getURIs().get(i).toString());
-                            if (i < conf.getURIs().size() - 1) {
-                                sbUrl.append(":");
-                            }
+                List<RemoteConfig> resultRemotes = git.remoteList().call();
+                if (CollectionUtils.isNotEmpty(resultRemotes)) {
+                    for (RemoteConfig conf : resultRemotes) {
+                        Map<String, String> params = new HashMap<String, String>();
+                        params.put("siteId", siteId);
+                        params.put("remoteName", conf.getName());
+                        RemoteRepository remoteRepository = remoteRepositoryMapper.getRemoteRepository(params);
+                        switch (remoteRepository.getAuthenticationType()) {
+                            case RemoteRepository.AuthenticationType.NONE:
+                                logger.debug("No authentication");
+                                git.fetch().setRemote(conf.getName()).call();
+                                break;
+                            case RemoteRepository.AuthenticationType.BASIC:
+                                logger.debug("Basic authentication");
+                                String hashedPassword = remoteRepository.getRemotePassword();
+                                String password = encryptor.decrypt(hashedPassword);
+                                git.fetch().setRemote(conf.getName()).setCredentialsProvider(
+                                        new UsernamePasswordCredentialsProvider(
+                                                remoteRepository.getRemoteUsername(), password)).call();
+                                break;
+                            case RemoteRepository.AuthenticationType.TOKEN:
+                                logger.debug("Token based authentication");
+                                String hashedToken = remoteRepository.getRemoteToken();
+                                String remoteToken = encryptor.decrypt(hashedToken);
+                                git.fetch().setRemote(conf.getName()).setCredentialsProvider(
+                                        new UsernamePasswordCredentialsProvider(remoteToken, StringUtils.EMPTY)).call();
+                                break;
+                            case RemoteRepository.AuthenticationType.PRIVATE_KEY:
+                                logger.debug("Private key authentication");
+                                final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(),".tmp");
+                                String hashedPrivateKey = remoteRepository.getRemotePrivateKey();
+                                String privateKey = encryptor.decrypt(hashedPrivateKey);
+                                tempKey.toFile().deleteOnExit();
+                                git.fetch().setRemote(conf.getName()).setTransportConfigCallback(
+                                        new TransportConfigCallback() {
+                                    @Override
+                                    public void configure(Transport transport) {
+                                        SshTransport sshTransport = (SshTransport)transport;
+                                        sshTransport.setSshSessionFactory(getSshSessionFactory(privateKey, tempKey));
+                                    }
+                                }).call();
+                                Files.delete(tempKey);
+                                break;
+                            default:
+                                throw new ServiceException("Unsupported authentication type " +
+                                        remoteRepository.getAuthenticationType());
                         }
                     }
-                    rri.setUrl(sbUrl.toString());
+                    List<Ref> resultRemoteBranches = git.branchList()
+                            .setListMode(ListBranchCommand.ListMode.REMOTE)
+                            .call();
+                    Map<String, List<String>> remoteBranches = new HashMap<String, List<String>>();
+                    for (Ref remoteBranchRef : resultRemoteBranches) {
+                        String branchFullName = remoteBranchRef.getName().replace(Constants.R_REMOTES, "");
+                        String[] tokens = branchFullName.split("/");
+                        String remotePart = tokens[0];
+                        String branchNamePart = tokens[1];
+                        if (!remoteBranches.containsKey(remotePart)) {
+                            remoteBranches.put(remotePart, new ArrayList<String>());
+                        }
+                        remoteBranches.get(remotePart).add(branchNamePart);
+                    }
+                    for (RemoteConfig conf : resultRemotes) {
+                        RemoteRepositoryInfoTO rri = new RemoteRepositoryInfoTO();
+                        rri.setName(conf.getName());
+                        rri.setBranches(remoteBranches.get(rri.getName()));
 
-                    StringBuilder sbFetch = new StringBuilder();
-                    if (CollectionUtils.isNotEmpty(conf.getFetchRefSpecs())) {
-                        for (int i = 0; i < conf.getFetchRefSpecs().size(); i++) {
-                            sbFetch.append(conf.getFetchRefSpecs().get(i).toString());
-                            if (i < conf.getFetchRefSpecs().size() - 1) {
-                                sbFetch.append(":");
+                        StringBuilder sbUrl = new StringBuilder();
+                        if (CollectionUtils.isNotEmpty(conf.getURIs())) {
+                            for (int i = 0; i < conf.getURIs().size(); i++) {
+                                sbUrl.append(conf.getURIs().get(i).toString());
+                                if (i < conf.getURIs().size() - 1) {
+                                    sbUrl.append(":");
+                                }
                             }
                         }
-                    }
-                    rri.setFetch(sbFetch.toString());
+                        rri.setUrl(sbUrl.toString());
 
-                    StringBuilder sbPushUrl = new StringBuilder();
-                    if (CollectionUtils.isNotEmpty(conf.getPushURIs())) {
-                        for (int i = 0; i < conf.getPushURIs().size(); i++) {
-                            sbPushUrl.append(conf.getPushURIs().get(i).toString());
-                            if (i < conf.getPushURIs().size() - 1) {
-                                sbPushUrl.append(":");
+                        StringBuilder sbFetch = new StringBuilder();
+                        if (CollectionUtils.isNotEmpty(conf.getFetchRefSpecs())) {
+                            for (int i = 0; i < conf.getFetchRefSpecs().size(); i++) {
+                                sbFetch.append(conf.getFetchRefSpecs().get(i).toString());
+                                if (i < conf.getFetchRefSpecs().size() - 1) {
+                                    sbFetch.append(":");
+                                }
                             }
                         }
+                        rri.setFetch(sbFetch.toString());
+
+                        StringBuilder sbPushUrl = new StringBuilder();
+                        if (CollectionUtils.isNotEmpty(conf.getPushURIs())) {
+                            for (int i = 0; i < conf.getPushURIs().size(); i++) {
+                                sbPushUrl.append(conf.getPushURIs().get(i).toString());
+                                if (i < conf.getPushURIs().size() - 1) {
+                                    sbPushUrl.append(":");
+                                }
+                            }
+                        } else {
+                            sbPushUrl.append(rri.getUrl());
+                        }
+                        rri.setPush_url(sbPushUrl.toString());
+                        res.add(rri);
                     }
-                    rri.setPush_url(sbPushUrl.toString());
-                    res.add(rri);
                 }
-            } catch (GitAPIException e) {
+            } catch (GitAPIException | CryptoException | IOException e) {
                 logger.error("Error getting remote repositories for site " + siteId, e);
             }
         }
@@ -2013,11 +2117,11 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         } catch (InvalidRemoteException e) {
             logger.error("Remote is invalid " + remoteName, e);
             throw new InvalidRemoteUrlException();
-        } catch (GitAPIException e) {
-            logger.error("Error while pushing to remote " + remoteName + ") for site " + siteId, e);
-            throw new ServiceException("Error while pushing to remote " + remoteName + ") for site " + siteId, e);
-        } catch (CryptoException | IOException e) {
-            throw new ServiceException(e);
+        } catch (IOException | JGitInternalException | GitAPIException | CryptoException e) {
+            logger.error("Error while pushing to remote " + remoteName + " branch "
+                    + remoteBranch + " for site " + siteId, e);
+            throw new ServiceException("Error while pushing to remote " + remoteName + " branch "
+                    + remoteBranch + " for site " + siteId, e);
         }
     }
 
@@ -2085,8 +2189,10 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             logger.error("Remote is invalid " + remoteName, e);
             throw new InvalidRemoteUrlException();
         } catch (GitAPIException e) {
-            logger.error("Error while pulling from remote " + remoteName + ") for site " + siteId, e);
-            throw new ServiceException("Error while pulling from remote " + remoteName + ") for site " + siteId, e);
+            logger.error("Error while pulling from remote " + remoteName + " branch "
+                    + remoteBranch + " for site " + siteId, e);
+            throw new ServiceException("Error while pulling from remote " + remoteName + " branch "
+                    + remoteBranch + " for site " + siteId, e);
         } catch (CryptoException | IOException e) {
             throw new ServiceException(e);
         }

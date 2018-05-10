@@ -19,6 +19,7 @@
 package org.craftercms.studio.api.v1.to;
 
 import java.io.Serializable;
+import java.util.List;
 
 public class RemoteRepositoryInfoTO implements Serializable {
 
@@ -28,6 +29,7 @@ public class RemoteRepositoryInfoTO implements Serializable {
     private String url;
     private String fetch;
     private String push_url;
+    private List<String> branches;
 
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
@@ -40,4 +42,7 @@ public class RemoteRepositoryInfoTO implements Serializable {
 
     public String getPush_url() { return push_url; }
     public void setPush_url(String push_url) { this.push_url = push_url; }
+
+    public List<String> getBranches() { return branches; }
+    public void setBranches(List<String> branches) { this.branches = branches; }
 }

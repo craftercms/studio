@@ -1,12 +1,3 @@
-SET GLOBAL innodb_large_prefix = TRUE ;
-
-SET GLOBAL innodb_file_format = 'BARRACUDA' ;
-
-SET GLOBAL innodb_file_format_max = 'BARRACUDA' ;
-
-SET GLOBAL innodb_file_per_table = TRUE ;
-
-
 use crafter ;
 -- Rename tables script
 ALTER TABLE `cstudio_activity` RENAME `audit` ;
@@ -52,10 +43,15 @@ CREATE TABLE IF NOT EXISTS remote_repository
   `remote_token`          VARCHAR(255)   NULL,
   `remote_private_key`    TEXT           NULL,
   PRIMARY KEY (`id`),
+  UNIQUE `uq_rr_site_remote_name` (`site_id`, `remote_name`),
   INDEX `remoterepository_site_idx` (`site_id` ASC)
 )
   ENGINE = InnoDB
   DEFAULT CHARSET = utf8
   ROW_FORMAT = DYNAMIC ;
 
-INSERT INTO _meta (version) VALUES ('3.0.10') ;
+UPDATE `audit` SET `source` = 'API' WHERE `source` = 'UI' ;
+
+ALTER TABLE `publish_request` ADD COLUMN `package_id` VARCHAR(50) NULL ;
+
+INSERT INTO _meta (version) VALUES ('3.0.11.3') ;

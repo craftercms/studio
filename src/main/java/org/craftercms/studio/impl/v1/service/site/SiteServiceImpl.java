@@ -124,6 +124,7 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_DEFAULT
 import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.BLUE_PRINTS_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_GLOBAL_CONFIG_BASE_PATH;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_DEFAULT_ADMIN_GROUP;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_DEFAULT_GROUPS;
@@ -195,7 +196,7 @@ public class SiteServiceImpl implements SiteService {
         } else {
             extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_CONFIGURATION);
         }
-        activityService.postActivity(site, user, path, activityType, ActivityService.ActivitySource.UI, extraInfo);
+        activityService.postActivity(site, user, path, activityType, ActivityService.ActivitySource.API, extraInfo);
         objectStateService.transition(site, path, TransitionEvent.SAVE);
         if (!objectMetadataManager.metadataExist(site, path)) {
             objectMetadataManager.insertNewObjectMetadata(site, path);
@@ -465,6 +466,8 @@ public class SiteServiceImpl implements SiteService {
 			            studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT));
 			    siteFeedMapper.createSite(siteFeed);
 
+                insertCreateSiteAuditLog(siteId);
+
 			    contentRepository.insertGitLog(siteId, lastCommitId, 1);
 
                 // Add default groups
@@ -516,6 +519,15 @@ public class SiteServiceImpl implements SiteService {
 	    } else {
 		    throw new SiteCreationException("Error while creating site: " + siteName + " ID: " + siteId + ".");
 	    }
+    }
+
+    private void insertCreateSiteAuditLog(String siteId) {
+        ActivityService.ActivityType activityType = ActivityService.ActivityType.CREATE_SITE;
+        String user = securityProvider.getCurrentUser();
+        Map<String, String> extraInfo = new HashMap<String, String>();
+        extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_SITE);
+        activityService.postActivity(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE), user,
+                siteId , activityType, ActivityService.ActivitySource.API, extraInfo);
     }
 
     protected boolean createSiteFromBlueprintGit(String blueprintName, String siteName, String siteId, String desc)
@@ -657,8 +669,9 @@ public class SiteServiceImpl implements SiteService {
                                            String blueprintName,
                                            @ValidateStringParam(name = "remoteName") String remoteName,
                                            @ValidateStringParam(name = "remoteUrl") String remoteUrl,
-                                           String authenticationType, String remoteUsername, String remotePassword,
-                                           String remoteToken, String remotePrivateKey,
+                                           String remoteBranch, boolean singleBranch, String authenticationType,
+                                           String remoteUsername, String remotePassword, String remoteToken,
+                                           String remotePrivateKey,
                                            @ValidateStringParam(name = "createOption") String createOption)
             throws ServiceException, InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
             RemoteRepositoryNotFoundException, RemoteRepositoryNotBareException, InvalidRemoteUrlException {
@@ -668,14 +681,14 @@ public class SiteServiceImpl implements SiteService {
         switch (createOption) {
             case REMOTE_REPOSITORY_CREATE_OPTION_CLONE:
                 logger.debug("Clone from remote repository create option selected");
-                createSiteCloneRemote(siteId, description, remoteName, remoteUrl, authenticationType, remoteUsername,
-                        remotePassword, remoteToken, remotePrivateKey);
+                createSiteCloneRemote(siteId, description, remoteName, remoteUrl, remoteBranch, singleBranch, authenticationType,
+                        remoteUsername, remotePassword, remoteToken, remotePrivateKey);
                 break;
 
             case REMOTE_REPOSITORY_CREATE_OPTION_PUSH:
                 logger.debug("Push to remote repository create option selected");
-                createSitePushToRemote(siteId, description, blueprintName, remoteName, remoteUrl, authenticationType,
-                        remoteUsername, remotePassword, remoteToken, remotePrivateKey);
+                createSitePushToRemote(siteId, description, blueprintName, remoteName, remoteUrl, remoteBranch,
+                        authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey);
                 break;
 
             default:
@@ -687,8 +700,9 @@ public class SiteServiceImpl implements SiteService {
     }
 
     private void createSiteCloneRemote(String siteId, String description, String remoteName, String remoteUrl,
-                                       String authenticationType, String remoteUsername, String remotePassword,
-                                       String remoteToken, String remotePrivateKey) throws ServiceException,
+                                       String remoteBranch, boolean singleBranch, String authenticationType,
+                                       String remoteUsername, String remotePassword, String remoteToken,
+                                       String remotePrivateKey) throws ServiceException,
             InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
             RemoteRepositoryNotFoundException, InvalidRemoteUrlException {
         boolean success = true;
@@ -750,8 +764,8 @@ public class SiteServiceImpl implements SiteService {
                 // create site by cloning remote git repo
                 logger.debug("Creating site " + siteId + " by cloning remote repository " + remoteName +
                         " (" + remoteUrl + ")");
-                contentRepository.createSiteCloneRemote(siteId, remoteName, remoteUrl, authenticationType,
-                        remoteUsername, remotePassword, remoteToken, remotePrivateKey);
+                contentRepository.createSiteCloneRemote(siteId, remoteName, remoteUrl, remoteBranch, singleBranch,
+                        authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey);
             } catch (InvalidRemoteRepositoryException | InvalidRemoteRepositoryCredentialsException |
                     RemoteRepositoryNotFoundException | InvalidRemoteUrlException | ServiceException e) {
 
@@ -829,6 +843,8 @@ public class SiteServiceImpl implements SiteService {
                         studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT));
                 siteFeedMapper.createSite(siteFeed);
 
+                insertCreateSiteAuditLog(siteId);
+
                 // Add default groups
                 logger.debug("Adding default groups for site " + siteId);
                 addDefaultGroupsForNewSite(siteId);
@@ -853,8 +869,9 @@ public class SiteServiceImpl implements SiteService {
     }
 
     private void createSitePushToRemote(String siteId, String description, String blueprintName, String remoteName,
-                                        String remoteUrl, String authenticationType, String remoteUsername,
-                                        String remotePassword, String remoteToken, String remotePrivateKey)
+                                        String remoteUrl, String remoteBranch, String authenticationType,
+                                        String remoteUsername, String remotePassword, String remoteToken,
+                                        String remotePrivateKey)
             throws ServiceException, InvalidRemoteRepositoryCredentialsException, InvalidRemoteRepositoryException,
             RemoteRepositoryNotFoundException, RemoteRepositoryNotBareException, InvalidRemoteUrlException {
         if (exists(siteId)) {
@@ -946,8 +963,8 @@ public class SiteServiceImpl implements SiteService {
                 try {
                     logger.debug("Pushing site " + siteId + " to remote repository " + remoteName + " (" +
                             remoteUrl + ")");
-                    contentRepository.addRemote(siteId, remoteName, remoteUrl, authenticationType, remoteUsername,
-                            remotePassword, remoteToken, remotePrivateKey);
+                    contentRepository.addRemote(siteId, remoteName, remoteUrl, authenticationType,
+                            remoteUsername, remotePassword, remoteToken, remotePrivateKey);
                     contentRepository.createSitePushToRemote(siteId, remoteName, remoteUrl, authenticationType,
                             remoteUsername, remotePassword, remoteToken, remotePrivateKey);
                 } catch (RemoteRepositoryNotFoundException | InvalidRemoteRepositoryException |
@@ -1022,6 +1039,8 @@ public class SiteServiceImpl implements SiteService {
                 siteFeed.setPublishingStatusMessage(
                         studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT));
                 siteFeedMapper.createSite(siteFeed);
+
+                insertCreateSiteAuditLog(siteId);
 
                 logger.debug("Adding git log to database for site " + siteId);
                 contentRepository.insertGitLog(siteId, lastCommitId, 1);
@@ -1133,12 +1152,22 @@ public class SiteServiceImpl implements SiteService {
 	        objectMetadataManager.deleteObjectMetadataForSite(siteId);
 	        dmPageNavigationOrderService.deleteSequencesForSite(siteId);
 	        contentRepository.deleteGitLogForSite(siteId);
+	        insertDeleteSiteAuditLog(siteId);
 	    } catch(Exception e) {
 		    success = false;
 		    logger.error("Failed to delete the database for site:" + siteId, e);
 	    }
 
 	 	return success;
+    }
+
+    private void insertDeleteSiteAuditLog(String siteId) {
+        ActivityService.ActivityType activityType = ActivityService.ActivityType.DELETE_SITE;
+        String user = securityProvider.getCurrentUser();
+        Map<String, String> extraInfo = new HashMap<String, String>();
+        extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_SITE);
+        activityService.postActivity(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE), user,
+                siteId , activityType, ActivityService.ActivitySource.API, extraInfo);
     }
 
     private boolean destroySitePreviewContext(String site) {
@@ -1709,8 +1738,9 @@ public class SiteServiceImpl implements SiteService {
     }
 
     @Override
-    public boolean addRemote(String siteId, String remoteName, String remoteUrl, String authenticationType,
-                             String remoteUsername, String remotePassword, String remoteToken, String remotePrivateKey)
+    public boolean addRemote(String siteId, String remoteName, String remoteUrl,
+                             String authenticationType, String remoteUsername, String remotePassword,
+                             String remoteToken, String remotePrivateKey)
             throws InvalidRemoteUrlException, ServiceException {
         if (!exists(siteId)) {
             throw new SiteNotFoundException();
@@ -1728,7 +1758,7 @@ public class SiteServiceImpl implements SiteService {
     }
 
     @Override
-    public List<RemoteRepositoryInfoTO> listRemote(String siteId) throws SiteNotFoundException {
+    public List<RemoteRepositoryInfoTO> listRemote(String siteId) throws ServiceException {
         if (!exists(siteId)) {
             throw new SiteNotFoundException();
         }

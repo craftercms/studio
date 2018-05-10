@@ -40,6 +40,7 @@ public class PublishRequest implements Serializable {
     private String contentTypeClass;
     private String submissionComment;
     private String commitId;
+    private String packageId;
 
     public class State {
         public final static String READY_FOR_LIVE = "READY_FOR_LIVE";
@@ -56,39 +57,107 @@ public class PublishRequest implements Serializable {
         public final static String MOVE = "MOVE";
     }
 
-    public long getId() { return id; }
-    public void setId(long id) { this.id = id; }
+    public long getId() {
+        return id;
+    }
 
-    public String getSite() { return site; }
-    public void setSite(String site) { this.site = site; }
+    public void setId(long id) {
+        this.id = id;
+    }
 
-    public String getEnvironment() { return environment; }
-    public void setEnvironment(String environment) { this.environment = environment; }
+    public String getSite() {
+        return site;
+    }
 
-    public String getPath() { return path; }
-    public void setPath(String path) { this.path = path; }
+    public void setSite(String site) {
+        this.site = site;
+    }
 
-    public String getOldPath() { return oldPath; }
-    public void setOldPath(String oldPath) { this.oldPath = oldPath; }
+    public String getEnvironment() {
+        return environment;
+    }
 
-    public String getUser() { return user; }
-    public void setUser(String user) { this.user = user; }
+    public void setEnvironment(String environment) {
+        this.environment = environment;
+    }
 
-    public ZonedDateTime getScheduledDate() { return scheduledDate; }
-    public void setScheduledDate(ZonedDateTime scheduledDate) { this.scheduledDate = scheduledDate; }
+    public String getPath() {
+        return path;
+    }
 
-    public String getState() { return state; }
-    public void setState(String state) { this.state = state; }
+    public void setPath(String path) {
+        this.path = path;
+    }
 
-    public String getAction() { return action; }
-    public void setAction(String action) { this.action = action; }
+    public String getOldPath() {
+        return oldPath;
+    }
 
-    public String getContentTypeClass() { return contentTypeClass; }
-    public void setContentTypeClass(String contentTypeClass) { this.contentTypeClass = contentTypeClass; }
+    public void setOldPath(String oldPath) {
+        this.oldPath = oldPath;
+    }
 
-    public String getSubmissionComment() { return submissionComment; }
-    public void setSubmissionComment(String submissionComment) { this.submissionComment = submissionComment; }
+    public String getUser() {
+        return user;
+    }
 
-    public String getCommitId() { return commitId; }
-    public void setCommitId(String commitId) { this.commitId = commitId; }
+    public void setUser(String user) {
+        this.user = user;
+    }
+
+    public ZonedDateTime getScheduledDate() {
+        return scheduledDate;
+    }
+
+    public void setScheduledDate(ZonedDateTime scheduledDate) {
+        this.scheduledDate = scheduledDate;
+    }
+
+    public String getState() {
+        return state;
+    }
+
+    public void setState(String state) {
+        this.state = state;
+    }
+
+    public String getAction() {
+        return action;
+    }
+
+    public void setAction(String action) {
+        this.action = action;
+    }
+
+    public String getContentTypeClass() {
+        return contentTypeClass;
+    }
+
+    public void setContentTypeClass(String contentTypeClass) {
+        this.contentTypeClass = contentTypeClass;
+    }
+
+    public String getSubmissionComment() {
+        return submissionComment;
+    }
+
+    public void setSubmissionComment(String submissionComment) {
+        this.submissionComment = submissionComment;
+    }
+
+    public String getCommitId() {
+        return commitId;
+    }
+
+    public void setCommitId(String commitId) {
+        this.commitId = commitId;
+    }
+
+    public String getPackageId() {
+        return packageId;
+    }
+
+    public void setPackageId(String packageId) {
+        this.packageId = packageId;
+    }
 }

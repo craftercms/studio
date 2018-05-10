@@ -32,7 +32,7 @@ studio.repo.bootstrapRepo: true
 # Defines size of a batch when rebuilding crafter repository metadata stored in database.
 studio.repo.rebuildMetadata.batchSize: 100
 # Published repository commit message
-studio.repo.published.commitMessage: "Publish event triggered by {username} on {datetime} via {source}.\n\nPublish note from user: \"{message}\"\n\nCommit ID: {commit_id}"
+studio.repo.published.commitMessage: "Publish event triggered by {username} on {datetime} via {source}.\n\nPublish note from user: \"{message}\"\n\nCommit ID: {commit_id}\n\nPackage ID: {package_id}"
 
 ############################################################
 ##                   Site Configuration                   ##
@@ -88,7 +88,7 @@ studio.configuration.site.aws.configFileName: aws.xml
 # Repo path to read the Box configuration
 studio.configuration.site.box.configurationPath: /config/studio/box/box.xml
 # Regex pattern for item specific dependencies
-studio.configuration.dependency.itemSpecificPatterns: /site/components/page/.*,/static-assets/page/.*
+studio.configuration.dependency.itemSpecificPatterns: /site/components/page/.*,/static-assets/page/.*,/site/components/item/.*,/static-assets/item/.*
 # Repo path to the asset processing config
 studio.configuration.site.asset.processing.configurationPath: /config/studio/asset-processing/asset-processing-config.xml
 
@@ -353,6 +353,8 @@ studio.db.pool.maxWaitTime: 10000
 studio.db.initializer.enabled: true
 # Connection string used to initialize database
 studio.db.initializer.url: jdbc:mariadb://127.0.0.1:33306?user=root&password=
+# Configure database SQL script location
+studio.db.initializer.configureDbscriptLocation: crafter/studio/database/configureDB.sql
 # Create database SQL script location
 studio.db.initializer.createDbscriptLocation: crafter/studio/database/createDDL.sql
 # Upgrade database SQL script location

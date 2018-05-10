@@ -31,6 +31,7 @@ def extraInfo = [:]
 extraInfo.contentType = contentTypeClass;
 
 def context = ActivityServices.createContext(applicationContext, request);
-result.result = ActivityServices.postActivity(context, site, user, path, activityType, ActivityService.ActivitySource.UI, extraInfo);
+result.result = ActivityServices.postActivity(context, site, user, path, activityType,
+        ActivityService.ActivitySource.API, extraInfo);
 
 return result;

@@ -1,29 +1,36 @@
-/*******************************************************************************
- * Crafter Studio Web-content authoring solution
- *     Copyright (C) 2007-2016 Crafter Software Corporation.
+/*
+ * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU General Public License as published by
- *     the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *     You should have received a copy of the GNU General Public License
- *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
- ******************************************************************************/
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
 package org.craftercms.studio.impl.v1.service.deployment;
 
 import net.sf.json.JSONObject;
 import org.apache.commons.collections.FastArrayList;
 import org.apache.commons.lang3.StringUtils;
-import org.craftercms.commons.validation.annotations.param.*;
+import org.craftercms.commons.validation.annotations.param.ValidateIntegerParam;
+import org.craftercms.commons.validation.annotations.param.ValidateParams;
+import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
+import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
-import org.craftercms.studio.api.v1.dal.*;
+import org.craftercms.studio.api.v1.dal.AuditFeed;
+import org.craftercms.studio.api.v1.dal.DeploymentSyncHistory;
+import org.craftercms.studio.api.v1.dal.ItemMetadata;
+import org.craftercms.studio.api.v1.dal.PublishRequest;
+import org.craftercms.studio.api.v1.dal.PublishRequestMapper;
 import org.craftercms.studio.api.v1.deployment.Deployer;
 import org.craftercms.studio.api.v1.ebus.PreviewEventContext;
 import org.craftercms.studio.api.v1.exception.CommitNotFoundException;
@@ -40,12 +47,20 @@ import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
 import org.craftercms.studio.api.v1.service.dependency.DependencyService;
-import org.craftercms.studio.api.v1.service.deployment.*;
+import org.craftercms.studio.api.v1.service.deployment.CopyToEnvironmentItem;
+import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
+import org.craftercms.studio.api.v1.service.deployment.DeploymentHistoryProvider;
+import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
+import org.craftercms.studio.api.v1.service.deployment.DmPublishService;
 import org.craftercms.studio.api.v1.service.event.EventService;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.api.v1.to.*;
+import org.craftercms.studio.api.v1.to.ContentItemTO;
+import org.craftercms.studio.api.v1.to.DmDeploymentTaskTO;
+import org.craftercms.studio.api.v1.to.PublishStatus;
+import org.craftercms.studio.api.v1.to.PublishingChannelTO;
+import org.craftercms.studio.api.v1.to.PublishingTargetTO;
 import org.craftercms.studio.api.v1.util.DmContentItemComparator;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
@@ -58,12 +73,25 @@ import java.text.SimpleDateFormat;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.DATE_FORMAT_DEPLOYED;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.DATE_PATTERN_WORKFLOW_WITH_TZ;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC;
+import static org.craftercms.studio.api.v1.service.objectstate.State.NEW_DELETED;
+import static org.craftercms.studio.api.v1.service.objectstate.State.NEW_SUBMITTED_NO_WF_SCHEDULED;
+import static org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.DELETE;
+import static org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.SUBMIT_WITHOUT_WORKFLOW_SCHEDULED;
 
 /**
  */
@@ -95,10 +123,15 @@ public class DeploymentServiceImpl implements DeploymentService {
 
     @Override
     @ValidateParams
-    public void deploy(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "environment") String environment, List<String> paths, ZonedDateTime scheduledDate, @ValidateStringParam(name = "approver") String approver, @ValidateStringParam(name = "submissionComment") String submissionComment, final boolean scheduleDateNow) throws DeploymentException {
+    public void deploy(@ValidateStringParam(name = "site") String site,
+                       @ValidateStringParam(name = "environment") String environment, List<String> paths,
+                       ZonedDateTime scheduledDate, @ValidateStringParam(name = "approver") String approver,
+                       @ValidateStringParam(name = "submissionComment") String submissionComment,
+                       final boolean scheduleDateNow) throws DeploymentException {
 
         if (scheduledDate != null && scheduledDate.isAfter(ZonedDateTime.now(ZoneOffset.UTC))) {
-            objectStateService.transitionBulk(site, paths, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.SUBMIT_WITHOUT_WORKFLOW_SCHEDULED, org.craftercms.studio.api.v1.service.objectstate.State.NEW_SUBMITTED_NO_WF_SCHEDULED);
+            objectStateService.transitionBulk(site, paths, SUBMIT_WITHOUT_WORKFLOW_SCHEDULED,
+                    NEW_SUBMITTED_NO_WF_SCHEDULED);
         }
         List<String> newPaths = new ArrayList<String>();
         List<String> updatedPaths = new ArrayList<String>();
@@ -107,9 +140,10 @@ public class DeploymentServiceImpl implements DeploymentService {
         Map<String, List<String>> groupedPaths = new HashMap<String, List<String>>();
 
         for (String p : paths) {
-            ContentItemTO item = contentService.getContentItem(site, p, 0);
-            if (item.isFolder()) {
-                logger.debug("Content item at path " + p + " for site " + site + " is folder and will not be added to publishing queue.");
+            boolean isFolder = contentRepository.isFolder(site, p);
+            if (isFolder) {
+                logger.debug("Content item at path " + p + " for site " + site +
+                        " is folder and will not be added to publishing queue.");
             } else {
                 if (objectStateService.isNew(site, p)) {
                     newPaths.add(p);
@@ -127,7 +161,8 @@ public class DeploymentServiceImpl implements DeploymentService {
 
         environment = resolveEnvironment(site, environment);
 
-        List<PublishRequest> items = createItems(site, environment, groupedPaths, scheduledDate, approver, submissionComment);
+        List<PublishRequest> items = createItems(site, environment, groupedPaths, scheduledDate, approver,
+                submissionComment);
         for (PublishRequest item : items) {
             publishRequestMapper.insertItemForDeployment(item);
         }
@@ -180,8 +215,11 @@ public class DeploymentServiceImpl implements DeploymentService {
         return paths;
     }
 
-    private List<PublishRequest> createItems(String site, String environment, Map<String, List<String>> paths, ZonedDateTime scheduledDate, String approver, String submissionComment) {
+    private List<PublishRequest> createItems(String site, String environment, Map<String, List<String>> paths,
+                                             ZonedDateTime scheduledDate, String approver, String submissionComment) {
         List<PublishRequest> newItems = new ArrayList<PublishRequest>();
+
+        String packageId = UUID.randomUUID().toString();
 
         Map<String, Object> params = null;
         for (String action : paths.keySet()) {
@@ -196,7 +234,9 @@ public class DeploymentServiceImpl implements DeploymentService {
                     params.put("path", path);
                     params.put("commitId", metadata.getCommitId());
                     if (publishRequestMapper.checkItemQueued(params) > 0) {
-                        logger.info("Path " + path + " with commit ID " + metadata.getCommitId() + " already has queued publishing request for environment " + environment + " of site " + site + ". Adding another publishing request is skipped.");
+                        logger.info("Path " + path + " with commit ID " + metadata.getCommitId() +
+                                " already has queued publishing request for environment " + environment + " of site " +
+                                site + ". Adding another publishing request is skipped.");
                     } else {
                         item.setId(++CTED_AUTOINCREMENT);
                         item.setSite(site);
@@ -220,6 +260,7 @@ public class DeploymentServiceImpl implements DeploymentService {
                         item.setContentTypeClass(contentTypeClass);
                         item.setUser(approver);
                         item.setSubmissionComment(submissionComment);
+                        item.setPackageId(packageId);
                         newItems.add(item);
                     }
                 }
@@ -230,9 +271,11 @@ public class DeploymentServiceImpl implements DeploymentService {
 
     @Override
     @ValidateParams
-    public void delete(@ValidateStringParam(name = "site") String site, List<String> paths, @ValidateStringParam(name = "approver") String approver, ZonedDateTime scheduledDate) throws DeploymentException {
+    public void delete(@ValidateStringParam(name = "site") String site, List<String> paths,
+                       @ValidateStringParam(name = "approver") String approver, ZonedDateTime scheduledDate)
+            throws DeploymentException {
         if (scheduledDate != null && scheduledDate.isAfter(ZonedDateTime.now(ZoneOffset.UTC))) {
-            objectStateService.transitionBulk(site, paths, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.DELETE, org.craftercms.studio.api.v1.service.objectstate.State.NEW_DELETED);
+            objectStateService.transitionBulk(site, paths, DELETE, NEW_DELETED);
 
         }
         Set<String> environments = getAllPublishingEnvironments(site);
@@ -258,8 +301,10 @@ public class DeploymentServiceImpl implements DeploymentService {
         return environments;
     }
 
-    private List<PublishRequest> createDeleteItems(String site, String environment, List<String> paths, String approver, ZonedDateTime scheduledDate) {
+    private List<PublishRequest> createDeleteItems(String site, String environment, List<String> paths,
+                                                   String approver, ZonedDateTime scheduledDate) {
         List<PublishRequest> newItems = new ArrayList<PublishRequest>(paths.size());
+        String packageId = UUID.randomUUID().toString();
         for (String path : paths) {
             if (contentService.contentExists(site, path)) {
                 ContentItemTO contentItem = contentService.getContentItem(site, path, 0);
@@ -288,12 +333,14 @@ public class DeploymentServiceImpl implements DeploymentService {
                     String contentTypeClass = contentService.getContentTypeClass(site, path);
                     item.setContentTypeClass(contentTypeClass);
                     item.setUser(approver);
+                    item.setPackageId(packageId);
                     newItems.add(item);
 
                     if (contentService.contentExists(site, path)) {
                         contentService.deleteContent(site, path, approver);
                         if (path.endsWith(FILE_SEPARATOR + DmConstants.INDEX_FILE)) {
-                            deleteFolder(site, path.replace(FILE_SEPARATOR + DmConstants.INDEX_FILE, ""), approver);
+                            deleteFolder(site, path.replace(FILE_SEPARATOR + DmConstants.INDEX_FILE,
+                                    ""), approver);
                         }
                     }
                     String lastRepoCommitId = contentRepository.getRepoLastCommitId(site);
@@ -376,7 +423,8 @@ public class DeploymentServiceImpl implements DeploymentService {
 
     @Override
     @ValidateParams
-    public void cancelWorkflow(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) throws DeploymentException {
+    public void cancelWorkflow(@ValidateStringParam(name = "site") String site,
+                               @ValidateSecurePathParam(name = "path") String path) throws DeploymentException {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("site", site);
         params.put("path", path);
@@ -388,11 +436,28 @@ public class DeploymentServiceImpl implements DeploymentService {
 
     @Override
     @ValidateParams
-    public List<DmDeploymentTaskTO> getDeploymentHistory(@ValidateStringParam(name = "site") String site, @ValidateIntegerParam(name = "daysFromToday") int daysFromToday, @ValidateIntegerParam(name = "numberOfItems") int numberOfItems, @ValidateStringParam(name = "sort") String sort, boolean ascending, @ValidateStringParam(name = "filterType") String filterType) {
+    public void cancelWorkflowBulk(@ValidateStringParam(name = "site") String site, Set<String> paths) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("site", site);
+        params.put("paths", paths);
+        params.put("state", CopyToEnvironmentItem.State.READY_FOR_LIVE);
+        params.put("canceledState", CopyToEnvironmentItem.State.CANCELED);
+        params.put("now", ZonedDateTime.now(ZoneOffset.UTC));
+        publishRequestMapper.cancelWorkflowBulk(params);
+    }
+
+    @Override
+    @ValidateParams
+    public List<DmDeploymentTaskTO> getDeploymentHistory(@ValidateStringParam(name = "site") String site,
+                                 @ValidateIntegerParam(name = "daysFromToday") int daysFromToday,
+                                 @ValidateIntegerParam(name = "numberOfItems") int numberOfItems,
+                                 @ValidateStringParam(name = "sort") String sort, boolean ascending,
+                                 @ValidateStringParam(name = "filterType") String filterType) {
         // get the filtered list of attempts in a specific date range
         ZonedDateTime toDate = ZonedDateTime.now(ZoneOffset.UTC);
         ZonedDateTime fromDate = toDate.minusDays(daysFromToday);
-        List<DeploymentSyncHistory> deployReports = deploymentHistoryProvider.getDeploymentHistory(site, fromDate, toDate, dmFilterWrapper, filterType, numberOfItems);
+        List<DeploymentSyncHistory> deployReports = deploymentHistoryProvider.getDeploymentHistory(site, fromDate,
+                toDate, dmFilterWrapper, filterType, numberOfItems);
         List<DmDeploymentTaskTO> tasks = new ArrayList<DmDeploymentTaskTO>();
 
         if (deployReports != null) {
@@ -408,7 +473,8 @@ public class DeploymentServiceImpl implements DeploymentService {
                         deployedItem.endpoint = entry.getTarget();
                         deployedItem.setUser(entry.getUser());
                         deployedItem.setEndpoint(entry.getEnvironment());
-                        String deployedLabel = entry.getSyncDate().format(DateTimeFormatter.ofPattern(DATE_FORMAT_DEPLOYED));
+                        String deployedLabel =
+                                entry.getSyncDate().format(DateTimeFormatter.ofPattern(DATE_FORMAT_DEPLOYED));
                         if (tasks.size() > 0) {
                             DmDeploymentTaskTO lastTask = tasks.get(tasks.size() - 1);
                             String lastDeployedLabel = lastTask.getInternalName();
@@ -489,28 +555,39 @@ public class DeploymentServiceImpl implements DeploymentService {
 
     @Override
     @ValidateParams
-    public List<ContentItemTO> getScheduledItems(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "sort") String sort, boolean ascending,@ValidateStringParam(name = "subSort") String subSort, boolean subAscending, @ValidateStringParam(name = "filterType") String filterType) throws ServiceException {
+    public List<ContentItemTO> getScheduledItems(@ValidateStringParam(name = "site") String site,
+                                                 @ValidateStringParam(name = "sort") String sort,
+                                                 boolean ascending,
+                                                 @ValidateStringParam(name = "subSort") String subSort,
+                                                 boolean subAscending,
+                                                 @ValidateStringParam(name = "filterType") String filterType)
+            throws ServiceException {
         if (StringUtils.isEmpty(sort)) {
             sort = DmContentItemComparator.SORT_EVENT_DATE;
         }
-        DmContentItemComparator comparator = new DmContentItemComparator(sort, ascending, true, true);
-        DmContentItemComparator subComparator = new DmContentItemComparator(subSort, subAscending, true, true);
+        DmContentItemComparator comparator =
+                new DmContentItemComparator(sort, ascending, true, true);
+        DmContentItemComparator subComparator =
+                new DmContentItemComparator(subSort, subAscending, true, true);
         List<ContentItemTO> items = null;
         items = getScheduledItems(site, comparator, subComparator, filterType);
         return items;
     }
 
     @SuppressWarnings("unchecked")
-    protected List<ContentItemTO> getScheduledItems(String site, DmContentItemComparator comparator, DmContentItemComparator subComparator, String filterType) {
+    protected List<ContentItemTO> getScheduledItems(String site, DmContentItemComparator comparator,
+                                                    DmContentItemComparator subComparator, String filterType) {
         List<ContentItemTO> results = new FastArrayList();
         List<String> displayPatterns = servicesConfig.getDisplayInWidgetPathPatterns(site);
         List<PublishRequest> deploying = getScheduledItems(site);
         SimpleDateFormat format = new SimpleDateFormat(StudioConstants.DATE_FORMAT_SCHEDULED);
         List<ContentItemTO> scheduledItems = new ArrayList<ContentItemTO>();
         for (PublishRequest deploymentItem : deploying) {
-            Set<String> permissions = securityService.getUserPermissions(site, deploymentItem.getPath(), securityService.getCurrentUser(), Collections.<String>emptyList());
+            Set<String> permissions = securityService.getUserPermissions(site, deploymentItem.getPath(),
+                    securityService.getCurrentUser(), Collections.<String>emptyList());
             if (permissions.contains(StudioConstants.PERMISSION_VALUE_PUBLISH)) {
-                addScheduledItem(site, deploymentItem.getScheduledDate(), format, deploymentItem.getPath(), results, comparator, subComparator, displayPatterns, filterType);
+                addScheduledItem(site, deploymentItem.getScheduledDate(), format, deploymentItem.getPath(),
+                        results, comparator, subComparator, displayPatterns, filterType);
             }
         }
         return results;
@@ -528,14 +605,14 @@ public class DeploymentServiceImpl implements DeploymentService {
      */
     protected void addScheduledItem(String site, ZonedDateTime launchDate, SimpleDateFormat format, String path,
                                     List<ContentItemTO> scheduledItems, DmContentItemComparator comparator,
-                                    DmContentItemComparator subComparator, List<String> displayPatterns, String filterType) {
+                                    DmContentItemComparator subComparator, List<String> displayPatterns,
+                                    String filterType) {
         try {
             addToScheduledDateList(site, launchDate, format, path,
                 scheduledItems, comparator, subComparator, displayPatterns, filterType);
             if(!(path.endsWith(FILE_SEPARATOR + DmConstants.INDEX_FILE) || path.endsWith(DmConstants.XML_PATTERN))) {
                 path = path + FILE_SEPARATOR + DmConstants.INDEX_FILE;
             }
-            //addDependendenciesToSchdeuleList(site,launchDate,format,scheduledItems,comparator,subComparator,displayPatterns,filterType,path);
         } catch (ServiceException e) {
             logger.error("failed to read site " + site + " path " + path + ". " + e.getMessage());
         }
@@ -555,7 +632,8 @@ public class DeploymentServiceImpl implements DeploymentService {
      */
     protected void addToScheduledDateList(String site, ZonedDateTime launchDate, SimpleDateFormat format, String path,
                                           List<ContentItemTO> scheduledItems, DmContentItemComparator comparator,
-                                          DmContentItemComparator subComparator, List<String> displayPatterns, String filterType) throws ServiceException {
+                                          DmContentItemComparator subComparator, List<String> displayPatterns,
+                                          String filterType) throws ServiceException {
         String timeZone = servicesConfig.getDefaultTimezone(site);
         String dateLabel = launchDate.format(DateTimeFormatter.ofPattern(format.toPattern()));
         // add only if the current node is a file (directories are
@@ -606,10 +684,12 @@ public class DeploymentServiceImpl implements DeploymentService {
                                                     String relativePath) throws ServiceException {
 
         Set<String> dependencyPaths = dependencyService.getItemDependencies(site, relativePath, 1);
-        _addDependendenciesToSchdeuleList(site, launchDate, format, scheduledItems, comparator, subComparator, displayPatterns, filterType, dependencyPaths);
+        _addDependendenciesToSchdeuleList(site, launchDate, format, scheduledItems, comparator, subComparator,
+                displayPatterns, filterType, dependencyPaths);
     }
 
-    protected ContentItemTO createDateItem(String name, ContentItemTO itemToAdd, DmContentItemComparator comparator, String timeZone) {
+    protected ContentItemTO createDateItem(String name, ContentItemTO itemToAdd, DmContentItemComparator comparator,
+                                           String timeZone) {
         ContentItemTO dateItem = new ContentItemTO();
         dateItem.name = name;
         dateItem.internalName = name;
@@ -632,9 +712,11 @@ public class DeploymentServiceImpl implements DeploymentService {
         if(dependencies != null) {
             for(String dependency : dependencies) {
                 if (objectStateService.isNew(site, dependency) && objectStateService.isScheduled(site, dependency)) {
-                    addScheduledItem(site,launchDate,format,dependency,scheduledItems,comparator,subComparator,displayPatterns,filterType);
+                    addScheduledItem(site,launchDate,format,dependency,scheduledItems,comparator,subComparator,
+                            displayPatterns,filterType);
                     if(dependency.endsWith(DmConstants.XML_PATTERN)) {
-                        addDependendenciesToSchdeuleList(site,launchDate,format,scheduledItems,comparator,subComparator,displayPatterns,filterType,dependency);
+                        addDependendenciesToSchdeuleList(site,launchDate,format,scheduledItems,comparator,
+                                subComparator,displayPatterns,filterType,dependency);
                     }
                 }
             }
@@ -643,7 +725,9 @@ public class DeploymentServiceImpl implements DeploymentService {
 
     @Override
     @ValidateParams
-    public Map<String, List<PublishingChannelTO>> getAvailablePublishingChannelGroups(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
+    public Map<String, List<PublishingChannelTO>> getAvailablePublishingChannelGroups(
+            @ValidateStringParam(name = "site") String site,
+            @ValidateSecurePathParam(name = "path") String path) {
         List<PublishingChannelTO> channelsTO = getAvailablePublishingChannelGroupsForSite(site, path);
         List<PublishingChannelTO> publishChannels = new ArrayList<PublishingChannelTO>();
         List<PublishingChannelTO> updateStatusChannels = new ArrayList<PublishingChannelTO>();
@@ -691,7 +775,8 @@ public class DeploymentServiceImpl implements DeploymentService {
 
     @Override
     @ValidateParams
-    public void syncAllContentToPreview(@ValidateStringParam(name = "site") String site, boolean waitTillDone) throws ServiceException {
+    public void syncAllContentToPreview(@ValidateStringParam(name = "site") String site, boolean waitTillDone)
+            throws ServiceException {
         PreviewEventContext context = new PreviewEventContext(waitTillDone);
         context.setSite(site);
         eventService.publish(EVENT_PREVIEW_SYNC, context);
@@ -711,25 +796,30 @@ public class DeploymentServiceImpl implements DeploymentService {
 
     @Override
     @ValidateParams
-    public void bulkGoLive(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "environment") String environment, @ValidateSecurePathParam(name = "path") String path) throws ServiceException {
+    public void bulkGoLive(@ValidateStringParam(name = "site") String site,
+                           @ValidateStringParam(name = "environment") String environment,
+                           @ValidateSecurePathParam(name = "path") String path) throws ServiceException {
         dmPublishService.bulkGoLive(site, environment, path);
     }
 
     @Override
     @ValidateParams
-    public PublishStatus getPublishStatus(@ValidateStringParam(name = "site") String site) throws SiteNotFoundException {
+    public PublishStatus getPublishStatus(@ValidateStringParam(name = "site") String site)
+            throws SiteNotFoundException {
         return siteService.getPublishStatus(site);
     }
 
     @Override
     @ValidateParams
-    public ZonedDateTime getLastDeploymentDate(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
+    public ZonedDateTime getLastDeploymentDate(@ValidateStringParam(name = "site") String site,
+                                               @ValidateSecurePathParam(name = "path") String path) {
         return deploymentHistoryProvider.getLastDeploymentDate(site, path);
     }
 
     @Override
     @ValidateParams
-    public boolean enablePublishing(@ValidateStringParam(name = "site") String site, boolean enabled) throws SiteNotFoundException, AuthenticationException {
+    public boolean enablePublishing(@ValidateStringParam(name = "site") String site, boolean enabled)
+            throws SiteNotFoundException, AuthenticationException {
         if (!siteService.exists(site)) {
             throw new SiteNotFoundException();
         }
@@ -740,18 +830,24 @@ public class DeploymentServiceImpl implements DeploymentService {
         boolean toRet = siteService.enablePublishing(site, enabled);
         String message = StringUtils.EMPTY;
         if (enabled) {
-            message = studioConfiguration.getProperty(StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STARTED_USER);
+            message = studioConfiguration.getProperty(
+                    StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STARTED_USER);
         } else {
-            message = studioConfiguration.getProperty(StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED_USER);
+            message = studioConfiguration.getProperty(
+                    StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED_USER);
         }
-        message = message.replace("{username}", securityService.getCurrentUser()).replace("{datetime}", ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern(DATE_PATTERN_WORKFLOW_WITH_TZ)));
+        message = message.replace("{username}", securityService.getCurrentUser()).replace("{datetime}",
+                ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern(DATE_PATTERN_WORKFLOW_WITH_TZ)));
         siteService.updatePublishingStatusMessage(site, message);
         return toRet;
     }
 
     @Override
     @ValidateParams
-    public void publishCommits(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "environment") String environment, List<String> commitIds) throws SiteNotFoundException, EnvironmentNotFoundException, CommitNotFoundException {
+    public void publishCommits(@ValidateStringParam(name = "site") String site,
+                               @ValidateStringParam(name = "environment") String environment,
+                               List<String> commitIds)
+            throws SiteNotFoundException, EnvironmentNotFoundException, CommitNotFoundException {
         if (!siteService.exists(site)) {
             throw new SiteNotFoundException();
         }
@@ -762,7 +858,8 @@ public class DeploymentServiceImpl implements DeploymentService {
         if (!checkCommitIds(site, commitIds)) {
             throw new CommitNotFoundException();
         }
-        List<PublishRequest> publishRequests = createCommitItems(site, environment, commitIds, ZonedDateTime.now(ZoneOffset.UTC), securityService.getCurrentUser());
+        List<PublishRequest> publishRequests = createCommitItems(site, environment, commitIds,
+                ZonedDateTime.now(ZoneOffset.UTC), securityService.getCurrentUser());
         for (PublishRequest request : publishRequests) {
             publishRequestMapper.insertItemForDeployment(request);
         }
@@ -776,8 +873,10 @@ public class DeploymentServiceImpl implements DeploymentService {
         return toRet;
     }
 
-    private List<PublishRequest> createCommitItems(String site, String environment, List<String> commitIds, ZonedDateTime scheduledDate, String approver) {
+    private List<PublishRequest> createCommitItems(String site, String environment, List<String> commitIds,
+                                                   ZonedDateTime scheduledDate, String approver) {
         List<PublishRequest> newItems = new ArrayList<PublishRequest>(commitIds.size());
+        String packageId = UUID.randomUUID().toString();
         for (String commitId : commitIds) {
             PublishRequest item = new PublishRequest();
             item.setId(++CTED_AUTOINCREMENT);
@@ -790,9 +889,43 @@ public class DeploymentServiceImpl implements DeploymentService {
             item.setCommitId(commitId);
             item.setContentTypeClass("N/A");
             item.setUser(approver);
+            item.setPackageId(packageId);
             newItems.add(item);
         }
         return newItems;
+    }
+
+    @Override
+    public void publishItems(String site, String environment, ZonedDateTime schedule, List<String> paths,
+                             String submissionComment)
+            throws ServiceException, DeploymentException {
+
+        if (!siteService.exists(site)) {
+            throw new SiteNotFoundException();
+        }
+        Set<String> environements = getAllPublishingEnvironments(site);
+        if (!environements.contains(environment)) {
+            throw new EnvironmentNotFoundException();
+        }
+        // get all publishing dependencies
+        Set<String> dependencies = dependencyService.calculateDependenciesPaths(site, paths);
+        Set<String> allPaths = new HashSet<String>();
+        allPaths.addAll(paths);
+        allPaths.addAll(dependencies);
+
+        // remove all items from existing workflows
+        cancelWorkflowBulk(site, allPaths);
+
+        // send to deployment queue
+        List<String> asList = new ArrayList<String>();
+        asList.addAll(allPaths);
+        String approver = securityService.getCurrentUser();
+        boolean scheduledDateIsNow = false;
+        if (schedule == null) {
+            scheduledDateIsNow = true;
+            schedule = ZonedDateTime.now(ZoneOffset.UTC);
+        }
+        deploy(site, environment, asList, schedule, approver, submissionComment, scheduledDateIsNow);
     }
 
     public void setServicesConfig(ServicesConfig servicesConfig) {
@@ -815,38 +948,89 @@ public class DeploymentServiceImpl implements DeploymentService {
         this.dmFilterWrapper = dmFilterWrapper;
     }
 
-    public SiteService getSiteService() { return siteService; }
-    public void setSiteService(SiteService siteService) { this.siteService = siteService; }
+    public SiteService getSiteService() {
+        return siteService;
+    }
 
-    public ObjectStateService getObjectStateService() { return objectStateService; }
-    public void setObjectStateService(ObjectStateService objectStateService) { this.objectStateService = objectStateService; }
+    public void setSiteService(SiteService siteService) {
+        this.siteService = siteService;
+    }
 
-    public ObjectMetadataManager getObjectMetadataManager() { return objectMetadataManager; }
-    public void setObjectMetadataManager(ObjectMetadataManager objectMetadataManager) { this.objectMetadataManager = objectMetadataManager; }
+    public ObjectStateService getObjectStateService() {
+        return objectStateService;
+    }
 
-    public ContentRepository getContentRepository() { return contentRepository; }
-    public void setContentRepository(ContentRepository contentRepository) { this.contentRepository = contentRepository; }
+    public void setObjectStateService(ObjectStateService objectStateService) {
+        this.objectStateService = objectStateService;
+    }
 
-    public DmPublishService getDmPublishService() { return dmPublishService; }
-    public void setDmPublishService(DmPublishService dmPublishService) { this.dmPublishService = dmPublishService; }
+    public ObjectMetadataManager getObjectMetadataManager() {
+        return objectMetadataManager;
+    }
 
-    public SecurityService getSecurityService() { return securityService; }
-    public void setSecurityService(SecurityService securityService) { this.securityService = securityService; }
+    public void setObjectMetadataManager(ObjectMetadataManager objectMetadataManager) {
+        this.objectMetadataManager = objectMetadataManager;
+    }
 
-    public DeployContentToEnvironmentStore getDeployContentToEnvironmentStoreJob() { return deployContentToEnvironmentStoreJob; }
-    public void setDeployContentToEnvironmentStoreJob(DeployContentToEnvironmentStore deployContentToEnvironmentStoreJob) { this.deployContentToEnvironmentStoreJob = deployContentToEnvironmentStoreJob; }
+    public ContentRepository getContentRepository() {
+        return contentRepository;
+    }
+
+    public void setContentRepository(ContentRepository contentRepository) {
+        this.contentRepository = contentRepository;
+    }
+
+    public DmPublishService getDmPublishService() {
+        return dmPublishService;
+    }
+
+    public void setDmPublishService(DmPublishService dmPublishService) {
+        this.dmPublishService = dmPublishService;
+    }
+
+    public SecurityService getSecurityService() {
+        return securityService;
+    }
+
+    public void setSecurityService(SecurityService securityService) {
+        this.securityService = securityService;
+    }
+
+    public DeployContentToEnvironmentStore getDeployContentToEnvironmentStoreJob() {
+        return deployContentToEnvironmentStoreJob;
+    }
+
+    public void setDeployContentToEnvironmentStoreJob(
+            DeployContentToEnvironmentStore deployContentToEnvironmentStoreJob) {
+        this.deployContentToEnvironmentStoreJob = deployContentToEnvironmentStoreJob;
+    }
 
     public void setNotificationService(final NotificationService notificationService) {
         this.notificationService = notificationService;
     }
 
-    public EventService getEventService() { return eventService; }
-    public void setEventService(EventService eventService) { this.eventService = eventService; }
+    public EventService getEventService() {
+        return eventService;
+    }
 
-    public DeploymentHistoryProvider getDeploymentHistoryProvider() { return deploymentHistoryProvider; }
-    public void setDeploymentHistoryProvider(DeploymentHistoryProvider deploymentHistoryProvider) { this.deploymentHistoryProvider = deploymentHistoryProvider; }
+    public void setEventService(EventService eventService) {
+        this.eventService = eventService;
+    }
 
-    public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
-    public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
+    public DeploymentHistoryProvider getDeploymentHistoryProvider() {
+        return deploymentHistoryProvider;
+    }
+
+    public void setDeploymentHistoryProvider(DeploymentHistoryProvider deploymentHistoryProvider) {
+        this.deploymentHistoryProvider = deploymentHistoryProvider;
+    }
+
+    public StudioConfiguration getStudioConfiguration() {
+        return studioConfiguration;
+    }
+
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+        this.studioConfiguration = studioConfiguration;
+    }
 
 }

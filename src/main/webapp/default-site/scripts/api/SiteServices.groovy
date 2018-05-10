@@ -67,12 +67,13 @@ class SiteServices {
         return siteServicesImpl.createSiteFromBlueprint(blueprintName, siteName, siteId, desc)
     }
 
-    static createSiteWithRemoteOption(context, siteId, description, blueprint, remoteName, remoteUrl,
-                                      authenticationType, remoteUsername, remotePassword, remoteToken,
+    static createSiteWithRemoteOption(context, siteId, description, blueprint, remoteName, remoteUrl, remoteBranch,
+                                      singleBranch, authenticationType, remoteUsername, remotePassword, remoteToken,
                                       remotePrivateKey, createOption) {
         def siteServicesImpl = ServiceFactory.getSiteServices(context)
         return siteServicesImpl.createSiteWithRemoteOption(siteId, description, blueprint, remoteName, remoteUrl,
-                authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey, createOption)
+                remoteBranch, singleBranch,authenticationType, remoteUsername, remotePassword, remoteToken,
+                remotePrivateKey, createOption)
     }
 
     static deleteSite(context, siteId) {
@@ -88,6 +89,11 @@ class SiteServices {
     static reloadSiteConfiguration(context, site) {
         def siteServicesImpl = ServiceFactory.getSiteServices(context)
         return siteServicesImpl.reloadSiteConfiguration(site)
+    }
+
+    static getCannedMessage(context, site,key,locale="en") {
+        def siteServicesImpl = ServiceFactory.getSiteServices(context)
+        return siteServicesImpl.getCannedMessage(site,key,locale)
     }
 
     static syncRepository(context, site) {
@@ -133,8 +139,8 @@ class SiteServices {
      * @param remotePrivateKey remote private key
      * @return
      */
-    static addRemote(context, siteId, remoteName, remoteUrl, authenticationType, remoteUsername, remotePassword,
-                     remoteToken, remotePrivateKey) {
+    static addRemote(context, siteId, remoteName, remoteUrl, authenticationType, remoteUsername,
+                     remotePassword, remoteToken, remotePrivateKey) {
         def siteServicesImpl = ServiceFactory.getSiteServices(context)
         return siteServicesImpl.addRemote(siteId, remoteName, remoteUrl, authenticationType, remoteUsername,
                 remotePassword, remoteToken, remotePrivateKey)

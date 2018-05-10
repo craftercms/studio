@@ -40,6 +40,7 @@ import org.craftercms.commons.validation.annotations.param.ValidateSecurePathPar
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.DmXmlConstants;
+import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.dal.ItemMetadata;
 import org.craftercms.studio.api.v1.dal.ItemState;
 import org.craftercms.studio.api.v1.ebus.PreviewEventContext;
@@ -542,7 +543,7 @@ public class ContentServiceImpl implements ContentService {
             Map<String, String> extraInfo = new HashMap<String, String>();
             extraInfo.put(DmConstants.KEY_CONTENT_TYPE, CONTENT_TYPE_FOLDER);
             activityService.postActivity(site, user, path + FILE_SEPARATOR + name, activityType,
-                    ActivityService.ActivitySource.UI, extraInfo);
+                    ActivityService.ActivitySource.API, extraInfo);
             // TODO: SJ: we're currently not keeping meta-data for folders and therefore nothing to update
             // TODO: SJ: rethink this for 3.1+
             toRet = true;
@@ -620,7 +621,7 @@ public class ContentServiceImpl implements ContentService {
             logger.debug("[DELETE] posting delete activity on " + path + " by " + user + " in " + site);
 
             activityService.postActivity(site, user, path, ActivityService.ActivityType.DELETED,
-                    ActivityService.ActivitySource.UI, extraInfo);
+                    ActivityService.ActivitySource.API, extraInfo);
             // process content life cycle
             if (path.endsWith(DmConstants.XML_PATTERN)) {
 
@@ -954,7 +955,6 @@ public class ContentServiceImpl implements ContentService {
         }
 
         // write activity stream
-        activityService.renameContentId(site, fromPath, movePath);
         ActivityService.ActivityType activityType = ActivityService.ActivityType.MOVED;
         Map<String, String> extraInfo = new HashMap<String, String>();
         if (renamedItem.isFolder()) {
@@ -962,7 +962,7 @@ public class ContentServiceImpl implements ContentService {
         } else {
             extraInfo.put(DmConstants.KEY_CONTENT_TYPE, getContentTypeClass(site, movePath));
         }
-        activityService.postActivity(site, user, movePath, activityType, ActivityService.ActivitySource.UI, extraInfo);
+        activityService.postActivity(site, user, movePath, activityType, ActivityService.ActivitySource.API, extraInfo);
 
         updateDependenciesOnMove(site, fromPath, movePath);
     }
@@ -1096,7 +1096,8 @@ public class ContentServiceImpl implements ContentService {
             // newPath:  "/site/website/products/search.xml"
             if(fromFileNameOnly.equals(newFileNameOnly)) {
                 // Move location
-                if (_contentRepository.isFolder(site, newPathOnly)) {
+                if (!_contentRepository.contentExists(site, newPathOnly) ||
+                        _contentRepository.isFolder(site, newPathOnly)) {
                     proposedDestPath = newPathOnly + FILE_SEPARATOR + fromFileNameOnly;
                 } else {
                     proposedDestPath = newPathOnly;
@@ -1832,6 +1833,12 @@ public class ContentServiceImpl implements ContentService {
         String commitId = _contentRepository.revertContent(site, path, version, major, comment);
 
         if (commitId != null) {
+            try {
+                dependencyService.upsertDependencies(site, path);
+            } catch (ServiceException e) {
+                logger.error("Error while extracting dependencies for reverted content. Site: " + site + " path: " +
+                        path + " version: " + version);
+            }
             // Update the database with the commitId for the target item
             objectMetadataManager.updateCommitId(site, path, commitId);
             _contentRepository.insertGitLog(site, commitId, 1);
@@ -2400,7 +2407,16 @@ public class ContentServiceImpl implements ContentService {
         if (!siteService.exists(siteId)) {
             throw new SiteNotFoundException();
         }
-        return _contentRepository.pushToRemote(siteId, remoteName, remoteBranch);
+        boolean toRet = _contentRepository.pushToRemote(siteId, remoteName, remoteBranch);
+
+        ActivityService.ActivityType activityType = ActivityService.ActivityType.PUSH_TO_REMOTE;
+        String user = securityProvider.getCurrentUser();
+        Map<String, String> extraInfo = new HashMap<String, String>();
+        extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_SITE);
+        activityService.postActivity(siteId, user, remoteName + "/" + remoteBranch , activityType,
+                ActivityService.ActivitySource.API, extraInfo);
+
+        return toRet;
     }
 
     @Override
@@ -2409,7 +2425,16 @@ public class ContentServiceImpl implements ContentService {
         if (!siteService.exists(siteId)) {
             throw new SiteNotFoundException(siteId);
         }
-        return _contentRepository.pullFromRemote(siteId, remoteName, remoteBranch);
+        boolean toRet = _contentRepository.pullFromRemote(siteId, remoteName, remoteBranch);
+
+        ActivityService.ActivityType activityType = ActivityService.ActivityType.PULL_FROM_REMOTE;
+        String user = securityProvider.getCurrentUser();
+        Map<String, String> extraInfo = new HashMap<String, String>();
+        extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_SITE);
+        activityService.postActivity(siteId, user, remoteName + "/" + remoteBranch , activityType,
+                ActivityService.ActivitySource.API, extraInfo);
+        
+        return toRet;
     }
 
     public ContentRepository getContentRepository() {

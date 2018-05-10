@@ -12,6 +12,7 @@ def profile = SecurityServices.getUserProfile(context, username);
 model.userEmail = profile.email
 model.userFirstName = profile.firstName
 model.userLastName =  profile.lastName
+model.authenticationType =  profile.authentication_type
 model.cookieDomain = request.getServerName();
 
 model.username = username

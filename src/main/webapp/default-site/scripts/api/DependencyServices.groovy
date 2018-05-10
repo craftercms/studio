@@ -47,5 +47,8 @@ class DependencyServices {
         return dependencyServiceImpl.getDependenciesItems(site, path);
     }
 
-
+    static calculateDependencies(context, site, paths) {
+        def dependencyServiceImpl = ServiceFactory.getDependencyServices(context);
+        return dependencyServiceImpl.calculateDependencies(site, paths);
+    }
 }

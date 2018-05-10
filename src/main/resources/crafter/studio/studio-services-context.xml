@@ -123,6 +123,7 @@
         <property name="workflowProcessor" ref="cstudioWorkflowProcessor"/>
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
         <property name="studioConfiguration" ref="studioConfiguration" />
+        <property name="activityService" ref="cstudioActivityService" />
     </bean>
 
      <bean id="cstudioDeploymentService" class="org.craftercms.studio.impl.v1.service.deployment.DeploymentServiceImpl" >

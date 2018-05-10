@@ -113,6 +113,7 @@ package org.craftercms.studio.api.v1.constant;
     String CONTENT_TYPE_TAXONOMY_REGEX = "/site/taxonomy/([^<]+)\\.xml";
     String CONTENT_TYPE_ALL = "all";
     String CONTENT_TYPE_FORM_DEFINITION = "formDefinition";
+    String CONTENT_TYPE_SITE = "site";
 
     /**
      * System constants
@@ -126,4 +127,19 @@ package org.craftercms.studio.api.v1.constant;
     String REMOTE_REPOSITORY_CREATE_OPTION_PUSH = "push";
 
     String INDEX_FILE = "index.xml";
+
+    String SECURITY_AUTHENTICATION_TYPE = "authentication_type";
+    String SECURITY_AUTHENTICATION_TYPE_DB = "db";
+    String SECURITY_AUTHENTICATION_TYPE_LDAP = "ldap";
+    String SECURITY_AUTHENTICATION_TYPE_HEADERS = "headers";
+
+    String JSON_PROPERTY_ITEM = "item";
+    String JSON_PROPERTY_DEPENDENCIES = "dependencies";
+
+    /**
+     * API Request Parameter Names
+     */
+    String API_REQUEST_PARAM_SITE = "site";
+    String API_REQUEST_PARAM_ENTITIES = "entities";
+    String API_REQUEST_PARAM_ENVIRONMENT = "environment";
 }

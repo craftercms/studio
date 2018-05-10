@@ -35,6 +35,7 @@
         <result property="contentTypeClass" column="contenttypeclass"/>
         <result property="submissionComment" column="submissioncomment"/>
         <result property="commitId" column="commit_id"/>
+        <result property="packageId" column="package_id"/>
     </resultMap>
 
     <select id="getScheduledItems" resultMap="PublishRequestMap" parameterType="java.util.Map">
@@ -47,8 +48,10 @@
     </select>
 
     <insert id="insertItemForDeployment" parameterType="org.craftercms.studio.api.v1.dal.PublishRequest">
-        INSERT INTO publish_request (site, environment, path, oldpath, username, scheduleddate, state, action, contenttypeclass, submissioncomment, commit_id)
-        values (#{site}, #{environment}, #{path}, #{oldPath}, #{user}, #{scheduledDate}, #{state}, #{action}, #{contentTypeClass}, #{submissionComment}, #{commitId})
+        INSERT INTO publish_request (site, environment, path, oldpath, username, scheduleddate, state, action,
+        contenttypeclass, submissioncomment, commit_id, package_id)
+        values (#{site}, #{environment}, #{path}, #{oldPath}, #{user}, #{scheduledDate}, #{state}, #{action},
+        #{contentTypeClass}, #{submissionComment}, #{commitId}, #{packageId})
     </insert>
 
     <update id="cancelWorkflow" parameterType="java.util.Map">
@@ -58,6 +61,19 @@
         AND path = #{path}
         AND state = #{state}
         AND scheduleddate &gt; #{now}
+    </update>
+
+    <update id="cancelWorkflowBulk" parameterType="java.util.Map">
+        UPDATE publish_request
+        SET state = #{canceledState}
+        WHERE site = #{site}
+        AND state = #{state}
+        AND scheduleddate &gt; #{now}
+        AND path IN
+        <foreach item="path" index="index" collection="paths"
+                 open="(" separator="," close=")">
+            #{path}
+        </foreach>
     </update>
 
     <select id="getItemsReadyForDeployment" resultMap="PublishRequestMap">

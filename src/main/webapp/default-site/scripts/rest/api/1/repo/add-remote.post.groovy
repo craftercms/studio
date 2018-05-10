@@ -138,7 +138,8 @@ try {
         def context = SiteServices.createContext(applicationContext, request)
 
         try {
-            SiteServices.addRemote(context, siteId, remoteName, remoteUrl, authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey)
+            SiteServices.addRemote(context, siteId, remoteName, remoteUrl, authenticationType,
+                    remoteUsername, remotePassword, remoteToken, remotePrivateKey)
             response.setStatus(200)
             result.message = "OK"
         } catch (InvalidRemoteUrlException e) {
