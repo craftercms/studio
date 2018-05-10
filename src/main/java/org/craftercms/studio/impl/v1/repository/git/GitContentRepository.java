@@ -1184,8 +1184,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
                     Set<String> deployedCommits = new HashSet<String>();
                     Set<String> deployedPackages = new HashSet<String>();
-                    // SJ: TODO: Check for log level before getting the time (must add method to logger wrapper)
-                    long start = System.currentTimeMillis();
+                    logger.debug("Checkout deployed files started.");
                     for (DeploymentItemTO deploymentItem : deploymentItems) {
                         commitId = deploymentItem.getCommitId();
                         path = helper.getGitPath(deploymentItem.getPath());
@@ -1217,21 +1216,18 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                             deployedPackages.add(deploymentItem.getPackageId());
                         }
                     }
-                    logger.debug("Checkout deployed files completed in: " +
-                            (System.currentTimeMillis() - start) + "ms");
+                    logger.debug("Checkout deployed files completed.");
 
                     // commit all deployed files
                     String commitMessage = studioConfiguration.getProperty(REPO_PUBLISHED_COMMIT_MESSAGE);
 
-                    start = System.currentTimeMillis();
+                    logger.debug("Get Author Ident started.");
                     PersonIdent authorIdent = helper.getAuthorIdent(author);
-                    logger.debug("Get Author Ident completed in: " +
-                            (System.currentTimeMillis() - start) + "ms");
+                    logger.debug("Get Author Ident completed.");
 
-                    start = System.currentTimeMillis();
+                    logger.debug("Git add all published items started.");
                     git.add().addFilepattern(GIT_COMMIT_ALL_ITEMS).call();
-                    logger.debug("Git add all published items completed in: " +
-                            (System.currentTimeMillis() - start) + "ms");
+                    logger.debug("Git add all published items completed.");
 
                     commitMessage = commitMessage.replace("{username}", author);
                     commitMessage =
@@ -1250,10 +1246,9 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     }
                     commitMessage = commitMessage.replace("{commit_id}", sb.toString().trim());
                     commitMessage = commitMessage.replace("{package_id}", sbPackage.toString().trim());
-                    start = System.currentTimeMillis();
+                    logger.debug("Git commit all published items started.");
                     RevCommit revCommit = git.commit().setMessage(commitMessage).setAuthor(authorIdent).call();
-                    logger.debug("Git commit all published items completed in: " +
-                            (System.currentTimeMillis() - start) + "ms");
+                    logger.debug("Git commit all published items completed.");
                     int commitTime = revCommit.getCommitTime();
 
                     // tag
@@ -1262,15 +1257,13 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     String tagName2 = tagDate2.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX")) +
                             "_published_on_" + publishDate.format(
                                     DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX"));
-                    start = System.currentTimeMillis();
+                    logger.debug("Get Author Ident started.");
                     PersonIdent authorIdent2 = helper.getAuthorIdent(author);
-                    logger.debug("Get Author Ident completed in: " +
-                            (System.currentTimeMillis() - start) + "ms");
+                    logger.debug("Get Author Ident completed.");
 
-                    start = System.currentTimeMillis();
+                    logger.debug("Git tag started.");
                     git.tag().setTagger(authorIdent2).setName(tagName2).setMessage(commitMessage).call();
-                    logger.debug("Git tag completed in: " +
-                            (System.currentTimeMillis() - start) + "ms");
+                    logger.debug("Git tag completed.");
 
                     // checkout environment
                     logger.debug("Checkout environment " + environment + " branch for site " + site);
