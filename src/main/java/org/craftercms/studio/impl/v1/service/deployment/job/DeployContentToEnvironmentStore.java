@@ -1,20 +1,20 @@
-/*******************************************************************************
- * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2016 Crafter Software Corporation.
- * <p/>
+/*
+ * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * <p/>
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * <p/>
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- ******************************************************************************/
+ *
+ */
 package org.craftercms.studio.impl.v1.service.deployment.job;
 
 
@@ -22,10 +22,17 @@ import java.text.SimpleDateFormat;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.dal.PublishRequest;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
@@ -35,6 +42,7 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
+import org.craftercms.studio.api.v1.service.activity.ActivityService;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.PublishingManager;
 import org.craftercms.studio.api.v1.service.event.EventService;
@@ -45,7 +53,13 @@ import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.impl.v1.job.RepositoryJob;
 
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.*;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_DEPLOYMENT_MASTER_PUBLISHING_NODE;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_MANDATORY_DEPENDENCIES_CHECK_ENABLED;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_PROCESSING_CHUNK_SIZE;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_BUSY;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_IDLE;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED_ERROR;
+
 
 public class DeployContentToEnvironmentStore extends RepositoryJob {
 
@@ -55,6 +69,15 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
 
     private static boolean stopSignaled = false;
     private static boolean running = false;
+
+    protected PublishingManager publishingManager;
+    protected ContentRepository contentRepository;
+    protected SiteService siteService;
+    protected NotificationService notificationService;
+    protected GeneralLockService generalLockService;
+    protected EventService eventService;
+    protected StudioConfiguration studioConfiguration;
+    protected ActivityService activityService;
 
     public static synchronized void signalToStop(boolean toStop) {
         stopSignaled = toStop;
@@ -103,24 +126,37 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
                                 Set<String> environments = getAllPublishingEnvironments(site);
                                 for (String environment : environments) {
                                     logger.debug("Processing content ready for deployment for site \"{0}\"", site);
-                                    List<PublishRequest> itemsToDeploy = publishingManager.getItemsReadyForDeployment(site, environment);
+                                    List<PublishRequest> itemsToDeploy =
+                                            publishingManager.getItemsReadyForDeployment(site, environment);
 
                                     if (itemsToDeploy != null && itemsToDeploy.size() > 0) {
                                         logger.info("Starting publishing on environment " + environment + " for site " + site);
-                                        logger.debug("Site \"{0}\" has {1} items ready for deployment", site, itemsToDeploy.size());
+                                        logger.debug("Site \"{0}\" has {1} items ready for deployment",
+                                                site, itemsToDeploy.size());
 
                                         String author = itemsToDeploy.get(0).getUser();
                                         StringBuilder sbComment = new StringBuilder();
                                         List<DeploymentItemTO> completeDeploymentItemList = new ArrayList<DeploymentItemTO>();
                                         Set<String> processedPaths = new HashSet<String>();
-                                        SimpleDateFormat sdf = new SimpleDateFormat(StudioConstants.DATE_PATTERN_WORKFLOW_WITH_TZ);
+                                        SimpleDateFormat sdf =
+                                                new SimpleDateFormat(StudioConstants.DATE_PATTERN_WORKFLOW_WITH_TZ);
                                         String messagePath = StringUtils.EMPTY;
                                         try {
                                             logger.debug("Mark items as processing for site \"{0}\"", site);
+                                            Set<String> packageIds = new HashSet<String>();
                                             for (PublishRequest item : itemsToDeploy) {
-                                                processPublishingRequest(site, environment, item, completeDeploymentItemList, processedPaths);
+                                                processPublishingRequest(site, environment, item,
+                                                        completeDeploymentItemList, processedPaths);
+                                                packageIds.add(item.getPackageId());
                                             }
-                                            deploy(site, environment, completeDeploymentItemList, author, sbComment.toString());
+                                            deploy(site, environment, completeDeploymentItemList, author,
+                                                    sbComment.toString());
+                                            StringBuilder sbPackIds = new StringBuilder("Package(s): ");
+                                            for (String packageId : packageIds) {
+                                                sbPackIds.append(packageId).append(";");
+                                            }
+                                            generateWorkflowActivity(site, sbPackIds.toString(), author,
+                                                    ActivityService .ActivityType .PUBLISHED);
                                             publishingManager.markItemsCompleted(site, environment, itemsToDeploy);
                                             logger.debug("Mark deployment completed for processed items for site \"{0}\"", site);
                                             logger.info("Finished publishing environment " + environment + " for site " + site);
@@ -128,8 +164,11 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
                                             logger.error("Error while executing deployment to environment store for site \"{0}\", number of items \"{1}\"", err, site, itemsToDeploy.size());
                                             publishingManager.markItemsReady(site, environment, itemsToDeploy);
                                             siteService.enablePublishing(site, false);
-                                            statusMessage = studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED_ERROR);
-                                            statusMessage = statusMessage.replace("{item_path}", messagePath).replace("{datetime}", ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern(sdf.toPattern())));
+                                            statusMessage =
+                                                    studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED_ERROR);
+                                            statusMessage = statusMessage.replace("{item_path}", messagePath)
+                                                    .replace("{datetime}", ZonedDateTime.now(ZoneOffset.UTC)
+                                                            .format(DateTimeFormatter.ofPattern(sdf.toPattern())));
                                             siteService.updatePublishingStatusMessage(site, statusMessage);
                                             throw err;
                                         } catch (Exception err){
@@ -138,14 +177,17 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
                                             publishingManager.markItemsReady(site, environment, itemsToDeploy);
                                             siteService.enablePublishing(site, false);
                                             statusMessage = studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED_ERROR);
-                                            statusMessage = statusMessage.replace("{item_path}", messagePath).replace("{datetime}", ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern(sdf.toPattern())));
+                                            statusMessage = statusMessage.replace("{item_path}", messagePath)
+                                                    .replace("{datetime}", ZonedDateTime.now(ZoneOffset.UTC)
+                                                            .format(DateTimeFormatter.ofPattern(sdf.toPattern())));
                                             siteService.updatePublishingStatusMessage(site, statusMessage);
                                             throw err;
                                         }
                                     }
                                 }
                             } catch (Exception err) {
-                                logger.error("Error while executing deployment to environment store for site: " + site, err);
+                                logger.error("Error while executing deployment to environment store for site: "
+                                        + site, err);
                                 notificationService.notifyDeploymentError(site, err);
                                 logger.info("Continue executing deployment for other sites.");
                             }
@@ -163,13 +205,24 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
         }
     }
 
-    private void processPublishingRequest(String site, String environment, PublishRequest item, List<DeploymentItemTO> completeDeploymentItemList, Set<String> processedPaths) throws ServiceException, DeploymentException {
+    protected void generateWorkflowActivity(String site, String path, String username,
+                                            ActivityService.ActivityType activityType) {
+        Map<String, String> extraInfo = new HashMap<String, String>();
+        extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
+        activityService.postActivity(site, username, path, activityType,
+                ActivityService.ActivitySource.API, extraInfo);
+    }
+
+    private void processPublishingRequest(String site, String environment, PublishRequest item,
+                                          List<DeploymentItemTO> completeDeploymentItemList,
+                                          Set<String> processedPaths) throws ServiceException, DeploymentException {
         List<DeploymentItemTO> missingDependencies = new ArrayList<DeploymentItemTO>();
         Set<String> missingDependenciesPaths = new HashSet<String>();
         SimpleDateFormat sdf = new SimpleDateFormat(StudioConstants.DATE_PATTERN_WORKFLOW_WITH_TZ);
         String messagePath = item.getPath();
         String statusMessage = studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_BUSY);
-        statusMessage = statusMessage.replace("{item_path}", messagePath).replace("{datetime}", ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern(sdf.toPattern())));
+        statusMessage = statusMessage.replace("{item_path}", messagePath).replace("{datetime}",
+                ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern(sdf.toPattern())));
         siteService.updatePublishingStatusMessage(site, statusMessage);
         publishingManager.markItemsProcessing(site, environment, Arrays.asList(item));
         String lockKey2 = item.getSite() + ":" + item.getPath();
@@ -195,14 +248,17 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
             deploymentItemList.addAll(missingDependencies);
             completeDeploymentItemList.addAll(deploymentItemList);
             statusMessage = studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_IDLE);
-            statusMessage = statusMessage.replace("{item_path}", messagePath).replace("{datetime}", ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern(sdf.toPattern())));
+            statusMessage = statusMessage.replace("{item_path}", messagePath).replace("{datetime}",
+                    ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern(sdf.toPattern())));
             siteService.updatePublishingStatusMessage(site, statusMessage);
         } catch (DeploymentException err) {
             logger.error("Error while executing deployment to environment store for site \"{0}\",", err, site);
             publishingManager.markItemsReady(site, environment, Arrays.asList(item));
             siteService.enablePublishing(site, false);
-            statusMessage = studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED_ERROR);
-            statusMessage = statusMessage.replace("{item_path}", messagePath).replace("{datetime}", ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern(sdf.toPattern())));
+            statusMessage = studioConfiguration.getProperty(
+                    JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED_ERROR);
+            statusMessage = statusMessage.replace("{item_path}", messagePath).replace("{datetime}",
+                    ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern(sdf.toPattern())));
             siteService.updatePublishingStatusMessage(site, statusMessage);
             throw err;
         } catch (Exception err){
@@ -210,14 +266,17 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
                     "store for site \"{0}\", ", err, site);
             publishingManager.markItemsReady(site, environment, Arrays.asList(item));
             siteService.enablePublishing(site, false);
-            statusMessage = studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED_ERROR);
-            statusMessage = statusMessage.replace("{item_path}", messagePath).replace("{datetime}", ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern(sdf.toPattern())));
+            statusMessage = studioConfiguration.getProperty(
+                    JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED_ERROR);
+            statusMessage = statusMessage.replace("{item_path}", messagePath).replace("{datetime}",
+                    ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern(sdf.toPattern())));
             siteService.updatePublishingStatusMessage(site, statusMessage);
             throw err;
         }
     }
 
-    private void deploy(String site, String environment, List<DeploymentItemTO> items, String author, String comment) throws DeploymentException {
+    private void deploy(String site, String environment, List<DeploymentItemTO> items, String author, String comment)
+            throws DeploymentException {
         logger.debug("Deploying " + items.size() + " item(s)");
         contentRepository.publish(site, items, environment, author, comment);
     }
@@ -240,7 +299,8 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
         SiteFeed siteFeed = siteService.getSite(site);
         String lastProcessedCommit = siteFeed.getLastVerifiedGitlogCommitId();
         if (StringUtils.isNotEmpty(lastProcessedCommit)) {
-            logger.debug("Syncing database with repository for site " + site + " from last processed commit " + lastProcessedCommit);
+            logger.debug("Syncing database with repository for site " + site + " from last processed commit "
+                    + lastProcessedCommit);
             siteService.syncDatabaseWithRepo(site, lastProcessedCommit);
         } else {
             logger.debug("Syncing database with repository for site " + site + " from initial commit");
@@ -249,48 +309,80 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
     }
 
     public boolean isMasterPublishingNode() {
-        boolean toReturn = Boolean.parseBoolean(studioConfiguration.getProperty(JOB_DEPLOYMENT_MASTER_PUBLISHING_NODE));
+        boolean toReturn =
+                Boolean.parseBoolean(studioConfiguration.getProperty(JOB_DEPLOYMENT_MASTER_PUBLISHING_NODE));
         return toReturn;
     }
 
     public boolean isMandatoryDependenciesCheckEnabled() {
-        boolean toReturn = Boolean.parseBoolean(studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_MANDATORY_DEPENDENCIES_CHECK_ENABLED));
+        boolean toReturn = Boolean.parseBoolean(studioConfiguration.getProperty(
+                JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_MANDATORY_DEPENDENCIES_CHECK_ENABLED));
         return toReturn;
     }
 
     public int getProcessingChunkSize() {
-        int toReturn = Integer.parseInt(studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_PROCESSING_CHUNK_SIZE));
+        int toReturn = Integer.parseInt(studioConfiguration.getProperty(
+                JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_PROCESSING_CHUNK_SIZE));
         return toReturn;
     }
 
-    public PublishingManager getPublishingManager() { return publishingManager; }
-    public void setPublishingManager(PublishingManager publishingManager) { this.publishingManager = publishingManager; }
+    public PublishingManager getPublishingManager() {
+        return publishingManager;
+    }
 
-    public ContentRepository getContentRepository() { return contentRepository; }
-    public void setContentRepository(ContentRepository contentRepository) { this.contentRepository = contentRepository; }
+    public void setPublishingManager(PublishingManager publishingManager) {
+        this.publishingManager = publishingManager;
+    }
 
-    public SiteService getSiteService() { return siteService; }
-    public void setSiteService(SiteService siteService) { this.siteService = siteService; }
+    public ContentRepository getContentRepository() {
+        return contentRepository;
+    }
 
-    public GeneralLockService getGeneralLockService() { return generalLockService; }
-    public void setGeneralLockService(GeneralLockService generalLockService) { this.generalLockService = generalLockService; }
+    public void setContentRepository(ContentRepository contentRepository) {
+        this.contentRepository = contentRepository;
+    }
 
+    public SiteService getSiteService() {
+        return siteService;
+    }
+
+    public void setSiteService(SiteService siteService) {
+        this.siteService = siteService;
+    }
+
+    public GeneralLockService getGeneralLockService() {
+        return generalLockService;
+    }
+
+    public void setGeneralLockService(GeneralLockService generalLockService) {
+        this.generalLockService = generalLockService;
+    }
 
     public void setNotificationService(final NotificationService notificationService) {
         this.notificationService = notificationService;
     }
 
-    public EventService getEventService() { return eventService; }
-    public void setEventService(EventService eventService) { this.eventService = eventService; }
+    public EventService getEventService() {
+        return eventService;
+    }
 
-    public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
-    public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
+    public void setEventService(EventService eventService) {
+        this.eventService = eventService;
+    }
 
-    protected PublishingManager publishingManager;
-    protected ContentRepository contentRepository;
-    protected SiteService siteService;
-    protected NotificationService notificationService;
-    protected GeneralLockService generalLockService;
-    protected EventService eventService;
-    protected StudioConfiguration studioConfiguration;
+    public StudioConfiguration getStudioConfiguration() {
+        return studioConfiguration;
+    }
+
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+        this.studioConfiguration = studioConfiguration;
+    }
+
+    public ActivityService getActivityService() {
+        return activityService;
+    }
+
+    public void setActivityService(ActivityService activityService) {
+        this.activityService = activityService;
+    }
 }

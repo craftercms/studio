@@ -333,6 +333,7 @@
         <property name="notificationService" ref="cstudioNotificationService"/>
         <property name="eventService" ref="studioEventService"/>
         <property name="studioConfiguration" ref="studioConfiguration" />
+        <property name="activityService" ref="cstudioActivityService" />
     </bean>
 
     <!-- scheduled actions -->
