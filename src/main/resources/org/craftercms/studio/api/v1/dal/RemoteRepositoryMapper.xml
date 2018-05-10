@@ -33,7 +33,7 @@
     </resultMap>
 
     <select id="getRemoteRepository" resultMap="RemoteRepositoryMap" parameterType="java.util.Map">
-        SELECT * FROM remote_repository WHERE site_id = #{siteId} AND remote_name = #{remoteName}
+        SELECT * FROM remote_repository WHERE site_id = #{siteId} AND remote_name = #{remoteName} limit 0, 1
     </select>
 
     <select id="listRemoteRepositories" resultMap="RemoteRepositoryMap" parameterType="java.util.Map">

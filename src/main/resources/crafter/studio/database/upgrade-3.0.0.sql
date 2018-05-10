@@ -43,6 +43,7 @@ CREATE TABLE IF NOT EXISTS remote_repository
   `remote_token`          VARCHAR(255)   NULL,
   `remote_private_key`    TEXT           NULL,
   PRIMARY KEY (`id`),
+  UNIQUE `uq_rr_site_remote_name` (`site_id`, `remote_name`),
   INDEX `remoterepository_site_idx` (`site_id` ASC)
 )
   ENGINE = InnoDB
@@ -53,4 +54,4 @@ UPDATE `audit` SET `source` = 'API' WHERE `source` = 'UI' ;
 
 ALTER TABLE `publish_request` ADD COLUMN `package_id` VARCHAR(50) NULL ;
 
-INSERT INTO _meta (version) VALUES ('3.0.11.2') ;
+INSERT INTO _meta (version) VALUES ('3.0.11.3') ;

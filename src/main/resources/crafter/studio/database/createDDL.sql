@@ -19,7 +19,7 @@ USE crafter ;
 
 CREATE TABLE _meta (`version` VARCHAR(10) NOT NULL , PRIMARY KEY (`version`)) ;
 
-INSERT INTO _meta (version) VALUES ('3.0.11.2') ;
+INSERT INTO _meta (version) VALUES ('3.0.11.3') ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`             BIGINT(20)   NOT NULL AUTO_INCREMENT,
@@ -236,6 +236,7 @@ CREATE TABLE IF NOT EXISTS remote_repository
   `remote_token`          VARCHAR(255)   NULL,
   `remote_private_key`    TEXT           NULL,
   PRIMARY KEY (`id`),
+  UNIQUE `uq_rr_site_remote_name` (`site_id`, `remote_name`),
   INDEX `remoterepository_site_idx` (`site_id` ASC)
 )
   ENGINE = InnoDB
