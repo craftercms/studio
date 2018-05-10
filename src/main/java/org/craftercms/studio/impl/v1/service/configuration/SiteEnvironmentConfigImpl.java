@@ -79,14 +79,6 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
         CacheService cacheService = cacheTemplate.getCacheService();
         StudioCacheContext cacheContext = new StudioCacheContext(site, true);
         Object cacheKey = cacheTemplate.getKey(site, configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site).replaceFirst(CStudioConstants.PATTERN_ENVIRONMENT, environment), configFileName);
-        generalLockService.lock(cacheContext.getId());
-        try {
-            if (!cacheService.hasScope(cacheContext)) {
-                cacheService.addScope(cacheContext);
-            }
-        } finally {
-            generalLockService.unlock(cacheContext.getId());
-        }
         EnvironmentConfigTO config = cacheTemplate.getObject(cacheContext, new Callback<EnvironmentConfigTO>() {
             @Override
             public EnvironmentConfigTO execute() {
@@ -287,16 +279,7 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
         CacheService cacheService = cacheTemplate.getCacheService();
         StudioCacheContext cacheContext = new StudioCacheContext(site, true);
         Object cacheKey = cacheTemplate.getKey(site, configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site).replaceFirst(CStudioConstants.PATTERN_ENVIRONMENT, environment), configFileName);
-        generalLockService.lock(cacheContext.getId());
-        try {
-            if (cacheService.hasScope(cacheContext)) {
-                cacheService.remove(cacheContext, cacheKey);
-            } else {
-                cacheService.addScope(cacheContext);
-            }
-        } finally {
-            generalLockService.unlock(cacheContext.getId());
-        }
+        cacheService.remove(cacheContext, cacheKey);
         EnvironmentConfigTO config = loadConfiguration(site);
         cacheService.put(cacheContext, cacheKey, config);
     }

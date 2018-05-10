@@ -105,12 +105,6 @@ public class RegexDependencyResolver implements DependencyResolver {
             String configLocation = getConfigLocation(site);
             logger.error("Failed to load Dependency Resolver configuration. Verify that configuration exists and it is valid XML file: " + configLocation);
         }
-        String parentDependencyPath = getParentDependency(site, path);
-        if (StringUtils.isNotEmpty(parentDependencyPath)) {
-            Set<String> parentDeps = new HashSet<String>();
-            parentDeps.add(parentDependencyPath);
-            toRet.put(PARENT_DEPENDENCY_TYPE, parentDeps);
-        }
         return toRet;
     }
 
@@ -193,25 +187,6 @@ public class RegexDependencyResolver implements DependencyResolver {
         }
 
         return config;
-    }
-
-    private String getParentDependency(String site, String path) {
-        int idx = path.lastIndexOf(FILE_SEPARATOR + INDEX_FILE);
-        String aPath = path;
-        if (idx > 0) {
-            aPath = path.substring(0, idx);
-        }
-        logger.debug("Calculate parent url for " + aPath);
-        String parentPath = ContentUtils.getParentUrl(aPath);
-        if (StringUtils.isNotEmpty(parentPath)) {
-            String parentIndexPath = parentPath + FILE_SEPARATOR + INDEX_FILE;
-            if (contentService.contentExists(site, parentIndexPath)) {
-                return parentIndexPath;
-            } else {
-                return parentPath;
-            }
-        }
-        return StringUtils.EMPTY;
     }
 
     private String getConfigLocation(String site) {

@@ -116,14 +116,6 @@ public class ServicesConfigImpl implements ServicesConfig {
         CacheService cacheService = cacheTemplate.getCacheService();
         StudioCacheContext cacheContext = new StudioCacheContext(site, true);
         Object cacheKey = cacheTemplate.getKey(site, configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site), configFileName);
-        generalLockService.lock(cacheContext.getId());
-        try {
-            if (!cacheService.hasScope(cacheContext)) {
-                cacheService.addScope(cacheContext);
-            }
-        } finally {
-            generalLockService.unlock(cacheContext.getId());
-        }
         SiteConfigTO config = cacheTemplate.getObject(cacheContext, new Callback<SiteConfigTO>() {
             @Override
             public SiteConfigTO execute() {
@@ -515,16 +507,7 @@ public class ServicesConfigImpl implements ServicesConfig {
         CacheService cacheService = cacheTemplate.getCacheService();
         StudioCacheContext cacheContext = new StudioCacheContext(site, true);
         Object cacheKey = cacheTemplate.getKey(site, configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site), configFileName);
-        generalLockService.lock(cacheContext.getId());
-        try {
-            if (cacheService.hasScope(cacheContext)) {
-                cacheService.remove(cacheContext, cacheKey);
-            } else {
-                cacheService.addScope(cacheContext);
-            }
-        } finally {
-            generalLockService.unlock(cacheContext.getId());
-        }
+        cacheService.remove(cacheContext, cacheKey);
         SiteConfigTO config = loadConfiguration(site);
         cacheService.put(cacheContext, cacheKey, config);
     }

@@ -88,4 +88,12 @@ public interface CStudioConstants {
 
     String API_REQUEST_PARAM_SITE = "site";
     String API_REQUEST_PARAM_ENTITIES = "entities";
+
+    String FILE_SEPARATOR = "/";
+
+    // Cache constants
+    String CACHE_GLOBAL_SCOPE = "###GLOBAL###";
+    String CACHE_USERS_SCOPE = "###USERS###";
+    String CACHE_KEY_USERS_GROUPS = "groups";
+    String CACHE_KEY_USERS_PROFILE = "profile";
 }
