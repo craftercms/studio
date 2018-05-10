@@ -1182,6 +1182,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
                     Set<String> deployedCommits = new HashSet<String>();
                     Set<String> deployedPackages = new HashSet<String>();
+                    // SJ: TODO: Check for log level before getting the time (must add method to logger wrapper)
                     long start = System.currentTimeMillis();
                     for (DeploymentItemTO deploymentItem : deploymentItems) {
                         commitId = deploymentItem.getCommitId();
