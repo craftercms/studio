@@ -80,7 +80,8 @@
         <property name="contentRepository" ref="cstudioContentRepository" />
     </bean>
 
-    <bean id="cstudioSiteServiceSimple" class="org.craftercms.studio.impl.v1.service.site.SiteServiceImpl">
+    <bean id="cstudioSiteServiceSimple" class="org.craftercms.studio.impl.v1.service.site.SiteServiceImpl"
+          init-method="init" destroy-method="destroy">
         <property name="siteServiceDAL">
           <bean id="cstudioRepositorySiteServiceDAL" 
                 class="org.craftercms.studio.impl.v1.service.site.dal.RepositorySiteServiceDAL">

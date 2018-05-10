@@ -83,6 +83,36 @@ public class SiteServiceImpl implements SiteService {
 	private final static Logger logger = LoggerFactory.getLogger(SiteServiceImpl.class);
 
     private final static String CACHE_KEY_PATH = "/cstudio/config/sites/{site}";
+
+    public void init() {
+        CacheService cacheService = cacheTemplate.getCacheService();
+        List<SiteFeed> sites = siteFeedMapper.getSites();
+        StudioCacheContext cacheContext = new StudioCacheContext(CStudioConstants.CACHE_GLOBAL_SCOPE, true);
+        cacheService.addScope(cacheContext);
+        cacheContext = new StudioCacheContext(CStudioConstants.CACHE_USERS_SCOPE, true);
+        cacheService.addScope(cacheContext);
+        for (SiteFeed site : sites) {
+            cacheContext = new StudioCacheContext(site.getSiteId(), false);
+            cacheService.addScope(cacheContext);
+            cacheContext = new StudioCacheContext(site.getSiteId(), true);
+            cacheService.addScope(cacheContext);
+        }
+    }
+
+    public void destroy() {
+        CacheService cacheService = cacheTemplate.getCacheService();
+        List<SiteFeed> sites = siteFeedMapper.getSites();
+        StudioCacheContext cacheContext = new StudioCacheContext(CStudioConstants.CACHE_GLOBAL_SCOPE, true);
+        cacheService.removeScope(cacheContext);
+        cacheContext = new StudioCacheContext(CStudioConstants.CACHE_USERS_SCOPE, true);
+        cacheService.removeScope(cacheContext);
+        for (SiteFeed site : sites) {
+            cacheContext = new StudioCacheContext(site.getSiteId(), false);
+            cacheService.removeScope(cacheContext);
+            cacheContext = new StudioCacheContext(site.getSiteId(), true);
+            cacheService.removeScope(cacheContext);
+        }
+    }
 	
 	@Override
     @ValidateParams
@@ -368,15 +398,10 @@ public class SiteServiceImpl implements SiteService {
 
             CacheService cacheService = cacheTemplate.getCacheService();
             StudioCacheContext cacheContext = new StudioCacheContext(siteId, true);
-            generalLockService.lock(cacheContext.getId());
-            try {
-                if (!cacheService.hasScope(cacheContext)) {
-                    cacheService.addScope(cacheContext);
-                }
-            } finally {
-                generalLockService.unlock(cacheContext.getId());
-            }
-            clearConfigurationCache.clearConfigurationCache(siteId);
+            cacheService.addScope(cacheContext);
+            cacheContext = new StudioCacheContext(siteId, false);
+            cacheService.addScope(cacheContext);
+            reloadSiteConfiguration(siteId);
             deploymentService.syncAllContentToPreview(siteId);
         }
 	 	catch(Exception err) {
@@ -552,16 +577,7 @@ public class SiteServiceImpl implements SiteService {
         CacheService cacheService = cacheTemplate.getCacheService();
         StudioCacheContext cacheContext = new StudioCacheContext(site, true);
         Object cacheKey = cacheTemplate.getKey(site, CACHE_KEY_PATH.replaceFirst(CStudioConstants.PATTERN_SITE, site), "SiteTO");
-        generalLockService.lock(cacheContext.getId());
-        try {
-            if (cacheService.hasScope(cacheContext)) {
-                cacheService.remove(cacheContext, cacheKey);
-            } else {
-                cacheService.addScope(cacheContext);
-            }
-        } finally {
-            generalLockService.unlock(cacheContext.getId());
-        }
+        cacheService.remove(cacheContext, cacheKey);
         SiteTO siteConfig = new SiteTO();
         siteConfig.setSite(site);
         siteConfig.setEnvironment(this.environment);

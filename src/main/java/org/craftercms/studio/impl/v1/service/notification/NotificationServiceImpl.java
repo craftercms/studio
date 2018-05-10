@@ -163,14 +163,6 @@ public class NotificationServiceImpl implements NotificationService {
     protected NotificationConfigTO getNotificationConfig(final String site) {
         CacheService cacheService = cacheTemplate.getCacheService();
         StudioCacheContext cacheContext = new StudioCacheContext(site, true);
-        generalLockService.lock(cacheContext.getId());
-        try {
-            if (!cacheService.hasScope(cacheContext)) {
-                cacheService.addScope(cacheContext);
-            }
-        } finally {
-            generalLockService.unlock(cacheContext.getId());
-        }
         NotificationConfigTO config = cacheTemplate.getObject(cacheContext, new Callback<NotificationConfigTO>() {
             @Override
             public NotificationConfigTO execute() {
@@ -1022,16 +1014,7 @@ public class NotificationServiceImpl implements NotificationService {
         CacheService cacheService = cacheTemplate.getCacheService();
         StudioCacheContext cacheContext = new StudioCacheContext(site, true);
         Object cacheKey = cacheTemplate.getKey(site, configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site), configFileName);
-        generalLockService.lock(cacheContext.getId());
-        try {
-            if (cacheService.hasScope(cacheContext)) {
-                cacheService.remove(cacheContext, cacheKey);
-            } else {
-                cacheService.addScope(cacheContext);
-            }
-        } finally {
-            generalLockService.unlock(cacheContext.getId());
-        }
+        cacheService.remove(cacheContext, cacheKey);
         NotificationConfigTO config = loadConfiguration(site);
         cacheService.put(cacheContext, cacheKey, config);
     }

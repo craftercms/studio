@@ -1476,14 +1476,6 @@ public class ContentServiceImpl implements ContentService {
     protected ContentItemTO getCachedContentItem(final String site, final String path) {
         CacheService cacheService = cacheTemplate.getCacheService();
         StudioCacheContext cacheContext = new StudioCacheContext(site, false);
-        generalLockService.lock(cacheContext.getId());
-        try {
-            if (!cacheService.hasScope(cacheContext)) {
-                cacheService.addScope(cacheContext);
-            }
-        } finally {
-            generalLockService.unlock(cacheContext.getId());
-        }
         ContentItemTO item = cacheTemplate.getObject(cacheContext, new Callback<ContentItemTO>() {
             @Override
             public ContentItemTO execute() {
@@ -1498,14 +1490,6 @@ public class ContentServiceImpl implements ContentService {
         CacheService cacheService = cacheTemplate.getCacheService();
         StudioCacheContext cacheContext = new StudioCacheContext(site, false);
         Object cacheKey = cacheTemplate.getKey(site, path);
-        generalLockService.lock(cacheContext.getId());
-        try {
-            if (!cacheService.hasScope(cacheContext)) {
-                cacheService.addScope(cacheContext);
-            }
-        } finally {
-            generalLockService.unlock(cacheContext.getId());
-        }
         cacheService.remove(cacheContext, cacheKey);
     }
 

@@ -42,15 +42,11 @@ public class ClearConfigurationCache {
         String site = message.getSite();
         CacheService cacheService = cacheTemplate.getCacheService();
         StudioCacheContext cacheContext = new StudioCacheContext(site, true);
-        generalLockService.lock(cacheContext.getId());
-        try {
-            if (cacheService.hasScope(cacheContext)) {
-                cacheService.clearScope(cacheContext);
-            }
-            cacheService.addScope(cacheContext);
-        } finally {
-            generalLockService.unlock(cacheContext.getId());
-        }
+        cacheService.clearScope(cacheContext);
+        cacheContext = new StudioCacheContext(CStudioConstants.CACHE_GLOBAL_SCOPE, true);
+        cacheService.clearScope(cacheContext);
+        cacheContext = new StudioCacheContext(CStudioConstants.CACHE_USERS_SCOPE, true);
+        cacheService.clearScope(cacheContext);
         String ticket = securityProvider.authenticate(adminUser, adminPassword);
         RepositoryEventContext repositoryEventContext = new RepositoryEventContext(ticket);
         RepositoryEventContext.setCurrent(repositoryEventContext);

@@ -147,14 +147,6 @@ public class DeploymentEndpointConfigImpl implements DeploymentEndpointConfig {
     public DeploymentEndpointConfigTO getDeploymentConfig(@ValidateStringParam(name = "site") final String site, @ValidateStringParam(name = "endpoint") final String endpoint) {
         StudioCacheContext cacheContext = new StudioCacheContext(site, true);
         CacheService cacheService = cacheTemplate.getCacheService();
-        generalLockService.lock(cacheContext.getId());
-        try {
-            if (!cacheService.hasScope(cacheContext)) {
-                cacheService.addScope(cacheContext);
-            }
-        } finally {
-            generalLockService.unlock(cacheContext.getId());
-        }
         DeploymentConfigTO config = cacheTemplate.getObject(cacheContext, new Callback<DeploymentConfigTO>() {
             @Override
             public DeploymentConfigTO execute() {
@@ -187,16 +179,7 @@ public class DeploymentEndpointConfigImpl implements DeploymentEndpointConfig {
         CacheService cacheService = cacheTemplate.getCacheService();
         StudioCacheContext cacheContext = new StudioCacheContext(site, true);
         Object cacheKey = cacheTemplate.getKey(site, configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site), configFileName);
-        generalLockService.lock(cacheContext.getId());
-        try {
-            if (cacheService.hasScope(cacheContext)) {
-                cacheService.remove(cacheContext, cacheKey);
-            } else {
-                cacheService.addScope(cacheContext);
-            }
-        } finally {
-            generalLockService.unlock(cacheContext.getId());
-        }
+        cacheService.remove(cacheContext, cacheKey);
         DeploymentConfigTO config = loadConfiguration(site);
         cacheService.put(cacheContext, cacheKey, config);
     }

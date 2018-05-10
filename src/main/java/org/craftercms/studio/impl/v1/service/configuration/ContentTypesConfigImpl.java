@@ -73,14 +73,6 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
             String siteConfigPath = configPath.replaceAll(CStudioConstants.PATTERN_SITE, site)
                     .replaceAll(CStudioConstants.PATTERN_CONTENT_TYPE, contentType);
             Object cacheKey = cacheTemplate.getKey(site, siteConfigPath, configFileName);
-            generalLockService.lock(cacheContext.getId());
-            try {
-                if (!cacheService.hasScope(cacheContext)) {
-                    cacheService.addScope(cacheContext);
-                }
-            } finally {
-                generalLockService.unlock(cacheContext.getId());
-            }
             ContentTypeConfigTO config = cacheTemplate.getObject(cacheContext, new Callback<ContentTypeConfigTO>() {
                 @Override
                 public ContentTypeConfigTO execute() {
@@ -365,16 +357,8 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
         String siteConfigPath = configPath.replaceAll(CStudioConstants.PATTERN_SITE, site)
                 .replaceAll(CStudioConstants.PATTERN_CONTENT_TYPE, contentType);
         Object cacheKey = cacheTemplate.getKey(site, siteConfigPath, configFileName);
-        generalLockService.lock(cacheContext.getId());
-        try {
-            if (cacheService.hasScope(cacheContext)) {
-                cacheService.remove(cacheContext, cacheKey);
-            } else {
-                cacheService.addScope(cacheContext);
-            }
-        } finally {
-            generalLockService.unlock(cacheContext.getId());
-        }
+
+        cacheService.remove(cacheContext, cacheKey);
         removeFromPathMapping(site, contentType);
         ContentTypeConfigTO config = loadConfiguration(site, contentType);
         cacheService.put(cacheContext, cacheKey, config);
