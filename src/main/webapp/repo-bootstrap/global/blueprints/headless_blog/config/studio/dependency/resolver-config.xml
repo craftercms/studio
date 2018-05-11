@@ -203,7 +203,9 @@
                 <dependency-type>
                     <name>rendering-template</name>
                     <includes>
-                        <find-regex>/templates/([^&lt;"]+)\.ftl</find-regex>
+                        <pattern>
+                            <find-regex>/templates/([^&lt;"]+)\.ftl</find-regex>
+                        </pattern>
                     </includes>
                 </dependency-type>
             </dependency-types>
