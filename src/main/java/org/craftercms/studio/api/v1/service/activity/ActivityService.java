@@ -51,8 +51,7 @@ public interface ActivityService {
 		APPROVE,
         APPROVE_SCHEDULED,
 		REJECT,
-        PUBLISHED,
-        SCHEDULED_PUBLISH
+        PUBLISHED
 	}
 
 	enum ActivitySource {
