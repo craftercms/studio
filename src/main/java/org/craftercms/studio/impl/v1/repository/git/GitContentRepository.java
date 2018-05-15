@@ -1010,7 +1010,11 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         if (repository != null) {
             synchronized (repository) {
                 Repository publishedRepository = helper.getRepository(site, GitRepositories.PUBLISHED);
-                synchronized (publishedRepository) {
+                if (publishedRepository != null) {
+                    synchronized (publishedRepository) {
+                        toReturn = helper.deleteSiteGitRepo(site);
+                    }
+                } else {
                     toReturn = helper.deleteSiteGitRepo(site);
                 }
             }
