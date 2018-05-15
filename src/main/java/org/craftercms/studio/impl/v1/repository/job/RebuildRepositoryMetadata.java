@@ -132,6 +132,13 @@ public class RebuildRepositoryMetadata {
             logger.error("Failed to delete workflow states data for site " + site);
         }
 
+        try {
+            logger.debug("Deleting git log data for site " + site);
+            contentRepository.deleteGitLogForSite(site);
+        } catch (Exception error) {
+            logger.error("Failed to delete git log data for site " + site);
+        }
+
         return true;
     }
 
