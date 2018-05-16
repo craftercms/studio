@@ -269,9 +269,11 @@ studio.job.deployContentToEnvironment.status.message.busy: "busy|Currently publi
 # Publishing stopped by error status message
 studio.job.deployContentToEnvironment.status.message.stopped.error: "stopped|Stopped while trying to publish item: {item_path} on {datetime}"
 # Publishing stopped by user status message
-studio.job.deployContentToEnvironment.status.message.stopped.user: "stopped|User {username} stopped the site on {datetime}"
+studio.job.deployContentToEnvironment.status.message.stopped.user: "stopped|User {username} disabled publishing for
+site on {datetime}"
 # Publishing stopped by user status message
-studio.job.deployContentToEnvironment.status.message.started.user: "started|User {username} started the site on {datetime}"
+studio.job.deployContentToEnvironment.status.message.started.user: "started|User {username} enabled publishing for
+site on {datetime}"
 # Defines master publishing node in clustered environment. Value false disables publishing (even in non-clustered environment).
 studio.job.deployment.masterPublishingNode: true
 

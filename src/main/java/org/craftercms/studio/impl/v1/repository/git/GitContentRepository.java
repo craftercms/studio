@@ -1010,7 +1010,11 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         if (repository != null) {
             synchronized (repository) {
                 Repository publishedRepository = helper.getRepository(site, GitRepositories.PUBLISHED);
-                synchronized (publishedRepository) {
+                if (publishedRepository != null) {
+                    synchronized (publishedRepository) {
+                        toReturn = helper.deleteSiteGitRepo(site);
+                    }
+                } else {
                     toReturn = helper.deleteSiteGitRepo(site);
                 }
             }
@@ -1734,8 +1738,12 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey);
 
         if (toReturn) {
-            addRemote(siteId, remoteName, remoteUrl, authenticationType, remoteUsername, remotePassword,
-                    remoteToken, remotePrivateKey);
+            try {
+                insertRemoteToDb(siteId, remoteName, remoteUrl, authenticationType, remoteUsername, remotePassword,
+                        remoteToken, remotePrivateKey);
+            } catch (CryptoException e) {
+                throw new ServiceException(e);
+            }
             // update site name variable inside config files
             logger.debug("Update site name configuration variables for site " + siteId);
             toReturn = helper.updateSitenameConfigVar(siteId);
@@ -1876,42 +1884,49 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         ") for site " + siteId, e);
             }
 
-            logger.debug("Inserting remote " + remoteName + " for site " + siteId + " into database.");
-            Map<String, String> params = new HashMap<String, String>();
-            params.put("siteId", siteId);
-            params.put("remoteName", remoteName);
-            params.put("remoteUrl", remoteUrl);
-            params.put("authenticationType", authenticationType);
-            params.put("remoteUsername", remoteUsername);
-
-            if (StringUtils.isNotEmpty(remotePassword)) {
-                logger.debug("Encrypt password before inserting to database");
-                String hashedPassword = encryptor.encrypt(remotePassword);
-                params.put("remotePassword", hashedPassword);
-            } else {
-                params.put("remotePassword", remotePassword);
-            }
-            if (StringUtils.isNotEmpty(remoteToken)) {
-                logger.debug("Encrypt token before inserting to database");
-                String hashedToken = encryptor.encrypt(remoteToken);
-                params.put("remoteToken", hashedToken);
-            } else {
-                params.put("remoteToken", remoteToken);
-            }
-            if (StringUtils.isNotEmpty(remotePrivateKey)) {
-                logger.debug("Encrypt private key before inserting to database");
-                String hashedPrivateKey = encryptor.encrypt(remotePrivateKey);
-                params.put("remotePrivateKey", hashedPrivateKey);
-            } else {
-                params.put("remotePrivateKey", remotePrivateKey);
-            }
-
-            logger.debug("Insert site remote record into database");
-            remoteRepositoryMapper.insertRemoteRepository(params);
+            insertRemoteToDb(siteId, remoteName, remoteUrl, authenticationType, remoteUsername, remotePassword,
+                    remoteToken, remotePrivateKey);
         } catch (CryptoException e) {
             throw new ServiceException(e);
         }
         return true;
+    }
+
+    private void insertRemoteToDb(String siteId, String remoteName, String remoteUrl,
+                                  String authenticationType, String remoteUsername, String remotePassword,
+                                  String remoteToken, String remotePrivateKey) throws CryptoException {
+        logger.debug("Inserting remote " + remoteName + " for site " + siteId + " into database.");
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("siteId", siteId);
+        params.put("remoteName", remoteName);
+        params.put("remoteUrl", remoteUrl);
+        params.put("authenticationType", authenticationType);
+        params.put("remoteUsername", remoteUsername);
+
+        if (StringUtils.isNotEmpty(remotePassword)) {
+            logger.debug("Encrypt password before inserting to database");
+            String hashedPassword = encryptor.encrypt(remotePassword);
+            params.put("remotePassword", hashedPassword);
+        } else {
+            params.put("remotePassword", remotePassword);
+        }
+        if (StringUtils.isNotEmpty(remoteToken)) {
+            logger.debug("Encrypt token before inserting to database");
+            String hashedToken = encryptor.encrypt(remoteToken);
+            params.put("remoteToken", hashedToken);
+        } else {
+            params.put("remoteToken", remoteToken);
+        }
+        if (StringUtils.isNotEmpty(remotePrivateKey)) {
+            logger.debug("Encrypt private key before inserting to database");
+            String hashedPrivateKey = encryptor.encrypt(remotePrivateKey);
+            params.put("remotePrivateKey", hashedPrivateKey);
+        } else {
+            params.put("remotePrivateKey", remotePrivateKey);
+        }
+
+        logger.debug("Insert site remote record into database");
+        remoteRepositoryMapper.insertRemoteRepository(params);
     }
 
     @Override

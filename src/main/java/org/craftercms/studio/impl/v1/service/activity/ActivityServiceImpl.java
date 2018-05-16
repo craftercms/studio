@@ -97,7 +97,7 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 
     @Override
     @ValidateParams
-    public void postActivity(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "user") String user, @ValidateSecurePathParam(name = "contentId") String contentId, ActivityType activity, ActivitySource source, Map<String,String> extraInfo) {
+    public void postActivity(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "user") String user, @ValidateStringParam(name = "contentId") String contentId, ActivityType activity, ActivitySource source, Map<String,String> extraInfo) {
 
         JSONObject activityPost = new JSONObject();
         activityPost.put(ACTIVITY_PROP_USER, user);

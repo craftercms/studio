@@ -975,6 +975,8 @@ public class SiteServiceImpl implements SiteService {
                     logger.error("Error while creating site: " + siteId + " ID: " + siteId + " from blueprint: " +
                             blueprintName + ". Rolling back.", e);
 
+                    contentRepository.removeRemote(siteId, remoteName);
+
                     contentRepository.deleteSite(siteId);
 
                     boolean deleted = previewDeployer.deleteTarget(siteId);
