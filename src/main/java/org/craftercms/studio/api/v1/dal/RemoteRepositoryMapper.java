@@ -31,4 +31,6 @@ public interface RemoteRepositoryMapper {
     void deleteRemoteRepository(Map params);
 
     List<RemoteRepository> listRemoteRepositories(Map params);
+
+    void deleteRemoteRepositoriesForSite(Map params);
 }

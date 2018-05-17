@@ -1953,6 +1953,13 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     @Override
+    public void removeRemoteRepositoriesForSite(String siteId) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("siteId", siteId);
+        remoteRepositoryMapper.deleteRemoteRepositoriesForSite(params);
+    }
+
+    @Override
     public List<RemoteRepositoryInfoTO> listRemote(String siteId) throws ServiceException {
         List<RemoteRepositoryInfoTO> res = new ArrayList<RemoteRepositoryInfoTO>();
         try (Repository repo = helper.getRepository(siteId, SANDBOX)) {
