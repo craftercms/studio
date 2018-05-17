@@ -2023,7 +2023,12 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     for (RemoteConfig conf : resultRemotes) {
                         RemoteRepositoryInfoTO rri = new RemoteRepositoryInfoTO();
                         rri.setName(conf.getName());
-                        rri.setBranches(remoteBranches.get(rri.getName()));
+                        List<String> branches = remoteBranches.get(rri.getName());
+                        if (CollectionUtils.isEmpty(branches)) {
+                            branches = new ArrayList<String>();
+                            branches.add(studioConfiguration.getProperty(REPO_SANDBOX_BRANCH));
+                        }
+                        rri.setBranches(branches);
 
                         StringBuilder sbUrl = new StringBuilder();
                         if (CollectionUtils.isNotEmpty(conf.getURIs())) {
