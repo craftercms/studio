@@ -2094,7 +2094,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             switch (remoteRepository.getAuthenticationType()) {
                 case RemoteRepository.AuthenticationType.NONE:
                     logger.debug("No authentication");
-                    Iterable<PushResult> result = pushCommand.call();
+                    pushCommand.call();
                     break;
                 case RemoteRepository.AuthenticationType.BASIC:
                     logger.debug("Basic authentication");
