@@ -88,6 +88,7 @@ import org.craftercms.studio.api.v1.to.RepoOperationTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
+import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.CheckoutCommand;
 import org.eclipse.jgit.api.CreateBranchCommand;
 import org.eclipse.jgit.api.Git;
@@ -1189,6 +1190,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     Set<String> deployedCommits = new HashSet<String>();
                     Set<String> deployedPackages = new HashSet<String>();
                     logger.debug("Checkout deployed files started.");
+                    AddCommand addCommand = git.add();
                     for (DeploymentItemTO deploymentItem : deploymentItems) {
                         commitId = deploymentItem.getCommitId();
                         path = helper.getGitPath(deploymentItem.getPath());
@@ -1219,6 +1221,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         if (StringUtils.isNotEmpty(packageId)) {
                             deployedPackages.add(deploymentItem.getPackageId());
                         }
+
+                        addCommand.addFilepattern(path);
                     }
                     logger.debug("Checkout deployed files completed.");
 
@@ -1230,7 +1234,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     logger.debug("Get Author Ident completed.");
 
                     logger.debug("Git add all published items started.");
-                    git.add().addFilepattern(GIT_COMMIT_ALL_ITEMS).call();
+                    addCommand.call();
                     logger.debug("Git add all published items completed.");
 
                     commitMessage = commitMessage.replace("{username}", author);
