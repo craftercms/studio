@@ -61,6 +61,7 @@ import org.craftercms.studio.api.v1.to.DmDeploymentTaskTO;
 import org.craftercms.studio.api.v1.to.PublishStatus;
 import org.craftercms.studio.api.v1.to.PublishingChannelTO;
 import org.craftercms.studio.api.v1.to.PublishingTargetTO;
+import org.craftercms.studio.api.v1.to.RepoOperationTO;
 import org.craftercms.studio.api.v1.util.DmContentItemComparator;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
@@ -878,19 +879,56 @@ public class DeploymentServiceImpl implements DeploymentService {
         List<PublishRequest> newItems = new ArrayList<PublishRequest>(commitIds.size());
         String packageId = UUID.randomUUID().toString();
         for (String commitId : commitIds) {
-            PublishRequest item = new PublishRequest();
-            item.setId(++CTED_AUTOINCREMENT);
-            item.setSite(site);
-            item.setEnvironment(environment);
-            item.setPath("N/A");
-            item.setScheduledDate(scheduledDate);
-            item.setState(PublishRequest.State.READY_FOR_LIVE);
-            item.setAction("N/A");
-            item.setCommitId(commitId);
-            item.setContentTypeClass("N/A");
-            item.setUser(approver);
-            item.setPackageId(packageId);
-            newItems.add(item);
+
+            List<RepoOperationTO> operations = contentRepository.getOperations(site, commitId + "~1", commitId);
+
+            for (RepoOperationTO op : operations) {
+
+                PublishRequest item = new PublishRequest();
+                item.setId(++CTED_AUTOINCREMENT);
+                item.setSite(site);
+                item.setEnvironment(environment);
+                item.setScheduledDate(scheduledDate);
+                item.setState(PublishRequest.State.READY_FOR_LIVE);
+                item.setCommitId(commitId);
+                item.setUser(approver);
+                item.setPackageId(packageId);
+
+                switch (op.getOperation()) {
+                    case CREATE:
+                    case COPY:
+                        item.setPath(op.getPath());
+                        item.setAction(PublishRequest.Action.NEW);
+                        item.setContentTypeClass(contentService.getContentTypeClass(site, op.getPath()));
+                        break;
+
+                    case UPDATE:
+                        item.setPath(op.getPath());
+                        item.setAction(PublishRequest.Action.UPDATE);
+                        item.setContentTypeClass(contentService.getContentTypeClass(site, op.getPath()));
+                        break;
+
+                    case DELETE:
+                        item.setPath(op.getPath());
+                        item.setAction(PublishRequest.Action.DELETE);
+                        item.setContentTypeClass(contentService.getContentTypeClass(site, op.getPath()));
+                        break;
+
+                    case MOVE:
+                        item.setPath(op.getMoveToPath());
+                        item.setOldPath(op.getPath());
+                        item.setAction(PublishRequest.Action.MOVE);
+                        item.setContentTypeClass(contentService.getContentTypeClass(site, op.getPath()));
+                        break;
+
+                    default:
+                        logger.error("Error: Unknown repo operation for site " + site + " operation: " +
+                                op.getOperation());
+                        break;
+                }
+
+                newItems.add(item);
+            }
         }
         return newItems;
     }
