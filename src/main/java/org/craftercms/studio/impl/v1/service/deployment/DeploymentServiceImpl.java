@@ -93,6 +93,7 @@ import static org.craftercms.studio.api.v1.service.objectstate.State.NEW_DELETED
 import static org.craftercms.studio.api.v1.service.objectstate.State.NEW_SUBMITTED_NO_WF_SCHEDULED;
 import static org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.DELETE;
 import static org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.SUBMIT_WITHOUT_WORKFLOW_SCHEDULED;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.PREVIOUS_COMMIT_SUFFIX;
 
 /**
  */
@@ -859,11 +860,14 @@ public class DeploymentServiceImpl implements DeploymentService {
         if (!checkCommitIds(site, commitIds)) {
             throw new CommitNotFoundException();
         }
+        logger.debug("Creating publish request items for queue for site " + site + " environment " + environment);
         List<PublishRequest> publishRequests = createCommitItems(site, environment, commitIds,
                 ZonedDateTime.now(ZoneOffset.UTC), securityService.getCurrentUser());
+        logger.debug("Insert publish request items to the queue");
         for (PublishRequest request : publishRequests) {
             publishRequestMapper.insertItemForDeployment(request);
         }
+        logger.debug("Completed adding commits to publishing queue");
     }
 
     private boolean checkCommitIds(String site, List<String> commitIds) {
@@ -878,12 +882,14 @@ public class DeploymentServiceImpl implements DeploymentService {
                                                    ZonedDateTime scheduledDate, String approver) {
         List<PublishRequest> newItems = new ArrayList<PublishRequest>(commitIds.size());
         String packageId = UUID.randomUUID().toString();
+        logger.debug("Get repository operations for each commit id and create publish request items");
         for (String commitId : commitIds) {
-
-            List<RepoOperationTO> operations = contentRepository.getOperations(site, commitId + "~1", commitId);
+            logger.debug("Get repository operations for commit " + commitId);
+            List<RepoOperationTO> operations = contentRepository.getOperations(site, commitId + PREVIOUS_COMMIT_SUFFIX,
+                    commitId);
 
             for (RepoOperationTO op : operations) {
-
+                logger.debug("Creating publish request item: ");
                 PublishRequest item = new PublishRequest();
                 item.setId(++CTED_AUTOINCREMENT);
                 item.setSite(site);
@@ -924,12 +930,13 @@ public class DeploymentServiceImpl implements DeploymentService {
                     default:
                         logger.error("Error: Unknown repo operation for site " + site + " operation: " +
                                 op.getOperation());
-                        break;
+                        continue;
                 }
-
+                logger.debug("\tPath: " + item.getPath() + " operation: " + item.getAction());
                 newItems.add(item);
             }
         }
+        logger.debug("Created " + newItems.size() + " publish request items for queue");
         return newItems;
     }
 

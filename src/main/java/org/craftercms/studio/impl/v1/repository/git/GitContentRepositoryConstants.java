@@ -43,4 +43,6 @@ public interface GitContentRepositoryConstants {
     String CONFIG_PARAMETER_URL = "url";
     String CONFIG_PARAMETER_FETCH = "fetch";
     String CONFIG_PARAMETER_FETCH_DEFAULT = "+refs/heads/*:refs/remotes/origin/*";
+
+    String PREVIOUS_COMMIT_SUFFIX = "~1";
 }
