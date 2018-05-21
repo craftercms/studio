@@ -33,7 +33,7 @@ try {
     def slurper = new JsonSlurper()
     def parsedReq = slurper.parseText(requestBody)
 
-    def siteId = parsedReq.site
+    def siteId = parsedReq.site_id
     def environment = parsedReq.environment
     def commitIds = parsedReq.commit_ids
 
@@ -45,11 +45,11 @@ try {
     try {
         if (StringUtils.isEmpty(siteId)) {
             invalidParams = true
-            paramsList.add("site")
+            paramsList.add("site_id")
         }
     } catch (Exception exc) {
         invalidParams = true
-        paramsList.add("site")
+        paramsList.add("site_id")
     }
 
 // environment
