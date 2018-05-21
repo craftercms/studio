@@ -1,6 +1,5 @@
 /*
- * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2017 Crafter Software Corporation.
+ * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,6 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 
 package org.craftercms.studio.impl.v1.service.security;
@@ -64,6 +64,8 @@ import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_LDA
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_LDAP_USER_ATTRIBUTE_GROUP_NAME_REGEX;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_LDAP_USER_ATTRIBUTE_LAST_NAME;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_LDAP_USER_ATTRIBUTE_SITE_ID;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_LDAP_USER_ATTRIBUTE_SITE_ID_MATCH_INDEX;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_LDAP_USER_ATTRIBUTE_SITE_ID_REGEX;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_LDAP_USER_ATTRIBUTE_USERNAME;
 import static org.springframework.ldap.query.LdapQueryBuilder.query;
 
@@ -131,7 +133,7 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
                         while (siteIdValues.hasMore()) {
                             Object siteIdObj = siteIdValues.next();
                             if (siteIdObj != null) {
-                                siteId = siteIdObj.toString();
+                                siteId = extractSiteIdFromAttributeValue(siteIdObj.toString());
                                 params.put("siteId", siteId);
                                 siteFeed = siteFeedMapper.getSite(params);
                                 if (siteFeed != null) {
@@ -296,6 +298,18 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
         if (matcher.matches()) {
             int index = Integer.parseInt(
                     studioConfiguration.getProperty(SECURITY_LDAP_USER_ATTRIBUTE_GROUP_NAME_MATCH_INDEX));
+            return matcher.group(index);
+        }
+        return StringUtils.EMPTY;
+    }
+
+    private String extractSiteIdFromAttributeValue(String siteIdAttributeValue) {
+        Pattern pattern =
+                Pattern.compile(studioConfiguration.getProperty(SECURITY_LDAP_USER_ATTRIBUTE_SITE_ID_REGEX));
+        Matcher matcher = pattern.matcher(siteIdAttributeValue);
+        if (matcher.matches()) {
+            int index = Integer.parseInt(
+                    studioConfiguration.getProperty(SECURITY_LDAP_USER_ATTRIBUTE_SITE_ID_MATCH_INDEX));
             return matcher.group(index);
         }
         return StringUtils.EMPTY;
