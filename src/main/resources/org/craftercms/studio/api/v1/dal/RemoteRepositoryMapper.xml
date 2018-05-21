@@ -54,4 +54,8 @@
     <delete id="deleteRemoteRepository" parameterType="java.util.Map">
         DELETE FROM remote_repository WHERE site_id = #{siteId} AND remote_name = #{remoteName}
     </delete>
+
+    <delete id="deleteRemoteRepositoriesForSite" parameterType="java.util.Map">
+        DELETE FROM remote_repository WHERE site_id = #{siteId}
+    </delete>
 </mapper>

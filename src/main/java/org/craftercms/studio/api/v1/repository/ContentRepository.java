@@ -413,6 +413,13 @@ public interface ContentRepository {
     boolean removeRemote(String siteId, String remoteName);
 
     /**
+     * Remove all remotes for given site
+     *
+     * @param siteId site identifier
+     */
+    void removeRemoteRepositoriesForSite(String siteId);
+
+    /**
      * List remote repositories for given site
      *
      * @param siteId site identifier

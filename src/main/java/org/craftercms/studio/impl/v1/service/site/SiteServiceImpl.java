@@ -1154,6 +1154,7 @@ public class SiteServiceImpl implements SiteService {
 	        objectMetadataManager.deleteObjectMetadataForSite(siteId);
 	        dmPageNavigationOrderService.deleteSequencesForSite(siteId);
 	        contentRepository.deleteGitLogForSite(siteId);
+	        contentRepository.removeRemoteRepositoriesForSite(siteId);
 	        insertDeleteSiteAuditLog(siteId);
 	    } catch(Exception e) {
 		    success = false;

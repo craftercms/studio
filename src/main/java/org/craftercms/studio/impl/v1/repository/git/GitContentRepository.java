@@ -88,6 +88,7 @@ import org.craftercms.studio.api.v1.to.RepoOperationTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
+import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.CheckoutCommand;
 import org.eclipse.jgit.api.CreateBranchCommand;
 import org.eclipse.jgit.api.Git;
@@ -1189,6 +1190,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     Set<String> deployedCommits = new HashSet<String>();
                     Set<String> deployedPackages = new HashSet<String>();
                     logger.debug("Checkout deployed files started.");
+                    AddCommand addCommand = git.add();
                     for (DeploymentItemTO deploymentItem : deploymentItems) {
                         commitId = deploymentItem.getCommitId();
                         path = helper.getGitPath(deploymentItem.getPath());
@@ -1219,6 +1221,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         if (StringUtils.isNotEmpty(packageId)) {
                             deployedPackages.add(deploymentItem.getPackageId());
                         }
+
+                        addCommand.addFilepattern(path);
                     }
                     logger.debug("Checkout deployed files completed.");
 
@@ -1230,7 +1234,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     logger.debug("Get Author Ident completed.");
 
                     logger.debug("Git add all published items started.");
-                    git.add().addFilepattern(GIT_COMMIT_ALL_ITEMS).call();
+                    addCommand.call();
                     logger.debug("Git add all published items completed.");
 
                     commitMessage = commitMessage.replace("{username}", author);
@@ -1953,6 +1957,13 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     @Override
+    public void removeRemoteRepositoriesForSite(String siteId) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("siteId", siteId);
+        remoteRepositoryMapper.deleteRemoteRepositoriesForSite(params);
+    }
+
+    @Override
     public List<RemoteRepositoryInfoTO> listRemote(String siteId) throws ServiceException {
         List<RemoteRepositoryInfoTO> res = new ArrayList<RemoteRepositoryInfoTO>();
         try (Repository repo = helper.getRepository(siteId, SANDBOX)) {
@@ -2023,7 +2034,12 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     for (RemoteConfig conf : resultRemotes) {
                         RemoteRepositoryInfoTO rri = new RemoteRepositoryInfoTO();
                         rri.setName(conf.getName());
-                        rri.setBranches(remoteBranches.get(rri.getName()));
+                        List<String> branches = remoteBranches.get(rri.getName());
+                        if (CollectionUtils.isEmpty(branches)) {
+                            branches = new ArrayList<String>();
+                            branches.add(studioConfiguration.getProperty(REPO_SANDBOX_BRANCH));
+                        }
+                        rri.setBranches(branches);
 
                         StringBuilder sbUrl = new StringBuilder();
                         if (CollectionUtils.isNotEmpty(conf.getURIs())) {
