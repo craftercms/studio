@@ -1775,6 +1775,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         boolean toRet = true;
         try (Repository repo = helper.getRepository(siteId, SANDBOX)) {
             try (Git git = new Git(repo)) {
+                boolean pkauth = false;
+                final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(),".tmp");
                 PushCommand pushCommand = git.push();
                 switch (authenticationType) {
                     case RemoteRepository.AuthenticationType.NONE:
@@ -1784,6 +1786,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         logger.debug("Basic authentication");
                         pushCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(remoteUsername,
                                 remotePassword));
+                        pushCommand.call();
                         break;
                     case RemoteRepository.AuthenticationType.TOKEN:
                         logger.debug("Token based authentication");
@@ -1792,7 +1795,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         break;
                     case RemoteRepository.AuthenticationType.PRIVATE_KEY:
                         logger.debug("Private key authentication");
-                        final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(),".tmp");
+
                         tempKey.toFile().deleteOnExit();
                         pushCommand.setTransportConfigCallback(new TransportConfigCallback() {
                             @Override
@@ -1801,8 +1804,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                                 sshTransport.setSshSessionFactory(getSshSessionFactory(remotePrivateKey, tempKey));
                             }
                         });
-                        pushCommand.call();
-                        Files.delete(tempKey);
+                        pkauth = true;
                         break;
                     default:
                         throw new ServiceException("Unsupported authentication type " + authenticationType);
@@ -1813,6 +1815,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         .setPushAll()
                         .setRemote(remoteName)
                         .call();
+                if (pkauth) Files.delete(tempKey);
 
                 logger.debug("Check push result to verify it was success");
                 Iterator<PushResult> resultIter = result.iterator();
@@ -2242,7 +2245,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
                 @Override
                 protected JSch createDefaultJSch(FS fs) throws JSchException {
-                    JSch defaultJSch = super.createDefaultJSch(fs);
+                    JSch defaultJSch = new JSch();
                     defaultJSch.addIdentity(tempKey.toAbsolutePath().toString());
                     return defaultJSch;
                 }
