@@ -28,10 +28,11 @@ import java.time.ZonedDateTime
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.API_REQUEST_PARAM_SITE
 import static org.craftercms.studio.api.v1.constant.StudioConstants.API_REQUEST_PARAM_ENTITIES
+import static org.craftercms.studio.api.v1.constant.StudioConstants.API_REQUEST_PARAM_SITE_ID
 
 def result = [:]
 try {
-    def site = request.getParameter(API_REQUEST_PARAM_SITE)
+    def site = request.getParameter(API_REQUEST_PARAM_SITE_ID)
     def requestBody = request.reader.text
 
     def slurper = new JsonSlurper()
@@ -51,7 +52,7 @@ try {
     def submissionComment = parsedReq.submission_comment
 
     /** Validate Parameters */
-    def invalidParams = false;
+    def invalidParams = false
     def paramsList = []
 
 
@@ -59,12 +60,13 @@ try {
 // site
     try {
         if (StringUtils.isEmpty(site)) {
+            site = request.getParameter(API_REQUEST_PARAM_SITE)
             invalidParams = true
-            paramsList.add(API_REQUEST_PARAM_SITE)
+            paramsList.add(API_REQUEST_PARAM_SITE_ID)
         }
     } catch (Exception exc) {
         invalidParams = true
-        paramsList.add(API_REQUEST_PARAM_SITE)
+        paramsList.add(API_REQUEST_PARAM_SITE_ID)
     }
 
 // paths

@@ -1,7 +1,5 @@
-
 /*
- * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2016 Crafter Software Corporation.
+ * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,25 +13,40 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
-import scripts.api.DeploymentServices;
 
-def result
-def site = params.site;
-def path = params.path;
-/*
-var valid = true;
 
-if (site == undefined) {
-    status.code = 400;
-    status.message = "Site must be provided.";
-    status.redirect = true;
-    valid = false;
+import org.apache.commons.lang3.StringUtils
+import scripts.api.DeploymentServices
+
+def result = [:]
+def site = params.site_id
+def path = params.path
+
+/** Validate Parameters */
+def invalidParams = false
+def paramsList = []
+
+// site_id
+try {
+    if (StringUtils.isEmpty(site)) {
+        site = params.site
+        if (StringUtils.isEmpty(site)) {
+            invalidParams = true
+            paramsList.add("site_id")
+        }
+    }
+} catch (Exception exc) {
+    invalidParams = true
+    paramsList.add("site_id")
 }
-if (valid) {
-    model.result = dmPublishService.getAvailablePublishingChannelGroups(site, path);
-}*/
-def context = DeploymentServices.createContext(applicationContext, request);
-result = DeploymentServices.getAvailablePublishingChannelGroups(context, site, path);
 
-return result;
+if (invalidParams) {
+    response.setStatus(400)
+    result.message = "Invalid parameter(s): " + paramsList
+} else {
+    def context = DeploymentServices.createContext(applicationContext, request)
+    result = DeploymentServices.getAvailablePublishingChannelGroups(context, site, path)
+}
+return result

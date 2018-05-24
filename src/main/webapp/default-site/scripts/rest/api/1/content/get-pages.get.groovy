@@ -1,6 +1,5 @@
 /*
- * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2016 Crafter Software Corporation.
+ * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,41 +13,46 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 
 /**
  * @author Dejan Brkic
  */
 
-import scripts.api.ContentServices;
+import org.apache.commons.lang3.StringUtils
+import scripts.api.ContentServices
 
 def result = [:]
-def site = params.site;
-def path = params.path;
-def depth = params.depth.toInteger();
-def order = params.order;
-/*
-var valid = true;
+def site = params.site_id
+def path = params.path
+def depth = params.depth.toInteger()
+def order = params.order
 
-if (depth == null) {
-    depth = 0;
-}
-if (site == undefined || site == '')
-{
-    status.code = 400;
-    status.message = "Site must be provided.";
-    status.redirect = true;
-    valid = false;
-}
-if (path == undefined || path == '')
-{
-    status.code = 400;
-    status.message = "Path must be provided.";
-    status.redirect = true;
-    valid = false;
-}
-*/
-def context = ContentServices.createContext(applicationContext, request)
-result.item = ContentServices.getPages(context, site, path, depth, order, true);
+/** Validate Parameters */
+def invalidParams = false
+def paramsList = []
 
-return result;
+// site_id
+try {
+    if (StringUtils.isEmpty(site)) {
+        site = params.site
+        if (StringUtils.isEmpty(site)) {
+            invalidParams = true
+            paramsList.add("site_id")
+        }
+    }
+} catch (Exception exc) {
+    invalidParams = true
+    paramsList.add("site_id")
+}
+
+if (invalidParams) {
+    response.setStatus(400)
+    result.message = "Invalid parameter(s): " + paramsList
+} else {
+    def context = ContentServices.createContext(applicationContext, request)
+    result.item = ContentServices.getPages(context, site, path, depth, order, true)
+
+}
+return result

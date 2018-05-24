@@ -1,7 +1,5 @@
-
 /*
- * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2016 Crafter Software Corporation.
+ * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,29 +13,42 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
-import scripts.api.SecurityServices;
+
+import org.apache.commons.lang3.StringUtils
+import scripts.api.SecurityServices
 
 // extract parameters
 def result = [:]
-def user = params.user;
-def site = params.site;
-/* params check
-if (site == null || site == "")
-{
-    status.code = 400;
-    status.message = "Site must be provided.";
-    status.redirect = true;
+def user = params.user
+def site = params.site_id
+
+/** Validate Parameters */
+def invalidParams = false
+def paramsList = []
+
+// site_id
+try {
+    if (StringUtils.isEmpty(site)) {
+        site = params.site
+        if (StringUtils.isEmpty(site)) {
+            invalidParams = true
+            paramsList.add("site_id")
+        }
+    }
+} catch (Exception exc) {
+    invalidParams = true
+    paramsList.add("site_id")
+}
+
+if (invalidParams) {
+    response.setStatus(400)
+    result.message = "Invalid parameter(s): " + paramsList
 } else {
-    if (user == undefined || user == "")
-    {
-        status.code = 400;
-        status.message = "User must be provided.";
-        status.redirect = true;
-    }  else {
-    */
-def context = SecurityServices.createContext(applicationContext, request)
-result.roles = SecurityServices.getUserRoles(context, site, user);
+    def context = SecurityServices.createContext(applicationContext, request)
+    result.roles = SecurityServices.getUserRoles(context, site, user)
+}
 return result
 
 

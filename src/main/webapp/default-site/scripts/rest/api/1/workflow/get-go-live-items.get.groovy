@@ -1,6 +1,5 @@
 /*
- * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2014 Crafter Software Corporation.
+ * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,63 +13,66 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 
 /**
  * @author Dejan Brkic
  */
 
-import scripts.api.WorkflowServices;
+import org.apache.commons.lang3.StringUtils
+import scripts.api.WorkflowServices
 
 // extract parameters
-def result = [:];
-def sort = params.sort;
-def site = params.site;
-def ascending = params.ascending;
+def result = [:]
+def sort = params.sort
+def site = params.site_id
+def ascending = params.ascending
 if (ascending != null) {
-    ascending = ascending.toBoolean();
+    ascending = ascending.toBoolean()
 } else {
     ascending = false
 }
-def inProgressOnly = params.inProgressOnly;
+def inProgressOnly = params.inProgressOnly
 if (inProgressOnly != null) {
-    inProgressOnly = inProgressOnly.toBoolean();
+    inProgressOnly = inProgressOnly.toBoolean()
 } else {
     inProgressOnly = false
 }
-def includeInProgress = params.includeInProgress;
+def includeInProgress = params.includeInProgress
 if (includeInProgress != null) {
-    includeInProgress = includeInProgress.toBoolean();
+    includeInProgress = includeInProgress.toBoolean()
 } else {
     includeInProgress = false
 }
-/*
-if (site == undefined || site == "")
-{
-    status.code = 400;
-    status.message = "Site must be provided.";
-    status.redirect = true;
-} else {
-    if (ascending == undefined) {
-        ascending = "false"; // 0 is descending, 1 is ascending
-    }
-    if (sort == undefined)
-    {
-        sort = "eventDate";
-    }
 
-    if ((inProgressOnly != undefined && inProgressOnly == 'true') ||
-            (includeInProgress != undefined && includeInProgress == 'true')) {
-        model.result = dmWorkflowService.getInProgressItems(site, sub, sort, ascending, inProgressOnly);
-    } else {
-        model.result = dmWorkflowService.getGoLiveItems(site, sub, sort, ascending);
+/** Validate Parameters */
+def invalidParams = false
+def paramsList = []
+
+// site_id
+try {
+    if (StringUtils.isEmpty(site)) {
+        site = params.site
+        if (StringUtils.isEmpty(site)) {
+            invalidParams = true
+            paramsList.add("site_id")
+        }
     }
-}*/
-def context = WorkflowServices.createContext(applicationContext, request)
-if (inProgressOnly || includeInProgress) {
-    result = WorkflowServices.getInProgressItems(context, site, sort, ascending, inProgressOnly);
-} else {
-    result = WorkflowServices.getGoLiveItems(context, site, sort, ascending);
+} catch (Exception exc) {
+    invalidParams = true
+    paramsList.add("site_id")
 }
 
-return result;
+if (invalidParams) {
+    response.setStatus(400)
+    result.message = "Invalid parameter(s): " + paramsList
+} else {
+    def context = WorkflowServices.createContext(applicationContext, request)
+    if (inProgressOnly || includeInProgress) {
+        result = WorkflowServices.getInProgressItems(context, site, sort, ascending, inProgressOnly)
+    } else {
+        result = WorkflowServices.getGoLiveItems(context, site, sort, ascending)
+    }
+}
+return result
