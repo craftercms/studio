@@ -60,6 +60,7 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARAT
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.PUBLISHING_MANAGER_INDEX_FILE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.
         PUBLISHING_MANAGER_PUBLISHING_WITHOUT_DEPENDENCIES_ENABLED;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_PUBLISHED_ENVIRONMENT_LIVE;
 
 public class PublishingManagerImpl implements PublishingManager {
 
@@ -116,6 +117,13 @@ public class PublishingManagerImpl implements PublishingManager {
         String user = item.getUser();
 
         String liveEnvironment = LIVE_ENVIRONMENT;
+
+        boolean publishedEnvironmentsEnabled = Boolean.parseBoolean(
+                studioConfiguration.getProperty(StudioConfiguration.REPO_PUBLISHED_ENVIRONMENT_ENABLED));
+        if (publishedEnvironmentsEnabled) {
+            liveEnvironment = studioConfiguration.getProperty(REPO_PUBLISHED_ENVIRONMENT_LIVE);
+        }
+
         boolean isLive = false;
 
         if (StringUtils.isNotEmpty(liveEnvironment)) {

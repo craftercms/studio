@@ -117,4 +117,12 @@ public interface DeploymentService {
      */
     void publishItems(String site, String environment, ZonedDateTime schedule, List<String> paths,
                       String submissionComment) throws ServiceException, DeploymentException;
+
+    /**
+     * Sync staging repository with live repository for given site
+     *
+     * @param siteId site id to use for syncing
+     * @param environment staging environment to sync with live
+     */
+    void syncStaging(String siteId, String environment) throws ServiceException;
 }

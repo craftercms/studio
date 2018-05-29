@@ -59,6 +59,8 @@ import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_DEPLOY_C
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_BUSY;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_IDLE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED_ERROR;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_PUBLISHED_ENVIRONMENT_LIVE;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_PUBLISHED_ENVIRONMENT_STAGING;
 
 
 public class DeployContentToEnvironmentStore extends RepositoryJob {
@@ -279,15 +281,37 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
             throws DeploymentException {
         logger.debug("Deploying " + items.size() + " item(s)");
         contentRepository.publish(site, items, environment, author, comment);
+        boolean publishedEnvironmentsEnabled = Boolean.parseBoolean(
+                studioConfiguration.getProperty(StudioConfiguration.REPO_PUBLISHED_ENVIRONMENT_ENABLED));
+        if (publishedEnvironmentsEnabled) {
+            String liveEnvironment = studioConfiguration.getProperty(REPO_PUBLISHED_ENVIRONMENT_LIVE);
+            if (StringUtils.equals(liveEnvironment, environment)) {
+                List<String> stagingEnvironments = Arrays.asList(
+                        studioConfiguration.getProperty(REPO_PUBLISHED_ENVIRONMENT_STAGING).split(","));
+                for (String stagingEnvironment : stagingEnvironments) {
+                    contentRepository.publish(site, items, stagingEnvironment, author, comment);
+                }
+            }
+        }
     }
 
     private Set<String> getAllPublishingEnvironments(String site) {
-        List<PublishingTargetTO> publishingTargets = siteService.getPublishingTargetsForSite(site);
         Set<String> environments = new HashSet<String>();
-        if (publishingTargets != null && publishingTargets.size() > 0) {
-            for (PublishingTargetTO target : publishingTargets) {
-                if (StringUtils.isNotEmpty(target.getRepoBranchName())) {
-                    environments.add(target.getRepoBranchName());
+        boolean publishedEnvironmentsEnabled = Boolean.parseBoolean(
+                studioConfiguration.getProperty(StudioConfiguration.REPO_PUBLISHED_ENVIRONMENT_ENABLED));
+        if (publishedEnvironmentsEnabled) {
+            environments.add(studioConfiguration.getProperty(StudioConfiguration.REPO_PUBLISHED_ENVIRONMENT_LIVE));
+            List<String> stagingEnvironments = Arrays.asList(
+                    studioConfiguration.getProperty(REPO_PUBLISHED_ENVIRONMENT_STAGING).split(","));
+            environments.addAll(stagingEnvironments);
+        } else {
+            List<PublishingTargetTO> publishingTargets = siteService.getPublishingTargetsForSite(site);
+
+            if (publishingTargets != null && publishingTargets.size() > 0) {
+                for (PublishingTargetTO target : publishingTargets) {
+                    if (StringUtils.isNotEmpty(target.getRepoBranchName())) {
+                        environments.add(target.getRepoBranchName());
+                    }
                 }
             }
         }

@@ -101,9 +101,11 @@ import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.TagCommand;
 import org.eclipse.jgit.api.TransportConfigCallback;
+import org.eclipse.jgit.api.errors.CannotDeleteCurrentBranchException;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.api.errors.JGitInternalException;
+import org.eclipse.jgit.api.errors.NotMergedException;
 import org.eclipse.jgit.api.errors.RefNotFoundException;
 import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.diff.DiffEntry;
@@ -2262,6 +2264,24 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         Path p = Paths.get(helper.buildRepoPath(SANDBOX, siteId).toAbsolutePath().toString(), path);
         File file = p.toFile();
         return file.isDirectory();
+    }
+
+    @Override
+    public void syncPublishedRepository(String siteId, String repoToSync, String syncFrom) throws ServiceException {
+        Repository repo = helper.getRepository(siteId, GitRepositories.PUBLISHED);
+        try (Git git = new Git(repo)) {
+            logger.debug("Delete branch that needs to be synced for site: " + siteId);
+            git.branchDelete().setBranchNames(repoToSync).setForce(true).call();
+
+            logger.debug("Checkout branch named as repository that needs sync, set starting poitn");
+            git.branchCreate()
+                    .setName(repoToSync)
+                    .setStartPoint(syncFrom)
+                    .call();
+        } catch (GitAPIException e) {
+            logger.error("Error while syncing staging with live for site: " + siteId);
+            throw new ServiceException(e);
+        }
     }
 
     public void setServletContext(ServletContext ctx) {

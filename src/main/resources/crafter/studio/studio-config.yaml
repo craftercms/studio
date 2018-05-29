@@ -25,6 +25,12 @@ studio.repo.siteSandboxPath: sandbox
 studio.repo.siteSandboxBranch: master
 # Published git repository name under every site
 studio.repo.sitePublishedPath: published
+# Published Environments config using yaml enabled if true
+studio.repo.sitePublishedEnvironment.enabled: false
+# Published git repository branch for live environment
+studio.repo.sitePublishedEnvironment.live: live
+# Published git repository branch for staging environments (comma separated value)
+studio.repo.sitePublishedEnvironment.staging: staging
 # Blueprints folder name under global
 studio.repo.blueprintsPath: blueprints
 # Bootstrap the repository with fresh content if no repository is detected in the paths specified. Default is true.

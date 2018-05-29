@@ -458,6 +458,15 @@ public interface ContentRepository {
      */
     boolean isFolder(String siteId, String path);
 
+    /**
+     * Sync published repositories for given site
+     *
+     * @param siteId site identifier to use for syncing
+     * @param repoToSync
+     * @param syncFrom
+     */
+    void syncPublishedRepository(String siteId, String repoToSync, String syncFrom) throws ServiceException;
+
     /*
     List<PublishTO> getPublishEvents(String site, String commitIdFrom, String commitIdTo);
     List<PublishTO> getPublishEvents(String site, String commitIdFrom);

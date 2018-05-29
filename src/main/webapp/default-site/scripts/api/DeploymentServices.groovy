@@ -67,4 +67,9 @@ class DeploymentServices {
         def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context)
         return deploymentServicesImpl.publishItems(site, environment, schedule, paths, submissionComment)
     }
+
+    static syncStaging(context, siteId, environment) {
+        def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context)
+        return deploymentServicesImpl.syncStaging(siteId, environment)
+    }
 }
