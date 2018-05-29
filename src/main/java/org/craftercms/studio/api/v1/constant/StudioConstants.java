@@ -140,6 +140,7 @@ package org.craftercms.studio.api.v1.constant;
      * API Request Parameter Names
      */
     String API_REQUEST_PARAM_SITE = "site";
+    String API_REQUEST_PARAM_SITE_ID = "site_id";
     String API_REQUEST_PARAM_ENTITIES = "entities";
     String API_REQUEST_PARAM_ENVIRONMENT = "environment";
 }

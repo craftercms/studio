@@ -1,7 +1,5 @@
-
 /*
- * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2014 Crafter Software Corporation.
+ * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,58 +13,70 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 
 /**
  * @auhor Dejan Brkic
  */
 
-import scripts.api.ActivityServices;
+import org.apache.commons.lang3.StringUtils
+import scripts.api.ActivityServices
 
 def result = [:]
-def site = params.site;
-def user = params.user;
-def num = params.num.toInteger();
-def excludeLive = params.excludeLive;
-def valid = true;
-def filterType = params.filterType;
+def site = params.site_id
+def user = params.user
+def num = 10
+def excludeLive = params.excludeLive
+def valid = true
+def filterType = params.filterType
 
-/*
-TODO: params check
-
-if (site == undefined) {
-    status.code = 400;
-    status.message = "Site must be provided.";
-    status.redirect = true;
-    valid = false;
-}
-if (user == undefined) {
-    status.code = 400;
-    status.message = "Site must be provided.";
-    status.redirect = true;
-    valid = false;
-}
-if (valid) {
-    if (num == undefined || num == "") {
-        num = "10";
+/** Validate Parameters */
+def invalidParams = false
+def paramsList = []
+// site_id
+try {
+    if (StringUtils.isEmpty(site)) {
+        site = params.site
+        if (StringUtils.isEmpty(site)) {
+            invalidParams = true
+            paramsList.add("site_id")
+        }
     }
-    if (excludeLive != undefined && excludeLive == "true") {
-        model.result = dmActivityService.getActivities(site, user, num, "eventDate", false, true,filterType);
-    } else {
-        model.result = dmActivityService.getActivities(site, user, num, "eventDate", false, false,filterType);
+} catch (Exception exc) {
+    invalidParams = true
+    paramsList.add("site_id")
+}
+
+// num
+try {
+    if (StringUtils.isNotEmpty(params.num)) {
+        num = params.num.toInteger()
+        if (num < 0) {
+            invalidParams = true
+            paramsList.add("num")
+        }
     }
-}*/
+} catch (Exception exc) {
+    invalidParams = true
+    paramsList.add("num")
+}
 
-def context = ActivityServices.createContext(applicationContext, request)
-def activities;
-if (excludeLive != null && excludeLive != "undefined" && excludeLive == "true") {
-    activities = ActivityServices.getActivities(context, site, user, num, "eventDate", false, true, filterType);
-
+if (invalidParams) {
+    response.setStatus(400)
+    result.message = "Invalid parameter(s): " + paramsList
 } else {
-    activities = ActivityServices.getActivities(context, site, user, num, "eventDate", false, false, filterType);
+    def context = ActivityServices.createContext(applicationContext, request)
+    def activities
+    if (excludeLive != null && excludeLive != "undefined" && excludeLive == "true") {
+        activities = ActivityServices.getActivities(context, site, user, num, "eventDate", false, true, filterType)
+
+    } else {
+        activities = ActivityServices.getActivities(context, site, user, num, "eventDate", false, false, filterType)
+    }
+    result.total = activities.size()
+    result.sortedBy = "eventDate"
+    result.ascending = "false"
+    result.documents = activities
 }
-result.total = activities.size();
-result.sortedBy = "eventDate";
-result.ascending = "false";
-result.documents = activities;
 return result

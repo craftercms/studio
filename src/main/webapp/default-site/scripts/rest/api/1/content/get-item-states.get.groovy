@@ -1,6 +1,5 @@
 /*
- * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2016 Crafter Software Corporation.
+ * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,46 +13,69 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
-import scripts.api.ObjectStateServices;
 
-def result = [:];
-def site = params.site;
-def state = params.state;
+import org.apache.commons.lang3.StringUtils
+import scripts.api.ObjectStateServices
 
-def states = new java.util.ArrayList();
+def result = [:]
+def site = params.site_id
+def state = params.state
 
-if(state != "ALL") {
-    states.add(state);
+/** Validate Parameters */
+def invalidParams = false
+def paramsList = []
+
+// site_id
+try {
+    if (StringUtils.isEmpty(site)) {
+        site = params.site
+        if (StringUtils.isEmpty(site)) {
+            invalidParams = true
+            paramsList.add("site_id")
+        }
+    }
+} catch (Exception exc) {
+    invalidParams = true
+    paramsList.add("site_id")
 }
-else {
-    states.add("NEW_UNPUBLISHED_LOCKED");
-    states.add("NEW_UNPUBLISHED_UNLOCKED");
-    states.add("NEW_SUBMITTED_WITH_WF_SCHEDULED");
-    states.add("NEW_SUBMITTED_WITH_WF_SCHEDULED_LOCKED");
-    states.add("NEW_SUBMITTED_WITH_WF_UNSCHEDULED");
-    states.add("NEW_SUBMITTED_WITH_WF_UNSCHEDULED_LOCKED");
-    states.add("NEW_SUBMITTED_NO_WF_SCHEDULED");
-    states.add("NEW_SUBMITTED_NO_WF_SCHEDULED_LOCKED");
-    states.add("NEW_SUBMITTED_NO_WF_UNSCHEDULED");
-    states.add("NEW_PUBLISHING_FAILED");
-    states.add("NEW_DELETED");
-    states.add("EXISTING_UNEDITED_LOCKED");
-    states.add("EXISTING_UNEDITED_UNLOCKED");
-    states.add("EXISTING_EDITED_LOCKED");
-    states.add("EXISTING_EDITED_UNLOCKED");
-    states.add("EXISTING_SUBMITTED_WITH_WF_SCHEDULED");
-    states.add("EXISTING_SUBMITTED_WITH_WF_SCHEDULED_LOCKED");
-    states.add("EXISTING_SUBMITTED_WITH_WF_UNSCHEDULED");
-    states.add("EXISTING_SUBMITTED_WITH_WF_UNSCHEDULED_LOCKED");
-    states.add("EXISTING_SUBMITTED_NO_WF_SCHEDULED");
-    states.add("EXISTING_SUBMITTED_NO_WF_SCHEDULED_LOCKED");
-    states.add("EXISTING_SUBMITTED_NO_WF_UNSCHEDULED");
-    states.add("EXISTING_PUBLISHING_FAILED");
-    states.add("EXISTING_DELETED");
+
+def states = new java.util.ArrayList()
+
+if (invalidParams) {
+    response.setStatus(400)
+    result.message = "Invalid parameter(s): " + paramsList
+} else {
+    if (state != "ALL") {
+        states.add(state)
+    } else {
+        states.add("NEW_UNPUBLISHED_LOCKED")
+        states.add("NEW_UNPUBLISHED_UNLOCKED")
+        states.add("NEW_SUBMITTED_WITH_WF_SCHEDULED")
+        states.add("NEW_SUBMITTED_WITH_WF_SCHEDULED_LOCKED")
+        states.add("NEW_SUBMITTED_WITH_WF_UNSCHEDULED")
+        states.add("NEW_SUBMITTED_WITH_WF_UNSCHEDULED_LOCKED")
+        states.add("NEW_SUBMITTED_NO_WF_SCHEDULED")
+        states.add("NEW_SUBMITTED_NO_WF_SCHEDULED_LOCKED")
+        states.add("NEW_SUBMITTED_NO_WF_UNSCHEDULED")
+        states.add("NEW_PUBLISHING_FAILED")
+        states.add("NEW_DELETED")
+        states.add("EXISTING_UNEDITED_LOCKED")
+        states.add("EXISTING_UNEDITED_UNLOCKED")
+        states.add("EXISTING_EDITED_LOCKED")
+        states.add("EXISTING_EDITED_UNLOCKED")
+        states.add("EXISTING_SUBMITTED_WITH_WF_SCHEDULED")
+        states.add("EXISTING_SUBMITTED_WITH_WF_SCHEDULED_LOCKED")
+        states.add("EXISTING_SUBMITTED_WITH_WF_UNSCHEDULED")
+        states.add("EXISTING_SUBMITTED_WITH_WF_UNSCHEDULED_LOCKED")
+        states.add("EXISTING_SUBMITTED_NO_WF_SCHEDULED")
+        states.add("EXISTING_SUBMITTED_NO_WF_SCHEDULED_LOCKED")
+        states.add("EXISTING_SUBMITTED_NO_WF_UNSCHEDULED")
+        states.add("EXISTING_PUBLISHING_FAILED")
+        states.add("EXISTING_DELETED")
+    }
+    def context = ObjectStateServices.createContext(applicationContext, request)
+    result.items = ObjectStateServices.getItemStates(context, site, states)
 }
-def context = ObjectStateServices.createContext(applicationContext, request);
-result.items = ObjectStateServices.getItemStates(context, site, states);
-return result;
-
-
+return result
