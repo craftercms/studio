@@ -59,6 +59,7 @@ import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_DEPLOY_C
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_BUSY;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_IDLE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED_ERROR;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_PUBLISHED_ENVIRONMENT_ENABLED;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_PUBLISHED_ENVIRONMENT_LIVE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_PUBLISHED_ENVIRONMENT_STAGING;
 
@@ -282,7 +283,7 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
         logger.debug("Deploying " + items.size() + " item(s)");
         contentRepository.publish(site, items, environment, author, comment);
         boolean publishedEnvironmentsEnabled = Boolean.parseBoolean(
-                studioConfiguration.getProperty(StudioConfiguration.REPO_PUBLISHED_ENVIRONMENT_ENABLED));
+                studioConfiguration.getProperty(REPO_PUBLISHED_ENVIRONMENT_ENABLED));
         if (publishedEnvironmentsEnabled) {
             String liveEnvironment = studioConfiguration.getProperty(REPO_PUBLISHED_ENVIRONMENT_LIVE);
             if (StringUtils.equals(liveEnvironment, environment)) {
@@ -298,9 +299,9 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
     private Set<String> getAllPublishingEnvironments(String site) {
         Set<String> environments = new HashSet<String>();
         boolean publishedEnvironmentsEnabled = Boolean.parseBoolean(
-                studioConfiguration.getProperty(StudioConfiguration.REPO_PUBLISHED_ENVIRONMENT_ENABLED));
+                studioConfiguration.getProperty(REPO_PUBLISHED_ENVIRONMENT_ENABLED));
         if (publishedEnvironmentsEnabled) {
-            environments.add(studioConfiguration.getProperty(StudioConfiguration.REPO_PUBLISHED_ENVIRONMENT_LIVE));
+            environments.add(studioConfiguration.getProperty(REPO_PUBLISHED_ENVIRONMENT_LIVE));
             List<String> stagingEnvironments = Arrays.asList(
                     studioConfiguration.getProperty(REPO_PUBLISHED_ENVIRONMENT_STAGING).split(","));
             environments.addAll(stagingEnvironments);
