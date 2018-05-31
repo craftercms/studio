@@ -119,10 +119,9 @@ public interface DeploymentService {
                       String submissionComment) throws ServiceException, DeploymentException;
 
     /**
-     * Sync staging repository with live repository for given site
+     * Reset staging environment to live for given site
      *
-     * @param siteId site id to use for syncing
-     * @param environment staging environment to sync with live
+     * @param siteId site id to use for resetting
      */
-    void syncStaging(String siteId, String environment) throws ServiceException;
+    void resetStagingEnvironment(String siteId) throws ServiceException;
 }

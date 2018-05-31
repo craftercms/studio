@@ -71,8 +71,8 @@ class SpringDeploymentServices {
         return springBackedService.publishItems(site, environment, schedule, paths, submissionComment)
     }
 
-    def syncStaging(siteId, environment) {
+    def resetStagingEnvironment(siteId) {
         def springBackedService = this.context.applicationContext.get(DEPLOYMENT_SERVICES_BEAN)
-        return springBackedService.syncStaging(siteId, environment)
+        return springBackedService.resetStagingEnvironment(siteId)
     }
 }

@@ -150,6 +150,8 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARAT
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.BLUE_PRINTS_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.BOOTSTRAP_REPO;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_PUBLISHED_COMMIT_MESSAGE;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_PUBLISHED_LIVE;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_PUBLISHED_STAGING;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_SANDBOX_BRANCH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_KEY;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_SALT;
@@ -2265,20 +2267,26 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     @Override
-    public void syncPublishedRepository(String siteId, String repoToSync, String syncFrom) throws ServiceException {
+    public void resetStagingRepository(String siteId) throws ServiceException {
         Repository repo = helper.getRepository(siteId, PUBLISHED);
-        try (Git git = new Git(repo)) {
-            logger.debug("Delete branch that needs to be synced for site: " + siteId);
-            git.branchDelete().setBranchNames(repoToSync).setForce(true).call();
+        String stagingName = studioConfiguration.getProperty(REPO_PUBLISHED_STAGING);
+        String liveName = studioConfiguration.getProperty(REPO_PUBLISHED_LIVE);
+        synchronized (repo) {
+            try (Git git = new Git(repo)) {
+                logger.debug("Checkout live first becuase it is not allowed to delete checkedout branch");
+                git.checkout().setName(liveName).call();
+                logger.debug("Delete staging branch in order to reset it for site: " + siteId);
+                git.branchDelete().setBranchNames(stagingName).setForce(true).call();
 
-            logger.debug("Checkout branch named as repository that needs sync, set starting poitn");
-            git.branchCreate()
-                    .setName(repoToSync)
-                    .setStartPoint(syncFrom)
-                    .call();
-        } catch (GitAPIException e) {
-            logger.error("Error while syncing staging with live for site: " + siteId);
-            throw new ServiceException(e);
+                logger.debug("Create new branch for staging with live HEAD as starting point");
+                git.branchCreate()
+                        .setName(stagingName)
+                        .setStartPoint(liveName)
+                        .call();
+            } catch (GitAPIException e) {
+                logger.error("Error while reseting staging environment for site: " + siteId);
+                throw new ServiceException(e);
+            }
         }
     }
 

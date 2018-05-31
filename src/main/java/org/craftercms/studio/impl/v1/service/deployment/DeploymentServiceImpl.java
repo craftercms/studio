@@ -75,7 +75,6 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -731,10 +730,10 @@ public class DeploymentServiceImpl implements DeploymentService {
     public Map<String, List<PublishingChannelTO>> getAvailablePublishingChannelGroups(
             @ValidateStringParam(name = "site") String site,
             @ValidateSecurePathParam(name = "path") String path) {
-        boolean publishedEnvironmentsEnabled = Boolean.parseBoolean(
-                studioConfiguration.getProperty(StudioConfiguration.REPO_PUBLISHED_ENVIRONMENT_ENABLED));
-        List<PublishingChannelTO> channelsTO = publishedEnvironmentsEnabled ?
-                getPublishedEnvironments(site) : getAvailablePublishingChannelGroupsForSite(site, path);
+        boolean siteEnvironmentConfigEnabled = Boolean.parseBoolean(
+                studioConfiguration.getProperty(StudioConfiguration.CONFIGURATION_SITE_ENVIRONMENT_CONFIG_ENABLED));
+        List<PublishingChannelTO> channelsTO = siteEnvironmentConfigEnabled ?
+                getAvailablePublishingChannelGroupsForSite(site, path) : getPublishedEnvironments(site);
         List<PublishingChannelTO> publishChannels = new ArrayList<PublishingChannelTO>();
         List<PublishingChannelTO> updateStatusChannels = new ArrayList<PublishingChannelTO>();
         for (PublishingChannelTO channelTO : channelsTO) {
@@ -766,10 +765,8 @@ public class DeploymentServiceImpl implements DeploymentService {
 
     protected Set<String> getAllPublishedEnvironments(String site) {
         Set<String> publishedEnvironments = new HashSet<String>();
-        publishedEnvironments.add(studioConfiguration.getProperty(StudioConfiguration.REPO_PUBLISHED_ENVIRONMENT_LIVE));
-        List<String> stagingEnvironments = Arrays.asList(
-                studioConfiguration.getProperty(StudioConfiguration.REPO_PUBLISHED_ENVIRONMENT_STAGING).split(","));
-        publishedEnvironments.addAll(stagingEnvironments);
+        publishedEnvironments.add(studioConfiguration.getProperty(StudioConfiguration.REPO_PUBLISHED_LIVE));
+        publishedEnvironments.add(studioConfiguration.getProperty(StudioConfiguration.REPO_PUBLISHED_STAGING));
         return publishedEnvironments;
     }
 
@@ -1000,17 +997,11 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     @Override
-    public void syncStaging(String siteId, String environment) throws ServiceException {
+    public void resetStagingEnvironment(String siteId) throws ServiceException {
         if (!siteService.exists(siteId)) {
             throw new SiteNotFoundException(siteId);
         }
-        List<String> environments = Arrays.asList(
-                studioConfiguration.getProperty(StudioConfiguration.REPO_PUBLISHED_ENVIRONMENT_STAGING).split(","));
-        if (!environments.contains(environment)) {
-            throw new EnvironmentNotFoundException(environment);
-        }
-        contentRepository.syncPublishedRepository(siteId, environment,
-                studioConfiguration.getProperty(StudioConfiguration.REPO_PUBLISHED_ENVIRONMENT_LIVE));
+        contentRepository.resetStagingRepository(siteId);
     }
 
     public void setServicesConfig(ServicesConfig servicesConfig) {

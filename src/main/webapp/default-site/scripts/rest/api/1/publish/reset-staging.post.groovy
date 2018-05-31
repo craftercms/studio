@@ -20,7 +20,6 @@
 import groovy.json.JsonException
 import groovy.json.JsonSlurper
 import org.apache.commons.lang3.StringUtils
-import org.craftercms.studio.api.v1.exception.EnvironmentNotFoundException
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException
 import scripts.api.DeploymentServices
 
@@ -32,7 +31,6 @@ try {
     def parsedReq = slurper.parseText(requestBody)
 
     def siteId = parsedReq.site_id
-    def environment = parsedReq.environment
 
 /** Validate Parameters */
     def invalidParams = false
@@ -49,17 +47,6 @@ try {
         paramsList.add("site_id")
     }
 
-    // environment
-    try {
-        if (StringUtils.isEmpty(environment)) {
-            invalidParams = true
-            paramsList.add("environment")
-        }
-    } catch (Exception exc) {
-        invalidParams = true
-        paramsList.add("environment")
-    }
-
     if (invalidParams) {
         response.setStatus(400)
         result.message = "Invalid parameter(s): " + paramsList
@@ -67,15 +54,12 @@ try {
         def context = DeploymentServices.createContext(applicationContext, request)
 
         try {
-            DeploymentServices.syncStaging(context, siteId, environment)
+            DeploymentServices.resetStagingEnvironment(context, siteId)
             response.setStatus(200)
             result.message = "OK"
         } catch (SiteNotFoundException e) {
             response.setStatus(404)
             result.message = "Site not found"
-        } catch (EnvironmentNotFoundException e) {
-            response.setStatus(404)
-            result.message = "Environment not found"
         } catch (Exception e) {
             response.setStatus(500)
             result.message = "Internal server error: \n" + e
