@@ -458,19 +458,10 @@ public interface ContentRepository {
      */
     boolean isFolder(String siteId, String path);
 
-    /*
-    List<PublishTO> getPublishEvents(String site, String commitIdFrom, String commitIdTo);
-    List<PublishTO> getPublishEvents(String site, String commitIdFrom);
-    List<PublishTO> getPublishEvents(String site, Date from, String to);
-    List<PublishTO> getPublishEvents(String site, Date from);
-    List<PublishTO> getPublishEvents(String site);
-
-    get tags or similar from now to limit
-        get delta from tag to tag
-
-    dump and resync from git
-    import site from disk
-
-    */
-
+    /**
+     * Reset staging repository to live for given site
+     *
+     * @param siteId site identifier to use for resetting
+     */
+    void resetStagingRepository(String siteId) throws ServiceException;
 }

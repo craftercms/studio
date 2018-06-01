@@ -25,6 +25,14 @@ studio.repo.siteSandboxPath: sandbox
 studio.repo.siteSandboxBranch: master
 # Published git repository name under every site
 studio.repo.sitePublishedPath: published
+# Use the legacy environment-config.xml config file (for backward compatibility),
+# if true, environment configuration listed in this file will not be considered
+studio.configuration.site.environmentConfig.enabled: true
+# If not using environment-config.xml, environments are configured here
+# Git repository branch for the `live` environment, default "live"
+studio.repo.published.live: live
+# Git repository branch for the `staging` environment, default "staging"
+studio.repo.published.staging: staging
 # Blueprints folder name under global
 studio.repo.blueprintsPath: blueprints
 # Bootstrap the repository with fresh content if no repository is detected in the paths specified. Default is true.

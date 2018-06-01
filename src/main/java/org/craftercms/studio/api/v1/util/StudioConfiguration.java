@@ -34,6 +34,9 @@ public interface StudioConfiguration {
     String BOOTSTRAP_REPO = "studio.repo.bootstrapRepo";
     String REPO_REBUILD_METADATA_BATCH_SIZE = "studio.repo.rebuildMetadata.batchSize";
     String REPO_PUBLISHED_COMMIT_MESSAGE = "studio.repo.published.commitMessage";
+    String CONFIGURATION_SITE_ENVIRONMENT_CONFIG_ENABLED = "studio.configuration.site.environmentConfig.enabled";
+    String REPO_PUBLISHED_LIVE = "studio.repo.published.live";
+    String REPO_PUBLISHED_STAGING = "studio.repo.published.staging";
 
     /** Database */
     String DB_DRIVER = "studio.db.driver";

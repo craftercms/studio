@@ -150,6 +150,8 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARAT
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.BLUE_PRINTS_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.BOOTSTRAP_REPO;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_PUBLISHED_COMMIT_MESSAGE;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_PUBLISHED_LIVE;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_PUBLISHED_STAGING;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_SANDBOX_BRANCH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_KEY;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_SALT;
@@ -2262,6 +2264,30 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         Path p = Paths.get(helper.buildRepoPath(SANDBOX, siteId).toAbsolutePath().toString(), path);
         File file = p.toFile();
         return file.isDirectory();
+    }
+
+    @Override
+    public void resetStagingRepository(String siteId) throws ServiceException {
+        Repository repo = helper.getRepository(siteId, PUBLISHED);
+        String stagingName = studioConfiguration.getProperty(REPO_PUBLISHED_STAGING);
+        String liveName = studioConfiguration.getProperty(REPO_PUBLISHED_LIVE);
+        synchronized (repo) {
+            try (Git git = new Git(repo)) {
+                logger.debug("Checkout live first becuase it is not allowed to delete checkedout branch");
+                git.checkout().setName(liveName).call();
+                logger.debug("Delete staging branch in order to reset it for site: " + siteId);
+                git.branchDelete().setBranchNames(stagingName).setForce(true).call();
+
+                logger.debug("Create new branch for staging with live HEAD as starting point");
+                git.branchCreate()
+                        .setName(stagingName)
+                        .setStartPoint(liveName)
+                        .call();
+            } catch (GitAPIException e) {
+                logger.error("Error while reseting staging environment for site: " + siteId);
+                throw new ServiceException(e);
+            }
+        }
     }
 
     public void setServletContext(ServletContext ctx) {

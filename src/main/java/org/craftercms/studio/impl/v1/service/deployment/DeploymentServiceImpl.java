@@ -730,7 +730,10 @@ public class DeploymentServiceImpl implements DeploymentService {
     public Map<String, List<PublishingChannelTO>> getAvailablePublishingChannelGroups(
             @ValidateStringParam(name = "site") String site,
             @ValidateSecurePathParam(name = "path") String path) {
-        List<PublishingChannelTO> channelsTO = getAvailablePublishingChannelGroupsForSite(site, path);
+        boolean siteEnvironmentConfigEnabled = Boolean.parseBoolean(
+                studioConfiguration.getProperty(StudioConfiguration.CONFIGURATION_SITE_ENVIRONMENT_CONFIG_ENABLED));
+        List<PublishingChannelTO> channelsTO = siteEnvironmentConfigEnabled ?
+                getAvailablePublishingChannelGroupsForSite(site, path) : getPublishedEnvironments(site);
         List<PublishingChannelTO> publishChannels = new ArrayList<PublishingChannelTO>();
         List<PublishingChannelTO> updateStatusChannels = new ArrayList<PublishingChannelTO>();
         for (PublishingChannelTO channelTO : channelsTO) {
@@ -745,6 +748,26 @@ public class DeploymentServiceImpl implements DeploymentService {
         result.put("availablePublishChannels", publishChannels);
         result.put("availableUpdateStatusChannels", updateStatusChannels);
         return result;
+    }
+
+    protected List<PublishingChannelTO> getPublishedEnvironments(String site) {
+        List<PublishingChannelTO> channelTOs = new ArrayList<PublishingChannelTO>();
+        Set<String> environments = getAllPublishedEnvironments(site);
+        for (String ch : environments) {
+            PublishingChannelTO chTO = new PublishingChannelTO();
+            chTO.setName(ch);
+            chTO.setPublish(true);
+            chTO.setUpdateStatus(false);
+            channelTOs.add(chTO);
+        }
+        return channelTOs;
+    }
+
+    protected Set<String> getAllPublishedEnvironments(String site) {
+        Set<String> publishedEnvironments = new HashSet<String>();
+        publishedEnvironments.add(studioConfiguration.getProperty(StudioConfiguration.REPO_PUBLISHED_LIVE));
+        publishedEnvironments.add(studioConfiguration.getProperty(StudioConfiguration.REPO_PUBLISHED_STAGING));
+        return publishedEnvironments;
     }
 
     protected List<PublishingChannelTO> getAvailablePublishingChannelGroupsForSite(String site, String path) {
@@ -971,6 +994,14 @@ public class DeploymentServiceImpl implements DeploymentService {
             schedule = ZonedDateTime.now(ZoneOffset.UTC);
         }
         deploy(site, environment, asList, schedule, approver, submissionComment, scheduledDateIsNow);
+    }
+
+    @Override
+    public void resetStagingEnvironment(String siteId) throws ServiceException {
+        if (!siteService.exists(siteId)) {
+            throw new SiteNotFoundException(siteId);
+        }
+        contentRepository.resetStagingRepository(siteId);
     }
 
     public void setServicesConfig(ServicesConfig servicesConfig) {
