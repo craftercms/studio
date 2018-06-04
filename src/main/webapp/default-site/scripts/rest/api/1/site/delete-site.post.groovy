@@ -36,9 +36,9 @@ try {
 
     // site_id
     try {
-        if (StringUtils.isEmpty(site)) {
-            site = parsedReq.siteId
-            if (StringUtils.isEmpty(site)) {
+        if (StringUtils.isEmpty(siteId)) {
+            siteId = parsedReq.siteId
+            if (StringUtils.isEmpty(siteId)) {
                 invalidParams = true
                 paramsList.add("site_id")
             }
