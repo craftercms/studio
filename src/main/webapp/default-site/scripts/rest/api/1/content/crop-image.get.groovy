@@ -32,6 +32,7 @@ def h = params.h.toInteger()
 /** Validate Parameters */
 def invalidParams = false
 def paramsList = []
+def result = [:]
 
 // site_id
 try {
@@ -73,6 +74,6 @@ if (invalidParams) {
     ImageIO.write(imgCropped, imgType, imgCroppedOutStream)
     imgCroppedInStream = new ByteArrayInputStream(imgCroppedOutStream.toByteArray())
 
-    def result = ContentServices.writeContentAsset(context, site, imgPathOnly, imgFilename, imgCroppedInStream, "true", "", "", "", "false", "true", null)
+    result = ContentServices.writeContentAsset(context, site, imgPathOnly, imgFilename, imgCroppedInStream, "true", "", "", "", "false", "true", null)
 }
 return result
