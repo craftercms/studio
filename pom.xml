@@ -7,7 +7,7 @@
     <name>Crafter Studio</name>
          <description>Crafter Studio</description>
     <packaging>war</packaging>
-    <version>2.5.18</version>
+    <version>2.5.19-SNAPSHOT</version>
     <url>http://www.craftercms.org</url>
     <organization>
         <name>CrafterCMS</name>
@@ -91,14 +91,14 @@
         <dependency>
             <groupId>org.craftercms</groupId>
             <artifactId>crafter-engine</artifactId>
-            <version>2.5.18</version>
+            <version>2.5.19-SNAPSHOT</version>
             <type>war</type>
         </dependency>
 
         <dependency>
             <groupId>org.craftercms</groupId>
             <artifactId>crafter-engine</artifactId>
-            <version>2.5.18</version>
+            <version>2.5.19-SNAPSHOT</version>
             <classifier>classes</classifier>
             <scope>provided</scope>
         </dependency>
@@ -106,7 +106,7 @@
         <dependency>
             <groupId>org.craftercms</groupId>
             <artifactId>crafter-commons-ebus</artifactId>
-            <version>2.5.18</version>
+            <version>2.5.19-SNAPSHOT</version>
         </dependency>
 
 
@@ -376,7 +376,7 @@
                                 <arguments>
                                     <argument>clone</argument>
                                     <argument>-b</argument>
-                                    <argument>v2.5.18</argument>
+                                    <argument>2.5.x</argument>
                                     <argument>--depth</argument>
                                     <argument>1</argument>
                                     <argument>https://github.com/craftercms/studio2-ui.git</argument>
