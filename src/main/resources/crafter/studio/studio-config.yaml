@@ -197,6 +197,8 @@ studio.security.ldap.userAttribute.siteId: crafterSite
 studio.security.ldap.userAttribute.siteId.regex: .*
 # LDAP site ID attribute match index
 studio.security.ldap.userAttribute.siteId.matchIndex: 0
+# LDAP group name match index for the site ID attribute
+studio.security.ldap.userAttribute.siteId.groupName.matchIndex: 1
 # LDAP groups attribute
 studio.security.ldap.userAttribute.groupName: crafterGroup
 # LDAP groups attribute name regex
