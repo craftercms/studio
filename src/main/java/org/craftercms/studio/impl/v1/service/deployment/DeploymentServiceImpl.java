@@ -588,8 +588,8 @@ public class DeploymentServiceImpl implements DeploymentService {
             Set<String> permissions = securityService.getUserPermissions(site, deploymentItem.getPath(),
                     securityService.getCurrentUser(), Collections.<String>emptyList());
             if (permissions.contains(StudioConstants.PERMISSION_VALUE_PUBLISH)) {
-                addScheduledItem(site, deploymentItem.getScheduledDate(), format, deploymentItem.getPath(),
-                        results, comparator, subComparator, displayPatterns, filterType);
+                addScheduledItem(site, deploymentItem.getEnvironment(), deploymentItem.getScheduledDate(), format,
+                        deploymentItem.getPath(), results, comparator, subComparator, displayPatterns, filterType);
             }
         }
         return results;
@@ -605,13 +605,13 @@ public class DeploymentServiceImpl implements DeploymentService {
      * @param comparator
      * @param displayPatterns
      */
-    protected void addScheduledItem(String site, ZonedDateTime launchDate, SimpleDateFormat format, String path,
-                                    List<ContentItemTO> scheduledItems, DmContentItemComparator comparator,
+    protected void addScheduledItem(String site, String environment, ZonedDateTime launchDate, SimpleDateFormat format,
+                                    String path, List<ContentItemTO> scheduledItems, DmContentItemComparator comparator,
                                     DmContentItemComparator subComparator, List<String> displayPatterns,
                                     String filterType) {
         try {
-            addToScheduledDateList(site, launchDate, format, path,
-                scheduledItems, comparator, subComparator, displayPatterns, filterType);
+            addToScheduledDateList(site, environment, launchDate, format, path, scheduledItems, comparator,
+                    subComparator, displayPatterns, filterType);
             if(!(path.endsWith(FILE_SEPARATOR + DmConstants.INDEX_FILE) || path.endsWith(DmConstants.XML_PATTERN))) {
                 path = path + FILE_SEPARATOR + DmConstants.INDEX_FILE;
             }
@@ -632,10 +632,10 @@ public class DeploymentServiceImpl implements DeploymentService {
      * @param displayPatterns
      * @throws ServiceException
      */
-    protected void addToScheduledDateList(String site, ZonedDateTime launchDate, SimpleDateFormat format, String path,
-                                          List<ContentItemTO> scheduledItems, DmContentItemComparator comparator,
-                                          DmContentItemComparator subComparator, List<String> displayPatterns,
-                                          String filterType) throws ServiceException {
+    protected void addToScheduledDateList(String site, String environment, ZonedDateTime launchDate,
+                                          SimpleDateFormat format, String path, List<ContentItemTO> scheduledItems,
+                                          DmContentItemComparator comparator, DmContentItemComparator subComparator,
+                                          List<String> displayPatterns, String filterType) throws ServiceException {
         String timeZone = servicesConfig.getDefaultTimezone(site);
         String dateLabel = launchDate.format(DateTimeFormatter.ofPattern(format.toPattern()));
         // add only if the current node is a file (directories are
@@ -646,6 +646,7 @@ public class DeploymentServiceImpl implements DeploymentService {
             if (dmFilterWrapper.accept(site, itemToAdd, filterType)) {
                 //itemToAdd.submitted = false;
                 itemToAdd.scheduledDate = launchDate;
+                itemToAdd.environment = environment;
                 //itemToAdd.inProgress = false;
                 boolean found = false;
                 for (int index = 0; index < scheduledItems.size(); index++) {
@@ -676,6 +677,7 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     protected void addDependendenciesToSchdeuleList(String site,
+                                                    String environment,
                                                     ZonedDateTime launchDate,
                                                     SimpleDateFormat format,
                                                     List<ContentItemTO>scheduledItems,
@@ -686,8 +688,8 @@ public class DeploymentServiceImpl implements DeploymentService {
                                                     String relativePath) throws ServiceException {
 
         Set<String> dependencyPaths = dependencyService.getItemDependencies(site, relativePath, 1);
-        _addDependendenciesToSchdeuleList(site, launchDate, format, scheduledItems, comparator, subComparator,
-                displayPatterns, filterType, dependencyPaths);
+        _addDependendenciesToSchdeuleList(site, environment, launchDate, format, scheduledItems, comparator,
+                subComparator, displayPatterns, filterType, dependencyPaths);
     }
 
     protected ContentItemTO createDateItem(String name, ContentItemTO itemToAdd, DmContentItemComparator comparator,
@@ -703,6 +705,7 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     protected void _addDependendenciesToSchdeuleList(String site,
+                                                     String environment,
                                                      ZonedDateTime launchDate,
                                                      SimpleDateFormat format,
                                                      List<ContentItemTO>scheduledItems,
@@ -714,11 +717,11 @@ public class DeploymentServiceImpl implements DeploymentService {
         if(dependencies != null) {
             for(String dependency : dependencies) {
                 if (objectStateService.isNew(site, dependency) && objectStateService.isScheduled(site, dependency)) {
-                    addScheduledItem(site,launchDate,format,dependency,scheduledItems,comparator,subComparator,
-                            displayPatterns,filterType);
+                    addScheduledItem(site, environment, launchDate, format, dependency, scheduledItems, comparator,
+                            subComparator, displayPatterns, filterType);
                     if(dependency.endsWith(DmConstants.XML_PATTERN)) {
-                        addDependendenciesToSchdeuleList(site,launchDate,format,scheduledItems,comparator,
-                                subComparator,displayPatterns,filterType,dependency);
+                        addDependendenciesToSchdeuleList(site, environment, launchDate, format, scheduledItems,
+                                comparator, subComparator, displayPatterns, filterType, dependency);
                     }
                 }
             }
