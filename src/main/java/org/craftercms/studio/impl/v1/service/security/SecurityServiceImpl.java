@@ -568,7 +568,6 @@ public class SecurityServiceImpl implements SecurityService {
         StudioCacheContext usersCacheContext = new StudioCacheContext(CStudioConstants.CACHE_USERS_SCOPE, true);
         Object permissionsKey = cacheTemplate.getKey(site, configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site), permissionsFileName);
         Object rolesKey = cacheTemplate.getKey(site, configPath.replaceFirst(CStudioConstants.PATTERN_SITE, site), roleMappingsFileName);
-        generalLockService.lock(cacheContext.getId());
 
         cacheService.remove(cacheContext, permissionsKey);
         cacheService.remove(cacheContext, rolesKey);
