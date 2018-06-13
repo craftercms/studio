@@ -281,19 +281,17 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
     private void deploy(String site, String environment, List<DeploymentItemTO> items, String author, String comment)
             throws DeploymentException {
         logger.debug("Deploying " + items.size() + " item(s)");
-        contentRepository.publish(site, items, environment, author, comment);
         boolean siteEnvironmentConfigEnabled = Boolean.parseBoolean(
                 studioConfiguration.getProperty(CONFIGURATION_SITE_ENVIRONMENT_CONFIG_ENABLED));
         if (!siteEnvironmentConfigEnabled) {
             String liveEnvironment = studioConfiguration.getProperty(REPO_PUBLISHED_LIVE);
             if (StringUtils.equals(liveEnvironment, environment)) {
-                List<String> stagingEnvironments = Arrays.asList(
-                        studioConfiguration.getProperty(REPO_PUBLISHED_STAGING).split(","));
-                for (String stagingEnvironment : stagingEnvironments) {
-                    contentRepository.publish(site, items, stagingEnvironment, author, comment);
-                }
+                String stagingEnvironment = studioConfiguration.getProperty(REPO_PUBLISHED_STAGING);
+                contentRepository.publish(site, items, stagingEnvironment, author, comment);
             }
         }
+        contentRepository.publish(site, items, environment, author, comment);
+
     }
 
     private Set<String> getAllPublishingEnvironments(String site) {
