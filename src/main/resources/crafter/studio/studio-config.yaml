@@ -25,6 +25,14 @@ studio.repo.siteSandboxPath: sandbox
 studio.repo.siteSandboxBranch: master
 # Published git repository name under every site
 studio.repo.sitePublishedPath: published
+# Use the legacy environment-config.xml config file (for backward compatibility),
+# if true, environment configuration listed in this file will not be considered
+studio.configuration.site.environmentConfig.enabled: true
+# If not using environment-config.xml, environments are configured here
+# Git repository branch for the `live` environment, default "live"
+studio.repo.published.live: live
+# Git repository branch for the `staging` environment, default "staging"
+studio.repo.published.staging: staging
 # Blueprints folder name under global
 studio.repo.blueprintsPath: blueprints
 # Bootstrap the repository with fresh content if no repository is detected in the paths specified. Default is true.
@@ -185,10 +193,14 @@ studio.security.ldap.userAttribute.lastName: sn
 studio.security.ldap.userAttribute.email: mail
 # LDAP site ID attribute
 studio.security.ldap.userAttribute.siteId: crafterSite
+# LDAP site ID attribute name regex
+studio.security.ldap.userAttribute.siteId.regex: .*
+# LDAP site ID attribute match index
+studio.security.ldap.userAttribute.siteId.matchIndex: 0
+# LDAP group name match index for the site ID attribute
+studio.security.ldap.userAttribute.siteId.groupName.matchIndex: 1
 # LDAP groups attribute
 studio.security.ldap.userAttribute.groupName: crafterGroup
-# LDAP default site if site ID attribute not found
-studio.security.ldap.defaultSiteId: default
 # LDAP groups attribute name regex
 studio.security.ldap.userAttribute.groupName.regex: .*
 # LDAP groups attribute match index

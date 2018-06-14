@@ -1,12 +1,27 @@
-import java.awt.image.BufferedImage
-import java.io.ByteArrayOutputStream
-import java.io.ByteArrayInputStream
-import java.io.File
+/*
+ * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
+import org.apache.commons.lang3.StringUtils
 import scripts.api.ContentServices
 import javax.imageio.ImageIO
 
-def req = request 
-def site = params.site
+def req = request
+def site = params.site_id
 def imgPath = params.path
 def newName = params.newname
 def t = params.t.toInteger()
@@ -14,27 +29,51 @@ def l = params.l.toInteger()
 def w = params.w.toInteger()
 def h = params.h.toInteger()
 
-def imgToCrop = null
-def imgCropped = null
-def imgCroppedOutStream = null
-def imgCroppedInStream = null
+/** Validate Parameters */
+def invalidParams = false
+def paramsList = []
+def result = [:]
 
-def imgType = imgPath.substring(imgPath.indexOf(".")+1)
-def imgPathOnly = imgPath.substring(0, imgPath.lastIndexOf("/"))
-def imgFilename = imgPath.substring(imgPath.lastIndexOf("/")+1)
-if (newName) {
-    imgFilename = newName;
+// site_id
+try {
+    if (StringUtils.isEmpty(site)) {
+        site = params.site
+        if (StringUtils.isEmpty(site)) {
+            invalidParams = true
+            paramsList.add("site_id")
+        }
+    }
+} catch (Exception exc) {
+    invalidParams = true
+    paramsList.add("site_id")
 }
 
-def context = ContentServices.createContext(applicationContext, request)
+if (invalidParams) {
+    response.setStatus(400)
+    result.message = "Invalid parameter(s): " + paramsList
+} else {
+    def imgToCrop = null
+    def imgCropped = null
+    def imgCroppedOutStream = null
+    def imgCroppedInStream = null
 
-imgToCrop = ImageIO.read(ContentServices.getContentAsStream(site, imgPath, context))
+    def imgType = imgPath.substring(imgPath.indexOf(".") + 1)
+    def imgPathOnly = imgPath.substring(0, imgPath.lastIndexOf("/"))
+    def imgFilename = imgPath.substring(imgPath.lastIndexOf("/") + 1)
+    if (newName) {
+        imgFilename = newName;
+    }
 
-imgCropped = imgToCrop.getSubimage(l, t, w, h)
-imgCroppedOutStream = new ByteArrayOutputStream()
+    def context = ContentServices.createContext(applicationContext, request)
 
-ImageIO.write(imgCropped, imgType, imgCroppedOutStream) 
-imgCroppedInStream = new ByteArrayInputStream(imgCroppedOutStream.toByteArray())
+    imgToCrop = ImageIO.read(ContentServices.getContentAsStream(site, imgPath, context))
 
-def result = ContentServices.writeContentAsset(context, site, imgPathOnly, imgFilename, imgCroppedInStream, "true", "", "", "", "false", "true", null);
+    imgCropped = imgToCrop.getSubimage(l, t, w, h)
+    imgCroppedOutStream = new ByteArrayOutputStream()
+
+    ImageIO.write(imgCropped, imgType, imgCroppedOutStream)
+    imgCroppedInStream = new ByteArrayInputStream(imgCroppedOutStream.toByteArray())
+
+    result = ContentServices.writeContentAsset(context, site, imgPathOnly, imgFilename, imgCroppedInStream, "true", "", "", "", "false", "true", null)
+}
 return result

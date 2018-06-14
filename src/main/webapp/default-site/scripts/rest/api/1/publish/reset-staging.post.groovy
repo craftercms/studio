@@ -20,28 +20,27 @@
 import groovy.json.JsonException
 import groovy.json.JsonSlurper
 import org.apache.commons.lang3.StringUtils
-import scripts.api.SiteServices
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException
+import scripts.api.DeploymentServices
 
 def result = [:]
 try {
-    def requestJson = request.reader.text
+    def requestBody = request.reader.text
+
     def slurper = new JsonSlurper()
-    def parsedReq = slurper.parseText(requestJson)
+    def parsedReq = slurper.parseText(requestBody)
 
     def siteId = parsedReq.site_id
 
-    /** Validate Parameters */
+/** Validate Parameters */
     def invalidParams = false
     def paramsList = []
 
-    // site_id
+// site_id
     try {
         if (StringUtils.isEmpty(siteId)) {
-            siteId = parsedReq.siteId
-            if (StringUtils.isEmpty(siteId)) {
-                invalidParams = true
-                paramsList.add("site_id")
-            }
+            invalidParams = true
+            paramsList.add("site_id")
         }
     } catch (Exception exc) {
         invalidParams = true
@@ -52,8 +51,19 @@ try {
         response.setStatus(400)
         result.message = "Invalid parameter(s): " + paramsList
     } else {
-        def context = SiteServices.createContext(applicationContext, request)
-        result = SiteServices.deleteSite(context, siteId)
+        def context = DeploymentServices.createContext(applicationContext, request)
+
+        try {
+            DeploymentServices.resetStagingEnvironment(context, siteId)
+            response.setStatus(200)
+            result.message = "OK"
+        } catch (SiteNotFoundException e) {
+            response.setStatus(404)
+            result.message = "Site not found"
+        } catch (Exception e) {
+            response.setStatus(500)
+            result.message = "Internal server error: \n" + e
+        }
     }
 } catch (JsonException e) {
     response.setStatus(400)

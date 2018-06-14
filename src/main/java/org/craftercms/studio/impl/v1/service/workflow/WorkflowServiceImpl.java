@@ -2190,6 +2190,9 @@ public class WorkflowServiceImpl implements WorkflowService {
                     }
                 }
                 objectStateService.setSystemProcessingBulk(site, paths, true);
+                Set<String> cancelPaths = new HashSet<String>();
+                cancelPaths.addAll(paths);
+                deploymentService.cancelWorkflowBulk(site, cancelPaths);
                 reject(site, submittedItems, reason, approver);
                 generateWorkflowActivity(site, paths, approver, ActivityService.ActivityType.REJECT);
                 objectStateService.setSystemProcessingBulk(site, paths, false);
@@ -2201,7 +2204,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                 result.setSuccess(false);
                 result.setMessage("No items provided for preparation.");
             }
-        } catch (JSONException e) {
+        } catch (JSONException | DeploymentException e) {
             result.setSuccess(false);
             result.setMessage(e.getMessage());
         }

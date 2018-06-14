@@ -117,4 +117,11 @@ public interface DeploymentService {
      */
     void publishItems(String site, String environment, ZonedDateTime schedule, List<String> paths,
                       String submissionComment) throws ServiceException, DeploymentException;
+
+    /**
+     * Reset staging environment to live for given site
+     *
+     * @param siteId site id to use for resetting
+     */
+    void resetStagingEnvironment(String siteId) throws ServiceException;
 }

@@ -1,6 +1,5 @@
 /*
- * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2016 Crafter Software Corporation.
+ * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,6 +34,9 @@ public interface StudioConfiguration {
     String BOOTSTRAP_REPO = "studio.repo.bootstrapRepo";
     String REPO_REBUILD_METADATA_BATCH_SIZE = "studio.repo.rebuildMetadata.batchSize";
     String REPO_PUBLISHED_COMMIT_MESSAGE = "studio.repo.published.commitMessage";
+    String CONFIGURATION_SITE_ENVIRONMENT_CONFIG_ENABLED = "studio.configuration.site.environmentConfig.enabled";
+    String REPO_PUBLISHED_LIVE = "studio.repo.published.live";
+    String REPO_PUBLISHED_STAGING = "studio.repo.published.staging";
 
     /** Database */
     String DB_DRIVER = "studio.db.driver";
@@ -135,6 +137,9 @@ public interface StudioConfiguration {
     String SECURITY_LDAP_USER_ATTRIBUTE_LAST_NAME = "studio.security.ldap.userAttribute.lastName";
     String SECURITY_LDAP_USER_ATTRIBUTE_EMAIL = "studio.security.ldap.userAttribute.email";
     String SECURITY_LDAP_USER_ATTRIBUTE_SITE_ID = "studio.security.ldap.userAttribute.siteId";
+    String SECURITY_LDAP_USER_ATTRIBUTE_SITE_ID_REGEX = "studio.security.ldap.userAttribute.siteId.regex";
+    String SECURITY_LDAP_USER_ATTRIBUTE_SITE_ID_MATCH_INDEX = "studio.security.ldap.userAttribute.siteId.matchIndex";
+    String SECURITY_LDAP_USER_ATTRIBUTE_SITE_ID_GROUP_NAME_MATCH_INDEX = "studio.security.ldap.userAttribute.siteId.groupName.matchIndex";
     String SECURITY_LDAP_USER_ATTRIBUTE_GROUP_NAME = "studio.security.ldap.userAttribute.groupName";
     String SECURITY_LDAP_USER_ATTRIBUTE_GROUP_NAME_REGEX = "studio.security.ldap.userAttribute.groupName.regex";
     String SECURITY_LDAP_USER_ATTRIBUTE_GROUP_NAME_MATCH_INDEX = "studio.security.ldap.userAttribute.groupName.matchIndex";

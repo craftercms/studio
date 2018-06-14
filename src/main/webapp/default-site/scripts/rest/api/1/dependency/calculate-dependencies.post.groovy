@@ -22,14 +22,15 @@ import groovy.json.JsonSlurper
 import org.apache.commons.collections.CollectionUtils
 import org.apache.commons.lang3.StringUtils
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException
-import scripts.api.DependencyServices;
+import scripts.api.DependencyServices
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.API_REQUEST_PARAM_SITE
+import static org.craftercms.studio.api.v1.constant.StudioConstants.API_REQUEST_PARAM_SITE_ID
 import static org.craftercms.studio.api.v1.constant.StudioConstants.API_REQUEST_PARAM_ENTITIES
 
 def result = [:]
 try {
-    def site = request.getParameter(API_REQUEST_PARAM_SITE)
+    def site = request.getParameter(API_REQUEST_PARAM_SITE_ID)
     def requestBody = request.reader.text
 
     def slurper = new JsonSlurper()
@@ -39,18 +40,19 @@ try {
 
     def paths = entities.collect { it.item }
     /** Validate Parameters */
-    def invalidParams = false;
+    def invalidParams = false
     def paramsList = []
 
 // site
     try {
         if (StringUtils.isEmpty(site)) {
+            site = request.getParameter(API_REQUEST_PARAM_SITE)
             invalidParams = true
-            paramsList.add(API_REQUEST_PARAM_SITE)
+            paramsList.add(API_REQUEST_PARAM_SITE_ID)
         }
     } catch (Exception exc) {
         invalidParams = true
-        paramsList.add(API_REQUEST_PARAM_SITE)
+        paramsList.add(API_REQUEST_PARAM_SITE_ID)
     }
 
 // paths

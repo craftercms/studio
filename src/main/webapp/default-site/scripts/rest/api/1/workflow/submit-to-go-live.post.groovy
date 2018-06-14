@@ -1,7 +1,5 @@
-
 /*
- * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2016 Crafter Software Corporation.
+ * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,27 +13,42 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 
-import scripts.api.WorkflowServices;
+
+import org.apache.commons.lang3.StringUtils
+import scripts.api.WorkflowServices
 
 // extract parameters
-def result = [:];
-def site = request.getParameter("site")
+def result = [:]
+def site = request.getParameter("site_id")
 def user = request.getParameter("user")
-def body = request.reader.text;
+def body = request.reader.text
 
-/*
-if (site == undefined || site == "")
-{
-    status.code = 400;
-    status.message = "Site must be provided.";
-    status.redirect = true;
-} else {
-    model.result = dmWorkflowService.goLive(site, sub, body);
+/** Validate Parameters */
+def invalidParams = false
+def paramsList = []
+
+// site_id
+try {
+    if (StringUtils.isEmpty(site)) {
+        site = request.getParameter("site")
+        if (StringUtils.isEmpty(site)) {
+            invalidParams = true
+            paramsList.add("site_id")
+        }
+    }
+} catch (Exception exc) {
+    invalidParams = true
+    paramsList.add("site_id")
 }
-*/
 
-def context = WorkflowServices.createContext(applicationContext, request);
-result = WorkflowServices.submitToGoLive(context, site, user, body);
-return result;
+if (invalidParams) {
+    response.setStatus(400)
+    result.message = "Invalid parameter(s): " + paramsList
+} else {
+    def context = WorkflowServices.createContext(applicationContext, request)
+    result = WorkflowServices.submitToGoLive(context, site, user, body)
+}
+return result
