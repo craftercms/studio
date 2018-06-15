@@ -965,6 +965,7 @@ public class SiteServiceImpl implements SiteService {
                             remoteUrl + ")");
                     contentRepository.addRemote(siteId, remoteName, remoteUrl, authenticationType,
                             remoteUsername, remotePassword, remoteToken, remotePrivateKey);
+                    insertAddRemoteAuditLog(siteId, remoteName);
                     contentRepository.createSitePushToRemote(siteId, remoteName, remoteUrl, authenticationType,
                             remoteUsername, remotePassword, remoteToken, remotePrivateKey);
                 } catch (RemoteRepositoryNotFoundException | InvalidRemoteRepositoryException |
@@ -1748,8 +1749,19 @@ public class SiteServiceImpl implements SiteService {
         if (!exists(siteId)) {
             throw new SiteNotFoundException();
         }
-        return contentRepository.addRemote(siteId, remoteName, remoteUrl, authenticationType, remoteUsername,
+        boolean toRet = contentRepository.addRemote(siteId, remoteName, remoteUrl, authenticationType, remoteUsername,
                 remotePassword, remoteToken, remotePrivateKey);
+        insertAddRemoteAuditLog(siteId, remoteName);
+        return toRet;
+    }
+
+    private void insertAddRemoteAuditLog(String siteId, String remoteName) {
+        ActivityService.ActivityType activityType = ActivityService.ActivityType.ADD_REMOTE;
+        String user = securityProvider.getCurrentUser();
+        Map<String, String> extraInfo = new HashMap<String, String>();
+        extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_REMOTE_REPOSITORY);
+        activityService.postActivity(siteId, user,
+                remoteName , activityType, ActivityService.ActivitySource.API, extraInfo);
     }
 
     @Override
@@ -1757,7 +1769,18 @@ public class SiteServiceImpl implements SiteService {
         if (!exists(siteId)) {
             throw new SiteNotFoundException();
         }
-        return contentRepository.removeRemote(siteId, remoteName);
+        boolean toRet = contentRepository.removeRemote(siteId, remoteName);
+        insertRemoveRemoteAuditLog(siteId, remoteName);
+        return toRet;
+    }
+
+    private void insertRemoveRemoteAuditLog(String siteId, String remoteName) {
+        ActivityService.ActivityType activityType = ActivityService.ActivityType.REMOVE_REMOTE;
+        String user = securityProvider.getCurrentUser();
+        Map<String, String> extraInfo = new HashMap<String, String>();
+        extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_REMOTE_REPOSITORY);
+        activityService.postActivity(siteId, user,
+                remoteName , activityType, ActivityService.ActivitySource.API, extraInfo);
     }
 
     @Override
