@@ -42,15 +42,9 @@ import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.TransportConfigCallback;
-import org.eclipse.jgit.api.errors.AbortedByHookException;
-import org.eclipse.jgit.api.errors.ConcurrentRefUpdateException;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
-import org.eclipse.jgit.api.errors.NoHeadException;
-import org.eclipse.jgit.api.errors.NoMessageException;
 import org.eclipse.jgit.api.errors.TransportException;
-import org.eclipse.jgit.api.errors.UnmergedPathsException;
-import org.eclipse.jgit.api.errors.WrongRepositoryStateException;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.dircache.DirCache;
 import org.eclipse.jgit.errors.AmbiguousObjectException;
@@ -124,14 +118,14 @@ import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryC
 public class GitContentRepositoryHelper {
     private static final Logger logger = LoggerFactory.getLogger(GitContentRepositoryHelper.class);
 
-    Map<String, Repository> sandboxes = new HashMap<>();
-    Map<String, Repository> published = new HashMap<>();
+    protected Map<String, Repository> sandboxes = new HashMap<>();
+    protected Map<String, Repository> published = new HashMap<>();
 
-    Repository globalRepo = null;
+    protected Repository globalRepo = null;
 
-    StudioConfiguration studioConfiguration;
-    SecurityProvider securityProvider;
-    ServicesConfig servicesConfig;
+    protected StudioConfiguration studioConfiguration;
+    protected SecurityProvider securityProvider;
+    protected ServicesConfig servicesConfig;
 
     GitContentRepositoryHelper(StudioConfiguration studioConfiguration, SecurityProvider securityProvider,
                                ServicesConfig servicesConfig) {

@@ -172,10 +172,10 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     private static final String IN_PROGRESS_BRANCH_NAME_SUFIX = "_in_progress";
     private static final String STUDIO_MANIFEST_LOCATION = "/META-INF/MANIFEST.MF";
 
-    ServletContext ctx;
-    SecurityProvider securityProvider;
-    StudioConfiguration studioConfiguration;
-    ServicesConfig servicesConfig;
+    protected ServletContext ctx;
+    protected SecurityProvider securityProvider;
+    protected StudioConfiguration studioConfiguration;
+    protected ServicesConfig servicesConfig;
 
     @Autowired
     GitLogMapper gitLogMapper;
