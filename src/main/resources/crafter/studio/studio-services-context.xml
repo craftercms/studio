@@ -376,6 +376,7 @@
           class="org.craftercms.studio.impl.v1.repository.git.GitContentRepository" init-method="bootstrap">
         <property name="studioConfiguration" ref="studioConfiguration"/>
         <property name="securityProvider" ref="securityProvider"/>
+        <property name="servicesConfig" ref="cstudioServicesConfig"/>
     </bean>
 
     <!-- ////////////////////////////////////// -->

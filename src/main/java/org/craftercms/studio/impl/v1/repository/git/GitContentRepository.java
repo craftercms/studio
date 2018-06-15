@@ -1,5 +1,4 @@
 /*
- * Crafter Studio Web-content authoring solution
  * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,6 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 
 package org.craftercms.studio.impl.v1.repository.git;
@@ -79,6 +79,7 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
+import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentHistoryProvider;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
@@ -174,6 +175,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     ServletContext ctx;
     SecurityProvider securityProvider;
     StudioConfiguration studioConfiguration;
+    ServicesConfig servicesConfig;
 
     @Autowired
     GitLogMapper gitLogMapper;
@@ -858,7 +860,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
      */
     public void bootstrap() throws Exception {
         // Initialize the helper
-        helper = new GitContentRepositoryHelper(studioConfiguration, securityProvider);
+        helper = new GitContentRepositoryHelper(studioConfiguration, securityProvider, servicesConfig);
 
         encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
                 studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
@@ -995,7 +997,11 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             // update site name variable inside config files
             toReturn = helper.updateSitenameConfigVar(site);
         }
-
+/*
+        if (toReturn) {
+            toReturn = helper.checkoutSandboxBranch(site);
+        }
+*/
         if (toReturn) {
             // commit everything so it is visible
             toReturn = helper.performInitialCommit(site, INITIAL_COMMIT);
@@ -1041,7 +1047,10 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             throws DeploymentException {
         Repository repo = helper.getRepository(site, GitRepositories.PUBLISHED);
         String commitId = StringUtils.EMPTY;
-        String path = StringUtils.EMPTY;
+        String sandboxBranchName = servicesConfig.getSandboxBranchName(site);
+        if (StringUtils.isEmpty(sandboxBranchName)) {
+            sandboxBranchName = studioConfiguration.getProperty(REPO_SANDBOX_BRANCH);
+        }
         synchronized (repo) {
             try (Git git = new Git(repo)) {
 
@@ -1054,11 +1063,11 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 try {
 
                     git.checkout()
-                            .setName(studioConfiguration.getProperty(REPO_SANDBOX_BRANCH))
+                            .setName(sandboxBranchName)
                             .call();
                     git.pull()
                             .setRemote(Constants.DEFAULT_REMOTE_NAME)
-                            .setRemoteBranchName(studioConfiguration.getProperty(REPO_SANDBOX_BRANCH))
+                            .setRemoteBranchName(sandboxBranchName)
                             .setStrategy(MergeStrategy.THEIRS)
                             .call();
                 } catch (RefNotFoundException e) {
@@ -1071,7 +1080,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 // checkout environment branch
                 logger.debug("Checkout environment branch " + environment + " for site " + site);
                 try {
-                    git.checkout().setCreateBranch(true).setForce(true).setStartPoint("master")
+                    git.checkout().setCreateBranch(true).setForce(true).setStartPoint(sandboxBranchName)
                             .setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK)
                             .setName(environment)
                             .call();
@@ -1102,6 +1111,10 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         Repository repo = helper.getRepository(site, GitRepositories.PUBLISHED);
         String commitId = StringUtils.EMPTY;
         String path = StringUtils.EMPTY;
+        String sandboxBranchName = servicesConfig.getSandboxBranchName(site);
+        if (StringUtils.isEmpty(sandboxBranchName)) {
+            sandboxBranchName = studioConfiguration.getProperty(REPO_SANDBOX_BRANCH);
+        }
         synchronized (repo) {
             try (Git git = new Git(repo)) {
 
@@ -1122,11 +1135,11 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                                 .call();
                     }
 
-                    Ref ref = repo.exactRef(Constants.R_HEADS + studioConfiguration.getProperty(REPO_SANDBOX_BRANCH));
+                    Ref ref = repo.exactRef(Constants.R_HEADS + sandboxBranchName);
                     boolean createBranch = (ref == null);
 
                     git.checkout()
-                            .setName(studioConfiguration.getProperty(REPO_SANDBOX_BRANCH))
+                            .setName(sandboxBranchName)
                             .setCreateBranch(createBranch)
                             .call();
 
@@ -1135,7 +1148,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
                     git.pull().
                             setRemote(Constants.DEFAULT_REMOTE_NAME)
-                            .setRemoteBranchName(studioConfiguration.getProperty(REPO_SANDBOX_BRANCH))
+                            .setRemoteBranchName(sandboxBranchName)
                             .setStrategy(MergeStrategy.THEIRS)
                             .call();
                 } catch (RefNotFoundException e) {
@@ -1160,7 +1173,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     git.checkout()
                             .setCreateBranch(true)
                             .setForce(true)
-                            .setStartPoint(studioConfiguration.getProperty(REPO_SANDBOX_BRANCH))
+                            .setStartPoint(sandboxBranchName)
                             .setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK)
                             .setName(environment)
                             .call();
@@ -1520,14 +1533,18 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         List<DeploymentSyncHistory> toRet = new ArrayList<DeploymentSyncHistory>();
         Repository publishedRepo = helper.getRepository(site, PUBLISHED);
         int counter = 0;
+        String sandboxBranchName = servicesConfig.getSandboxBranchName(site);
+        if (StringUtils.isEmpty(sandboxBranchName)) {
+            sandboxBranchName = studioConfiguration.getProperty(REPO_SANDBOX_BRANCH);
+        }
         try (Git git = new Git(publishedRepo)) {
             // List all environments
             List<Ref> environments = git.branchList().call();
             for (int i = 0; i < environments.size() && counter < numberOfItems; i++) {
                 Ref env = environments.get(i);
                 String environment = env.getName();
-                if (!environment.equals(studioConfiguration.getProperty(REPO_SANDBOX_BRANCH)) &&
-                        !environment.equals(Constants.R_HEADS + studioConfiguration.getProperty(REPO_SANDBOX_BRANCH))) {
+                if (!environment.equals(sandboxBranchName) &&
+                        !environment.equals(Constants.R_HEADS + sandboxBranchName)) {
                     Iterable<RevCommit> branchLog = git.log()
                             .add(env.getObjectId())
                             .setRevFilter(AndRevFilter.create(
@@ -2036,13 +2053,17 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         }
                         remoteBranches.get(remotePart).add(branchNamePart);
                     }
+                    String sandboxBranchName = servicesConfig.getSandboxBranchName(siteId);
+                    if (StringUtils.isEmpty(sandboxBranchName)) {
+                        sandboxBranchName = studioConfiguration.getProperty(REPO_SANDBOX_BRANCH);
+                    }
                     for (RemoteConfig conf : resultRemotes) {
                         RemoteRepositoryInfoTO rri = new RemoteRepositoryInfoTO();
                         rri.setName(conf.getName());
                         List<String> branches = remoteBranches.get(rri.getName());
                         if (CollectionUtils.isEmpty(branches)) {
                             branches = new ArrayList<String>();
-                            branches.add(studioConfiguration.getProperty(REPO_SANDBOX_BRANCH));
+                            branches.add(sandboxBranchName);
                         }
                         rri.setBranches(branches);
 
@@ -2304,5 +2325,13 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
     public void setStudioConfiguration(final StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
+    }
+
+    public ServicesConfig getServicesConfig() {
+        return servicesConfig;
+    }
+
+    public void setServicesConfig(ServicesConfig servicesConfig) {
+        this.servicesConfig = servicesConfig;
     }
 }

@@ -1,5 +1,4 @@
 /*
- * Crafter Studio Web-content authoring solution
  * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,6 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 
 package org.craftercms.studio.impl.v1.repository.git;
@@ -35,15 +35,22 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepository
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.TransportConfigCallback;
+import org.eclipse.jgit.api.errors.AbortedByHookException;
+import org.eclipse.jgit.api.errors.ConcurrentRefUpdateException;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
+import org.eclipse.jgit.api.errors.NoHeadException;
+import org.eclipse.jgit.api.errors.NoMessageException;
 import org.eclipse.jgit.api.errors.TransportException;
+import org.eclipse.jgit.api.errors.UnmergedPathsException;
+import org.eclipse.jgit.api.errors.WrongRepositoryStateException;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.dircache.DirCache;
 import org.eclipse.jgit.errors.AmbiguousObjectException;
@@ -124,10 +131,13 @@ public class GitContentRepositoryHelper {
 
     StudioConfiguration studioConfiguration;
     SecurityProvider securityProvider;
+    ServicesConfig servicesConfig;
 
-    GitContentRepositoryHelper(StudioConfiguration studioConfiguration, SecurityProvider securityProvider) {
+    GitContentRepositoryHelper(StudioConfiguration studioConfiguration, SecurityProvider securityProvider,
+                               ServicesConfig servicesConfig) {
         this.studioConfiguration = studioConfiguration;
         this.securityProvider = securityProvider;
+        this.servicesConfig = servicesConfig;
     }
 
     /**
@@ -230,6 +240,15 @@ public class GitContentRepositoryHelper {
             toReturn.create();
 
             toReturn = optimizeRepository(toReturn);
+            try (Git git = new Git(toReturn)) {
+                git.commit()
+                        .setAllowEmpty(true)
+                        .setMessage("Create new repository.")
+                        .call();
+            } catch (GitAPIException e) {
+                logger.error("Error while creating repository for site with path" + path.toString(), e);
+                toReturn = null;
+            }
         } catch (IOException e) {
             logger.error("Error while creating repository for site with path" + path.toString(), e);
             toReturn = null;
@@ -309,14 +328,17 @@ public class GitContentRepositoryHelper {
     }
 
     private boolean checkoutSandboxBranch(String site, Repository sandboxRepo) {
+        String sandboxBranchName = servicesConfig.getSandboxBranchName(site);
+        if (StringUtils.isEmpty(sandboxBranchName)) {
+            sandboxBranchName = studioConfiguration.getProperty(REPO_SANDBOX_BRANCH);
+        }
         try (Git git = new Git(sandboxRepo)) {
-            if (!StringUtils.equals(sandboxRepo.getBranch(), studioConfiguration.getProperty(REPO_SANDBOX_BRANCH))) {
+            if (!StringUtils.equals(sandboxRepo.getBranch(), sandboxBranchName)) {
                 List<Ref> branchList = git.branchList().call();
                 boolean createBranch = true;
                 for (Ref branch : branchList) {
-                    if (StringUtils.equals(branch.getName(), studioConfiguration.getProperty(REPO_SANDBOX_BRANCH)) ||
-                            StringUtils.equals(branch.getName(), Constants.R_HEADS +
-                                    studioConfiguration.getProperty(REPO_SANDBOX_BRANCH))) {
+                    if (StringUtils.equals(branch.getName(), sandboxBranchName) ||
+                            StringUtils.equals(branch.getName(), Constants.R_HEADS + sandboxBranchName)) {
                         createBranch = false;
                         break;
                     }
@@ -324,20 +346,18 @@ public class GitContentRepositoryHelper {
                 if (sandboxRepo.isBare() || sandboxRepo.resolve(Constants.HEAD) == null) {
                     git.commit()
                             .setAllowEmpty(true)
-                            .setMessage("Create " + studioConfiguration.getProperty(
-                                    StudioConfiguration.REPO_SANDBOX_BRANCH) + " branch.")
+                            .setMessage("Create " + sandboxBranchName + " branch.")
                             .call();
                 }
                 git.checkout()
                         .setCreateBranch(createBranch)
-                        .setName(studioConfiguration.getProperty(StudioConfiguration.REPO_SANDBOX_BRANCH))
+                        .setName(sandboxBranchName)
                         .setForce(false)
                         .call();
             }
             return true;
         } catch (GitAPIException | IOException e) {
-            logger.error("Error checking out sandbox branch " +
-                    studioConfiguration.getProperty(StudioConfiguration.REPO_SANDBOX_BRANCH) + " for site " + site, e);
+            logger.error("Error checking out sandbox branch " + sandboxBranchName + " for site " + site, e);
             return false;
         }
     }
@@ -506,6 +526,8 @@ public class GitContentRepositoryHelper {
                 // commitId = commit.getName();
             }
 
+            checkoutSandboxBranch(site, repo);
+
             // Create Published by cloning Sandbox
 
             // Build a path for the site/sandbox
@@ -518,6 +540,7 @@ public class GitContentRepositoryHelper {
                     .call()) {
                 Repository publishedRepo = publishedGit.getRepository();
                 publishedRepo = optimizeRepository(publishedRepo);
+                checkoutSandboxBranch(site, publishedRepo);
                 publishedRepo.close();
                 publishedGit.close();
             } catch (GitAPIException | IOException e) {
