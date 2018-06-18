@@ -10,6 +10,11 @@
     <default-timezone>EST5EDT</default-timezone>
     <sandbox-branch>master</sandbox-branch>
 
+    <published-repository>
+        <staging-environment>staging</staging-environment>
+        <live-environment>live</live-environment>
+    </published-repository>
+
     <repository rootPrefix="/site">
 
         <!-- default inheritance file name -->

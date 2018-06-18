@@ -151,8 +151,6 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARAT
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.BLUE_PRINTS_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.BOOTSTRAP_REPO;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_PUBLISHED_COMMIT_MESSAGE;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_PUBLISHED_LIVE;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_PUBLISHED_STAGING;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_SANDBOX_BRANCH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_KEY;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_SALT;
@@ -178,10 +176,10 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     protected ServicesConfig servicesConfig;
 
     @Autowired
-    GitLogMapper gitLogMapper;
+    protected GitLogMapper gitLogMapper;
 
     @Autowired
-    RemoteRepositoryMapper remoteRepositoryMapper;
+    protected RemoteRepositoryMapper remoteRepositoryMapper;
 
     @Override
     public boolean contentExists(String site, String path) {
@@ -2286,8 +2284,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     @Override
     public void resetStagingRepository(String siteId) throws ServiceException {
         Repository repo = helper.getRepository(siteId, PUBLISHED);
-        String stagingName = studioConfiguration.getProperty(REPO_PUBLISHED_STAGING);
-        String liveName = studioConfiguration.getProperty(REPO_PUBLISHED_LIVE);
+        String stagingName = servicesConfig.getStagingEnvironment(siteId);
+        String liveName = servicesConfig.getLiveEnvironment(siteId);
         synchronized (repo) {
             try (Git git = new Git(repo)) {
                 logger.debug("Checkout live first becuase it is not allowed to delete checkedout branch");

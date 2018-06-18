@@ -334,6 +334,7 @@
         <property name="eventService" ref="studioEventService"/>
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="activityService" ref="cstudioActivityService" />
+        <property name="servicesConfig" ref="cstudioServicesConfig" />
     </bean>
 
     <!-- scheduled actions -->
