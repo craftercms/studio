@@ -997,11 +997,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             // update site name variable inside config files
             toReturn = helper.updateSitenameConfigVar(site);
         }
-/*
-        if (toReturn) {
-            toReturn = helper.checkoutSandboxBranch(site);
-        }
-*/
+
         if (toReturn) {
             // commit everything so it is visible
             toReturn = helper.performInitialCommit(site, INITIAL_COMMIT);
