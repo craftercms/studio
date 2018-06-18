@@ -445,19 +445,27 @@ public class ServicesConfigImpl implements ServicesConfig {
         SiteConfigTO config = loadConfiguration(site);
     }
 
-    public void setContentService(ContentService contentService) {
-		this.contentService = contentService;
-	}
-
     @Override
     public String getStagingEnvironment(String site) {
+        SiteConfigTO config = getSiteConfig(site);
+        if (config != null) {
+            return config.getStagingEnvironment();
+        }
         return null;
     }
 
     @Override
     public String getLiveEnvironment(String site) {
+        SiteConfigTO config = getSiteConfig(site);
+        if (config != null) {
+            return config.getLiveEnvironment();
+        }
         return null;
     }
+
+    public void setContentService(ContentService contentService) {
+		this.contentService = contentService;
+	}
 
     public ContentTypesConfig getContentTypesConfig() {
 		return contentTypesConfig;

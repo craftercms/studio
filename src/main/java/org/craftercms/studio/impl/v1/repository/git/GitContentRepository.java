@@ -79,6 +79,7 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
+import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentHistoryProvider;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
@@ -150,8 +151,6 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARAT
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.BLUE_PRINTS_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.BOOTSTRAP_REPO;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_PUBLISHED_COMMIT_MESSAGE;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_PUBLISHED_LIVE;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_PUBLISHED_STAGING;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_SANDBOX_BRANCH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_KEY;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_SALT;
@@ -171,15 +170,16 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     private static final String IN_PROGRESS_BRANCH_NAME_SUFIX = "_in_progress";
     private static final String STUDIO_MANIFEST_LOCATION = "/META-INF/MANIFEST.MF";
 
-    ServletContext ctx;
-    SecurityProvider securityProvider;
-    StudioConfiguration studioConfiguration;
+    protected ServletContext ctx;
+    protected SecurityProvider securityProvider;
+    protected StudioConfiguration studioConfiguration;
+    protected ServicesConfig servicesConfig;
 
     @Autowired
-    GitLogMapper gitLogMapper;
+    protected GitLogMapper gitLogMapper;
 
     @Autowired
-    RemoteRepositoryMapper remoteRepositoryMapper;
+    protected RemoteRepositoryMapper remoteRepositoryMapper;
 
     @Override
     public boolean contentExists(String site, String path) {
@@ -2269,8 +2269,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     @Override
     public void resetStagingRepository(String siteId) throws ServiceException {
         Repository repo = helper.getRepository(siteId, PUBLISHED);
-        String stagingName = studioConfiguration.getProperty(REPO_PUBLISHED_STAGING);
-        String liveName = studioConfiguration.getProperty(REPO_PUBLISHED_LIVE);
+        String stagingName = servicesConfig.getStagingEnvironment(siteId);
+        String liveName = servicesConfig.getLiveEnvironment(siteId);
         synchronized (repo) {
             try (Git git = new Git(repo)) {
                 logger.debug("Checkout live first becuase it is not allowed to delete checkedout branch");
@@ -2304,5 +2304,13 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
     public void setStudioConfiguration(final StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
+    }
+
+    public ServicesConfig getServicesConfig() {
+        return servicesConfig;
+    }
+
+    public void setServicesConfig(ServicesConfig servicesConfig) {
+        this.servicesConfig = servicesConfig;
     }
 }
