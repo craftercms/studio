@@ -145,7 +145,10 @@ package org.craftercms.studio.api.v1.constant;
     String API_REQUEST_PARAM_ENVIRONMENT = "environment";
 
     /**
-     * Site config xml properties
+     * Site config xml elements
      */
+    String SITE_CONFIG_XML_ELEMENT_PUBLISHED_REPOSITORY = "published-repository";
+    String SITE_CONFIG_XML_ELEMENT_STAGING_ENVIRONMENT = "staging-environment";
+    String SITE_CONFIG_XML_ELEMENT_LIVE_ENVIRONMENT = "live-environment";
     String SITE_CONFIG_ELEMENT_SANDBOX_BRANCH = "sandbox-branch";
 }

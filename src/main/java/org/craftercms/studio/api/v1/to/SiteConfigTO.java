@@ -59,10 +59,18 @@ public class SiteConfigTO implements Serializable {
 	/** default timezone **/
 	protected String timezone = null;
 
-	/** sandbox branch **/
-	protected String sandboxBranch = null;
+	/** staging environment **/
+	protected String stagingEnvironment;
 
+	/** live environment **/
+	protected String liveEnvironment;
 
+    /** sandbox branch **/
+    protected String sandboxBranch = null;
+
+    /**
+     * @return the WEM project
+     */
     public String getWemProject() {
         return wemProject;
     }
@@ -113,5 +121,21 @@ public class SiteConfigTO implements Serializable {
 
     public void setSandboxBranch(String sandboxBranch) {
         this.sandboxBranch = sandboxBranch;
+    }
+
+    public String getStagingEnvironment() {
+        return stagingEnvironment;
+    }
+
+    public void setStagingEnvironment(String stagingEnvironment) {
+        this.stagingEnvironment = stagingEnvironment;
+    }
+
+    public String getLiveEnvironment() {
+        return liveEnvironment;
+    }
+
+    public void setLiveEnvironment(String liveEnvironment) {
+        this.liveEnvironment = liveEnvironment;
     }
 }
