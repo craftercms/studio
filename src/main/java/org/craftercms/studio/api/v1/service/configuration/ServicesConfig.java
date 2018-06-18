@@ -164,4 +164,7 @@ public interface ServicesConfig {
 
     void reloadConfiguration(String site);
 
+    String getStagingEnvironment(String site);
+
+    String getLiveEnvironment(String site);
 }
