@@ -464,4 +464,11 @@ public interface ContentRepository {
      * @param siteId site identifier to use for resetting
      */
     void resetStagingRepository(String siteId) throws ServiceException;
+
+    /**
+     * Reload repository for given site
+     *
+     * @param siteId site identifier
+     */
+    void reloadRepository(String siteId);
 }

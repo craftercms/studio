@@ -184,6 +184,7 @@ public class SiteServiceImpl implements SiteService {
             activityType = ActivityService.ActivityType.CREATED;
         }
         String commitId = contentRepository.writeContent(site, path, content);
+        contentRepository.reloadRepository(site);
 
         PreviewEventContext context = new PreviewEventContext();
         context.setSite(site);

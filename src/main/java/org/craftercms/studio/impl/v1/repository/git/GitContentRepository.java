@@ -124,6 +124,9 @@ import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.revwalk.filter.AndRevFilter;
 import org.eclipse.jgit.revwalk.filter.CommitTimeRevFilter;
+import org.eclipse.jgit.revwalk.filter.MessageRevFilter;
+import org.eclipse.jgit.revwalk.filter.NotRevFilter;
+import org.eclipse.jgit.revwalk.filter.RevFilter;
 import org.eclipse.jgit.transport.JschConfigSessionFactory;
 import org.eclipse.jgit.transport.OpenSshConfig;
 import org.eclipse.jgit.transport.PushResult;
@@ -1539,11 +1542,19 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 String environment = env.getName();
                 if (!environment.equals(sandboxBranchName) &&
                         !environment.equals(Constants.R_HEADS + sandboxBranchName)) {
+
+                    List<RevFilter> filters = new ArrayList<RevFilter>();
+                    filters.add(CommitTimeRevFilter.after(fromDate.toInstant().toEpochMilli()));
+                    filters.add(CommitTimeRevFilter.before(toDate.toInstant().toEpochMilli()));
+                    filters.add(NotRevFilter.create(MessageRevFilter.create("Initial commit.")));
+
                     Iterable<RevCommit> branchLog = git.log()
                             .add(env.getObjectId())
+                            .setRevFilter(AndRevFilter.create(filters))
+                            /*
                             .setRevFilter(AndRevFilter.create(
                                     CommitTimeRevFilter.after(fromDate.toInstant().toEpochMilli()),
-                                    CommitTimeRevFilter.before(toDate.toInstant().toEpochMilli())))
+                                    CommitTimeRevFilter.before(toDate.toInstant().toEpochMilli())))*/
                             .call();
 
                     Iterator<RevCommit> iterator = branchLog.iterator();
@@ -2303,6 +2314,12 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 throw new ServiceException(e);
             }
         }
+    }
+
+    @Override
+    public void reloadRepository(String siteId) {
+        helper.sandboxes.remove(siteId);
+        helper.getRepository(siteId, SANDBOX);
     }
 
     public void setServletContext(ServletContext ctx) {
