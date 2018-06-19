@@ -45,6 +45,8 @@ public interface ActivityService {
 		LOGOUT,
 		CREATE_SITE,
 		DELETE_SITE,
+        ADD_REMOTE,
+        REMOVE_REMOTE,
 		PUSH_TO_REMOTE,
 		PULL_FROM_REMOTE,
 		REQUEST_PUBLISH,
