@@ -43,6 +43,7 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.activity.ActivityService;
+import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.PublishingManager;
 import org.craftercms.studio.api.v1.service.event.EventService;
@@ -60,8 +61,6 @@ import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_DEPLOY_C
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_IDLE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED_ERROR;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_ENVIRONMENT_CONFIG_ENABLED;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_PUBLISHED_LIVE;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_PUBLISHED_STAGING;
 
 
 public class DeployContentToEnvironmentStore extends RepositoryJob {
@@ -81,6 +80,7 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
     protected EventService eventService;
     protected StudioConfiguration studioConfiguration;
     protected ActivityService activityService;
+    protected ServicesConfig servicesConfig;
 
     public static synchronized void signalToStop(boolean toStop) {
         stopSignaled = toStop;
@@ -284,9 +284,9 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
         boolean siteEnvironmentConfigEnabled = Boolean.parseBoolean(
                 studioConfiguration.getProperty(CONFIGURATION_SITE_ENVIRONMENT_CONFIG_ENABLED));
         if (!siteEnvironmentConfigEnabled) {
-            String liveEnvironment = studioConfiguration.getProperty(REPO_PUBLISHED_LIVE);
+            String liveEnvironment = servicesConfig.getLiveEnvironment(site);
             if (StringUtils.equals(liveEnvironment, environment)) {
-                String stagingEnvironment = studioConfiguration.getProperty(REPO_PUBLISHED_STAGING);
+                String stagingEnvironment = servicesConfig.getStagingEnvironment(site);
                 contentRepository.publish(site, items, stagingEnvironment, author, comment);
             }
         }
@@ -299,8 +299,8 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
         boolean siteEnvironmentConfigEnabled = Boolean.parseBoolean(
                 studioConfiguration.getProperty(CONFIGURATION_SITE_ENVIRONMENT_CONFIG_ENABLED));
         if (!siteEnvironmentConfigEnabled) {
-            environments.add(studioConfiguration.getProperty(REPO_PUBLISHED_LIVE));
-            environments.add(studioConfiguration.getProperty(REPO_PUBLISHED_STAGING));
+            environments.add(servicesConfig.getLiveEnvironment(site));
+            environments.add(servicesConfig.getStagingEnvironment(site));
         } else {
             List<PublishingTargetTO> publishingTargets = siteService.getPublishingTargetsForSite(site);
 
@@ -405,5 +405,13 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
 
     public void setActivityService(ActivityService activityService) {
         this.activityService = activityService;
+    }
+
+    public ServicesConfig getServicesConfig() {
+        return servicesConfig;
+    }
+
+    public void setServicesConfig(ServicesConfig servicesConfig) {
+        this.servicesConfig = servicesConfig;
     }
 }

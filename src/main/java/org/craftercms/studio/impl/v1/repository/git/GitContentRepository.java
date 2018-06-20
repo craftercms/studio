@@ -1,5 +1,4 @@
 /*
- * Crafter Studio Web-content authoring solution
  * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,6 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 
 package org.craftercms.studio.impl.v1.repository.git;
@@ -79,6 +79,7 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
+import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentHistoryProvider;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
@@ -123,6 +124,9 @@ import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.revwalk.filter.AndRevFilter;
 import org.eclipse.jgit.revwalk.filter.CommitTimeRevFilter;
+import org.eclipse.jgit.revwalk.filter.MessageRevFilter;
+import org.eclipse.jgit.revwalk.filter.NotRevFilter;
+import org.eclipse.jgit.revwalk.filter.RevFilter;
 import org.eclipse.jgit.transport.JschConfigSessionFactory;
 import org.eclipse.jgit.transport.OpenSshConfig;
 import org.eclipse.jgit.transport.PushResult;
@@ -150,8 +154,6 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARAT
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.BLUE_PRINTS_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.BOOTSTRAP_REPO;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_PUBLISHED_COMMIT_MESSAGE;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_PUBLISHED_LIVE;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_PUBLISHED_STAGING;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_SANDBOX_BRANCH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_KEY;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_SALT;
@@ -171,15 +173,16 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     private static final String IN_PROGRESS_BRANCH_NAME_SUFIX = "_in_progress";
     private static final String STUDIO_MANIFEST_LOCATION = "/META-INF/MANIFEST.MF";
 
-    ServletContext ctx;
-    SecurityProvider securityProvider;
-    StudioConfiguration studioConfiguration;
+    protected ServletContext ctx;
+    protected SecurityProvider securityProvider;
+    protected StudioConfiguration studioConfiguration;
+    protected ServicesConfig servicesConfig;
 
     @Autowired
-    GitLogMapper gitLogMapper;
+    protected GitLogMapper gitLogMapper;
 
     @Autowired
-    RemoteRepositoryMapper remoteRepositoryMapper;
+    protected RemoteRepositoryMapper remoteRepositoryMapper;
 
     @Override
     public boolean contentExists(String site, String path) {
@@ -858,7 +861,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
      */
     public void bootstrap() throws Exception {
         // Initialize the helper
-        helper = new GitContentRepositoryHelper(studioConfiguration, securityProvider);
+        helper = new GitContentRepositoryHelper(studioConfiguration, securityProvider, servicesConfig);
 
         encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
                 studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
@@ -1041,7 +1044,10 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             throws DeploymentException {
         Repository repo = helper.getRepository(site, GitRepositories.PUBLISHED);
         String commitId = StringUtils.EMPTY;
-        String path = StringUtils.EMPTY;
+        String sandboxBranchName = servicesConfig.getSandboxBranchName(site);
+        if (StringUtils.isEmpty(sandboxBranchName)) {
+            sandboxBranchName = studioConfiguration.getProperty(REPO_SANDBOX_BRANCH);
+        }
         synchronized (repo) {
             try (Git git = new Git(repo)) {
 
@@ -1054,11 +1060,11 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 try {
 
                     git.checkout()
-                            .setName(studioConfiguration.getProperty(REPO_SANDBOX_BRANCH))
+                            .setName(sandboxBranchName)
                             .call();
                     git.pull()
                             .setRemote(Constants.DEFAULT_REMOTE_NAME)
-                            .setRemoteBranchName(studioConfiguration.getProperty(REPO_SANDBOX_BRANCH))
+                            .setRemoteBranchName(sandboxBranchName)
                             .setStrategy(MergeStrategy.THEIRS)
                             .call();
                 } catch (RefNotFoundException e) {
@@ -1071,7 +1077,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 // checkout environment branch
                 logger.debug("Checkout environment branch " + environment + " for site " + site);
                 try {
-                    git.checkout().setCreateBranch(true).setForce(true).setStartPoint("master")
+                    git.checkout().setCreateBranch(true).setForce(true).setStartPoint(sandboxBranchName)
                             .setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK)
                             .setName(environment)
                             .call();
@@ -1102,6 +1108,10 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         Repository repo = helper.getRepository(site, GitRepositories.PUBLISHED);
         String commitId = StringUtils.EMPTY;
         String path = StringUtils.EMPTY;
+        String sandboxBranchName = servicesConfig.getSandboxBranchName(site);
+        if (StringUtils.isEmpty(sandboxBranchName)) {
+            sandboxBranchName = studioConfiguration.getProperty(REPO_SANDBOX_BRANCH);
+        }
         synchronized (repo) {
             try (Git git = new Git(repo)) {
 
@@ -1122,11 +1132,11 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                                 .call();
                     }
 
-                    Ref ref = repo.exactRef(Constants.R_HEADS + studioConfiguration.getProperty(REPO_SANDBOX_BRANCH));
+                    Ref ref = repo.exactRef(Constants.R_HEADS + sandboxBranchName);
                     boolean createBranch = (ref == null);
 
                     git.checkout()
-                            .setName(studioConfiguration.getProperty(REPO_SANDBOX_BRANCH))
+                            .setName(sandboxBranchName)
                             .setCreateBranch(createBranch)
                             .call();
 
@@ -1135,7 +1145,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
                     git.pull().
                             setRemote(Constants.DEFAULT_REMOTE_NAME)
-                            .setRemoteBranchName(studioConfiguration.getProperty(REPO_SANDBOX_BRANCH))
+                            .setRemoteBranchName(sandboxBranchName)
                             .setStrategy(MergeStrategy.THEIRS)
                             .call();
                 } catch (RefNotFoundException e) {
@@ -1160,7 +1170,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     git.checkout()
                             .setCreateBranch(true)
                             .setForce(true)
-                            .setStartPoint(studioConfiguration.getProperty(REPO_SANDBOX_BRANCH))
+                            .setStartPoint(sandboxBranchName)
                             .setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK)
                             .setName(environment)
                             .call();
@@ -1520,19 +1530,31 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         List<DeploymentSyncHistory> toRet = new ArrayList<DeploymentSyncHistory>();
         Repository publishedRepo = helper.getRepository(site, PUBLISHED);
         int counter = 0;
+        String sandboxBranchName = servicesConfig.getSandboxBranchName(site);
+        if (StringUtils.isEmpty(sandboxBranchName)) {
+            sandboxBranchName = studioConfiguration.getProperty(REPO_SANDBOX_BRANCH);
+        }
         try (Git git = new Git(publishedRepo)) {
             // List all environments
             List<Ref> environments = git.branchList().call();
             for (int i = 0; i < environments.size() && counter < numberOfItems; i++) {
                 Ref env = environments.get(i);
                 String environment = env.getName();
-                if (!environment.equals(studioConfiguration.getProperty(REPO_SANDBOX_BRANCH)) &&
-                        !environment.equals(Constants.R_HEADS + studioConfiguration.getProperty(REPO_SANDBOX_BRANCH))) {
+                if (!environment.equals(sandboxBranchName) &&
+                        !environment.equals(Constants.R_HEADS + sandboxBranchName)) {
+
+                    List<RevFilter> filters = new ArrayList<RevFilter>();
+                    filters.add(CommitTimeRevFilter.after(fromDate.toInstant().toEpochMilli()));
+                    filters.add(CommitTimeRevFilter.before(toDate.toInstant().toEpochMilli()));
+                    filters.add(NotRevFilter.create(MessageRevFilter.create("Initial commit.")));
+
                     Iterable<RevCommit> branchLog = git.log()
                             .add(env.getObjectId())
+                            .setRevFilter(AndRevFilter.create(filters))
+                            /*
                             .setRevFilter(AndRevFilter.create(
                                     CommitTimeRevFilter.after(fromDate.toInstant().toEpochMilli()),
-                                    CommitTimeRevFilter.before(toDate.toInstant().toEpochMilli())))
+                                    CommitTimeRevFilter.before(toDate.toInstant().toEpochMilli())))*/
                             .call();
 
                     Iterator<RevCommit> iterator = branchLog.iterator();
@@ -2036,13 +2058,17 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         }
                         remoteBranches.get(remotePart).add(branchNamePart);
                     }
+                    String sandboxBranchName = servicesConfig.getSandboxBranchName(siteId);
+                    if (StringUtils.isEmpty(sandboxBranchName)) {
+                        sandboxBranchName = studioConfiguration.getProperty(REPO_SANDBOX_BRANCH);
+                    }
                     for (RemoteConfig conf : resultRemotes) {
                         RemoteRepositoryInfoTO rri = new RemoteRepositoryInfoTO();
                         rri.setName(conf.getName());
                         List<String> branches = remoteBranches.get(rri.getName());
                         if (CollectionUtils.isEmpty(branches)) {
                             branches = new ArrayList<String>();
-                            branches.add(studioConfiguration.getProperty(REPO_SANDBOX_BRANCH));
+                            branches.add(sandboxBranchName);
                         }
                         rri.setBranches(branches);
 
@@ -2269,8 +2295,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     @Override
     public void resetStagingRepository(String siteId) throws ServiceException {
         Repository repo = helper.getRepository(siteId, PUBLISHED);
-        String stagingName = studioConfiguration.getProperty(REPO_PUBLISHED_STAGING);
-        String liveName = studioConfiguration.getProperty(REPO_PUBLISHED_LIVE);
+        String stagingName = servicesConfig.getStagingEnvironment(siteId);
+        String liveName = servicesConfig.getLiveEnvironment(siteId);
         synchronized (repo) {
             try (Git git = new Git(repo)) {
                 logger.debug("Checkout live first becuase it is not allowed to delete checkedout branch");
@@ -2290,6 +2316,12 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         }
     }
 
+    @Override
+    public void reloadRepository(String siteId) {
+        helper.sandboxes.remove(siteId);
+        helper.getRepository(siteId, SANDBOX);
+    }
+
     public void setServletContext(ServletContext ctx) {
         this.ctx = ctx;
     }
@@ -2304,5 +2336,13 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
     public void setStudioConfiguration(final StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
+    }
+
+    public ServicesConfig getServicesConfig() {
+        return servicesConfig;
+    }
+
+    public void setServicesConfig(ServicesConfig servicesConfig) {
+        this.servicesConfig = servicesConfig;
     }
 }
