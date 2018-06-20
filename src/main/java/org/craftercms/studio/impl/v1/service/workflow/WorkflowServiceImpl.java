@@ -127,6 +127,7 @@ public class WorkflowServiceImpl implements WorkflowService {
     protected String JSON_KEY_SEND_EMAIL = "sendEmail";
     protected String JSON_KEY_USER = "user";
     protected String JSON_KEY_REASON = "reason";
+    protected String JSON_KEY_ENVIRONMENT = "environment";
     public static final String COMPLETE_SUBMIT_TO_GO_LIVE_MSG = "submitToGoLive";
 
     protected ServicesConfig servicesConfig;
@@ -178,6 +179,9 @@ public class WorkflowServiceImpl implements WorkflowService {
             boolean sendEmail = (requestObject.containsKey(JSON_KEY_SEND_EMAIL)) ?
                     requestObject.getBoolean(JSON_KEY_SEND_EMAIL) : false;
 
+            String environment = (requestObject != null && requestObject.containsKey(JSON_KEY_ENVIRONMENT))
+                    ? requestObject.getString(JSON_KEY_ENVIRONMENT) : null;
+
             String submissionComment = (requestObject != null && requestObject.containsKey(JSON_KEY_SUBMISSION_COMMENT))
                     ? requestObject.getString(JSON_KEY_SUBMISSION_COMMENT) : null;
             // TODO: check scheduled date to make sure it is not null when isNow
@@ -214,7 +218,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                     }
                 }
                 List<DmError> errors = submitToGoLive(submittedItems, scheduledDate, sendEmail, delete, requestContext,
-                        submissionComment);
+                        submissionComment, environment);
                 generateWorkflowActivity(site, submittedPaths, submittedBy,
                         ActivityService.ActivityType.REQUEST_PUBLISH);
                 result.setSuccess(true);
@@ -236,7 +240,7 @@ public class WorkflowServiceImpl implements WorkflowService {
 
     protected List<DmError> submitToGoLive(List<DmDependencyTO> submittedItems, ZonedDateTime scheduledDate,
                                            boolean sendEmail, boolean submitForDeletion, RequestContext requestContext,
-                                           String submissionComment) throws ServiceException {
+                                           String submissionComment, String environment) throws ServiceException {
         List<DmError> errors = new ArrayList<DmError>();
         String site = requestContext.getSite();
         String submittedBy = requestContext.getUser();
@@ -246,13 +250,13 @@ public class WorkflowServiceImpl implements WorkflowService {
                 rule.setContentService(contentService);
                 rule.setObjectStateService(objectStateService);
                 submitThisAndReferredComponents(submittedItem, site, scheduledDate, sendEmail, submitForDeletion,
-                        submittedBy, rule, submissionComment);
+                        submittedBy, rule, submissionComment, environment);
                 List<DmDependencyTO> children = submittedItem.getChildren();
                 if (children != null && !submitForDeletion) {
                     for (DmDependencyTO child : children) {
                         if (!child.isReference()) {
                             submitThisAndReferredComponents(child, site, scheduledDate, sendEmail, submitForDeletion,
-                                    submittedBy, rule, submissionComment);
+                                    submittedBy, rule, submissionComment, environment);
                         }
                     }
                 }
@@ -277,10 +281,10 @@ public class WorkflowServiceImpl implements WorkflowService {
     protected void submitThisAndReferredComponents(DmDependencyTO submittedItem, String site,
                                                    ZonedDateTime scheduledDate, boolean sendEmail,
                                                    boolean submitForDeletion, String submittedBy,
-                                                   DependencyRules rule, String submissionComment)
+                                                   DependencyRules rule, String submissionComment, String environment)
             throws ServiceException {
         doSubmit(site, submittedItem, scheduledDate, sendEmail, submitForDeletion, submittedBy, true,
-            submissionComment);
+            submissionComment, environment);
         Set<DmDependencyTO> stringSet;
 
         if (submitForDeletion) {
@@ -298,13 +302,14 @@ public class WorkflowServiceImpl implements WorkflowService {
             lnotifyAdmin = (!contentItem.isDocument() && !contentItem.isComponent() && !contentItem.isAsset());
             // notify admin will always be true, unless for dependent document/banner/other-files
             doSubmit(site, s, scheduledDate, lsendEmail, submitForDeletion, submittedBy, lnotifyAdmin,
-                    submissionComment);
+                    submissionComment, environment);
         }
     }
 
     protected void doSubmit(final String site, final DmDependencyTO dependencyTO, final ZonedDateTime scheduledDate,
                             final boolean sendEmail, final boolean submitForDeletion, final String user,
-                            final boolean notifyAdmin, final String submissionComment) throws ServiceException {
+                            final boolean notifyAdmin, final String submissionComment, String environment)
+            throws ServiceException {
         //first remove from workflow
         removeFromWorkflow(site, dependencyTO.getUri(), true);
         ContentItemTO item = contentService.getContentItem(site, dependencyTO.getUri());
@@ -314,6 +319,7 @@ public class WorkflowServiceImpl implements WorkflowService {
         properties.put(ItemMetadata.PROP_SEND_EMAIL, sendEmail? 1 : 0);
         properties.put(ItemMetadata.PROP_SUBMITTED_FOR_DELETION, submitForDeletion? 1 : 0);
         properties.put(ItemMetadata.PROP_SUBMISSION_COMMENT, submissionComment);
+        properties.put(ItemMetadata.PROP_SUBMITTED_TO_ENVIRONMENT, environment);
 
         if (null == scheduledDate) {
             properties.put(ItemMetadata.PROP_LAUNCH_DATE, null);

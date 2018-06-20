@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Crafter Studio Web-content authoring solution
-  ~ Copyright (C) 2007-2015 Crafter Software Corporation.
+  ~ Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -15,6 +14,7 @@
   ~
   ~ You should have received a copy of the GNU General Public License
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  ~
   -->
 
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
@@ -44,6 +44,7 @@
         <result property="submittedForDeletion" column="submittedfordeletion"/>
         <result property="sendEmail" column="sendemail"/>
         <result property="commitId" column="commit_id"/>
+        <result property="submittedToEnvironment" column="submittedtoenvironment" />
     </resultMap>
 
     <select id="getProperties" parameterType="java.util.Map" resultMap="ItemMetadataMap">
@@ -75,6 +76,7 @@
             <if test="submissionComment != null">submissioncomment=#{submissionComment},</if>
             <if test="launchDate != null">launchdate=#{launchDate}</if>
             <if test="commitId != null">commit_id=#{commitId}</if>
+            <if test="submittedToEnvironment != null">submittedtoenvironment=#{submittedToEnvironment}</if>
         </trim>
         WHERE site=#{site}
         AND path=#{path}
@@ -103,8 +105,9 @@
             <if test="submittedForDeletion != null">submittedfordeletion=#{submittedForDeletion},</if>
             <if test="sendEmail != null">sendemail=#{sendEmail},</if>
             <if test="submissionComment != null">submissioncomment=#{submissionComment},</if>
-            <if test="launchDate != null">launchdate=#{launchDate}</if>
-            <if test="commitId != null">commit_id=#{commitId}</if>
+            <if test="launchDate != null">launchdate=#{launchDate},</if>
+            <if test="commitId != null">commit_id=#{commitId},</if>
+            <if test="submittedToEnvironment != null">submittedtoenvironment=#{submittedToEnvironment}</if>
         </trim>
         WHERE site=#{site}
         AND commit_id=#{commitId}
@@ -134,7 +137,8 @@
             sendemail=#{sendEmail},
             submissioncomment=#{submissionComment},
             launchdate=#{launchDate},
-            commit_id=#{commitId}
+            commit_id=#{commitId},
+            submittedtoenvironment=#{submittedToEnvironment}
         WHERE id = #{id}
     </update>
 
