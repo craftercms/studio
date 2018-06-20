@@ -63,6 +63,10 @@ paths:
                       type: array
                       items:
                         $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
 components:
   schemas:
@@ -228,6 +232,8 @@ components:
             properties:
               effect:
                 type: string
+                enum: [allow, deny]
+                example: allow
                 description: Allow or Deny
               actions:
                 type: array
@@ -236,6 +242,7 @@ components:
                   description: See relevant LoV for actions using system:service:resourcetype [TODO explain]
               resource:
                 type: string
+                example: crn:studio:content:0284a098aab7c7:130880c018310810b:item:static-assets/*
                 description: See TODO
 
     Role:
@@ -256,13 +263,16 @@ components:
     ApiResponse:
       type: object
       properties:
-        responseCode:
+        code:
           type: integer
           format: int32
-        responseMessage:
+        message:
           type: string
-        responseRemedialAction:
+        remedialAction:
           type: string
+      required:
+        - code
+        - message
 
   parameters:
     offsetParam:
@@ -286,6 +296,23 @@ components:
               $ref: '#/components/schemas/User'
       description: List of user object
       required: true
+
+  responses:
+    NotFound:
+      description: The specified resource was not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse'
+            example: responseCode = 1000, responseMessage = blah
+
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse'
+
   securitySchemes:
   links: {}
   callbacks: {}
