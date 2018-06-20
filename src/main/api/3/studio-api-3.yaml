@@ -49,20 +49,33 @@ paths:
             minItems: 0
       responses:
         '200':
-          description: successful operation
+          description: OK
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    response:
-                      $ref: '#/components/schemas/ApiResponse'
-                    entities:
-                      type: array
-                      items:
-                        $ref: '#/components/schemas/User'
+                type: object
+                properties:
+                  total:
+                    type: integer
+                    format: int32
+                    description: Total records in the system
+                  offset:
+                    type: integer
+                    format: int32
+                    description: Offset of first record in this response
+                  limit:
+                    type: integer
+                    format: int32
+                    description: Number of records in this response
+                  entities:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        response:
+                          $ref: '#/components/schemas/ApiResponse'
+                        entity:
+                          $ref: '#/components/schemas/User'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '404':
@@ -269,6 +282,8 @@ components:
         message:
           type: string
         remedialAction:
+          type: string
+        documentationUrl:
           type: string
       required:
         - code
