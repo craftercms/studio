@@ -2050,9 +2050,14 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     Map<String, List<String>> remoteBranches = new HashMap<String, List<String>>();
                     for (Ref remoteBranchRef : resultRemoteBranches) {
                         String branchFullName = remoteBranchRef.getName().replace(Constants.R_REMOTES, "");
-                        String[] tokens = branchFullName.split("/");
-                        String remotePart = tokens[0];
-                        String branchNamePart = tokens[1];
+                        String remotePart = StringUtils.EMPTY;
+                        String branchNamePart = StringUtils.EMPTY;
+                        int slashIndex = branchFullName.indexOf("/");
+                        if (slashIndex > 0) {
+                            remotePart = branchFullName.substring(0, slashIndex);
+                            branchNamePart = branchFullName.substring(slashIndex + 1);
+                        }
+
                         if (!remoteBranches.containsKey(remotePart)) {
                             remoteBranches.put(remotePart, new ArrayList<String>());
                         }
