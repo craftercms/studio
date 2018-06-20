@@ -768,8 +768,8 @@ public class DeploymentServiceImpl implements DeploymentService {
 
     protected Set<String> getAllPublishedEnvironments(String site) {
         Set<String> publishedEnvironments = new HashSet<String>();
-        publishedEnvironments.add(studioConfiguration.getProperty(StudioConfiguration.REPO_PUBLISHED_LIVE));
-        publishedEnvironments.add(studioConfiguration.getProperty(StudioConfiguration.REPO_PUBLISHED_STAGING));
+        publishedEnvironments.add(servicesConfig.getLiveEnvironment(site));
+        publishedEnvironments.add(servicesConfig.getStagingEnvironment(site));
         return publishedEnvironments;
     }
 
