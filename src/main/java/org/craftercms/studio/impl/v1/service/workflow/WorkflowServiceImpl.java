@@ -280,7 +280,7 @@ public class WorkflowServiceImpl implements WorkflowService {
 
     protected void submitThisAndReferredComponents(DmDependencyTO submittedItem, String site,
                                                    ZonedDateTime scheduledDate, boolean sendEmail,
-                                                   boolean submitForDeletion, String submittedBy,
+                                                                   boolean submitForDeletion, String submittedBy,
                                                    DependencyRules rule, String submissionComment, String environment)
             throws ServiceException {
         doSubmit(site, submittedItem, scheduledDate, sendEmail, submitForDeletion, submittedBy, true,
