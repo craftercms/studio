@@ -9,14 +9,13 @@ info:
   title: Crafter Studio
   termsOfService: ''
   contact:
-    email: 'info@craftercms.org'
+    email: info@craftercms.org
   license:
     name: GPL 3.0
     url: 'https://www.gnu.org/licenses/gpl-3.0.en.html'
 externalDocs:
-  description: 'Crafter CMS - Studio'
+  description: Crafter CMS - Studio
   url: 'https://docs.craftercms.org/en/3.0/developers/projects/studio/index.html'
-
 tags:
   - name: user
     description: User management operations
@@ -26,12 +25,12 @@ paths:
       tags:
         - user
       summary: Get user(s) by username or userId
-      description: ''
-      operationId: getUserByName
+      description: 'Required Permission: "READ_USER"'
+      operationId: getUser
       parameters:
         - name: username
           in: query
-          description: 'The username(s) that needs to be fetched.'
+          description: The username(s) that needs to be fetched.
           required: false
           schema:
             type: array
@@ -40,7 +39,7 @@ paths:
             minItems: 0
         - name: userId
           in: query
-          description: 'The userId(s) that needs to be fetched.'
+          description: The userId(s) that needs to be fetched.
           required: false
           schema:
             type: array
@@ -80,6 +79,158 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '404':
           $ref: '#/components/responses/NotFound'
+    post:
+      tags:
+        - user
+      summary: Create user(s)
+      description: 'Required Permission: "CREATE_USER"'
+      operationId: createUser
+      requestBody:
+        description: List of users to create
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                entities:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/User'
+                      organizations:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            organizationId:
+                              type: integer
+                              format: int64
+                              description: >-
+                                Organization(s) to add the user to during
+                                creation
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                    format: int32
+                    description: Total records in the system
+                  offset:
+                    type: integer
+                    format: int32
+                    description: Offset of first record in this response
+                  limit:
+                    type: integer
+                    format: int32
+                    description: Number of records in this response
+                  entities:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        response:
+                          $ref: '#/components/schemas/ApiResponse'
+                        entity:
+                          $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags:
+        - user
+      summary: Update user(s)
+      description: 'Required Permission: "UPDATE_USER"'
+      operationId: updateUser
+      requestBody:
+        description: List of users to create
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                entities:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/User'
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                    format: int32
+                    description: Total records in the system
+                  offset:
+                    type: integer
+                    format: int32
+                    description: Offset of first record in this response
+                  limit:
+                    type: integer
+                    format: int32
+                    description: Number of records in this response
+                  entities:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        response:
+                          $ref: '#/components/schemas/ApiResponse'
+                        entity:
+                          $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags:
+        - user
+      summary: Delete user(s)
+      description: 'Required Permission: "DELETE_USER"'
+      operationId: deleteUser
+      parameters:
+        - name: username
+          in: query
+          description: The username(s) that needs to be fetched.
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+            minItems: 0
+        - name: userId
+          in: query
+          description: The userId(s) that needs to be fetched.
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+            minItems: 0
+      responses:
+        '204':
+          description: OK
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
 components:
   schemas:
@@ -89,10 +240,10 @@ components:
         id:
           type: integer
           format: int64
-          description: User ID, unique user-identifier, immutable
+          description: 'User ID, unique user-identifier, immutable'
         username:
           type: string
-          description: Username, unique but can be changed
+          description: 'Username, unique but can be changed'
         firstName:
           type: string
           description: User's first name
@@ -107,11 +258,10 @@ components:
           description: User's password
         avatar:
           type: string
-          description: User's avatar, base64 encoded image @128x128 pixel PNG
+          description: 'User''s avatar, base64 encoded image @128x128 pixel PNG'
         status:
           type: string
           description: User status. See relevant LoV for user status.
-    
     LoV:
       type: object
       properties:
@@ -129,17 +279,16 @@ components:
                 type: string
               value:
                 type: string
-    
     Organization:
       type: object
       properties:
         id:
           type: integer
           format: int64
-          description: Organization ID, unique and immutable
+          description: 'Organization ID, unique and immutable'
         name:
           type: string
-          description: Organization name, unique and can be changed
+          description: 'Organization name, unique and can be changed'
         desc:
           type: string
           description: Organization description
@@ -148,52 +297,53 @@ components:
           description: Organization URL (usually the organization WebSite)
         logo:
           type: string
-          description: Organization logo, base64 encoded image @128x128 pixel PNG
-    
+          description: 'Organization logo, base64 encoded image @128x128 pixel PNG'
     Group:
       type: object
       properties:
         id:
           type: integer
           format: int64
-          description: Group ID, unique and immutable
+          description: 'Group ID, unique and immutable'
         name:
           type: string
-          description: Group name, unique within an organization and can be changed
+          description: 'Group name, unique within an organization and can be changed'
         desc:
           type: string
           description: Group description
-    
     Project:
       type: object
       properties:
         id:
           type: integer
           format: int64
-          description: Project ID, unique and immutable
+          description: 'Project ID, unique and immutable'
         name:
           type: string
-          description: Project name, unique within an organization and can be changed
+          description: 'Project name, unique within an organization and can be changed'
         desc:
           type: string
           description: Project description
         liveUrl:
           type: string
-          description: Project live URL, where is project can be accessed or downloaded (if app)
+          description: >-
+            Project live URL, where is project can be accessed or downloaded (if
+            app)
         previewUrl:
           type: string
           description: Project preview URL in Crafter Studio
         stagingUrl:
           type: string
-          description: Project staging URL, where major update can be staged before pushing live
-    
+          description: >-
+            Project staging URL, where major update can be staged before pushing
+            live
     Item:
       type: object
       properties:
         id:
           type: integer
           format: int64
-          description: Item ID, unique and immutable
+          description: 'Item ID, unique and immutable'
         orgId:
           type: string
           description: The organization to which the project that holds the item blongs
@@ -211,7 +361,9 @@ components:
           description: Item type. See relevant LoV for item types.
         mimetype:
           type: string
-          description: MIME-Type if the item is a file. See relevant LoV for item MIME-Types.
+          description: >-
+            MIME-Type if the item is a file. See relevant LoV for item
+            MIME-Types.
         createdBy:
           type: string
           description: UserId of creator
@@ -227,7 +379,6 @@ components:
         commitId:
           type: string
           description: Last repository commit_id
-
     Policy:
       type: object
       properties:
@@ -245,34 +396,37 @@ components:
             properties:
               effect:
                 type: string
-                enum: [allow, deny]
+                enum:
+                  - allow
+                  - deny
                 example: allow
                 description: Allow or Deny
               actions:
                 type: array
                 items:
                   type: string
-                  description: See relevant LoV for actions using system:service:resourcetype [TODO explain]
+                  description: >-
+                    See relevant LoV for actions using
+                    system:service:resourcetype [TODO explain]
               resource:
                 type: string
-                example: crn:studio:content:0284a098aab7c7:130880c018310810b:item:static-assets/*
+                example: >-
+                  crn:studio:content:0284a098aab7c7:130880c018310810b:item:static-assets/*
                 description: See TODO
-
     Role:
       type: object
       properties:
         id:
           type: integer
           format: int64
-          description: Role ID, unique and immutable
+          description: 'Role ID, unique and immutable'
         name:
           type: string
-          description: Role name, unique within ?? TODO
+          description: 'Role name, unique within ?? TODO'
         policies:
           type: array
           items:
             $ref: '#/components/schemas/Policy'
-
     ApiResponse:
       type: object
       properties:
@@ -288,7 +442,6 @@ components:
       required:
         - code
         - message
-
   parameters:
     offsetParam:
       name: offset
@@ -300,7 +453,6 @@ components:
         format: int32
         minimum: 0
         default: 0
-
   requestBodies:
     UserArray:
       content:
@@ -311,7 +463,6 @@ components:
               $ref: '#/components/schemas/User'
       description: List of user object
       required: true
-
   responses:
     NotFound:
       description: The specified resource was not found
@@ -319,16 +470,14 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/ApiResponse'
-            example: responseCode = 1000, responseMessage = blah
-
+            example: 'responseCode = 1000, responseMessage = blah'
     Unauthorized:
       description: Unauthorized
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/ApiResponse'
-
-  securitySchemes:
+  securitySchemes: null
   links: {}
   callbacks: {}
 security: []
