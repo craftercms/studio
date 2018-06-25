@@ -49,10 +49,10 @@
                       type: object
                       properties:
                         response:
-                          $ref: '#/components/schemas/ApiResponse'
+                          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/index.yaml#/components/schemas/ApiResponse'
                         entity:
-                          $ref: '#/components/schemas/User'
+                          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/index.yaml#/components/schemas/User'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/index.yaml#/components/responses/Unauthorized'
         '404':
-          $ref: '#/components/responses/NotFound'
+          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/index.yaml#/components/responses/NotFound'
