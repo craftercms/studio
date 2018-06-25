@@ -50,7 +50,7 @@
                       type: object
                       properties:
                         response:
-                          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/schemas/ApiResponse.yaml'
+                          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/schemas/api-response.yaml'
                         entity:
                           $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/schemas/user.yaml'
         '401':
@@ -115,7 +115,7 @@
                       type: object
                       properties:
                         response:
-                          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/schemas/ApiResponse.yaml'
+                          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/schemas/api-response.yaml'
                         entity:
                           $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/schemas/user.yaml'
         '401':
@@ -169,7 +169,7 @@
                       type: object
                       properties:
                         response:
-                          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/schemas/ApiResponse.yaml'
+                          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/schemas/api-response.yaml'
                         entity:
                           $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/schemas/user.yaml'
         '401':
@@ -262,7 +262,7 @@
                       type: object
                       properties:
                         response:
-                          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/schemas/ApiResponse.yaml'
+                          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/schemas/api-response.yaml'
                         entity:
                           $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/schemas/user.yaml'
         '401':
@@ -322,7 +322,7 @@
                       type: object
                       properties:
                         response:
-                          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/schemas/ApiResponse.yaml'
+                          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/schemas/api-response.yaml'
                         entity:
                           $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/schemas/user.yaml'
         '401':
@@ -393,7 +393,7 @@
                       type: object
                       properties:
                         response:
-                          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/schemas/ApiResponse.yaml'
+                          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/schemas/api-response.yaml'
                         entity:
                           $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/schemas/user.yaml'
         '401':
@@ -444,6 +444,6 @@
                       type: object
                       properties:
                         response:
-                          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/schemas/ApiResponse.yaml'
+                          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/schemas/api-response.yaml'
         '401':
           $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/responses/unauthorized.yaml'
