@@ -23,8 +23,7 @@ tags:
     description: Organization management operations
 
 paths:
-  $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/paths-user.yaml'
-  $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/paths-org.yaml'
+  $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/paths/index.yaml'
 
 components:
   schemas:
