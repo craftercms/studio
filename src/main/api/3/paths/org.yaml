@@ -26,33 +26,4 @@
       responses:
         '200':
           description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  total:
-                    type: integer
-                    format: int32
-                    description: Total records in the system
-                  offset:
-                    type: integer
-                    format: int32
-                    description: Offset of first record in this response
-                  limit:
-                    type: integer
-                    format: int32
-                    description: Number of records in this response
-                  entities:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        response:
-                          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/index.yaml#/components/schemas/ApiResponse'
-                        entity:
-                          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/index.yaml#/components/schemas/User'
-        '401':
-          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/index.yaml#/components/responses/Unauthorized'
-        '404':
-          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/index.yaml#/components/responses/NotFound'
+ 
