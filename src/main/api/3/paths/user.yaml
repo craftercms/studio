@@ -50,13 +50,13 @@
                       type: object
                       properties:
                         response:
-                          $ref: '#/components/schemas/ApiResponse'
+                          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/schemas/ApiResponse.yaml'
                         entity:
-                          $ref: '#/components/schemas/User'
+                          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/schemas/user.yaml'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/responses/unauthorized.yaml'
         '404':
-          $ref: '#/components/responses/NotFound'
+          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/responses/not-found.yaml'
     post:
       tags:
         - user
@@ -77,7 +77,7 @@
                     type: object
                     properties:
                       user:
-                        $ref: '#/components/schemas/User'
+                        $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/schemas/user.yaml'
                       organizations:
                         type: array
                         items:
@@ -115,13 +115,13 @@
                       type: object
                       properties:
                         response:
-                          $ref: '#/components/schemas/ApiResponse'
+                          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/schemas/ApiResponse.yaml'
                         entity:
-                          $ref: '#/components/schemas/User'
+                          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/schemas/user.yaml'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/responses/unauthorized.yaml'
         '404':
-          $ref: '#/components/responses/NotFound'
+          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/responses/not-found.yaml'
     patch:
       tags:
         - user
@@ -142,7 +142,7 @@
                     type: object
                     properties:
                       user:
-                        $ref: '#/components/schemas/User'
+                        $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/schemas/user.yaml'
       responses:
         '201':
           description: OK
@@ -169,13 +169,13 @@
                       type: object
                       properties:
                         response:
-                          $ref: '#/components/schemas/ApiResponse'
+                          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/schemas/ApiResponse.yaml'
                         entity:
-                          $ref: '#/components/schemas/User'
+                          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/schemas/user.yaml'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/responses/unauthorized.yaml'
         '404':
-          $ref: '#/components/responses/NotFound'
+          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/responses/not-found.yaml'
 
     delete:
       tags:
@@ -206,9 +206,9 @@
         '204':
           description: OK
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/responses/unauthorized.yaml'
         '404':
-          $ref: '#/components/responses/NotFound'
+          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/responses/not-found.yaml'
 
   /user/enable:
     patch:
@@ -262,13 +262,13 @@
                       type: object
                       properties:
                         response:
-                          $ref: '#/components/schemas/ApiResponse'
+                          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/schemas/ApiResponse.yaml'
                         entity:
-                          $ref: '#/components/schemas/User'
+                          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/schemas/user.yaml'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/responses/unauthorized.yaml'
         '404':
-          $ref: '#/components/responses/NotFound'
+          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/responses/not-found.yaml'
 
   /user/disable:
     patch:
@@ -322,13 +322,13 @@
                       type: object
                       properties:
                         response:
-                          $ref: '#/components/schemas/ApiResponse'
+                          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/schemas/ApiResponse.yaml'
                         entity:
-                          $ref: '#/components/schemas/User'
+                          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/schemas/user.yaml'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/responses/unauthorized.yaml'
         '404':
-          $ref: '#/components/responses/NotFound'
+          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/responses/not-found.yaml'
 
   /users:
     get:
@@ -365,8 +365,8 @@
             items:
               type: string
             minItems: 0
-        - $ref: '#/components/parameters/offsetParam'
-        - $ref: '#/components/parameters/limitParam'
+        - $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/parameters/offset.yaml'
+        - $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/parameters/limit.yaml'
       responses:
         '200':
           description: OK
@@ -393,13 +393,13 @@
                       type: object
                       properties:
                         response:
-                          $ref: '#/components/schemas/ApiResponse'
+                          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/schemas/ApiResponse.yaml'
                         entity:
-                          $ref: '#/components/schemas/User'
+                          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/schemas/user.yaml'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/responses/unauthorized.yaml'
         '404':
-          $ref: '#/components/responses/NotFound'
+          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/responses/not-found.yaml'
 
   /user/username:
     get:
@@ -444,6 +444,6 @@
                       type: object
                       properties:
                         response:
-                          $ref: '#/components/schemas/ApiResponse'
+                          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/schemas/ApiResponse.yaml'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/responses/unauthorized.yaml'

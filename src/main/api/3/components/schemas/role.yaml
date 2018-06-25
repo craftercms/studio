@@ -10,4 +10,4 @@
         policies:
           type: array
           items:
-            $ref: '#/components/schemas/Policy'
+            $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/schemas/policy.yaml'
