@@ -53,6 +53,6 @@
                         entity:
                           $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/schemas/user.yaml'
         '401':
-          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/schemas/unauthorized.yaml'
+          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/responses/unauthorized.yaml'
         '404':
-          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/schemas/not-found.yaml'
+          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/responses/not-found.yaml'
