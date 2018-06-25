@@ -1,0 +1,449 @@
+  /user:
+    get:
+      tags:
+        - user
+      summary: Get user(s) by username or userId
+      description: 'Required Permission: "READ_USER"'
+      operationId: getUser
+      parameters:
+        - name: username
+          in: query
+          description: The username(s) that needs to be fetched.
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+            minItems: 0
+        - name: userId
+          in: query
+          description: The userId(s) that needs to be fetched.
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+            minItems: 0
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                    format: int32
+                    description: Total records in the system
+                  offset:
+                    type: integer
+                    format: int32
+                    description: Offset of first record in this response
+                  limit:
+                    type: integer
+                    format: int32
+                    description: Number of records in this response
+                  entities:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        response:
+                          $ref: '#/components/schemas/ApiResponse'
+                        entity:
+                          $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    post:
+      tags:
+        - user
+      summary: Create user(s)
+      description: 'Required Permission: "CREATE_USER"'
+      operationId: createUser
+      requestBody:
+        description: List of users to create
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                entities:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/User'
+                      organizations:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            organizationId:
+                              type: integer
+                              format: int64
+                              description: >-
+                                Organization(s) to add the user to during
+                                creation
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                    format: int32
+                    description: Total records in the system
+                  offset:
+                    type: integer
+                    format: int32
+                    description: Offset of first record in this response
+                  limit:
+                    type: integer
+                    format: int32
+                    description: Number of records in this response
+                  entities:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        response:
+                          $ref: '#/components/schemas/ApiResponse'
+                        entity:
+                          $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags:
+        - user
+      summary: Update user(s)
+      description: 'Required Permission: "UPDATE_USER"'
+      operationId: updateUser
+      requestBody:
+        description: List of users to create
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                entities:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/User'
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                    format: int32
+                    description: Total records in the system
+                  offset:
+                    type: integer
+                    format: int32
+                    description: Offset of first record in this response
+                  limit:
+                    type: integer
+                    format: int32
+                    description: Number of records in this response
+                  entities:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        response:
+                          $ref: '#/components/schemas/ApiResponse'
+                        entity:
+                          $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags:
+        - user
+      summary: Delete user(s)
+      description: 'Required Permission: "DELETE_USER"'
+      operationId: deleteUser
+      parameters:
+        - name: username
+          in: query
+          description: The username(s) that needs to be fetched.
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+            minItems: 0
+        - name: userId
+          in: query
+          description: The userId(s) that needs to be fetched.
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+            minItems: 0
+      responses:
+        '204':
+          description: OK
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /user/enable:
+    patch:
+      tags:
+        - user
+      summary: Enable user(s)
+      description: 'Required Permission: "UPDATE_USER"'
+      operationId: enableUser
+      parameters:
+        - name: username
+          in: query
+          description: The username(s) that needs to be fetched.
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+            minItems: 0
+        - name: userId
+          in: query
+          description: The userId(s) that needs to be fetched.
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+            minItems: 0
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                    format: int32
+                    description: Total records in the system
+                  offset:
+                    type: integer
+                    format: int32
+                    description: Offset of first record in this response
+                  limit:
+                    type: integer
+                    format: int32
+                    description: Number of records in this response
+                  entities:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        response:
+                          $ref: '#/components/schemas/ApiResponse'
+                        entity:
+                          $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /user/disable:
+    patch:
+      tags:
+        - user
+      summary: Disable user(s)
+      description: 'Required Permission: "UPDATE_USER", Scope: Organization'
+      operationId: disableUser
+      parameters:
+        - name: username
+          in: query
+          description: The username(s) that needs to be fetched.
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+            minItems: 0
+        - name: userId
+          in: query
+          description: The userId(s) that needs to be fetched.
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+            minItems: 0
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                    format: int32
+                    description: Total records in the system
+                  offset:
+                    type: integer
+                    format: int32
+                    description: Offset of first record in this response
+                  limit:
+                    type: integer
+                    format: int32
+                    description: Number of records in this response
+                  entities:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        response:
+                          $ref: '#/components/schemas/ApiResponse'
+                        entity:
+                          $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /users:
+    get:
+      tags:
+        - user
+      summary: List users
+      description: 'Required Permission: "READ_USER", Scope: Organization'
+      operationId: getUser
+      parameters:
+        - name: orgId
+          in: query
+          description: The organization(s) to filter by.
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+            minItems: 0
+        - name: projectId
+          in: query
+          description: The projectId(s) to filter by.
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+            minItems: 0
+        - name: groupId
+          in: query
+          description: The groupId(s) to filter by.
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+            minItems: 0
+        - $ref: '#/components/parameters/offsetParam'
+        - $ref: '#/components/parameters/limitParam'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                    format: int32
+                    description: Total records in the system
+                  offset:
+                    type: integer
+                    format: int32
+                    description: Offset of first record in this response
+                  limit:
+                    type: integer
+                    format: int32
+                    description: Number of records in this response
+                  entities:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        response:
+                          $ref: '#/components/schemas/ApiResponse'
+                        entity:
+                          $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /user/username:
+    get:
+      tags:
+        - user
+      summary: Check if username(s) is(are) in use
+      description: 'Required Permission: "READ_USER"'
+      operationId: checkUsername
+      parameters:
+        - name: username
+          in: query
+          description: The username(s) to check.
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+            minItems: 0
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                    format: int32
+                    description: Total records in the system
+                  offset:
+                    type: integer
+                    format: int32
+                    description: Offset of first record in this response
+                  limit:
+                    type: integer
+                    format: int32
+                    description: Number of records in this response
+                  entities:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        response:
+                          $ref: '#/components/schemas/ApiResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
