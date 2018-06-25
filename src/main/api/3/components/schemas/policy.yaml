@@ -1,0 +1,33 @@
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Policy ID
+        version:
+          type: string
+          description: Policy version number
+        statements:
+          type: array
+          items:
+            type: object
+            properties:
+              effect:
+                type: string
+                enum:
+                  - allow
+                  - deny
+                example: allow
+                description: Allow or Deny
+              actions:
+                type: array
+                items:
+                  type: string
+                  description: >-
+                    See relevant LoV for actions using
+                    system:service:resourcetype [TODO explain]
+              resource:
+                type: string
+                example: >-
+                  crn:studio:content:0284a098aab7c7:130880c018310810b:item:static-assets/*
+                description: See TODO

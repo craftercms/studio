@@ -1,0 +1,6 @@
+      description: The specified resource was not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse'
+            example: 'responseCode = 1000, responseMessage = blah'

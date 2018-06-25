@@ -1,0 +1,8 @@
+  schemas:
+    $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/schemas/index.yaml'
+  parameters:
+    $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/parameters/index.yaml'
+  requestBodies:
+    $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/request-bodies/index.yaml'
+  responses:
+    $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/responses/index.yaml'
