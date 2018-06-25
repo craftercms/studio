@@ -1776,6 +1776,9 @@ public class ContentServiceImpl implements ContentService {
             if (StringUtils.isNotEmpty(metadata.getSubmissionComment())) {
                 item.setSubmissionComment(metadata.getSubmissionComment());
             }
+            if (StringUtils.isNotEmpty(metadata.getSubmittedToEnvironment())) {
+                item.setSubmittedToEnvironment(metadata.getSubmittedToEnvironment());
+            }
         } else {
             item.setLockOwner("");
         }
