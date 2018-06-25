@@ -1,22 +1,13 @@
     get:
       tags:
-        - organization
-      summary: Get user(s) by username or userId
+        - user
+      summary: Check if username(s) is(are) in use
       description: 'Required Permission: "READ_USER"'
-      operationId: getUser
+      operationId: checkUsername
       parameters:
         - name: username
           in: query
-          description: The username(s) that needs to be fetched.
-          required: false
-          schema:
-            type: array
-            items:
-              type: string
-            minItems: 0
-        - name: userId
-          in: query
-          description: The userId(s) that needs to be fetched.
+          description: The username(s) to check.
           required: false
           schema:
             type: array
@@ -49,10 +40,6 @@
                       type: object
                       properties:
                         response:
-                          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/index.yaml#/components/schemas/ApiResponse'
-                        entity:
-                          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/index.yaml#/components/schemas/User'
+                          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/schemas/api-response.yaml'
         '401':
-          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/index.yaml#/components/responses/Unauthorized'
-        '404':
-          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/index.yaml#/components/responses/NotFound'
+          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/responses/unauthorized.yaml'

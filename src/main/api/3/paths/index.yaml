@@ -1,2 +1,10 @@
+  /user:
+    $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/paths/user.yaml'
+  /user/enable:
+    $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/paths/enable/index.yaml'
+  /user/disable:
+    $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/paths/disable/index.yaml'
+  /users:
+    $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/paths/users.yaml'
   /org:
-      $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/paths/org.yaml'
+    $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/paths/org.yaml'

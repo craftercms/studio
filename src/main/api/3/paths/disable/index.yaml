@@ -1,13 +1,13 @@
-    get:
+    patch:
       tags:
-        - organization
-      summary: Get user(s) by username or userId
-      description: 'Required Permission: "READ_USER"'
-      operationId: getUser
+        - user
+      summary: Disable user(s)
+      description: 'Required Permission: "UPDATE_USER", Scope: Organization'
+      operationId: disableUser
       parameters:
         - name: username
           in: query
-          description: The username(s) that needs to be fetched.
+          description: The username(s).
           required: false
           schema:
             type: array
@@ -16,7 +16,7 @@
             minItems: 0
         - name: userId
           in: query
-          description: The userId(s) that needs to be fetched.
+          description: The userId(s).
           required: false
           schema:
             type: array
@@ -49,10 +49,10 @@
                       type: object
                       properties:
                         response:
-                          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/index.yaml#/components/schemas/ApiResponse'
+                          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/schemas/api-response.yaml'
                         entity:
-                          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/index.yaml#/components/schemas/User'
+                          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/schemas/user.yaml'
         '401':
-          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/index.yaml#/components/responses/Unauthorized'
+          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/responses/unauthorized.yaml'
         '404':
-          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/index.yaml#/components/responses/NotFound'
+          $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/responses/not-found.yaml'
