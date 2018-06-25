@@ -25,6 +25,7 @@ tags:
 paths:
   $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/paths-user.yaml'
   $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/paths-org.yaml'
+
 components:
   schemas:
     User:
