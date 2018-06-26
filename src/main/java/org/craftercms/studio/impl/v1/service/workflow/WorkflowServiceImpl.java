@@ -629,6 +629,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                     itemMetadata.setSubmittedForDeletion(0);
                     itemMetadata.setSubmissionComment(StringUtils.EMPTY);
                     itemMetadata.setLaunchDate(null);
+                    itemMetadata.setSubmittedToEnvironment(StringUtils.EMPTY);
                     objectMetadataManager.updateObjectMetadata(itemMetadata);
                 }
                 paths.add(affectedItem);
@@ -2294,6 +2295,7 @@ public class WorkflowServiceImpl implements WorkflowService {
             newProps.put(ItemMetadata.PROP_SEND_EMAIL, 0);
             newProps.put(ItemMetadata.PROP_SUBMITTED_FOR_DELETION, 0);
             newProps.put(ItemMetadata.PROP_LAUNCH_DATE, null);
+            newProps.put(ItemMetadata.PROP_SUBMITTED_TO_ENVIRONMENT, StringUtils.EMPTY);
             objectMetadataManager.setObjectMetadata(site, dmDependencyTO.getUri(), newProps);
             ContentItemTO item = contentService.getContentItem(site, dmDependencyTO.getUri());
             objectStateService.transition(site, item, TransitionEvent.REJECT);

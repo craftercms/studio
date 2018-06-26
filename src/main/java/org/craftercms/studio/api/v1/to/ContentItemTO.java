@@ -129,6 +129,7 @@ public class ContentItemTO implements Serializable {
 
     public String mimeType;
     public String environment;
+    public String submittedToEnvironment;
 
 	public ContentItemTO() {}
 
@@ -233,6 +234,7 @@ public class ContentItemTO implements Serializable {
         this.orders = item.orders;
         this.mimeType = item.mimeType;
         this.environment = item.environment;
+        this.submittedToEnvironment = item.submittedToEnvironment;
 
 		if (cloneChildren) {
 			if (item.children != null) {
@@ -732,6 +734,14 @@ public class ContentItemTO implements Serializable {
 
     public void setEnvironment(String environment) {
         this.environment = environment;
+    }
+
+    public String getSubmittedToEnvironment() {
+        return submittedToEnvironment;
+    }
+
+    public void setSubmittedToEnvironment(String submittedToEnvironment) {
+        this.submittedToEnvironment = submittedToEnvironment;
     }
 
     public void addChild(ContentItemTO itemToAdd, boolean recursive, boolean renamed) {
