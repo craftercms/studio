@@ -1,2 +1,0 @@
-    UserArray:
-      $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/request-bodies/user-array.yaml'

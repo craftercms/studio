@@ -1,4 +1,0 @@
-    offsetParam:
-      $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/parameters/offset.yaml'
-    limitParam:
-      $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/parameters/offset.yaml'

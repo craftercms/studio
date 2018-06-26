@@ -1,8 +1,0 @@
-      content:
-        application/json:
-          schema:
-            type: array
-            items:
-              $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/schemas/user.yaml'
-      description: List of user object
-      required: true

@@ -1,4 +1,0 @@
-    NotFound:
-      $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/responses/not-found.yaml'
-    Unauthorized:
-      $ref: 'https://raw.githubusercontent.com/craftercms/studio/develop/src/main/api/3/components/responses/unauthorized.yaml'
