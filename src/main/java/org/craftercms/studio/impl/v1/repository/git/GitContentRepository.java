@@ -151,10 +151,13 @@ import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.BOOTSTRAP_REPO_GLOBAL_PATH;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.BOOTSTRAP_REPO_PATH;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.REPO_COMMIT_MESSAGE_PATH_VAR;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.REPO_COMMIT_MESSAGE_USERNAME_VAR;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.BLUE_PRINTS_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.BOOTSTRAP_REPO;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_PUBLISHED_COMMIT_MESSAGE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_SANDBOX_BRANCH;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_SANDBOX_WRITE_COMMIT_MESSAGE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_KEY;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_SALT;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.BLUEPRINTS_UPDATED_COMMIT;
@@ -270,11 +273,16 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     GitRepositories.SANDBOX);
 
             if (repo != null) {
-                if (helper.writeFile(repo, site, path, content))
-                    commitId = helper.commitFile(repo, site, path, "Wrote content " + path,
-                            helper.getCurrentUserIdent());
-                else
+                if (helper.writeFile(repo, site, path, content)) {
+                    PersonIdent user = helper.getCurrentUserIdent();
+                    String username = securityProvider.getCurrentUser();
+                    String comment = studioConfiguration.getProperty(REPO_SANDBOX_WRITE_COMMIT_MESSAGE)
+                            .replace(REPO_COMMIT_MESSAGE_USERNAME_VAR, username)
+                            .replace(REPO_COMMIT_MESSAGE_PATH_VAR, path);
+                    commitId = helper.commitFile(repo, site, path, comment, user);
+                } else {
                     logger.error("Failed to write content site: " + site + " path: " + path);
+                }
             } else {
                 logger.error("Missing repository during write for site: " + site + " path: " + path);
             }
