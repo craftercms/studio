@@ -33,6 +33,7 @@ public interface StudioConfiguration {
     String BLUE_PRINTS_PATH = "studio.repo.blueprintsPath";
     String BOOTSTRAP_REPO = "studio.repo.bootstrapRepo";
     String REPO_REBUILD_METADATA_BATCH_SIZE = "studio.repo.rebuildMetadata.batchSize";
+    String REPO_SANDBOX_WRITE_COMMIT_MESSAGE = "studio.repo.sandbox.write.commitMessage";
     String REPO_PUBLISHED_COMMIT_MESSAGE = "studio.repo.published.commitMessage";
     String CONFIGURATION_SITE_ENVIRONMENT_CONFIG_ENABLED = "studio.configuration.site.environmentConfig.enabled";
     String REPO_PUBLISHED_LIVE = "studio.repo.published.live";
