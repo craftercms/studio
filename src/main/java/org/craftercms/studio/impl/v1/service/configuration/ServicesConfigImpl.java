@@ -1,20 +1,20 @@
-/*******************************************************************************
- * Crafter Studio Web-content authoring solution
- *     Copyright (C) 2007-2016 Crafter Software Corporation.
+/*
+ * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU General Public License as published by
- *     the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *     You should have received a copy of the GNU General Public License
- *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
- ******************************************************************************/
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
 package org.craftercms.studio.impl.v1.service.configuration;
 
 import org.apache.commons.lang3.StringUtils;
@@ -26,7 +26,12 @@ import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ContentTypesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
-import org.craftercms.studio.api.v1.to.*;
+import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
+import org.craftercms.studio.api.v1.to.CopyDependencyConfigTO;
+import org.craftercms.studio.api.v1.to.DeleteDependencyConfigTO;
+import org.craftercms.studio.api.v1.to.DmFolderConfigTO;
+import org.craftercms.studio.api.v1.to.RepositoryConfigTO;
+import org.craftercms.studio.api.v1.to.SiteConfigTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.dom4j.Document;
@@ -38,11 +43,21 @@ import org.slf4j.LoggerFactory;
 
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_LIVE_ENVIRONMENT;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_PUBLISHED_REPOSITORY;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_STAGING_ENVIRONMENT;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_ELEMENT_SANDBOX_BRANCH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_ENVIRONMENT_CONFIG_ENABLED;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_GENERAL_CONFIG_FILE_NAME;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_SANDBOX_BRANCH;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_PUBLISHED_LIVE;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_PUBLISHED_STAGING;
 
 /**
  * Implementation of ServicesConfigImpl. This class requires a configuration
@@ -85,6 +100,8 @@ public class ServicesConfigImpl implements ServicesConfig {
 	protected ContentService contentService;
 
 	protected ContentRepository contentRepository;
+    protected GeneralLockService generalLockService;
+    protected StudioConfiguration studioConfiguration;
 
     protected SiteConfigTO getSiteConfig(final String site) {
         return loadConfiguration(site);
@@ -122,7 +139,8 @@ public class ServicesConfigImpl implements ServicesConfig {
 
 	@Override
     @ValidateParams
-	public ContentTypeConfigTO getContentTypeConfig(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "name") String name) {
+	public ContentTypeConfigTO getContentTypeConfig(@ValidateStringParam(name = "site") String site,
+                                                    @ValidateStringParam(name = "name") String name) {
 		return contentTypesConfig.getContentTypeConfig(site, name);
 	}
 
@@ -138,8 +156,9 @@ public class ServicesConfigImpl implements ServicesConfig {
 
     @Override
     @ValidateParams
-	public List<DeleteDependencyConfigTO> getDeleteDependencyPatterns(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "contentType") String contentType) {
-        if(contentType==null){
+	public List<DeleteDependencyConfigTO> getDeleteDependencyPatterns(@ValidateStringParam(name = "site") String site,
+                                              @ValidateStringParam(name = "contentType") String contentType) {
+        if (contentType == null ) {
              return Collections.emptyList();
         }
 		ContentTypeConfigTO contentTypeConfig = contentTypesConfig.getContentTypeConfig(site, contentType);
@@ -151,8 +170,9 @@ public class ServicesConfigImpl implements ServicesConfig {
 
     @Override
     @ValidateParams
-	public List<CopyDependencyConfigTO> getCopyDependencyPatterns(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "contentType") String contentType) {
-        if(contentType==null){
+	public List<CopyDependencyConfigTO> getCopyDependencyPatterns(@ValidateStringParam(name = "site") String site,
+                                                  @ValidateStringParam(name = "contentType") String contentType) {
+        if (contentType == null ) {
              return Collections.emptyList();
         }
 		ContentTypeConfigTO contentTypeConfig = contentTypesConfig.getContentTypeConfig(site, contentType);
@@ -265,7 +285,8 @@ public class ServicesConfigImpl implements ServicesConfig {
          Document document = null;
          SiteConfigTO siteConfig = null;
          try {
-             document = contentService.getContentAsDocument(site, siteConfigPath + FILE_SEPARATOR +  getConfigFileName());
+             document = contentService.getContentAsDocument(site,
+                     siteConfigPath + FILE_SEPARATOR +  getConfigFileName());
          } catch (DocumentException e) {
              LOGGER.error("Error while loading configuration for " + site + " at " + siteConfigPath, e);
          }
@@ -277,6 +298,27 @@ public class ServicesConfigImpl implements ServicesConfig {
              siteConfig.setName(name);
              siteConfig.setWemProject(configNode.valueOf("wem-project"));
              siteConfig.setTimezone(configNode.valueOf("default-timezone"));
+             String sandboxBranch = configNode.valueOf(SITE_CONFIG_ELEMENT_SANDBOX_BRANCH);
+             if (StringUtils.isEmpty(sandboxBranch)) {
+                 sandboxBranch = studioConfiguration.getProperty(REPO_SANDBOX_BRANCH);
+             }
+             siteConfig.setSandboxBranch(sandboxBranch);
+             boolean siteEnvironmentConfigEnabled = Boolean.parseBoolean(
+                     studioConfiguration.getProperty(CONFIGURATION_SITE_ENVIRONMENT_CONFIG_ENABLED));
+             if (!siteEnvironmentConfigEnabled) {
+                 String stagingEnvironment = configNode.valueOf(SITE_CONFIG_XML_ELEMENT_PUBLISHED_REPOSITORY + "/" +
+                         SITE_CONFIG_XML_ELEMENT_STAGING_ENVIRONMENT);
+                 if (StringUtils.isEmpty(stagingEnvironment)) {
+                     stagingEnvironment = studioConfiguration.getProperty(REPO_PUBLISHED_STAGING);
+                 }
+                 siteConfig.setStagingEnvironment(stagingEnvironment);
+                 String liveEnvironment = configNode.valueOf(SITE_CONFIG_XML_ELEMENT_PUBLISHED_REPOSITORY + "/" +
+                         SITE_CONFIG_XML_ELEMENT_LIVE_ENVIRONMENT);
+                 if (StringUtils.isEmpty(liveEnvironment)) {
+                     liveEnvironment = studioConfiguration.getProperty(REPO_PUBLISHED_LIVE);
+                 }
+                 siteConfig.setLiveEnvironment(liveEnvironment);
+             }
              loadSiteRepositoryConfiguration(siteConfig, configNode.selectSingleNode("repository"));
              // set the last updated date
              siteConfig.setLastUpdated(ZonedDateTime.now(ZoneOffset.UTC));
@@ -300,7 +342,8 @@ public class ServicesConfigImpl implements ServicesConfig {
         repoConfigTO.setLevelDescriptorName(node.valueOf("level-descriptor"));
         loadFolderConfiguration(siteConfig, repoConfigTO, node.selectNodes("folders/folder"));
         loadPatterns(siteConfig, repoConfigTO, node.selectNodes("patterns/pattern-group"));
-        List<String> displayPatterns = getStringList(node.selectNodes("display-in-widget-patterns/display-in-widget-pattern"));
+        List<String> displayPatterns =
+                getStringList(node.selectNodes("display-in-widget-patterns/display-in-widget-pattern"));
         repoConfigTO.setDisplayPatterns(displayPatterns);
         siteConfig.setRepositoryConfig(repoConfigTO);
     }
@@ -368,7 +411,8 @@ public class ServicesConfigImpl implements ServicesConfig {
                         }
                     }
                 } else {
-                    LOGGER.error("no pattern key provided in " + site.getName() + " configuration. Skipping the pattern.");
+                    LOGGER.error("no pattern key provided in " + site.getName() +
+                            " configuration. Skipping the pattern.");
                 }
             }
         } else {
@@ -389,8 +433,10 @@ public class ServicesConfigImpl implements ServicesConfig {
                 DmFolderConfigTO folderConfig = new DmFolderConfigTO();
                 folderConfig.setName(folderNode.valueOf(ATTR_NAME));
                 folderConfig.setPath(folderNode.valueOf(ATTR_PATH));
-                folderConfig.setReadDirectChildren(ContentFormatUtils.getBooleanValue(folderNode.valueOf(ATTR_READ_DIRECT_CHILDREN)));
-                folderConfig.setAttachRootPrefix(ContentFormatUtils.getBooleanValue(folderNode.valueOf(ATTR_ATTACH_ROOT_PREFIX)));
+                folderConfig.setReadDirectChildren(
+                        ContentFormatUtils.getBooleanValue(folderNode.valueOf(ATTR_READ_DIRECT_CHILDREN)));
+                folderConfig.setAttachRootPrefix(
+                        ContentFormatUtils.getBooleanValue(folderNode.valueOf(ATTR_ATTACH_ROOT_PREFIX)));
                 folders.add(folderConfig);
             }
             repo.setFolders(folders);
@@ -423,13 +469,39 @@ public class ServicesConfigImpl implements ServicesConfig {
         SiteConfigTO config = loadConfiguration(site);
     }
 
+    @Override
+    @ValidateParams
+    public String getSandboxBranchName(@ValidateStringParam(name = "site") String site) {
+        SiteConfigTO config = getSiteConfig(site);
+        if (config != null) {
+            return config.getSandboxBranch();
+        }
+        return null;
+    }
+
+    @Override
+    public String getStagingEnvironment(String site) {
+        SiteConfigTO config = getSiteConfig(site);
+        if (config != null) {
+            return config.getStagingEnvironment();
+        }
+        return null;
+    }
+
+    @Override
+    public String getLiveEnvironment(String site) {
+        SiteConfigTO config = getSiteConfig(site);
+        if (config != null) {
+            return config.getLiveEnvironment();
+        }
+        return null;
+    }
+
     public void setContentService(ContentService contentService) {
 		this.contentService = contentService;
 	}
 
-
-
-	public ContentTypesConfig getContentTypesConfig() {
+    public ContentTypesConfig getContentTypesConfig() {
 		return contentTypesConfig;
 	}
 
@@ -437,15 +509,27 @@ public class ServicesConfigImpl implements ServicesConfig {
 		this.contentTypesConfig = contentTypesConfig;
 	}
 
-	public ContentRepository getContentRepository() { return contentRepository; }
-	public void setContentRepository(ContentRepository contentRepository) { this.contentRepository = contentRepository; }
+	public ContentRepository getContentRepository() {
+        return contentRepository;
+    }
 
-    public GeneralLockService getGeneralLockService() { return generalLockService; }
-    public void setGeneralLockService(GeneralLockService generalLockService) { this.generalLockService = generalLockService; }
+	public void setContentRepository(ContentRepository contentRepository) {
+        this.contentRepository = contentRepository;
+    }
 
-    public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
-    public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
+    public GeneralLockService getGeneralLockService() {
+        return generalLockService;
+    }
 
-    protected GeneralLockService generalLockService;
-    protected StudioConfiguration studioConfiguration;
+    public void setGeneralLockService(GeneralLockService generalLockService) {
+        this.generalLockService = generalLockService;
+    }
+
+    public StudioConfiguration getStudioConfiguration() {
+        return studioConfiguration;
+    }
+
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+        this.studioConfiguration = studioConfiguration;
+    }
 }

@@ -60,7 +60,6 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARAT
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.PUBLISHING_MANAGER_INDEX_FILE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.
         PUBLISHING_MANAGER_PUBLISHING_WITHOUT_DEPENDENCIES_ENABLED;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_PUBLISHED_LIVE;
 
 public class PublishingManagerImpl implements PublishingManager {
 
@@ -121,7 +120,7 @@ public class PublishingManagerImpl implements PublishingManager {
         boolean siteEnvironmentConfigEnabled = Boolean.parseBoolean(
                 studioConfiguration.getProperty(StudioConfiguration.CONFIGURATION_SITE_ENVIRONMENT_CONFIG_ENABLED));
         if (!siteEnvironmentConfigEnabled) {
-            liveEnvironment = studioConfiguration.getProperty(REPO_PUBLISHED_LIVE);
+            liveEnvironment = servicesConfig.getLiveEnvironment(site);
         }
 
         boolean isLive = false;
@@ -203,24 +202,26 @@ public class PublishingManagerImpl implements PublishingManager {
                 throw new DeploymentException("No metadata found for " + site + ":" + path);
             }
 
+            ContentItemTO contentItem = contentService.getContentItem(site, path);
             if (isLive) {
                 // should consider what should be done if this does not work.
                 // Currently the method will bail and the item is stuck in processing.
                 LOGGER.debug("Environment is live, transition item to LIVE state {0}:{1}", site, path);
 
                 // check if commit id from workflow and from object state match
-                ContentItemTO contentItem = contentService.getContentItem(site, path);
                 if (itemMetadata.getCommitId().equals(item.getCommitId())) {
                     objectStateService.transition(site, contentItem, TransitionEvent.DEPLOYMENT);
                 }
-                Map<String, Object> props = new HashMap<String, Object>();
-                props.put(ItemMetadata.PROP_SUBMITTED_BY, StringUtils.EMPTY);
-                props.put(ItemMetadata.PROP_SEND_EMAIL, 0);
-                props.put(ItemMetadata.PROP_SUBMITTED_FOR_DELETION, 0);
-                props.put(ItemMetadata.PROP_SUBMISSION_COMMENT, StringUtils.EMPTY);
-                objectMetadataManager.setObjectMetadata(site, path, props);
-
+            } else {
+                    objectStateService.transition(site, contentItem, TransitionEvent.SAVE);
             }
+            Map<String, Object> props = new HashMap<String, Object>();
+            props.put(ItemMetadata.PROP_SUBMITTED_BY, StringUtils.EMPTY);
+            props.put(ItemMetadata.PROP_SEND_EMAIL, 0);
+            props.put(ItemMetadata.PROP_SUBMITTED_FOR_DELETION, 0);
+            props.put(ItemMetadata.PROP_SUBMISSION_COMMENT, StringUtils.EMPTY);
+            props.put(ItemMetadata.PROP_SUBMITTED_TO_ENVIRONMENT, StringUtils.EMPTY);
+            objectMetadataManager.setObjectMetadata(site, path, props);
         }
         return deploymentItem;
     }

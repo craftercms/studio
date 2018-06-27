@@ -1,26 +1,27 @@
-/*******************************************************************************
- * Crafter Studio Web-content authoring solution
- *     Copyright (C) 2007-2016 Crafter Software Corporation.
+/*
+ * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU General Public License as published by
- *     the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *     You should have received a copy of the GNU General Public License
- *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
- ******************************************************************************/
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
 package org.craftercms.studio.api.v1.to;
 
 import java.io.Serializable;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.util.DmContentItemComparator;
@@ -127,6 +128,8 @@ public class ContentItemTO implements Serializable {
     public String sizeUnit;
 
     public String mimeType;
+    public String environment;
+    public String submittedToEnvironment;
 
 	public ContentItemTO() {}
 
@@ -230,6 +233,8 @@ public class ContentItemTO implements Serializable {
         this.parentPath = item.parentPath;
         this.orders = item.orders;
         this.mimeType = item.mimeType;
+        this.environment = item.environment;
+        this.submittedToEnvironment = item.submittedToEnvironment;
 
 		if (cloneChildren) {
 			if (item.children != null) {
@@ -241,67 +246,170 @@ public class ContentItemTO implements Serializable {
 		}
 	}
 
-	public String getName() { return name; }
-	public void setName(String name) { this.name = name; }
+	public String getName() {
+	    return name;
+	}
 
-	public String getInternalName() { return internalName; }
-	public void setInternalName(String internalName) { this.internalName = internalName; }
+	public void setName(String name) {
+	    this.name = name;
+	}
 
-	public String getContentType() { return contentType; }
-	public void setContentType(String contentType) { this.contentType = contentType; }
+	public String getInternalName() {
+	    return internalName;
+	}
 
-	public String getUri() { return uri; }
-	public void setUri(String uri) { this.uri = uri; }
+	public void setInternalName(String internalName) {
+	    this.internalName = internalName;
+	}
 
-	public String getPath() { return path; }
-	public void setPath(String path) { this.path = path; }
+	public String getContentType() {
+	    return contentType;
+	}
 
-	public String getBrowserUri() { return browserUri; }
-	public void setBrowserUri(String browserUri) { this.browserUri = browserUri; }
+	public void setContentType(String contentType) {
+	    this.contentType = contentType;
+	}
 
-	public boolean isNavigation() { return navigation; }
-	public void setNavigation(boolean navigation) { this.navigation = navigation; }
+	public String getUri() {
+	    return uri;
+	}
 
-	public boolean isFloating() { return floating; }
-	public void setFloating(boolean floating) { this.floating = floating; }
+	public void setUri(String uri) {
+	    this.uri = uri;
+	}
 
-	public boolean isHideInAuthoring() { return hideInAuthoring; }
-	public void setHideInAuthoring(boolean hideInAuthoring) { this.hideInAuthoring = hideInAuthoring; }
+	public String getPath() {
+	    return path;
+	}
 
-	public boolean isPreviewable() { return previewable; }
-	public void setPreviewable(boolean previewable) { this.previewable = previewable; }
+	public void setPath(String path) {
+	    this.path = path;
+	}
 
-	public String getLockOwner() { return lockOwner; }
-	public void setLockOwner(String lockOwner) { this.lockOwner = lockOwner; }
+	public String getBrowserUri() {
+	    return browserUri;
+	}
 
-	public String getUser() { return user; }
-	public void setUser(String user) { this.user = user; }
+	public void setBrowserUri(String browserUri) {
+	    this.browserUri = browserUri;
+	}
 
-	public String getUserFirstName() { return userFirstName; }
-	public void setUserFirstName(String userFirstName) { this.userFirstName = userFirstName; }
+	public boolean isNavigation() {
+	    return navigation;
+	}
 
-	public String getUserLastName() { return userLastName; }
-	public void setUserLastName(String userLastName) { this.userLastName = userLastName; }
+	public void setNavigation(boolean navigation) {
+	    this.navigation = navigation;
+	}
 
-	public String getNodeRef() { return nodeRef; }
-	public void setNodeRef(String nodeRef) { this.nodeRef = nodeRef; }
+	public boolean isFloating() {
+	    return floating;
+	}
 
-	public String getMetaDescription() { return metaDescription; }
-	public void setMetaDescription(String metaDescription) { this.metaDescription = metaDescription; }
+	public void setFloating(boolean floating) {
+	    this.floating = floating;
+	}
 
-	public boolean isPage() { return page; }
-	public void setPage(boolean page) { this.page = page; }
+	public boolean isHideInAuthoring() {
+	    return hideInAuthoring;
+	}
 
-	public boolean isComponent() { return component; }
-	public void setComponent(boolean component) { this.component = component; }
+	public void setHideInAuthoring(boolean hideInAuthoring) {
+	    this.hideInAuthoring = hideInAuthoring;
+	}
 
-	public boolean isDocument() { return document; }
-	public void setDocument(boolean document) { this.document = document; }
+	public boolean isPreviewable() {
+	    return previewable;
+	}
 
-	public boolean isAsset() { return asset; }
-	public void setAsset(boolean asset) { this.asset = asset; }
+	public void setPreviewable(boolean previewable) {
+	    this.previewable = previewable;
+	}
 
-	public ZonedDateTime getEventDate() { return eventDate; }
+	public String getLockOwner() {
+	    return lockOwner;
+	}
+
+	public void setLockOwner(String lockOwner) {
+	    this.lockOwner = lockOwner;
+	}
+
+	public String getUser() {
+	    return user;
+	}
+
+	public void setUser(String user) {
+	    this.user = user;
+	}
+
+	public String getUserFirstName() {
+	    return userFirstName;
+	}
+
+	public void setUserFirstName(String userFirstName) {
+	    this.userFirstName = userFirstName;
+	}
+
+	public String getUserLastName() {
+	    return userLastName;
+	}
+
+	public void setUserLastName(String userLastName) {
+	    this.userLastName = userLastName;
+	}
+
+	public String getNodeRef() {
+	    return nodeRef;
+	}
+
+	public void setNodeRef(String nodeRef) {
+	    this.nodeRef = nodeRef;
+	}
+
+	public String getMetaDescription() {
+	    return metaDescription;
+	}
+
+	public void setMetaDescription(String metaDescription) {
+	    this.metaDescription = metaDescription;
+	}
+
+	public boolean isPage() {
+	    return page;
+	}
+
+	public void setPage(boolean page) {
+	    this.page = page;
+	}
+
+	public boolean isComponent() {
+	    return component;
+	}
+
+	public void setComponent(boolean component) {
+	    this.component = component;
+	}
+
+	public boolean isDocument() {
+	    return document;
+	}
+
+	public void setDocument(boolean document) {
+	    this.document = document;
+	}
+
+	public boolean isAsset() {
+	    return asset;
+	}
+
+	public void setAsset(boolean asset) {
+	    this.asset = asset;
+	}
+
+	public ZonedDateTime getEventDate() {
+	    return eventDate;
+	}
+
 	public void setEventDate(ZonedDateTime eventDate) {
         if (eventDate != null) {
             this.eventDate = eventDate.withZoneSameInstant(ZoneOffset.UTC);
@@ -309,16 +417,34 @@ public class ContentItemTO implements Serializable {
             this.eventDate = eventDate;
         }
     }
-	public String getEndpoint() { return endpoint; }
-	public void setEndpoint(String endpoint) { this.endpoint = endpoint; }
+	public String getEndpoint() {
+	    return endpoint;
+	}
 
-	public String getTimezone() { return timezone; }
-	public void setTimezone(String timezone) { this.timezone = timezone; }
+	public void setEndpoint(String endpoint) {
+	    this.endpoint = endpoint;
+	}
 
-	public int getNumOfChildren() { return numOfChildren; }
-	public void setNumOfChildren(int numOfChildren) { this.numOfChildren = numOfChildren; }
+	public String getTimezone() {
+	    return timezone;
+	}
 
-	public ZonedDateTime getScheduledDate() { return scheduledDate; }
+	public void setTimezone(String timezone) {
+	    this.timezone = timezone;
+	}
+
+	public int getNumOfChildren() {
+	    return numOfChildren;
+	}
+
+	public void setNumOfChildren(int numOfChildren) {
+	    this.numOfChildren = numOfChildren;
+	}
+
+	public ZonedDateTime getScheduledDate() {
+	    return scheduledDate;
+	}
+
 	public void setScheduledDate(ZonedDateTime scheduledDate) {
 	    if (scheduledDate != null) {
             this.scheduledDate = scheduledDate.withZoneSameInstant(ZoneOffset.UTC);
@@ -327,7 +453,10 @@ public class ContentItemTO implements Serializable {
         }
 	}
 
-    public ZonedDateTime getPublishedDate() { return publishedDate; }
+    public ZonedDateTime getPublishedDate() {
+	    return publishedDate;
+	}
+
     public void setPublishedDate(ZonedDateTime publishedDate) {
 	    if (publishedDate != null) {
             this.publishedDate = publishedDate.withZoneSameInstant(ZoneOffset.UTC);
@@ -336,49 +465,122 @@ public class ContentItemTO implements Serializable {
         }
 	}
 
-	public String getMandatoryParent() { return mandatoryParent; }
-	public void setMandatoryParent(String mandatoryParent) { this.mandatoryParent = mandatoryParent; }
+	public String getMandatoryParent() {
+	    return mandatoryParent;
+	}
 
-	public boolean isLevelDescriptor() { return isLevelDescriptor; }
-	public void setLevelDescriptor(boolean isLevelDescriptor) { this.isLevelDescriptor = isLevelDescriptor; }
+	public void setMandatoryParent(String mandatoryParent) {
+	    this.mandatoryParent = mandatoryParent;
+	}
 
-	public List<ContentItemTO> getChildren() { return children; }
-	public void setChildren(List<ContentItemTO> children) { this.children = children; }
+	public boolean isLevelDescriptor() {
+	    return isLevelDescriptor;
+	}
 
-	public boolean isContainer() { return isContainer; }
-	public void setContainer(boolean isContainer) { this.isContainer = isContainer; }
+	public void setLevelDescriptor(boolean isLevelDescriptor) {
+	    this.isLevelDescriptor = isLevelDescriptor;
+	}
 
-	public boolean isDisabled() { return disabled; }
-	public void setDisabled(boolean disabled) { this.disabled = disabled; }
+	public List<ContentItemTO> getChildren() {
+	    return children;
+	}
 
-	public boolean isSubmitted() { return submitted; }
-	public void setSubmitted(boolean submitted) { this.submitted = submitted; }
+	public void setChildren(List<ContentItemTO> children) {
+	    this.children = children;
+	}
 
-	public boolean isSubmittedForDeletion() { return submittedForDeletion; }
-	public void setSubmittedForDeletion(boolean submittedForDeletion) { this.submittedForDeletion = submittedForDeletion; }
+	public boolean isContainer() {
+	    return isContainer;
+	}
 
-	public boolean isScheduled() { return scheduled; }
-	public void setScheduled(boolean scheduled) { this.scheduled = scheduled; }
+	public void setContainer(boolean isContainer) {
+	    this.isContainer = isContainer;
+	}
 
-    public boolean isPublished() { return published; }
-    public void setPublished(boolean published) { this.published = published; }
+	public boolean isDisabled() {
+	    return disabled;
+	}
 
-	public boolean isDeleted() { return deleted; }
-	public void setDeleted(boolean deleted) { this.deleted = deleted; }
+	public void setDisabled(boolean disabled) {
+	    this.disabled = disabled;
+	}
 
-	public boolean isNew() { return isNew; }
-	public void setNew(boolean isNew) { this.isNew = isNew; }
+	public boolean isSubmitted() {
+	    return submitted;
+	}
 
-	public boolean isInProgress() { return inProgress; }
-	public void setInProgress(boolean inProgress) { this.inProgress = inProgress; }
+	public void setSubmitted(boolean submitted) {
+	    this.submitted = submitted;
+	}
 
-	public boolean isLive() { return live; }
-	public void setLive(boolean live) { this.live = live; }
+	public boolean isSubmittedForDeletion() {
+	    return submittedForDeletion;
+	}
 
-	public String getCategoryRoot() { return categoryRoot; }
-	public void setCategoryRoot(String categoryRoot) { this.categoryRoot = categoryRoot; }
+	public void setSubmittedForDeletion(boolean submittedForDeletion) {
+	    this.submittedForDeletion = submittedForDeletion;
+	}
 
-	public ZonedDateTime getLastEditDate() { return lastEditDate; }
+	public boolean isScheduled() {
+	    return scheduled;
+	}
+
+	public void setScheduled(boolean scheduled) {
+	    this.scheduled = scheduled;
+	}
+
+    public boolean isPublished() {
+	    return published;
+	}
+
+    public void setPublished(boolean published) {
+	    this.published = published;
+	}
+
+	public boolean isDeleted() {
+	    return deleted;
+	}
+
+	public void setDeleted(boolean deleted) {
+	    this.deleted = deleted;
+	}
+
+	public boolean isNew() {
+	    return isNew;
+	}
+
+	public void setNew(boolean isNew) {
+	    this.isNew = isNew;
+	}
+
+	public boolean isInProgress() {
+	    return inProgress;
+	}
+
+	public void setInProgress(boolean inProgress) {
+	    this.inProgress = inProgress;
+	}
+
+	public boolean isLive() {
+	    return live;
+	}
+
+	public void setLive(boolean live) {
+	    this.live = live;
+	}
+
+	public String getCategoryRoot() {
+	    return categoryRoot;
+	}
+
+	public void setCategoryRoot(String categoryRoot) {
+	    this.categoryRoot = categoryRoot;
+	}
+
+	public ZonedDateTime getLastEditDate() {
+	    return lastEditDate;
+	}
+
 	public void setLastEditDate(ZonedDateTime lastEditDate) {
 	    if (lastEditDate != null) {
             this.lastEditDate = lastEditDate.withZoneSameInstant(ZoneOffset.UTC);
@@ -387,44 +589,109 @@ public class ContentItemTO implements Serializable {
         }
 	}
 
-	public String getForm() { return form; }
-	public void setForm(String form) { this.form = form; }
+	public String getForm() {
+	    return form;
+	}
 
-	public String getFormPagePath() { return formPagePath; }
-	public void setFormPagePath(String formPagePath) { this.formPagePath = formPagePath; }
+	public void setForm(String form) {
+	    this.form = form;
+	}
 
-	public boolean isFolder() { return folder; }
-	public void setFolder(boolean folder) { this.folder = folder; }
+	public String getFormPagePath() {
+	    return formPagePath;
+	}
 
-    public String getSubmissionComment() { return submissionComment; }
-    public void setSubmissionComment(String submissionComment) { this.submissionComment = submissionComment; }
+	public void setFormPagePath(String formPagePath) {
+	    this.formPagePath = formPagePath;
+	}
 
-    public List<ContentItemTO> getComponents() { return components; }
-    public void setComponents(List<ContentItemTO> components) { this.components = components; }
+	public boolean isFolder() {
+	    return folder;
+	}
 
-    public List<ContentItemTO> getDocuments() { return documents; }
-    public void setDocuments(List<ContentItemTO> documents) { this.documents = documents; }
+	public void setFolder(boolean folder) {
+	    this.folder = folder;
+	}
 
-    public List<ContentItemTO> getLevelDescriptors() { return levelDescriptors; }
-    public void setLevelDescriptors(List<ContentItemTO> levelDescriptors) { this.levelDescriptors = levelDescriptors; }
+    public String getSubmissionComment() {
+	    return submissionComment;
+	}
 
-    public boolean isNewFile() { return isNewFile; }
-    public void setNewFile(boolean isNewFile) { this.isNewFile = isNewFile; }
+    public void setSubmissionComment(String submissionComment) {
+	    this.submissionComment = submissionComment;
+	}
 
-    public List<ContentItemTO> getPages() { return pages; }
-    public void setPages(List<ContentItemTO> pages) { this.pages = pages; }
+    public List<ContentItemTO> getComponents() {
+	    return components;
+	}
 
-    public boolean isReference() { return isReference; }
-    public void setReference(boolean isReference) { this.isReference = isReference; }
+    public void setComponents(List<ContentItemTO> components) {
+	    this.components = components;
+	}
 
-    public String getParentPath() { return parentPath; }
-    public void setParentPath(String parentPath) { this.parentPath = parentPath; }
+    public List<ContentItemTO> getDocuments() {
+	    return documents;
+	}
 
-	public List<DmOrderTO> getOrders() { return orders; }
-	public void setOrders(List<DmOrderTO> orders) { this.orders = orders; }
+    public void setDocuments(List<ContentItemTO> documents) {
+	    this.documents = documents;
+	}
 
-    public boolean isInFlight() { return this.inFlight; }
-    public void setInFlight(boolean inFlight) { this.inFlight = inFlight; }
+    public List<ContentItemTO> getLevelDescriptors() {
+	    return levelDescriptors;
+	}
+
+    public void setLevelDescriptors(List<ContentItemTO> levelDescriptors) {
+	    this.levelDescriptors = levelDescriptors;
+	}
+
+    public boolean isNewFile() {
+	    return isNewFile;
+	}
+
+    public void setNewFile(boolean isNewFile) {
+	    this.isNewFile = isNewFile;
+	}
+
+    public List<ContentItemTO> getPages() {
+	    return pages;
+	}
+
+    public void setPages(List<ContentItemTO> pages) {
+	    this.pages = pages;
+	}
+
+    public boolean isReference() {
+	    return isReference;
+	}
+
+    public void setReference(boolean isReference) {
+	    this.isReference = isReference;
+	}
+
+    public String getParentPath() {
+	    return parentPath;
+	}
+
+    public void setParentPath(String parentPath) {
+	    this.parentPath = parentPath;
+	}
+
+	public List<DmOrderTO> getOrders() {
+	    return orders;
+	}
+
+	public void setOrders(List<DmOrderTO> orders) {
+	    this.orders = orders;
+	}
+
+    public boolean isInFlight() {
+	    return this.inFlight;
+	}
+
+    public void setInFlight(boolean inFlight) {
+	    this.inFlight = inFlight;
+	}
 
     public Double getOrder(String orderName) {
 		if (orderName != null && orders != null) {
@@ -437,14 +704,45 @@ public class ContentItemTO implements Serializable {
 		return -1.0;
 	}
 
-    public double getSize() { return size; }
-    public void setSize(double size) { this.size = size; }
+    public double getSize() {
+	    return size;
+	}
 
-    public String getSizeUnit() { return sizeUnit; }
-    public void setSizeUnit(String sizeUnit) { this.sizeUnit = sizeUnit; }
+    public void setSize(double size) {
+	    this.size = size;
+	}
 
-    public String getMimeType() { return mimeType; }
-    public void setMimeType(String mimeType) { this.mimeType = mimeType; }
+    public String getSizeUnit() {
+	    return sizeUnit;
+	}
+
+    public void setSizeUnit(String sizeUnit) {
+	    this.sizeUnit = sizeUnit;
+	}
+
+    public String getMimeType() {
+	    return mimeType;
+	}
+
+    public void setMimeType(String mimeType) {
+	    this.mimeType = mimeType;
+	}
+
+    public String getEnvironment() {
+        return environment;
+    }
+
+    public void setEnvironment(String environment) {
+        this.environment = environment;
+    }
+
+    public String getSubmittedToEnvironment() {
+        return submittedToEnvironment;
+    }
+
+    public void setSubmittedToEnvironment(String submittedToEnvironment) {
+        this.submittedToEnvironment = submittedToEnvironment;
+    }
 
     public void addChild(ContentItemTO itemToAdd, boolean recursive, boolean renamed) {
 
