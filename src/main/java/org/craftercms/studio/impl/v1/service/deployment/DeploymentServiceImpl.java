@@ -465,10 +465,15 @@ public class DeploymentServiceImpl implements DeploymentService {
         if (deployReports != null) {
             int count = 0;
             String timezone = servicesConfig.getDefaultTimezone(site);
-            Set<String> processedItems = new HashSet<String>();
+            //Set<String> processedItems = new HashSet<String>();
+            Map<String, Set<String>> processedItems = new HashMap<String, Set<String>>();
             for (int index = 0; index < deployReports.size() && count < numberOfItems; index++) {
                 DeploymentSyncHistory entry = deployReports.get(index);
-                if (!processedItems.contains(entry.getPath())) {
+                String env = entry.getEnvironment();
+                if (!processedItems.containsKey(env)) {
+                    processedItems.put(env, new HashSet<String>());
+                }
+                if (!processedItems.get(env).contains(entry.getPath())) {
                     ContentItemTO deployedItem = getDeployedItem(entry.getSite(), entry.getPath());
                     if (deployedItem != null) {
                         deployedItem.eventDate = entry.getSyncDate();
@@ -490,7 +495,7 @@ public class DeploymentServiceImpl implements DeploymentService {
                         } else {
                             tasks.add(createDeploymentTask(deployedLabel, deployedItem));
                         }
-                        processedItems.add(entry.getPath());
+                        processedItems.get(env).add(entry.getPath());
                     }
                 }
             }
