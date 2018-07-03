@@ -1559,10 +1559,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     Iterable<RevCommit> branchLog = git.log()
                             .add(env.getObjectId())
                             .setRevFilter(AndRevFilter.create(filters))
-                            /*
-                            .setRevFilter(AndRevFilter.create(
-                                    CommitTimeRevFilter.after(fromDate.toInstant().toEpochMilli()),
-                                    CommitTimeRevFilter.before(toDate.toInstant().toEpochMilli())))*/
                             .call();
 
                     Iterator<RevCommit> iterator = branchLog.iterator();
@@ -1591,6 +1587,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 }
             }
             git.close();
+            toRet.sort((o1, o2) -> o2.getSyncDate().compareTo(o1.getSyncDate()));
         } catch (IOException | GitAPIException e1) {
             logger.error("Error while getting deployment history for site " + site, e1);
         }
