@@ -385,8 +385,26 @@ public class PublishingManagerImpl implements PublishingManager {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("site", site);
         params.put("now", ZonedDateTime.now(ZoneOffset.UTC));
+        List<String> states = new ArrayList<String>() {{
+            add(PublishRequest.State.READY_FOR_LIVE);
+            add(PublishRequest.State.BLOCKED);
+            add(PublishRequest.State.PROCESSING);
+        }};
+
+        params.put("states", states);
         PublishRequest result = publishRequestMapper.checkPublishingStatus(params);
         return result.getState();
+    }
+
+    @Override
+    @ValidateParams
+    public boolean isPublishingQueueEmpty(@ValidateStringParam(name = "site") String site) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("site", site);
+        params.put("now", ZonedDateTime.now(ZoneOffset.UTC));
+        params.put("state", PublishRequest.State.READY_FOR_LIVE);
+        Integer result = publishRequestMapper.isPublishingQueueEmpty(params);
+        return result < 1;
     }
 
     public String getIndexFile() {
