@@ -7,6 +7,7 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -111,7 +112,7 @@ public class NotificationServiceImpl implements NotificationService {
             templateModel.put("files", convertPathsToContent(site, itemsSubmitted));
             templateModel.put("submitterUser", submitter);
             templateModel.put("approver", securityService.getUserProfile(approver));
-            templateModel.put("scheduleDate", scheduleDate);
+            templateModel.put("scheduleDate", Date.from(scheduleDate.toInstant()));
             notify(site, Arrays.asList(submitterUser.get(KEY_EMAIL).toString()), NOTIFICATION_KEY_CONTENT_APPROVED,
                 locale, templateModel);
         } catch (Throwable ex) {
@@ -182,7 +183,7 @@ public class NotificationServiceImpl implements NotificationService {
             Map<String, Object> templateModel = new HashMap<>();
             templateModel.put("files", convertPathsToContent(site, itemsSubmitted));
             templateModel.put("submitter", submitterUser);
-            templateModel.put("scheduleDate", scheduleDate);
+            templateModel.put("scheduleDate", Date.from(scheduleDate.toInstant()));
             templateModel.put("isDeleted", isADelete);
             templateModel.put("submissionComments", submissionComments);
             if (usersToNotify == null) {

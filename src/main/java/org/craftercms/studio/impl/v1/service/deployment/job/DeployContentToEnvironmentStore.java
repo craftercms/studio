@@ -57,8 +57,9 @@ import org.craftercms.studio.impl.v1.job.RepositoryJob;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_DEPLOYMENT_MASTER_PUBLISHING_NODE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_MANDATORY_DEPENDENCIES_CHECK_ENABLED;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_PROCESSING_CHUNK_SIZE;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_BUSY;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_IDLE;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_PUBLISHING;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_QUEUED;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED_ERROR;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_ENVIRONMENT_CONFIG_ENABLED;
 
@@ -144,12 +145,23 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
                                         SimpleDateFormat sdf =
                                                 new SimpleDateFormat(StudioConstants.DATE_PATTERN_WORKFLOW_WITH_TZ);
                                         String messagePath = StringUtils.EMPTY;
+                                        String currentPackageId = StringUtils.EMPTY;
                                         try {
                                             logger.debug("Mark items as processing for site \"{0}\"", site);
                                             Set<String> packageIds = new HashSet<String>();
                                             for (PublishRequest item : itemsToDeploy) {
                                                 processPublishingRequest(site, environment, item,
                                                         completeDeploymentItemList, processedPaths);
+                                                if (!StringUtils.equals(currentPackageId, item.getPackageId())) {
+                                                    currentPackageId = item.getPackageId();
+                                                    statusMessage = studioConfiguration.getProperty
+                                                            (JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_PUBLISHING);
+                                                    statusMessage =
+                                                            statusMessage.replace("{package_id}", currentPackageId)
+                                                            .replace("{datetime}", ZonedDateTime.now(ZoneOffset.UTC)
+                                                                    .format(DateTimeFormatter.ofPattern(sdf.toPattern())));
+                                                    siteService.updatePublishingStatusMessage(site, statusMessage);
+                                                }
                                                 packageIds.add(item.getPackageId());
                                             }
                                             deploy(site, environment, completeDeploymentItemList, author,
@@ -163,12 +175,27 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
                                             publishingManager.markItemsCompleted(site, environment, itemsToDeploy);
                                             logger.debug("Mark deployment completed for processed items for site \"{0}\"", site);
                                             logger.info("Finished publishing environment " + environment + " for site " + site);
+
+                                            if (publishingManager.isPublishingQueueEmpty(site)) {
+                                                statusMessage = studioConfiguration.getProperty
+                                                        (JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_IDLE);
+                                                statusMessage = statusMessage.replace("{package_id}", currentPackageId)
+                                                        .replace("{datetime}", ZonedDateTime.now(ZoneOffset.UTC)
+                                                                .format(DateTimeFormatter.ofPattern(sdf.toPattern())));
+                                            } else {
+                                                statusMessage =
+                                                        studioConfiguration.getProperty
+                                                                (JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_QUEUED);
+                                            }
+                                            siteService.updatePublishingStatusMessage(site, statusMessage);
                                         } catch (DeploymentException err) {
-                                            logger.error("Error while executing deployment to environment store for site \"{0}\", number of items \"{1}\"", err, site, itemsToDeploy.size());
+                                            logger.error("Error while executing deployment to environment store " +
+                                                    "for site \"{0}\", number of items \"{1}\"", err, site,
+                                                    itemsToDeploy.size());
                                             publishingManager.markItemsReady(site, environment, itemsToDeploy);
                                             siteService.enablePublishing(site, false);
-                                            statusMessage =
-                                                    studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED_ERROR);
+                                            statusMessage = studioConfiguration.getProperty
+                                                    (JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED_ERROR);
                                             statusMessage = statusMessage.replace("{item_path}", messagePath)
                                                     .replace("{datetime}", ZonedDateTime.now(ZoneOffset.UTC)
                                                             .format(DateTimeFormatter.ofPattern(sdf.toPattern())));
@@ -176,10 +203,12 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
                                             throw err;
                                         } catch (Exception err){
                                             logger.error("Unexpected error while executing deployment to environment " +
-                                                    "store for site \"{0}\", number of items \"{1}\"", err, site, itemsToDeploy.size());
+                                                    "store for site \"{0}\", number of items \"{1}\"", err, site,
+                                                    itemsToDeploy.size());
                                             publishingManager.markItemsReady(site, environment, itemsToDeploy);
                                             siteService.enablePublishing(site, false);
-                                            statusMessage = studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED_ERROR);
+                                            statusMessage = studioConfiguration.getProperty
+                                                    (JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED_ERROR);
                                             statusMessage = statusMessage.replace("{item_path}", messagePath)
                                                     .replace("{datetime}", ZonedDateTime.now(ZoneOffset.UTC)
                                                             .format(DateTimeFormatter.ofPattern(sdf.toPattern())));
@@ -223,12 +252,8 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
         Set<String> missingDependenciesPaths = new HashSet<String>();
         SimpleDateFormat sdf = new SimpleDateFormat(StudioConstants.DATE_PATTERN_WORKFLOW_WITH_TZ);
         String messagePath = item.getPath();
-        String statusMessage = studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_BUSY);
-        statusMessage = statusMessage.replace("{item_path}", messagePath).replace("{datetime}",
-                ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern(sdf.toPattern())));
-        siteService.updatePublishingStatusMessage(site, statusMessage);
+        String statusMessage = StringUtils.EMPTY;
         publishingManager.markItemsProcessing(site, environment, Arrays.asList(item));
-        String lockKey2 = item.getSite() + ":" + item.getPath();
         try {
             List<DeploymentItemTO> deploymentItemList = new ArrayList<DeploymentItemTO>();
 
@@ -250,10 +275,6 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
             }
             deploymentItemList.addAll(missingDependencies);
             completeDeploymentItemList.addAll(deploymentItemList);
-            statusMessage = studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_IDLE);
-            statusMessage = statusMessage.replace("{item_path}", messagePath).replace("{datetime}",
-                    ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern(sdf.toPattern())));
-            siteService.updatePublishingStatusMessage(site, statusMessage);
         } catch (DeploymentException err) {
             logger.error("Error while executing deployment to environment store for site \"{0}\",", err, site);
             publishingManager.markItemsReady(site, environment, Arrays.asList(item));
