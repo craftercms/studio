@@ -277,9 +277,13 @@ studio.job.deployContentToEnvironment.mandatoryDependenciesCheckEnabled: true
 # Publishing default status message
 studio.job.deployContentToEnvironment.status.message.default: "idle|Idle"
 # Publishing idle status message
-studio.job.deployContentToEnvironment.status.message.idle: "idle|Last successful publish was for item: {item_path} on {datetime}"
+studio.job.deployContentToEnvironment.status.message.idle: "idle|Last successful publish was for package: {package_id} on {datetime}"
 # Publishing busy status message
 studio.job.deployContentToEnvironment.status.message.busy: "busy|Currently publishing item: {item_path} on {datetime}"
+# Publishing publishing status message
+studio.job.deployContentToEnvironment.status.message.publishing: "publishing|Currently publishing package: {package_id} on {datetime}"
+# Publishing queued status message
+studio.job.deployContentToEnvironment.status.message.queued: "queued|Items queued for publishing"
 # Publishing stopped by error status message
 studio.job.deployContentToEnvironment.status.message.stopped.error: "stopped|Stopped while trying to publish item: {item_path} on {datetime}"
 # Publishing stopped by user status message

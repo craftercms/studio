@@ -93,6 +93,8 @@ import static org.craftercms.studio.api.v1.service.objectstate.State.NEW_DELETED
 import static org.craftercms.studio.api.v1.service.objectstate.State.NEW_SUBMITTED_NO_WF_SCHEDULED;
 import static org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.DELETE;
 import static org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.SUBMIT_WITHOUT_WORKFLOW_SCHEDULED;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration
+        .JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_QUEUED;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.PREVIOUS_COMMIT_SUFFIX;
 
 /**
@@ -174,6 +176,13 @@ public class DeploymentServiceImpl implements DeploymentService {
             sendContentApprovalEmail(items, scheduleDateNow);
         } catch(Exception errNotify) {
             logger.error("Error sending approval notification ", errNotify);
+        }
+        String statusMessage = studioConfiguration
+                .getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_QUEUED);
+        try {
+            siteService.updatePublishingStatusMessage(site, statusMessage);
+        } catch (SiteNotFoundException e) {
+            logger.error("Error updating publishing status for site " + site);
         }
     }
 
@@ -288,6 +297,13 @@ public class DeploymentServiceImpl implements DeploymentService {
             }
         }
         objectStateService.setSystemProcessingBulk(site, paths, false);
+        String statusMessage = studioConfiguration
+                .getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_QUEUED);
+        try {
+            siteService.updatePublishingStatusMessage(site, statusMessage);
+        } catch (SiteNotFoundException e) {
+            logger.error("Error updating publishing status for site " + site);
+        }
     }
 
     protected Set<String> getAllPublishingEnvironments(String site) {

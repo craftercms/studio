@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Crafter Studio Web-content authoring solution
-  ~ Copyright (C) 2007-2014 Crafter Software Corporation.
+  ~ Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -15,6 +14,7 @@
   ~
   ~ You should have received a copy of the GNU General Public License
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  ~
   -->
 
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
@@ -129,5 +129,14 @@
         AND path = #{path}
         AND state = #{state}
         AND commit_id = #{commitId}
+    </select>
+
+    <select id="isPublishingQueueEmpty" resultType="int">
+        SELECT count(1)
+        FROM publish_request
+        WHERE site = #{site}
+        AND scheduleddate &lt;= #{now}
+        AND state = #{state}
+        ORDER BY scheduleddate ASC
     </select>
 </mapper>
