@@ -74,8 +74,8 @@
             <if test="submittedForDeletion != null">submittedfordeletion=#{submittedForDeletion},</if>
             <if test="sendEmail != null">sendemail=#{sendEmail},</if>
             <if test="submissionComment != null">submissioncomment=#{submissionComment},</if>
-            <if test="launchDate != null">launchdate=#{launchDate}</if>
-            <if test="commitId != null">commit_id=#{commitId}</if>
+            <if test="launchDate != null">launchdate=#{launchDate},</if>
+            <if test="commitId != null">commit_id=#{commitId},</if>
             <if test="submittedToEnvironment != null">submittedtoenvironment=#{submittedToEnvironment}</if>
         </trim>
         WHERE site=#{site}
