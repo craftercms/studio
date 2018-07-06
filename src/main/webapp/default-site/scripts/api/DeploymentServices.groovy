@@ -58,9 +58,9 @@ class DeploymentServices {
         return deploymentServicesImpl.enablePublishing(siteId, enabled)
     }
 
-    static publishCommits(context, siteId, environment, commitIds) {
+    static publishCommits(context, siteId, environment, commitIds, comment) {
         def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context)
-        return deploymentServicesImpl.publishCommits(siteId, environment, commitIds)
+        return deploymentServicesImpl.publishCommits(siteId, environment, commitIds, comment)
     }
 
     static publishItems(context, site, environment, schedule, paths, submissionComment) {

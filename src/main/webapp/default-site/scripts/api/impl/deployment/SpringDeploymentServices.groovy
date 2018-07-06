@@ -61,9 +61,9 @@ class SpringDeploymentServices {
         return springBackedService.enablePublishing(siteId, enabled)
     }
 
-    def publishCommits(siteId, environment, commitIds) {
+    def publishCommits(siteId, environment, commitIds, comment) {
         def springBackedService = this.context.applicationContext.get(DEPLOYMENT_SERVICES_BEAN)
-        return springBackedService.publishCommits(siteId, environment, commitIds)
+        return springBackedService.publishCommits(siteId, environment, commitIds, comment)
     }
 
     def publishItems(site, environment, schedule, paths, submissionComment) {
