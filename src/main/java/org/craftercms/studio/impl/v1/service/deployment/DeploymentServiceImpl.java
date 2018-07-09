@@ -895,7 +895,7 @@ public class DeploymentServiceImpl implements DeploymentService {
     @ValidateParams
     public void publishCommits(@ValidateStringParam(name = "site") String site,
                                @ValidateStringParam(name = "environment") String environment,
-                               List<String> commitIds)
+                               List<String> commitIds, @ValidateStringParam(name = "comment") String comment)
             throws SiteNotFoundException, EnvironmentNotFoundException, CommitNotFoundException {
         if (!siteService.exists(site)) {
             throw new SiteNotFoundException();
@@ -909,7 +909,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         }
         logger.debug("Creating publish request items for queue for site " + site + " environment " + environment);
         List<PublishRequest> publishRequests = createCommitItems(site, environment, commitIds,
-                ZonedDateTime.now(ZoneOffset.UTC), securityService.getCurrentUser());
+                ZonedDateTime.now(ZoneOffset.UTC), securityService.getCurrentUser(), comment);
         logger.debug("Insert publish request items to the queue");
         for (PublishRequest request : publishRequests) {
             publishRequestMapper.insertItemForDeployment(request);
@@ -926,7 +926,7 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     private List<PublishRequest> createCommitItems(String site, String environment, List<String> commitIds,
-                                                   ZonedDateTime scheduledDate, String approver) {
+                                                   ZonedDateTime scheduledDate, String approver, String comment) {
         List<PublishRequest> newItems = new ArrayList<PublishRequest>(commitIds.size());
         String packageId = UUID.randomUUID().toString();
         logger.debug("Get repository operations for each commit id and create publish request items");
@@ -946,6 +946,7 @@ public class DeploymentServiceImpl implements DeploymentService {
                 item.setCommitId(commitId);
                 item.setUser(approver);
                 item.setPackageId(packageId);
+                item.setSubmissionComment(comment);
 
                 switch (op.getOperation()) {
                     case CREATE:
