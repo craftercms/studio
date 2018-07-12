@@ -1,6 +1,5 @@
 /*
- * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2016 Crafter Software Corporation.
+ * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,6 +18,7 @@
 
 package org.craftercms.studio.impl.v1.deployment;
 
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.ebus.DeploymentEventContext;
 import org.craftercms.studio.api.v1.ebus.DeploymentItem;
 import org.craftercms.studio.api.v1.ebus.EBusConstants;
@@ -54,15 +54,18 @@ public class EnvironmentDeployer {
             deploymentItem.setPackageId(item.getPackageId());
         }
         try {
-            contentRepository.publish(context.getSite(), deploymentItems, context.getEnvironment(), context.getAuthor(), context.getComment());
+            contentRepository.publish(context.getSite(), StringUtils.EMPTY, deploymentItems, context.getEnvironment(),
+                    context.getAuthor(), context.getComment());
         } catch (DeploymentException e) {
-            logger.error("Error when publishing site " + context.getSite() + " to environment " + context.getEnvironment(), e);
+            logger.error("Error when publishing site " + context.getSite() + " to environment " +
+                    context.getEnvironment(), e);
         }
     }
 
     public void subscribeToPublishToEnvironmentEvents() {
         try {
-            Method subscribeMethod = EnvironmentDeployer.class.getMethod(METHOD_PUBLISH_TO_ENVIRONMENT_LISTENER, DeploymentEventContext.class);
+            Method subscribeMethod = EnvironmentDeployer.class.getMethod(METHOD_PUBLISH_TO_ENVIRONMENT_LISTENER,
+                    DeploymentEventContext.class);
             this.eventService.subscribe(EBusConstants.EVENT_PUBLISH_TO_ENVIRONMENT, beanName, subscribeMethod);
         } catch (NoSuchMethodException e) {
             logger.error("Could not subscribe to publish to environment events", e);

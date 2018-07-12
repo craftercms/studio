@@ -1,5 +1,4 @@
 /*
- * Crafter Studio Web-content authoring solution
  * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,6 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 
 import groovy.json.JsonException
@@ -38,6 +38,7 @@ try {
 
     def blueprint = parsedReq.blueprint
     def siteId = parsedReq.site_id
+    def sandboxBranch = parsedReq.sandbox_branch
     def description = parsedReq.description
     /** Remote options */
     def useRemote = parsedReq.use_remote
@@ -89,6 +90,17 @@ try {
     } catch (Exception exc) {
         invalidParams = true
         paramsList.add("site_id")
+    }
+
+    // sandbox_branch
+    try {
+        if (StringUtils.isEmpty(sandboxBranch)) {
+            invalidParams = true
+            paramsList.add("sandbox_branch")
+        }
+    } catch (Exception exc) {
+        invalidParams = true
+        paramsList.add("sandbox_branch")
     }
 
     if (useRemote) {
@@ -196,14 +208,14 @@ try {
         def context = SiteServices.createContext(applicationContext, request)
         try {
             if (!useRemote) {
-                SiteServices.createSiteFromBlueprint(context, blueprint, siteId, siteId, description)
+                SiteServices.createSiteFromBlueprint(context, blueprint, siteId, siteId, sandboxBranch, description)
                 result.message = "OK"
                 def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") +
                         "/api/1/services/api/1/site/get.json?site_id=" + siteId
                 response.addHeader("Location", locationHeader)
                 response.setStatus(201)
             } else {
-                SiteServices.createSiteWithRemoteOption(context, siteId, description, blueprint, remoteName,
+                SiteServices.createSiteWithRemoteOption(context, siteId, sandboxBranch, description, blueprint, remoteName,
                         remoteUrl, remoteBranch, singleBranch, authenticationType, remoteUsername, remotePassword,
                         remoteToken, remotePrivateKey, createOption)
                 result.message = "OK"

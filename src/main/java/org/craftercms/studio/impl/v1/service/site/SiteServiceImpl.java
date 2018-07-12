@@ -1,5 +1,4 @@
 /*
- * Crafter Studio Web-content authoring solution
  * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,6 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 
 package org.craftercms.studio.impl.v1.service.site;
@@ -363,6 +363,7 @@ public class SiteServiceImpl implements SiteService {
    	public void createSiteFromBlueprint(@ValidateStringParam(name = "blueprintName") String blueprintName,
                                            @ValidateNoTagsParam(name = "siteName") String siteName,
                                            @ValidateStringParam(name = "siteId") String siteId,
+                                           @ValidateStringParam(name = "sandboxBranch") String sandboxBranch,
                                            @ValidateNoTagsParam(name = "desc") String desc)
             throws SiteAlreadyExistsException, SiteCreationException, PreviewDeployerUnreachableException,
             SearchUnreachableException, BlueprintNotFoundException {
@@ -427,7 +428,7 @@ public class SiteServiceImpl implements SiteService {
 
 	    if (success) {
 	 		try {
-			    success = createSiteFromBlueprintGit(blueprintName, siteName, siteId, desc);
+			    success = createSiteFromBlueprintGit(blueprintName, siteName, siteId, sandboxBranch, desc);
 
 			    String lastCommitId = contentRepository.getRepoLastCommitId(siteId);
 
@@ -450,7 +451,7 @@ public class SiteServiceImpl implements SiteService {
                 if (publishingTargets != null && publishingTargets.size() > 0) {
                     for (PublishingTargetTO target : publishingTargets) {
                         if (StringUtils.isNotEmpty(target.getRepoBranchName())) {
-                            contentRepository.initialPublish(siteId, target.getRepoBranchName(),
+                            contentRepository.initialPublish(siteId, sandboxBranch, target.getRepoBranchName(),
                                     securityProvider.getCurrentUser(), "Create site.");
                         }
                     }
@@ -465,6 +466,7 @@ public class SiteServiceImpl implements SiteService {
 			    siteFeed.setLastCommitId(lastCommitId);
 			    siteFeed.setPublishingStatusMessage(
 			            studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT));
+			    siteFeed.setSandboxBranch(sandboxBranch);
 			    siteFeedMapper.createSite(siteFeed);
 
                 insertCreateSiteAuditLog(siteId);
@@ -531,12 +533,13 @@ public class SiteServiceImpl implements SiteService {
                 siteId , activityType, ActivityService.ActivitySource.API, extraInfo);
     }
 
-    protected boolean createSiteFromBlueprintGit(String blueprintName, String siteName, String siteId, String desc)
+    protected boolean createSiteFromBlueprintGit(String blueprintName, String siteName, String siteId,
+                                                 String sandboxBranch, String desc)
             throws Exception {
         boolean success = true;
 
         // create site with git repo
-        contentRepository.createSiteFromBlueprint(blueprintName, siteId);
+        contentRepository.createSiteFromBlueprint(blueprintName, siteId, sandboxBranch);
 
         String siteConfigFolder = FILE_SEPARATOR + "config" + FILE_SEPARATOR + "studio";
         replaceFileContentGit(siteId, siteConfigFolder + FILE_SEPARATOR + "site-config.xml", "SITENAME",
@@ -666,6 +669,7 @@ public class SiteServiceImpl implements SiteService {
     @Override
     @ValidateParams
     public void createSiteWithRemoteOption(@ValidateStringParam(name = "siteId") String siteId,
+                                           @ValidateStringParam(name = "sandboxBranch") String sandboxBranch,
                                            @ValidateNoTagsParam(name = "description") String description,
                                            String blueprintName,
                                            @ValidateStringParam(name = "remoteName") String remoteName,
@@ -682,14 +686,15 @@ public class SiteServiceImpl implements SiteService {
         switch (createOption) {
             case REMOTE_REPOSITORY_CREATE_OPTION_CLONE:
                 logger.debug("Clone from remote repository create option selected");
-                createSiteCloneRemote(siteId, description, remoteName, remoteUrl, remoteBranch, singleBranch, authenticationType,
-                        remoteUsername, remotePassword, remoteToken, remotePrivateKey);
+                createSiteCloneRemote(siteId, sandboxBranch, description, remoteName, remoteUrl, remoteBranch, singleBranch,
+                        authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey);
                 break;
 
             case REMOTE_REPOSITORY_CREATE_OPTION_PUSH:
                 logger.debug("Push to remote repository create option selected");
-                createSitePushToRemote(siteId, description, blueprintName, remoteName, remoteUrl, remoteBranch,
-                        authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey);
+                createSitePushToRemote(siteId, sandboxBranch, description, blueprintName, remoteName, remoteUrl,
+                        remoteBranch, authenticationType, remoteUsername, remotePassword, remoteToken,
+                        remotePrivateKey);
                 break;
 
             default:
@@ -700,11 +705,11 @@ public class SiteServiceImpl implements SiteService {
         }
     }
 
-    private void createSiteCloneRemote(String siteId, String description, String remoteName, String remoteUrl,
-                                       String remoteBranch, boolean singleBranch, String authenticationType,
-                                       String remoteUsername, String remotePassword, String remoteToken,
-                                       String remotePrivateKey) throws ServiceException,
-            InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
+    private void createSiteCloneRemote(String siteId, String sandboxBranch, String description, String remoteName,
+                                       String remoteUrl, String remoteBranch, boolean singleBranch,
+                                       String authenticationType, String remoteUsername, String remotePassword,
+                                       String remoteToken, String remotePrivateKey)
+            throws ServiceException, InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
             RemoteRepositoryNotFoundException, InvalidRemoteUrlException {
         boolean success = true;
 
@@ -765,8 +770,9 @@ public class SiteServiceImpl implements SiteService {
                 // create site by cloning remote git repo
                 logger.debug("Creating site " + siteId + " by cloning remote repository " + remoteName +
                         " (" + remoteUrl + ")");
-                contentRepository.createSiteCloneRemote(siteId, remoteName, remoteUrl, remoteBranch, singleBranch,
-                        authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey);
+                contentRepository.createSiteCloneRemote(siteId, sandboxBranch, remoteName, remoteUrl, remoteBranch,
+                        singleBranch, authenticationType, remoteUsername, remotePassword, remoteToken,
+                        remotePrivateKey);
             } catch (InvalidRemoteRepositoryException | InvalidRemoteRepositoryCredentialsException |
                     RemoteRepositoryNotFoundException | InvalidRemoteUrlException | ServiceException e) {
 
@@ -823,7 +829,7 @@ public class SiteServiceImpl implements SiteService {
                 if (publishingTargets != null && publishingTargets.size() > 0) {
                     for (PublishingTargetTO target : publishingTargets) {
                         if (StringUtils.isNotEmpty(target.getRepoBranchName())) {
-                            contentRepository.initialPublish(siteId, target.getRepoBranchName(),
+                            contentRepository.initialPublish(siteId, sandboxBranch, target.getRepoBranchName(),
                                     securityProvider.getCurrentUser(), "Create site.");
                         }
                     }
@@ -842,6 +848,7 @@ public class SiteServiceImpl implements SiteService {
                 siteFeed.setLastCommitId(lastCommitId);
                 siteFeed.setPublishingStatusMessage(
                         studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT));
+                siteFeed.setSandboxBranch(sandboxBranch);
                 siteFeedMapper.createSite(siteFeed);
 
                 insertCreateSiteAuditLog(siteId);
@@ -869,10 +876,10 @@ public class SiteServiceImpl implements SiteService {
         }
     }
 
-    private void createSitePushToRemote(String siteId, String description, String blueprintName, String remoteName,
-                                        String remoteUrl, String remoteBranch, String authenticationType,
-                                        String remoteUsername, String remotePassword, String remoteToken,
-                                        String remotePrivateKey)
+    private void createSitePushToRemote(String siteId, String sandboxBranch, String description, String blueprintName,
+                                        String remoteName, String remoteUrl, String remoteBranch,
+                                        String authenticationType, String remoteUsername, String remotePassword,
+                                        String remoteToken, String remotePrivateKey)
             throws ServiceException, InvalidRemoteRepositoryCredentialsException, InvalidRemoteRepositoryException,
             RemoteRepositoryNotFoundException, RemoteRepositoryNotBareException, InvalidRemoteUrlException {
         if (exists(siteId)) {
@@ -934,7 +941,7 @@ public class SiteServiceImpl implements SiteService {
         if (success) {
             try {
                 logger.debug("Creating site " + siteId + " from blueprint " + blueprintName);
-                success = createSiteFromBlueprintGit(blueprintName, siteId, siteId, description);
+                success = createSiteFromBlueprintGit(blueprintName, siteId, siteId, sandboxBranch, description);
             } catch (Exception e) {
                 // TODO: SJ: We need better exception handling here
                 success = false;
@@ -1026,7 +1033,7 @@ public class SiteServiceImpl implements SiteService {
                 if (publishingTargets != null && publishingTargets.size() > 0) {
                     for (PublishingTargetTO target : publishingTargets) {
                         if (StringUtils.isNotEmpty(target.getRepoBranchName())) {
-                            contentRepository.initialPublish(siteId, target.getRepoBranchName(),
+                            contentRepository.initialPublish(siteId, sandboxBranch, target.getRepoBranchName(),
                                     securityProvider.getCurrentUser(), "Create site.");
                         }
                     }
@@ -1042,6 +1049,7 @@ public class SiteServiceImpl implements SiteService {
                 siteFeed.setLastCommitId(lastCommitId);
                 siteFeed.setPublishingStatusMessage(
                         studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT));
+                siteFeed.setSandboxBranch(sandboxBranch);
                 siteFeedMapper.createSite(siteFeed);
 
                 insertCreateSiteAuditLog(siteId);
@@ -1789,7 +1797,8 @@ public class SiteServiceImpl implements SiteService {
         if (!exists(siteId)) {
             throw new SiteNotFoundException();
         }
-        return contentRepository.listRemote(siteId);
+        SiteFeed siteFeed = getSite(siteId);
+        return contentRepository.listRemote(siteId, siteFeed.getSandboxBranch());
     }
 
     public String getGlobalConfigRoot() {
