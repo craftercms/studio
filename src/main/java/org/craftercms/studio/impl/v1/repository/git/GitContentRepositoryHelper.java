@@ -301,7 +301,7 @@ public class GitContentRepositoryHelper {
      * @param site
      * @return true if successful, false otherwise
      */
-    public boolean createSiteGitRepo(String site) {
+    public boolean createSiteGitRepo(String site, String sandboxBranch) {
         boolean toReturn;
         Repository sandboxRepo = null;
 
@@ -314,15 +314,15 @@ public class GitContentRepositoryHelper {
         toReturn = (sandboxRepo != null);
 
         if (toReturn) {
-            checkoutSandboxBranch(site, sandboxRepo);
+            checkoutSandboxBranch(site, sandboxRepo, sandboxBranch);
             sandboxes.put(site, sandboxRepo);
         }
 
         return toReturn;
     }
 
-    private boolean checkoutSandboxBranch(String site, Repository sandboxRepo) {
-        String sandboxBranchName = servicesConfig.getSandboxBranchName(site);
+    private boolean checkoutSandboxBranch(String site, Repository sandboxRepo, String sandboxBranch) {
+        String sandboxBranchName = sandboxBranch;
         if (StringUtils.isEmpty(sandboxBranchName)) {
             sandboxBranchName = studioConfiguration.getProperty(REPO_SANDBOX_BRANCH);
         }
@@ -502,10 +502,10 @@ public class GitContentRepositoryHelper {
      * @param message
      * @return true if successful, false otherwise
      */
-    public boolean performInitialCommit(String site, String message) {
+    public boolean performInitialCommit(String site, String message, String sandboxBranch) {
         boolean toReturn = true;
 
-        Repository repo = getRepository(site, GitRepositories.SANDBOX);
+        Repository repo = getRepository(site, GitRepositories.SANDBOX, sandboxBranch);
 
         try (Git git = new Git(repo)) {
 
@@ -520,7 +520,7 @@ public class GitContentRepositoryHelper {
                 // commitId = commit.getName();
             }
 
-            checkoutSandboxBranch(site, repo);
+            checkoutSandboxBranch(site, repo, sandboxBranch);
 
             // Create Published by cloning Sandbox
 
@@ -534,7 +534,7 @@ public class GitContentRepositoryHelper {
                     .call()) {
                 Repository publishedRepo = publishedGit.getRepository();
                 publishedRepo = optimizeRepository(publishedRepo);
-                checkoutSandboxBranch(site, publishedRepo);
+                checkoutSandboxBranch(site, publishedRepo, sandboxBranch);
                 publishedRepo.close();
                 publishedGit.close();
             } catch (GitAPIException | IOException e) {
@@ -550,6 +550,7 @@ public class GitContentRepositoryHelper {
     }
 
     // SJ: Helper methods
+
     public Repository getRepository(String site, GitRepositories gitRepository) {
         Repository repo;
 
@@ -561,7 +562,57 @@ public class GitContentRepositoryHelper {
                 if (repo == null) {
                     if (buildSiteRepo(site)) {
                         repo = sandboxes.get(site);
-                        checkoutSandboxBranch(site, repo);
+                    } else {
+                        logger.error("error getting the sandbox repository for site: " + site);
+                    }
+                }
+                break;
+            case PUBLISHED:
+                repo = published.get(site);
+                if (repo == null) {
+                    if (buildSiteRepo(site)) {
+                        repo = published.get(site);
+                    } else {
+                        logger.error("error getting the published repository for site: " + site);
+                    }
+                }
+                break;
+            case GLOBAL:
+                if (globalRepo == null) {
+                    Path globalConfigRepoPath = buildRepoPath(GitRepositories.GLOBAL).resolve(GIT_ROOT);
+                    try {
+                        globalRepo = openRepository(globalConfigRepoPath);
+                    } catch (IOException e) {
+                        logger.error("error getting the global repository.", e);
+                    }
+                }
+                repo = globalRepo;
+                break;
+            default:
+                repo = null;
+        }
+
+        if (repo != null) {
+            logger.debug("success in getting the repository for site: " + site);
+        } else {
+            logger.debug("failure in getting the repository for site: " + site);
+        }
+
+        return repo;
+    }
+
+    public Repository getRepository(String site, GitRepositories gitRepository, String sandboxBranch) {
+        Repository repo;
+
+        logger.debug("getRepository invoked with site" + site + "Repository Type: " + gitRepository.toString());
+
+        switch (gitRepository) {
+            case SANDBOX:
+                repo = sandboxes.get(site);
+                if (repo == null) {
+                    if (buildSiteRepo(site)) {
+                        repo = sandboxes.get(site);
+                        checkoutSandboxBranch(site, repo, sandboxBranch);
                     } else {
                         logger.error("error getting the sandbox repository for site: " + site);
                     }
@@ -786,8 +837,9 @@ public class GitContentRepositoryHelper {
         return files;
     }
 
-    public boolean createSiteCloneRemoteGitRepo(String siteId, String remoteName, String remoteUrl, String remoteBranch,
-                                                boolean singleBranch, String authenticationType, String remoteUsername,
+    public boolean createSiteCloneRemoteGitRepo(String siteId, String sandboxBranch, String remoteName,
+                                                String remoteUrl, String remoteBranch, boolean singleBranch,
+                                                String authenticationType, String remoteUsername,
                                                 String remotePassword, String remoteToken, String remotePrivateKey)
             throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
             RemoteRepositoryNotFoundException, ServiceException {
