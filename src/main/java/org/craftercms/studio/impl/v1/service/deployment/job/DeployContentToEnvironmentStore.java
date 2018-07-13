@@ -302,18 +302,19 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
     }
 
     private void deploy(String site, String environment, List<DeploymentItemTO> items, String author, String comment)
-            throws DeploymentException {
+            throws DeploymentException, SiteNotFoundException {
         logger.debug("Deploying " + items.size() + " item(s)");
         boolean siteEnvironmentConfigEnabled = Boolean.parseBoolean(
                 studioConfiguration.getProperty(CONFIGURATION_SITE_ENVIRONMENT_CONFIG_ENABLED));
+        SiteFeed siteFeed = siteService.getSite(site);
         if (!siteEnvironmentConfigEnabled && servicesConfig.isEnableEnvironments(site)) {
             String liveEnvironment = servicesConfig.getLiveEnvironment(site);
             if (StringUtils.equals(liveEnvironment, environment)) {
                 String stagingEnvironment = servicesConfig.getStagingEnvironment(site);
-                contentRepository.publish(site, items, stagingEnvironment, author, comment);
+                contentRepository.publish(site, siteFeed.getSandboxBranch(), items, stagingEnvironment, author, comment);
             }
         }
-        contentRepository.publish(site, items, environment, author, comment);
+        contentRepository.publish(site, siteFeed.getSandboxBranch(), items, environment, author, comment);
 
     }
 

@@ -13,6 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 
 package org.craftercms.studio.api.v1.repository;
@@ -233,9 +234,10 @@ public interface ContentRepository {
      *
      * @param blueprintName
      * @param siteId
+     * @param sandboxBranch
      * @return true if successful, false otherwise
      */
-    boolean createSiteFromBlueprint(String blueprintName, String siteId);
+    boolean createSiteFromBlueprint(String blueprintName, String siteId, String sandboxBranch);
 
     /**
      * Deletes an existing site.
@@ -249,11 +251,13 @@ public interface ContentRepository {
      * Initial publish to specified environment.
      *
      * @param site
+     * @param sandboxBranch
      * @param environment
      * @param author
      * @param comment
      */
-    void initialPublish(String site, String environment, String author, String comment) throws DeploymentException;
+    void initialPublish(String site, String sandboxBranch, String environment, String author, String comment)
+            throws DeploymentException;
 
     /**
      * Publish content to specified environment.
@@ -263,8 +267,8 @@ public interface ContentRepository {
      * @param author
      * @param comment
      */
-    void publish(String site, List<DeploymentItemTO> deploymentItems, String environment, String author, String comment)
-            throws DeploymentException;
+    void publish(String site, String sandboxBranch, List<DeploymentItemTO> deploymentItems, String environment,
+                 String author, String comment) throws DeploymentException;
 
     /**
      * Get a list of operations since the commit ID provided (compare that commit to HEAD)
@@ -363,9 +367,10 @@ public interface ContentRepository {
      * @param remotePassword remote password
      * @return true if success
      */
-    boolean createSiteCloneRemote(String siteId, String remoteName, String remoteUrl, String remoteBranch,
-                                  boolean singleBranch, String authenticationType, String remoteUsername,
-                                  String remotePassword, String remoteToken, String remotePrivateKey)
+    boolean createSiteCloneRemote(String siteId, String sandboxBranch, String remoteName, String remoteUrl,
+                                  String remoteBranch, boolean singleBranch, String authenticationType,
+                                  String remoteUsername, String remotePassword, String remoteToken,
+                                  String remotePrivateKey)
             throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
             RemoteRepositoryNotFoundException, InvalidRemoteUrlException,  ServiceException;
 
@@ -423,9 +428,10 @@ public interface ContentRepository {
      * List remote repositories for given site
      *
      * @param siteId site identifier
+     * @param sandboxBranch sandbox branch name
      * @return list of names of remote repositories
      */
-    List<RemoteRepositoryInfoTO> listRemote(String siteId) throws ServiceException;
+    List<RemoteRepositoryInfoTO> listRemote(String siteId, String sandboxBranch) throws ServiceException;
 
     /**
      * Push content to remote repository

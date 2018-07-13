@@ -19,7 +19,7 @@ USE crafter ;
 
 CREATE TABLE _meta (`version` VARCHAR(10) NOT NULL , PRIMARY KEY (`version`)) ;
 
-INSERT INTO _meta (version) VALUES ('3.0.15') ;
+INSERT INTO _meta (version) VALUES ('3.0.15.1') ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`             BIGINT(20)   NOT NULL AUTO_INCREMENT,
@@ -118,6 +118,7 @@ CREATE TABLE IF NOT EXISTS `site` (
   `publishing_enabled`              INT           NOT NULL DEFAULT 1,
   `publishing_status_message`       VARCHAR(2000) NULL,
   `last_verified_gitlog_commit_id`  VARCHAR(50)   NULL,
+  `sandbox_branch`                  VARCHAR(255)  NOT NULL DEFAULT 'master',
   PRIMARY KEY (`id`),
   UNIQUE INDEX `id_unique` (`id` ASC),
   UNIQUE INDEX `site_id_unique` (`site_id` ASC),
