@@ -19,6 +19,10 @@ externalDocs:
 tags:
   - name: user
     description: User management operations
+  - name: organization
+    description: Organization management operations
+  - name: lov
+    description: List of values management operations
 paths:
   /user:
     get:
@@ -613,8 +617,34 @@ components:
         code:
           type: integer
           format: int32
+          description: |
+            A response code from one of the following:
+              * `0`: Operation succesful (OK)
+              * `1`: Entity created
+              * `2`: Entity deleted
+              * `1000`: Internal system failure
+              * `1001`: Invalid parameter(s)
+              * `2000`: Unauthenticated
+              * `2001`: Unauthorized
+              * `3000`: Organization not found
+              * `3001`: Organization already exists
+              * `4000`: Group not found
+              * `5000`: Project not found
+              * `5001`: Project already exists
+              * `6000`: User not found
+              * `6001`: User already exists
+              * `6001`: User is externally managed
+              * `7000`: Content not found
+              * `7001`: Content already exists
+              * `8000`: Publishing is disabled
+              * `9000`: Search is unreachabled
+              * `10000`: LoV not found
+              * `50000`: CMIS server is unreachable
+              * `51000`: Box is unreachable
+              * `52000`: AWS is unreachable
         message:
           type: string
+          description: The detailed message of the response
         remedialAction:
           type: string
         documentationUrl:
