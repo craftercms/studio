@@ -59,7 +59,7 @@ public class SiteConfigTO implements Serializable {
 	/** default timezone **/
 	protected String timezone = null;
 
-	protected boolean enablePublishingEnvironments;
+	protected boolean stagingEnvironmentEnabled;
 
 	/** staging environment **/
 	protected String stagingEnvironment;
@@ -141,11 +141,11 @@ public class SiteConfigTO implements Serializable {
         this.liveEnvironment = liveEnvironment;
     }
 
-    public boolean isEnablePublishingEnvironments() {
-        return enablePublishingEnvironments;
+    public boolean isStagingEnvironmentEnabled() {
+        return stagingEnvironmentEnabled;
     }
 
-    public void setEnablePublishingEnvironments(boolean enablePublishingEnvironments) {
-        this.enablePublishingEnvironments = enablePublishingEnvironments;
+    public void setStagingEnvironmentEnabled(boolean stagingEnvironmentEnabled) {
+        this.stagingEnvironmentEnabled = stagingEnvironmentEnabled;
     }
 }
