@@ -48,6 +48,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_ENABLE_ENVIRONMENTS;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_LIVE_ENVIRONMENT;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_PUBLISHED_REPOSITORY;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_STAGING_ENVIRONMENT;
@@ -306,6 +307,14 @@ public class ServicesConfigImpl implements ServicesConfig {
              boolean siteEnvironmentConfigEnabled = Boolean.parseBoolean(
                      studioConfiguration.getProperty(CONFIGURATION_SITE_ENVIRONMENT_CONFIG_ENABLED));
              if (!siteEnvironmentConfigEnabled) {
+                 String enableEnvironmentsValue = configNode.valueOf(SITE_CONFIG_XML_ELEMENT_PUBLISHED_REPOSITORY +
+                         "/" + SITE_CONFIG_XML_ELEMENT_ENABLE_ENVIRONMENTS);
+                 if (StringUtils.isEmpty(enableEnvironmentsValue)) {
+                     siteConfig.setEnablePublishingEnvironments(false);
+                 } else {
+                     siteConfig.setEnablePublishingEnvironments(Boolean.valueOf(enableEnvironmentsValue));
+                 }
+
                  String stagingEnvironment = configNode.valueOf(SITE_CONFIG_XML_ELEMENT_PUBLISHED_REPOSITORY + "/" +
                          SITE_CONFIG_XML_ELEMENT_STAGING_ENVIRONMENT);
                  if (StringUtils.isEmpty(stagingEnvironment)) {
@@ -477,6 +486,15 @@ public class ServicesConfigImpl implements ServicesConfig {
             return config.getSandboxBranch();
         }
         return null;
+    }
+
+    @Override
+    public boolean isEnableEnvironments(String site) {
+        SiteConfigTO config = getSiteConfig(site);
+        if (config != null) {
+            return config.isEnablePublishingEnvironments();
+        }
+        return false;
     }
 
     @Override

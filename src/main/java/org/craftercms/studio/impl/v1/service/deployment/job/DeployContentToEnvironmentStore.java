@@ -306,7 +306,7 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
         logger.debug("Deploying " + items.size() + " item(s)");
         boolean siteEnvironmentConfigEnabled = Boolean.parseBoolean(
                 studioConfiguration.getProperty(CONFIGURATION_SITE_ENVIRONMENT_CONFIG_ENABLED));
-        if (!siteEnvironmentConfigEnabled) {
+        if (!siteEnvironmentConfigEnabled && servicesConfig.isEnableEnvironments(site)) {
             String liveEnvironment = servicesConfig.getLiveEnvironment(site);
             if (StringUtils.equals(liveEnvironment, environment)) {
                 String stagingEnvironment = servicesConfig.getStagingEnvironment(site);
@@ -321,7 +321,7 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
         Set<String> environments = new HashSet<String>();
         boolean siteEnvironmentConfigEnabled = Boolean.parseBoolean(
                 studioConfiguration.getProperty(CONFIGURATION_SITE_ENVIRONMENT_CONFIG_ENABLED));
-        if (!siteEnvironmentConfigEnabled) {
+        if (!siteEnvironmentConfigEnabled && servicesConfig.isEnableEnvironments(site)) {
             environments.add(servicesConfig.getLiveEnvironment(site));
             environments.add(servicesConfig.getStagingEnvironment(site));
         } else {

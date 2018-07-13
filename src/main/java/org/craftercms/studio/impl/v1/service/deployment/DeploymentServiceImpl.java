@@ -756,7 +756,8 @@ public class DeploymentServiceImpl implements DeploymentService {
             @ValidateSecurePathParam(name = "path") String path) {
         boolean siteEnvironmentConfigEnabled = Boolean.parseBoolean(
                 studioConfiguration.getProperty(StudioConfiguration.CONFIGURATION_SITE_ENVIRONMENT_CONFIG_ENABLED));
-        List<PublishingChannelTO> channelsTO = siteEnvironmentConfigEnabled ?
+        List<PublishingChannelTO> channelsTO =
+                siteEnvironmentConfigEnabled || !servicesConfig.isEnableEnvironments(site) ?
                 getAvailablePublishingChannelGroupsForSite(site, path) : getPublishedEnvironments(site);
         List<PublishingChannelTO> publishChannels = new ArrayList<PublishingChannelTO>();
         List<PublishingChannelTO> updateStatusChannels = new ArrayList<PublishingChannelTO>();
