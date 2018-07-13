@@ -21,6 +21,7 @@ import groovy.json.JsonSlurper
 import org.apache.commons.lang3.StringUtils
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException
+import org.craftercms.studio.api.v1.exception.repository.RemoteAlreadyExistsException
 import scripts.api.SiteServices
 
 def result = [:]
@@ -148,6 +149,9 @@ try {
         } catch (SiteNotFoundException e) {
             response.setStatus(404)
             result.message = "Site not found"
+        } catch (RemoteAlreadyExistsException e) {
+            response.setStatus(409)
+            result.message = "Remote already exists"
         } catch (Exception e) {
             response.setStatus(500)
             result.message = "Internal server error: \n" + e

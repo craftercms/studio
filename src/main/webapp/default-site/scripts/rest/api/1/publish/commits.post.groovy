@@ -1,6 +1,5 @@
 /*
- * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2017 Crafter Software Corporation.
+ * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,6 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 
 
@@ -36,6 +36,7 @@ try {
     def siteId = parsedReq.site_id
     def environment = parsedReq.environment
     def commitIds = parsedReq.commit_ids
+    def comment = parsedReq.comment
 
 /** Validate Parameters */
     def invalidParams = false;
@@ -80,7 +81,7 @@ try {
     } else {
         def context = DeploymentServices.createContext(applicationContext, request)
         try {
-            DeploymentServices.publishCommits(context, siteId, environment, commitIds)
+            DeploymentServices.publishCommits(context, siteId, environment, commitIds, comment)
             result.message = "OK"
             response.setStatus(200)
         } catch (SiteNotFoundException e) {

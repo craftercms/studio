@@ -162,7 +162,9 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
                                                                     .format(DateTimeFormatter.ofPattern(sdf.toPattern())));
                                                     siteService.updatePublishingStatusMessage(site, statusMessage);
                                                 }
-                                                packageIds.add(item.getPackageId());
+                                                if (packageIds.add(item.getPackageId())) {
+                                                    sbComment.append(item.getSubmissionComment()).append("\n");
+                                                }
                                             }
                                             deploy(site, environment, completeDeploymentItemList, author,
                                                     sbComment.toString());
