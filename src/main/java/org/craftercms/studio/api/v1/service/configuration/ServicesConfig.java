@@ -176,5 +176,5 @@ public interface ServicesConfig {
 
     String getLiveEnvironment(String site);
 
-    boolean isEnableEnvironments(String site);
+    boolean isStagingEnvironmentEnabled(String site);
 }
