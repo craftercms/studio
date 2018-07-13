@@ -24,6 +24,7 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepository
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotBareException
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException
+import org.craftercms.studio.api.v1.util.StudioConfiguration
 import scripts.api.SiteServices;
 import groovy.json.JsonSlurper
 
@@ -93,14 +94,8 @@ try {
     }
 
     // sandbox_branch
-    try {
-        if (StringUtils.isEmpty(sandboxBranch)) {
-            invalidParams = true
-            paramsList.add("sandbox_branch")
-        }
-    } catch (Exception exc) {
-        invalidParams = true
-        paramsList.add("sandbox_branch")
+    if (StringUtils.isEmpty(sandboxBranch)) {
+        sandboxBranch = StudioConfiguration.REPO_SANDBOX_BRANCH;
     }
 
     if (useRemote) {
