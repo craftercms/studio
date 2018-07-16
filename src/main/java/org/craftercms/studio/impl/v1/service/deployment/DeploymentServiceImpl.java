@@ -759,7 +759,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         boolean siteEnvironmentConfigEnabled = Boolean.parseBoolean(
                 studioConfiguration.getProperty(StudioConfiguration.CONFIGURATION_SITE_ENVIRONMENT_CONFIG_ENABLED));
         List<PublishingChannelTO> channelsTO =
-                siteEnvironmentConfigEnabled || !servicesConfig.isEnableEnvironments(site) ?
+                siteEnvironmentConfigEnabled || !servicesConfig.isStagingEnvironmentEnabled(site) ?
                 getAvailablePublishingChannelGroupsForSite(site, path) : getPublishedEnvironments(site);
         List<PublishingChannelTO> publishChannels = new ArrayList<PublishingChannelTO>();
         List<PublishingChannelTO> updateStatusChannels = new ArrayList<PublishingChannelTO>();
