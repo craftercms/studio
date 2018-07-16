@@ -11,6 +11,7 @@
     <sandbox-branch>master</sandbox-branch>
 
     <published-repository>
+        <enable-staging-environment>false</enable-staging-environment>
         <staging-environment>staging</staging-environment>
         <live-environment>live</live-environment>
     </published-repository>

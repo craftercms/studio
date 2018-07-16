@@ -119,7 +119,7 @@ public class PublishingManagerImpl implements PublishingManager {
 
         boolean siteEnvironmentConfigEnabled = Boolean.parseBoolean(
                 studioConfiguration.getProperty(StudioConfiguration.CONFIGURATION_SITE_ENVIRONMENT_CONFIG_ENABLED));
-        if (!siteEnvironmentConfigEnabled) {
+        if (!siteEnvironmentConfigEnabled && servicesConfig.isStagingEnvironmentEnabled(site)) {
             liveEnvironment = servicesConfig.getLiveEnvironment(site);
         }
 
