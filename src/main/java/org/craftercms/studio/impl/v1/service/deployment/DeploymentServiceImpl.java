@@ -612,7 +612,8 @@ public class DeploymentServiceImpl implements DeploymentService {
                     securityService.getCurrentUser(), Collections.<String>emptyList());
             if (permissions.contains(StudioConstants.PERMISSION_VALUE_PUBLISH)) {
                 addScheduledItem(site, deploymentItem.getEnvironment(), deploymentItem.getScheduledDate(), format,
-                        deploymentItem.getPath(), results, comparator, subComparator, displayPatterns, filterType);
+                        deploymentItem.getPath(), deploymentItem.getPackageId(), results, comparator, subComparator,
+                        displayPatterns, filterType);
             }
         }
         return results;
@@ -629,11 +630,11 @@ public class DeploymentServiceImpl implements DeploymentService {
      * @param displayPatterns
      */
     protected void addScheduledItem(String site, String environment, ZonedDateTime launchDate, SimpleDateFormat format,
-                                    String path, List<ContentItemTO> scheduledItems, DmContentItemComparator comparator,
-                                    DmContentItemComparator subComparator, List<String> displayPatterns,
-                                    String filterType) {
+                                    String path, String packageId, List<ContentItemTO> scheduledItems,
+                                    DmContentItemComparator comparator, DmContentItemComparator subComparator,
+                                    List<String> displayPatterns, String filterType) {
         try {
-            addToScheduledDateList(site, environment, launchDate, format, path, scheduledItems, comparator,
+            addToScheduledDateList(site, environment, launchDate, format, path, packageId, scheduledItems, comparator,
                     subComparator, displayPatterns, filterType);
             if(!(path.endsWith(FILE_SEPARATOR + DmConstants.INDEX_FILE) || path.endsWith(DmConstants.XML_PATTERN))) {
                 path = path + FILE_SEPARATOR + DmConstants.INDEX_FILE;
@@ -656,9 +657,10 @@ public class DeploymentServiceImpl implements DeploymentService {
      * @throws ServiceException
      */
     protected void addToScheduledDateList(String site, String environment, ZonedDateTime launchDate,
-                                          SimpleDateFormat format, String path, List<ContentItemTO> scheduledItems,
-                                          DmContentItemComparator comparator, DmContentItemComparator subComparator,
-                                          List<String> displayPatterns, String filterType) throws ServiceException {
+                                          SimpleDateFormat format, String path, String packageId,
+                                          List<ContentItemTO> scheduledItems, DmContentItemComparator comparator,
+                                          DmContentItemComparator subComparator, List<String> displayPatterns,
+                                          String filterType) throws ServiceException {
         String timeZone = servicesConfig.getDefaultTimezone(site);
         String dateLabel = launchDate.format(DateTimeFormatter.ofPattern(format.toPattern()));
         // add only if the current node is a file (directories are
@@ -667,10 +669,9 @@ public class DeploymentServiceImpl implements DeploymentService {
         if (ContentUtils.matchesPatterns(path, displayPatterns)) {
             ContentItemTO itemToAdd = contentService.getContentItem(site, path, 0);
             if (dmFilterWrapper.accept(site, itemToAdd, filterType)) {
-                //itemToAdd.submitted = false;
                 itemToAdd.scheduledDate = launchDate;
                 itemToAdd.environment = environment;
-                //itemToAdd.inProgress = false;
+                itemToAdd.packageId = packageId;
                 boolean found = false;
                 for (int index = 0; index < scheduledItems.size(); index++) {
                     ContentItemTO currDateItem = scheduledItems.get(index);
@@ -699,22 +700,6 @@ public class DeploymentServiceImpl implements DeploymentService {
         }
     }
 
-    protected void addDependendenciesToSchdeuleList(String site,
-                                                    String environment,
-                                                    ZonedDateTime launchDate,
-                                                    SimpleDateFormat format,
-                                                    List<ContentItemTO>scheduledItems,
-                                                    DmContentItemComparator comparator,
-                                                    DmContentItemComparator subComparator,
-                                                    List<String> displayPatterns,
-                                                    String filterType,
-                                                    String relativePath) throws ServiceException {
-
-        Set<String> dependencyPaths = dependencyService.getItemDependencies(site, relativePath, 1);
-        _addDependendenciesToSchdeuleList(site, environment, launchDate, format, scheduledItems, comparator,
-                subComparator, displayPatterns, filterType, dependencyPaths);
-    }
-
     protected ContentItemTO createDateItem(String name, ContentItemTO itemToAdd, DmContentItemComparator comparator,
                                            String timeZone) {
         ContentItemTO dateItem = new ContentItemTO();
@@ -725,30 +710,6 @@ public class DeploymentServiceImpl implements DeploymentService {
         dateItem.timezone = timeZone;
         dateItem.addChild(itemToAdd, comparator, false);
         return dateItem;
-    }
-
-    protected void _addDependendenciesToSchdeuleList(String site,
-                                                     String environment,
-                                                     ZonedDateTime launchDate,
-                                                     SimpleDateFormat format,
-                                                     List<ContentItemTO>scheduledItems,
-                                                     DmContentItemComparator comparator,
-                                                     DmContentItemComparator subComparator,
-                                                     List<String> displayPatterns,
-                                                     String filterType,
-                                                     Set<String>dependencies) throws ServiceException {
-        if(dependencies != null) {
-            for(String dependency : dependencies) {
-                if (objectStateService.isNew(site, dependency) && objectStateService.isScheduled(site, dependency)) {
-                    addScheduledItem(site, environment, launchDate, format, dependency, scheduledItems, comparator,
-                            subComparator, displayPatterns, filterType);
-                    if(dependency.endsWith(DmConstants.XML_PATTERN)) {
-                        addDependendenciesToSchdeuleList(site, environment, launchDate, format, scheduledItems,
-                                comparator, subComparator, displayPatterns, filterType, dependency);
-                    }
-                }
-            }
-        }
     }
 
     @Override
