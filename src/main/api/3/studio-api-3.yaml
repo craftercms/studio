@@ -613,42 +613,45 @@ components:
             $ref: '#/components/schemas/Policy'
     ApiResponse:
       type: object
+      description: |-
+            The response of an API operation. Possible responses are:
+              * `CODE:` 0, `MESSAGE:` OK
+              * `CODE:` 1, `MESSAGE:` Created
+              * `CODE:` 2, `MESSAGE:` Deleted
+              * `CODE:` 1000, `MESSAGE:` Internal system failure, `REMEDIAL ACTION:` Contact support
+              * `CODE:` 1001, `MESSAGE:` Invalid parameter(s), `REMEDIAL ACTION:` Check API and make sure you're sending the correct parameters
+              * `CODE:` 2000, `MESSAGE:` Unauthenticated, `REMEDIAL ACTION:` Please login first
+              * `CODE:` 2001, `MESSAGE:` Unauthorized, `REMEDIAL ACTION:` You don't have permission to perform this task, please contact your administrator
+              * `CODE:` 3000, `MESSAGE:` Organization not found, `REMEDIAL ACTION:` Check if you sent in the right Org Id
+              * `CODE:` 3000, `MESSAGE:` Organization already exists, `REMEDIAL ACTION:` Try a different organization name
+              * `CODE:` 4000, `MESSAGE:` Group not found, `REMEDIAL ACTION:` Check if you sent in the right Group Id
+              * `CODE:` 5000, `MESSAGE:` Project not found, `REMEDIAL ACTION:` Check if you sent in the right Project Id
+              * `CODE:` 5001, `MESSAGE:` Project already exists, `REMEDIAL ACTION:` Try a different project name
+              * `CODE:` 6000, `MESSAGE:` User not found, `REMEDIAL ACTION:` Check if you're using the correct User ID
+              * `CODE:` 6001, `MESSAGE:` User already exists, `REMEDIAL ACTION:` Try a different username
+              * `CODE:` 6002, `MESSAGE:` User is externally managed, `REMEDIAL ACTION:` Update the user in the main identity system (e.g. LDAP)
+              * `CODE:` 7000, `MESSAGE:` Content not found, `REMEDIAL ACTION:` Check if you sent in the right Content Id
+              * `CODE:` 7001, `MESSAGE:` Content already exists, `REMEDIAL ACTION:` Advise the user that the content already exists
+              * `CODE:` 8000, `MESSAGE:` Publishing is disabled, `REMEDIAL ACTION:` Advise the user to enable publishing
+              * `CODE:` 9000, `MESSAGE:` Search is unreachable, `REMEDIAL ACTION:` Advise the user that the search engine is not reachable
+              * `CODE:` 10000, `MESSAGE:` LoV not found, `REMEDIAL ACTION:` Check if you sent in the right LoV Id
+              * `CODE:` 50000, `MESSAGE:` CMIS server is unreachable, `REMEDIAL ACTION:` Advise the user that the CMIS server is not reachable
+              * `CODE:` 51000, `MESSAGE:` Box is unreachable, `REMEDIAL ACTION:` Advise the user that Box is not reachable
+              * `CODE:` 52000, `MESSAGE:` AWS is unreachable, `REMEDIAL ACTION:` Advise the user that AWS engine is not reachable
       properties:
         code:
           type: integer
           format: int32
-          description: |
-            A response code from one of the following:
-              * `0`: Operation succesful (OK)
-              * `1`: Entity created
-              * `2`: Entity deleted
-              * `1000`: Internal system failure
-              * `1001`: Invalid parameter(s)
-              * `2000`: Unauthenticated
-              * `2001`: Unauthorized
-              * `3000`: Organization not found
-              * `3001`: Organization already exists
-              * `4000`: Group not found
-              * `5000`: Project not found
-              * `5001`: Project already exists
-              * `6000`: User not found
-              * `6001`: User already exists
-              * `6001`: User is externally managed
-              * `7000`: Content not found
-              * `7001`: Content already exists
-              * `8000`: Publishing is disabled
-              * `9000`: Search is unreachabled
-              * `10000`: LoV not found
-              * `50000`: CMIS server is unreachable
-              * `51000`: Box is unreachable
-              * `52000`: AWS is unreachable
+          description: The response code
         message:
           type: string
           description: The detailed message of the response
         remedialAction:
           type: string
+          description: What the user can do in order to address the issue indicated by the response 
         documentationUrl:
           type: string
+          description: A URL to documentation related to the response
       required:
         - code
         - message
@@ -675,12 +678,11 @@ components:
       required: true
   responses:
     NotFound:
-      description: The specified resource was not found
+      description: The specified entity was not found
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/ApiResponse'
-            example: 'responseCode = 1000, responseMessage = blah'
     Unauthorized:
       description: Unauthorized
       content:
