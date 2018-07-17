@@ -183,7 +183,9 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
                                                         (JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_IDLE);
                                                 statusMessage = statusMessage.replace("{package_id}", currentPackageId)
                                                         .replace("{datetime}", ZonedDateTime.now(ZoneOffset.UTC)
-                                                                .format(DateTimeFormatter.ofPattern(sdf.toPattern())));
+                                                                .format(DateTimeFormatter.ofPattern(sdf.toPattern())))
+                                                        .replace("{package_size}",
+                                                                Integer.toString(itemsToDeploy.size ()));
                                             } else {
                                                 statusMessage =
                                                         studioConfiguration.getProperty

@@ -277,7 +277,8 @@ studio.job.deployContentToEnvironment.mandatoryDependenciesCheckEnabled: true
 # Publishing default status message
 studio.job.deployContentToEnvironment.status.message.default: "idle|Idle"
 # Publishing idle status message
-studio.job.deployContentToEnvironment.status.message.idle: "idle|Last successful publish was for package: {package_id} on {datetime}"
+studio.job.deployContentToEnvironment.status.message.idle: "idle|Last successful publish was for package:
+{package_id} on {datetime} with {package_size} items"
 # Publishing busy status message
 studio.job.deployContentToEnvironment.status.message.busy: "busy|Currently publishing item: {item_path} on {datetime}"
 # Publishing publishing status message
