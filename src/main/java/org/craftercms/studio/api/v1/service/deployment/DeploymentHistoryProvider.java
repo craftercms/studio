@@ -1,6 +1,5 @@
 /*
- * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2017 Crafter Software Corporation.
+ * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,6 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 
 package org.craftercms.studio.api.v1.service.deployment;
@@ -30,13 +30,16 @@ public interface DeploymentHistoryProvider {
      * Get deployment history for given site
      *
      * @param site site id
+     * @param sandboxBranch
      * @param fromDate date from
      * @param toDate date to
      * @param dmFilterWrapper
      *@param filterType filter items by type
      * @param numberOfItems number of items in result set   @return
      */
-    List<DeploymentSyncHistory> getDeploymentHistory(String site, ZonedDateTime fromDate, ZonedDateTime toDate, DmFilterWrapper dmFilterWrapper, String filterType, int numberOfItems);
+    List<DeploymentSyncHistory> getDeploymentHistory(String site, String sandboxBranch, ZonedDateTime fromDate,
+                                                     ZonedDateTime toDate, DmFilterWrapper dmFilterWrapper,
+                                                     String filterType, int numberOfItems);
 
     /**
      * Get last deployment date time for given site and path

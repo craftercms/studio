@@ -31,6 +31,7 @@ import org.craftercms.studio.api.v1.dal.DeploymentSyncHistory;
 import org.craftercms.studio.api.v1.dal.ItemMetadata;
 import org.craftercms.studio.api.v1.dal.PublishRequest;
 import org.craftercms.studio.api.v1.dal.PublishRequestMapper;
+import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.deployment.Deployer;
 import org.craftercms.studio.api.v1.ebus.PreviewEventContext;
 import org.craftercms.studio.api.v1.exception.CommitNotFoundException;
@@ -470,12 +471,13 @@ public class DeploymentServiceImpl implements DeploymentService {
                                  @ValidateIntegerParam(name = "daysFromToday") int daysFromToday,
                                  @ValidateIntegerParam(name = "numberOfItems") int numberOfItems,
                                  @ValidateStringParam(name = "sort") String sort, boolean ascending,
-                                 @ValidateStringParam(name = "filterType") String filterType) {
+                                 @ValidateStringParam(name = "filterType") String filterType) throws SiteNotFoundException {
         // get the filtered list of attempts in a specific date range
         ZonedDateTime toDate = ZonedDateTime.now(ZoneOffset.UTC);
         ZonedDateTime fromDate = toDate.minusDays(daysFromToday);
-        List<DeploymentSyncHistory> deployReports = deploymentHistoryProvider.getDeploymentHistory(site, fromDate,
-                toDate, dmFilterWrapper, filterType, numberOfItems);
+        SiteFeed siteFeed = siteService.getSite(site);
+        List<DeploymentSyncHistory> deployReports = deploymentHistoryProvider.getDeploymentHistory(site,
+                siteFeed.getSandboxBranch(), fromDate, toDate, dmFilterWrapper, filterType, numberOfItems);
         List<DmDeploymentTaskTO> tasks = new ArrayList<DmDeploymentTaskTO>();
 
         if (deployReports != null) {
@@ -756,7 +758,8 @@ public class DeploymentServiceImpl implements DeploymentService {
             @ValidateSecurePathParam(name = "path") String path) {
         boolean siteEnvironmentConfigEnabled = Boolean.parseBoolean(
                 studioConfiguration.getProperty(StudioConfiguration.CONFIGURATION_SITE_ENVIRONMENT_CONFIG_ENABLED));
-        List<PublishingChannelTO> channelsTO = siteEnvironmentConfigEnabled ?
+        List<PublishingChannelTO> channelsTO =
+                siteEnvironmentConfigEnabled || !servicesConfig.isStagingEnvironmentEnabled(site) ?
                 getAvailablePublishingChannelGroupsForSite(site, path) : getPublishedEnvironments(site);
         List<PublishingChannelTO> publishChannels = new ArrayList<PublishingChannelTO>();
         List<PublishingChannelTO> updateStatusChannels = new ArrayList<PublishingChannelTO>();

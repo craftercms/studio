@@ -23,7 +23,10 @@ import org.craftercms.studio.api.v1.exception.EnvironmentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
-import org.craftercms.studio.api.v1.to.*;
+import org.craftercms.studio.api.v1.to.ContentItemTO;
+import org.craftercms.studio.api.v1.to.DmDeploymentTaskTO;
+import org.craftercms.studio.api.v1.to.PublishStatus;
+import org.craftercms.studio.api.v1.to.PublishingChannelTO;
 
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -36,10 +39,12 @@ import java.util.Set;
 public interface DeploymentService {
 
     // document
-    void deploy(String site, String environment, List<String> paths, ZonedDateTime scheduledDate, String approver, String submissionComment, final boolean scheduleDateNow) throws DeploymentException;
+    void deploy(String site, String environment, List<String> paths, ZonedDateTime scheduledDate, String approver,
+                String submissionComment, final boolean scheduleDateNow) throws DeploymentException;
 
     // document
-    void delete(String site, List<String> paths, String approver, ZonedDateTime scheduledDate) throws DeploymentException;
+    void delete(String site, List<String> paths, String approver, ZonedDateTime scheduledDate)
+            throws DeploymentException;
 
     List<PublishRequest> getScheduledItems(String site);
 
@@ -65,9 +70,10 @@ public interface DeploymentService {
 
     public List<DmDeploymentTaskTO> getDeploymentHistory(
             String site, int days, int number, String sort, boolean ascending,
-            String filterType);
+            String filterType) throws SiteNotFoundException;
 
-    List<ContentItemTO> getScheduledItems(String site, String sort, boolean ascending, String subSort, boolean subAscending, String filterType) throws ServiceException;
+    List<ContentItemTO> getScheduledItems(String site, String sort, boolean ascending, String subSort,
+                                          boolean subAscending, String filterType) throws ServiceException;
 
     Map<String, List<PublishingChannelTO>> getAvailablePublishingChannelGroups(String site, String path);
 
