@@ -31,6 +31,7 @@ import groovy.json.JsonSlurper
 import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOTE_REPOSITORY_CREATE_OPTION_CLONE
 import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOTE_REPOSITORY_CREATE_OPTION_PUSH;
 
+def studioConfiguration = applicationContext.get("studioConfiguration")
 def result = [:]
 try {
     def requestJson = request.reader.text
@@ -95,7 +96,7 @@ try {
 
     // sandbox_branch
     if (StringUtils.isEmpty(sandboxBranch)) {
-        sandboxBranch = StudioConfiguration.REPO_SANDBOX_BRANCH;
+        sandboxBranch = studioConfiguration.getProperty(StudioConfiguration.REPO_SANDBOX_BRANCH);
     }
 
     if (useRemote) {
