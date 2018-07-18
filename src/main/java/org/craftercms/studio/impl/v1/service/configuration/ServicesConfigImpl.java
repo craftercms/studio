@@ -54,7 +54,6 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_STAGING_ENVIRONMENT;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_ELEMENT_SANDBOX_BRANCH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_ENVIRONMENT_CONFIG_ENABLED;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_GENERAL_CONFIG_FILE_NAME;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_SANDBOX_BRANCH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_PUBLISHED_LIVE;
@@ -304,31 +303,27 @@ public class ServicesConfigImpl implements ServicesConfig {
                  sandboxBranch = studioConfiguration.getProperty(REPO_SANDBOX_BRANCH);
              }
              siteConfig.setSandboxBranch(sandboxBranch);
-             boolean siteEnvironmentConfigEnabled = Boolean.parseBoolean(
-                     studioConfiguration.getProperty(CONFIGURATION_SITE_ENVIRONMENT_CONFIG_ENABLED));
-             if (!siteEnvironmentConfigEnabled) {
-                 String stagingEnvironmentEnabledValue =
-                         configNode.valueOf(SITE_CONFIG_XML_ELEMENT_PUBLISHED_REPOSITORY +
-                         "/" + SITE_CONFIG_XML_ELEMENT_ENABLE_STAGING_ENVIRONMENT);
-                 if (StringUtils.isEmpty(stagingEnvironmentEnabledValue)) {
-                     siteConfig.setStagingEnvironmentEnabled(false);
-                 } else {
-                     siteConfig.setStagingEnvironmentEnabled(Boolean.valueOf(stagingEnvironmentEnabledValue));
-                 }
-
-                 String stagingEnvironment = configNode.valueOf(SITE_CONFIG_XML_ELEMENT_PUBLISHED_REPOSITORY + "/" +
-                         SITE_CONFIG_XML_ELEMENT_STAGING_ENVIRONMENT);
-                 if (StringUtils.isEmpty(stagingEnvironment)) {
-                     stagingEnvironment = studioConfiguration.getProperty(REPO_PUBLISHED_STAGING);
-                 }
-                 siteConfig.setStagingEnvironment(stagingEnvironment);
-                 String liveEnvironment = configNode.valueOf(SITE_CONFIG_XML_ELEMENT_PUBLISHED_REPOSITORY + "/" +
-                         SITE_CONFIG_XML_ELEMENT_LIVE_ENVIRONMENT);
-                 if (StringUtils.isEmpty(liveEnvironment)) {
-                     liveEnvironment = studioConfiguration.getProperty(REPO_PUBLISHED_LIVE);
-                 }
-                 siteConfig.setLiveEnvironment(liveEnvironment);
+             String stagingEnvironmentEnabledValue =
+                     configNode.valueOf(SITE_CONFIG_XML_ELEMENT_PUBLISHED_REPOSITORY +
+                     "/" + SITE_CONFIG_XML_ELEMENT_ENABLE_STAGING_ENVIRONMENT);
+             if (StringUtils.isEmpty(stagingEnvironmentEnabledValue)) {
+                 siteConfig.setStagingEnvironmentEnabled(false);
+             } else {
+                 siteConfig.setStagingEnvironmentEnabled(Boolean.valueOf(stagingEnvironmentEnabledValue));
              }
+
+             String stagingEnvironment = configNode.valueOf(SITE_CONFIG_XML_ELEMENT_PUBLISHED_REPOSITORY + "/" +
+                     SITE_CONFIG_XML_ELEMENT_STAGING_ENVIRONMENT);
+             if (StringUtils.isEmpty(stagingEnvironment)) {
+                 stagingEnvironment = studioConfiguration.getProperty(REPO_PUBLISHED_STAGING);
+             }
+             siteConfig.setStagingEnvironment(stagingEnvironment);
+             String liveEnvironment = configNode.valueOf(SITE_CONFIG_XML_ELEMENT_PUBLISHED_REPOSITORY + "/" +
+                     SITE_CONFIG_XML_ELEMENT_LIVE_ENVIRONMENT);
+             if (StringUtils.isEmpty(liveEnvironment)) {
+                 liveEnvironment = studioConfiguration.getProperty(REPO_PUBLISHED_LIVE);
+             }
+             siteConfig.setLiveEnvironment(liveEnvironment);
              loadSiteRepositoryConfiguration(siteConfig, configNode.selectSingleNode("repository"));
              // set the last updated date
              siteConfig.setLastUpdated(ZonedDateTime.now(ZoneOffset.UTC));

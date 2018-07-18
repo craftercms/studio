@@ -62,7 +62,6 @@ import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_DEPLOY_C
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_PUBLISHING;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_QUEUED;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED_ERROR;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_ENVIRONMENT_CONFIG_ENABLED;
 
 
 public class DeployContentToEnvironmentStore extends RepositoryJob {
@@ -310,10 +309,8 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
     private void deploy(String site, String environment, List<DeploymentItemTO> items, String author, String comment)
             throws DeploymentException, SiteNotFoundException {
         logger.debug("Deploying " + items.size() + " item(s)");
-        boolean siteEnvironmentConfigEnabled = Boolean.parseBoolean(
-                studioConfiguration.getProperty(CONFIGURATION_SITE_ENVIRONMENT_CONFIG_ENABLED));
         SiteFeed siteFeed = siteService.getSite(site);
-        if (!siteEnvironmentConfigEnabled && servicesConfig.isStagingEnvironmentEnabled(site)) {
+        if (servicesConfig.isStagingEnvironmentEnabled(site)) {
             String liveEnvironment = servicesConfig.getLiveEnvironment(site);
             if (StringUtils.equals(liveEnvironment, environment)) {
                 String stagingEnvironment = servicesConfig.getStagingEnvironment(site);
@@ -326,9 +323,7 @@ public class DeployContentToEnvironmentStore extends RepositoryJob {
 
     private Set<String> getAllPublishingEnvironments(String site) {
         Set<String> environments = new HashSet<String>();
-        boolean siteEnvironmentConfigEnabled = Boolean.parseBoolean(
-                studioConfiguration.getProperty(CONFIGURATION_SITE_ENVIRONMENT_CONFIG_ENABLED));
-        if (!siteEnvironmentConfigEnabled && servicesConfig.isStagingEnvironmentEnabled(site)) {
+        if (servicesConfig.isStagingEnvironmentEnabled(site)) {
             environments.add(servicesConfig.getLiveEnvironment(site));
             environments.add(servicesConfig.getStagingEnvironment(site));
         } else {

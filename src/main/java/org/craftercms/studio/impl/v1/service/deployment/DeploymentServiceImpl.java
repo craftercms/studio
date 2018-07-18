@@ -717,10 +717,7 @@ public class DeploymentServiceImpl implements DeploymentService {
     public Map<String, List<PublishingChannelTO>> getAvailablePublishingChannelGroups(
             @ValidateStringParam(name = "site") String site,
             @ValidateSecurePathParam(name = "path") String path) {
-        boolean siteEnvironmentConfigEnabled = Boolean.parseBoolean(
-                studioConfiguration.getProperty(StudioConfiguration.CONFIGURATION_SITE_ENVIRONMENT_CONFIG_ENABLED));
-        List<PublishingChannelTO> channelsTO =
-                siteEnvironmentConfigEnabled || !servicesConfig.isStagingEnvironmentEnabled(site) ?
+        List<PublishingChannelTO> channelsTO = !servicesConfig.isStagingEnvironmentEnabled(site) ?
                 getAvailablePublishingChannelGroupsForSite(site, path) : getPublishedEnvironments(site);
         List<PublishingChannelTO> publishChannels = new ArrayList<PublishingChannelTO>();
         List<PublishingChannelTO> updateStatusChannels = new ArrayList<PublishingChannelTO>();
