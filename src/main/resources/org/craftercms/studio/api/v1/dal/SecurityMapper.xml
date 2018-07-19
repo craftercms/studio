@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Crafter Studio Web-content authoring solution
-  ~ Copyright (C) 2007-2016 Crafter Software Corporation.
+  ~ Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -147,6 +146,15 @@
         ((`user` INNER JOIN group_user ON `user`.username = group_user.username)
         INNER JOIN `group` ON group_user.groupid = `group`.id)
         WHERE `user`.username = #{username}
+    </select>
+
+    <select id="getUserGroupsPerSite" resultType="Group">
+        SELECT `group`.* FROM
+        (((`user` INNER JOIN group_user ON `user`.username = group_user.username)
+        INNER JOIN `group` ON group_user.groupid = `group`.id)
+        INNER JOIN `site`  ON `group`.site_id= `site`.id)
+        WHERE `user`.username = #{username}
+        AND `site`.site_id = #{siteId}
     </select>
 
     <insert id="createUser" parameterType="java.util.Map">

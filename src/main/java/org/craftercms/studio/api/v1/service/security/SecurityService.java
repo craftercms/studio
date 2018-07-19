@@ -1,6 +1,5 @@
 /*
- * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2016 Crafter Software Corporation.
+ * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,13 +13,22 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 
 package org.craftercms.studio.api.v1.service.security;
 
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.craftercms.studio.api.v1.exception.security.*;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationSystemException;
+import org.craftercms.studio.api.v1.exception.security.BadCredentialsException;
+import org.craftercms.studio.api.v1.exception.security.DeleteUserNotAllowedException;
+import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
+import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.PasswordDoesNotMatchException;
+import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
+import org.craftercms.studio.api.v1.exception.security.UserExternallyManagedException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -84,7 +92,8 @@ public interface SecurityService {
      * @param email User's email address
      * @return true if success, otherwise false
      */
-    boolean createUser(String username, String password, String firstName, String lastName, String email) throws UserAlreadyExistsException;
+    boolean createUser(String username, String password, String firstName, String lastName, String email)
+            throws UserAlreadyExistsException;
 
     /**
      * Delete user with given username
@@ -103,7 +112,8 @@ public interface SecurityService {
      * @param email
      * @return true if user is successfully updated
      */
-    boolean updateUser(String username, String firstName, String lastName, String email) throws UserNotFoundException, UserExternallyManagedException;
+    boolean updateUser(String username, String firstName, String lastName, String email)
+            throws UserNotFoundException, UserExternallyManagedException;
 
     /**
      * Enable/disable user with given username
@@ -122,7 +132,8 @@ public interface SecurityService {
      * @param siteId
      * @return true if group is successfully created
      */
-    boolean createGroup(String groupName, String description, String siteId) throws GroupAlreadyExistsException, SiteNotFoundException;
+    boolean createGroup(String groupName, String description, String siteId)
+            throws GroupAlreadyExistsException, SiteNotFoundException;
 
     /**
      * Get status for given user
@@ -229,7 +240,8 @@ public interface SecurityService {
      * @param siteId
      * @return true if group is successfully updated
      */
-    boolean updateGroup(String siteId, String groupName, String description) throws GroupNotFoundException, SiteNotFoundException;
+    boolean updateGroup(String siteId, String groupName, String description)
+            throws GroupNotFoundException, SiteNotFoundException;
 
     /**
      * Delete group for given site with given name
@@ -259,8 +271,8 @@ public interface SecurityService {
      * @param username username
      * @return true if user is successfully removed from the group
      */
-    boolean removeUserFromGroup(String siteId, String groupName, String username) throws UserNotFoundException,
-            GroupNotFoundException, SiteNotFoundException;
+    boolean removeUserFromGroup(String siteId, String groupName, String username)
+            throws UserNotFoundException, GroupNotFoundException, SiteNotFoundException;
 
     /**
      * Forgot password for given user
@@ -268,7 +280,8 @@ public interface SecurityService {
      * @param username username
      * @return forgot password
      */
-    Map<String, Object> forgotPassword(String username) throws ServiceException, UserNotFoundException, UserExternallyManagedException;
+    Map<String, Object> forgotPassword(String username)
+            throws ServiceException, UserNotFoundException, UserExternallyManagedException;
 
     /**
      * Forgot password token to validate
@@ -286,7 +299,8 @@ public interface SecurityService {
      * @param newPassword new password
      * @return true if user's password is successfully changed
      */
-    boolean changePassword(String username, String current, String newPassword) throws UserNotFoundException, PasswordDoesNotMatchException, UserExternallyManagedException;
+    boolean changePassword(String username, String current, String newPassword)
+            throws UserNotFoundException, PasswordDoesNotMatchException, UserExternallyManagedException;
 
     /**
      * Set user password - forgot password token
@@ -295,7 +309,8 @@ public interface SecurityService {
      * @param newPassword new password
      * @return true if uses's password is successfully set
      */
-    Map<String, Object> setUserPassword(String token, String newPassword) throws UserNotFoundException, UserExternallyManagedException;
+    Map<String, Object> setUserPassword(String token, String newPassword)
+            throws UserNotFoundException, UserExternallyManagedException;
 
     /**
      * Reset user password
@@ -304,7 +319,8 @@ public interface SecurityService {
      * @param newPassword new password
      * @return true if user's password is successfully reset
      */
-    boolean resetPassword(String username, String newPassword) throws UserNotFoundException, UserExternallyManagedException;
+    boolean resetPassword(String username, String newPassword)
+            throws UserNotFoundException, UserExternallyManagedException;
 
     /**
      * Validate user's active session
@@ -317,7 +333,8 @@ public interface SecurityService {
     /**
      * Check if given user is site admin
      * @param username user
+     * @param site site identifier
      * @return true if user belongs to admin group
      */
-    boolean isSiteAdmin(String username);
+    boolean isSiteAdmin(String username, String site);
 }

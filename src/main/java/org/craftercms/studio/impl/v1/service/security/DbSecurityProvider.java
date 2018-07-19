@@ -1,6 +1,5 @@
 /*
- * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2016 Crafter Software Corporation.
+ * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,10 +21,24 @@ package org.craftercms.studio.impl.v1.service.security;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoUtils;
 import org.craftercms.commons.http.RequestContext;
-import org.craftercms.studio.api.v1.dal.*;
+import org.craftercms.studio.api.v1.dal.Group;
+import org.craftercms.studio.api.v1.dal.GroupPerSiteResult;
+import org.craftercms.studio.api.v1.dal.GroupResult;
+import org.craftercms.studio.api.v1.dal.SecurityMapper;
+import org.craftercms.studio.api.v1.dal.SiteFeed;
+import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
+import org.craftercms.studio.api.v1.dal.User;
+import org.craftercms.studio.api.v1.dal.UserProfileResult;
 import org.craftercms.studio.api.v1.ebus.RepositoryEventContext;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.craftercms.studio.api.v1.exception.security.*;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationSystemException;
+import org.craftercms.studio.api.v1.exception.security.BadCredentialsException;
+import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
+import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.PasswordDoesNotMatchException;
+import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
+import org.craftercms.studio.api.v1.exception.security.UserExternallyManagedException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.job.CronJobContext;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -36,9 +49,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 
 import javax.servlet.http.HttpSession;
-import java.util.*;
 
-import static org.craftercms.studio.api.v1.constant.SecurityConstants.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_EMAIL;
+import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_EXTERNALLY_MANAGED;
+import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_FIRSTNAME;
+import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_LASTNAME;
+import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_USERNAME;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_SESSION_TIMEOUT;
 import static org.craftercms.studio.impl.v1.service.security.SecurityServiceImpl.STUDIO_SESSION_TOKEN_ATRIBUTE;
 
@@ -46,10 +69,30 @@ public class DbSecurityProvider implements SecurityProvider {
 
     private static Logger logger = LoggerFactory.getLogger(DbSecurityProvider.class);
 
+    @Autowired
+    protected SecurityMapper securityMapper;
+    @Autowired
+    protected SiteFeedMapper siteFeedMapper;
+
+    protected StudioConfiguration studioConfiguration;
+
     @Override
     public Set<String> getUserGroups(String user) {
         Set<String> userGroups = new HashSet<String>();
         List<Group> groups = securityMapper.getUserGroups(user);
+        for (Group g : groups) {
+            userGroups.add(g.getName());
+        }
+        return userGroups;
+    }
+
+    @Override
+    public Set<String> getUserGroupsPerSite(String user, String site) {
+        Set<String> userGroups = new HashSet<String>();
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("username", user);
+        params.put("siteId", site);
+        List<Group> groups = securityMapper.getUserGroupsPerSite(params);
         for (Group g : groups) {
             userGroups.add(g.getName());
         }
@@ -246,7 +289,8 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public String authenticate(String username, String password) throws BadCredentialsException, AuthenticationSystemException {
+    public String authenticate(String username, String password)
+            throws BadCredentialsException, AuthenticationSystemException {
         User user = securityMapper.getUser(username);
         if (user != null && user.isEnabled() && CryptoUtils.matchPassword(user.getPassword(), password)) {
             //byte[] randomBytes = CryptoUtils.generateRandomBytes(20);
@@ -291,20 +335,6 @@ public class DbSecurityProvider implements SecurityProvider {
         }
         boolean valid = false;
         if (StringUtils.isNotEmpty(ticket)) valid = true;
-        /*
-        UserSession us = securityMapper.getUserSession(ticket);
-        boolean valid = us != null && us.getExpires().after(new Date());
-        if (valid) {
-            Calendar calendar = Calendar.getInstance();
-            calendar.add(Calendar.MINUTE, sessionTimeout);
-            us.setExpires(calendar.getTime());
-            securityMapper.extendSession(us);
-        } else {
-            if (us != null) {
-                securityMapper.deactivateSession(ticket);
-            }
-        }
-        */
         return valid;
     }
 
@@ -381,8 +411,8 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public boolean addUserToGroup(String siteId, String groupName, String user) throws UserAlreadyExistsException,
-            UserNotFoundException, GroupNotFoundException, SiteNotFoundException {
+    public boolean addUserToGroup(String siteId, String groupName, String user)
+            throws UserAlreadyExistsException, UserNotFoundException, GroupNotFoundException, SiteNotFoundException {
         if (!(siteFeedMapper.exists(siteId) > 0)) {
             throw new SiteNotFoundException();
         } else if (!groupExists(siteId, groupName)) {
@@ -444,7 +474,8 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public boolean createUser(String username, String password, String firstName, String lastName, String email, boolean externallyManaged) throws UserAlreadyExistsException {
+    public boolean createUser(String username, String password, String firstName, String lastName, String email,
+                              boolean externallyManaged) throws UserAlreadyExistsException {
         if (userExists(username)) {
             logger.error("Not able to create user " + username + ", already exists.");
             throw new UserAlreadyExistsException("User already exists.");
@@ -480,7 +511,8 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public boolean updateUser(String username, String firstName, String lastName, String email) throws UserNotFoundException, UserExternallyManagedException {
+    public boolean updateUser(String username, String firstName, String lastName, String email)
+            throws UserNotFoundException, UserExternallyManagedException {
         if (!userExists(username)) {
             throw new UserNotFoundException();
         } else {
@@ -500,7 +532,8 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public boolean enableUser(String username, boolean enabled) throws UserNotFoundException, UserExternallyManagedException {
+    public boolean enableUser(String username, boolean enabled)
+            throws UserNotFoundException, UserExternallyManagedException {
         if (!userExists(username)) {
             throw new UserNotFoundException();
         } else {
@@ -534,8 +567,8 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public boolean createGroup(String groupName, String description, String siteId, boolean externallyManaged) throws
-        GroupAlreadyExistsException, SiteNotFoundException {
+    public boolean createGroup(String groupName, String description, String siteId, boolean externallyManaged)
+            throws GroupAlreadyExistsException, SiteNotFoundException {
 
         // Get the site first
         Map<String, Object> params = new HashMap<String, Object>();
@@ -562,7 +595,8 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public Map<String, Object> getGroup(String site, String group) throws GroupNotFoundException, SiteNotFoundException {
+    public Map<String, Object> getGroup(String site, String group)
+            throws GroupNotFoundException, SiteNotFoundException {
         if (!(siteFeedMapper.exists(site) > 0)) {
             throw new SiteNotFoundException();
         } else if (!groupExists(site, group)) {
@@ -626,7 +660,8 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public List<Map<String, Object>> getGroupsPerSite(String site, int start, int number) throws SiteNotFoundException {
+    public List<Map<String, Object>> getGroupsPerSite(String site, int start, int number)
+            throws SiteNotFoundException {
         if (!(siteFeedMapper.exists(site) > 0)) {
             throw new SiteNotFoundException();
         } else {
@@ -699,8 +734,8 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public List<Map<String, Object>> getUsersPerGroup(String site, String group, int start, int number) throws
-            GroupNotFoundException, SiteNotFoundException {
+    public List<Map<String, Object>> getUsersPerGroup(String site, String group, int start, int number)
+            throws GroupNotFoundException, SiteNotFoundException {
         if (!(siteFeedMapper.exists(site) > 0)) {
             throw new SiteNotFoundException();
         } else if (!groupExists(site, group)) {
@@ -743,7 +778,8 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public boolean updateGroup(String siteId, String groupName, String description) throws GroupNotFoundException, SiteNotFoundException {
+    public boolean updateGroup(String siteId, String groupName, String description)
+            throws GroupNotFoundException, SiteNotFoundException {
         if (!(siteFeedMapper.exists(siteId) > 0)) {
             throw new SiteNotFoundException();
         } else if (!groupExists(siteId, groupName)) {
@@ -780,7 +816,8 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public boolean changePassword(String username, String current, String newPassword) throws PasswordDoesNotMatchException, UserExternallyManagedException {
+    public boolean changePassword(String username, String current, String newPassword)
+            throws PasswordDoesNotMatchException, UserExternallyManagedException {
         User user = securityMapper.getUser(username);
         if (user.getExternallyManaged() > 0) {
             throw new UserExternallyManagedException();
@@ -799,7 +836,8 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public boolean setUserPassword(String username, String newPassword) throws UserNotFoundException, UserExternallyManagedException {
+    public boolean setUserPassword(String username, String newPassword)
+            throws UserNotFoundException, UserExternallyManagedException {
         if (!userExists(username)) {
             throw new UserNotFoundException();
         } else {
@@ -829,14 +867,11 @@ public class DbSecurityProvider implements SecurityProvider {
         }
     }
 
-    protected StudioConfiguration studioConfiguration;
+    public StudioConfiguration getStudioConfiguration() {
+        return studioConfiguration;
+    }
 
-    public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
-    public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
-
-    @Autowired
-    protected SecurityMapper securityMapper;
-    @Autowired
-    protected SiteFeedMapper siteFeedMapper;
-
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+        this.studioConfiguration = studioConfiguration;
+    }
 }
