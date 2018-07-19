@@ -207,7 +207,7 @@ public class PublishingManagerImpl implements PublishingManager {
                 LOGGER.debug("Environment is live, transition item to LIVE state {0}:{1}", site, path);
 
                 // check if commit id from workflow and from object state match
-                if (itemMetadata.getCommitId().equals(item.getCommitId())) {
+                if (itemMetadata.getCommitId() != null && itemMetadata.getCommitId().equals(item.getCommitId())) {
                     objectStateService.transition(site, contentItem, TransitionEvent.DEPLOYMENT);
                 }
             } else {
