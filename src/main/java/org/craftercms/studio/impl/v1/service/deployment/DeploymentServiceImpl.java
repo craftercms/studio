@@ -833,7 +833,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         if (!siteService.exists(site)) {
             throw new SiteNotFoundException();
         }
-        if (!securityService.isSiteAdmin(securityService.getCurrentUser())) {
+        if (!securityService.isSiteAdmin(securityService.getCurrentUser(), site)) {
             throw new AuthenticationException();
         }
 

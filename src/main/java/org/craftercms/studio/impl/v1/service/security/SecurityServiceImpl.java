@@ -1,6 +1,5 @@
 /*
- * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2016 Crafter Software Corporation.
+ * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,6 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 
 package org.craftercms.studio.impl.v1.service.security;
@@ -212,7 +212,8 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     protected void addGlobalUserRoles(String user, Set<String> roles, PermissionsConfigTO rolesConfig) {
-        Set<String> groups = securityProvider.getUserGroups(user);
+        Set<String> groups = securityProvider.getUserGroupsPerSite(user,
+                studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
         if (rolesConfig != null && groups != null) {
             Map<String, List<String>> rolesMap = rolesConfig.getRoles();
             for (String group : groups) {
@@ -317,7 +318,7 @@ public class SecurityServiceImpl implements SecurityService {
     public Set<String> getUserRoles(@ValidateStringParam(name = "site") final String site,
                                     @ValidateStringParam(name = "user") String user) {
 
-        Set<String> groups = securityProvider.getUserGroups(user);
+        Set<String> groups = securityProvider.getUserGroupsPerSite(user, site);
         if (groups != null && groups.size() > 0) {
             logger.debug("Groups for " + user + " in " + site + ": " + groups);
 
@@ -1072,8 +1073,8 @@ public class SecurityServiceImpl implements SecurityService {
 
     @Override
     @ValidateParams
-    public boolean isSiteAdmin(@ValidateStringParam(name = "username") String username) {
-        Set<String> userGroups = securityProvider.getUserGroups(username);
+    public boolean isSiteAdmin(@ValidateStringParam(name = "username") String username, String site) {
+        Set<String> userGroups = securityProvider.getUserGroupsPerSite(username, site);
         boolean toRet = false;
         if (CollectionUtils.isNotEmpty(userGroups)) {
             for (String group : userGroups) {

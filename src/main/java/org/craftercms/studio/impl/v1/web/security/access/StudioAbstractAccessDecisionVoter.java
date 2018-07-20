@@ -1,6 +1,5 @@
 /*
- * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2017 Crafter Software Corporation.
+ * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,6 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 
 package org.craftercms.studio.impl.v1.web.security.access;
@@ -22,7 +22,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.dal.User;
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -43,6 +42,11 @@ import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_GLO
 public abstract class StudioAbstractAccessDecisionVoter implements AccessDecisionVoter {
 
     private final static Logger logger = LoggerFactory.getLogger(StudioAbstractAccessDecisionVoter.class);
+
+    protected SecurityProvider securityProvider;
+    protected SecurityService securityService;
+    protected StudioConfiguration studioConfiguration;
+    protected SiteService siteService;
 
     protected boolean isSiteMember(User currentUser, String userParam) {
         try {
@@ -97,7 +101,7 @@ public abstract class StudioAbstractAccessDecisionVoter implements AccessDecisio
 
             boolean toRet = sites.contains(siteId);
             if (toRet) {
-                Set<String> userGroups = securityProvider.getUserGroups(currentUser.getUsername());
+                Set<String> userGroups = securityProvider.getUserGroupsPerSite(currentUser.getUsername(), siteId);
                 toRet = userGroups.contains(studioConfiguration.getProperty(CONFIGURATION_SITE_DEFAULT_ADMIN_GROUP));
             }
             return toRet;
@@ -125,20 +129,35 @@ public abstract class StudioAbstractAccessDecisionVoter implements AccessDecisio
         return toRet;
     }
 
-    public SecurityProvider getSecurityProvider() { return securityProvider; }
-    public void setSecurityProvider(SecurityProvider securityProvider) { this.securityProvider = securityProvider; }
+    public SecurityProvider getSecurityProvider() {
+        return securityProvider;
+    }
 
-    public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
-    public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
+    public void setSecurityProvider(SecurityProvider securityProvider) {
+        this.securityProvider = securityProvider;
+    }
 
-    public SiteService getSiteService() { return siteService; }
-    public void setSiteService(SiteService siteService) { this.siteService = siteService; }
+    public StudioConfiguration getStudioConfiguration() {
+        return studioConfiguration;
+    }
 
-    public SecurityService getSecurityService() { return securityService; }
-    public void setSecurityService(SecurityService securityService) { this.securityService = securityService; }
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+        this.studioConfiguration = studioConfiguration;
+    }
 
-    protected SecurityProvider securityProvider;
-    protected SecurityService securityService;
-    protected StudioConfiguration studioConfiguration;
-    protected SiteService siteService;
+    public SiteService getSiteService() {
+        return siteService;
+    }
+
+    public void setSiteService(SiteService siteService) {
+        this.siteService = siteService;
+    }
+
+    public SecurityService getSecurityService() {
+        return securityService;
+    }
+
+    public void setSecurityService(SecurityService securityService) {
+        this.securityService = securityService;
+    }
 }
