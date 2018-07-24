@@ -1,6 +1,5 @@
 /*
- * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2016 Crafter Software Corporation.
+ * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,11 +13,10 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 
 package org.craftercms.studio.impl.v1.service.security;
-
-import java.util.*;
 
 import org.craftercms.commons.http.RequestContext;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -26,7 +24,17 @@ import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 
-import static org.craftercms.studio.api.v1.constant.SecurityConstants.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_EMAIL;
+import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_FIRSTNAME;
+import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_LASTNAME;
+import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_USERNAME;
 
 /**
  */
@@ -80,6 +88,10 @@ public class TestSecurityProvider implements SecurityProvider {
         return USER_GROUPS.get(user);
     }
 
+    public Set<String> getUserGroupsPerSite(String user, String site) {
+        return USER_GROUPS.get(user);
+    }
+
     Map<String, String> activeUser = new HashMap<String, String>();
     Map<String, String> activeProcess = new HashMap<String, String>();
 
@@ -89,8 +101,6 @@ public class TestSecurityProvider implements SecurityProvider {
 
         if(context!=null) {
             username = activeUser.get(KEY_USERNAME);
-            //HttpSession httpSession = context.getRequest().getSession();
-            //(String)httpSession.getValue(KEY_USERNAME);
         }
         else {
              username = activeProcess.get(KEY_USERNAME);
@@ -111,11 +121,6 @@ public class TestSecurityProvider implements SecurityProvider {
         if(theTicket == null) {
             if(context != null) {
                 theTicket = activeUser.get("ticket");
-                //HttpSession httpSession = context.getRequest().getSession();
-                //if(httpSession != null) {
-                    //theTicket = (String)httpSession.getValue("ticket");
-                //}
-                //}
             }
             else {
                 theTicket = activeProcess.get("ticket");
@@ -133,11 +138,6 @@ public class TestSecurityProvider implements SecurityProvider {
             ticket = username + "_FAKETICKET";
 
             if(context != null) {
-                //     HttpSession httpSession = context.getRequest().getSession();
-                //     if(httpSession != null) {
-                //         httpSession.putValue(KEY_USERNAME, username);
-                //         httpSession.putValue("ticket", ticket);
-                //     }
                 activeUser.put(KEY_USERNAME, username);
                 activeUser.put("ticket", ticket);
 
@@ -205,7 +205,8 @@ public class TestSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public boolean createUser(String username, String password, String firstName, String lastName, String email, boolean externallyManaged) {
+    public boolean createUser(String username, String password, String firstName, String lastName, String email,
+                              boolean externallyManaged) {
         // TODO: DB: Implement this ?
         return false;
     }

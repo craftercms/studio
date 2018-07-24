@@ -1,6 +1,5 @@
 /*
- * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2016 Crafter Software Corporation.
+ * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,6 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 
 package scripts.api
@@ -62,17 +62,17 @@ class SiteServices {
         return siteServicesImpl.getAllAvailableSites()
     }
 
-    static createSiteFromBlueprint(context, blueprintName, siteName, siteId, desc) {
+    static createSiteFromBlueprint(context, blueprintName, siteName, siteId, sandboxBranch, desc) {
         def siteServicesImpl = ServiceFactory.getSiteServices(context)
-        return siteServicesImpl.createSiteFromBlueprint(blueprintName, siteName, siteId, desc)
+        return siteServicesImpl.createSiteFromBlueprint(blueprintName, siteName, siteId, sandboxBranch, desc)
     }
 
-    static createSiteWithRemoteOption(context, siteId, description, blueprint, remoteName, remoteUrl, remoteBranch,
-                                      singleBranch, authenticationType, remoteUsername, remotePassword, remoteToken,
-                                      remotePrivateKey, createOption) {
+    static createSiteWithRemoteOption(context, siteId, sandboxBranch, description, blueprint, remoteName, remoteUrl,
+                                      remoteBranch, singleBranch, authenticationType, remoteUsername, remotePassword,
+                                      remoteToken, remotePrivateKey, createOption) {
         def siteServicesImpl = ServiceFactory.getSiteServices(context)
-        return siteServicesImpl.createSiteWithRemoteOption(siteId, description, blueprint, remoteName, remoteUrl,
-                remoteBranch, singleBranch,authenticationType, remoteUsername, remotePassword, remoteToken,
+        return siteServicesImpl.createSiteWithRemoteOption(siteId, sandboxBranch, description, blueprint, remoteName,
+                remoteUrl, remoteBranch, singleBranch,authenticationType, remoteUsername, remotePassword, remoteToken,
                 remotePrivateKey, createOption)
     }
 

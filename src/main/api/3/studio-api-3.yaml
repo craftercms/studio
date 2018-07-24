@@ -1,0 +1,695 @@
+openapi: 3.0.0
+servers:
+  - url: 'http://localhost:8080/studio/api/3'
+info:
+  description: |-
+    Crafter Studio API v3
+    https://docs.craftercms.org/en/3.0/developers/projects/studio/index.html
+  version: '3'
+  title: Crafter Studio
+  termsOfService: ''
+  contact:
+    email: info@craftercms.org
+  license:
+    name: GPL 3.0
+    url: 'https://www.gnu.org/licenses/gpl-3.0.en.html'
+externalDocs:
+  description: Crafter CMS - Studio
+  url: 'https://docs.craftercms.org/en/3.0/developers/projects/studio/index.html'
+tags:
+  - name: user
+    description: User management operations
+  - name: organization
+    description: Organization management operations
+  - name: lov
+    description: List of values management operations
+paths:
+  /user:
+    get:
+      tags:
+        - user
+      summary: Get user(s) by username or userId
+      description: 'Required Permission: "READ_USER"'
+      operationId: getUser
+      parameters:
+        - name: username
+          in: query
+          description: The username(s) that needs to be fetched.
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+            minItems: 0
+        - name: userId
+          in: query
+          description: The userId(s) that needs to be fetched.
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+            minItems: 0
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                    format: int32
+                    description: Total records in the system
+                  offset:
+                    type: integer
+                    format: int32
+                    description: Offset of first record in this response
+                  limit:
+                    type: integer
+                    format: int32
+                    description: Number of records in this response
+                  entities:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        response:
+                          $ref: '#/components/schemas/ApiResponse'
+                        entity:
+                          $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    post:
+      tags:
+        - user
+      summary: Create user(s)
+      description: 'Required Permission: "CREATE_USER"'
+      operationId: createUser
+      requestBody:
+        description: List of users to create
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                entities:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/User'
+                      organizations:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            organizationId:
+                              type: integer
+                              format: int64
+                              description: >-
+                                Organization(s) to add the user to during
+                                creation
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                    format: int32
+                    description: Total records in the system
+                  offset:
+                    type: integer
+                    format: int32
+                    description: Offset of first record in this response
+                  limit:
+                    type: integer
+                    format: int32
+                    description: Number of records in this response
+                  entities:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        response:
+                          $ref: '#/components/schemas/ApiResponse'
+                        entity:
+                          $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags:
+        - user
+      summary: Update user(s)
+      description: 'Required Permission: "UPDATE_USER"'
+      operationId: updateUser
+      requestBody:
+        description: List of users to create
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                entities:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/User'
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                    format: int32
+                    description: Total records in the system
+                  offset:
+                    type: integer
+                    format: int32
+                    description: Offset of first record in this response
+                  limit:
+                    type: integer
+                    format: int32
+                    description: Number of records in this response
+                  entities:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        response:
+                          $ref: '#/components/schemas/ApiResponse'
+                        entity:
+                          $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags:
+        - user
+      summary: Delete user(s)
+      description: 'Required Permission: "DELETE_USER"'
+      operationId: deleteUser
+      parameters:
+        - name: username
+          in: query
+          description: The username(s) that needs to be fetched.
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+            minItems: 0
+        - name: userId
+          in: query
+          description: The userId(s) that needs to be fetched.
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+            minItems: 0
+      responses:
+        '204':
+          description: OK
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /user/enable:
+    patch:
+      tags:
+        - user
+      summary: Enable user(s)
+      description: 'Required Permission: "UPDATE_USER"'
+      operationId: enableUser
+      parameters:
+        - name: username
+          in: query
+          description: The username(s) that needs to be fetched.
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+            minItems: 0
+        - name: userId
+          in: query
+          description: The userId(s) that needs to be fetched.
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+            minItems: 0
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                    format: int32
+                    description: Total records in the system
+                  offset:
+                    type: integer
+                    format: int32
+                    description: Offset of first record in this response
+                  limit:
+                    type: integer
+                    format: int32
+                    description: Number of records in this response
+                  entities:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        response:
+                          $ref: '#/components/schemas/ApiResponse'
+                        entity:
+                          $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /user/disable:
+    patch:
+      tags:
+        - user
+      summary: Disable user(s)
+      description: 'Required Permission: "UPDATE_USER"'
+      operationId: disableUser
+      parameters:
+        - name: username
+          in: query
+          description: The username(s) that needs to be fetched.
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+            minItems: 0
+        - name: userId
+          in: query
+          description: The userId(s) that needs to be fetched.
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+            minItems: 0
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                    format: int32
+                    description: Total records in the system
+                  offset:
+                    type: integer
+                    format: int32
+                    description: Offset of first record in this response
+                  limit:
+                    type: integer
+                    format: int32
+                    description: Number of records in this response
+                  entities:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        response:
+                          $ref: '#/components/schemas/ApiResponse'
+                        entity:
+                          $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /org:
+    get:
+      tags:
+        - organization
+      summary: Get user(s) by username or userId
+      description: 'Required Permission: "READ_USER"'
+      operationId: getUser
+      parameters:
+        - name: username
+          in: query
+          description: The username(s) that needs to be fetched.
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+            minItems: 0
+        - name: userId
+          in: query
+          description: The userId(s) that needs to be fetched.
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+            minItems: 0
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                    format: int32
+                    description: Total records in the system
+                  offset:
+                    type: integer
+                    format: int32
+                    description: Offset of first record in this response
+                  limit:
+                    type: integer
+                    format: int32
+                    description: Number of records in this response
+                  entities:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        response:
+                          $ref: '#/components/schemas/ApiResponse'
+                        entity:
+                          $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: 'User ID, unique user-identifier, immutable'
+        username:
+          type: string
+          description: 'Username, unique but can be changed'
+        firstName:
+          type: string
+          description: User's first name
+        lastName:
+          type: string
+          description: User's last name
+        email:
+          type: string
+          description: User's email address
+        password:
+          type: string
+          description: User's password
+        avatar:
+          type: string
+          description: 'User''s avatar, base64 encoded image @128x128 pixel PNG'
+        status:
+          type: string
+          description: User status. See relevant LoV for user status.
+    LoV:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: List of Values ID
+        lov:
+          description: List of key-value pairs
+          type: array
+          items:
+            type: object
+            properties:
+              key:
+                type: string
+              value:
+                type: string
+    Organization:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: 'Organization ID, unique and immutable'
+        name:
+          type: string
+          description: 'Organization name, unique and can be changed'
+        desc:
+          type: string
+          description: Organization description
+        url:
+          type: string
+          description: Organization URL (usually the organization WebSite)
+        logo:
+          type: string
+          description: 'Organization logo, base64 encoded image @128x128 pixel PNG'
+    Group:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: 'Group ID, unique and immutable'
+        name:
+          type: string
+          description: 'Group name, unique within an organization and can be changed'
+        desc:
+          type: string
+          description: Group description
+    Project:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: 'Project ID, unique and immutable'
+        name:
+          type: string
+          description: 'Project name, unique within an organization and can be changed'
+        desc:
+          type: string
+          description: Project description
+        liveUrl:
+          type: string
+          description: >-
+            Project live URL, where is project can be accessed or downloaded (if
+            app)
+        previewUrl:
+          type: string
+          description: Project preview URL in Crafter Studio
+        stagingUrl:
+          type: string
+          description: >-
+            Project staging URL, where major update can be staged before pushing
+            live
+    Item:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: 'Item ID, unique and immutable'
+        orgId:
+          type: string
+          description: The organization to which the project that holds the item blongs
+        projectId:
+          type: string
+          description: Project ID to which this item belongs
+        path:
+          type: string
+          description: Path of item in the project's repository
+        state:
+          type: string
+          description: Item state. See relevant LoV for item states.
+        type:
+          type: string
+          description: Item type. See relevant LoV for item types.
+        mimetype:
+          type: string
+          description: >-
+            MIME-Type if the item is a file. See relevant LoV for item
+            MIME-Types.
+        createdBy:
+          type: string
+          description: UserId of creator
+        createdOn:
+          type: string
+          description: Date of creation
+        lastModifiedBy:
+          type: string
+          description: UserId of last modifier
+        lastModifiedOn:
+          type: string
+          description: Date of last modification
+        commitId:
+          type: string
+          description: Last repository commit_id
+    Policy:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Policy ID
+        version:
+          type: string
+          description: Policy version number
+        statements:
+          type: array
+          items:
+            type: object
+            properties:
+              effect:
+                type: string
+                enum:
+                  - allow
+                  - deny
+                example: allow
+                description: Allow or Deny
+              actions:
+                type: array
+                items:
+                  type: string
+                  description: >-
+                    See relevant LoV for actions using
+                    system:service:resourcetype [TODO explain]
+              resource:
+                type: string
+                example: >-
+                  crn:studio:content:0284a098aab7c7:130880c018310810b:item:static-assets/*
+                description: See TODO
+    Role:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: 'Role ID, unique and immutable'
+        name:
+          type: string
+          description: 'Role name, unique within ?? TODO'
+        policies:
+          type: array
+          items:
+            $ref: '#/components/schemas/Policy'
+    ApiResponse:
+      type: object
+      description: |-
+            The response of an API operation. Possible responses are:
+              * `CODE:` 0, `MESSAGE:` OK
+              * `CODE:` 1, `MESSAGE:` Created
+              * `CODE:` 2, `MESSAGE:` Deleted
+              * `CODE:` 1000, `MESSAGE:` Internal system failure, `REMEDIAL ACTION:` Contact support
+              * `CODE:` 1001, `MESSAGE:` Invalid parameter(s), `REMEDIAL ACTION:` Check API and make sure you're sending the correct parameters
+              * `CODE:` 2000, `MESSAGE:` Unauthenticated, `REMEDIAL ACTION:` Please login first
+              * `CODE:` 2001, `MESSAGE:` Unauthorized, `REMEDIAL ACTION:` You don't have permission to perform this task, please contact your administrator
+              * `CODE:` 3000, `MESSAGE:` Organization not found, `REMEDIAL ACTION:` Check if you sent in the right Org Id
+              * `CODE:` 3000, `MESSAGE:` Organization already exists, `REMEDIAL ACTION:` Try a different organization name
+              * `CODE:` 4000, `MESSAGE:` Group not found, `REMEDIAL ACTION:` Check if you sent in the right Group Id
+              * `CODE:` 5000, `MESSAGE:` Project not found, `REMEDIAL ACTION:` Check if you sent in the right Project Id
+              * `CODE:` 5001, `MESSAGE:` Project already exists, `REMEDIAL ACTION:` Try a different project name
+              * `CODE:` 6000, `MESSAGE:` User not found, `REMEDIAL ACTION:` Check if you're using the correct User ID
+              * `CODE:` 6001, `MESSAGE:` User already exists, `REMEDIAL ACTION:` Try a different username
+              * `CODE:` 6002, `MESSAGE:` User is externally managed, `REMEDIAL ACTION:` Update the user in the main identity system (e.g. LDAP)
+              * `CODE:` 7000, `MESSAGE:` Content not found, `REMEDIAL ACTION:` Check if you sent in the right Content Id
+              * `CODE:` 7001, `MESSAGE:` Content already exists, `REMEDIAL ACTION:` Advise the user that the content already exists
+              * `CODE:` 8000, `MESSAGE:` Publishing is disabled, `REMEDIAL ACTION:` Advise the user to enable publishing
+              * `CODE:` 9000, `MESSAGE:` Search is unreachable, `REMEDIAL ACTION:` Advise the user that the search engine is not reachable
+              * `CODE:` 10000, `MESSAGE:` LoV not found, `REMEDIAL ACTION:` Check if you sent in the right LoV Id
+              * `CODE:` 50000, `MESSAGE:` CMIS server is unreachable, `REMEDIAL ACTION:` Advise the user that the CMIS server is not reachable
+              * `CODE:` 51000, `MESSAGE:` Box is unreachable, `REMEDIAL ACTION:` Advise the user that Box is not reachable
+              * `CODE:` 52000, `MESSAGE:` AWS is unreachable, `REMEDIAL ACTION:` Advise the user that AWS engine is not reachable
+      properties:
+        code:
+          type: integer
+          format: int32
+          description: The response code
+        message:
+          type: string
+          description: The detailed message of the response
+        remedialAction:
+          type: string
+          description: What the user can do in order to address the issue indicated by the response 
+        documentationUrl:
+          type: string
+          description: A URL to documentation related to the response
+      required:
+        - code
+        - message
+  parameters:
+    offsetParam:
+      name: offset
+      in: query
+      description: Number of items to skip before returning the results.
+      required: false
+      schema:
+        type: integer
+        format: int32
+        minimum: 0
+        default: 0
+  requestBodies:
+    UserArray:
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/User'
+      description: List of user object
+      required: true
+  responses:
+    NotFound:
+      description: The specified entity was not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse'
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse'
+  securitySchemes: null
+  links: {}
+  callbacks: {}
+security: []

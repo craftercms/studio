@@ -33,8 +33,8 @@ public interface StudioConfiguration {
     String BLUE_PRINTS_PATH = "studio.repo.blueprintsPath";
     String BOOTSTRAP_REPO = "studio.repo.bootstrapRepo";
     String REPO_REBUILD_METADATA_BATCH_SIZE = "studio.repo.rebuildMetadata.batchSize";
+    String REPO_SANDBOX_WRITE_COMMIT_MESSAGE = "studio.repo.sandbox.write.commitMessage";
     String REPO_PUBLISHED_COMMIT_MESSAGE = "studio.repo.published.commitMessage";
-    String CONFIGURATION_SITE_ENVIRONMENT_CONFIG_ENABLED = "studio.configuration.site.environmentConfig.enabled";
     String REPO_PUBLISHED_LIVE = "studio.repo.published.live";
     String REPO_PUBLISHED_STAGING = "studio.repo.published.staging";
 
@@ -86,8 +86,10 @@ public interface StudioConfiguration {
     String CONFIGURATION_SITE_DATA_SOURCES_CONFIG_BASE_PATH = "studio.configuration.site.dataSources.configBasePath";
     String CONFIGURATION_SITE_DATA_SOURCES_CONFIG_FILE_NAME = "studio.configuration.site.dataSources.configFileName";
     String CONFIGURATION_SITE_PREVIEW_DESTROY_CONTEXT_URL = "studio.configuration.site.preview.destroy.sontext.url";
-    String CONFIGURATION_SITE_DEPENDENCY_RESOLVER_CONFIG_FILE_NAME = "studio.configuration.site.dependencyResolver.configFileName";
-    String CONFIGURATION_SITE_DEPENDENCY_RESOLVER_CONFIG_BASE_PATH = "studio.configuration.site.dependencyResolver.configBasePath";
+    String CONFIGURATION_SITE_DEPENDENCY_RESOLVER_CONFIG_FILE_NAME =
+            "studio.configuration.site.dependencyResolver.configFileName";
+    String CONFIGURATION_SITE_DEPENDENCY_RESOLVER_CONFIG_BASE_PATH =
+            "studio.configuration.site.dependencyResolver.configBasePath";
     String CONFIGURATION_DEPENDENCY_ITEM_SPECIFIC_PATTERNS = "studio.configuration.dependency.itemSpecificPatterns";
 
     /** Import Service */
@@ -139,10 +141,12 @@ public interface StudioConfiguration {
     String SECURITY_LDAP_USER_ATTRIBUTE_SITE_ID = "studio.security.ldap.userAttribute.siteId";
     String SECURITY_LDAP_USER_ATTRIBUTE_SITE_ID_REGEX = "studio.security.ldap.userAttribute.siteId.regex";
     String SECURITY_LDAP_USER_ATTRIBUTE_SITE_ID_MATCH_INDEX = "studio.security.ldap.userAttribute.siteId.matchIndex";
-    String SECURITY_LDAP_USER_ATTRIBUTE_SITE_ID_GROUP_NAME_MATCH_INDEX = "studio.security.ldap.userAttribute.siteId.groupName.matchIndex";
+    String SECURITY_LDAP_USER_ATTRIBUTE_SITE_ID_GROUP_NAME_MATCH_INDEX =
+            "studio.security.ldap.userAttribute.siteId.groupName.matchIndex";
     String SECURITY_LDAP_USER_ATTRIBUTE_GROUP_NAME = "studio.security.ldap.userAttribute.groupName";
     String SECURITY_LDAP_USER_ATTRIBUTE_GROUP_NAME_REGEX = "studio.security.ldap.userAttribute.groupName.regex";
-    String SECURITY_LDAP_USER_ATTRIBUTE_GROUP_NAME_MATCH_INDEX = "studio.security.ldap.userAttribute.groupName.matchIndex";
+    String SECURITY_LDAP_USER_ATTRIBUTE_GROUP_NAME_MATCH_INDEX =
+            "studio.security.ldap.userAttribute.groupName.matchIndex";
     String SECURITY_LDAP_DEFAULT_SITE_ID = "studio.security.ldap.defaultSiteId";
 
     /** Authentication headers **/
@@ -159,7 +163,8 @@ public interface StudioConfiguration {
     String PAGE_NAVIGATION_ORDER_INCREMENT = "studio.pageNavigationOrder.increment";
 
     /** Content Processors */
-    String CONTENT_PROCESSOR_CONTENT_LIFE_CYCLE_SCRIPT_LOCATION = "studio.contentProcessor.contentLifeCycle.scriptLocation";
+    String CONTENT_PROCESSOR_CONTENT_LIFE_CYCLE_SCRIPT_LOCATION =
+            "studio.contentProcessor.contentLifeCycle.scriptLocation";
     String CONTENT_PROCESSOR_ASSETS_SYSTEM_PATH = "studio.contentProcessor.assetsSystemPath";
 
     /** Email Service */
@@ -174,14 +179,26 @@ public interface StudioConfiguration {
     String MAIL_DEBUG = "studio.mail.debug";
 
     /** Jobs */
-    String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_PROCESSING_CHUNK_SIZE = "studio.job.deployContentToEnvironment.processingChunkSize";
-    String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_MANDATORY_DEPENDENCIES_CHECK_ENABLED = "studio.job.deployContentToEnvironment.mandatoryDependenciesCheckEnabled";
-    String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT = "studio.job.deployContentToEnvironment.status.message.default";
-    String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_IDLE = "studio.job.deployContentToEnvironment.status.message.idle";
-    String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_BUSY = "studio.job.deployContentToEnvironment.status.message.busy";
-    String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED_ERROR = "studio.job.deployContentToEnvironment.status.message.stopped.error";
-    String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED_USER = "studio.job.deployContentToEnvironment.status.message.stopped.user";
-    String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STARTED_USER = "studio.job.deployContentToEnvironment.status.message.started.user";
+    String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_PROCESSING_CHUNK_SIZE =
+            "studio.job.deployContentToEnvironment.processingChunkSize";
+    String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_MANDATORY_DEPENDENCIES_CHECK_ENABLED =
+            "studio.job.deployContentToEnvironment.mandatoryDependenciesCheckEnabled";
+    String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT =
+            "studio.job.deployContentToEnvironment.status.message.default";
+    String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_IDLE =
+            "studio.job.deployContentToEnvironment.status.message.idle";
+    String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_BUSY =
+            "studio.job.deployContentToEnvironment.status.message.busy";
+    String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_PUBLISHING =
+            "studio.job.deployContentToEnvironment.status.message.publishing";
+    String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_QUEUED =
+            "studio.job.deployContentToEnvironment.status.message.queued";
+    String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED_ERROR =
+            "studio.job.deployContentToEnvironment.status.message.stopped.error";
+    String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED_USER =
+            "studio.job.deployContentToEnvironment.status.message.stopped.user";
+    String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STARTED_USER =
+            "studio.job.deployContentToEnvironment.status.message.started.user";
     String JOB_DEPLOYMENT_MASTER_PUBLISHING_NODE = "studio.job.deployment.masterPublishingNode";
 
     /** Content Types Filter Patterns */
@@ -205,7 +222,8 @@ public interface StudioConfiguration {
 
     /** Publishing Manager */
     String PUBLISHING_MANAGER_INDEX_FILE = "studio.publishingManager.indexFile";
-    String PUBLISHING_MANAGER_PUBLISHING_WITHOUT_DEPENDENCIES_ENABLED = "studio.publishingManager.publishingWithoutDependencies.enabled";
+    String PUBLISHING_MANAGER_PUBLISHING_WITHOUT_DEPENDENCIES_ENABLED =
+            "studio.publishingManager.publishingWithoutDependencies.enabled";
 
     void loadConfig();
 

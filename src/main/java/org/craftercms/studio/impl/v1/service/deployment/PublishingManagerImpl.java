@@ -60,7 +60,6 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARAT
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.PUBLISHING_MANAGER_INDEX_FILE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.
         PUBLISHING_MANAGER_PUBLISHING_WITHOUT_DEPENDENCIES_ENABLED;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_PUBLISHED_LIVE;
 
 public class PublishingManagerImpl implements PublishingManager {
 
@@ -118,10 +117,8 @@ public class PublishingManagerImpl implements PublishingManager {
 
         String liveEnvironment = LIVE_ENVIRONMENT;
 
-        boolean siteEnvironmentConfigEnabled = Boolean.parseBoolean(
-                studioConfiguration.getProperty(StudioConfiguration.CONFIGURATION_SITE_ENVIRONMENT_CONFIG_ENABLED));
-        if (!siteEnvironmentConfigEnabled) {
-            liveEnvironment = studioConfiguration.getProperty(REPO_PUBLISHED_LIVE);
+        if (servicesConfig.isStagingEnvironmentEnabled(site)) {
+            liveEnvironment = servicesConfig.getLiveEnvironment(site);
         }
 
         boolean isLive = false;
@@ -210,7 +207,7 @@ public class PublishingManagerImpl implements PublishingManager {
                 LOGGER.debug("Environment is live, transition item to LIVE state {0}:{1}", site, path);
 
                 // check if commit id from workflow and from object state match
-                if (itemMetadata.getCommitId().equals(item.getCommitId())) {
+                if (itemMetadata.getCommitId() != null && itemMetadata.getCommitId().equals(item.getCommitId())) {
                     objectStateService.transition(site, contentItem, TransitionEvent.DEPLOYMENT);
                 }
             } else {
@@ -221,6 +218,7 @@ public class PublishingManagerImpl implements PublishingManager {
             props.put(ItemMetadata.PROP_SEND_EMAIL, 0);
             props.put(ItemMetadata.PROP_SUBMITTED_FOR_DELETION, 0);
             props.put(ItemMetadata.PROP_SUBMISSION_COMMENT, StringUtils.EMPTY);
+            props.put(ItemMetadata.PROP_SUBMITTED_TO_ENVIRONMENT, StringUtils.EMPTY);
             objectMetadataManager.setObjectMetadata(site, path, props);
         }
         return deploymentItem;
@@ -385,8 +383,26 @@ public class PublishingManagerImpl implements PublishingManager {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("site", site);
         params.put("now", ZonedDateTime.now(ZoneOffset.UTC));
+        List<String> states = new ArrayList<String>() {{
+            add(PublishRequest.State.READY_FOR_LIVE);
+            add(PublishRequest.State.BLOCKED);
+            add(PublishRequest.State.PROCESSING);
+        }};
+
+        params.put("states", states);
         PublishRequest result = publishRequestMapper.checkPublishingStatus(params);
         return result.getState();
+    }
+
+    @Override
+    @ValidateParams
+    public boolean isPublishingQueueEmpty(@ValidateStringParam(name = "site") String site) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("site", site);
+        params.put("now", ZonedDateTime.now(ZoneOffset.UTC));
+        params.put("state", PublishRequest.State.READY_FOR_LIVE);
+        Integer result = publishRequestMapper.isPublishingQueueEmpty(params);
+        return result < 1;
     }
 
     public String getIndexFile() {

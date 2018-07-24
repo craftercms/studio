@@ -31,6 +31,7 @@ import org.craftercms.studio.api.v1.dal.DeploymentSyncHistory;
 import org.craftercms.studio.api.v1.dal.ItemMetadata;
 import org.craftercms.studio.api.v1.dal.PublishRequest;
 import org.craftercms.studio.api.v1.dal.PublishRequestMapper;
+import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.deployment.Deployer;
 import org.craftercms.studio.api.v1.ebus.PreviewEventContext;
 import org.craftercms.studio.api.v1.exception.CommitNotFoundException;
@@ -93,6 +94,8 @@ import static org.craftercms.studio.api.v1.service.objectstate.State.NEW_DELETED
 import static org.craftercms.studio.api.v1.service.objectstate.State.NEW_SUBMITTED_NO_WF_SCHEDULED;
 import static org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.DELETE;
 import static org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.SUBMIT_WITHOUT_WORKFLOW_SCHEDULED;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration
+        .JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_QUEUED;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.PREVIOUS_COMMIT_SUFFIX;
 
 /**
@@ -174,6 +177,13 @@ public class DeploymentServiceImpl implements DeploymentService {
             sendContentApprovalEmail(items, scheduleDateNow);
         } catch(Exception errNotify) {
             logger.error("Error sending approval notification ", errNotify);
+        }
+        String statusMessage = studioConfiguration
+                .getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_QUEUED);
+        try {
+            siteService.updatePublishingStatusMessage(site, statusMessage);
+        } catch (SiteNotFoundException e) {
+            logger.error("Error updating publishing status for site " + site);
         }
     }
 
@@ -288,6 +298,13 @@ public class DeploymentServiceImpl implements DeploymentService {
             }
         }
         objectStateService.setSystemProcessingBulk(site, paths, false);
+        String statusMessage = studioConfiguration
+                .getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_QUEUED);
+        try {
+            siteService.updatePublishingStatusMessage(site, statusMessage);
+        } catch (SiteNotFoundException e) {
+            logger.error("Error updating publishing status for site " + site);
+        }
     }
 
     protected Set<String> getAllPublishingEnvironments(String site) {
@@ -454,21 +471,27 @@ public class DeploymentServiceImpl implements DeploymentService {
                                  @ValidateIntegerParam(name = "daysFromToday") int daysFromToday,
                                  @ValidateIntegerParam(name = "numberOfItems") int numberOfItems,
                                  @ValidateStringParam(name = "sort") String sort, boolean ascending,
-                                 @ValidateStringParam(name = "filterType") String filterType) {
+                                 @ValidateStringParam(name = "filterType") String filterType) throws SiteNotFoundException {
         // get the filtered list of attempts in a specific date range
         ZonedDateTime toDate = ZonedDateTime.now(ZoneOffset.UTC);
         ZonedDateTime fromDate = toDate.minusDays(daysFromToday);
-        List<DeploymentSyncHistory> deployReports = deploymentHistoryProvider.getDeploymentHistory(site, fromDate,
-                toDate, dmFilterWrapper, filterType, numberOfItems);
+        SiteFeed siteFeed = siteService.getSite(site);
+        List<DeploymentSyncHistory> deployReports = deploymentHistoryProvider.getDeploymentHistory(site,
+                siteFeed.getSandboxBranch(), fromDate, toDate, dmFilterWrapper, filterType, numberOfItems);
         List<DmDeploymentTaskTO> tasks = new ArrayList<DmDeploymentTaskTO>();
 
         if (deployReports != null) {
             int count = 0;
             String timezone = servicesConfig.getDefaultTimezone(site);
-            Set<String> processedItems = new HashSet<String>();
+            //Set<String> processedItems = new HashSet<String>();
+            Map<String, Set<String>> processedItems = new HashMap<String, Set<String>>();
             for (int index = 0; index < deployReports.size() && count < numberOfItems; index++) {
                 DeploymentSyncHistory entry = deployReports.get(index);
-                if (!processedItems.contains(entry.getPath())) {
+                String env = entry.getEnvironment();
+                if (!processedItems.containsKey(env)) {
+                    processedItems.put(env, new HashSet<String>());
+                }
+                if (!processedItems.get(env).contains(entry.getPath())) {
                     ContentItemTO deployedItem = getDeployedItem(entry.getSite(), entry.getPath());
                     if (deployedItem != null) {
                         deployedItem.eventDate = entry.getSyncDate();
@@ -490,7 +513,7 @@ public class DeploymentServiceImpl implements DeploymentService {
                         } else {
                             tasks.add(createDeploymentTask(deployedLabel, deployedItem));
                         }
-                        processedItems.add(entry.getPath());
+                        processedItems.get(env).add(entry.getPath());
                     }
                 }
             }
@@ -589,7 +612,8 @@ public class DeploymentServiceImpl implements DeploymentService {
                     securityService.getCurrentUser(), Collections.<String>emptyList());
             if (permissions.contains(StudioConstants.PERMISSION_VALUE_PUBLISH)) {
                 addScheduledItem(site, deploymentItem.getEnvironment(), deploymentItem.getScheduledDate(), format,
-                        deploymentItem.getPath(), results, comparator, subComparator, displayPatterns, filterType);
+                        deploymentItem.getPath(), deploymentItem.getPackageId(), results, comparator, subComparator,
+                        displayPatterns, filterType);
             }
         }
         return results;
@@ -606,11 +630,11 @@ public class DeploymentServiceImpl implements DeploymentService {
      * @param displayPatterns
      */
     protected void addScheduledItem(String site, String environment, ZonedDateTime launchDate, SimpleDateFormat format,
-                                    String path, List<ContentItemTO> scheduledItems, DmContentItemComparator comparator,
-                                    DmContentItemComparator subComparator, List<String> displayPatterns,
-                                    String filterType) {
+                                    String path, String packageId, List<ContentItemTO> scheduledItems,
+                                    DmContentItemComparator comparator, DmContentItemComparator subComparator,
+                                    List<String> displayPatterns, String filterType) {
         try {
-            addToScheduledDateList(site, environment, launchDate, format, path, scheduledItems, comparator,
+            addToScheduledDateList(site, environment, launchDate, format, path, packageId, scheduledItems, comparator,
                     subComparator, displayPatterns, filterType);
             if(!(path.endsWith(FILE_SEPARATOR + DmConstants.INDEX_FILE) || path.endsWith(DmConstants.XML_PATTERN))) {
                 path = path + FILE_SEPARATOR + DmConstants.INDEX_FILE;
@@ -633,9 +657,10 @@ public class DeploymentServiceImpl implements DeploymentService {
      * @throws ServiceException
      */
     protected void addToScheduledDateList(String site, String environment, ZonedDateTime launchDate,
-                                          SimpleDateFormat format, String path, List<ContentItemTO> scheduledItems,
-                                          DmContentItemComparator comparator, DmContentItemComparator subComparator,
-                                          List<String> displayPatterns, String filterType) throws ServiceException {
+                                          SimpleDateFormat format, String path, String packageId,
+                                          List<ContentItemTO> scheduledItems, DmContentItemComparator comparator,
+                                          DmContentItemComparator subComparator, List<String> displayPatterns,
+                                          String filterType) throws ServiceException {
         String timeZone = servicesConfig.getDefaultTimezone(site);
         String dateLabel = launchDate.format(DateTimeFormatter.ofPattern(format.toPattern()));
         // add only if the current node is a file (directories are
@@ -644,10 +669,9 @@ public class DeploymentServiceImpl implements DeploymentService {
         if (ContentUtils.matchesPatterns(path, displayPatterns)) {
             ContentItemTO itemToAdd = contentService.getContentItem(site, path, 0);
             if (dmFilterWrapper.accept(site, itemToAdd, filterType)) {
-                //itemToAdd.submitted = false;
                 itemToAdd.scheduledDate = launchDate;
                 itemToAdd.environment = environment;
-                //itemToAdd.inProgress = false;
+                itemToAdd.packageId = packageId;
                 boolean found = false;
                 for (int index = 0; index < scheduledItems.size(); index++) {
                     ContentItemTO currDateItem = scheduledItems.get(index);
@@ -676,22 +700,6 @@ public class DeploymentServiceImpl implements DeploymentService {
         }
     }
 
-    protected void addDependendenciesToSchdeuleList(String site,
-                                                    String environment,
-                                                    ZonedDateTime launchDate,
-                                                    SimpleDateFormat format,
-                                                    List<ContentItemTO>scheduledItems,
-                                                    DmContentItemComparator comparator,
-                                                    DmContentItemComparator subComparator,
-                                                    List<String> displayPatterns,
-                                                    String filterType,
-                                                    String relativePath) throws ServiceException {
-
-        Set<String> dependencyPaths = dependencyService.getItemDependencies(site, relativePath, 1);
-        _addDependendenciesToSchdeuleList(site, environment, launchDate, format, scheduledItems, comparator,
-                subComparator, displayPatterns, filterType, dependencyPaths);
-    }
-
     protected ContentItemTO createDateItem(String name, ContentItemTO itemToAdd, DmContentItemComparator comparator,
                                            String timeZone) {
         ContentItemTO dateItem = new ContentItemTO();
@@ -704,38 +712,12 @@ public class DeploymentServiceImpl implements DeploymentService {
         return dateItem;
     }
 
-    protected void _addDependendenciesToSchdeuleList(String site,
-                                                     String environment,
-                                                     ZonedDateTime launchDate,
-                                                     SimpleDateFormat format,
-                                                     List<ContentItemTO>scheduledItems,
-                                                     DmContentItemComparator comparator,
-                                                     DmContentItemComparator subComparator,
-                                                     List<String> displayPatterns,
-                                                     String filterType,
-                                                     Set<String>dependencies) throws ServiceException {
-        if(dependencies != null) {
-            for(String dependency : dependencies) {
-                if (objectStateService.isNew(site, dependency) && objectStateService.isScheduled(site, dependency)) {
-                    addScheduledItem(site, environment, launchDate, format, dependency, scheduledItems, comparator,
-                            subComparator, displayPatterns, filterType);
-                    if(dependency.endsWith(DmConstants.XML_PATTERN)) {
-                        addDependendenciesToSchdeuleList(site, environment, launchDate, format, scheduledItems,
-                                comparator, subComparator, displayPatterns, filterType, dependency);
-                    }
-                }
-            }
-        }
-    }
-
     @Override
     @ValidateParams
     public Map<String, List<PublishingChannelTO>> getAvailablePublishingChannelGroups(
             @ValidateStringParam(name = "site") String site,
             @ValidateSecurePathParam(name = "path") String path) {
-        boolean siteEnvironmentConfigEnabled = Boolean.parseBoolean(
-                studioConfiguration.getProperty(StudioConfiguration.CONFIGURATION_SITE_ENVIRONMENT_CONFIG_ENABLED));
-        List<PublishingChannelTO> channelsTO = siteEnvironmentConfigEnabled ?
+        List<PublishingChannelTO> channelsTO = !servicesConfig.isStagingEnvironmentEnabled(site) ?
                 getAvailablePublishingChannelGroupsForSite(site, path) : getPublishedEnvironments(site);
         List<PublishingChannelTO> publishChannels = new ArrayList<PublishingChannelTO>();
         List<PublishingChannelTO> updateStatusChannels = new ArrayList<PublishingChannelTO>();
@@ -768,8 +750,8 @@ public class DeploymentServiceImpl implements DeploymentService {
 
     protected Set<String> getAllPublishedEnvironments(String site) {
         Set<String> publishedEnvironments = new HashSet<String>();
-        publishedEnvironments.add(studioConfiguration.getProperty(StudioConfiguration.REPO_PUBLISHED_LIVE));
-        publishedEnvironments.add(studioConfiguration.getProperty(StudioConfiguration.REPO_PUBLISHED_STAGING));
+        publishedEnvironments.add(servicesConfig.getLiveEnvironment(site));
+        publishedEnvironments.add(servicesConfig.getStagingEnvironment(site));
         return publishedEnvironments;
     }
 
@@ -851,7 +833,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         if (!siteService.exists(site)) {
             throw new SiteNotFoundException();
         }
-        if (!securityService.isSiteAdmin(securityService.getCurrentUser())) {
+        if (!securityService.isSiteAdmin(securityService.getCurrentUser(), site)) {
             throw new AuthenticationException();
         }
 
@@ -874,7 +856,7 @@ public class DeploymentServiceImpl implements DeploymentService {
     @ValidateParams
     public void publishCommits(@ValidateStringParam(name = "site") String site,
                                @ValidateStringParam(name = "environment") String environment,
-                               List<String> commitIds)
+                               List<String> commitIds, @ValidateStringParam(name = "comment") String comment)
             throws SiteNotFoundException, EnvironmentNotFoundException, CommitNotFoundException {
         if (!siteService.exists(site)) {
             throw new SiteNotFoundException();
@@ -888,7 +870,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         }
         logger.debug("Creating publish request items for queue for site " + site + " environment " + environment);
         List<PublishRequest> publishRequests = createCommitItems(site, environment, commitIds,
-                ZonedDateTime.now(ZoneOffset.UTC), securityService.getCurrentUser());
+                ZonedDateTime.now(ZoneOffset.UTC), securityService.getCurrentUser(), comment);
         logger.debug("Insert publish request items to the queue");
         for (PublishRequest request : publishRequests) {
             publishRequestMapper.insertItemForDeployment(request);
@@ -905,7 +887,7 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     private List<PublishRequest> createCommitItems(String site, String environment, List<String> commitIds,
-                                                   ZonedDateTime scheduledDate, String approver) {
+                                                   ZonedDateTime scheduledDate, String approver, String comment) {
         List<PublishRequest> newItems = new ArrayList<PublishRequest>(commitIds.size());
         String packageId = UUID.randomUUID().toString();
         logger.debug("Get repository operations for each commit id and create publish request items");
@@ -925,6 +907,7 @@ public class DeploymentServiceImpl implements DeploymentService {
                 item.setCommitId(commitId);
                 item.setUser(approver);
                 item.setPackageId(packageId);
+                item.setSubmissionComment(comment);
 
                 switch (op.getOperation()) {
                     case CREATE:

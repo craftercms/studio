@@ -1,6 +1,5 @@
 /*
- * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2016 Crafter Software Corporation.
+ * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,14 +13,20 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 
 package org.craftercms.studio.api.v1.service.security;
 
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.craftercms.studio.api.v1.exception.security.*;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationSystemException;
 import org.craftercms.studio.api.v1.exception.security.BadCredentialsException;
+import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
+import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.PasswordDoesNotMatchException;
+import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
+import org.craftercms.studio.api.v1.exception.security.UserExternallyManagedException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 
 import java.util.List;
 import java.util.Set;
@@ -33,6 +38,8 @@ import java.util.Map;
 public interface SecurityProvider {
 
     Set<String> getUserGroups(String user);
+
+    Set<String> getUserGroupsPerSite(String user, String site);
 
     String getCurrentUser();
 
@@ -83,8 +90,8 @@ public interface SecurityProvider {
      * @param groupName group name
      * @param user username
      */
-    boolean addUserToGroup(String siteId, String groupName,
-                           String user) throws UserAlreadyExistsException, UserNotFoundException, GroupNotFoundException, SiteNotFoundException;
+    boolean addUserToGroup(String siteId, String groupName, String user) throws UserAlreadyExistsException,
+            UserNotFoundException, GroupNotFoundException, SiteNotFoundException;
 
     void addContentWritePermission(String path, String group);
 
@@ -121,8 +128,8 @@ public interface SecurityProvider {
      * @param email
      * @return true if user details are successfully updated
      */
-    boolean updateUser(String username, String firstName, String lastName,
-                       String email) throws UserNotFoundException, UserExternallyManagedException;
+    boolean updateUser(String username, String firstName, String lastName, String email)
+            throws UserNotFoundException, UserExternallyManagedException;
 
     /**
      * Enable/disable user with given username
@@ -150,7 +157,8 @@ public interface SecurityProvider {
      * @param externallyManaged true if externally managed, otherwise false
      * @return true if group is successfully created
      */
-    boolean createGroup(String groupName, String description, String siteId, boolean externallyManaged) throws GroupAlreadyExistsException, SiteNotFoundException;
+    boolean createGroup(String groupName, String description, String siteId, boolean externallyManaged)
+            throws GroupAlreadyExistsException, SiteNotFoundException;
 
     /**
      * Get all users
@@ -226,7 +234,8 @@ public interface SecurityProvider {
      * @param number number of records to retrieve in the result set
      * @return list of users of the group paginated
      */
-    List<Map<String, Object>> getUsersPerGroup(String site, String group, int start, int number) throws GroupNotFoundException, SiteNotFoundException;
+    List<Map<String, Object>> getUsersPerGroup(String site, String group, int start, int number)
+            throws GroupNotFoundException, SiteNotFoundException;
 
     /**
      * Get number of all users for given site and group
@@ -245,7 +254,8 @@ public interface SecurityProvider {
      * @param siteId
      * @return true if group is successfully updated
      */
-    boolean updateGroup(String siteId, String groupName, String description) throws GroupNotFoundException, SiteNotFoundException;
+    boolean updateGroup(String siteId, String groupName, String description)
+            throws GroupNotFoundException, SiteNotFoundException;
 
     /**
      * Delete group with given site id and group name
@@ -262,7 +272,8 @@ public interface SecurityProvider {
      * @param groupName group name
      * @param user username
      */
-    boolean removeUserFromGroup(String siteId, String groupName, String user) throws UserNotFoundException, GroupNotFoundException, SiteNotFoundException;
+    boolean removeUserFromGroup(String siteId, String groupName, String user)
+            throws UserNotFoundException, GroupNotFoundException, SiteNotFoundException;
 
     /**
      * Change password
@@ -271,8 +282,8 @@ public interface SecurityProvider {
      * @param newPassword new password
      * @return true if password is succcessfully changed
      */
-    boolean changePassword(String username, String current,
-                           String newPassword) throws PasswordDoesNotMatchException, UserExternallyManagedException;
+    boolean changePassword(String username, String current, String newPassword)
+            throws PasswordDoesNotMatchException, UserExternallyManagedException;
 
     /**
      * Set user password
@@ -280,7 +291,8 @@ public interface SecurityProvider {
      * @param newPassword new password
      * @return true if password is successfully set
      */
-    boolean setUserPassword(String username, String newPassword) throws UserNotFoundException, UserExternallyManagedException;
+    boolean setUserPassword(String username, String newPassword)
+            throws UserNotFoundException, UserExternallyManagedException;
 
     /**
      * Check if given user is a system user

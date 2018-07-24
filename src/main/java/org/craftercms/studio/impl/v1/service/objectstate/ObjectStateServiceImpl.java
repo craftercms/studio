@@ -1,6 +1,5 @@
 /*
- * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2016 Crafter Software Corporation.
+ * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,9 +13,9 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 package org.craftercms.studio.impl.v1.service.objectstate;
-
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -37,8 +36,11 @@ import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.OBJECT_STATE_BULK_OPERATIONS_BATCH_SIZE;
@@ -64,13 +66,15 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
 
     @Override
     @ValidateParams
-    public ItemState getObjectState(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
+    public ItemState getObjectState(@ValidateStringParam(name = "site") String site,
+                                    @ValidateSecurePathParam(name = "path") String path) {
         return getObjectState(site, path, true);
     }
 
     @Override
     @ValidateParams
-    public ItemState getObjectState(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, boolean insert) {
+    public ItemState getObjectState(@ValidateStringParam(name = "site") String site,
+                                    @ValidateSecurePathParam(name = "path") String path, boolean insert) {
         String cleanPath = FilenameUtils.normalize(path, true);
         String lockId = site + ":" + cleanPath;
         ItemState state = null;
@@ -93,7 +97,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
 
     @Override
     @ValidateParams
-    public void setSystemProcessing(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, boolean isSystemProcessing) {
+    public void setSystemProcessing(@ValidateStringParam(name = "site") String site,
+                                    @ValidateSecurePathParam(name = "path") String path, boolean isSystemProcessing) {
         String cleanPath = FilenameUtils.normalize(path, true);
         String lockId = site + ":" + cleanPath;
         Map<String, Object> params = new HashMap<String, Object>();
@@ -106,7 +111,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
 
     @Override
     @ValidateParams
-    public void setSystemProcessingBulk(@ValidateStringParam(name = "site") String site, List<String> paths, boolean isSystemProcessing) {
+    public void setSystemProcessingBulk(@ValidateStringParam(name = "site") String site, List<String> paths,
+                                        boolean isSystemProcessing) {
         if (paths == null || paths.isEmpty()) {
             return;
         }
@@ -143,7 +149,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
 
     @Override
     @ValidateParams
-    public void transition(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, TransitionEvent event) {
+    public void transition(@ValidateStringParam(name = "site") String site,
+                           @ValidateSecurePathParam(name = "path") String path, TransitionEvent event) {
         String itemPath = FilenameUtils.normalize(path, true);
         String lockKey = site + ":" + path;
         generalLockService.lock(lockKey);
@@ -154,7 +161,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
             ItemState currentState = itemStateMapper.getObjectStateBySiteAndPath(params);
             State nextState = null;
             if (currentState == null) {
-                logger.debug("Preforming transition event " + event.name() + " on object " + lockKey + " without current state");
+                logger.debug("Preforming transition event " + event.name() + " on object " + lockKey +
+                        " without current state");
                 switch (event) {
                     case SAVE:
                         nextState = State.NEW_UNPUBLISHED_UNLOCKED;
@@ -166,7 +174,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
                         nextState = State.NEW_UNPUBLISHED_UNLOCKED;
                 }
             } else {
-                logger.debug("Preforming transition event " + event + " on object " + lockKey + " with " + currentState.getState() + " state");
+                logger.debug("Preforming transition event " + event + " on object " + lockKey + " with " +
+                        currentState.getState() + " state");
                 State currentStateValue = State.valueOf(currentState.getState());
                 nextState = transitionTable[currentStateValue.ordinal()][event.ordinal()];
             }
@@ -182,7 +191,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
                 currentState.setState(nextState.name());
                 itemStateMapper.setObjectState(currentState);
             } else if (nextState == State.NOOP) {
-                logger.warn("Transition not defined for event " + event.name() + " and current state " + currentState.getState() + " [object id: " + currentState.getObjectId() + "]");
+                logger.warn("Transition not defined for event " + event.name() + " and current state " +
+                        currentState.getState() + " [object id: " + currentState.getObjectId() + "]");
             }
         } catch (Exception e) {
             logger.error("Transition not defined for event", e);
@@ -194,7 +204,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
 
     @Override
     @ValidateParams
-    public void deployCommitId(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "commitId") String commitId) {
+    public void deployCommitId(@ValidateStringParam(name = "site") String site,
+                               @ValidateStringParam(name = "commitId") String commitId) {
         Map<String, String> params = new HashMap<String, String>();
         params.put("siteId", site);
         params.put("commitId", commitId);
@@ -234,7 +245,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
 
     @Override
     @ValidateParams
-    public void insertNewEntry(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
+    public void insertNewEntry(@ValidateStringParam(name = "site") String site,
+                               @ValidateSecurePathParam(name = "path") String path) {
         String itemPath = FilenameUtils.normalize(path, true);
         String lockKey = site + ":" + path;
         generalLockService.lock(lockKey);
@@ -274,7 +286,9 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
 
     @Override
     @ValidateParams
-    public void updateObjectPath(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "oldPath") String oldPath, @ValidateSecurePathParam(name = "newPath") String newPath) {
+    public void updateObjectPath(@ValidateStringParam(name = "site") String site,
+                                 @ValidateSecurePathParam(name = "oldPath") String oldPath,
+                                 @ValidateSecurePathParam(name = "newPath") String newPath) {
         oldPath = FilenameUtils.normalize(oldPath, true);
         newPath = FilenameUtils.normalize(newPath, true);
         Map<String, Object> params = new HashMap<>();
@@ -286,7 +300,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
 
     @Override
     @ValidateParams
-    public boolean isUpdated(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
+    public boolean isUpdated(@ValidateStringParam(name = "site") String site,
+                             @ValidateSecurePathParam(name = "path") String path) {
         path = FilenameUtils.normalize(path, true);
         ItemState state = getObjectState(site, path);
         if (state != null) {
@@ -298,7 +313,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
 
     @Override
     @ValidateParams
-    public boolean isUpdatedOrNew(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
+    public boolean isUpdatedOrNew(@ValidateStringParam(name = "site") String site,
+                                  @ValidateSecurePathParam(name = "path") String path) {
         path = FilenameUtils.normalize(path, true);
         ItemState state = getObjectState(site, path);
         if (state != null) {
@@ -310,7 +326,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
 
     @Override
     @ValidateParams
-    public boolean isUpdatedOrSubmitted(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
+    public boolean isUpdatedOrSubmitted(@ValidateStringParam(name = "site") String site,
+                                        @ValidateSecurePathParam(name = "path") String path) {
         path = FilenameUtils.normalize(path, true);
         ItemState state = getObjectState(site, path);
         if (state != null) {
@@ -322,7 +339,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
 
     @Override
     @ValidateParams
-    public boolean isSubmitted(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
+    public boolean isSubmitted(@ValidateStringParam(name = "site") String site,
+                               @ValidateSecurePathParam(name = "path") String path) {
         path = FilenameUtils.normalize(path, true);
         ItemState state = getObjectState(site, path);
         if (state != null) {
@@ -334,7 +352,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
 
     @Override
     @ValidateParams
-    public boolean isNew(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
+    public boolean isNew(@ValidateStringParam(name = "site") String site,
+                         @ValidateSecurePathParam(name = "path") String path) {
         path = FilenameUtils.normalize(path, true);
         ItemState state = getObjectState(site, path);
         if (state != null) {
@@ -346,7 +365,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
 
     @Override
     @ValidateParams
-    public boolean isFolderLive(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "folderPath") String folderPath) {
+    public boolean isFolderLive(@ValidateStringParam(name = "site") String site,
+                                @ValidateSecurePathParam(name = "folderPath") String folderPath) {
         folderPath = FilenameUtils.normalize(folderPath, true);
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("site", site);
@@ -356,7 +376,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
 
     @Override
     @ValidateParams
-    public boolean isScheduled(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
+    public boolean isScheduled(@ValidateStringParam(name = "site") String site,
+                               @ValidateSecurePathParam(name = "path") String path) {
         path = FilenameUtils.normalize(path, true);
         ItemState state = getObjectState(site, path);
         if (state != null) {
@@ -368,7 +389,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
 
     @Override
     @ValidateParams
-    public boolean isInWorkflow(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
+    public boolean isInWorkflow(@ValidateStringParam(name = "site") String site,
+                                @ValidateSecurePathParam(name = "path") String path) {
         path = FilenameUtils.normalize(path, true);
         ItemState state = getObjectState(site, path);
         if (state != null) {
@@ -383,7 +405,7 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     public List<ItemState> getChangeSet(@ValidateStringParam(name = "site") String site) {
         Map<String, Object> params = new HashMap<String, Object>();
         List<String> statesValues = new ArrayList<String>();
-        for (State state : State.CHANGE_SET_STATES) {
+        for (State state : State.IN_PROGRESS_STATES) {
             statesValues.add(state.name());
         }
         params.put("states", statesValues);
@@ -400,7 +422,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
 
     @Override
     @ValidateParams
-    public void deleteObjectStateForPath(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
+    public void deleteObjectStateForPath(@ValidateStringParam(name = "site") String site,
+                                         @ValidateSecurePathParam(name = "path") String path) {
         path = FilenameUtils.normalize(path, true);
         Map<String, String> params = new HashMap<String, String>();
         params.put("site", site);
@@ -410,7 +433,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
 
     @Override
     @ValidateParams
-    public void deleteObjectStatesForFolder(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
+    public void deleteObjectStatesForFolder(@ValidateStringParam(name = "site") String site,
+                                            @ValidateSecurePathParam(name = "path") String path) {
         path = FilenameUtils.normalize(path, true);
         Map<String, String> params = new HashMap<String, String>();
         params.put("site", site);
@@ -420,7 +444,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
 
     @Override
     @ValidateParams
-    public void transitionBulk(@ValidateStringParam(name = "site") String site, List<String> paths, TransitionEvent event, State defaultTargetState) {
+    public void transitionBulk(@ValidateStringParam(name = "site") String site, List<String> paths,
+                               TransitionEvent event, State defaultTargetState) {
         if (paths != null && !paths.isEmpty()) {
             Map<String, Object> params = new HashMap<>();
             params.put("site", site);
@@ -450,7 +475,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
                         params.put("state", nextState.name());
                         itemStateMapper.setObjectStateForSiteAndPaths(params);
                     } else if (nextState == State.NOOP) {
-                        logger.warn("Transition not defined for event " + event.name() + " and current state " + entry.getKey().name() + " [setting object state for multiple objects]");
+                        logger.warn("Transition not defined for event " + event.name() + " and current state " +
+                                entry.getKey().name() + " [setting object state for multiple objects]");
                     }
                 }
             }
@@ -477,7 +503,9 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
 
     @Override
     @ValidateParams
-    public String setObjectState(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, @ValidateStringParam(name = "state") String state, boolean systemProcessing) {
+    public String setObjectState(@ValidateStringParam(name = "site") String site,
+                                 @ValidateSecurePathParam(name = "path") String path,
+                                 @ValidateStringParam(name = "state") String state, boolean systemProcessing) {
         path = FilenameUtils.normalize(path, true);
         Map<String, String> params = new HashMap<String, String>();
         params.put("site", site);
@@ -517,7 +545,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
 
     @Override
     @ValidateParams
-    public List<String> getChangeSetForSubtree(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
+    public List<String> getChangeSetForSubtree(@ValidateStringParam(name = "site") String site,
+                                               @ValidateSecurePathParam(name = "path") String path) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("site", site);
         params.put("path", path);
@@ -533,7 +562,8 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
 
     @Override
     @ValidateParams
-    public boolean deletedPathExists(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
+    public boolean deletedPathExists(@ValidateStringParam(name = "site") String site,
+                                     @ValidateSecurePathParam(name = "path") String path) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("siteId", site);
         params.put("path", path);
@@ -571,12 +601,27 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     }
 
 
-    public GeneralLockService getGeneralLockService() { return generalLockService; }
-    public void setGeneralLockService(GeneralLockService generalLockService) { this.generalLockService = generalLockService; }
+    public GeneralLockService getGeneralLockService() {
+        return generalLockService;
+    }
 
-    public ContentService getContentService() { return contentService; }
-    public void setContentService(ContentService contentService) { this.contentService = contentService; }
+    public void setGeneralLockService(GeneralLockService generalLockService) {
+        this.generalLockService = generalLockService;
+    }
 
-    public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
-    public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
+    public ContentService getContentService() {
+        return contentService;
+    }
+
+    public void setContentService(ContentService contentService) {
+        this.contentService = contentService;
+    }
+
+    public StudioConfiguration getStudioConfiguration() {
+        return studioConfiguration;
+    }
+
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+        this.studioConfiguration = studioConfiguration;
+    }
 }

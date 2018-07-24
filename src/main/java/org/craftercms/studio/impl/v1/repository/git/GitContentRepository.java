@@ -124,6 +124,9 @@ import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.revwalk.filter.AndRevFilter;
 import org.eclipse.jgit.revwalk.filter.CommitTimeRevFilter;
+import org.eclipse.jgit.revwalk.filter.MessageRevFilter;
+import org.eclipse.jgit.revwalk.filter.NotRevFilter;
+import org.eclipse.jgit.revwalk.filter.RevFilter;
 import org.eclipse.jgit.transport.JschConfigSessionFactory;
 import org.eclipse.jgit.transport.OpenSshConfig;
 import org.eclipse.jgit.transport.PushResult;
@@ -148,12 +151,13 @@ import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.BOOTSTRAP_REPO_GLOBAL_PATH;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.BOOTSTRAP_REPO_PATH;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.REPO_COMMIT_MESSAGE_PATH_VAR;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.REPO_COMMIT_MESSAGE_USERNAME_VAR;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.BLUE_PRINTS_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.BOOTSTRAP_REPO;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_PUBLISHED_COMMIT_MESSAGE;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_PUBLISHED_LIVE;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_PUBLISHED_STAGING;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_SANDBOX_BRANCH;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_SANDBOX_WRITE_COMMIT_MESSAGE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_KEY;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_SALT;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.BLUEPRINTS_UPDATED_COMMIT;
@@ -178,10 +182,10 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     protected ServicesConfig servicesConfig;
 
     @Autowired
-    GitLogMapper gitLogMapper;
+    protected GitLogMapper gitLogMapper;
 
     @Autowired
-    RemoteRepositoryMapper remoteRepositoryMapper;
+    protected RemoteRepositoryMapper remoteRepositoryMapper;
 
     @Override
     public boolean contentExists(String site, String path) {
@@ -269,11 +273,16 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     GitRepositories.SANDBOX);
 
             if (repo != null) {
-                if (helper.writeFile(repo, site, path, content))
-                    commitId = helper.commitFile(repo, site, path, "Wrote content " + path,
-                            helper.getCurrentUserIdent());
-                else
+                if (helper.writeFile(repo, site, path, content)) {
+                    PersonIdent user = helper.getCurrentUserIdent();
+                    String username = securityProvider.getCurrentUser();
+                    String comment = studioConfiguration.getProperty(REPO_SANDBOX_WRITE_COMMIT_MESSAGE)
+                            .replace(REPO_COMMIT_MESSAGE_USERNAME_VAR, username)
+                            .replace(REPO_COMMIT_MESSAGE_PATH_VAR, path);
+                    commitId = helper.commitFile(repo, site, path, comment, user);
+                } else {
                     logger.error("Failed to write content site: " + site + " path: " + path);
+                }
             } else {
                 logger.error("Missing repository during write for site: " + site + " path: " + path);
             }
@@ -982,11 +991,11 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     @Override
-    public boolean createSiteFromBlueprint(String blueprintName, String site) {
+    public boolean createSiteFromBlueprint(String blueprintName, String site, String sandboxBranch) {
         boolean toReturn;
 
         // create git repository for site content
-        toReturn = helper.createSiteGitRepo(site);
+        toReturn = helper.createSiteGitRepo(site, sandboxBranch);
 
         if (toReturn) {
             // copy files from blueprint
@@ -1000,7 +1009,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
         if (toReturn) {
             // commit everything so it is visible
-            toReturn = helper.performInitialCommit(site, INITIAL_COMMIT);
+            toReturn = helper.performInitialCommit(site, INITIAL_COMMIT, sandboxBranch);
         }
 
         return toReturn;
@@ -1039,11 +1048,12 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     @Override
-    public void initialPublish(String site, String environment, String author, String comment)
+    public void initialPublish(String site, String sandboxBranch, String environment, String author, String comment)
             throws DeploymentException {
         Repository repo = helper.getRepository(site, GitRepositories.PUBLISHED);
         String commitId = StringUtils.EMPTY;
-        String sandboxBranchName = servicesConfig.getSandboxBranchName(site);
+
+        String sandboxBranchName = sandboxBranch;
         if (StringUtils.isEmpty(sandboxBranchName)) {
             sandboxBranchName = studioConfiguration.getProperty(REPO_SANDBOX_BRANCH);
         }
@@ -1102,12 +1112,12 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     @Override
-    public void publish(String site, List<DeploymentItemTO> deploymentItems, String environment, String author,
-                        String comment) throws DeploymentException {
+    public void publish(String site, String sandboxBranch, List<DeploymentItemTO> deploymentItems, String environment,
+                        String author, String comment) throws DeploymentException {
         Repository repo = helper.getRepository(site, GitRepositories.PUBLISHED);
         String commitId = StringUtils.EMPTY;
         String path = StringUtils.EMPTY;
-        String sandboxBranchName = servicesConfig.getSandboxBranchName(site);
+        String sandboxBranchName = sandboxBranch;
         if (StringUtils.isEmpty(sandboxBranchName)) {
             sandboxBranchName = studioConfiguration.getProperty(REPO_SANDBOX_BRANCH);
         }
@@ -1523,13 +1533,13 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     @Override
-    public List<DeploymentSyncHistory> getDeploymentHistory(String site, ZonedDateTime fromDate, ZonedDateTime toDate,
-                                                            DmFilterWrapper dmFilterWrapper, String filterType,
-                                                            int numberOfItems) {
+    public List<DeploymentSyncHistory> getDeploymentHistory(String site, String sandboxBranch, ZonedDateTime fromDate,
+                                                            ZonedDateTime toDate, DmFilterWrapper dmFilterWrapper,
+                                                            String filterType, int numberOfItems) {
         List<DeploymentSyncHistory> toRet = new ArrayList<DeploymentSyncHistory>();
         Repository publishedRepo = helper.getRepository(site, PUBLISHED);
         int counter = 0;
-        String sandboxBranchName = servicesConfig.getSandboxBranchName(site);
+        String sandboxBranchName = sandboxBranch;
         if (StringUtils.isEmpty(sandboxBranchName)) {
             sandboxBranchName = studioConfiguration.getProperty(REPO_SANDBOX_BRANCH);
         }
@@ -1541,11 +1551,15 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 String environment = env.getName();
                 if (!environment.equals(sandboxBranchName) &&
                         !environment.equals(Constants.R_HEADS + sandboxBranchName)) {
+
+                    List<RevFilter> filters = new ArrayList<RevFilter>();
+                    filters.add(CommitTimeRevFilter.after(fromDate.toInstant().toEpochMilli()));
+                    filters.add(CommitTimeRevFilter.before(toDate.toInstant().toEpochMilli()));
+                    filters.add(NotRevFilter.create(MessageRevFilter.create("Initial commit.")));
+
                     Iterable<RevCommit> branchLog = git.log()
                             .add(env.getObjectId())
-                            .setRevFilter(AndRevFilter.create(
-                                    CommitTimeRevFilter.after(fromDate.toInstant().toEpochMilli()),
-                                    CommitTimeRevFilter.before(toDate.toInstant().toEpochMilli())))
+                            .setRevFilter(AndRevFilter.create(filters))
                             .call();
 
                     Iterator<RevCommit> iterator = branchLog.iterator();
@@ -1574,6 +1588,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 }
             }
             git.close();
+            toRet.sort((o1, o2) -> o2.getSyncDate().compareTo(o1.getSyncDate()));
         } catch (IOException | GitAPIException e1) {
             logger.error("Error while getting deployment history for site " + site, e1);
         }
@@ -1743,17 +1758,18 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     @Override
-    public boolean createSiteCloneRemote(String siteId, String remoteName, String remoteUrl, String remoteBranch,
-                                         boolean singleBranch, String authenticationType, String remoteUsername,
-                                         String remotePassword, String remoteToken, String remotePrivateKey) throws
-            InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
+    public boolean createSiteCloneRemote(String siteId, String sandboxBranch, String remoteName, String remoteUrl,
+                                         String remoteBranch, boolean singleBranch, String authenticationType,
+                                         String remoteUsername, String remotePassword, String remoteToken,
+                                         String remotePrivateKey)
+            throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
             RemoteRepositoryNotFoundException, InvalidRemoteUrlException, ServiceException {
         boolean toReturn;
 
         // clone remote git repository for site content
         logger.debug("Creating site " + siteId + " as a clone of remote repository " + remoteName +
                 " (" + remoteUrl + ").");
-        toReturn = helper.createSiteCloneRemoteGitRepo(siteId, remoteName, remoteUrl, remoteBranch, singleBranch,
+        toReturn = helper.createSiteCloneRemoteGitRepo(siteId, sandboxBranch, remoteName, remoteUrl, remoteBranch, singleBranch,
                 authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey);
 
         if (toReturn) {
@@ -1771,7 +1787,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             if (toReturn) {
                 // commit everything so it is visible
                 logger.debug("Perform initial commit for site " + siteId);
-                toReturn = helper.performInitialCommit(siteId, INITIAL_COMMIT);
+                toReturn = helper.performInitialCommit(siteId, INITIAL_COMMIT, sandboxBranch);
             }
         } else {
             logger.error("Error while creating site " + siteId + " by cloning remote repository " + remoteName +
@@ -1982,7 +1998,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     @Override
-    public List<RemoteRepositoryInfoTO> listRemote(String siteId) throws ServiceException {
+    public List<RemoteRepositoryInfoTO> listRemote(String siteId, String sandboxBranch) throws ServiceException {
         List<RemoteRepositoryInfoTO> res = new ArrayList<RemoteRepositoryInfoTO>();
         try (Repository repo = helper.getRepository(siteId, SANDBOX)) {
 
@@ -2041,15 +2057,20 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     Map<String, List<String>> remoteBranches = new HashMap<String, List<String>>();
                     for (Ref remoteBranchRef : resultRemoteBranches) {
                         String branchFullName = remoteBranchRef.getName().replace(Constants.R_REMOTES, "");
-                        String[] tokens = branchFullName.split("/");
-                        String remotePart = tokens[0];
-                        String branchNamePart = tokens[1];
+                        String remotePart = StringUtils.EMPTY;
+                        String branchNamePart = StringUtils.EMPTY;
+                        int slashIndex = branchFullName.indexOf("/");
+                        if (slashIndex > 0) {
+                            remotePart = branchFullName.substring(0, slashIndex);
+                            branchNamePart = branchFullName.substring(slashIndex + 1);
+                        }
+
                         if (!remoteBranches.containsKey(remotePart)) {
                             remoteBranches.put(remotePart, new ArrayList<String>());
                         }
                         remoteBranches.get(remotePart).add(branchNamePart);
                     }
-                    String sandboxBranchName = servicesConfig.getSandboxBranchName(siteId);
+                    String sandboxBranchName = sandboxBranch;
                     if (StringUtils.isEmpty(sandboxBranchName)) {
                         sandboxBranchName = studioConfiguration.getProperty(REPO_SANDBOX_BRANCH);
                     }
@@ -2286,8 +2307,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     @Override
     public void resetStagingRepository(String siteId) throws ServiceException {
         Repository repo = helper.getRepository(siteId, PUBLISHED);
-        String stagingName = studioConfiguration.getProperty(REPO_PUBLISHED_STAGING);
-        String liveName = studioConfiguration.getProperty(REPO_PUBLISHED_LIVE);
+        String stagingName = servicesConfig.getStagingEnvironment(siteId);
+        String liveName = servicesConfig.getLiveEnvironment(siteId);
         synchronized (repo) {
             try (Git git = new Git(repo)) {
                 logger.debug("Checkout live first becuase it is not allowed to delete checkedout branch");
@@ -2305,6 +2326,12 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 throw new ServiceException(e);
             }
         }
+    }
+
+    @Override
+    public void reloadRepository(String siteId) {
+        helper.sandboxes.remove(siteId);
+        helper.getRepository(siteId, SANDBOX);
     }
 
     public void setServletContext(ServletContext ctx) {

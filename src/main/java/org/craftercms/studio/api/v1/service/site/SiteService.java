@@ -13,6 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 
 package org.craftercms.studio.api.v1.service.site;
@@ -105,7 +106,8 @@ public interface SiteService {
      * @param siteId
      * @param desc
      */
-    void createSiteFromBlueprint(String blueprintName, String siteName, String siteId, String desc)
+    void createSiteFromBlueprint(String blueprintName, String siteName, String siteId, String sandboxBranch,
+                                 String desc)
             throws SiteAlreadyExistsException, SiteCreationException, PreviewDeployerUnreachableException,
             SearchUnreachableException, BlueprintNotFoundException;
 
@@ -121,8 +123,8 @@ public interface SiteService {
      * @param remotePassword
      * @param createOption
      */
-    void createSiteWithRemoteOption(String siteId, String description, String blueprintName, String remoteName,
-                                    String remoteUrl, String remoteBranch, boolean singleBranch,
+    void createSiteWithRemoteOption(String siteId, String sandboxBranch, String description, String blueprintName,
+                                    String remoteName, String remoteUrl, String remoteBranch, boolean singleBranch,
                                     String authenticationType, String remoteUsername, String remotePassword,
                                     String remoteToken, String remotePrivateKey, String createOption)
             throws ServiceException, InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,

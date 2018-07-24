@@ -32,6 +32,7 @@
         <result property="publishingEnabled" column="publishing_enabled" javaType="Integer" jdbcType="INTEGER"/>
         <result property="publishingStatusMessage" column="publishing_status_message" jdbcType="VARCHAR" javaType="String"/>
         <result property="lastVerifiedGitlogCommitId" column="last_verified_gitlog_commit_id" jdbcType="VARCHAR" javaType="String"/>
+        <result property="sandboxBranch" column="sandbox_branch"/>
     </resultMap>
 
     <parameterMap id="SiteFeedMapParams" type="org.craftercms.studio.api.v1.dal.SiteFeed">
@@ -44,6 +45,7 @@
         <parameter property="publishingEnabled" jdbcType="INTEGER"/>
         <parameter property="publishingStatusMessage" jdbcType="VARCHAR" />
         <parameter property="lastVerifiedGitlogCommitId" jdbcType="VARCHAR" />
+        <parameter property="sandboxBranch" jdbcType="VARCHAR"/>
     </parameterMap>
 
     <select id="getSites" resultMap="SiteFeedMap">
@@ -55,8 +57,9 @@
     </select>
 
     <insert id="createSite" parameterType="org.craftercms.studio.api.v1.dal.SiteFeed">
-        insert into site (site_id, name, description, status, last_commit_id, publishing_status_message)
-        values (#{siteId}, #{name}, #{description}, #{status}, #{lastCommitId}, #{publishingStatusMessage})
+        insert into site (site_id, name, description, status, last_commit_id, publishing_status_message, sandbox_branch)
+        values (#{siteId}, #{name}, #{description}, #{status}, #{lastCommitId}, #{publishingStatusMessage},
+        #{sandboxBranch})
     </insert>
 
     <delete id="deleteSite" parameterType="java.util.Map" >

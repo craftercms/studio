@@ -1,5 +1,4 @@
 /*
- * Crafter Studio Web-content authoring solution
  * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,6 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 
 import groovy.json.JsonException
@@ -24,12 +24,14 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepository
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotBareException
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException
+import org.craftercms.studio.api.v1.util.StudioConfiguration
 import scripts.api.SiteServices;
 import groovy.json.JsonSlurper
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOTE_REPOSITORY_CREATE_OPTION_CLONE
 import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOTE_REPOSITORY_CREATE_OPTION_PUSH;
 
+def studioConfiguration = applicationContext.get("studioConfiguration")
 def result = [:]
 try {
     def requestJson = request.reader.text
@@ -38,6 +40,7 @@ try {
 
     def blueprint = parsedReq.blueprint
     def siteId = parsedReq.site_id
+    def sandboxBranch = parsedReq.sandbox_branch
     def description = parsedReq.description
     /** Remote options */
     def useRemote = parsedReq.use_remote
@@ -89,6 +92,11 @@ try {
     } catch (Exception exc) {
         invalidParams = true
         paramsList.add("site_id")
+    }
+
+    // sandbox_branch
+    if (StringUtils.isEmpty(sandboxBranch)) {
+        sandboxBranch = studioConfiguration.getProperty(StudioConfiguration.REPO_SANDBOX_BRANCH);
     }
 
     if (useRemote) {
@@ -196,14 +204,14 @@ try {
         def context = SiteServices.createContext(applicationContext, request)
         try {
             if (!useRemote) {
-                SiteServices.createSiteFromBlueprint(context, blueprint, siteId, siteId, description)
+                SiteServices.createSiteFromBlueprint(context, blueprint, siteId, siteId, sandboxBranch, description)
                 result.message = "OK"
                 def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") +
                         "/api/1/services/api/1/site/get.json?site_id=" + siteId
                 response.addHeader("Location", locationHeader)
                 response.setStatus(201)
             } else {
-                SiteServices.createSiteWithRemoteOption(context, siteId, description, blueprint, remoteName,
+                SiteServices.createSiteWithRemoteOption(context, siteId, sandboxBranch, description, blueprint, remoteName,
                         remoteUrl, remoteBranch, singleBranch, authenticationType, remoteUsername, remotePassword,
                         remoteToken, remotePrivateKey, createOption)
                 result.message = "OK"

@@ -113,6 +113,7 @@ package org.craftercms.studio.api.v1.constant;
     String CONTENT_TYPE_ALL = "all";
     String CONTENT_TYPE_FORM_DEFINITION = "formDefinition";
     String CONTENT_TYPE_SITE = "site";
+    String CONTENT_TYPE_REMOTE_REPOSITORY = "remoteRepository";
 
     /**
      * System constants
@@ -144,7 +145,17 @@ package org.craftercms.studio.api.v1.constant;
     String API_REQUEST_PARAM_ENVIRONMENT = "environment";
 
     /**
-     * Site config xml properties
+     * Site config xml elements
      */
+    String SITE_CONFIG_XML_ELEMENT_PUBLISHED_REPOSITORY = "published-repository";
+    String SITE_CONFIG_XML_ELEMENT_ENABLE_STAGING_ENVIRONMENT = "enable-staging-environment";
+    String SITE_CONFIG_XML_ELEMENT_STAGING_ENVIRONMENT = "staging-environment";
+    String SITE_CONFIG_XML_ELEMENT_LIVE_ENVIRONMENT = "live-environment";
     String SITE_CONFIG_ELEMENT_SANDBOX_BRANCH = "sandbox-branch";
+
+    /**
+     * Repository commit messages variables
+     */
+    String REPO_COMMIT_MESSAGE_USERNAME_VAR = "{username}";
+    String REPO_COMMIT_MESSAGE_PATH_VAR = "{path}";
 }

@@ -19,7 +19,7 @@ USE crafter ;
 
 CREATE TABLE _meta (`version` VARCHAR(10) NOT NULL , PRIMARY KEY (`version`)) ;
 
-INSERT INTO _meta (version) VALUES ('3.0.11.3') ;
+INSERT INTO _meta (version) VALUES ('3.0.15.1') ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`             BIGINT(20)   NOT NULL AUTO_INCREMENT,
@@ -118,6 +118,7 @@ CREATE TABLE IF NOT EXISTS `site` (
   `publishing_enabled`              INT           NOT NULL DEFAULT 1,
   `publishing_status_message`       VARCHAR(2000) NULL,
   `last_verified_gitlog_commit_id`  VARCHAR(50)   NULL,
+  `sandbox_branch`                  VARCHAR(255)  NOT NULL DEFAULT 'master',
   PRIMARY KEY (`id`),
   UNIQUE INDEX `id_unique` (`id` ASC),
   UNIQUE INDEX `site_id_unique` (`site_id` ASC),
@@ -129,30 +130,31 @@ CREATE TABLE IF NOT EXISTS `site` (
   ROW_FORMAT = DYNAMIC ;
 
 CREATE TABLE IF NOT EXISTS `item_metadata` (
-  `id`                   INT           NOT NULL AUTO_INCREMENT,
-  `site`                 VARCHAR(50)   NOT NULL,
-  `path`                 VARCHAR(2000) NOT NULL,
-  `name`                 VARCHAR(255)  NULL,
-  `modified`             DATETIME      NULL,
-  `modifier`             VARCHAR(255)  NULL,
-  `owner`                VARCHAR(255)  NULL,
-  `creator`              VARCHAR(255)  NULL,
-  `firstname`            VARCHAR(255)  NULL,
-  `lastname`             VARCHAR(255)  NULL,
-  `lockowner`            VARCHAR(255)  NULL,
-  `email`                VARCHAR(255)  NULL,
-  `renamed`              INT           NULL,
-  `oldurl`               TEXT          NULL,
-  `deleteurl`            TEXT          NULL,
-  `imagewidth`           INT           NULL,
-  `imageheight`          INT           NULL,
-  `approvedby`           VARCHAR(255)  NULL,
-  `submittedby`          VARCHAR(255)  NULL,
-  `submittedfordeletion` INT           NULL,
-  `sendemail`            INT           NULL,
-  `submissioncomment`    TEXT          NULL,
-  `launchdate`           DATETIME      NULL,
-  `commit_id`            VARCHAR(50)   NULL,
+  `id`                      INT           NOT NULL AUTO_INCREMENT,
+  `site`                    VARCHAR(50)   NOT NULL,
+  `path`                    VARCHAR(2000) NOT NULL,
+  `name`                    VARCHAR(255)  NULL,
+  `modified`                DATETIME      NULL,
+  `modifier`                VARCHAR(255)  NULL,
+  `owner`                   VARCHAR(255)  NULL,
+  `creator`                 VARCHAR(255)  NULL,
+  `firstname`               VARCHAR(255)  NULL,
+  `lastname`                VARCHAR(255)  NULL,
+  `lockowner`               VARCHAR(255)  NULL,
+  `email`                   VARCHAR(255)  NULL,
+  `renamed`                 INT           NULL,
+  `oldurl`                  TEXT          NULL,
+  `deleteurl`               TEXT          NULL,
+  `imagewidth`              INT           NULL,
+  `imageheight`             INT           NULL,
+  `approvedby`              VARCHAR(255)  NULL,
+  `submittedby`             VARCHAR(255)  NULL,
+  `submittedfordeletion`    INT           NULL,
+  `sendemail`               INT           NULL,
+  `submissioncomment`       TEXT          NULL,
+  `launchdate`              DATETIME      NULL,
+  `commit_id`               VARCHAR(50)   NULL,
+  `submittedtoenvironment`  VARCHAR(255)  NULL,
   PRIMARY KEY (`id`),
   UNIQUE `uq__im_site_path` (`site`, `path`(900))
 )

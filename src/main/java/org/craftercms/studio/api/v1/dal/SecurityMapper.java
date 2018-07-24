@@ -1,6 +1,5 @@
 /*
- * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2016 Crafter Software Corporation.
+ * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,6 +26,8 @@ public interface SecurityMapper {
     User getUser(String username);
 
     List<Group> getUserGroups(String username);
+
+    List<Group> getUserGroupsPerSite(Map params);
 
     void createUser(Map params);
 

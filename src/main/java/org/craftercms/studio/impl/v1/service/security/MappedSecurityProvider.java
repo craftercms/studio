@@ -1,6 +1,5 @@
 /*
- * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2016 Crafter Software Corporation.
+ * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,18 +13,30 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 
 package org.craftercms.studio.impl.v1.service.security;
 
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.craftercms.studio.api.v1.exception.security.*;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationSystemException;
+import org.craftercms.studio.api.v1.exception.security.BadCredentialsException;
+import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
+import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.PasswordDoesNotMatchException;
+import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
+import org.craftercms.studio.api.v1.exception.security.UserExternallyManagedException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 
-import java.util.*;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_TYPE;
 
@@ -46,8 +57,13 @@ public class MappedSecurityProvider implements SecurityProvider {
         providerMap = map;
     }
 
-    public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
-    public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
+    public StudioConfiguration getStudioConfiguration() {
+        return studioConfiguration;
+    }
+
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+        this.studioConfiguration = studioConfiguration;
+    }
 
     public String getProviderType() {
         return studioConfiguration.getProperty(SECURITY_TYPE);
@@ -78,19 +94,25 @@ public class MappedSecurityProvider implements SecurityProvider {
     public Set<String> getUserGroups(String user) {
     	SecurityProvider provider = lookupProvider(getProviderType());
         return provider.getUserGroups(user);
-    };
+    }
+
+    public Set<String> getUserGroupsPerSite(String user, String site) {
+        SecurityProvider provider = lookupProvider(getProviderType());
+        return provider.getUserGroupsPerSite(user, site);
+    }
 
     public String getCurrentUser() {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.getCurrentUser();
-    };
+    }
 
     public Map<String, Object> getUserProfile(String user) {
     	SecurityProvider provider = lookupProvider(getProviderType());
         return provider.getUserProfile(user);
     }
 
-    public String authenticate(String username, String password) throws BadCredentialsException, AuthenticationSystemException {
+    public String authenticate(String username, String password)
+            throws BadCredentialsException, AuthenticationSystemException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.authenticate(username, password);
     }
@@ -137,7 +159,8 @@ public class MappedSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public boolean addUserToGroup(String siteId, String groupName, String user) throws UserNotFoundException, UserAlreadyExistsException, GroupNotFoundException, SiteNotFoundException {
+    public boolean addUserToGroup(String siteId, String groupName, String user)
+            throws UserNotFoundException, UserAlreadyExistsException, GroupNotFoundException, SiteNotFoundException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.addUserToGroup(siteId, groupName, user);
     }
@@ -161,7 +184,8 @@ public class MappedSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public boolean createUser(String username, String password, String firstName, String lastName, String email, boolean externallyManaged) throws UserAlreadyExistsException {
+    public boolean createUser(String username, String password, String firstName, String lastName, String email,
+                              boolean externallyManaged) throws UserAlreadyExistsException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.createUser(username, password, firstName, lastName, email, externallyManaged);
     }
@@ -173,13 +197,15 @@ public class MappedSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public boolean updateUser(String username, String firstName, String lastName, String email) throws UserNotFoundException, UserExternallyManagedException {
+    public boolean updateUser(String username, String firstName, String lastName, String email)
+            throws UserNotFoundException, UserExternallyManagedException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.updateUser(username, firstName, lastName, email);
     }
 
     @Override
-    public boolean enableUser(String username, boolean enabled) throws UserNotFoundException, UserExternallyManagedException {
+    public boolean enableUser(String username, boolean enabled)
+            throws UserNotFoundException, UserExternallyManagedException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.enableUser(username, enabled);
     }
@@ -191,7 +217,8 @@ public class MappedSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public boolean createGroup(String groupName, String description, String siteId, boolean exterenallyManaged) throws GroupAlreadyExistsException, SiteNotFoundException {
+    public boolean createGroup(String groupName, String description, String siteId, boolean exterenallyManaged)
+            throws GroupAlreadyExistsException, SiteNotFoundException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.createGroup(groupName, description, siteId, exterenallyManaged);
     }
@@ -221,7 +248,8 @@ public class MappedSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public Map<String, Object> getGroup(String site, String group) throws GroupNotFoundException, SiteNotFoundException {
+    public Map<String, Object> getGroup(String site, String group)
+            throws GroupNotFoundException, SiteNotFoundException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.getGroup(site, group);
     }
@@ -245,7 +273,8 @@ public class MappedSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public List<Map<String, Object>> getUsersPerGroup(String site, String group, int start, int number) throws GroupNotFoundException, SiteNotFoundException {
+    public List<Map<String, Object>> getUsersPerGroup(String site, String group, int start, int number)
+            throws GroupNotFoundException, SiteNotFoundException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.getUsersPerGroup(site, group, start, number);
     }
@@ -257,7 +286,8 @@ public class MappedSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public boolean updateGroup(String siteId, String groupName, String description) throws GroupNotFoundException, SiteNotFoundException {
+    public boolean updateGroup(String siteId, String groupName, String description)
+            throws GroupNotFoundException, SiteNotFoundException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.updateGroup(siteId, groupName, description);
     }
@@ -269,13 +299,15 @@ public class MappedSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public boolean removeUserFromGroup(String siteId, String groupName, String user) throws UserNotFoundException, GroupNotFoundException, SiteNotFoundException {
+    public boolean removeUserFromGroup(String siteId, String groupName, String user)
+            throws UserNotFoundException, GroupNotFoundException, SiteNotFoundException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.removeUserFromGroup(siteId, groupName, user);
     }
 
     @Override
-    public boolean changePassword(String username, String current, String newPassword) throws PasswordDoesNotMatchException, UserExternallyManagedException {
+    public boolean changePassword(String username, String current, String newPassword)
+            throws PasswordDoesNotMatchException, UserExternallyManagedException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.changePassword(username, current, newPassword);
     }

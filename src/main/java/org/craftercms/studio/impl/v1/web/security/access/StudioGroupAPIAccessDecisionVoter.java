@@ -1,6 +1,5 @@
 /*
- * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2017 Crafter Software Corporation.
+ * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,6 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 
 package org.craftercms.studio.impl.v1.web.security.access;
@@ -26,6 +26,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.dal.User;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.core.Authentication;
@@ -104,7 +105,10 @@ public class StudioGroupAPIAccessDecisionVoter extends StudioAbstractAccessDecis
                 case GET_ALL:
                 case REMOVE_USER:
                 case UPDATE:
-                    if (currentUser != null && (isAdmin(currentUser) || isSiteAdmin(siteParam, currentUser))) {
+                    if (currentUser != null &&
+                            (isSiteAdmin(studioConfiguration.getProperty(StudioConfiguration
+                                    .CONFIGURATION_GLOBAL_SYSTEM_SITE), currentUser) || isSiteAdmin(siteParam,
+                                    currentUser))) {
                         toRet = ACCESS_GRANTED;
                     } else {
                         toRet = ACCESS_DENIED;
@@ -113,7 +117,8 @@ public class StudioGroupAPIAccessDecisionVoter extends StudioAbstractAccessDecis
                 case GET:
                 case GET_PER_SITE:
                 case USERS:
-                    if (currentUser != null && (isAdmin(currentUser) || isSiteMember(siteParam, currentUser))) {
+                    if (currentUser != null && (isSiteAdmin(siteParam, currentUser) ||
+                            isSiteMember(siteParam, currentUser))) {
                         toRet = ACCESS_GRANTED;
                     } else {
                         toRet = ACCESS_DENIED;

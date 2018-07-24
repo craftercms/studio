@@ -171,4 +171,10 @@ public interface ServicesConfig {
      * @return
      */
     String getSandboxBranchName(String site);
+
+    String getStagingEnvironment(String site);
+
+    String getLiveEnvironment(String site);
+
+    boolean isStagingEnvironmentEnabled(String site);
 }
