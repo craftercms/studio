@@ -1,0 +1,439 @@
+openapi: 3.0.0
+servers:
+  - url: 'http://localhost:8080/studio/api/2'
+info:
+  description: |-
+    Crafter Studio API v2
+    https://docs.craftercms.org/en/3.0/developers/projects/studio/index.html
+  version: '2'
+  title: Crafter Studio
+  termsOfService: ''
+  contact:
+    email: info@craftercms.org
+  license:
+    name: GPL 3.0
+    url: 'https://www.gnu.org/licenses/gpl-3.0.en.html'
+externalDocs:
+  description: Crafter CMS - Studio
+  url: 'https://docs.craftercms.org/en/3.0/developers/projects/studio/index.html'
+tags:
+  - group: group
+    description: Group management operations
+paths:
+
+  /groups:
+    get:
+      tags:
+        - group
+      summary: Get group(s) by groupId
+      operationId: getGroup
+      parameters:
+        - name: groupId
+          in: query
+          description: The ID(s) of the group(s) to fetch.
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '207':
+          description: Multi-status
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    response:
+                      $ref: '#/components/schemas/ApiResponse'
+                    group:
+                      $ref: '#/components/schemas/Group'             
+        '400':
+          $ref: '#/components/responses/BadRequest'                             
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags:
+        - group
+      summary: Create group(s)
+      operationId: createGroup
+      requestBody:
+        description: List of groups to create. Since group ID(s) are auto-generated, any ID(s) in the request will be ignored
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/Group'
+      responses:
+        '207':
+          description: Multi-status
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    response:
+                      $ref: '#/components/schemas/ApiResponse'
+                    group:
+                      $ref: '#/components/schemas/Group'              
+        '400':
+          $ref: '#/components/responses/BadRequest'                          
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'                
+    patch:
+      tags:
+        - group
+      summary: Update user(s)
+      operationId: updateGroup
+      requestBody:
+        description: List of groups to update
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/Group'
+      responses:
+        '207':
+          description: Multi-status
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    response:
+                      $ref: '#/components/schemas/ApiResponse'
+                    group:
+                      $ref: '#/components/schemas/Group'                
+        '400':
+          $ref: '#/components/responses/BadRequest'                          
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError' 
+    delete:
+      tags:
+        - group
+      summary: Delete group(s)
+      operationId: deleteGroup
+      parameters:
+        - name: groupId
+          in: query
+          description: The ID(s) of the group(s) to delete.
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '207':
+          description: Multi-status
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    response:
+                      $ref: '#/components/schemas/ApiResponse'
+                    group:
+                      $ref: '#/components/schemas/Group'                 
+        '400':
+          $ref: '#/components/responses/BadRequest'                          
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /groups/list:
+    get:
+      tags:
+        - group
+      summary: List groups
+      operationId: getGroup
+      parameters:
+        - name: groupId
+          in: query
+          description: The ID(s) of the group(s) to fetch.
+          required: true
+          schema:
+            type: string
+        - name: offset
+          in: query
+          description: Offset of first record in the response
+          required: false
+          schema:
+            type: integer
+            format: int32
+        - name: limit
+          in: query
+          description: Number of records to return
+          required: false
+          schema:
+            type: integer
+            format: int32                         
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'                    
+                  total:
+                    type: integer
+                    format: int32
+                    description: Total records in the system
+                  offset:
+                    type: integer
+                    format: int32
+                    description: Offset of first record in this response
+                  limit:
+                    type: integer
+                    format: int32
+                    description: Number of records returned in this response  
+                  groups:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Group'
+        '400':
+          $ref: '#/components/responses/BadRequest'                             
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /groups/{id}/members:
+    post:
+      tags:
+        - group
+      summary: Add members to the specified group
+      operationId: addMembersToGroup
+      parameters:
+        - name: groupId
+          in: path
+          description: The ID of the groups
+          required: true
+          schema:
+            type: array
+            items:
+              type: string    
+      requestBody:
+        description: List of userIds/usernames to add
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userIds:
+                  type: array
+                  items:
+                    type: string
+                usernames:
+                  type: array
+                  items:
+                    type: string                        
+      responses:
+        '207':
+          description: Multi-status
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    response:
+                      $ref: '#/components/schemas/ApiResponse'
+                    user:
+                      $ref: '#/components/schemas/User'              
+        '400':
+          $ref: '#/components/responses/BadRequest'                          
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags:
+        - group
+      summary: Remove members from the specified group
+      operationId: removeMembersFromGroup
+      parameters:
+        - name: groupId
+          in: path
+          description: The ID(s) of the group(s) to delete.
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+        - name: userId
+          in: query
+          description: The userId(s) to remove
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: username
+          in: query
+          description: The username(s) to remove
+          required: false
+          schema:
+            type: array
+            items:
+              type: string                      
+      responses:
+        '207':
+          description: Multi-status
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    response:
+                      $ref: '#/components/schemas/ApiResponse'
+                    user:
+                      $ref: '#/components/schemas/User'              
+        '400':
+          $ref: '#/components/responses/BadRequest'                          
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'                        
+
+components:
+  schemas:
+    ApiResponse:
+      type: object
+      description: |-
+            The response of an API operation. Possible responses are:
+              * `CODE:` 0, `MESSAGE:` OK
+              * `CODE:` 1, `MESSAGE:` Created
+              * `CODE:` 2, `MESSAGE:` Deleted
+              * `CODE:` 1000, `MESSAGE:` Internal system failure, `REMEDIAL ACTION:` Contact support
+              * `CODE:` 1001, `MESSAGE:` Invalid parameter(s), `REMEDIAL ACTION:` Check API and make sure you're sending the correct parameters
+              * `CODE:` 2000, `MESSAGE:` Unauthenticated, `REMEDIAL ACTION:` Please login first
+              * `CODE:` 2001, `MESSAGE:` Unauthorized, `REMEDIAL ACTION:` You don't have permission to perform this task, please contact your administrator
+              * `CODE:` 3000, `MESSAGE:` Organization not found, `REMEDIAL ACTION:` Check if you sent in the right Org Id
+              * `CODE:` 3000, `MESSAGE:` Organization already exists, `REMEDIAL ACTION:` Try a different organization name
+              * `CODE:` 4000, `MESSAGE:` Group not found, `REMEDIAL ACTION:` Check if you sent in the right Group Id
+              * `CODE:` 5000, `MESSAGE:` Project not found, `REMEDIAL ACTION:` Check if you sent in the right Project Id
+              * `CODE:` 5001, `MESSAGE:` Project already exists, `REMEDIAL ACTION:` Try a different project name
+              * `CODE:` 6000, `MESSAGE:` User not found, `REMEDIAL ACTION:` Check if you're using the correct User ID
+              * `CODE:` 6001, `MESSAGE:` User already exists, `REMEDIAL ACTION:` Try a different username
+              * `CODE:` 6002, `MESSAGE:` User is externally managed, `REMEDIAL ACTION:` Update the user in the main identity system (e.g. LDAP)
+              * `CODE:` 7000, `MESSAGE:` Content not found, `REMEDIAL ACTION:` Check if you sent in the right Content Id
+              * `CODE:` 7001, `MESSAGE:` Content already exists, `REMEDIAL ACTION:` Advise the user that the content already exists
+              * `CODE:` 8000, `MESSAGE:` Publishing is disabled, `REMEDIAL ACTION:` Advise the user to enable publishing
+              * `CODE:` 9000, `MESSAGE:` Search is unreachable, `REMEDIAL ACTION:` Advise the user that the search engine is not reachable
+              * `CODE:` 10000, `MESSAGE:` LoV not found, `REMEDIAL ACTION:` Check if you sent in the right LoV Id
+              * `CODE:` 50000, `MESSAGE:` CMIS server is unreachable, `REMEDIAL ACTION:` Advise the user that the CMIS server is not reachable
+              * `CODE:` 51000, `MESSAGE:` Box is unreachable, `REMEDIAL ACTION:` Advise the user that Box is not reachable
+              * `CODE:` 52000, `MESSAGE:` AWS is unreachable, `REMEDIAL ACTION:` Advise the user that AWS engine is not reachable
+      properties:
+        code:
+          type: integer
+          format: int32
+          description: The response code
+        message:
+          type: string
+          description: The detailed message of the response
+        remedialAction:
+          type: string
+          description: What the user can do in order to address the issue indicated by the response 
+        documentationUrl:
+          type: string
+          description: A URL to documentation related to the response
+      required:
+        - code
+        - message
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: 'User ID, unique and immutable'      
+        username:
+          type: string
+          description: Username, unique
+        password:
+          type: string
+          description: User's password          
+        firstName:
+          type: string
+          description: User's first name
+        lastName:
+          type: string
+          description: User's last name
+        email:
+          type: string
+          description: User's email address
+        externallyManaged:
+          type: string
+          description: Indicates if a user is managed in by an external system (LDAP, SAML, etc.)        
+    Group:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: 'Group ID, unique and immutable'
+        name:
+          type: string
+          description: 'Group name, unique'
+        desc:
+          type: string
+          description: Group description
+  responses:
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              response:
+                $ref: '#/components/schemas/ApiResponse'
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              response:
+                $ref: '#/components/schemas/ApiResponse'
+    InternalServerError:
+      description: Internal system failure
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              response:
+                $ref: '#/components/schemas/ApiResponse'                     
+  securitySchemes: null
+  links: {}
+  callbacks: {}
+security: []
