@@ -21,7 +21,7 @@ tags:
     description: Group management operations
 paths:
 
-  /groups:
+  /group:
     get:
       tags:
         - group
@@ -48,8 +48,11 @@ paths:
                   properties:
                     response:
                       $ref: '#/components/schemas/ApiResponse'
-                    group:
-                      $ref: '#/components/schemas/Group'             
+                    data:
+                      type: object
+                      properties:
+                        group:
+                          $ref: '#/components/schemas/Group'             
         '400':
           $ref: '#/components/responses/BadRequest'                             
         '401':
@@ -82,8 +85,11 @@ paths:
                   properties:
                     response:
                       $ref: '#/components/schemas/ApiResponse'
-                    group:
-                      $ref: '#/components/schemas/Group'              
+                    data:
+                      type: object
+                      properties:                      
+                        group:
+                          $ref: '#/components/schemas/Group'              
         '400':
           $ref: '#/components/responses/BadRequest'                          
         '401':
@@ -116,8 +122,11 @@ paths:
                   properties:
                     response:
                       $ref: '#/components/schemas/ApiResponse'
-                    group:
-                      $ref: '#/components/schemas/Group'                
+                    data:
+                      type: object
+                      properties:                      
+                        group:
+                          $ref: '#/components/schemas/Group'                
         '400':
           $ref: '#/components/responses/BadRequest'                          
         '401':
@@ -150,8 +159,11 @@ paths:
                   properties:
                     response:
                       $ref: '#/components/schemas/ApiResponse'
-                    group:
-                      $ref: '#/components/schemas/Group'                 
+                    data:
+                      type: object
+                      properties:
+                        group:
+                          $ref: '#/components/schemas/Group'                 
         '400':
           $ref: '#/components/responses/BadRequest'                          
         '401':
@@ -159,7 +171,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /groups/list:
+  /group/list:
     get:
       tags:
         - group
@@ -189,23 +201,29 @@ paths:
                 type: object
                 properties:
                   response:
-                    $ref: '#/components/schemas/ApiResponse'                    
-                  total:
-                    type: integer
-                    format: int32
-                    description: Total records in the system
-                  offset:
-                    type: integer
-                    format: int32
-                    description: Offset of first record in this response
-                  limit:
-                    type: integer
-                    format: int32
-                    description: Number of records returned in this response  
-                  groups:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Group'
+                    $ref: '#/components/schemas/ApiResponse'
+                  data:
+                    type: object
+                    properties:                                        
+                      total:
+                        type: integer
+                        format: int32
+                        description: Total records in the system
+                      offset:
+                        type: integer
+                        format: int32
+                        description: Offset of first record in this response
+                      limit:
+                        type: integer
+                        format: int32
+                        description: Number of records returned in this response
+                      records:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            group:
+                              $ref: '#/components/schemas/Group'
         '400':
           $ref: '#/components/responses/BadRequest'                             
         '401':
@@ -213,11 +231,11 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /groups/{id}/members:
+  /group/{id}/member:
     post:
       tags:
         - group
-      summary: Add members to the specified group
+      summary: Add member(s) to the specified group
       operationId: addMembersToGroup
       parameters:
         - name: groupId
@@ -256,8 +274,11 @@ paths:
                   properties:
                     response:
                       $ref: '#/components/schemas/ApiResponse'
-                    member:
-                      $ref: '#/components/schemas/User'              
+                    data:
+                      type: object
+                      properties:  
+                        user:
+                          $ref: '#/components/schemas/User'              
         '400':
           $ref: '#/components/responses/BadRequest'                          
         '401':
@@ -267,7 +288,7 @@ paths:
     delete:
       tags:
         - group
-      summary: Remove members from the specified group
+      summary: Remove member(s) from the specified group
       operationId: removeMembersFromGroup
       parameters:
         - name: groupId
@@ -306,8 +327,11 @@ paths:
                   properties:
                     response:
                       $ref: '#/components/schemas/ApiResponse'
-                    member:
-                      $ref: '#/components/schemas/User'              
+                    data:
+                      type: object
+                      properties:                     
+                        user:
+                          $ref: '#/components/schemas/User'              
         '400':
           $ref: '#/components/responses/BadRequest'                          
         '401':
@@ -315,7 +339,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'           
 
-  /groups/{id}/members/list:
+  /group/{id}/member/list:
     get:
       tags:
         - group
@@ -351,29 +375,387 @@ paths:
                 type: object
                 properties:
                   response:
-                    $ref: '#/components/schemas/ApiResponse'                    
-                  total:
-                    type: integer
-                    format: int32
-                    description: Total records in the system
-                  offset:
-                    type: integer
-                    format: int32
-                    description: Offset of first record in this response
-                  limit:
-                    type: integer
-                    format: int32
-                    description: Number of records returned in this response  
-                  members:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/User'
+                    $ref: '#/components/schemas/ApiResponse'
+                  data:
+                    type: object
+                    properties:                                           
+                      total:
+                        type: integer
+                        format: int32
+                        description: Total records in the system
+                      offset:
+                        type: integer
+                        format: int32
+                        description: Offset of first record in this response
+                      limit:
+                        type: integer
+                        format: int32
+                        description: Number of records returned in this response
+                      records:
+                        type: array
+                        items:
+                          type: object
+                          properties:                      
+                            user:
+                              $ref: '#/components/schemas/User'
         '400':
           $ref: '#/components/responses/BadRequest'                             
         '401':
           $ref: '#/components/responses/Unauthorized'
         '500':
           $ref: '#/components/responses/InternalServerError'   
+
+  /user:
+    get:
+      tags:
+        - user
+      summary: Get user(s) by userId or username
+      operationId: getUser
+      parameters:
+        - name: userId
+          in: query
+          description: The ID(s) of the user(s) to fetch.
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: username
+          in: query
+          description: The username(s) of the user(s) to fetch.
+          required: false
+          schema:
+            type: array
+            items:
+              type: string              
+      responses:
+        '207':
+          description: Multi-status
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    response:
+                      $ref: '#/components/schemas/ApiResponse'
+                    data:
+                      type: object
+                      properties:
+                        user:
+                          $ref: '#/components/schemas/User'
+                        groups:
+                          type: array
+                          items:
+                            $ref: '#/components/schemas/Group'                                       
+        '400':
+          $ref: '#/components/responses/BadRequest'                             
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags:
+        - user
+      summary: Create user(s)
+      operationId: createUser
+      requestBody:
+        description: List of users to create. Since user ID(s) are auto-generated, any ID(s) in the request will be ignored
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/User'
+      responses:
+        '207':
+          description: Multi-status
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    response:
+                      $ref: '#/components/schemas/ApiResponse'
+                    data:
+                      type: object
+                      properties:                      
+                        user:
+                          $ref: '#/components/schemas/User'
+                        groups:
+                          type: array
+                          items:
+                            $ref: '#/components/schemas/Group'                                          
+        '400':
+          $ref: '#/components/responses/BadRequest'                          
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'                
+    patch:
+      tags:
+        - user
+      summary: Update user(s)
+      operationId: updateUser
+      requestBody:
+        description: List of users to update
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/User'
+      responses:
+        '207':
+          description: Multi-status
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    response:
+                      $ref: '#/components/schemas/ApiResponse'
+                    data:
+                      type: object
+                      properties:                      
+                        user:
+                          $ref: '#/components/schemas/User'
+                        groups:
+                          type: array
+                          items:
+                            $ref: '#/components/schemas/Group'                                          
+        '400':
+          $ref: '#/components/responses/BadRequest'                          
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError' 
+    delete:
+      tags:
+        - user
+      summary: Delete user(s)
+      operationId: deleteUser
+      parameters:
+        - name: userId
+          in: query
+          description: The ID(s) of the user(s) to delete.
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: username
+          in: query
+          description: The username(s) of the user(s) to delete.
+          required: false
+          schema:
+            type: array
+            items:
+              type: string   
+      responses:
+        '207':
+          description: Multi-status
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    response:
+                      $ref: '#/components/schemas/ApiResponse'
+                    data:
+                      type: object
+                      properties:
+                        user:
+                          $ref: '#/components/schemas/User'
+                        groups:
+                          type: array
+                          items:
+                            $ref: '#/components/schemas/Group'                                             
+        '400':
+          $ref: '#/components/responses/BadRequest'                          
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /user/list:
+    get:
+      tags:
+        - user
+      summary: List users
+      operationId: getUser
+      parameters:
+        - name: site
+          in: query
+          description: The site ID filter, to return users for a particular site
+          required: false
+          schema:
+            type: string    
+        - name: offset
+          in: query
+          description: Offset of first record in the response
+          required: false
+          schema:
+            type: integer
+            format: int32
+        - name: limit
+          in: query
+          description: Number of records to return
+          required: false
+          schema:
+            type: integer
+            format: int32                         
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  data:
+                    type: object
+                    properties:                                        
+                      total:
+                        type: integer
+                        format: int32
+                        description: Total records in the system
+                      offset:
+                        type: integer
+                        format: int32
+                        description: Offset of first record in this response
+                      limit:
+                        type: integer
+                        format: int32
+                        description: Number of records returned in this response
+                      records:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            user:
+                              $ref: '#/components/schemas/User'
+                            groups:
+                              type: array
+                              items:
+                                $ref: '#/components/schemas/Group' 
+        '400':
+          $ref: '#/components/responses/BadRequest'                             
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'         
+
+  /user/enable:
+    patch:
+      tags:
+        - user
+      summary: Enable user(s)
+      operationId: enableUser
+      requestBody:
+        description: List of userIds/usernames to enable
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userIds:
+                  type: array
+                  items:
+                    type: string
+                usernames:
+                  type: array
+                  items:
+                    type: string    
+      responses:
+        '207':
+          description: Multi-status
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    response:
+                      $ref: '#/components/schemas/ApiResponse'
+                    data:
+                      type: object
+                      properties:                      
+                        user:
+                          $ref: '#/components/schemas/User'
+                        groups:
+                          type: array
+                          items:
+                            $ref: '#/components/schemas/Group'                                          
+        '400':
+          $ref: '#/components/responses/BadRequest'                             
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /user/disable:
+    patch:
+      tags:
+        - user
+      summary: Disable user(s)
+      operationId: disableUser
+      requestBody:
+        description: List of userIds/usernames to enable
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userIds:
+                  type: array
+                  items:
+                    type: string
+                usernames:
+                  type: array
+                  items:
+                    type: string    
+      responses:
+        '207':
+          description: Multi-status
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    response:
+                      $ref: '#/components/schemas/ApiResponse'
+                    data:
+                      type: object
+                      properties:                      
+                        user:
+                          $ref: '#/components/schemas/User'
+                        groups:
+                          type: array
+                          items:
+                            $ref: '#/components/schemas/Group'                                          
+        '400':
+          $ref: '#/components/responses/BadRequest'                             
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'          
 
 components:
   schemas:
