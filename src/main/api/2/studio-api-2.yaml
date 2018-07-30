@@ -166,12 +166,6 @@ paths:
       summary: List groups
       operationId: getGroup
       parameters:
-        - name: groupId
-          in: query
-          description: The ID(s) of the group(s) to fetch.
-          required: true
-          schema:
-            type: string
         - name: offset
           in: query
           description: Offset of first record in the response
@@ -262,7 +256,7 @@ paths:
                   properties:
                     response:
                       $ref: '#/components/schemas/ApiResponse'
-                    user:
+                    member:
                       $ref: '#/components/schemas/User'              
         '400':
           $ref: '#/components/responses/BadRequest'                          
@@ -312,14 +306,74 @@ paths:
                   properties:
                     response:
                       $ref: '#/components/schemas/ApiResponse'
-                    user:
+                    member:
                       $ref: '#/components/schemas/User'              
         '400':
           $ref: '#/components/responses/BadRequest'                          
         '401':
           $ref: '#/components/responses/Unauthorized'
         '500':
-          $ref: '#/components/responses/InternalServerError'                        
+          $ref: '#/components/responses/InternalServerError'           
+
+  /groups/{id}/members/list:
+    get:
+      tags:
+        - group
+      summary: List members of the specified group
+      operationId: getGroupMembers
+      parameters:
+        - name: groupId
+          in: path
+          description: The group ID whose members need to be retrieved
+          required: true
+          schema:
+            type: string
+        - name: offset
+          in: query
+          description: Offset of first record in the response
+          required: false
+          schema:
+            type: integer
+            format: int32
+        - name: limit
+          in: query
+          description: Number of records to return
+          required: false
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'                    
+                  total:
+                    type: integer
+                    format: int32
+                    description: Total records in the system
+                  offset:
+                    type: integer
+                    format: int32
+                    description: Offset of first record in this response
+                  limit:
+                    type: integer
+                    format: int32
+                    description: Number of records returned in this response  
+                  members:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'                             
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'   
 
 components:
   schemas:
