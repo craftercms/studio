@@ -191,7 +191,15 @@ paths:
           required: false
           schema:
             type: integer
-            format: int32                         
+            format: int32
+        - name: sort
+          in: query
+          description: |-
+            The group fields to use for sorting, plus the `asc` or `desc` keyword. Multiple fields are separated by
+            commas. Finally, the value should match the following regex: `([a-zA-Z_][a-zA-Z_0-9]*,?)+ (asc|desc)`?
+          required: false
+          schema:
+            type: string
       responses:
         '200':
           description: OK
@@ -366,6 +374,14 @@ paths:
           schema:
             type: integer
             format: int32
+        - name: sort
+          in: query
+          description: |-
+            The user fields to use for sorting, plus the `asc` or `desc` keyword. Multiple fields are separated by
+            commas. Finally, the value should match the following regex: `([a-zA-Z_][a-zA-Z_0-9]*,?)+ (asc|desc)`?
+          required: false
+          schema:
+            type: string
       responses:
         '200':
           description: OK
@@ -613,7 +629,15 @@ paths:
           required: false
           schema:
             type: integer
-            format: int32                         
+            format: int32
+        - name: sort
+          in: query
+          description: |-
+            The user fields to use for sorting, plus the `asc` or `desc` keyword. Multiple fields are separated by
+            commas. Finally, the value should match the following regex: `([a-zA-Z_][a-zA-Z_0-9]*,?)+ (asc|desc)`?
+          required: false
+          schema:
+            type: string                         
       responses:
         '200':
           description: OK
