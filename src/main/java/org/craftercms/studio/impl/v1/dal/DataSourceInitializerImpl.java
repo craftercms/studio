@@ -21,6 +21,7 @@ package org.craftercms.studio.impl.v1.dal;
 import ch.vorburger.exec.ManagedProcessException;
 import ch.vorburger.mariadb4j.DB;
 import ch.vorburger.mariadb4j.MariaDB4jService;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.jdbc.RuntimeSqlException;
@@ -28,13 +29,25 @@ import org.apache.ibatis.jdbc.ScriptRunner;
 import org.craftercms.commons.crypto.CryptoUtils;
 import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.commons.entitlements.validator.DbIntegrityValidator;
+import org.craftercms.studio.api.v1.constant.StudioConstants;
+import org.craftercms.studio.api.v1.constant.StudioXmlConstants;
 import org.craftercms.studio.api.v1.dal.DataSourceInitializer;
+import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.DatabaseUpgradeUnsupportedVersionException;
+import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
+import org.dom4j.Attribute;
+import org.dom4j.Document;
+import org.dom4j.DocumentException;
+import org.dom4j.Element;
+import org.dom4j.io.SAXReader;
 import org.springframework.beans.factory.DisposableBean;
+import org.xml.sax.SAXException;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -45,7 +58,13 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_DRIVER;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_INITIALIZER_CONFIGURE_DB_SCRIPT_LOCATION;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_INITIALIZER_CREATE_DB_SCRIPT_LOCATION;
@@ -60,9 +79,10 @@ import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_INITIALIZ
 public class DataSourceInitializerImpl implements DataSourceInitializer, DisposableBean {
 
     private final static Logger logger = LoggerFactory.getLogger(DataSourceInitializerImpl.class);
-    private final static String CURRENT_DB_VERSION = "3.0.17";
+    private final static String CURRENT_DB_VERSION = "3.1.0";
     private final static String DB_VERSION_3_0_0 = "3.0.0";
     private final static String DB_VERSION_2_5_X = "2.5.x";
+    private final static String DB_VERSION_3_0_X = "3.0";
 
     /**
      * Database queries
@@ -79,8 +99,11 @@ public class DataSourceInitializerImpl implements DataSourceInitializer, Disposa
     private final static String DB_QUERY_SET_ADMIN_PASSWORD =
             "UPDATE user SET password = '{password}' WHERE username = 'admin'";
 
+    private final static String DB_QUERY_GET_ALL_SITES = "SELECT site_id FROM site WHERE system = 0";
+
     protected String delimiter;
     protected StudioConfiguration studioConfiguration;
+    protected ContentRepository contentRepository;
 
     protected MariaDB4jService mariaDB4jService;
 
@@ -192,6 +215,16 @@ public class DataSourceInitializerImpl implements DataSourceInitializer, Disposa
                                 }
                                 break;
                         }
+
+                        if (dbVersion.startsWith(DB_VERSION_3_0_X)) {
+                            statement = conn.createStatement();
+                            rs = statement.executeQuery(DB_QUERY_GET_ALL_SITES);
+                            while (rs.next()) {
+                                String siteId = rs.getString(1);
+                                updateRoleMappings(siteId);
+                            }
+                        }
+
                     } else {
                         // Database does not exist
                         logger.info("Database does not exists.");
@@ -246,6 +279,68 @@ public class DataSourceInitializerImpl implements DataSourceInitializer, Disposa
                 }
             } catch (SQLException e) {
                 logger.error("Error while closing connection with database", e);
+            }
+        }
+    }
+
+    private void updateRoleMappings(String siteId) {
+        String siteConfigPath = studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH);
+        siteConfigPath = siteConfigPath.replaceFirst(StudioConstants.PATTERN_SITE, siteId);
+        String filename = studioConfiguration.getProperty(CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME);
+        String siteRoleMappingsConfigFullPath = siteConfigPath + FILE_SEPARATOR + filename;
+
+        Document document = null;
+        InputStream is = null;
+        try {
+            is = contentRepository.getContent(siteId, siteRoleMappingsConfigFullPath);
+        } catch (ContentNotFoundException e) {
+            logger.debug("Content not found for path {0}", e, siteRoleMappingsConfigFullPath);
+        }
+
+        if(is != null) {
+            try {
+                SAXReader saxReader = new SAXReader();
+                try {
+                    saxReader.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+                    saxReader.setFeature("http://xml.org/sax/features/external-general-entities", false);
+                    saxReader.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+                }catch (SAXException ex){
+                    logger.error("Unable to turn off external entity loading, This could be a security risk.", ex);
+                }
+                document = saxReader.read(is);
+                if (document != null) {
+                    Element root = document.getRootElement();
+                    if (root.getName().equals(StudioXmlConstants.DOCUMENT_ROLE_MAPPINGS)) {
+                        Map<String, List<String>> rolesMap = new HashMap<String, List<String>>();
+
+                        List<Element> groupNodes = root.selectNodes(StudioXmlConstants.DOCUMENT_ELM_GROUPS_NODE);
+                        for (Element node : groupNodes) {
+                            String name = node.valueOf(StudioXmlConstants.DOCUMENT_ATTR_PERMISSIONS_NAME);
+                            if (!StringUtils.isEmpty(name)) {
+                                Attribute attribute = node.attribute(StudioXmlConstants.DOCUMENT_ATTR_NAME);
+                                attribute.setValue(siteId + "_" + name);
+                            }
+                        }
+                    }
+                    contentRepository.writeContent(siteId, siteRoleMappingsConfigFullPath, IOUtils.toInputStream(
+                            document.asXML()));
+
+                } else {
+                    logger.error("Permission mapping not found for " + siteId + ":" + filename);
+                }
+            } catch (DocumentException e) {
+                e.printStackTrace();
+            } catch (ServiceException e) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    if (is != null) {
+                        is.close();
+                    }
+                }
+                catch (IOException err) {
+                    logger.debug("Error closing stream for path {0}", err, siteRoleMappingsConfigFullPath);
+                }
             }
         }
     }
@@ -335,6 +430,14 @@ public class DataSourceInitializerImpl implements DataSourceInitializer, Disposa
 
     public void setMariaDB4jService(MariaDB4jService mariaDB4jService) {
         this.mariaDB4jService = mariaDB4jService;
+    }
+
+    public ContentRepository getContentRepository() {
+        return contentRepository;
+    }
+
+    public void setContentRepository(ContentRepository contentRepository) {
+        this.contentRepository = contentRepository;
     }
 
     public void setIntegrityValidator(final DbIntegrityValidator integrityValidator) {
