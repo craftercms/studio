@@ -195,7 +195,7 @@ paths:
         - name: sort
           in: query
           description: |-
-            The group fields to use for sorting, plus the `asc` or `desc` keyword. Multiple fields are separated by
+            The fields to use for sorting, plus the `asc` or `desc` keyword. Multiple fields are separated by
             commas. Finally, the value should match the following regex: `([a-zA-Z_][a-zA-Z_0-9]*,?)+ (asc|desc)`?
           required: false
           schema:
@@ -291,6 +291,8 @@ paths:
           $ref: '#/components/responses/BadRequest'                          
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'          
         '500':
           $ref: '#/components/responses/InternalServerError'
     delete:
@@ -344,6 +346,8 @@ paths:
           $ref: '#/components/responses/BadRequest'                          
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'          
         '500':
           $ref: '#/components/responses/InternalServerError'           
 
@@ -354,7 +358,7 @@ paths:
       summary: List members of the specified group
       operationId: getGroupMembers
       parameters:
-        - name: groupId
+        - name: id
           in: path
           description: The group ID whose members need to be retrieved
           required: true
@@ -377,7 +381,7 @@ paths:
         - name: sort
           in: query
           description: |-
-            The user fields to use for sorting, plus the `asc` or `desc` keyword. Multiple fields are separated by
+            The fields to use for sorting, plus the `asc` or `desc` keyword. Multiple fields are separated by
             commas. Finally, the value should match the following regex: `([a-zA-Z_][a-zA-Z_0-9]*,?)+ (asc|desc)`?
           required: false
           schema:
@@ -418,6 +422,8 @@ paths:
           $ref: '#/components/responses/BadRequest'                             
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'             
         '500':
           $ref: '#/components/responses/InternalServerError'   
 
@@ -633,7 +639,7 @@ paths:
         - name: sort
           in: query
           description: |-
-            The user fields to use for sorting, plus the `asc` or `desc` keyword. Multiple fields are separated by
+            The fields to use for sorting, plus the `asc` or `desc` keyword. Multiple fields are separated by
             commas. Finally, the value should match the following regex: `([a-zA-Z_][a-zA-Z_0-9]*,?)+ (asc|desc)`?
           required: false
           schema:
@@ -779,7 +785,83 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
         '500':
-          $ref: '#/components/responses/InternalServerError'          
+          $ref: '#/components/responses/InternalServerError'
+
+  /user/{id}/site/list:          
+    get:
+      tags:
+        - user
+      summary: List the sites the specified user has access to
+      operationId: getUserSites
+      parameters:
+        - name: id
+          in: path
+          description: The user ID whose sites need to be retrieved
+          required: true
+          schema:
+            type: string
+        - name: offset
+          in: query
+          description: Offset of first record in the response
+          required: false
+          schema:
+            type: integer
+            format: int32
+        - name: limit
+          in: query
+          description: Number of records to return
+          required: false
+          schema:
+            type: integer
+            format: int32
+        - name: sort
+          in: query
+          description: |-
+            The fields to use for sorting, plus the `asc` or `desc` keyword. Multiple fields are separated by
+            commas. Finally, the value should match the following regex: `([a-zA-Z_][a-zA-Z_0-9]*,?)+ (asc|desc)`?
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  data:
+                    type: object
+                    properties:                                           
+                      total:
+                        type: integer
+                        format: int32
+                        description: Total records in the system
+                      offset:
+                        type: integer
+                        format: int32
+                        description: Offset of first record in this response
+                      limit:
+                        type: integer
+                        format: int32
+                        description: Number of records returned in this response
+                      records:
+                        type: array
+                        items:
+                          type: object
+                          properties:                      
+                            site:
+                              $ref: '#/components/schemas/Site'
+        '400':
+          $ref: '#/components/responses/BadRequest'                             
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'             
+        '500':
+          $ref: '#/components/responses/InternalServerError' 
 
 components:
   schemas:
@@ -865,7 +947,29 @@ components:
         desc:
           type: string
           description: Group description
+    Site:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: 'Site ID, unique and immutable'
+        name:
+          type: string
+          description: 'Site name, unique'
+        desc:
+          type: string
+          description: Site description
   responses:
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              response:
+                $ref: '#/components/schemas/ApiResponse'  
     BadRequest:
       description: Invalid request
       content:
