@@ -195,8 +195,8 @@ paths:
         - name: sort
           in: query
           description: |-
-            The group field to use for sorting, plus the `asc` or `desc` keyword. The value should match the following
-            regex: `[a-zA-Z_][a-zA-Z_0-9]* (asc|desc)`?
+            The group fields to use for sorting, plus the `asc` or `desc` keyword. Multiple fields are separated by
+            commas. Finally, the value should match the following regex: `([a-zA-Z_][a-zA-Z_0-9]*,?)+ (asc|desc)`?
           required: false
           schema:
             type: string
@@ -377,8 +377,8 @@ paths:
         - name: sort
           in: query
           description: |-
-            The user field to use for sorting, plus the `asc` or `desc` keyword. The value should match the following
-            regex: `[a-zA-Z_][a-zA-Z_0-9]* (asc|desc)`?
+            The user fields to use for sorting, plus the `asc` or `desc` keyword. Multiple fields are separated by
+            commas. Finally, the value should match the following regex: `([a-zA-Z_][a-zA-Z_0-9]*,?)+ (asc|desc)`?
           required: false
           schema:
             type: string
@@ -633,8 +633,8 @@ paths:
         - name: sort
           in: query
           description: |-
-            The user field to use for sorting, plus the `asc` or `desc` keyword. The value should match the following
-            regex: `[a-zA-Z_][a-zA-Z_0-9]* (asc|desc)`?
+            The user fields to use for sorting, plus the `asc` or `desc` keyword. Multiple fields are separated by
+            commas. Finally, the value should match the following regex: `([a-zA-Z_][a-zA-Z_0-9]*,?)+ (asc|desc)`?
           required: false
           schema:
             type: string                         
