@@ -17,42 +17,70 @@ externalDocs:
   description: Crafter CMS - Studio
   url: 'https://docs.craftercms.org/en/3.0/developers/projects/studio/index.html'
 tags:
-  - group: group
+  - name: groups
     description: Group management operations
+  - name: users
+    description: User management operations
 paths:
 
-  /group:
+  /groups:
     get:
       tags:
-        - group
-      summary: Get group(s) by groupId
-      operationId: getGroup
+        - groups
+      summary: Get all groups
+      operationId: getGroups
       parameters:
-        - name: groupId
+        - name: offset
           in: query
-          description: The ID(s) of the group(s) to fetch.
-          required: true
+          description: Offset of first group in the response
+          required: false
           schema:
-            type: array
-            items:
-              type: string
+            type: integer
+            format: int32
+        - name: limit
+          in: query
+          description: Number of groups to return
+          required: false
+          schema:
+            type: integer
+            format: int32
+        - name: sort
+          in: query
+          description: |-
+            The fields to use for sorting, plus the `asc` or `desc` keyword. Multiple fields are separated by
+            commas. Finally, the value should match the following regex: `([a-zA-Z_][a-zA-Z_0-9]*,?)+ (asc|desc)`?
+          required: false
+          schema:
+            type: string
       responses:
-        '207':
-          description: Multi-status
+        '200':
+          description: OK
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    response:
-                      $ref: '#/components/schemas/ApiResponse'
-                    data:
-                      type: object
-                      properties:
-                        group:
-                          $ref: '#/components/schemas/Group'             
+                type: object
+                properties:
+                  result:          
+                    type: object
+                    properties:
+                      response:
+                        $ref: '#/components/schemas/ApiResponse'
+                      total:
+                        type: integer
+                        format: int32
+                        description: Total records in the system
+                      offset:
+                        type: integer
+                        format: int32
+                        description: Offset of first record in this response
+                      limit:
+                        type: integer
+                        format: int32
+                        description: Number of records returned in this response
+                      entities:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Group'
         '400':
           $ref: '#/components/responses/BadRequest'                             
         '401':
@@ -61,87 +89,83 @@ paths:
           $ref: '#/components/responses/InternalServerError'
     post:
       tags:
-        - group
-      summary: Create group(s)
+        - groups
+      summary: Create group
       operationId: createGroup
       requestBody:
-        description: List of groups to create. Since group ID(s) are auto-generated, any ID(s) in the request will be ignored
+        description: Group entity to create
         required: true
         content:
           application/json:
             schema:
-              type: array
-              items:
-                $ref: '#/components/schemas/Group'
+              $ref: '#/components/schemas/Group'
       responses:
-        '207':
-          description: Multi-status
+        '201':
+          description: Created
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    response:
-                      $ref: '#/components/schemas/ApiResponse'
-                    data:
-                      type: object
-                      properties:                      
-                        group:
-                          $ref: '#/components/schemas/Group'              
+                type: object
+                properties:
+                  result:          
+                    type: object
+                    properties:
+                      response:
+                        $ref: '#/components/schemas/ApiResponse'                  
+                      entity:
+                        $ref: '#/components/schemas/Group'              
         '400':
           $ref: '#/components/responses/BadRequest'                          
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'          
         '500':
           $ref: '#/components/responses/InternalServerError'                
     patch:
       tags:
-        - group
-      summary: Update user(s)
+        - groups
+      summary: Update group
       operationId: updateGroup
       requestBody:
-        description: List of groups to update
+        description: Group entity to update
         required: true
         content:
           application/json:
             schema:
-              type: array
-              items:
-                $ref: '#/components/schemas/Group'
+              $ref: '#/components/schemas/Group'
       responses:
-        '207':
-          description: Multi-status
+        '200':
+          description: OK
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    response:
-                      $ref: '#/components/schemas/ApiResponse'
-                    data:
-                      type: object
-                      properties:                      
-                        group:
-                          $ref: '#/components/schemas/Group'                
+                type: object
+                properties:
+                  result:          
+                    type: object
+                    properties:
+                      response:
+                        $ref: '#/components/schemas/ApiResponse'
+                      entity:
+                        $ref: '#/components/schemas/Group'                
         '400':
           $ref: '#/components/responses/BadRequest'                          
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'          
         '500':
-          $ref: '#/components/responses/InternalServerError' 
+          $ref: '#/components/responses/InternalServerError'
     delete:
       tags:
-        - group
+        - groups
       summary: Delete group(s)
       operationId: deleteGroup
       parameters:
-        - name: groupId
+        - name: id
           in: query
-          description: The ID(s) of the group(s) to delete.
+          description: The group ID(s)
           required: true
           schema:
             type: array
@@ -149,35 +173,80 @@ paths:
               type: string
       responses:
         '207':
-          description: Multi-status
+          description: Multiple results
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    response:
-                      $ref: '#/components/schemas/ApiResponse'
-                    data:
+                type: object
+                properties:
+                  results:                  
+                    type: array
+                    items:
                       type: object
                       properties:
-                        group:
-                          $ref: '#/components/schemas/Group'                 
+                        response:
+                          $ref: '#/components/schemas/ApiResponse'  
+                        entity:
+                          $ref: '#/components/schemas/Group'              
         '400':
           $ref: '#/components/responses/BadRequest'                          
         '401':
+          $ref: '#/components/responses/Unauthorized'  
+        '500':
+          $ref: '#/components/responses/InternalServerError'           
+
+  /groups/{id}:
+    get:
+      tags:
+        - groups
+      summary: Get group by groupId
+      operationId: getGroup
+      parameters:
+        - name: id
+          in: path
+          description: The group ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:          
+                    type: object
+                    properties:
+                      response:
+                        $ref: '#/components/schemas/ApiResponse'
+                      entity:
+                        $ref: '#/components/schemas/Group'             
+        '400':
+          $ref: '#/components/responses/BadRequest'                             
+        '401':
           $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'         
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /group/list:
+  /groups/{id}/members:
     get:
       tags:
-        - group
-      summary: List groups
-      operationId: getGroup
+        - groups
+      summary: Get all the members of the specified group
+      operationId: getGroupMembers
       parameters:
+        - name: id
+          in: path
+          description: The group ID
+          required: true
+          schema:
+            type: integer
+            format: int64
         - name: offset
           in: query
           description: Offset of first record in the response
@@ -208,11 +277,11 @@ paths:
               schema:
                 type: object
                 properties:
-                  response:
-                    $ref: '#/components/schemas/ApiResponse'
-                  data:
+                  result:          
                     type: object
-                    properties:                                        
+                    properties:
+                      response:
+                        $ref: '#/components/schemas/ApiResponse'
                       total:
                         type: integer
                         format: int32
@@ -225,35 +294,31 @@ paths:
                         type: integer
                         format: int32
                         description: Number of records returned in this response
-                      records:
+                      entities:
                         type: array
                         items:
-                          type: object
-                          properties:
-                            group:
-                              $ref: '#/components/schemas/Group'
+                          $ref: '#/components/schemas/User'
         '400':
           $ref: '#/components/responses/BadRequest'                             
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'             
         '500':
-          $ref: '#/components/responses/InternalServerError'
-
-  /group/{id}/member:
+          $ref: '#/components/responses/InternalServerError'   
     post:
       tags:
-        - group
+        - groups
       summary: Add member(s) to the specified group
-      operationId: addMembersToGroup
+      operationId: addGroupMembers
       parameters:
-        - name: groupId
+        - name: id
           in: path
-          description: The ID of the groups
+          description: The group ID
           required: true
           schema:
-            type: array
-            items:
-              type: string    
+            type: integer
+            format: int64   
       requestBody:
         description: List of userIds/usernames to add
         required: true
@@ -272,20 +337,20 @@ paths:
                     type: string                        
       responses:
         '207':
-          description: Multi-status
+          description: Multiple results
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    response:
-                      $ref: '#/components/schemas/ApiResponse'
-                    data:
+                type: object
+                properties:
+                  results:                  
+                    type: array
+                    items:
                       type: object
-                      properties:  
-                        user:
+                      properties:
+                        response:
+                          $ref: '#/components/schemas/ApiResponse'  
+                        entity:
                           $ref: '#/components/schemas/User'              
         '400':
           $ref: '#/components/responses/BadRequest'                          
@@ -297,18 +362,17 @@ paths:
           $ref: '#/components/responses/InternalServerError'
     delete:
       tags:
-        - group
+        - groups
       summary: Remove member(s) from the specified group
-      operationId: removeMembersFromGroup
+      operationId: removeGroupMembers
       parameters:
         - name: groupId
           in: path
-          description: The ID(s) of the group(s) to delete.
+          description: The group ID
           required: true
           schema:
-            type: array
-            items:
-              type: string
+            type: integer
+            format: int64
         - name: userId
           in: query
           description: The userId(s) to remove
@@ -327,20 +391,20 @@ paths:
               type: string                      
       responses:
         '207':
-          description: Multi-status
+          description: Multiple results
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    response:
-                      $ref: '#/components/schemas/ApiResponse'
-                    data:
+                type: object
+                properties:
+                  results:                  
+                    type: array
+                    items:
                       type: object
-                      properties:                     
-                        user:
+                      properties:
+                        response:
+                          $ref: '#/components/schemas/ApiResponse'  
+                        entity:
                           $ref: '#/components/schemas/User'              
         '400':
           $ref: '#/components/responses/BadRequest'                          
@@ -349,276 +413,18 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'          
         '500':
-          $ref: '#/components/responses/InternalServerError'           
-
-  /group/{id}/member/list:
-    get:
-      tags:
-        - group
-      summary: List members of the specified group
-      operationId: getGroupMembers
-      parameters:
-        - name: id
-          in: path
-          description: The group ID whose members need to be retrieved
-          required: true
-          schema:
-            type: string
-        - name: offset
-          in: query
-          description: Offset of first record in the response
-          required: false
-          schema:
-            type: integer
-            format: int32
-        - name: limit
-          in: query
-          description: Number of records to return
-          required: false
-          schema:
-            type: integer
-            format: int32
-        - name: sort
-          in: query
-          description: |-
-            The fields to use for sorting, plus the `asc` or `desc` keyword. Multiple fields are separated by
-            commas. Finally, the value should match the following regex: `([a-zA-Z_][a-zA-Z_0-9]*,?)+ (asc|desc)`?
-          required: false
-          schema:
-            type: string
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  response:
-                    $ref: '#/components/schemas/ApiResponse'
-                  data:
-                    type: object
-                    properties:                                           
-                      total:
-                        type: integer
-                        format: int32
-                        description: Total records in the system
-                      offset:
-                        type: integer
-                        format: int32
-                        description: Offset of first record in this response
-                      limit:
-                        type: integer
-                        format: int32
-                        description: Number of records returned in this response
-                      records:
-                        type: array
-                        items:
-                          type: object
-                          properties:                      
-                            user:
-                              $ref: '#/components/schemas/User'
-        '400':
-          $ref: '#/components/responses/BadRequest'                             
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'             
-        '500':
-          $ref: '#/components/responses/InternalServerError'   
-
-  /user:
-    get:
-      tags:
-        - user
-      summary: Get user(s) by userId or username
-      operationId: getUser
-      parameters:
-        - name: userId
-          in: query
-          description: The ID(s) of the user(s) to fetch.
-          required: false
-          schema:
-            type: array
-            items:
-              type: string
-        - name: username
-          in: query
-          description: The username(s) of the user(s) to fetch.
-          required: false
-          schema:
-            type: array
-            items:
-              type: string              
-      responses:
-        '207':
-          description: Multi-status
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    response:
-                      $ref: '#/components/schemas/ApiResponse'
-                    data:
-                      type: object
-                      properties:
-                        user:
-                          $ref: '#/components/schemas/User'
-                        groups:
-                          type: array
-                          items:
-                            $ref: '#/components/schemas/Group'                                       
-        '400':
-          $ref: '#/components/responses/BadRequest'                             
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-    post:
-      tags:
-        - user
-      summary: Create user(s)
-      operationId: createUser
-      requestBody:
-        description: List of users to create. Since user ID(s) are auto-generated, any ID(s) in the request will be ignored
-        required: true
-        content:
-          application/json:
-            schema:
-              type: array
-              items:
-                $ref: '#/components/schemas/User'
-      responses:
-        '207':
-          description: Multi-status
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    response:
-                      $ref: '#/components/schemas/ApiResponse'
-                    data:
-                      type: object
-                      properties:                      
-                        user:
-                          $ref: '#/components/schemas/User'
-                        groups:
-                          type: array
-                          items:
-                            $ref: '#/components/schemas/Group'                                          
-        '400':
-          $ref: '#/components/responses/BadRequest'                          
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '500':
-          $ref: '#/components/responses/InternalServerError'                
-    patch:
-      tags:
-        - user
-      summary: Update user(s)
-      operationId: updateUser
-      requestBody:
-        description: List of users to update
-        required: true
-        content:
-          application/json:
-            schema:
-              type: array
-              items:
-                $ref: '#/components/schemas/User'
-      responses:
-        '207':
-          description: Multi-status
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    response:
-                      $ref: '#/components/schemas/ApiResponse'
-                    data:
-                      type: object
-                      properties:                      
-                        user:
-                          $ref: '#/components/schemas/User'
-                        groups:
-                          type: array
-                          items:
-                            $ref: '#/components/schemas/Group'                                          
-        '400':
-          $ref: '#/components/responses/BadRequest'                          
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '500':
           $ref: '#/components/responses/InternalServerError' 
-    delete:
-      tags:
-        - user
-      summary: Delete user(s)
-      operationId: deleteUser
-      parameters:
-        - name: userId
-          in: query
-          description: The ID(s) of the user(s) to delete.
-          required: false
-          schema:
-            type: array
-            items:
-              type: string
-        - name: username
-          in: query
-          description: The username(s) of the user(s) to delete.
-          required: false
-          schema:
-            type: array
-            items:
-              type: string   
-      responses:
-        '207':
-          description: Multi-status
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    response:
-                      $ref: '#/components/schemas/ApiResponse'
-                    data:
-                      type: object
-                      properties:
-                        user:
-                          $ref: '#/components/schemas/User'
-                        groups:
-                          type: array
-                          items:
-                            $ref: '#/components/schemas/Group'                                             
-        '400':
-          $ref: '#/components/responses/BadRequest'                          
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
 
-  /user/list:
+  /users:
     get:
       tags:
-        - user
-      summary: List users
-      operationId: getUser
+        - users
+      summary: Get all users
+      operationId: getUsers
       parameters:
         - name: site
           in: query
-          description: The site ID filter, to return users for a particular site
+          description: The site ID to filter users for a particular site
           required: false
           schema:
             type: string    
@@ -652,11 +458,11 @@ paths:
               schema:
                 type: object
                 properties:
-                  response:
-                    $ref: '#/components/schemas/ApiResponse'
-                  data:
+                  result:          
                     type: object
-                    properties:                                        
+                    properties:
+                      response:
+                        $ref: '#/components/schemas/ApiResponse'
                       total:
                         type: integer
                         format: int32
@@ -669,28 +475,173 @@ paths:
                         type: integer
                         format: int32
                         description: Number of records returned in this response
-                      records:
+                      entities:
                         type: array
                         items:
-                          type: object
-                          properties:
-                            user:
-                              $ref: '#/components/schemas/User'
-                            groups:
-                              type: array
-                              items:
-                                $ref: '#/components/schemas/Group' 
+                          $ref: '#/components/schemas/User'
         '400':
           $ref: '#/components/responses/BadRequest'                             
         '401':
           $ref: '#/components/responses/Unauthorized'
         '500':
-          $ref: '#/components/responses/InternalServerError'         
-
-  /user/enable:
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags:
+        - users
+      summary: Create user
+      operationId: createUser
+      requestBody:
+        description: User entity to create
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:          
+                    type: object
+                    properties:
+                      response:
+                        $ref: '#/components/schemas/ApiResponse'                  
+                      entity:
+                        $ref: '#/components/schemas/User'                                       
+        '400':
+          $ref: '#/components/responses/BadRequest'                          
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'          
+        '500':
+          $ref: '#/components/responses/InternalServerError'
     patch:
       tags:
-        - user
+        - users
+      summary: Update user
+      operationId: updateUser
+      requestBody:
+        description: User entity to update
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:          
+                    type: object
+                    properties:
+                      response:
+                        $ref: '#/components/schemas/ApiResponse'                  
+                      entity:
+                        $ref: '#/components/schemas/User'                                          
+        '400':
+          $ref: '#/components/responses/BadRequest'                          
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'          
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags:
+        - users
+      summary: Delete user(s)
+      operationId: deleteUser
+      parameters:
+        - name: id
+          in: query
+          description: The user ID(s)
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: username
+          in: query
+          description: The username(s)
+          required: false
+          schema:
+            type: array
+            items:
+              type: string              
+      responses:
+        '207':
+          description: Multiple results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:                  
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        response:
+                          $ref: '#/components/schemas/ApiResponse'  
+                        entity:
+                          $ref: '#/components/schemas/User'              
+        '400':
+          $ref: '#/components/responses/BadRequest'                          
+        '401':
+          $ref: '#/components/responses/Unauthorized'  
+        '500':
+          $ref: '#/components/responses/InternalServerError'                        
+
+  /users/{id}:
+    get:
+      tags:
+        - users
+      summary: Get user by userId or username
+      operationId: getGroup
+      parameters:
+        - name: id
+          in: path
+          description: The user ID. Username can also be used
+          required: true
+          schema:
+            type: string
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:          
+                    type: object
+                    properties:
+                      response:
+                        $ref: '#/components/schemas/ApiResponse'
+                      entity:
+                        $ref: '#/components/schemas/Group'             
+        '400':
+          $ref: '#/components/responses/BadRequest'                             
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'          
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+         
+  /users/enable:
+    patch:
+      tags:
+        - users
       summary: Enable user(s)
       operationId: enableUser
       requestBody:
@@ -711,25 +662,21 @@ paths:
                     type: string    
       responses:
         '207':
-          description: Multi-status
+          description: Multiple results
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    response:
-                      $ref: '#/components/schemas/ApiResponse'
-                    data:
+                type: object
+                properties:
+                  results:                  
+                    type: array
+                    items:
                       type: object
-                      properties:                      
-                        user:
-                          $ref: '#/components/schemas/User'
-                        groups:
-                          type: array
-                          items:
-                            $ref: '#/components/schemas/Group'                                          
+                      properties:
+                        response:
+                          $ref: '#/components/schemas/ApiResponse'  
+                        entity:
+                          $ref: '#/components/schemas/User'                                         
         '400':
           $ref: '#/components/responses/BadRequest'                             
         '401':
@@ -737,10 +684,10 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /user/disable:
+  /users/disable:
     patch:
       tags:
-        - user
+        - users
       summary: Disable user(s)
       operationId: disableUser
       requestBody:
@@ -761,25 +708,21 @@ paths:
                     type: string    
       responses:
         '207':
-          description: Multi-status
+          description: Multiple results
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    response:
-                      $ref: '#/components/schemas/ApiResponse'
-                    data:
+                type: object
+                properties:
+                  results:                  
+                    type: array
+                    items:
                       type: object
-                      properties:                      
-                        user:
-                          $ref: '#/components/schemas/User'
-                        groups:
-                          type: array
-                          items:
-                            $ref: '#/components/schemas/Group'                                          
+                      properties:
+                        response:
+                          $ref: '#/components/schemas/ApiResponse'  
+                        entity:
+                          $ref: '#/components/schemas/User'                                        
         '400':
           $ref: '#/components/responses/BadRequest'                             
         '401':
@@ -787,16 +730,16 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /user/{id}/site/list:          
+  /users/{id}/sites:
     get:
       tags:
-        - user
-      summary: List the sites the specified user has access to
+        - users
+      summary: Get all the sites the specified user has access to
       operationId: getUserSites
       parameters:
         - name: id
           in: path
-          description: The user ID whose sites need to be retrieved
+          description: The user ID. Username can also be used
           required: true
           schema:
             type: string
@@ -830,11 +773,11 @@ paths:
               schema:
                 type: object
                 properties:
-                  response:
-                    $ref: '#/components/schemas/ApiResponse'
-                  data:
+                  result:          
                     type: object
-                    properties:                                           
+                    properties:
+                      response:
+                        $ref: '#/components/schemas/ApiResponse'
                       total:
                         type: integer
                         format: int32
@@ -847,13 +790,10 @@ paths:
                         type: integer
                         format: int32
                         description: Number of records returned in this response
-                      records:
+                      entities:
                         type: array
                         items:
-                          type: object
-                          properties:                      
-                            site:
-                              $ref: '#/components/schemas/Site'
+                          $ref: '#/components/schemas/Site'
         '400':
           $ref: '#/components/responses/BadRequest'                             
         '401':
@@ -861,7 +801,8 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'             
         '500':
-          $ref: '#/components/responses/InternalServerError' 
+          $ref: '#/components/responses/InternalServerError'
+
 
 components:
   schemas:
@@ -906,9 +847,6 @@ components:
         documentationUrl:
           type: string
           description: A URL to documentation related to the response
-      required:
-        - code
-        - message
     User:
       type: object
       properties:
@@ -931,8 +869,11 @@ components:
         email:
           type: string
           description: User's email address
+        enabled:
+          type: boolean
+          description: Indicates if the user is enabled
         externallyManaged:
-          type: string
+          type: boolean
           description: Indicates if a user is managed in by an external system (LDAP, SAML, etc.)        
     Group:
       type: object
@@ -954,9 +895,6 @@ components:
           type: integer
           format: int64
           description: 'Site ID, unique and immutable'
-        name:
-          type: string
-          description: 'Site name, unique'
         desc:
           type: string
           description: Site description
@@ -968,8 +906,23 @@ components:
           schema:
             type: object
             properties:
-              response:
-                $ref: '#/components/schemas/ApiResponse'  
+              result:          
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'  
+    Conflict:
+      description: Resource already exists
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              result:          
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'                   
     BadRequest:
       description: Invalid request
       content:
@@ -977,8 +930,11 @@ components:
           schema:
             type: object
             properties:
-              response:
-                $ref: '#/components/schemas/ApiResponse'
+              result:          
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
     Unauthorized:
       description: Unauthorized
       content:
@@ -986,8 +942,11 @@ components:
           schema:
             type: object
             properties:
-              response:
-                $ref: '#/components/schemas/ApiResponse'
+              result:          
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
     InternalServerError:
       description: Internal system failure
       content:
@@ -995,8 +954,11 @@ components:
           schema:
             type: object
             properties:
-              response:
-                $ref: '#/components/schemas/ApiResponse'                     
+              result:          
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'                     
   securitySchemes: null
   links: {}
   callbacks: {}
