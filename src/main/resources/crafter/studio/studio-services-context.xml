@@ -407,8 +407,7 @@
     <!--         Security layer               -->
     <!-- ////////////////////////////////////// -->
 
-    <bean id="securityProvider" class="org.craftercms.studio.impl.v1.service.security.MappedSecurityProvider"
-          depends-on="cstudioDbSecurityProviderRegistration">
+    <bean id="securityProvider" class="org.craftercms.studio.impl.v1.service.security.MappedSecurityProvider">
         <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
@@ -428,15 +427,14 @@
         <property name="providerType" value="default"/>
     </bean>
 
-    <bean id="cstudioDbSecurityProvider" class="org.craftercms.studio.impl.v1.service.security.DbSecurityProvider"
-          depends-on="securityMapper">
+    <bean id="cstudioDbSecurityProvider" class="org.craftercms.studio.impl.v1.service.security.DbSecurityProvider">
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="securityMapper" ref="securityMapper" />
         <property name="siteFeedMapper" ref="siteFeedMapper" />
     </bean>
 
     <bean id="cstudioDbSecurityProviderRegistration"
-          parent="cstudioSecurityProviderRegistration" depends-on="cstudioDbSecurityProvider">
+          parent="cstudioSecurityProviderRegistration">
         <property name="securityProvider" ref="cstudioDbSecurityProvider"/>
         <property name="providerType" value="db"/>
     </bean>
