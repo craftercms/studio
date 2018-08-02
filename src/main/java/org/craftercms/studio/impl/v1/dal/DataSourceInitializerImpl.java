@@ -89,6 +89,7 @@ import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_INITIALIZ
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_INITIALIZER_RANDOM_ADMIN_PASSWORD_LENGTH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_INITIALIZER_UPGRADE_DB_SCRIPT_LOCATION;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_INITIALIZER_URL;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_ROOT;
 
 
 public class DataSourceInitializerImpl implements DataSourceInitializer, DisposableBean {
@@ -364,7 +365,7 @@ public class DataSourceInitializerImpl implements DataSourceInitializer, Disposa
         try {
             Path repositoryPath = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
                     studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH), site,
-                    studioConfiguration.getProperty(StudioConfiguration.SANDBOX_PATH));
+                    studioConfiguration.getProperty(StudioConfiguration.SANDBOX_PATH), GIT_ROOT);
             FileRepositoryBuilder builder = new FileRepositoryBuilder();
             Repository repo = builder
                     .setGitDir(repositoryPath.toFile())
