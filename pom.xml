@@ -35,6 +35,7 @@
         <box.sdk.version>2.8.2</box.sdk.version>
         <tinify.version>1.5.1</tinify.version>
         <mariadb4j.version>2.2.7</mariadb4j.version>
+        <jackson.version>2.9.6</jackson.version>
     </properties>
 
     <licenses>
@@ -459,7 +460,7 @@
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-jsr310</artifactId>
-            <version>2.8.11</version>
+            <version>${jackson.version}</version>
         </dependency>
 
         <!-- AWS SDK -->
