@@ -30,7 +30,7 @@
         <suiteXmlFile>test/resources/testng.xml</suiteXmlFile>
         <studio.ui.path>target/ui/</studio.ui.path>
 	<studio.ui.version>develop</studio.ui.version>
-        <spring.version>4.3.7.RELEASE</spring.version>
+        <spring.version>4.3.18.RELEASE</spring.version>
         <spring.security.version>4.2.7.RELEASE</spring.security.version>
         <box.sdk.version>2.21.0</box.sdk.version>
         <tinify.version>1.5.1</tinify.version>
