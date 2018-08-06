@@ -32,6 +32,7 @@
 	<studio.ui.version>develop</studio.ui.version>
         <spring.version>4.3.18.RELEASE</spring.version>
         <spring.security.version>4.2.7.RELEASE</spring.security.version>
+        <spring.data.version>2.0.9.RELEASE</spring.data.version>
         <box.sdk.version>2.21.0</box.sdk.version>
         <tinify.version>1.5.1</tinify.version>
         <mariadb4j.version>2.2.7</mariadb4j.version>
@@ -442,7 +443,7 @@
         <dependency>
             <groupId>org.springframework.data</groupId>
             <artifactId>spring-data-commons</artifactId>
-            <version>1.13.4.RELEASE</version>
+            <version>${spring.data.version}</version>
         </dependency>
 
         <dependency>
