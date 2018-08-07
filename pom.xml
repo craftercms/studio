@@ -617,13 +617,13 @@
                             <excludes>
                                 <!--&lt;!&ndash; when udpdating ROOT base check here to see if these need to be updated &ndash;&gt;-->
                                 <exclude>/WEB-INF/lib/xml-apis-1.0.b2.jar</exclude>
-                                <exclude>/WEB-INF/lib/httpclient-4.3.3.jar</exclude>
-                                <exclude>/WEB-INF/lib/httpcore-4.3.2.jar</exclude>
-                                <exclude>/WEB-INF/lib/commons-logging-1.1.1.jar</exclude>
+                                <exclude>/WEB-INF/lib/httpclient-4.5.2.jar</exclude>
+                                <exclude>/WEB-INF/lib/httpcore-4.4.4.jar</exclude>
+                                <exclude>/WEB-INF/lib/commons-logging-1.2.jar</exclude>
                                 <exclude>/WEB-INF/lib/slf4j-api-1.7.7.jar</exclude>
                                 <exclude>/WEB-INF/lib/slf4j-log4j12-1.7.7.jar</exclude>
                                 <exclude>/WEB-INF/lib/jcl-over-slf4j-1.7.7.jar</exclude>
-                                <exclude>/WEB-INF/lib/spring-security-core-3.2.3.RELEASE.jar</exclude>
+                                <exclude>/WEB-INF/lib/spring-security-core-4.2.7.RELEASE.jar</exclude>
                                 <exclude>/WEB-INF/templates/system/common/versionInfo.ftl</exclude>
                             </excludes>
                         </overlay>
