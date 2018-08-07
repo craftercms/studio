@@ -862,7 +862,8 @@ public class DeploymentServiceImpl implements DeploymentService {
             throw new SiteNotFoundException();
         }
         environment = resolveEnvironment(site, environment);
-        Set<String> environments = getAllPublishingEnvironments(site);
+        Set<String> environments = servicesConfig.isStagingEnvironmentEnabled(site) ?
+                getAllPublishedEnvironments(site) : getAllPublishingEnvironments(site);
         if (!environments.contains(environment)) {
             throw new EnvironmentNotFoundException();
         }
