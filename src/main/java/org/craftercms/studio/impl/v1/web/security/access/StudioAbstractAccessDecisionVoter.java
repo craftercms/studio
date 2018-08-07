@@ -21,7 +21,6 @@ package org.craftercms.studio.impl.v1.web.security.access;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
-import org.craftercms.studio.api.v1.dal.User;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -29,6 +28,7 @@ import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
+import org.craftercms.studio.api.v2.dal.User;
 import org.springframework.security.access.AccessDecisionVoter;
 
 import java.util.Collection;

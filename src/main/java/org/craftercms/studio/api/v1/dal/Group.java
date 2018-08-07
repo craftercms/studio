@@ -23,6 +23,7 @@ import org.springframework.security.core.GrantedAuthority;
 
 import java.io.Serializable;
 
+@Deprecated
 public class Group implements Serializable, GrantedAuthority {
 
     private static final long serialVersionUID = 4723035066512137838L;

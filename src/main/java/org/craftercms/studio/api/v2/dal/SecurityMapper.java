@@ -16,7 +16,11 @@
  *
  */
 
-package org.craftercms.studio.api.v1.dal;
+package org.craftercms.studio.api.v2.dal;
+
+import org.craftercms.studio.api.v1.dal.GroupPerSiteResult;
+import org.craftercms.studio.api.v1.dal.GroupResult;
+import org.craftercms.studio.api.v1.dal.UserProfileResult;
 
 import java.util.List;
 import java.util.Map;
@@ -39,7 +43,7 @@ public interface SecurityMapper {
 
     void createGroup(Map params);
 
-    List<UserProfileResult> getUserDetails(String username);
+    List<User> getUserDetails(String username);
 
     List<String> getAllUsersQuery(Map params);
 

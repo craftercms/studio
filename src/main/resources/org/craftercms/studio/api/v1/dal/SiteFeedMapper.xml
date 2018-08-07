@@ -84,22 +84,16 @@
 
     <select id="getSitesPerUserQuery" resultType="java.lang.String" parameterType="java.util.Map">
         SELECT DISTINCT cs.site_id as siteid
-        FROM site cs INNER JOIN `group` cg ON cg.site_id=cs.id
-        INNER JOIN group_user cug ON cug.groupId = cg.id
-        INNER JOIN `user` cu ON cu.username = cug.username
-        WHERE cu.username = #{username}
-        AND cs.system = 0
+        FROM site cs
+        WHERE cs.system = 0
         ORDER BY cs.site_id
         LIMIT #{start}, #{number}
     </select>
 
     <select id="getSitesPerUserQueryTotal" resultType="int" parameterType="java.util.Map">
         SELECT COUNT(DISTINCT cs.site_id)
-        FROM site cs INNER JOIN `group` cg ON cg.site_id=cs.id
-        INNER JOIN group_user cug ON cug.groupId = cg.id
-        INNER JOIN `user` cu ON cu.username = cug.username
-        WHERE cu.username = #{username}
-        AND cs.system = 0
+        FROM site cs
+        WHERE cs.system = 0
         ORDER BY cs.site_id
     </select>
 

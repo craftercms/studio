@@ -62,7 +62,9 @@
         <property name="securityService" ref="cstudioSecurityService"/>
     </bean>
 
-    <bean id="studioUserDetailsManager" class="org.craftercms.studio.impl.v1.service.security.UserDetailsManagerImpl"/>
+    <bean id="studioUserDetailsManager" class="org.craftercms.studio.impl.v1.service.security.UserDetailsManagerImpl">
+        <!--<property name="securityMapper" ref="securityMapper"/> -->
+    </bean>
 
     <ldap:context-source id="ldapContextSource"
                          url="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).SECURITY_LDAP_SERVER_URL)}"

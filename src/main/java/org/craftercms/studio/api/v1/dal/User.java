@@ -22,10 +22,10 @@ package org.craftercms.studio.api.v1.dal;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 
+@Deprecated
 public class User implements UserDetails {
 
     private static final long serialVersionUID = 968000561389890945L;

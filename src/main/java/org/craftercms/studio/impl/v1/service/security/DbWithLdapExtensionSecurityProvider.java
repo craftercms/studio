@@ -22,9 +22,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
-import org.craftercms.studio.api.v1.dal.Group;
+import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
-import org.craftercms.studio.api.v1.dal.User;
+import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationSystemException;
 import org.craftercms.studio.api.v1.exception.security.BadCredentialsException;
@@ -35,6 +35,7 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.activity.ActivityService;
+import org.craftercms.studio.api.v2.dal.UserGroup;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.ldap.AuthenticationException;
 import org.springframework.ldap.CommunicationException;
@@ -103,12 +104,12 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
                         return null;
                     }
                     if (firstNameAttrib != null && firstNameAttrib.get() != null) {
-                        user.setFirstname(firstNameAttrib.get().toString());
+                        user.setFirstName(firstNameAttrib.get().toString());
                     } else {
                         logger.warn("No LDAP attribute " + firstNameAttribName + " found for username " + username);
                     }
                     if (lastNameAttrib != null && lastNameAttrib.get() != null) {
-                        user.setLastname(lastNameAttrib.get().toString());
+                        user.setLastName(lastNameAttrib.get().toString());
                     } else {
                         logger.warn("No LDAP attribute " + lastNameAttribName + " found for username " + username);
                     }
@@ -194,7 +195,7 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
             // When user authenticated against LDAP, upsert user data into studio database
             if (super.userExists(username)) {
                 try {
-                    boolean success = updateUserInternal(user.getUsername(), user.getFirstname(), user.getLastname(),
+                    boolean success = updateUserInternal(user.getUsername(), user.getFirstName(), user.getLastName(),
                                                          user.getEmail());
                     if (success) {
                         ActivityService.ActivityType activityType = ActivityService.ActivityType.UPDATED;
@@ -212,7 +213,7 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
                 }
             } else {
                 try {
-                    boolean success = createUser(user.getUsername(), password, user.getFirstname(), user.getLastname(),
+                    boolean success = createUser(user.getUsername(), password, user.getFirstName(), user.getLastName(),
                                                  user.getEmail(), true);
                     if (success) {
                         ActivityService.ActivityType activityType = ActivityService.ActivityType.CREATED;
@@ -228,9 +229,9 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
                                                             " from external authentication provider", e);
                 }
             }
-            for (Group group : user.getGroups()) {
+            for (UserGroup userGroup : user.getGroups()) {
                 try {
-                    upsertUserGroup(group.getSite(), group.getName(), user.getUsername());
+                    upsertUserGroup(null, userGroup.getGroup().getGroupName(), user.getUsername());
                 } catch (GroupAlreadyExistsException | SiteNotFoundException | UserNotFoundException |
                     UserAlreadyExistsException | GroupNotFoundException e) {
                     logger.error("Failed to upsert user groups data from LDAP", e);
@@ -310,13 +311,14 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
 
     private void addGroupToUser(User user, String groupName, SiteFeed siteFeed) {
         Group group = new Group();
-        group.setName(groupName);
-        group.setExternallyManaged(1);
-        group.setDescription("Externally managed group");
-        group.setSiteId(siteFeed.getId());
-        group.setSite(siteFeed.getSiteId());
+        group.setGroupName(groupName);
+        group.setGroupDescription("Externally managed group");
+        group.setOrganization(null);
 
-        user.getGroups().add(group);
+        UserGroup userGroup = new UserGroup();
+        userGroup.setGroup(group);
+
+        user.getGroups().add(userGroup);
     }
 
     protected boolean updateUserInternal(String username, String firstName, String lastName, String email)

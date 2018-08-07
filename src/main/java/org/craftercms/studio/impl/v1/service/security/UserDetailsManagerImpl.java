@@ -1,6 +1,5 @@
 /*
- * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2016 Crafter Software Corporation.
+ * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,14 +18,16 @@
 
 package org.craftercms.studio.impl.v1.service.security;
 
-import org.craftercms.studio.api.v1.dal.SecurityMapper;
-import org.craftercms.studio.api.v1.dal.User;
+import org.craftercms.studio.api.v2.dal.SecurityMapper;
+import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v1.service.security.UserDetailsManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 
 public class UserDetailsManagerImpl implements UserDetailsManager {
 
+    //@Autowired
+    protected SecurityMapper securityMapper;
 
     @Override
     public UserDetails loadUserByUsername(String userName) {
@@ -34,6 +35,12 @@ public class UserDetailsManagerImpl implements UserDetailsManager {
         return user;
     }
 
-    @Autowired
-    private SecurityMapper securityMapper;
+
+    public SecurityMapper getSecurityMapper() {
+        return securityMapper;
+    }
+
+    public void setSecurityMapper(SecurityMapper securityMapper) {
+        this.securityMapper = securityMapper;
+    }
 }

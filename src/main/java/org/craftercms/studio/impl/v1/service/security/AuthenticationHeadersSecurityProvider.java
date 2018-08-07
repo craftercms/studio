@@ -23,9 +23,9 @@ import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.commons.http.RequestContext;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
-import org.craftercms.studio.api.v1.dal.Group;
+import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
-import org.craftercms.studio.api.v1.dal.User;
+import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationSystemException;
 import org.craftercms.studio.api.v1.exception.security.BadCredentialsException;
@@ -36,6 +36,7 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.activity.ActivityService;
+import org.craftercms.studio.api.v2.dal.UserGroup;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -120,10 +121,10 @@ public class AuthenticationHeadersSecurityProvider extends DbWithLdapExtensionSe
 
                     User user = new User();
                     user.setUsername(usernameHeader);
-                    user.setFirstname(firstName);
-                    user.setLastname(lastName);
+                    user.setFirstName(firstName);
+                    user.setLastName(lastName);
                     user.setEmail(email);
-                    user.setGroups(new ArrayList<Group>());
+                    user.setGroups(new ArrayList<UserGroup>());
 
                     logger.debug("Update user groups in database.");
                     if (StringUtils.isNoneEmpty(groups)) {
@@ -136,19 +137,19 @@ public class AuthenticationHeadersSecurityProvider extends DbWithLdapExtensionSe
                                 SiteFeed siteFeed = siteFeedMapper.getSite(params);
                                 if (siteFeed != null) {
                                     Group g = new Group();
-                                    g.setName(groupsArray[i + 1]);
-                                    g.setExternallyManaged(1);
-                                    g.setDescription("Externally managed group");
-                                    g.setSiteId(siteFeed.getId());
-                                    g.setSite(siteFeed.getSiteId());
-                                    user.getGroups().add(g);
+                                    g.setGroupName(groupsArray[i + 1]);
+                                    g.setGroupDescription("Externally managed group");
+                                    g.setOrganization(null);
+                                    UserGroup ug = new UserGroup();
+                                    ug.setGroup(g);
+                                    user.getGroups().add(ug);
                                     try {
-                                        upsertUserGroup(siteId, g.getName(), usernameHeader);
+                                        upsertUserGroup(siteId, g.getGroupName(), usernameHeader);
                                     } catch (GroupAlreadyExistsException | SiteNotFoundException |
                                             UserNotFoundException | UserAlreadyExistsException |
                                             GroupNotFoundException e) {
                                         logger.error("Failed to upsert user groups data from authentication " +
-                                                "headers, site ID: " + siteId + " group: " + g.getName() +
+                                                "headers, site ID: " + siteId + " group: " + g.getGroupName() +
                                                 " username: " + usernameHeader, e);
                                     }
                                 }
