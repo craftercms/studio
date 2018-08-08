@@ -186,47 +186,6 @@ public class RebuildRepositoryMetadata {
         return securityService;
     }
 
-    public void setSecurityService(SecurityService securityService) {
-        this.securityService = securityService;
-    }
-
-    public TaskExecutor getTaskExecutor() {
-        return taskExecutor;
-    }
-
-    public void setTaskExecutor(TaskExecutor taskExecutor) {
-        this.taskExecutor = taskExecutor;
-    }
-
-    public StudioConfiguration getStudioConfiguration() {
-        return studioConfiguration;
-    }
-
-    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
-        this.studioConfiguration = studioConfiguration;
-    }
-
-    public SiteService getSiteService() {
-        return siteService;
-    }
-
-    public void setSiteService(SiteService siteService) {
-        this.siteService = siteService;
-    }
-
-    public ContentRepository getContentRepository() {
-        return contentRepository;
-    }
-
-    public void setContentRepository(ContentRepository contentRepository) {
-        this.contentRepository = contentRepository;
-    }
-
-    public PublishRequestMapper getPublishRequestMapper() {
-        return publishRequestMapper;
-    }
-
-    public void setPublishRequestMapper(PublishRequestMapper publishRequestMapper) {
-        this.publishRequestMapper = publishRequestMapper;
-    }
+    public ContentRepository getContentRepository() { return contentRepository; }
+    public void setContentRepository(ContentRepository contentRepository) { this.contentRepository = contentRepository; }
 }

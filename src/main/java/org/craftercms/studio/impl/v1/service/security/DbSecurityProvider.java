@@ -74,7 +74,7 @@ public class DbSecurityProvider implements SecurityProvider {
 
     private static Logger logger = LoggerFactory.getLogger(DbSecurityProvider.class);
 
-    //@Autowired
+    @Autowired
     protected SecurityMapper securityMapper;
     protected SiteFeedMapper siteFeedMapper;
     @Autowired
