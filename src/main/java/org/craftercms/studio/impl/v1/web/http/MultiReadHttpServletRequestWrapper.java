@@ -18,10 +18,9 @@
 
 package org.craftercms.studio.impl.v1.web.http;
 
-import com.google.common.collect.Iterables;
-import com.google.common.collect.ObjectArrays;
-
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
@@ -32,10 +31,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
 import java.io.*;
 import java.nio.charset.Charset;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class MultiReadHttpServletRequestWrapper extends HttpServletRequestWrapper {
 
@@ -53,7 +49,7 @@ public class MultiReadHttpServletRequestWrapper extends HttpServletRequestWrappe
             String key = e.getName();
             String value = e.getValue();
             if (toMap.containsKey(key)) {
-                String[] newValue = ObjectArrays.concat(toMap.get(key), value);
+                String[] newValue = ArrayUtils.addAll(toMap.get(key), value);
                 toMap.remove(key);
                 toMap.put(key, newValue);
             } else {
@@ -110,14 +106,14 @@ public class MultiReadHttpServletRequestWrapper extends HttpServletRequestWrappe
     }
 
     private Iterable<NameValuePair> decodeParams(String body) {
-        Iterable<NameValuePair> params = URLEncodedUtils.parse(body, UTF8_CHARSET);
+        List<NameValuePair> params = new ArrayList<>(URLEncodedUtils.parse(body, UTF8_CHARSET));
         try {
             String cts = getContentType();
             if (cts != null) {
                 ContentType ct = ContentType.parse(cts);
                 if (ct.getMimeType().equals(ContentType.APPLICATION_FORM_URLENCODED.getMimeType())) {
                     List<NameValuePair> postParams = URLEncodedUtils.parse(IOUtils.toString(getReader()), UTF8_CHARSET);
-                    params = Iterables.concat(params, postParams);
+                    CollectionUtils.addAll(params, postParams);
                 }
             }
         } catch (IOException e) {
