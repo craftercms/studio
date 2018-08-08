@@ -79,7 +79,6 @@ public class PublishingManagerImpl implements PublishingManager {
     protected StudioConfiguration studioConfiguration;
     protected DependencyService dependencyService;
     protected DeploymentHistoryProvider deploymentHistoryProvider;
-
     @Autowired
     protected PublishRequestMapper publishRequestMapper;
 
@@ -502,4 +501,5 @@ public class PublishingManagerImpl implements PublishingManager {
     public void setDeploymentHistoryProvider(DeploymentHistoryProvider deploymentHistoryProvider) {
         this.deploymentHistoryProvider = deploymentHistoryProvider;
     }
+
 }

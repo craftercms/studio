@@ -180,10 +180,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     protected SecurityProvider securityProvider;
     protected StudioConfiguration studioConfiguration;
     protected ServicesConfig servicesConfig;
-
     @Autowired
     protected GitLogMapper gitLogMapper;
-
     @Autowired
     protected RemoteRepositoryMapper remoteRepositoryMapper;
 

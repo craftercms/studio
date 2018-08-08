@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:jdbc="http://www.springframework.org/schema/jdbc" xmlns="http://www.springframework.org/schema/beans"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc.xsd">
+       xmlns:mybatis="http://mybatis.org/schema/mybatis-spring"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc.xsd http://mybatis.org/schema/mybatis-spring http://mybatis.org/schema/mybatis-spring.xsd">
 
-    <bean id="dataSource" class="org.apache.commons.dbcp2.BasicDataSource" depends-on="studioConfiguration,databaseInitializer" destroy-method="close">
+    <bean id="dataSource" class="org.apache.commons.dbcp2.BasicDataSource" depends-on="studioConfiguration" destroy-method="close">
         <property name="driverClassName" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_DRIVER)}" />
         <property name="url" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_URL)}" />
         <property name="username" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_USERNAME)}" />
@@ -26,27 +27,26 @@
     </bean>
 
     <!-- define the SqlSessionFactory -->
-    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean" depends-on="databaseInitializer" >
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
         <property name="dataSource" ref="dataSource"/>
         <property name="typeAliasesPackage" value="org.craftercms.studio.api.domain"/>
         <property name="configLocation" value="classpath:crafter/studio/database/mybatis-config.xml"/>
     </bean>
 
-    <!-- scan for mappers and let them be autowired -->
-    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer" depends-on="databaseInitializer">
-        <property name="basePackage" value="org.craftercms.studio.api.v1.dal" />
-        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>
-    </bean>
-
-    <bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate" depends-on="databaseInitializer">
+    <bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate">
         <constructor-arg index="0" ref="sqlSessionFactory"/>
     </bean>
 
-    <bean id="databaseInitializer" class="org.craftercms.studio.impl.v1.dal.DataSourceInitializerImpl"
+    <!-- scan for mappers and let them be autowired -->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer" depends-on="databaseInitializer">
+        <property name="basePackage" value="org.craftercms.studio.api.v1.dal,org.craftercms.studio.api.v2.dal" />
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>
+    </bean>
+
+    <bean id="databaseInitializer" class="org.craftercms.studio.impl.v2.dal.DataSourceInitializerImpl"
           init-method="initDataSource" depends-on="studioMariaDBService">
         <property name="delimiter" value=" ;"/>
         <property name="studioConfiguration" ref="studioConfiguration"/>
-        <property name="mariaDB4jService" ref="studioMariaDBService" />
         <property name="contentRepository" ref="contentRepository" />
         <property name="integrityValidator" ref="crafter.databaseValidator"/>
     </bean>
@@ -57,7 +57,7 @@
     </bean>
 -->
     <bean id="studioMariaDBService" class="ch.vorburger.mariadb4j.springframework.MariaDB4jSpringService"
-          init-method="start" destroy-method="stop" depends-on="studioConfiguration">
+         init-method="start" destroy-method="stop" depends-on="studioConfiguration" >
         <property name="defaultBaseDir" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_BASE_PATH)}" />
         <property name="defaultDataDir" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_DATA_PATH)}" />
         <property name="defaultPort" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_PORT)}"  />

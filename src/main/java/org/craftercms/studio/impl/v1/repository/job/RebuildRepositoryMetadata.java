@@ -1,6 +1,5 @@
 /*
- * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2016 Crafter Software Corporation.
+ * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,7 +33,8 @@ import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.task.TaskExecutor;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_REBUILD_METADATA_BATCH_SIZE;
@@ -47,7 +47,6 @@ public class RebuildRepositoryMetadata {
 
     @Autowired
     protected PublishRequestMapper publishRequestMapper;
-
     protected ObjectMetadataManager objectMetadataManager;
     protected ObjectStateService objectStateService;
     protected DependencyService dependencyService;
@@ -153,30 +152,75 @@ public class RebuildRepositoryMetadata {
         return toReturn;
     }
 
-    public ObjectMetadataManager getObjectMetadataManager() { return objectMetadataManager; }
-    public void setObjectMetadataManager(ObjectMetadataManager objectMetadataManager) { this.objectMetadataManager = objectMetadataManager; }
+    public ObjectMetadataManager getObjectMetadataManager() {
+        return objectMetadataManager;
+    }
 
-    public ObjectStateService getObjectStateService() { return objectStateService; }
-    public void setObjectStateService(ObjectStateService objectStateService) { this.objectStateService = objectStateService; }
+    public void setObjectMetadataManager(ObjectMetadataManager objectMetadataManager) {
+        this.objectMetadataManager = objectMetadataManager;
+    }
 
-    public DependencyService getDependencyService() { return dependencyService; }
-    public void setDependencyService(DependencyService dependencyService) { this.dependencyService = dependencyService; }
+    public ObjectStateService getObjectStateService() {
+        return objectStateService;
+    }
 
-    public ContentService getContentService() { return contentService; }
-    public void setContentService(ContentService contentService) { this.contentService = contentService; }
+    public void setObjectStateService(ObjectStateService objectStateService) {
+        this.objectStateService = objectStateService;
+    }
 
-    public SecurityService getSecurityService() { return securityService; }
-    public void setSecurityService(SecurityService securityService) { this.securityService = securityService; }
+    public DependencyService getDependencyService() {
+        return dependencyService;
+    }
 
-    public TaskExecutor getTaskExecutor() { return taskExecutor; }
-    public void setTaskExecutor(TaskExecutor taskExecutor) { this.taskExecutor = taskExecutor; }
+    public void setDependencyService(DependencyService dependencyService) {
+        this.dependencyService = dependencyService;
+    }
 
-    public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
-    public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
+    public ContentService getContentService() {
+        return contentService;
+    }
 
-    public SiteService getSiteService() { return siteService; }
-    public void setSiteService(SiteService siteService) { this.siteService = siteService; }
+    public void setContentService(ContentService contentService) {
+        this.contentService = contentService;
+    }
 
-    public ContentRepository getContentRepository() { return contentRepository; }
-    public void setContentRepository(ContentRepository contentRepository) { this.contentRepository = contentRepository; }
+    public SecurityService getSecurityService() {
+        return securityService;
+    }
+
+    public void setSecurityService(SecurityService securityService) {
+        this.securityService = securityService;
+    }
+
+    public TaskExecutor getTaskExecutor() {
+        return taskExecutor;
+    }
+
+    public void setTaskExecutor(TaskExecutor taskExecutor) {
+        this.taskExecutor = taskExecutor;
+    }
+
+    public StudioConfiguration getStudioConfiguration() {
+        return studioConfiguration;
+    }
+
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+        this.studioConfiguration = studioConfiguration;
+    }
+
+    public SiteService getSiteService() {
+        return siteService;
+    }
+
+    public void setSiteService(SiteService siteService) {
+        this.siteService = siteService;
+    }
+
+    public ContentRepository getContentRepository() {
+        return contentRepository;
+    }
+
+    public void setContentRepository(ContentRepository contentRepository) {
+        this.contentRepository = contentRepository;
+    }
 }

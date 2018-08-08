@@ -1,6 +1,5 @@
 /*
- * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2016 Crafter Software Corporation.
+ * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,6 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 
 package org.craftercms.studio.impl.v1.service.content;
@@ -43,7 +43,8 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
 
     @Override
     @ValidateParams
-    public void insertNewObjectMetadata(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
+    public void insertNewObjectMetadata(@ValidateStringParam(name = "site") String site,
+                                        @ValidateSecurePathParam(name = "path") String path) {
         path = FilenameUtils.normalize(path, true);
         Map<String, String> params = new HashMap<>();
         params.put("site", site);
@@ -51,13 +52,16 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
         try {
         itemMetadataMapper.insertEntry(params);
         } catch (DuplicateKeyException e) {
-            logger.debug("Failed to insert metadata for site: " + site + " and path: " + path + " into item_metadata table, because it is duplicate entry.");
+            logger.debug("Failed to insert metadata for site: " + site + " and path: " + path +
+                    " into item_metadata table, because it is duplicate entry.");
         }
     }
 
     @Override
     @ValidateParams
-    public void setObjectMetadata(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, Map<String, Object> properties) {
+    public void setObjectMetadata(@ValidateStringParam(name = "site") String site,
+                                  @ValidateSecurePathParam(name = "path") String path,
+                                  Map<String, Object> properties) {
         path = FilenameUtils.normalize(path, true);
         Map<String, Object> params = new HashMap<>();
         params.put("site", site);
@@ -68,7 +72,9 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
 
     @Override
     @ValidateParams
-    public void setObjectMetadataForCommitId(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "commitId") String commitId, Map<String, Object> properties) {
+    public void setObjectMetadataForCommitId(@ValidateStringParam(name = "site") String site,
+                                             @ValidateStringParam(name = "commitId") String commitId,
+                                             Map<String, Object> properties) {
         Map<String, Object> params = new HashMap<>();
         params.put("site", site);
         params.put("commitId", commitId);
@@ -83,7 +89,8 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
 
     @Override
     @ValidateParams
-    public ItemMetadata getProperties(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
+    public ItemMetadata getProperties(@ValidateStringParam(name = "site") String site,
+                                      @ValidateSecurePathParam(name = "path") String path) {
         String cleanPath = FilenameUtils.normalize(path, true);
         Map<String, String> params = new HashMap<>();
         params.put("site", site);
@@ -93,7 +100,8 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
 
     @Override
     @ValidateParams
-    public boolean metadataExist(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
+    public boolean metadataExist(@ValidateStringParam(name = "site") String site,
+                                 @ValidateSecurePathParam(name = "path") String path) {
         path = FilenameUtils.normalize(path, true);
         Map<String, String> params = new HashMap<>();
         params.put("site", site);
@@ -110,7 +118,8 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
 
     @Override
     @ValidateParams
-    public boolean isRenamed(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
+    public boolean isRenamed(@ValidateStringParam(name = "site") String site,
+                             @ValidateSecurePathParam(name = "path") String path) {
         path = FilenameUtils.normalize(path, true);
         if (metadataExist(site, path)) {
             ItemMetadata metadata = getProperties(site, path);
@@ -122,7 +131,8 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
 
     @Override
     @ValidateParams
-    public String getOldPath(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
+    public String getOldPath(@ValidateStringParam(name = "site") String site,
+                             @ValidateSecurePathParam(name = "path") String path) {
         path = FilenameUtils.normalize(path, true);
         if (metadataExist(site, path)) {
             ItemMetadata metadata = getProperties(site, path);
@@ -134,7 +144,9 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
 
     @Override
     @ValidateParams
-    public void lockContent(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, @ValidateStringParam(name = "lockOwner") String lockOwner) {
+    public void lockContent(@ValidateStringParam(name = "site") String site,
+                            @ValidateSecurePathParam(name = "path") String path,
+                            @ValidateStringParam(name = "lockOwner") String lockOwner) {
         path = FilenameUtils.normalize(path, true);
         if (!metadataExist(site, path)) {
             insertNewObjectMetadata(site, path);
@@ -148,7 +160,8 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
 
     @Override
     @ValidateParams
-    public void unLockContent(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
+    public void unLockContent(@ValidateStringParam(name = "site") String site,
+                              @ValidateSecurePathParam(name = "path") String path) {
         path = FilenameUtils.normalize(path, true);
         if (!metadataExist(site, path)) {
             insertNewObjectMetadata(site, path);
@@ -170,7 +183,8 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
 
     @Override
     @ValidateParams
-    public void deleteObjectMetadata(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
+    public void deleteObjectMetadata(@ValidateStringParam(name = "site") String site,
+                                     @ValidateSecurePathParam(name = "path") String path) {
         path = FilenameUtils.normalize(path, true);
         Map<String, String> params = new HashMap<>();
         params.put("site", site);
@@ -180,7 +194,8 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
 
     @Override
     @ValidateParams
-    public void deleteObjectMetadataForFolder(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
+    public void deleteObjectMetadataForFolder(@ValidateStringParam(name = "site") String site,
+                                              @ValidateSecurePathParam(name = "path") String path) {
         path = FilenameUtils.normalize(path, true);
         Map<String, String> params = new HashMap<>();
         params.put("site", site);
@@ -190,7 +205,9 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
 
     @Override
     @ValidateParams
-    public void updateObjectPath(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "oldPath") String oldPath, @ValidateSecurePathParam(name = "newPath") String newPath) {
+    public void updateObjectPath(@ValidateStringParam(name = "site") String site,
+                                 @ValidateSecurePathParam(name = "oldPath") String oldPath,
+                                 @ValidateSecurePathParam(name = "newPath") String newPath) {
         newPath = FilenameUtils.normalize(newPath, true);
         oldPath = FilenameUtils.normalize(oldPath, true);
         Map<String, Object> params = new HashMap<>();
@@ -202,7 +219,8 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
 
     @Override
     @ValidateParams
-    public void clearRenamed(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
+    public void clearRenamed(@ValidateStringParam(name = "site") String site,
+                             @ValidateSecurePathParam(name = "path") String path) {
         path = FilenameUtils.normalize(path, true);
         Map<String, Object> params = new HashMap<>();
         params.put("renamed", false);
@@ -212,7 +230,9 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
 
     @Override
     @ValidateParams
-    public void updateCommitId(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, @ValidateStringParam(name = "commitId") String commitId) {
+    public void updateCommitId(@ValidateStringParam(name = "site") String site,
+                               @ValidateSecurePathParam(name = "path") String path,
+                               @ValidateStringParam(name = "commitId") String commitId) {
         path = FilenameUtils.normalize(path, true);
         Map<String, Object> params = new HashMap<>();
         params.put("site", site);
@@ -223,7 +243,8 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
 
     @Override
     @ValidateParams
-    public boolean movedPathExists(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
+    public boolean movedPathExists(@ValidateStringParam(name = "site") String site,
+                                   @ValidateSecurePathParam(name = "path") String path) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("siteId", site);
         params.put("path", path);
@@ -232,7 +253,8 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
 
     @Override
     @ValidateParams
-    public List<String> getSameCommitItems(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
+    public List<String> getSameCommitItems(@ValidateStringParam(name = "site") String site,
+                                           @ValidateSecurePathParam(name = "path") String path) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("siteId", site);
         params.put("path", path);

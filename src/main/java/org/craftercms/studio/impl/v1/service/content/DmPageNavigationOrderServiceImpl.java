@@ -1,6 +1,5 @@
 /*
- * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2016 Crafter Software Corporation.
+ * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,6 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 package org.craftercms.studio.impl.v1.service.content;
 
@@ -45,14 +45,14 @@ import java.util.UUID;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.PAGE_NAVIGATION_ORDER_INCREMENT;
 
 
-public class DmPageNavigationOrderServiceImpl extends AbstractRegistrableService implements DmPageNavigationOrderService {
+public class DmPageNavigationOrderServiceImpl extends AbstractRegistrableService
+        implements DmPageNavigationOrderService {
 
     private static final Logger logger = LoggerFactory.getLogger(DmPageNavigationOrderServiceImpl.class);
 
     protected GeneralLockService generalLockService;
     protected ContentService contentService;
     protected StudioConfiguration studioConfiguration;
-
     @Autowired
     protected NavigationOrderSequenceMapper navigationOrderSequenceMapper;
 
@@ -63,13 +63,16 @@ public class DmPageNavigationOrderServiceImpl extends AbstractRegistrableService
 
     @Override
     @ValidateParams
-    public double getNewNavOrder(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
+    public double getNewNavOrder(@ValidateStringParam(name = "site") String site,
+                                 @ValidateSecurePathParam(name = "path") String path) {
         return getNewNavOrder(site, path, -1);
     }
 
     @Override
     @ValidateParams
-    public double getNewNavOrder(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, @ValidateDoubleParam(name = "currentMaxNavOrder") double currentMaxNavOrder) {
+    public double getNewNavOrder(@ValidateStringParam(name = "site") String site,
+                                 @ValidateSecurePathParam(name = "path") String path,
+                                 @ValidateDoubleParam(name = "currentMaxNavOrder") double currentMaxNavOrder) {
 
         String lockId = site + ":" + path;
         double lastNavOrder = 1000D;
@@ -77,7 +80,8 @@ public class DmPageNavigationOrderServiceImpl extends AbstractRegistrableService
             Map<String, String> params = new HashMap<String, String>();
             params.put("site", site);
             params.put("path", path);
-            NavigationOrderSequence navigationOrderSequence = navigationOrderSequenceMapper.getPageNavigationOrderForSiteAndPath(params);
+            NavigationOrderSequence navigationOrderSequence =
+                    navigationOrderSequenceMapper.getPageNavigationOrderForSiteAndPath(params);
             if (navigationOrderSequence == null) {
                 navigationOrderSequence = new NavigationOrderSequence();
                 navigationOrderSequence.setSite(site);
@@ -115,10 +119,10 @@ public class DmPageNavigationOrderServiceImpl extends AbstractRegistrableService
 
     @Override
     @ValidateParams
-    public boolean addNavOrder(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, Document document) {
+    public boolean addNavOrder(@ValidateStringParam(name = "site") String site,
+                               @ValidateSecurePathParam(name = "path") String path, Document document) {
         boolean docUpdated =false;
         Element root = document.getRootElement();
-        //Node navOrderNode = root.selectSingleNode("//" + DmXmlConstants.ELM_ORDER_VALUE);
         Node navOrderNode = root.selectSingleNode("//" + DmXmlConstants.ELM_ORDER_DEFAULT);
 
         //skip if order value element does not exist
@@ -132,10 +136,10 @@ public class DmPageNavigationOrderServiceImpl extends AbstractRegistrableService
 
     @Override
     @ValidateParams
-    public boolean updateNavOrder(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, Document document) {
+    public boolean updateNavOrder(@ValidateStringParam(name = "site") String site,
+                                  @ValidateSecurePathParam(name = "path") String path, Document document) {
         boolean docUpdated =false;
         Element root = document.getRootElement();
-        //Node navOrderNode = root.selectSingleNode("//" + DmXmlConstants.ELM_ORDER_VALUE);
         Node navOrderNode = root.selectSingleNode("//" + DmXmlConstants.ELM_ORDER_DEFAULT);
 
         //skip if order value element does not exist
@@ -168,12 +172,27 @@ public class DmPageNavigationOrderServiceImpl extends AbstractRegistrableService
         return toReturn;
     }
 
-    public GeneralLockService getGeneralLockService() { return generalLockService; }
-    public void setGeneralLockService(GeneralLockService generalLockService) { this.generalLockService = generalLockService; }
+    public GeneralLockService getGeneralLockService() {
+        return generalLockService;
+    }
 
-    public ContentService getContentService() { return contentService; }
-    public void setContentService(ContentService contentService) { this.contentService = contentService; }
+    public void setGeneralLockService(GeneralLockService generalLockService) {
+        this.generalLockService = generalLockService;
+    }
 
-    public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
-    public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
+    public ContentService getContentService() {
+        return contentService;
+    }
+
+    public void setContentService(ContentService contentService) {
+        this.contentService = contentService;
+    }
+
+    public StudioConfiguration getStudioConfiguration() {
+        return studioConfiguration;
+    }
+
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+        this.studioConfiguration = studioConfiguration;
+    }
 }

@@ -69,7 +69,6 @@ import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.impl.v1.service.deployment.job.DeployContentToEnvironmentStore;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.text.SimpleDateFormat;
 import java.time.ZoneOffset;
@@ -123,7 +122,6 @@ public class DeploymentServiceImpl implements DeploymentService {
     protected DeploymentHistoryProvider deploymentHistoryProvider;
     protected StudioConfiguration studioConfiguration;
 
-    @Autowired
     protected PublishRequestMapper publishRequestMapper;
 
     @Override
@@ -1097,4 +1095,11 @@ public class DeploymentServiceImpl implements DeploymentService {
         this.studioConfiguration = studioConfiguration;
     }
 
+    public PublishRequestMapper getPublishRequestMapper() {
+        return publishRequestMapper;
+    }
+
+    public void setPublishRequestMapper(PublishRequestMapper publishRequestMapper) {
+        this.publishRequestMapper = publishRequestMapper;
+    }
 }
