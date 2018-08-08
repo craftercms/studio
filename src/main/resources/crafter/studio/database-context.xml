@@ -47,6 +47,7 @@
         <property name="delimiter" value=" ;"/>
         <property name="studioConfiguration" ref="studioConfiguration"/>
         <property name="mariaDB4jService" ref="studioMariaDBService" />
+        <property name="integrityValidator" ref="crafter.databaseValidator"/>
     </bean>
 
     <bean id="studioMariaDBService" class="ch.vorburger.mariadb4j.springframework.MariaDB4jSpringService"

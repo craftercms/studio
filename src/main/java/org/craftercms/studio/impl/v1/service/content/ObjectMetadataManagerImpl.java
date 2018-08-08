@@ -238,4 +238,17 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
         params.put("path", path);
         return itemMetadataMapper.getSameCommitItems(params);
     }
+
+    @Override
+    @ValidateParams
+    public int countDescriptors() {
+        return itemMetadataMapper.countDescriptors();
+    }
+
+    @Override
+    @ValidateParams
+    public int countAssets() {
+        return itemMetadataMapper.countAssets();
+    }
+
 }

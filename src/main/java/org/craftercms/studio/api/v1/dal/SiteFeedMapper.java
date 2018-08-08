@@ -25,6 +25,8 @@ public interface SiteFeedMapper {
 
     List<SiteFeed> getSites();
 
+    int countSites();
+
     SiteFeed getSite(Map params);
 
 	boolean createSite(SiteFeed siteFeed);

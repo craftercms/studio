@@ -19,6 +19,7 @@
 package org.craftercms.studio.impl.v1.service.security;
 
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.dal.Group;
@@ -64,7 +65,7 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
 
     @Override
     public String authenticate(String username, String password)
-            throws BadCredentialsException, AuthenticationSystemException {
+            throws BadCredentialsException, AuthenticationSystemException, EntitlementException {
 
         // Mapper for user data if user is successfully authenticated
         AuthenticatedLdapEntryContextMapper<User> mapper = new AuthenticatedLdapEntryContextMapper<User>() {

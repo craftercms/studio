@@ -99,6 +99,8 @@ public interface SiteService {
 
     Set<String> getAllAvailableSites();
 
+    int countSites();
+
     /**
      * Create a new site based on an existing blueprint
      * @param blueprintName
