@@ -34,7 +34,7 @@
         <spring.security.version>4.2.7.RELEASE</spring.security.version>
         <spring.data.version>2.0.9.RELEASE</spring.data.version>
         <spring.ldap.version>2.3.2.RELEASE</spring.ldap.version>
-	    <box.sdk.version>2.21.0</box.sdk.version>
+        <box.sdk.version>2.21.0</box.sdk.version>
         <tinify.version>1.5.1</tinify.version>
         <mariadb4j.version>2.2.7</mariadb4j.version>
         <jackson.version>2.9.6</jackson.version>
@@ -91,7 +91,15 @@
             </snapshots>
         </repository>
     </repositories>
+
     <dependencies>
+        <!-- Servlet -->
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <version>3.0.1</version>
+            <scope>provided</scope>
+        </dependency>
 
         <!-- Crafter Engine -->
         <dependency>
@@ -131,41 +139,6 @@
             <groupId>org.craftercms</groupId>
             <artifactId>crafter-commons-git</artifactId>
             <version>${project.version}</version>
-        </dependency>
-
-
-        <!-- GOOGLE ANALYTICS -->
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>r09</version>
-        </dependency>
-        <dependency>
-            <groupId>com.google.gdata</groupId>
-            <artifactId>core</artifactId>
-            <version>1.47.1</version>
-        </dependency>
-        <dependency>
-            <groupId>com.google.apis</groupId>
-            <artifactId>google-api-services-analytics</artifactId>
-            <version>v2.4-rev37-1.14.2-beta</version>
-        </dependency>
-        <dependency>
-            <groupId>com.google.code.findbugs</groupId>
-            <artifactId>jsr305</artifactId>
-            <version>1.3.9</version>
-        </dependency>
-
-        <!-- Groovy Grapes -->
-        <dependency>
-            <groupId>xerces</groupId>
-            <artifactId>xercesImpl</artifactId>
-            <version>2.8.1</version>
-        </dependency>
-        <dependency>
-            <groupId>xml-apis</groupId>
-            <artifactId>xml-apis</artifactId>
-            <version>1.3.04</version>
         </dependency>
 
         <!-- Database DALs -->
@@ -237,14 +210,14 @@
                     <groupId>org.springframework</groupId>
                     <artifactId>spring-web</artifactId>
                 </exclusion>
-                    <exclusion>
-                        <groupId>org.springframework</groupId>
-                        <artifactId>spring-expression</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.springframework</groupId>
-                        <artifactId>spring-context</artifactId>
-                    </exclusion>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-expression</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-context</artifactId>
+                </exclusion>
                 <exclusion>
                     <groupId>org.springframework</groupId>
                     <artifactId>spring-core</artifactId>
@@ -319,12 +292,6 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
-            <version>3.0.1</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
             <version>2.4</version>
@@ -346,19 +313,6 @@
             <artifactId>spring-test</artifactId>
             <version>${spring.version}</version>
             <scope>test</scope>
-        </dependency>
-
-        <!-- groovy workflow services (to talk to Activiti) -->
-        <dependency>
-            <groupId>org.codehaus.groovy.modules.http-builder</groupId>
-            <artifactId>http-builder</artifactId>
-            <version>0.5.2</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>groovy</artifactId>
-                    <groupId>org.codehaus.groovy</groupId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <!-- MariaDB -->
@@ -509,19 +463,19 @@
             <plugin>
                 <artifactId>maven-clean-plugin</artifactId>
                 <version>3.0.0</version>
-                    <configuration>
-                            <filesets>
-                                      <fileset>
-                                            <directory>data/</directory>
-                                            <followSymlinks>false</followSymlinks>
-                                    </fileset>
-                                <fileset>
-                                    <directory>overlays/</directory>
-                                    <followSymlinks>false</followSymlinks>
-                                </fileset>
-                              </filesets>
-                        </configuration>
-              </plugin>
+                <configuration>
+                    <filesets>
+                        <fileset>
+                            <directory>data/</directory>
+                            <followSymlinks>false</followSymlinks>
+                        </fileset>
+                        <fileset>
+                            <directory>overlays/</directory>
+                            <followSymlinks>false</followSymlinks>
+                        </fileset>
+                    </filesets>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
@@ -555,7 +509,7 @@
                 <version>1.2</version>
                 <executions>
                     <execution>
-                        <id>Java Code </id>
+                        <id>Java Code</id>
                         <phase>process-resources</phase>
                         <goals>
                             <goal>create</goal>

@@ -16,7 +16,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
 
-import com.google.gdata.util.common.base.StringUtil;
 import freemarker.template.Configuration;
 import freemarker.template.DefaultObjectWrapperBuilder;
 import freemarker.template.Template;
@@ -157,9 +156,9 @@ public class NotificationServiceImpl implements NotificationService {
         } catch (Throwable ex) {
             logger.error("Unable to get notification message from notification configuration for site: {0} type: {1}"
                 + " key: {2}, locale {3}.", (Exception)ex, site, type, key, locale);
-            return StringUtil.EMPTY_STRING;
+            return StringUtils.EMPTY;
         }
-        return StringUtil.EMPTY_STRING;
+        return StringUtils.EMPTY;
     }
 
     private String getCannedMessage(final Map<String, List<MessageTO>> cannedMessages, final String key) {
