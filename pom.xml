@@ -29,11 +29,12 @@
         <phantomjs.plugin.version>0.5</phantomjs.plugin.version>
         <suiteXmlFile>test/resources/testng.xml</suiteXmlFile>
         <studio.ui.path>target/ui/</studio.ui.path>
-	<studio.ui.version>develop</studio.ui.version><!-- craftercms ui version flag -->
+        <studio.ui.version>develop</studio.ui.version><!-- craftercms ui version flag -->
         <spring.version>4.3.18.RELEASE</spring.version>
         <spring.security.version>4.2.7.RELEASE</spring.security.version>
         <spring.data.version>2.0.9.RELEASE</spring.data.version>
-        <box.sdk.version>2.21.0</box.sdk.version>
+        <spring.ldap.version>2.3.2.RELEASE</spring.ldap.version>
+	    <box.sdk.version>2.21.0</box.sdk.version>
         <tinify.version>1.5.1</tinify.version>
         <mariadb4j.version>2.2.7</mariadb4j.version>
         <jackson.version>2.9.6</jackson.version>
@@ -395,7 +396,7 @@
         <dependency>
             <groupId>org.springframework.ldap</groupId>
             <artifactId>spring-ldap-core</artifactId>
-            <version>2.3.1.RELEASE</version>
+            <version>${spring.ldap.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.springframework</groupId>
