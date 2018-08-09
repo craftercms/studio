@@ -29,7 +29,7 @@
         <phantomjs.plugin.version>0.5</phantomjs.plugin.version>
         <suiteXmlFile>test/resources/testng.xml</suiteXmlFile>
         <studio.ui.path>target/ui/</studio.ui.path>
-        <studio.ui.version>v3.0.16</studio.ui.version><!-- craftercms ui version flag -->
+        <studio.ui.version>master</studio.ui.version><!-- craftercms ui version flag -->
         <spring.version>4.3.18.RELEASE</spring.version>
         <spring.security.version>4.2.7.RELEASE</spring.security.version>
         <spring.data.version>2.0.9.RELEASE</spring.data.version>
