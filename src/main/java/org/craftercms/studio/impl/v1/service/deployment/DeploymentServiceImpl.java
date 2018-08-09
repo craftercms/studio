@@ -861,8 +861,10 @@ public class DeploymentServiceImpl implements DeploymentService {
         if (!siteService.exists(site)) {
             throw new SiteNotFoundException();
         }
-        Set<String> environements = getAllPublishingEnvironments(site);
-        if (!environements.contains(environment)) {
+        environment = resolveEnvironment(site, environment);
+        Set<String> environments = servicesConfig.isStagingEnvironmentEnabled(site) ?
+                getAllPublishedEnvironments(site) : getAllPublishingEnvironments(site);
+        if (!environments.contains(environment)) {
             throw new EnvironmentNotFoundException();
         }
         if (!checkCommitIds(site, commitIds)) {
@@ -893,8 +895,8 @@ public class DeploymentServiceImpl implements DeploymentService {
         logger.debug("Get repository operations for each commit id and create publish request items");
         for (String commitId : commitIds) {
             logger.debug("Get repository operations for commit " + commitId);
-            List<RepoOperationTO> operations = contentRepository.getOperations(site, commitId + PREVIOUS_COMMIT_SUFFIX,
-                    commitId);
+            List<RepoOperationTO> operations =
+                    contentRepository.getOperations(site, commitId + PREVIOUS_COMMIT_SUFFIX, commitId);
 
             for (RepoOperationTO op : operations) {
                 logger.debug("Creating publish request item: ");

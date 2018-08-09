@@ -9,7 +9,7 @@
     <url>https://github.com/craftercms/studio</url>
 
     <packaging>war</packaging>
-    <version>3.0.15</version>
+    <version>3.0.16</version><!-- craftercms version flag -->
     <organization>
         <name>CrafterCMS</name>
         <url>http://craftercms.org</url>
@@ -29,12 +29,15 @@
         <phantomjs.plugin.version>0.5</phantomjs.plugin.version>
         <suiteXmlFile>test/resources/testng.xml</suiteXmlFile>
         <studio.ui.path>target/ui/</studio.ui.path>
-	<studio.ui.version>master</studio.ui.version>
-        <spring.version>4.3.7.RELEASE</spring.version>
-        <spring.security.version>4.2.2.RELEASE</spring.security.version>
-        <box.sdk.version>2.8.2</box.sdk.version>
+        <studio.ui.version>v3.0.16</studio.ui.version><!-- craftercms ui version flag -->
+        <spring.version>4.3.18.RELEASE</spring.version>
+        <spring.security.version>4.2.7.RELEASE</spring.security.version>
+        <spring.data.version>2.0.9.RELEASE</spring.data.version>
+        <spring.ldap.version>2.3.2.RELEASE</spring.ldap.version>
+        <box.sdk.version>2.21.0</box.sdk.version>
         <tinify.version>1.5.1</tinify.version>
         <mariadb4j.version>2.2.7</mariadb4j.version>
+        <jackson.version>2.9.6</jackson.version>
     </properties>
 
     <licenses>
@@ -88,7 +91,15 @@
             </snapshots>
         </repository>
     </repositories>
+
     <dependencies>
+        <!-- Servlet -->
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <version>3.0.1</version>
+            <scope>provided</scope>
+        </dependency>
 
         <!-- Crafter Engine -->
         <dependency>
@@ -128,41 +139,6 @@
             <groupId>org.craftercms</groupId>
             <artifactId>crafter-commons-git</artifactId>
             <version>${project.version}</version>
-        </dependency>
-
-
-        <!-- GOOGLE ANALYTICS -->
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>r09</version>
-        </dependency>
-        <dependency>
-            <groupId>com.google.gdata</groupId>
-            <artifactId>core</artifactId>
-            <version>1.47.1</version>
-        </dependency>
-        <dependency>
-            <groupId>com.google.apis</groupId>
-            <artifactId>google-api-services-analytics</artifactId>
-            <version>v2.4-rev37-1.14.2-beta</version>
-        </dependency>
-        <dependency>
-            <groupId>com.google.code.findbugs</groupId>
-            <artifactId>jsr305</artifactId>
-            <version>1.3.9</version>
-        </dependency>
-
-        <!-- Groovy Grapes -->
-        <dependency>
-            <groupId>xerces</groupId>
-            <artifactId>xercesImpl</artifactId>
-            <version>2.8.1</version>
-        </dependency>
-        <dependency>
-            <groupId>xml-apis</groupId>
-            <artifactId>xml-apis</artifactId>
-            <version>1.3.04</version>
         </dependency>
 
         <!-- Database DALs -->
@@ -234,14 +210,14 @@
                     <groupId>org.springframework</groupId>
                     <artifactId>spring-web</artifactId>
                 </exclusion>
-                    <exclusion>
-                        <groupId>org.springframework</groupId>
-                        <artifactId>spring-expression</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.springframework</groupId>
-                        <artifactId>spring-context</artifactId>
-                    </exclusion>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-expression</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-context</artifactId>
+                </exclusion>
                 <exclusion>
                     <groupId>org.springframework</groupId>
                     <artifactId>spring-core</artifactId>
@@ -279,12 +255,6 @@
         <!-- collections -->
 
         <dependency>
-            <groupId>xom</groupId>
-            <artifactId>xom</artifactId>
-            <version>1.2.5</version>
-        </dependency>
-
-        <dependency>
             <groupId>org.freemarker</groupId>
             <artifactId>freemarker</artifactId>
             <version>2.3.23</version>
@@ -292,7 +262,7 @@
         <dependency>
             <groupId>commons-fileupload</groupId>
             <artifactId>commons-fileupload</artifactId>
-            <version>1.3</version>
+            <version>1.3.3</version>
         </dependency>
 
         <!-- JGit -->
@@ -313,12 +283,6 @@
             <groupId>org.mockito</groupId>
             <artifactId>mockito-all</artifactId>
             <version>${mockito.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
-            <version>3.0.1</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -343,19 +307,6 @@
             <artifactId>spring-test</artifactId>
             <version>${spring.version}</version>
             <scope>test</scope>
-        </dependency>
-
-        <!-- groovy workflow services (to talk to Activiti) -->
-        <dependency>
-            <groupId>org.codehaus.groovy.modules.http-builder</groupId>
-            <artifactId>http-builder</artifactId>
-            <version>0.5.2</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>groovy</artifactId>
-                    <groupId>org.codehaus.groovy</groupId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <!-- MariaDB -->
@@ -393,7 +344,7 @@
         <dependency>
             <groupId>org.springframework.ldap</groupId>
             <artifactId>spring-ldap-core</artifactId>
-            <version>2.3.1.RELEASE</version>
+            <version>${spring.ldap.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.springframework</groupId>
@@ -441,7 +392,7 @@
         <dependency>
             <groupId>org.springframework.data</groupId>
             <artifactId>spring-data-commons</artifactId>
-            <version>1.13.4.RELEASE</version>
+            <version>${spring.data.version}</version>
         </dependency>
 
         <dependency>
@@ -459,7 +410,7 @@
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-jsr310</artifactId>
-            <version>2.8.11</version>
+            <version>${jackson.version}</version>
         </dependency>
 
         <!-- AWS SDK -->
@@ -506,19 +457,19 @@
             <plugin>
                 <artifactId>maven-clean-plugin</artifactId>
                 <version>3.0.0</version>
-                    <configuration>
-                            <filesets>
-                                      <fileset>
-                                            <directory>data/</directory>
-                                            <followSymlinks>false</followSymlinks>
-                                    </fileset>
-                                <fileset>
-                                    <directory>overlays/</directory>
-                                    <followSymlinks>false</followSymlinks>
-                                </fileset>
-                              </filesets>
-                        </configuration>
-              </plugin>
+                <configuration>
+                    <filesets>
+                        <fileset>
+                            <directory>data/</directory>
+                            <followSymlinks>false</followSymlinks>
+                        </fileset>
+                        <fileset>
+                            <directory>overlays/</directory>
+                            <followSymlinks>false</followSymlinks>
+                        </fileset>
+                    </filesets>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
@@ -552,7 +503,7 @@
                 <version>1.2</version>
                 <executions>
                     <execution>
-                        <id>Java Code </id>
+                        <id>Java Code</id>
                         <phase>process-resources</phase>
                         <goals>
                             <goal>create</goal>
@@ -615,13 +566,13 @@
                             <excludes>
                                 <!--&lt;!&ndash; when udpdating ROOT base check here to see if these need to be updated &ndash;&gt;-->
                                 <exclude>/WEB-INF/lib/xml-apis-1.0.b2.jar</exclude>
-                                <exclude>/WEB-INF/lib/httpclient-4.3.3.jar</exclude>
-                                <exclude>/WEB-INF/lib/httpcore-4.3.2.jar</exclude>
-                                <exclude>/WEB-INF/lib/commons-logging-1.1.1.jar</exclude>
+                                <exclude>/WEB-INF/lib/httpclient-4.5.2.jar</exclude>
+                                <exclude>/WEB-INF/lib/httpcore-4.4.4.jar</exclude>
+                                <exclude>/WEB-INF/lib/commons-logging-1.2.jar</exclude>
                                 <exclude>/WEB-INF/lib/slf4j-api-1.7.7.jar</exclude>
                                 <exclude>/WEB-INF/lib/slf4j-log4j12-1.7.7.jar</exclude>
                                 <exclude>/WEB-INF/lib/jcl-over-slf4j-1.7.7.jar</exclude>
-                                <exclude>/WEB-INF/lib/spring-security-core-3.2.3.RELEASE.jar</exclude>
+                                <exclude>/WEB-INF/lib/spring-security-core-4.2.7.RELEASE.jar</exclude>
                                 <exclude>/WEB-INF/templates/system/common/versionInfo.ftl</exclude>
                             </excludes>
                         </overlay>
