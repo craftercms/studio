@@ -38,6 +38,7 @@
         <tinify.version>1.5.1</tinify.version>
         <mariadb4j.version>2.2.7</mariadb4j.version>
         <jackson.version>2.9.6</jackson.version>
+        <bouncycastle.version>1.60</bouncycastle.version>
     </properties>
 
     <licenses>
@@ -438,6 +439,14 @@
                     <artifactId>bcpkix-jdk15on</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+
+        <!-- BouncyCastle Provider -->
+        <!-- This is required by the Box SDK but it uses an older version -->
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcpkix-jdk15on</artifactId>
+            <version>${bouncycastle.version}</version>
         </dependency>
 
         <!-- Tinify -->
