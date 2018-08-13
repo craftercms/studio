@@ -17,7 +17,11 @@
 
 package org.craftercms.studio.impl.v1.entitlement;
 
+import java.util.Arrays;
+import java.util.List;
+
 import org.craftercms.commons.entitlements.model.Entitlement;
+import org.craftercms.commons.entitlements.model.EntitlementType;
 import org.craftercms.commons.entitlements.model.Module;
 import org.craftercms.commons.entitlements.usage.EntitlementUsageProvider;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
@@ -31,7 +35,7 @@ import static org.craftercms.commons.entitlements.model.Module.STUDIO;
  *
  * @author joseross
  */
-public class StudioEntitlementUsageProvider implements EntitlementUsageProvider<Entitlement> {
+public class StudioEntitlementUsageProvider implements EntitlementUsageProvider {
 
     /**
      * Current instance of {@link ObjectMetadataManager}.
@@ -72,13 +76,24 @@ public class StudioEntitlementUsageProvider implements EntitlementUsageProvider<
      * {@inheritDoc}
      */
     @Override
-    public Entitlement getCurrentUsage() {
-        Entitlement usage = new Entitlement(STUDIO);
-        usage.setNumberOfAssets(objectMetadataManager.countAssets());
-        usage.setNumberOfDescriptors(objectMetadataManager.countDescriptors());
-        usage.setNumberOfUsers(securityProvider.getAllUsersTotal());
-        usage.setNumberOfSites(siteService.countSites());
-        return usage;
+    public List<Entitlement> getCurrentUsage() {
+        Entitlement sites = new Entitlement();
+        sites.setType(EntitlementType.SITE);
+        sites.setValue(siteService.countSites());
+
+        Entitlement users = new Entitlement();
+        users.setType(EntitlementType.USER);
+        users.setValue(securityProvider.getAllUsersTotal());
+
+        Entitlement assets = new Entitlement();
+        assets.setType(EntitlementType.ASSET);
+        assets.setValue(objectMetadataManager.countAssets());
+
+        Entitlement descriptors = new Entitlement();
+        descriptors.setType(EntitlementType.DESCRIPTOR);
+        descriptors.setValue(objectMetadataManager.countDescriptors());
+
+        return Arrays.asList(sites, users, assets, descriptors);
     }
 
 }
