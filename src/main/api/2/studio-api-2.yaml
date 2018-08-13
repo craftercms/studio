@@ -366,7 +366,7 @@ paths:
       summary: Remove member(s) from the specified group
       operationId: removeGroupMembers
       parameters:
-        - name: groupId
+        - name: id
           in: path
           description: The group ID
           required: true
