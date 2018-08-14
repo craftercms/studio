@@ -41,6 +41,7 @@ import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.commons.http.RequestContext;
 import org.craftercms.commons.validation.annotations.param.ValidateIntegerParam;
 import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
@@ -122,8 +123,8 @@ public class SecurityServiceImpl implements SecurityService {
     @Override
     @ValidateParams
     public String authenticate(@ValidateStringParam(name = "username") String username,
-                               @ValidateStringParam(name = "password") String password)
-            throws BadCredentialsException, AuthenticationSystemException {
+                               @ValidateStringParam(name = "password") String password) throws
+        BadCredentialsException, AuthenticationSystemException, EntitlementException {
         String toRet = securityProvider.authenticate(username, password);
         if (StringUtils.isNotEmpty(toRet)) {
             RequestContext requestContext = RequestContext.getCurrent();
@@ -623,7 +624,8 @@ public class SecurityServiceImpl implements SecurityService {
                               @ValidateStringParam(name = "password") String password,
                               @ValidateNoTagsParam(name = "firstName") String firstName,
                               @ValidateNoTagsParam(name = "lastName") String lastName,
-                              @ValidateNoTagsParam(name = "email") String email) throws UserAlreadyExistsException {
+                              @ValidateNoTagsParam(name = "email") String email) throws UserAlreadyExistsException,
+        EntitlementException {
         boolean toRet = securityProvider.createUser(username, password, firstName, lastName, email, false);
         if (toRet) {
             ActivityService.ActivityType activityType = ActivityService.ActivityType.CREATED;

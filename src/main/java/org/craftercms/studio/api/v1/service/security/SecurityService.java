@@ -18,6 +18,7 @@
 
 package org.craftercms.studio.api.v1.service.security;
 
+import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationSystemException;
@@ -47,7 +48,8 @@ public interface SecurityService {
 	 * @param username
 	 * @param password
 	 */
-	String authenticate(String username, String password) throws BadCredentialsException, AuthenticationSystemException;
+	String authenticate(String username, String password) throws BadCredentialsException,
+        AuthenticationSystemException, EntitlementException;
 
 	/**
 	 * Returns the username of the current user OR NULL if no user is authenticated
@@ -92,8 +94,8 @@ public interface SecurityService {
      * @param email User's email address
      * @return true if success, otherwise false
      */
-    boolean createUser(String username, String password, String firstName, String lastName, String email)
-            throws UserAlreadyExistsException;
+    boolean createUser(String username, String password, String firstName, String lastName, String email) throws
+        UserAlreadyExistsException, EntitlementException;
 
     /**
      * Delete user with given username

@@ -19,6 +19,7 @@
 package org.craftercms.studio.impl.v1.web.security.access;
 
 import org.apache.commons.lang3.RandomStringUtils;
+import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.commons.http.HttpUtils;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationSystemException;
 import org.craftercms.studio.api.v1.exception.security.BadCredentialsException;
@@ -98,7 +99,7 @@ public class StudioAuthenticationTokenProcessingFilter extends GenericFilterBean
                         UsernamePasswordAuthenticationToken authentication =
                                 new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                         SecurityContextHolder.getContext().setAuthentication(authentication);
-                    } catch (BadCredentialsException | AuthenticationSystemException e) {
+                    } catch (BadCredentialsException | AuthenticationSystemException | EntitlementException e) {
                         crafterLogger.error("Unable to authenticate user using authentication headers.");
                     }
                 }

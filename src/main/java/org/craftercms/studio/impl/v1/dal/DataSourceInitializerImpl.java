@@ -26,6 +26,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.jdbc.RuntimeSqlException;
 import org.apache.ibatis.jdbc.ScriptRunner;
 import org.craftercms.commons.crypto.CryptoUtils;
+import org.craftercms.commons.entitlements.exception.EntitlementException;
+import org.craftercms.commons.entitlements.validator.DbIntegrityValidator;
 import org.craftercms.studio.api.v1.dal.DataSourceInitializer;
 import org.craftercms.studio.api.v1.exception.DatabaseUpgradeUnsupportedVersionException;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -58,7 +60,7 @@ import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_INITIALIZ
 public class DataSourceInitializerImpl implements DataSourceInitializer, DisposableBean {
 
     private final static Logger logger = LoggerFactory.getLogger(DataSourceInitializerImpl.class);
-    private final static String CURRENT_DB_VERSION = "3.0.15.1";
+    private final static String CURRENT_DB_VERSION = "3.0.17";
     private final static String DB_VERSION_3_0_0 = "3.0.0";
     private final static String DB_VERSION_2_5_X = "2.5.x";
 
@@ -82,8 +84,10 @@ public class DataSourceInitializerImpl implements DataSourceInitializer, Disposa
 
     protected MariaDB4jService mariaDB4jService;
 
+    protected DbIntegrityValidator integrityValidator;
+
     @Override
-    public void initDataSource() throws DatabaseUpgradeUnsupportedVersionException {
+    public void initDataSource() throws DatabaseUpgradeUnsupportedVersionException, EntitlementException {
         if (isEnabled()) {
             String configureDbScriptPath = getConfigureDBScriptPath();
             String createDbScriptPath = getCreateDBScriptPath();
@@ -155,10 +159,13 @@ public class DataSourceInitializerImpl implements DataSourceInitializer, Disposa
                                 dbVersion = DB_VERSION_2_5_X;
                             }
                         }
+
                         switch (dbVersion) {
                             case CURRENT_DB_VERSION:
                                 // DB up to date - nothing to upgrade
                                 logger.info("Database is up to date.");
+                                // Validate database against license being used
+                                integrityValidator.validate(conn);
                                 break;
                             case DB_VERSION_2_5_X:
                                 // TODO: DB: Migration not supported yet
@@ -179,6 +186,7 @@ public class DataSourceInitializerImpl implements DataSourceInitializer, Disposa
                                 reader = new InputStreamReader(is);
                                 try {
                                     sr.runScript(reader);
+                                    integrityValidator.store(conn);
                                 } catch (RuntimeSqlException e) {
                                     logger.error("Error while running upgrade DB script", e);
                                 }
@@ -206,6 +214,8 @@ public class DataSourceInitializerImpl implements DataSourceInitializer, Disposa
                                 conn.commit();
                                 logger.info("*** Admin Account Password: \"" + randomPassword + "\" ***");
                             }
+
+                            integrityValidator.store(conn);
                         } catch (RuntimeSqlException e) {
                             logger.error("Error while running create DB script", e);
                         }
@@ -326,4 +336,9 @@ public class DataSourceInitializerImpl implements DataSourceInitializer, Disposa
     public void setMariaDB4jService(MariaDB4jService mariaDB4jService) {
         this.mariaDB4jService = mariaDB4jService;
     }
+
+    public void setIntegrityValidator(final DbIntegrityValidator integrityValidator) {
+        this.integrityValidator = integrityValidator;
+    }
+
 }

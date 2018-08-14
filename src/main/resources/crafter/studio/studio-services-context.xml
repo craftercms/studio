@@ -43,6 +43,7 @@
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="dependencyDiffService" ref="cstudioDependencyDiffService" />
         <property name="contentTypeService" ref="cstudioContentTypeService" />
+        <property name="entitlementValidator" ref="crafter.entitlementValidator"/>
     </bean>
 
     <bean id="studioDependencyService" class="org.craftercms.studio.impl.v1.service.dependency.DependencyServiceImpl">
@@ -92,6 +93,7 @@
         <property name="searchService" ref="searchService" />
         <property name="eventService" ref="studioEventService"/>
         <property name="previewDeployer" ref="previewDeployer"/>
+        <property name="entitlementValidator" ref="crafter.entitlementValidator"/>
     </bean>
 
     <bean id="cstudioImportService" class="org.craftercms.studio.impl.v1.service.content.ImportServiceImpl">
@@ -737,7 +739,8 @@
         <property name="scriptsClassPath" value="#{'${crafter-studio}/default-site'.split(',')}"/>
     </bean>
 
-    <bean id="studioConfiguration" class="org.craftercms.studio.impl.v1.util.StudioConfigurationImpl" init-method="init" >
+    <bean id="studioConfiguration" class="org.craftercms.studio.impl.v1.util.StudioConfigurationImpl"
+          init-method="init"  depends-on="cstudioLogProvider">
         <property name="configLocation" value="crafter/studio/studio-config.yaml"/>
     </bean>
 
@@ -775,6 +778,15 @@
         <property name="contentService" ref="cstudioContentService"/>
         <property name="configReader" ref="studioAssetProcessingConfigReader"/>
         <property name="pipelineResolver" ref="studioAssetProcessorPipelineResolver"/>
+    </bean>
+
+    <!-- ////////////////////////////////////// -->
+    <!--              Entitlements              -->
+    <!-- ////////////////////////////////////// -->
+    <bean id="crafter.entitlementsProvider" class="org.craftercms.studio.impl.v1.entitlement.StudioEntitlementUsageProvider">
+        <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
+        <property name="securityProvider" ref="securityProvider"/>
+        <property name="siteService" ref="cstudioSiteServiceSimple"/>
     </bean>
 
     <import resource="classpath:crafter/studio/studio-security-context.xml"/>

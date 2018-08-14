@@ -18,6 +18,7 @@
 
 package org.craftercms.studio.impl.v1.service.security;
 
+import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationSystemException;
 import org.craftercms.studio.api.v1.exception.security.BadCredentialsException;
@@ -111,8 +112,8 @@ public class MappedSecurityProvider implements SecurityProvider {
         return provider.getUserProfile(user);
     }
 
-    public String authenticate(String username, String password)
-            throws BadCredentialsException, AuthenticationSystemException {
+    public String authenticate(String username, String password) throws BadCredentialsException,
+        AuthenticationSystemException, EntitlementException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.authenticate(username, password);
     }
@@ -185,7 +186,7 @@ public class MappedSecurityProvider implements SecurityProvider {
 
     @Override
     public boolean createUser(String username, String password, String firstName, String lastName, String email,
-                              boolean externallyManaged) throws UserAlreadyExistsException {
+                              boolean externallyManaged) throws UserAlreadyExistsException, EntitlementException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.createUser(username, password, firstName, lastName, email, externallyManaged);
     }

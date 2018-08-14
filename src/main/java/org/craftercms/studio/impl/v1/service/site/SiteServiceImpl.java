@@ -43,6 +43,10 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.craftercms.commons.entitlements.exception.EntitlementException;
+import org.craftercms.commons.entitlements.model.EntitlementType;
+import org.craftercms.commons.entitlements.model.Module;
+import org.craftercms.commons.entitlements.validator.EntitlementValidator;
 import org.craftercms.commons.validation.annotations.param.ValidateIntegerParam;
 import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
@@ -172,6 +176,8 @@ public class SiteServiceImpl implements SiteService {
     protected SiteFeedMapper siteFeedMapper;
 
     protected SearchService searchService;
+
+    protected EntitlementValidator entitlementValidator;
 
     @Override
     @ValidateParams
@@ -358,7 +364,12 @@ public class SiteServiceImpl implements SiteService {
         return toRet;
     }
 
-   	@Override
+	@Override
+	public int countSites() {
+		return siteFeedMapper.countSites();
+	}
+
+	@Override
     @ValidateParams
    	public void createSiteFromBlueprint(@ValidateStringParam(name = "blueprintName") String blueprintName,
                                            @ValidateNoTagsParam(name = "siteName") String siteName,
@@ -376,6 +387,21 @@ public class SiteServiceImpl implements SiteService {
                         blueprintName)) {
             throw new BlueprintNotFoundException();
         }
+
+        try {
+	    	long start = 0;
+	    	if(logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
+	    		start = System.currentTimeMillis();
+	    		logger.debug("Starting entitlement validation");
+			}
+			entitlementValidator.validateEntitlement(Module.STUDIO, EntitlementType.SITE, countSites(), 1);
+	    	if(logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
+	    		logger.debug("Validation completed, duration : {} ms", System.currentTimeMillis() - start);
+			}
+		} catch (EntitlementException e) {
+	    	throw new SiteCreationException("Unable to complete request due to entitlement limits. Please contact your "
+				+ "system administrator.", e);
+		}
 
         boolean success = true;
 
@@ -683,6 +709,22 @@ public class SiteServiceImpl implements SiteService {
         if (exists(siteId)) {
             throw new SiteAlreadyExistsException();
         }
+
+		try {
+        	long start = 0;
+			if(logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
+				start = System.currentTimeMillis();
+				logger.debug("Starting entitlement validation");
+			}
+			entitlementValidator.validateEntitlement(Module.STUDIO, EntitlementType.SITE, countSites(), 1);
+			if(logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
+				logger.debug("Validation completed, duration : {} ms", System.currentTimeMillis() - start);
+			}
+		} catch (EntitlementException e) {
+			throw new SiteCreationException("Unable to complete request due to entitlement limits. Please contact your "
+				+ "system administrator.", e);
+		}
+
         switch (createOption) {
             case REMOTE_REPOSITORY_CREATE_OPTION_CLONE:
                 logger.debug("Clone from remote repository create option selected");
@@ -1981,4 +2023,9 @@ public class SiteServiceImpl implements SiteService {
 	public void setPreviewDeployer(final PreviewDeployer previewDeployer) {
 		this.previewDeployer = previewDeployer;
 	}
+
+	public void setEntitlementValidator(final EntitlementValidator entitlementValidator) {
+		this.entitlementValidator = entitlementValidator;
+	}
+
 }

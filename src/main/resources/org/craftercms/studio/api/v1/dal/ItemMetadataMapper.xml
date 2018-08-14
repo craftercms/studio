@@ -157,6 +157,14 @@
         SELECT count(1) FROM item_metadata WHERE site=#{site} AND path=#{path}
     </select>
 
+    <select id="countDescriptors" resultType="int">
+        SELECT count(1) FROM item_metadata WHERE path rlike '^/site/.*\.xml$';
+    </select>
+
+    <select id="countAssets" resultType="int">
+        SELECT count(1) FROM item_metadata WHERE path like '/static-assets/%'
+    </select>
+
     <delete id="deleteEntry" parameterType="java.util.Map">
         DELETE FROM item_metadata WHERE site=#{site} AND path=#{path}
     </delete>

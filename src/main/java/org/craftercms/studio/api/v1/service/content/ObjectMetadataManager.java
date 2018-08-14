@@ -60,4 +60,9 @@ public interface ObjectMetadataManager {
     List<String> getSameCommitItems(String site, String path);
 
     void setObjectMetadataForCommitId(String site, String commitId, Map<String, Object> props);
+
+    int countDescriptors();
+
+    int countAssets();
+
 }

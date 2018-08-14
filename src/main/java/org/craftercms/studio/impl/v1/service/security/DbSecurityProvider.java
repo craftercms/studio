@@ -20,6 +20,10 @@ package org.craftercms.studio.impl.v1.service.security;
 
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoUtils;
+import org.craftercms.commons.entitlements.exception.EntitlementException;
+import org.craftercms.commons.entitlements.model.EntitlementType;
+import org.craftercms.commons.entitlements.model.Module;
+import org.craftercms.commons.entitlements.validator.EntitlementValidator;
 import org.craftercms.commons.http.RequestContext;
 import org.craftercms.studio.api.v1.dal.Group;
 import org.craftercms.studio.api.v1.dal.GroupPerSiteResult;
@@ -51,6 +55,7 @@ import org.springframework.dao.DuplicateKeyException;
 import javax.servlet.http.HttpSession;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -73,6 +78,8 @@ public class DbSecurityProvider implements SecurityProvider {
     protected SecurityMapper securityMapper;
     @Autowired
     protected SiteFeedMapper siteFeedMapper;
+    @Autowired
+    protected EntitlementValidator entitlementValidator;
 
     protected StudioConfiguration studioConfiguration;
 
@@ -151,9 +158,7 @@ public class DbSecurityProvider implements SecurityProvider {
 
     @Override
     public int getAllUsersTotal() {
-        List<UserProfileResult> resultSet = new ArrayList<UserProfileResult>();
-        Map<String, Object> params = new HashMap<String, Object>();
-        return securityMapper.getAllUsersQueryTotal(params);
+        return securityMapper.getAllUsersQueryTotal(Collections.emptyMap());
     }
 
     @SuppressWarnings("unchecked")
@@ -289,8 +294,8 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public String authenticate(String username, String password)
-            throws BadCredentialsException, AuthenticationSystemException {
+    public String authenticate(String username, String password) throws BadCredentialsException,
+        AuthenticationSystemException, EntitlementException {
         User user = securityMapper.getUser(username);
         if (user != null && user.isEnabled() && CryptoUtils.matchPassword(user.getPassword(), password)) {
             //byte[] randomBytes = CryptoUtils.generateRandomBytes(20);
@@ -475,11 +480,20 @@ public class DbSecurityProvider implements SecurityProvider {
 
     @Override
     public boolean createUser(String username, String password, String firstName, String lastName, String email,
-                              boolean externallyManaged) throws UserAlreadyExistsException {
+                              boolean externallyManaged) throws UserAlreadyExistsException, EntitlementException {
         if (userExists(username)) {
             logger.error("Not able to create user " + username + ", already exists.");
             throw new UserAlreadyExistsException("User already exists.");
         } else {
+            long start = 0;
+            if(logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
+                start = System.currentTimeMillis();
+                logger.debug("Starting entitlement validation");
+            }
+            entitlementValidator.validateEntitlement(Module.STUDIO, EntitlementType.USER, getAllUsersTotal(), 1);
+            if(logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
+                logger.debug("Validation completed, duration : {} ms", System.currentTimeMillis() - start);
+            }
             String hashedPassword = CryptoUtils.hashPassword(password);
             Map<String, Object> params = new HashMap<String, Object>();
             params.put(KEY_USERNAME, username);

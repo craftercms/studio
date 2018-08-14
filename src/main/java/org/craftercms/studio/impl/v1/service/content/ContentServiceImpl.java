@@ -34,6 +34,10 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.entitlements.exception.EntitlementException;
+import org.craftercms.commons.entitlements.model.EntitlementType;
+import org.craftercms.commons.entitlements.model.Module;
+import org.craftercms.commons.entitlements.validator.EntitlementValidator;
 import org.craftercms.commons.validation.annotations.param.ValidateIntegerParam;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
@@ -145,6 +149,7 @@ public class ContentServiceImpl implements ContentService {
     protected StudioConfiguration studioConfiguration;
     protected DependencyDiffService dependencyDiffService;
     protected ContentTypeService contentTypeService;
+    protected EntitlementValidator entitlementValidator;
 
     /**
      * file and folder name patterns for copied files and folders
@@ -246,6 +251,22 @@ public class ContentServiceImpl implements ContentService {
                              @ValidateStringParam(name = "edit") String edit,
                              @ValidateStringParam(name = "unlock") String unlock) throws ServiceException {
         // TODO: SJ: refactor for 2.7.x
+
+        try {
+            long start = 0;
+            if(logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
+                start = System.currentTimeMillis();
+                logger.debug("Starting entitlement validation");
+            }
+            entitlementValidator.validateEntitlement(Module.STUDIO, EntitlementType.DESCRIPTOR,
+                objectMetadataManager.countDescriptors(), 1);
+            if(logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
+                logger.debug("Validation completed, duration : {} ms", System.currentTimeMillis() - start);
+            }
+        } catch (EntitlementException e) {
+            throw new ServiceException("Unable to complete request due to entitlement limits. Please contact your "
+                + "system administrator.");
+        }
 
         Map<String, String> params = new HashMap<String, String>();
         params.put(DmConstants.KEY_SITE, site);
@@ -422,6 +443,23 @@ public class ContentServiceImpl implements ContentService {
                                                  InputStream in, String isImage, String allowedWidth,
                                                  String allowedHeight, String allowLessSize, String draft,
                                                  String unlock, String systemAsset) throws ServiceException {
+
+        try {
+            long start = 0;
+            if(logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
+                start = System.currentTimeMillis();
+                logger.debug("Starting entitlement validation");
+            }
+            entitlementValidator.validateEntitlement(Module.STUDIO, EntitlementType.ASSET,
+                objectMetadataManager.countAssets(), 1);
+            if(logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
+                logger.debug("Validation completed, duration : {} ms", System.currentTimeMillis() - start);
+            }
+        } catch (EntitlementException e) {
+            throw new ServiceException("Unable to complete request due to entitlement limits. Please contact your "
+                + "system administrator.");
+        }
+
         boolean isSystemAsset = Boolean.valueOf(systemAsset);
 
         Map<String, String> params = new HashMap<String, String>();
@@ -2565,4 +2603,9 @@ public class ContentServiceImpl implements ContentService {
     public void setContentTypeService(ContentTypeService contentTypeService) {
         this.contentTypeService = contentTypeService;
     }
+
+    public void setEntitlementValidator(final EntitlementValidator entitlementValidator) {
+        this.entitlementValidator = entitlementValidator;
+    }
+
 }

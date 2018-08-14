@@ -52,6 +52,10 @@
         SELECT * FROM site WHERE system = 0
     </select>
 
+    <select id="countSites" resultType="int">
+        SELECT count(1) FROM site WHERE NOT site_id = 'studio_root'
+    </select>
+
     <select id="getSite" resultMap="SiteFeedMap" parameterType="java.util.Map">
         SELECT * FROM site WHERE site_id = #{siteId}
     </select>
