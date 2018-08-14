@@ -55,6 +55,7 @@ import org.springframework.dao.DuplicateKeyException;
 import javax.servlet.http.HttpSession;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -157,9 +158,7 @@ public class DbSecurityProvider implements SecurityProvider {
 
     @Override
     public int getAllUsersTotal() {
-        List<UserProfileResult> resultSet = new ArrayList<UserProfileResult>();
-        Map<String, Object> params = new HashMap<String, Object>();
-        return securityMapper.getAllUsersQueryTotal(params);
+        return securityMapper.getAllUsersQueryTotal(Collections.emptyMap());
     }
 
     @SuppressWarnings("unchecked")
@@ -486,7 +485,15 @@ public class DbSecurityProvider implements SecurityProvider {
             logger.error("Not able to create user " + username + ", already exists.");
             throw new UserAlreadyExistsException("User already exists.");
         } else {
+            long start = 0;
+            if(logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
+                start = System.currentTimeMillis();
+                logger.debug("Starting entitlement validation");
+            }
             entitlementValidator.validateEntitlement(Module.STUDIO, EntitlementType.USER, getAllUsersTotal(), 1);
+            if(logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
+                logger.debug("Validation completed, duration : {} ms", System.currentTimeMillis() - start);
+            }
             String hashedPassword = CryptoUtils.hashPassword(password);
             Map<String, Object> params = new HashMap<String, Object>();
             params.put(KEY_USERNAME, username);

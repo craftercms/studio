@@ -253,8 +253,16 @@ public class ContentServiceImpl implements ContentService {
         // TODO: SJ: refactor for 2.7.x
 
         try {
+            long start = 0;
+            if(logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
+                start = System.currentTimeMillis();
+                logger.debug("Starting entitlement validation");
+            }
             entitlementValidator.validateEntitlement(Module.STUDIO, EntitlementType.DESCRIPTOR,
                 objectMetadataManager.countDescriptors(), 1);
+            if(logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
+                logger.debug("Validation completed, duration : {} ms", System.currentTimeMillis() - start);
+            }
         } catch (EntitlementException e) {
             throw new ServiceException("Unable to complete request due to entitlement limits. Please contact your "
                 + "system administrator.");
@@ -437,8 +445,16 @@ public class ContentServiceImpl implements ContentService {
                                                  String unlock, String systemAsset) throws ServiceException {
 
         try {
+            long start = 0;
+            if(logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
+                start = System.currentTimeMillis();
+                logger.debug("Starting entitlement validation");
+            }
             entitlementValidator.validateEntitlement(Module.STUDIO, EntitlementType.ASSET,
                 objectMetadataManager.countAssets(), 1);
+            if(logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
+                logger.debug("Validation completed, duration : {} ms", System.currentTimeMillis() - start);
+            }
         } catch (EntitlementException e) {
             throw new ServiceException("Unable to complete request due to entitlement limits. Please contact your "
                 + "system administrator.");

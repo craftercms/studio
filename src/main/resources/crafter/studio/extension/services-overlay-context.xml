@@ -32,7 +32,6 @@
     </bean>
 
     <bean id="crafter.siteContextManager" class="org.craftercms.engine.service.context.SiteContextManager" depends-on="sqlSessionFactory">
-        <property name="fallbackSite" value="${crafter.engine.site.fallback.name}"/>
         <property name="fallbackContextFactory" ref="crafter.fallbackSiteContextFactory"/>
         <property name="contextFactory" ref="crafter.siteContextFactory"/>
         <property name="entitlementValidator" ref="crafter.entitlementValidator"/>
