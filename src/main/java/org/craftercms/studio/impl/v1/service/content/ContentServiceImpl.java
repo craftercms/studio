@@ -261,7 +261,7 @@ public class ContentServiceImpl implements ContentService {
             entitlementValidator.validateEntitlement(Module.STUDIO, EntitlementType.DESCRIPTOR,
                 objectMetadataManager.countDescriptors(), 1);
             if(logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
-                logger.debug("Validation completed, duration : {} ms", System.currentTimeMillis() - start);
+                logger.debug("Validation completed, duration : {0} ms", System.currentTimeMillis() - start);
             }
         } catch (EntitlementException e) {
             throw new ServiceException("Unable to complete request due to entitlement limits. Please contact your "
@@ -453,7 +453,7 @@ public class ContentServiceImpl implements ContentService {
             entitlementValidator.validateEntitlement(Module.STUDIO, EntitlementType.ASSET,
                 objectMetadataManager.countAssets(), 1);
             if(logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
-                logger.debug("Validation completed, duration : {} ms", System.currentTimeMillis() - start);
+                logger.debug("Validation completed, duration : {0} ms", System.currentTimeMillis() - start);
             }
         } catch (EntitlementException e) {
             throw new ServiceException("Unable to complete request due to entitlement limits. Please contact your "
