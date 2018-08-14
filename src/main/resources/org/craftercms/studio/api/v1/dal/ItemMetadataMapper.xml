@@ -158,7 +158,7 @@
     </select>
 
     <select id="countDescriptors" resultType="int">
-        SELECT count(1) FROM item_metadata WHERE path like '/site/website/%' OR path like '/site/components/%'
+        SELECT count(1) FROM item_metadata WHERE path rlike '^/site/.*\.xml$';
     </select>
 
     <select id="countAssets" resultType="int">
