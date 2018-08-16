@@ -13,6 +13,12 @@
         <additionalFields /> (List of additional fields to include for dynamic navigation items)
     </navigation>
 
+    (Single Page Application Properties (React JS, Angular, Vue.js, etc.))
+    <spa>
+        <enabled /> (Enable/disable SPA mode, default is false)
+        <viewName /> (The view name for the SPA (Single Page Application). Current view names can be a page URL (like /) or a template name (like /template/web/app.ftl). Default is /)
+    </spa>
+
     (Filter Properties)
     <filters> (Defines the filter mappings)
         <filter>
