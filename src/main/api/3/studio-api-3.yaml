@@ -596,7 +596,7 @@ components:
                 type: string
                 example: >-
                   crn:studio:content:0284a098aab7c7:130880c018310810b:item:static-assets/*
-                description: See TODO
+                description: crn:system:service:organization:project:type:regex
     Role:
       type: object
       properties:

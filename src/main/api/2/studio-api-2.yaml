@@ -21,6 +21,8 @@ tags:
     description: Group management operations
   - name: users
     description: User management operations
+  - name: ui
+    description: UI support operations
 paths:
 
   /groups:
@@ -803,6 +805,34 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /ui/views/global-dashboard:
+    get:
+      tags:
+        - ui
+      summary: Get the dashboard tools available to the current user
+      operationId: getGlobalDashboard
+      description: 'Required Permission: "LOGGED_IN"'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: object
+                    properties:
+                      response:
+                        $ref: '#/components/schemas/ApiResponse'
+                      entities:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Tool'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
 
 components:
   schemas:

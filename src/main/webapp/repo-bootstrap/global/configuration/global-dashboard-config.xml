@@ -1,0 +1,29 @@
+<!--
+    This file contains global dashboard configuration for Crafter Studio.
+	The global dashboard shows up as the first screen after a user logs in
+	and displays a list of tools for the user including the list of sites.
+
+    The structure of this file is:
+	<global-dashboard>
+		<tools>
+			<tool>
+				<id />
+				<label />
+				<icon />
+				<permission />
+			</tool>
+		</tools>
+	</global-dashboard>
+
+-->
+
+<global-dashboard>
+	<tools>
+		<tool>
+			<id />
+			<label />
+			<icon />
+			<permission />
+		</tool>
+	</tools>
+</global-dashboard>
