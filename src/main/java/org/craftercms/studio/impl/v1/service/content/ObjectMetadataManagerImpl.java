@@ -241,14 +241,8 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
 
     @Override
     @ValidateParams
-    public int countDescriptors() {
-        return itemMetadataMapper.countDescriptors();
-    }
-
-    @Override
-    @ValidateParams
-    public int countAssets() {
-        return itemMetadataMapper.countAssets();
+    public int countAllItems() {
+        return itemMetadataMapper.countAllItems();
     }
 
 }

@@ -396,7 +396,7 @@ public class SiteServiceImpl implements SiteService {
 			}
 			entitlementValidator.validateEntitlement(Module.STUDIO, EntitlementType.SITE, countSites(), 1);
 	    	if(logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
-	    		logger.debug("Validation completed, duration : {} ms", System.currentTimeMillis() - start);
+	    		logger.debug("Validation completed, duration : {0} ms", System.currentTimeMillis() - start);
 			}
 		} catch (EntitlementException e) {
 	    	throw new SiteCreationException("Unable to complete request due to entitlement limits. Please contact your "
@@ -718,7 +718,7 @@ public class SiteServiceImpl implements SiteService {
 			}
 			entitlementValidator.validateEntitlement(Module.STUDIO, EntitlementType.SITE, countSites(), 1);
 			if(logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
-				logger.debug("Validation completed, duration : {} ms", System.currentTimeMillis() - start);
+				logger.debug("Validation completed, duration : {0} ms", System.currentTimeMillis() - start);
 			}
 		} catch (EntitlementException e) {
 			throw new SiteCreationException("Unable to complete request due to entitlement limits. Please contact your "

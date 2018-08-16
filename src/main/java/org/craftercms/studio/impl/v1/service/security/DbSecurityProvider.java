@@ -492,7 +492,7 @@ public class DbSecurityProvider implements SecurityProvider {
             }
             entitlementValidator.validateEntitlement(Module.STUDIO, EntitlementType.USER, getAllUsersTotal(), 1);
             if(logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
-                logger.debug("Validation completed, duration : {} ms", System.currentTimeMillis() - start);
+                logger.debug("Validation completed, duration : {0} ms", System.currentTimeMillis() - start);
             }
             String hashedPassword = CryptoUtils.hashPassword(password);
             Map<String, Object> params = new HashMap<String, Object>();
