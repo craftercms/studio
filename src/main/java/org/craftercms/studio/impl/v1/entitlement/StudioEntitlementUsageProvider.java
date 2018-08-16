@@ -85,15 +85,11 @@ public class StudioEntitlementUsageProvider implements EntitlementUsageProvider 
         users.setType(EntitlementType.USER);
         users.setValue(securityProvider.getAllUsersTotal());
 
-        Entitlement assets = new Entitlement();
-        assets.setType(EntitlementType.ASSET);
-        assets.setValue(objectMetadataManager.countAssets());
+        Entitlement items = new Entitlement();
+        items.setType(EntitlementType.ITEM);
+        items.setValue(objectMetadataManager.countAllItems());
 
-        Entitlement descriptors = new Entitlement();
-        descriptors.setType(EntitlementType.DESCRIPTOR);
-        descriptors.setValue(objectMetadataManager.countDescriptors());
-
-        return Arrays.asList(sites, users, assets, descriptors);
+        return Arrays.asList(sites, users, items, items);
     }
 
 }

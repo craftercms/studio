@@ -61,8 +61,6 @@ public interface ObjectMetadataManager {
 
     void setObjectMetadataForCommitId(String site, String commitId, Map<String, Object> props);
 
-    int countDescriptors();
-
-    int countAssets();
+    int countAllItems();
 
 }

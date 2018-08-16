@@ -258,8 +258,8 @@ public class ContentServiceImpl implements ContentService {
                 start = System.currentTimeMillis();
                 logger.debug("Starting entitlement validation");
             }
-            entitlementValidator.validateEntitlement(Module.STUDIO, EntitlementType.DESCRIPTOR,
-                objectMetadataManager.countDescriptors(), 1);
+            entitlementValidator.validateEntitlement(Module.STUDIO, EntitlementType.ITEM,
+                objectMetadataManager.countAllItems(), 1);
             if(logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
                 logger.debug("Validation completed, duration : {0} ms", System.currentTimeMillis() - start);
             }
@@ -450,8 +450,8 @@ public class ContentServiceImpl implements ContentService {
                 start = System.currentTimeMillis();
                 logger.debug("Starting entitlement validation");
             }
-            entitlementValidator.validateEntitlement(Module.STUDIO, EntitlementType.ASSET,
-                objectMetadataManager.countAssets(), 1);
+            entitlementValidator.validateEntitlement(Module.STUDIO, EntitlementType.ITEM,
+                objectMetadataManager.countAllItems(), 1);
             if(logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
                 logger.debug("Validation completed, duration : {0} ms", System.currentTimeMillis() - start);
             }
