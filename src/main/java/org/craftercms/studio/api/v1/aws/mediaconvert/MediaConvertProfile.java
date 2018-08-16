@@ -1,0 +1,92 @@
+/*
+ * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
+package org.craftercms.studio.api.v1.aws.mediaconvert;
+
+import org.craftercms.studio.api.v1.aws.AwsProfile;
+
+/**
+ * Holds the necessary information to request a transcoding job for AWS MediaConvert.
+ *
+ * @author joseross
+ */
+public class MediaConvertProfile extends AwsProfile {
+
+    /**
+     * AWS MediaConvert account specific endpoint. Can be found in the AWS Console.
+     */
+    protected String endpoint;
+    /**
+     * ARN of the AWS Role used to create the transcoding jobs.
+     */
+    protected String role;
+    /**
+     * ARN of the Queue used to create the trancoding jobs.
+     */
+    protected String queue;
+    /**
+     * Name of the job template to use.
+     */
+    protected String template;
+
+    /**
+     * S3 URL to upload the files.
+     */
+    protected String inputPath;
+
+    public String getEndpoint() {
+        return endpoint;
+    }
+
+    public void setEndpoint(final String endpoint) {
+        this.endpoint = endpoint;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(final String role) {
+        this.role = role;
+    }
+
+    public String getQueue() {
+        return queue;
+    }
+
+    public void setQueue(final String queue) {
+        this.queue = queue;
+    }
+
+    public String getTemplate() {
+        return template;
+    }
+
+    public void setTemplate(final String template) {
+        this.template = template;
+    }
+
+    public String getInputPath() {
+        return inputPath;
+    }
+
+    public void setInputPath(final String inputPath) {
+        this.inputPath = inputPath;
+    }
+
+}

@@ -54,4 +54,17 @@ For every profile you need to specify at least:
             </output>
         </outputs>
     </profile>
+    <profile>
+        <id>mediaconvert-default</id>
+        <credentials>
+            <accessKey>${enc:xxxxxxxxx}</accessKey>
+            <secretKey>${enc:xxxxxxxxx}</secretKey>
+        </credentials>
+        <region>us-west-1</region>
+        <endpoint>https://XXXXXXXX.mediaconvert.us-east-1.amazonaws.com</endpoint>
+        <role>arn:aws:iam::XXXXXXXXXXXX:role/...</role>
+        <queue>arn:aws:mediaconvert:us-east-1:XXXXXXXXXXXX:queues/...</queue>
+        <inputPath>example-bucket/folder/videos</inputPath>
+        <template>Example Template</template>
+    </profile>
 </aws>
