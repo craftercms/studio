@@ -31,9 +31,7 @@ public interface ItemMetadataMapper {
 
     int countEntries(Map params);
 
-    int countDescriptors();
-
-    int countAssets();
+    int countAllItems();
 
     void deleteEntry(Map params);
 
