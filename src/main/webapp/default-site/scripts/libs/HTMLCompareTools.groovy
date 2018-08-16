@@ -23,7 +23,7 @@ import org.apache.commons.lang3.StringEscapeUtils
 class HTMLCompareTools {
 	static CONTENT_XML_TO_HTML_XSL =
 			"<xsl:stylesheet version=\"1.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\" xmlns:fo=\"http://www.w3.org/1999/XSL/Format\">"+
-					"<xsl:template match=\"//\">" +
+					"<xsl:template match=\"/\">" +
 					"<html><body><table>"+
 					"<xsl:apply-templates/>" +
 					"</table></body></html>" +
