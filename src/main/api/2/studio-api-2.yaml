@@ -821,12 +821,12 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /ui/views/global-dashboard:
+  /ui/views/global-menu:
     get:
       tags:
         - ui
-      summary: Get the dashboard tools available to the current user
-      operationId: getGlobalDashboard
+      summary: Get the global menu tools available to the current user
+      operationId: getGlobalMenu
       description: 'Required Permission: "LOGGED_IN"'
       responses:
         '200':
@@ -844,7 +844,7 @@ paths:
                       entities:
                         type: array
                         items:
-                          $ref: '#/components/schemas/DashboardTool'
+                          $ref: '#/components/schemas/GlobalMenuTool'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '500':
@@ -944,18 +944,18 @@ components:
         desc:
           type: string
           description: Site description
-    DashboardTool:
+    GlobalMenuTool:
       type: object
       properties:
         id:
           type: string
-          description: The identifier of the tool 
+          description: 'Tool ID, unique and immutable'
         label:
           type: string
-          description: The label of the tool
+          description: 'Tool label'
         icon:
           type: string
-          description: The URL of the tool's icon
+          description: 'Tool icon as a Font Awesome id, example: fa-smile'
   responses:
     NotFound:
       description: Resource not found
