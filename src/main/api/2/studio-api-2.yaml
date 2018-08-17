@@ -31,6 +31,7 @@ paths:
         - groups
       summary: Get all groups
       operationId: getGroups
+      description: 'Required Permission: "READ_GROUPS"'
       parameters:
         - name: offset
           in: query
@@ -93,6 +94,7 @@ paths:
       tags:
         - groups
       summary: Create group
+      description: 'Required Permission: "CREATE_GROUPS"'
       operationId: createGroup
       requestBody:
         description: Group entity to create
@@ -128,6 +130,7 @@ paths:
       tags:
         - groups
       summary: Update group
+      description: 'Required Permission: "UPDATE_GROUPS" or "UPDATE_GROUP" for this specific group'
       operationId: updateGroup
       requestBody:
         description: Group entity to update
@@ -163,6 +166,7 @@ paths:
       tags:
         - groups
       summary: Delete group(s)
+      description: 'Required Permission: "DELETE_GROUPS"'
       operationId: deleteGroup
       parameters:
         - name: id
@@ -202,6 +206,7 @@ paths:
       tags:
         - groups
       summary: Get group by groupId
+      description: 'Required Permission: "READ_GROUPS" or "READ_GROUP" for this specific group'
       operationId: getGroup
       parameters:
         - name: id
@@ -240,6 +245,7 @@ paths:
       tags:
         - groups
       summary: Get all the members of the specified group
+      description: 'Required Permission: "READ_GROUPS" or "READ_GROUP" for this specific group'
       operationId: getGroupMembers
       parameters:
         - name: id
@@ -312,6 +318,7 @@ paths:
       tags:
         - groups
       summary: Add member(s) to the specified group
+      description: 'Required Permission: "UPDATE_GROUPS" or "UPDATE_GROUP" for this specific group'
       operationId: addGroupMembers
       parameters:
         - name: id
@@ -366,6 +373,7 @@ paths:
       tags:
         - groups
       summary: Remove member(s) from the specified group
+      description: 'Required Permission: "UPDATE_GROUPS" or "UPDATE_GROUP" for this specific group'
       operationId: removeGroupMembers
       parameters:
         - name: id
@@ -422,6 +430,7 @@ paths:
       tags:
         - users
       summary: Get all users
+      description: 'Required Permission: "READ_USERS"'
       operationId: getUsers
       parameters:
         - name: site
@@ -491,6 +500,7 @@ paths:
       tags:
         - users
       summary: Create user
+      description: 'Required Permission: "CREATE_USERS"'
       operationId: createUser
       requestBody:
         description: User entity to create
@@ -526,6 +536,7 @@ paths:
       tags:
         - users
       summary: Update user
+      description: 'Required Permission: "UPDATE_USERS" or User entity id must be the same as logged in user ID'
       operationId: updateUser
       requestBody:
         description: User entity to update
@@ -561,6 +572,7 @@ paths:
       tags:
         - users
       summary: Delete user(s)
+      description: 'Required Permission: "DELETE_USERS"'
       operationId: deleteUser
       parameters:
         - name: id
@@ -608,6 +620,7 @@ paths:
       tags:
         - users
       summary: Get user by userId or username
+      description: 'Required Permission: "READ_USERS" or {id} param must be the same as logged in user ID'
       operationId: getGroup
       parameters:
         - name: id
@@ -645,6 +658,7 @@ paths:
       tags:
         - users
       summary: Enable user(s)
+      description: 'Required Permission: "UPDATE_USERS"'
       operationId: enableUser
       requestBody:
         description: List of userIds/usernames to enable
@@ -691,6 +705,7 @@ paths:
       tags:
         - users
       summary: Disable user(s)
+      description: 'Required Permission: "UPDATE_USERS"'
       operationId: disableUser
       requestBody:
         description: List of userIds/usernames to enable
@@ -737,6 +752,7 @@ paths:
       tags:
         - users
       summary: Get all the sites the specified user has access to
+      description: 'Required Permission: "READ_USERS" or {id} param must be the same as logged in user ID'
       operationId: getUserSites
       parameters:
         - name: id
@@ -805,34 +821,34 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /ui/views/global-dashboard:
-    get:
-      tags:
-        - ui
-      summary: Get the dashboard tools available to the current user
-      operationId: getGlobalDashboard
-      description: 'Required Permission: "LOGGED_IN"'
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  result:
-                    type: object
-                    properties:
-                      response:
-                        $ref: '#/components/schemas/ApiResponse'
-                      entities:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/Tool'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+  # /ui/views/global-dashboard:
+  #   get:
+  #     tags:
+  #       - ui
+  #     summary: Get the dashboard tools available to the current user
+  #     operationId: getGlobalDashboard
+  #     description: 'Required Permission: "LOGGED_IN"'
+  #     responses:
+  #       '200':
+  #         description: OK
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: object
+  #               properties:
+  #                 result:
+  #                   type: object
+  #                   properties:
+  #                     response:
+  #                       $ref: '#/components/schemas/ApiResponse'
+  #                     entities:
+  #                       type: array
+  #                       items:
+  #                         $ref: '#/components/schemas/Tool'
+  #       '401':
+  #         $ref: '#/components/responses/Unauthorized'
+  #       '500':
+  #         $ref: '#/components/responses/InternalServerError'
 
 components:
   schemas:
