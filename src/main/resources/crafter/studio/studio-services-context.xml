@@ -695,6 +695,17 @@
         <property name="profileReader" ref="studioS3ProfileReader"/>
     </bean>
 
+    <bean id="studioMediaConvertProfileReader"
+          class="org.craftercms.studio.impl.v1.aws.mediaconvert.XmlMediaConvertProfileReader"/>
+
+    <bean id="studioMediaConvert" class="org.craftercms.studio.impl.v1.aws.mediaconvert.MediaConvertImpl"/>
+
+    <bean id="studioMediaConvertService" class="org.craftercms.studio.impl.v1.service.aws.MediaConvertServiceImpl">
+        <property name="profileManager" ref="studioAwsProfileManager"/>
+        <property name="profileReader" ref="studioMediaConvertProfileReader"/>
+        <property name="mediaConvert" ref="studioMediaConvert"/>
+    </bean>
+
     <!-- ////////////////////////////////////// -->
     <!--         BOX                            -->
     <!-- ////////////////////////////////////// -->
