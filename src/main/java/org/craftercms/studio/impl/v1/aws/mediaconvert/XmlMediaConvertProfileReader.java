@@ -28,19 +28,19 @@ import org.craftercms.studio.api.v1.exception.AwsConfigurationException;
  * Configuration to read an XML profile like the following properties:
  *
  * <pre>
- * &gt;profile&lt;
- *   &gt;id&lt;xxxxx&gt;/id&lt;
- *   &gt;credentials&lt;
- *     &gt;accessKey&lt;XXXXXXXXXXXXXXXXXXXX&gt;/accessKey&lt;
- *     &gt;secretKey&lt;XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX&gt;/secretKey&lt;
- *   &gt;/credentials&lt;
- *   &gt;region&lt;us-east-1&gt;/region&lt;
- *   &gt;endpoint&lt;https://XXXXXXXX.mediaconvert.us-east-1.amazonaws.com&gt;/endpoint&lt;
- *   &gt;role&lt;arn:aws:iam::XXXXXXXXXXXX:role/...&gt;/role&lt;
- *   &gt;queue&lt;arn:aws:mediaconvert:us-east-1:XXXXXXXXXXXX:queues/Default&gt;/queue&lt;
- *   &gt;inputPath&lt;example-bucket/folder/videos/...&gt;/inputPath&lt;
- *   &gt;template&lt;Example Template&gt;/template&lt;
- * &gt;/profile&lt;
+ * &lt;profile&gt;
+ *   &lt;id&gt;xxxxx&lt;/id&gt;
+ *   &lt;credentials&gt;
+ *     &lt;accessKey&gt;XXXXXXXXXXXXXXXXXXXX&lt;/accessKey&gt;
+ *     &lt;secretKey&gt;XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX&lt;/secretKey&gt;
+ *   &lt;/credentials&gt;
+ *   &lt;region&gt;us-east-1&lt;/region&gt;
+ *   &lt;endpoint&gt;https://XXXXXXXX.mediaconvert.us-east-1.amazonaws.com&lt;/endpoint&gt;
+ *   &lt;role&gt;arn:aws:iam::XXXXXXXXXXXX:role/...&lt;/role&gt;
+ *   &lt;queue&gt;arn:aws:mediaconvert:us-east-1:XXXXXXXXXXXX:queues/Default&lt;/queue&gt;
+ *   &lt;inputPath&gt;example-bucket/folder/videos/...&lt;/inputPath&gt;
+ *   &lt;template&gt;Example Template&lt;/template&gt;
+ * &lt;/profile&gt;
  * </pre>
  *
  * @author joseross

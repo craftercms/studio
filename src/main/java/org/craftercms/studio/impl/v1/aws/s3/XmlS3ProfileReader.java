@@ -10,15 +10,15 @@ import org.craftercms.studio.api.v1.exception.AwsConfigurationException;
  * to read an XML S3 profile like the following:
  *
  * <pre>
- * &gt;profile&lt;
- *   &gt;id&lt;xxxxx&gt;/id&lt;
- *   &gt;credentials&lt;
- *     &gt;accessKey&lt;XXXXXXXXXXXXXXXXXXXX&gt;/accessKey&lt;
- *     &gt;secretKey&lt;XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX&gt;/secretKey&lt;
- *   &gt;/credentials&lt;
- *   &gt;region&lt;us-east-1&gt;/region&lt;
- *   &gt;bucketName&lt;00000000000000000000&gt;/bucketName&lt;
- * &gt;/profile&lt;
+ * &lt;profile&gt;
+ *   &lt;id&gt;xxxxx&lt;/id&gt;
+ *   &lt;credentials&gt;
+ *     &lt;accessKey&gt;XXXXXXXXXXXXXXXXXXXX&lt;/accessKey&gt;
+ *     &lt;secretKey&gt;XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX&lt;/secretKey&gt;
+ *   &lt;/credentials&gt;
+ *   &lt;region&gt;us-east-1&lt;/region&gt;
+ *   &lt;bucketName&gt;00000000000000000000&lt;/bucketName&gt;
+ * &lt;/profile&gt;
  * </pre>
  *
  */
