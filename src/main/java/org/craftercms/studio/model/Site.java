@@ -16,31 +16,26 @@
  *
  */
 
-package org.craftercms.studio.api.v2.dal;
+package org.craftercms.studio.model;
 
-import java.io.Serializable;
-import java.time.ZonedDateTime;
+public class Site implements Entity {
 
-public class UserGroup implements Serializable {
+    private long id;
+    private String desc;
 
-    private static final long serialVersionUID = -1030917735504714929L;
-
-    private GroupDAL group;
-    private ZonedDateTime recordLastUpdated;
-
-    public GroupDAL getGroup() {
-        return group;
+    public long getId() {
+        return id;
     }
 
-    public void setGroup(GroupDAL group) {
-        this.group = group;
+    public void setId(long id) {
+        this.id = id;
     }
 
-    public ZonedDateTime getRecordLastUpdated() {
-        return recordLastUpdated;
+    public String getDesc() {
+        return desc;
     }
 
-    public void setRecordLastUpdated(ZonedDateTime recordLastUpdated) {
-        this.recordLastUpdated = recordLastUpdated;
+    public void setDesc(String desc) {
+        this.desc = desc;
     }
 }

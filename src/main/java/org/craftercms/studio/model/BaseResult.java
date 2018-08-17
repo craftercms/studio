@@ -16,31 +16,44 @@
  *
  */
 
-package org.craftercms.studio.api.v2.dal;
+package org.craftercms.studio.model;
 
-import java.io.Serializable;
-import java.time.ZonedDateTime;
+public abstract class BaseResult {
 
-public class UserGroup implements Serializable {
+    protected ApiResponse response;
+    protected int total;
+    protected int offset;
+    protected int limit;
 
-    private static final long serialVersionUID = -1030917735504714929L;
-
-    private GroupDAL group;
-    private ZonedDateTime recordLastUpdated;
-
-    public GroupDAL getGroup() {
-        return group;
+    public ApiResponse getResponse() {
+        return response;
     }
 
-    public void setGroup(GroupDAL group) {
-        this.group = group;
+    public void setResponse(ApiResponse response) {
+        this.response = response;
     }
 
-    public ZonedDateTime getRecordLastUpdated() {
-        return recordLastUpdated;
+    public int getTotal() {
+        return total;
     }
 
-    public void setRecordLastUpdated(ZonedDateTime recordLastUpdated) {
-        this.recordLastUpdated = recordLastUpdated;
+    public void setTotal(int total) {
+        this.total = total;
+    }
+
+    public int getOffset() {
+        return offset;
+    }
+
+    public void setOffset(int offset) {
+        this.offset = offset;
+    }
+
+    public int getLimit() {
+        return limit;
+    }
+
+    public void setLimit(int limit) {
+        this.limit = limit;
     }
 }

@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xmlns:util="http://www.springframework.org/schema/util"
-       xsi:schemaLocation="
-       http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-       http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+       xmlns:util="http://www.springframework.org/schema/util" xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
     <!-- STUDIO CHANGES -->
 
@@ -18,6 +18,19 @@
         <entry key="/proxy/{proxyName}/**" value-ref="crafter.httpProxyRequestHandler"/>
         <entry key="/*" value-ref="crafter.pageRenderController"/>
     </util:map>
+
+    <!-- ////////////////////////////////////// -->
+    <!--      Controllers                       -->
+    <!-- ////////////////////////////////////// -->
+    <bean id="studioGroupsController" class="org.craftercms.studio.controller.rest.GroupsController">
+        <property name="groupService" ref="groupService" />
+    </bean>
+
+    <bean id="studioUsersController" class="org.craftercms.studio.controller.rest.UsersController">
+        <property name="userService" ref="userService" />
+        <property name="groupService" ref="groupService" />
+        <property name="siteService" ref="cstudioSiteServiceSimple" />
+    </bean>
 
     <bean id="studio.binaryView" class="org.craftercms.studio.impl.v1.util.spring.mvc.BinaryView">
         <property name="disableCaching" value="${crafter.core.rest.views.json.disableCaching}"/>

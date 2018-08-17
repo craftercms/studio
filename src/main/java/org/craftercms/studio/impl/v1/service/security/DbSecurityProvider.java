@@ -25,7 +25,7 @@ import org.craftercms.commons.entitlements.model.EntitlementType;
 import org.craftercms.commons.entitlements.model.Module;
 import org.craftercms.commons.entitlements.validator.EntitlementValidator;
 import org.craftercms.commons.http.RequestContext;
-import org.craftercms.studio.api.v2.dal.Group;
+import org.craftercms.studio.api.v2.dal.GroupDAL;
 import org.craftercms.studio.api.v1.dal.GroupPerSiteResult;
 import org.craftercms.studio.api.v1.dal.GroupResult;
 import org.craftercms.studio.api.v2.dal.SecurityMapper;
@@ -49,7 +49,6 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.SessionTokenUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 
 import javax.servlet.http.HttpSession;
@@ -74,9 +73,7 @@ public class DbSecurityProvider implements SecurityProvider {
 
     private static Logger logger = LoggerFactory.getLogger(DbSecurityProvider.class);
 
-    @Autowired
     protected SecurityMapper securityMapper;
-    @Autowired
     protected SiteFeedMapper siteFeedMapper;
     @Autowired
     protected EntitlementValidator entitlementValidator;
@@ -86,8 +83,8 @@ public class DbSecurityProvider implements SecurityProvider {
     @Override
     public Set<String> getUserGroups(String user) {
         Set<String> userGroups = new HashSet<String>();
-        List<Group> groups = new ArrayList<>(); //securityMapper.getUserGroups(user);
-        for (Group g : groups) {
+        List<GroupDAL> groups = new ArrayList<>(); //securityMapper.getUserGroups(user);
+        for (GroupDAL g : groups) {
             userGroups.add(g.getGroupName());
         }
         return userGroups;
@@ -99,8 +96,8 @@ public class DbSecurityProvider implements SecurityProvider {
         Map<String, String> params = new HashMap<String, String>();
         params.put("username", user);
         params.put("siteId", site);
-        List<Group> groups = new ArrayList<>();// securityMapper.getUserGroupsPerSite(params);
-        for (Group g : groups) {
+        List<GroupDAL> groups = new ArrayList<>();// securityMapper.getUserGroupsPerSite(params);
+        for (GroupDAL g : groups) {
             userGroups.add(g.getGroupName());
         }
         return userGroups;
@@ -890,5 +887,21 @@ public class DbSecurityProvider implements SecurityProvider {
 
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
+    }
+
+    public SecurityMapper getSecurityMapper() {
+        return securityMapper;
+    }
+
+    public void setSecurityMapper(SecurityMapper securityMapper) {
+        this.securityMapper = securityMapper;
+    }
+
+    public SiteFeedMapper getSiteFeedMapper() {
+        return siteFeedMapper;
+    }
+
+    public void setSiteFeedMapper(SiteFeedMapper siteFeedMapper) {
+        this.siteFeedMapper = siteFeedMapper;
     }
 }

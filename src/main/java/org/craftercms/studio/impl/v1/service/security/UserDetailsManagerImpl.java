@@ -21,12 +21,10 @@ package org.craftercms.studio.impl.v1.service.security;
 import org.craftercms.studio.api.v2.dal.SecurityMapper;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v1.service.security.UserDetailsManager;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 
 public class UserDetailsManagerImpl implements UserDetailsManager {
 
-    //@Autowired
     protected SecurityMapper securityMapper;
 
     @Override

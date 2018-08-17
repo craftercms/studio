@@ -23,7 +23,7 @@ import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.commons.http.RequestContext;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
-import org.craftercms.studio.api.v2.dal.Group;
+import org.craftercms.studio.api.v2.dal.GroupDAL;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -136,7 +136,7 @@ public class AuthenticationHeadersSecurityProvider extends DbWithLdapExtensionSe
                                 params.put("siteId", siteId);
                                 SiteFeed siteFeed = siteFeedMapper.getSite(params);
                                 if (siteFeed != null) {
-                                    Group g = new Group();
+                                    GroupDAL g = new GroupDAL();
                                     g.setGroupName(groupsArray[i + 1]);
                                     g.setGroupDescription("Externally managed group");
                                     g.setOrganization(null);

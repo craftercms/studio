@@ -26,7 +26,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-public class User implements UserDetails {
+public class UserDAL implements UserDetails {
 
     private static final long serialVersionUID = 968000561389890945L;
 

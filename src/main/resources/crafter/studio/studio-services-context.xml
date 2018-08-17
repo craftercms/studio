@@ -55,6 +55,8 @@
         <property name="contentRepository" ref="contentRepository" />
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager" />
         <property name="servicesConfig" ref="cstudioServicesConfig" />
+        <property name="itemStateMapper" ref="itemStateMapper" />
+        <property name="dependencyMapper" ref="dependencyMapper" />
     </bean>
 
     <!-- all of these beans below need to move off contentRepository and on to content service.  Repository is a very NARROW interface -->
@@ -145,6 +147,7 @@
          <property name="eventService" ref="studioEventService"/>
          <property name="deploymentHistoryProvider" ref="contentRepository"/>
          <property name="studioConfiguration" ref="studioConfiguration" />
+         <property name="publishRequestMapper" ref="publishRequestMapper" />
      </bean>
 
     <bean id="cstudioNotificationService"
@@ -180,6 +183,7 @@
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="deploymentService" ref="cstudioDeploymentService" />
+        <property name="auditFeedMapper" ref="auditFeedMapper" />
     </bean>
 
     <bean id="cstudioDependencyDiffService" class="org.craftercms.studio.impl.v1.service.dependency.DependencyDiffServiceImpl">
@@ -191,6 +195,7 @@
         <property name="generalLockService" ref="cstudioGeneralLockService"/>
         <property name="contentService" ref="cstudioContentService"/>
         <property name="studioConfiguration" ref="studioConfiguration" />
+        <property name="itemStateMapper" ref="itemStateMapper" />
     </bean>
 
     <bean id="cstudioGeneralLockService" class="org.craftercms.studio.impl.v1.service.GeneralLockServiceImpl"
@@ -241,6 +246,7 @@
         <property name="contentService" ref="cstudioContentService"/>
         <property name="generalLockService" ref="cstudioGeneralLockService"/>
         <property name="studioConfiguration" ref="studioConfiguration" />
+        <property name="navigationOrderSequenceMapper" ref="navigationOrderSequenceMapper" />
     </bean>
 
     <bean id="cstudioContentLifeCycleService" class="org.craftercms.studio.impl.v1.service.content.DmContentLifeCycleServiceImpl"
@@ -270,10 +276,23 @@
         <property name="contentService" ref="cstudioContentService"/>
     </bean>
 
+    <bean id="groupService" class="org.craftercms.studio.impl.v2.service.security.GroupServiceImpl">
+        <property name="groupMapper" ref="groupMapper"/>
+        <property name="studioConfiguration" ref="studioConfiguration" />
+        <property name="contentService" ref="cstudioContentService" />
+    </bean>
+
+    <bean id="userService" class="org.craftercms.studio.impl.v2.service.security.UserServiceImpl">
+        <property name="userMapper" ref="userMapper" />
+        <property name="groupService" ref="groupService" />
+
+    </bean>
+
     <!-- ////////////////////////////////////// -->
     <!--      Managers                          -->
     <!-- ////////////////////////////////////// -->
     <bean id="cstudioObjectMetadataManager" class="org.craftercms.studio.impl.v1.service.content.ObjectMetadataManagerImpl">
+        <property name="itemMetadataMapper" ref="itemMetadataMapper"/>
     </bean>
 
     <!-- ////////////////////////////////////// -->
@@ -380,6 +399,8 @@
         <property name="studioConfiguration" ref="studioConfiguration"/>
         <property name="securityProvider" ref="securityProvider"/>
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
+        <property name="remoteRepositoryMapper" ref="remoteRepositoryMapper" />
+        <property name="gitLogMapper" ref="gitLogMapper" />
     </bean>
 
     <!-- ////////////////////////////////////// -->
@@ -408,6 +429,8 @@
 
     <bean id="cstudioDbSecurityProvider" class="org.craftercms.studio.impl.v1.service.security.DbSecurityProvider">
         <property name="studioConfiguration" ref="studioConfiguration" />
+        <property name="securityMapper" ref="securityMapper" />
+        <property name="siteFeedMapper" ref="siteFeedMapper" />
     </bean>
 
     <bean id="cstudioDbSecurityProviderRegistration"
@@ -652,6 +675,7 @@
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="deploymentHistoryProvider" ref="contentRepository" />
         <property name="dependencyService" ref="studioDependencyService" />
+        <property name="publishRequestMapper" ref="publishRequestMapper" />
     </bean>
 
     <bean id="cstudioDeploymentEventLoggerListener" class="org.craftercms.studio.impl.v1.ebus.DeploymentEventLoggerListener" init-method="subscribeToDeploymentEngineDeployEvents">
@@ -744,6 +768,7 @@
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="contentRepository" ref="contentRepository" />
+        <property name="publishRequestMapper" ref="publishRequestMapper" />
     </bean>
 
     <bean id="studioSyncDatabaseWithRepository" class="org.craftercms.studio.impl.v1.repository.job.SyncDatabaseWithRepository">

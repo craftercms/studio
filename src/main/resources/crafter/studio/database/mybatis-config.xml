@@ -26,13 +26,9 @@
 
     <typeAliases>
         <typeAlias type="org.craftercms.studio.api.v2.dal.User" alias="User"/>
-        <typeAlias type="org.craftercms.studio.api.v2.dal.Group" alias="Group"/>
+        <typeAlias type="org.craftercms.studio.api.v2.dal.GroupDAL" alias="Group"/>
         <typeAlias type="org.craftercms.studio.api.v1.dal.Role" alias="Role"/>
         <typeAlias type="org.craftercms.studio.api.v1.dal.Permission" alias="Permission"/>
     </typeAliases>
-    
-  <!--  <mappers>
-        <package name="org.craftercms.studio.api.v1.dal" />
-        <package name="org.craftercms.studio.api.v2.dal" />
-    </mappers> -->
+
 </configuration>

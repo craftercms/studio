@@ -30,7 +30,6 @@ import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.task.TaskExecutor;
 
 import java.util.HashMap;
@@ -45,7 +44,6 @@ public class RebuildRepositoryMetadata {
 
     private static ReentrantLock taskLock = new ReentrantLock();
 
-    @Autowired
     protected PublishRequestMapper publishRequestMapper;
     protected ObjectMetadataManager objectMetadataManager;
     protected ObjectStateService objectStateService;
@@ -222,5 +220,13 @@ public class RebuildRepositoryMetadata {
 
     public void setContentRepository(ContentRepository contentRepository) {
         this.contentRepository = contentRepository;
+    }
+
+    public PublishRequestMapper getPublishRequestMapper() {
+        return publishRequestMapper;
+    }
+
+    public void setPublishRequestMapper(PublishRequestMapper publishRequestMapper) {
+        this.publishRequestMapper = publishRequestMapper;
     }
 }

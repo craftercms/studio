@@ -36,7 +36,6 @@ import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.Node;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -53,7 +52,6 @@ public class DmPageNavigationOrderServiceImpl extends AbstractRegistrableService
     protected GeneralLockService generalLockService;
     protected ContentService contentService;
     protected StudioConfiguration studioConfiguration;
-    @Autowired
     protected NavigationOrderSequenceMapper navigationOrderSequenceMapper;
 
     @Override
@@ -194,5 +192,13 @@ public class DmPageNavigationOrderServiceImpl extends AbstractRegistrableService
 
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
+    }
+
+    public NavigationOrderSequenceMapper getNavigationOrderSequenceMapper() {
+        return navigationOrderSequenceMapper;
+    }
+
+    public void setNavigationOrderSequenceMapper(NavigationOrderSequenceMapper navigationOrderSequenceMapper) {
+        this.navigationOrderSequenceMapper = navigationOrderSequenceMapper;
     }
 }

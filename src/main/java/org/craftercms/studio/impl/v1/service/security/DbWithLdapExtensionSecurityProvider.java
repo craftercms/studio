@@ -22,7 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
-import org.craftercms.studio.api.v2.dal.Group;
+import org.craftercms.studio.api.v2.dal.GroupDAL;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -310,7 +310,7 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
     }
 
     private void addGroupToUser(User user, String groupName, SiteFeed siteFeed) {
-        Group group = new Group();
+        GroupDAL group = new GroupDAL();
         group.setGroupName(groupName);
         group.setGroupDescription("Externally managed group");
         group.setOrganization(null);

@@ -51,7 +51,6 @@ import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.util.DebugUtils;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_PAGE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.ACTIVITY_USERNAME_CASE_SENSITIVE;
@@ -85,7 +84,6 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
     /** activity feed format **/
     protected static final String ACTIVITY_FEED_FORMAT = "json";
 
-    @Autowired
     protected AuditFeedMapper auditFeedMapper;
 
     protected SiteService siteService;
@@ -481,5 +479,13 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 
     public void setDeploymentService(DeploymentService deploymentService) {
         this.deploymentService = deploymentService;
+    }
+
+    public AuditFeedMapper getAuditFeedMapper() {
+        return auditFeedMapper;
+    }
+
+    public void setAuditFeedMapper(AuditFeedMapper auditFeedMapper) {
+        this.auditFeedMapper = auditFeedMapper;
     }
 }

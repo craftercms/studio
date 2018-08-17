@@ -54,7 +54,6 @@ import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.PUBLISHING_MANAGER_INDEX_FILE;
@@ -79,7 +78,6 @@ public class PublishingManagerImpl implements PublishingManager {
     protected StudioConfiguration studioConfiguration;
     protected DependencyService dependencyService;
     protected DeploymentHistoryProvider deploymentHistoryProvider;
-    @Autowired
     protected PublishRequestMapper publishRequestMapper;
 
     @Override
@@ -502,4 +500,11 @@ public class PublishingManagerImpl implements PublishingManager {
         this.deploymentHistoryProvider = deploymentHistoryProvider;
     }
 
+    public PublishRequestMapper getPublishRequestMapper() {
+        return publishRequestMapper;
+    }
+
+    public void setPublishRequestMapper(PublishRequestMapper publishRequestMapper) {
+        this.publishRequestMapper = publishRequestMapper;
+    }
 }

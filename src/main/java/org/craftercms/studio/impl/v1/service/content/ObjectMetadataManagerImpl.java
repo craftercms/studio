@@ -27,7 +27,6 @@ import org.craftercms.studio.api.v1.dal.ItemMetadataMapper;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 
 import java.util.HashMap;
@@ -38,7 +37,6 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
 
     private final static Logger logger = LoggerFactory.getLogger(ObjectMetadataManagerImpl.class);
 
-    @Autowired
     protected ItemMetadataMapper itemMetadataMapper;
 
     @Override
@@ -267,4 +265,12 @@ public class ObjectMetadataManagerImpl implements ObjectMetadataManager {
         return itemMetadataMapper.countAllItems();
     }
 
+
+    public ItemMetadataMapper getItemMetadataMapper() {
+        return itemMetadataMapper;
+    }
+
+    public void setItemMetadataMapper(ItemMetadataMapper itemMetadataMapper) {
+        this.itemMetadataMapper = itemMetadataMapper;
+    }
 }

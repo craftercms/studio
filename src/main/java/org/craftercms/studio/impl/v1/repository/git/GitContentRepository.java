@@ -142,7 +142,6 @@ import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
 import org.eclipse.jgit.util.FS;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.web.context.ServletContextAware;
 
@@ -180,9 +179,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     protected SecurityProvider securityProvider;
     protected StudioConfiguration studioConfiguration;
     protected ServicesConfig servicesConfig;
-    @Autowired
     protected GitLogMapper gitLogMapper;
-    @Autowired
     protected RemoteRepositoryMapper remoteRepositoryMapper;
 
     @Override
@@ -2354,5 +2351,21 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
     public void setServicesConfig(ServicesConfig servicesConfig) {
         this.servicesConfig = servicesConfig;
+    }
+
+    public GitLogMapper getGitLogMapper() {
+        return gitLogMapper;
+    }
+
+    public void setGitLogMapper(GitLogMapper gitLogMapper) {
+        this.gitLogMapper = gitLogMapper;
+    }
+
+    public RemoteRepositoryMapper getRemoteRepositoryMapper() {
+        return remoteRepositoryMapper;
+    }
+
+    public void setRemoteRepositoryMapper(RemoteRepositoryMapper remoteRepositoryMapper) {
+        this.remoteRepositoryMapper = remoteRepositoryMapper;
     }
 }

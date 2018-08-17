@@ -121,7 +121,6 @@ public class DeploymentServiceImpl implements DeploymentService {
     protected NotificationService notificationService;
     protected DeploymentHistoryProvider deploymentHistoryProvider;
     protected StudioConfiguration studioConfiguration;
-
     protected PublishRequestMapper publishRequestMapper;
 
     @Override

@@ -18,29 +18,26 @@
 
 package org.craftercms.studio.api.v2.dal;
 
-import java.io.Serializable;
-import java.time.ZonedDateTime;
+import java.util.List;
+import java.util.Map;
 
-public class UserGroup implements Serializable {
+public interface GroupMapper {
 
-    private static final long serialVersionUID = -1030917735504714929L;
+    List<GroupDAL> getAllGroupsForOrganization(Map params);
 
-    private GroupDAL group;
-    private ZonedDateTime recordLastUpdated;
+    void createGroup(Map params);
 
-    public GroupDAL getGroup() {
-        return group;
-    }
+    void updateGroup(Map params);
 
-    public void setGroup(GroupDAL group) {
-        this.group = group;
-    }
+    void deleteGroup(Map params);
 
-    public ZonedDateTime getRecordLastUpdated() {
-        return recordLastUpdated;
-    }
+    GroupDAL getGroup(Map params);
 
-    public void setRecordLastUpdated(ZonedDateTime recordLastUpdated) {
-        this.recordLastUpdated = recordLastUpdated;
-    }
+    List<UserDAL> getGroupMembers(Map params);
+
+    void addGroupMembers(Map params);
+
+    List<Integer> getUserIdsForUsernames(Map params);
+
+    void removeGroupMembers(Map params);
 }
