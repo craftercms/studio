@@ -97,7 +97,7 @@
         SELECT * FROM `user` WHERE username = #{username}
     </select>
 
-    <select id="getUserDetails" resultMap="UserMap">
+    <select id="getUserDetails" resultMap="UserProfileResultMap">
             SELECT cu.username
             FROM `user` cu LEFT JOIN group_user cug ON cu.id = cug.user_id
               LEFT JOIN `group` cg ON cug.group_id = cg.id

@@ -43,7 +43,7 @@ public interface SecurityMapper {
 
     void createGroup(Map params);
 
-    List<User> getUserDetails(String username);
+    List<UserProfileResult> getUserDetails(String username);
 
     List<String> getAllUsersQuery(Map params);
 

@@ -48,7 +48,9 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
+import org.craftercms.studio.api.v2.dal.UserMapper;
 import org.craftercms.studio.impl.v1.util.SessionTokenUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 
 import javax.servlet.http.HttpSession;
@@ -67,6 +69,8 @@ import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_FIRSTN
 import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_LASTNAME;
 import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_USERNAME;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_SESSION_TIMEOUT;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USERNAME;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USER_ID;
 import static org.craftercms.studio.impl.v1.service.security.SecurityServiceImpl.STUDIO_SESSION_TOKEN_ATRIBUTE;
 
 public class DbSecurityProvider implements SecurityProvider {
@@ -75,6 +79,7 @@ public class DbSecurityProvider implements SecurityProvider {
 
     protected SecurityMapper securityMapper;
     protected SiteFeedMapper siteFeedMapper;
+    protected UserMapper userMapper;
     @Autowired
     protected EntitlementValidator entitlementValidator;
 
@@ -83,7 +88,10 @@ public class DbSecurityProvider implements SecurityProvider {
     @Override
     public Set<String> getUserGroups(String user) {
         Set<String> userGroups = new HashSet<String>();
-        List<GroupDAL> groups = new ArrayList<>(); //securityMapper.getUserGroups(user);
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put(USER_ID, -1);
+        params.put(USERNAME, user);
+        List<GroupDAL> groups = userMapper.getUserGroups(params);
         for (GroupDAL g : groups) {
             userGroups.add(g.getGroupName());
         }
@@ -96,7 +104,7 @@ public class DbSecurityProvider implements SecurityProvider {
         Map<String, String> params = new HashMap<String, String>();
         params.put("username", user);
         params.put("siteId", site);
-        List<GroupDAL> groups = new ArrayList<>();// securityMapper.getUserGroupsPerSite(params);
+        List<GroupDAL> groups = securityMapper.getUserGroupsPerSite(params);
         for (GroupDAL g : groups) {
             userGroups.add(g.getGroupName());
         }
@@ -129,7 +137,7 @@ public class DbSecurityProvider implements SecurityProvider {
 
     @Override
     public Map<String, Object> getUserProfile(String user) {
-        List<User> resultSet = securityMapper.getUserDetails(user);
+        List<UserProfileResult> resultSet = securityMapper.getUserDetails(user);
         Map<String, Object> userProfile = new HashMap<String, Object>();
         List<Map<String, Object>> parsedRS = parseUserResultSet(resultSet);
         if (parsedRS != null && !parsedRS.isEmpty()) {
@@ -140,7 +148,7 @@ public class DbSecurityProvider implements SecurityProvider {
 
     @Override
     public List<Map<String, Object>> getAllUsers(int start, int number) {
-        List<User> resultSet = new ArrayList<User>();
+        List<UserProfileResult> resultSet = new ArrayList<UserProfileResult>();
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("start", start);
         params.put("number", number);
@@ -148,7 +156,7 @@ public class DbSecurityProvider implements SecurityProvider {
         if (usernames != null && !usernames.isEmpty()) {
             params = new HashMap<String, Object>();
             params.put("usernames", usernames);
-            //resultSet = securityMapper.getAllUsersData(params);
+            resultSet = securityMapper.getAllUsersData(params);
         }
         return parseUserResultSet(resultSet);
     }
@@ -157,11 +165,11 @@ public class DbSecurityProvider implements SecurityProvider {
     public int getAllUsersTotal() {
         List<UserProfileResult> resultSet = new ArrayList<UserProfileResult>();
         Map<String, Object> params = new HashMap<String, Object>();
-        return 0; //securityMapper.getAllUsersQueryTotal(params);
+        return securityMapper.getAllUsersQueryTotal(params);
     }
 
     @SuppressWarnings("unchecked")
-    private List<Map<String, Object>> parseUserResultSet(List<User> usersResultSet) {
+    private List<Map<String, Object>> parseUserResultSet(List<UserProfileResult> usersResultSet) {
         List<Map<String, Object>> toRet = new ArrayList<Map<String, Object>>();
         Map<String, Object> userProfile = new HashMap<String, Object>();
         if (usersResultSet != null && !usersResultSet.isEmpty()) {
@@ -170,7 +178,7 @@ public class DbSecurityProvider implements SecurityProvider {
             List<Object> sites = new ArrayList<Object>();
             Map<String, Object> site = null;
             List<Map<String, Object>> groups = null;
-            for (User row : usersResultSet) {
+            for (UserProfileResult row : usersResultSet) {
                 String username = row.getUsername();
                 if (!username.equals(lastUser)) {
                     if (userProfile != null && !userProfile.isEmpty()) {
@@ -238,12 +246,12 @@ public class DbSecurityProvider implements SecurityProvider {
             params.put("siteId", site);
             params.put("start", start);
             params.put("number", number);
-            List<String> usernames = new ArrayList<>(); //securityMapper.getUsersPerSiteQuery(params);
+            List<String> usernames = securityMapper.getUsersPerSiteQuery(params);
             if (usernames != null && !usernames.isEmpty()) {
                 params = new HashMap<String, Object>();
                 params.put("siteId", site);
                 params.put("usernames", usernames);
-                List<UserProfileResult> resultSet = new ArrayList<>(); //securityMapper.getUsersPerSiteData(params);
+                List<UserProfileResult> resultSet = securityMapper.getUsersPerSiteData(params);
                 Map<String, Object> userProfile = new HashMap<String, Object>();
                 if (resultSet != null && !resultSet.isEmpty()) {
                     String lastUser = null;
@@ -289,7 +297,7 @@ public class DbSecurityProvider implements SecurityProvider {
         } else {
             Map<String, Object> params = new HashMap<String, Object>();
             params.put("siteId", site);
-            return 0; //securityMapper.getUsersPerSiteQueryTotal(params);
+            return securityMapper.getUsersPerSiteQueryTotal(params);
         }
     }
 
@@ -393,7 +401,7 @@ public class DbSecurityProvider implements SecurityProvider {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("groupName", groupName);
         params.put("siteId", siteId);
-        Integer result =  0;//securityMapper.groupExists(params);
+        Integer result =  securityMapper.groupExists(params);
         return (result > 0);
     }
 
@@ -401,7 +409,7 @@ public class DbSecurityProvider implements SecurityProvider {
     public boolean userExists(String username) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(KEY_USERNAME, username);
-        Integer result = 0;//securityMapper.userExists(params);
+        Integer result = securityMapper.userExists(params);
         return (result > 0);
     }
 
@@ -411,7 +419,7 @@ public class DbSecurityProvider implements SecurityProvider {
         params.put("groupName", groupName);
         params.put("siteId", siteId);
         params.put(KEY_USERNAME, username);
-        Integer result = 0;//securityMapper.userExistsInGroup(params);
+        Integer result = securityMapper.userExistsInGroup(params);
         return (result > 0);
     }
 
@@ -503,7 +511,7 @@ public class DbSecurityProvider implements SecurityProvider {
             params.put(KEY_EMAIL, email);
             params.put("externallyManaged", externallyManaged ? 1 : 0);
             try {
-                //securityMapper.createUser(params);
+                securityMapper.createUser(params);
             } catch (DuplicateKeyException e) {
                 logger.error("Error creating user " + username, e);
                 throw new UserAlreadyExistsException("User already exists.", e);
@@ -519,7 +527,7 @@ public class DbSecurityProvider implements SecurityProvider {
         } else {
             Map<String, String> params = new HashMap<String, String>();
             params.put(KEY_USERNAME, username);
-            //securityMapper.deleteUser(params);
+            securityMapper.deleteUser(params);
             return true;
         }
     }
@@ -539,7 +547,7 @@ public class DbSecurityProvider implements SecurityProvider {
                 params.put("firstname", firstName);
                 params.put("lastname", lastName);
                 params.put(KEY_EMAIL, email);
-                //securityMapper.updateUser(params);
+                securityMapper.updateUser(params);
                 return true;
             }
         }
@@ -558,7 +566,7 @@ public class DbSecurityProvider implements SecurityProvider {
                 Map<String, Object> params = new HashMap<String, Object>();
                 params.put(KEY_USERNAME, username);
                 params.put("enabled", enabled ? 1 : 0);
-                //securityMapper.enableUser(params);
+                securityMapper.enableUser(params);
                 return true;
             }
         }
@@ -597,7 +605,7 @@ public class DbSecurityProvider implements SecurityProvider {
             params.put("siteId", site.getId());
             params.put("externallyManaged", externallyManaged ? 1 : 0);
             try {
-                //securityMapper.createGroup(params);
+                securityMapper.createGroup(params);
             } catch (DuplicateKeyException e) {
                 logger.error("Error creating group " + groupName, e);
                 throw new GroupAlreadyExistsException("Group already exists.", e);
@@ -619,7 +627,7 @@ public class DbSecurityProvider implements SecurityProvider {
             Map<String, Object> params = new HashMap<String, Object>();
             params.put("groupName", group);
             params.put("siteId", site);
-            return null;// securityMapper.getGroup(params);
+            return securityMapper.getGroup(params);
         }
     }
 
@@ -628,12 +636,12 @@ public class DbSecurityProvider implements SecurityProvider {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("start", start);
         params.put("number", number);
-        List<Long> groupIds = new ArrayList<>(); //securityMapper.getAllGroupsQuery(params);
+        List<Long> groupIds = securityMapper.getAllGroupsQuery(params);
         List<GroupResult> resultSet = new ArrayList<GroupResult>();
         if (groupIds != null && !groupIds.isEmpty()) {
             params = new HashMap<String, Object>();
             params.put("groupids", groupIds);
-            //resultSet = securityMapper.getAllGroupsData(params);
+            resultSet = securityMapper.getAllGroupsData(params);
         }
         return parseGroupResultSet(resultSet);
     }
@@ -683,13 +691,13 @@ public class DbSecurityProvider implements SecurityProvider {
             params.put("site", site);
             params.put("start", start);
             params.put("number", number);
-            List<Long> groupIds = new ArrayList<>();//securityMapper.getGroupsPerSiteQuery(params);
+            List<Long> groupIds = securityMapper.getGroupsPerSiteQuery(params);
             List<GroupPerSiteResult> resultSet = new ArrayList<GroupPerSiteResult>();
             if (groupIds != null && !groupIds.isEmpty()) {
                 params = new HashMap<String, Object>();
                 params.put("site", site);
                 params.put("groupids", groupIds);
-                //resultSet = securityMapper.getGroupsPerSiteData(params);
+                resultSet = securityMapper.getGroupsPerSiteData(params);
             }
             return parseGroupsPerSiteResultSet(resultSet);
         }
@@ -702,7 +710,7 @@ public class DbSecurityProvider implements SecurityProvider {
         } else {
             Map<String, Object> params = new HashMap<String, Object>();
             params.put("site", site);
-            return 0;// securityMapper.getGroupsPerSiteQueryTotal(params);
+            return securityMapper.getGroupsPerSiteQueryTotal(params);
         }
     }
 
@@ -903,5 +911,13 @@ public class DbSecurityProvider implements SecurityProvider {
 
     public void setSiteFeedMapper(SiteFeedMapper siteFeedMapper) {
         this.siteFeedMapper = siteFeedMapper;
+    }
+
+    public UserMapper getUserMapper() {
+        return userMapper;
+    }
+
+    public void setUserMapper(UserMapper userMapper) {
+        this.userMapper = userMapper;
     }
 }

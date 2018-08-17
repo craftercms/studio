@@ -47,7 +47,6 @@
           init-method="initDataSource" depends-on="studioMariaDBService">
         <property name="delimiter" value=" ;"/>
         <property name="studioConfiguration" ref="studioConfiguration"/>
-        <property name="contentRepository" ref="contentRepository" />
         <property name="integrityValidator" ref="crafter.databaseValidator"/>
         <property name="contentRepository" ref="contentRepository" />
         <property name="sqlSessionFactory" ref="sqlSessionFactory" />

@@ -18,9 +18,6 @@
 
 package org.craftercms.studio.impl.v2.dal;
 
-import ch.vorburger.exec.ManagedProcessException;
-import ch.vorburger.mariadb4j.DB;
-import ch.vorburger.mariadb4j.MariaDB4jService;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -30,8 +27,10 @@ import org.apache.ibatis.jdbc.ScriptRunner;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.craftercms.commons.crypto.CryptoUtils;
+import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.StudioXmlConstants;
+import org.craftercms.commons.entitlements.validator.DbIntegrityValidator;
 import org.craftercms.studio.api.v1.dal.DataSourceInitializer;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.DatabaseUpgradeUnsupportedVersionException;
@@ -50,7 +49,6 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
-import org.springframework.beans.factory.DisposableBean;
 import org.xml.sax.SAXException;
 
 import java.io.File;
@@ -65,12 +63,9 @@ import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Connection;
-import java.sql.Driver;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -78,7 +73,6 @@ import java.util.Map;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_DRIVER;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_INITIALIZER_CONFIGURE_DB_SCRIPT_LOCATION;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_INITIALIZER_CREATE_DB_SCRIPT_LOCATION;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_INITIALIZER_ENABLED;
@@ -121,8 +115,10 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
 
     protected SqlSessionFactory sqlSessionFactory;
 
+    protected DbIntegrityValidator integrityValidator;
+
     @Override
-    public void initDataSource() throws DatabaseUpgradeUnsupportedVersionException {
+    public void initDataSource()  throws DatabaseUpgradeUnsupportedVersionException, EntitlementException {
         if (isEnabled()) {
             String configureDbScriptPath = getConfigureDBScriptPath();
             String createDbScriptPath = getCreateDBScriptPath();
@@ -187,10 +183,13 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
                                 dbVersion = DB_VERSION_2_5_X;
                             }
                         }
+
                         switch (dbVersion) {
                             case CURRENT_DB_VERSION:
                                 // DB up to date - nothing to upgrade
                                 logger.info("Database is up to date.");
+                                // Validate database against license being used
+                                integrityValidator.validate(conn);
                                 break;
                             case DB_VERSION_2_5_X:
                                 // TODO: DB: Migration not supported yet
@@ -211,6 +210,7 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
                                 reader = new InputStreamReader(is);
                                 try {
                                     sr.runScript(reader);
+                                    integrityValidator.store(conn);
                                 } catch (RuntimeSqlException e) {
                                     logger.error("Error while running upgrade DB script", e);
                                 }
@@ -248,6 +248,8 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
                                 conn.commit();
                                 logger.info("*** Admin Account Password: \"" + randomPassword + "\" ***");
                             }
+
+                            integrityValidator.store(conn);
                         } catch (RuntimeSqlException e) {
                             logger.error("Error while running create DB script", e);
                         }
@@ -486,6 +488,10 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
 
     public void setContentRepository(ContentRepository contentRepository) {
         this.contentRepository = contentRepository;
+    }
+
+    public void setIntegrityValidator(final DbIntegrityValidator integrityValidator) {
+        this.integrityValidator = integrityValidator;
     }
 
     public SqlSessionFactory getSqlSessionFactory() {

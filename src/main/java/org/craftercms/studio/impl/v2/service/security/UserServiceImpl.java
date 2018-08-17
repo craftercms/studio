@@ -19,6 +19,7 @@
 package org.craftercms.studio.impl.v2.service.security;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.craftercms.commons.crypto.CryptoUtils;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.dal.GroupDAL;
@@ -87,7 +88,8 @@ public class UserServiceImpl implements UserService {
     public void createUser(User user) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(USERNAME, user.getUsername());
-        params.put(PASSWORD, user.getPassword());
+        String hashedPassword = CryptoUtils.hashPassword(user.getPassword());
+        params.put(PASSWORD, hashedPassword);
         params.put(FIRST_NAME, user.getFirstName());
         params.put(LAST_NAME, user.getLastName());
         params.put(EMAIL, user.getEmail());

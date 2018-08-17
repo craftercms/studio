@@ -431,6 +431,7 @@
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="securityMapper" ref="securityMapper" />
         <property name="siteFeedMapper" ref="siteFeedMapper" />
+        <property name="userMapper" ref="userMapper" />
     </bean>
 
     <bean id="cstudioDbSecurityProviderRegistration"
