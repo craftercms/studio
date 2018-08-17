@@ -821,34 +821,34 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  # /ui/views/global-dashboard:
-  #   get:
-  #     tags:
-  #       - ui
-  #     summary: Get the dashboard tools available to the current user
-  #     operationId: getGlobalDashboard
-  #     description: 'Required Permission: "LOGGED_IN"'
-  #     responses:
-  #       '200':
-  #         description: OK
-  #         content:
-  #           application/json:
-  #             schema:
-  #               type: object
-  #               properties:
-  #                 result:
-  #                   type: object
-  #                   properties:
-  #                     response:
-  #                       $ref: '#/components/schemas/ApiResponse'
-  #                     entities:
-  #                       type: array
-  #                       items:
-  #                         $ref: '#/components/schemas/Tool'
-  #       '401':
-  #         $ref: '#/components/responses/Unauthorized'
-  #       '500':
-  #         $ref: '#/components/responses/InternalServerError'
+  /ui/views/global-dashboard:
+    get:
+      tags:
+        - ui
+      summary: Get the dashboard tools available to the current user
+      operationId: getGlobalDashboard
+      description: 'Required Permission: "LOGGED_IN"'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: object
+                    properties:
+                      response:
+                        $ref: '#/components/schemas/ApiResponse'
+                      entities:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/DashboardTool'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
 
 components:
   schemas:
@@ -944,6 +944,18 @@ components:
         desc:
           type: string
           description: Site description
+    DashboardTool:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The identifier of the tool 
+        label:
+          type: string
+          description: The label of the tool
+        icon:
+          type: string
+          description: The URL of the tool's icon
   responses:
     NotFound:
       description: Resource not found
