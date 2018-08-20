@@ -423,7 +423,10 @@
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-java-sdk-elastictranscoder</artifactId>
         </dependency>
-
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk-mediaconvert</artifactId>
+        </dependency>
         <!-- Box SDK -->
         <dependency>
             <groupId>com.box</groupId>
@@ -463,7 +466,7 @@
             <dependency>
                 <groupId>com.amazonaws</groupId>
                 <artifactId>aws-java-sdk-bom</artifactId>
-                <version>1.11.203</version>
+                <version>1.11.370</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>

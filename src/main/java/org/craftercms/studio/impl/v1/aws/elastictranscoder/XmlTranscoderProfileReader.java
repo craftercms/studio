@@ -15,29 +15,29 @@ import org.craftercms.studio.api.v1.aws.AbstractXmlProfileReader;
  * transcoder profile like the following:
  *
  * <pre>
- * &gt;profile&lt;
- *   &gt;id&lt;xxxxx&gt;/id&lt;
- *   &gt;credentials&lt;
- *     &gt;accessKey&lt;XXXXXXXXXXXXXXXXXXXX&gt;/accessKey&lt;
- *     &gt;secretKey&lt;XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX&gt;/secretKey&lt;
- *   &gt;/credentials&lt;
- *   &gt;region&lt;us-east-1&gt;/region&lt;
- *   &gt;pipelineId&lt;00000000000000000000&gt;/pipelineId&lt;
- *   &gt;outputs&lt;
- *     &gt;output&lt;
- *       &gt;presetId&lt;00000000000000000000&gt;/presetId&lt;
- *       &gt;outputKeySuffix&lt;-small.mp4&gt;/outputKeySuffix&lt;
- *     &gt;/output&lt;
- *     &gt;output&lt;
- *       &gt;presetId&lt;00000000000000000000&gt;/presetId&lt;
- *       &gt;outputKeySuffix&lt;-medium.mp4&gt;/outputKeySuffix&lt;
- *     &gt;/output&lt;
- *     &gt;output&lt;
- *       &gt;presetId&lt;00000000000000000000&gt;/presetId&lt;
- *       &gt;outputKeySuffix&lt;-large.mp4&gt;/outputKeySuffix&lt;
- *     &gt;/output&lt;
- *    &gt;/outputs&lt;
- * &gt;/profile&lt;
+ * &lt;profile&gt;
+ *   &lt;id&gt;xxxxx&lt;/id&gt;
+ *   &lt;credentials&gt;
+ *     &lt;accessKey&gt;XXXXXXXXXXXXXXXXXXXX&lt;/accessKey&gt;
+ *     &lt;secretKey&gt;XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX&lt;/secretKey&gt;
+ *   &lt;/credentials&gt;
+ *   &lt;region&gt;us-east-1&lt;/region&gt;
+ *   &lt;pipelineId&gt;00000000000000000000&lt;/pipelineId&gt;
+ *   &lt;outputs&gt;
+ *     &lt;output&gt;
+ *       &lt;presetId&gt;00000000000000000000&lt;/presetId&gt;
+ *       &lt;outputKeySuffix&gt;-small.mp4&lt;/outputKeySuffix&gt;
+ *     &lt;/output&gt;
+ *     &lt;output&gt;
+ *       &lt;presetId&gt;00000000000000000000&lt;/presetId&gt;
+ *       &lt;outputKeySuffix&gt;-medium.mp4&lt;/outputKeySuffix&gt;
+ *     &lt;/output&gt;
+ *     &lt;output&gt;
+ *       &lt;presetId&gt;00000000000000000000&lt;/presetId&gt;
+ *       &lt;outputKeySuffix&gt;-large.mp4&lt;/outputKeySuffix&gt;
+ *     &lt;/output&gt;
+ *    &lt;/outputs&gt;
+ * &lt;/profile&gt;
  * </pre>
  *
  */

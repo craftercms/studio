@@ -72,4 +72,8 @@ public abstract class AwsUtils {
       }
     }
 
+    public static String getS3Url(String bucket, String key) {
+      return String.format("s3://%s/%s", bucket, key);
+    }
+
 }
