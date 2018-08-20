@@ -821,34 +821,34 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  # /ui/views/global-dashboard:
-  #   get:
-  #     tags:
-  #       - ui
-  #     summary: Get the dashboard tools available to the current user
-  #     operationId: getGlobalDashboard
-  #     description: 'Required Permission: "LOGGED_IN"'
-  #     responses:
-  #       '200':
-  #         description: OK
-  #         content:
-  #           application/json:
-  #             schema:
-  #               type: object
-  #               properties:
-  #                 result:
-  #                   type: object
-  #                   properties:
-  #                     response:
-  #                       $ref: '#/components/schemas/ApiResponse'
-  #                     entities:
-  #                       type: array
-  #                       items:
-  #                         $ref: '#/components/schemas/Tool'
-  #       '401':
-  #         $ref: '#/components/responses/Unauthorized'
-  #       '500':
-  #         $ref: '#/components/responses/InternalServerError'
+  /ui/views/global-menu:
+    get:
+      tags:
+        - ui
+      summary: Get the global menu tools available to the current user
+      operationId: getGlobalMenu
+      description: 'Required Permission: "LOGGED_IN"'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: object
+                    properties:
+                      response:
+                        $ref: '#/components/schemas/ApiResponse'
+                      entities:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/GlobalMenuTool'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
 
 components:
   schemas:
@@ -944,6 +944,18 @@ components:
         desc:
           type: string
           description: Site description
+    GlobalMenuTool:
+      type: object
+      properties:
+        id:
+          type: string
+          description: 'Tool ID, unique and immutable'
+        label:
+          type: string
+          description: 'Tool label'
+        icon:
+          type: string
+          description: 'Tool icon as a Font Awesome id, example: fa-smile'
   responses:
     NotFound:
       description: Resource not found
