@@ -57,7 +57,7 @@ public interface SecurityProvider {
 
     List<User> getGroupMembers(int groupId, int offset, int limit, String sort);
 
-    void addGroupMembers(int groupId, List<Integer> userIds, List<String> usernames);
+    boolean addGroupMembers(long groupId, List<Integer> userIds, List<String> usernames);
 
     void removeGroupMembers(int groupId, List<Integer> userIds, List<String> usernames);
 
@@ -80,4 +80,6 @@ public interface SecurityProvider {
             throws UserNotFoundException, UserExternallyManagedException;
 
     boolean userExists(String username);
+
+    boolean groupExists(String groupName);
 }

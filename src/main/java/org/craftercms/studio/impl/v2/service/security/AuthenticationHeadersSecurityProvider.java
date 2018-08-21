@@ -150,15 +150,7 @@ public class AuthenticationHeadersSecurityProvider extends DbWithLdapExtensionSe
                                     UserGroup ug = new UserGroup();
                                     ug.setGroup(g);
                                     //user.getGroups().add(ug);
-                                    try {
-                                        upsertUserGroup(siteId, g.getGroupName(), usernameHeader);
-                                    } catch (GroupAlreadyExistsException | SiteNotFoundException |
-                                            UserNotFoundException | UserAlreadyExistsException |
-                                            GroupNotFoundException e) {
-                                        logger.error("Failed to upsert user groups data from authentication " +
-                                                "headers, site ID: " + siteId + " group: " + g.getGroupName() +
-                                                " username: " + usernameHeader, e);
-                                    }
+                                    upsertUserGroup(siteId, g.getGroupName(), usernameHeader);
                                 }
                             }
                         }

@@ -33,11 +33,15 @@ public interface GroupMapper {
 
     GroupDAO getGroup(Map params);
 
+    GroupDAO getGroupByName(Map params);
+
     List<UserDAO> getGroupMembers(Map params);
 
-    void addGroupMembers(Map params);
+    Integer addGroupMembers(Map params);
 
     List<Integer> getUserIdsForUsernames(Map params);
 
     void removeGroupMembers(Map params);
+
+    Integer groupExists(Map params);
 }

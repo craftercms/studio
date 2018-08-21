@@ -129,7 +129,7 @@
         LIMIT #{offset}, #{limit}
     </select>
 
-    <insert id="addGroupMembers" parameterType="java.util.Map">
+    <insert id="addGroupMembers" parameterType="java.util.Map" >
         INSERT INTO `group_user` (user_id, group_id) VALUES
         <foreach collection="userIds" item="userId" index="index" separator="," >
             (#{userId}, #{groupId})
@@ -149,4 +149,14 @@
             #{userId}
         </foreach>
     </delete>
+
+    <select id="groupExists" resultType="Integer" parameterType="java.util.Map">
+            SELECT COUNT (1)
+            FROM `group`
+            WHERE group_name = #{groupName}
+    </select>
+
+    <select id="getGroupByName" parameterType="java.util.Map" resultMap="GroupMap">
+        SELECT * FROM `group` WHERE group_name = #{groupName}
+    </select>
 </mapper>

@@ -51,7 +51,9 @@ import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
 import javax.naming.directory.Attributes;
 import javax.naming.directory.DirContext;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -69,6 +71,7 @@ import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_LDA
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_LDAP_USER_ATTRIBUTE_SITE_ID_MATCH_INDEX;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_LDAP_USER_ATTRIBUTE_SITE_ID_REGEX;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_LDAP_USER_ATTRIBUTE_USERNAME;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.GROUP_NAME;
 import static org.springframework.ldap.query.LdapQueryBuilder.query;
 
 public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
@@ -332,7 +335,7 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
         UserGroup userGroup = new UserGroup();
         userGroup.setGroup(group);
 
-        //user.getGroups().add(userGroup);
+        // user.getGroups().add(userGroup);
     }
 
     protected boolean updateUserInternal(String username, String firstName, String lastName, String email)
@@ -351,24 +354,27 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
         }
     }
 
-    protected boolean upsertUserGroup(String siteId, String groupName, String username)
-            throws GroupAlreadyExistsException, SiteNotFoundException, UserNotFoundException,
-            UserAlreadyExistsException, GroupNotFoundException {
-        // TODO: DB: FIX THIS !!!!
-        /*
-        if (!groupExists(siteId, groupName)) {
-           createGroup(groupName, "Externally managed group", siteId, true);
+    protected boolean upsertUserGroup(String siteId, String groupName, String username) {
+
+        if (!groupExists( groupName)) {
+            createGroup(1, groupName, "Externally managed group - " + groupName);
         }
-        if (!userExistsInGroup(siteId, groupName, username)) {
-            boolean success = addUserToGroup(siteId, groupName, username);
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put(GROUP_NAME, groupName);
+        GroupDAO groupDAO = groupMapper.getGroupByName(params);
+        if (groupDAO != null) {
+            List<String> usernames = new ArrayList<String>();
+            usernames.add(username);
+            boolean success = addGroupMembers(groupDAO.getId(), new ArrayList<Integer>(), usernames);
             if (success){
                 ActivityService.ActivityType activityType = ActivityService.ActivityType.ADD_USER_TO_GROUP;
                 Map<String, String> extraInfo = new HashMap<>();
                 extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
                 activityService.postActivity(siteId, "LDAP", username + " > " + groupName , activityType,
-                                             ActivityService.ActivitySource.API, extraInfo);
+                        ActivityService.ActivitySource.API, extraInfo);
             }
-        }*/
+
+        }
         return true;
     }
 

@@ -288,7 +288,7 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public void addGroupMembers(int groupId, List<Integer> userIds, List<String> usernames) {
+    public boolean addGroupMembers(long groupId, List<Integer> userIds, List<String> usernames) {
         List<Integer> allUserIds = new ArrayList<Integer>();
         allUserIds.addAll(userIds);
         Map<String, Object> params = new HashMap<String, Object>();
@@ -300,8 +300,10 @@ public class DbSecurityProvider implements SecurityProvider {
             params = new HashMap<String, Object>();
             params.put(USER_IDS, allUserIds);
             params.put(GROUP_ID, groupId);
-            groupMapper.addGroupMembers(params);
+            int result = groupMapper.addGroupMembers(params);
+            return result > 0;
         }
+        return false;
     }
 
     @Override
@@ -498,8 +500,16 @@ public class DbSecurityProvider implements SecurityProvider {
     @Override
     public boolean userExists(String username) {
         Map<String, Object> params = new HashMap<String, Object>();
-        params.put(KEY_USERNAME, username);
+        params.put(USERNAME, username);
         Integer result = userMapper.userExists(params);
+        return (result > 0);
+    }
+
+    @Override
+    public boolean groupExists(String groupName) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put(GROUP_NAME, groupName);
+        Integer result = groupMapper.groupExists(params);
         return (result > 0);
     }
 
