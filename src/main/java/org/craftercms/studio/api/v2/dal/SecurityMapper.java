@@ -29,9 +29,9 @@ public interface SecurityMapper {
 
     User getUser(String username);
 
-    List<GroupDAL> getUserGroups(String username);
+    List<GroupDAO> getUserGroups(String username);
 
-    List<GroupDAL> getUserGroupsPerSite(Map params);
+    List<GroupDAO> getUserGroupsPerSite(Map params);
 
     void createUser(Map params);
 
@@ -83,7 +83,7 @@ public interface SecurityMapper {
 
     void deleteGroup(Map params);
 
-    GroupDAL getGroupObject(Map params);
+    GroupDAO getGroupObject(Map params);
 
     void addUserToGroup(Map params);
 

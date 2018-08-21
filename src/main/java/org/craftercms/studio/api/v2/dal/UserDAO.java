@@ -26,7 +26,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-public class UserDAL implements UserDetails {
+public class UserDAO implements UserDetails {
 
     private static final long serialVersionUID = 968000561389890945L;
 
@@ -66,7 +66,7 @@ public class UserDAL implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        List<GroupDAL> toRet = new ArrayList<GroupDAL>();
+        List<GroupDAO> toRet = new ArrayList<GroupDAO>();
         groups.forEach((g) -> toRet.add(g.getGroup()));
         return toRet;
     }

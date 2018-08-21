@@ -16,15 +16,14 @@
  *
  */
 
-package org.craftercms.studio.impl.v1.service.security;
+package org.craftercms.studio.impl.v2.service.security;
 
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
-import org.craftercms.studio.api.v2.dal.GroupDAO;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
-import org.craftercms.studio.api.v2.dal.User;
+import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationSystemException;
 import org.craftercms.studio.api.v1.exception.security.BadCredentialsException;
@@ -35,7 +34,9 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.activity.ActivityService;
+import org.craftercms.studio.api.v2.dal.GroupDAO;
 import org.craftercms.studio.api.v2.dal.UserGroup;
+import org.craftercms.studio.model.User;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.ldap.AuthenticationException;
 import org.springframework.ldap.CommunicationException;
@@ -50,19 +51,32 @@ import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
 import javax.naming.directory.Attributes;
 import javax.naming.directory.DirContext;
-
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.*;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_LDAP_DEFAULT_SITE_ID;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_LDAP_USER_ATTRIBUTE_EMAIL;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_LDAP_USER_ATTRIBUTE_FIRST_NAME;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_LDAP_USER_ATTRIBUTE_GROUP_NAME;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_LDAP_USER_ATTRIBUTE_GROUP_NAME_MATCH_INDEX;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_LDAP_USER_ATTRIBUTE_GROUP_NAME_REGEX;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_LDAP_USER_ATTRIBUTE_LAST_NAME;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_LDAP_USER_ATTRIBUTE_SITE_ID;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_LDAP_USER_ATTRIBUTE_SITE_ID_GROUP_NAME_MATCH_INDEX;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_LDAP_USER_ATTRIBUTE_SITE_ID_MATCH_INDEX;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_LDAP_USER_ATTRIBUTE_SITE_ID_REGEX;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_LDAP_USER_ATTRIBUTE_USERNAME;
 import static org.springframework.ldap.query.LdapQueryBuilder.query;
 
 public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
 
     private final static Logger logger = LoggerFactory.getLogger(DbWithLdapExtensionSecurityProvider.class);
+    protected LdapTemplate ldapTemplate;
+    protected ActivityService activityService;
+    protected SiteFeedMapper siteFeedMapper;
 
     @Override
     public String authenticate(String username, String password)
@@ -92,8 +106,7 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
 
 
                     User user = new User();
-                    user.setGroups(new ArrayList<>());
-                    user.setActive(1);
+                    user.setEnabled(true);
                     user.setUsername(username);
 
                     if (emailAttrib != null && emailAttrib.get() != null) {
@@ -213,8 +226,7 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
                 }
             } else {
                 try {
-                    boolean success = createUser(user.getUsername(), password, user.getFirstName(), user.getLastName(),
-                                                 user.getEmail(), true);
+                    boolean success = createUser(user);
                     if (success) {
                         ActivityService.ActivityType activityType = ActivityService.ActivityType.CREATED;
                         Map<String, String> extraInfo = new HashMap<>();
@@ -229,6 +241,8 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
                                                             " from external authentication provider", e);
                 }
             }
+            // TODO: DB: FIX THIS !!!!
+            /*
             for (UserGroup userGroup : user.getGroups()) {
                 try {
                     upsertUserGroup(null, userGroup.getGroup().getGroupName(), user.getUsername());
@@ -236,7 +250,7 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
                     UserAlreadyExistsException | GroupNotFoundException e) {
                     logger.error("Failed to upsert user groups data from LDAP", e);
                 }
-            }
+            }*/
 
             String token = createToken(user);
             storeSessionTicket(token);
@@ -318,7 +332,7 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
         UserGroup userGroup = new UserGroup();
         userGroup.setGroup(group);
 
-        user.getGroups().add(userGroup);
+        //user.getGroups().add(userGroup);
     }
 
     protected boolean updateUserInternal(String username, String firstName, String lastName, String email)
@@ -332,7 +346,7 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
             params.put("lastname", lastName);
             params.put("email", email);
             params.put("externallyManaged", 1);
-            securityMapper.updateUser(params);
+            userMapper.updateUser(params);
             return true;
         }
     }
@@ -340,6 +354,8 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
     protected boolean upsertUserGroup(String siteId, String groupName, String username)
             throws GroupAlreadyExistsException, SiteNotFoundException, UserNotFoundException,
             UserAlreadyExistsException, GroupNotFoundException {
+        // TODO: DB: FIX THIS !!!!
+        /*
         if (!groupExists(siteId, groupName)) {
            createGroup(groupName, "Externally managed group", siteId, true);
         }
@@ -352,7 +368,7 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
                 activityService.postActivity(siteId, "LDAP", username + " > " + groupName , activityType,
                                              ActivityService.ActivitySource.API, extraInfo);
             }
-        }
+        }*/
         return true;
     }
 
@@ -366,6 +382,11 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
     public ActivityService getActivityService() { return activityService; }
     public void setActivityService(ActivityService activityService) { this.activityService = activityService; }
 
-    protected LdapTemplate ldapTemplate;
-    protected ActivityService activityService;
+    public SiteFeedMapper getSiteFeedMapper() {
+        return siteFeedMapper;
+    }
+
+    public void setSiteFeedMapper(SiteFeedMapper siteFeedMapper) {
+        this.siteFeedMapper = siteFeedMapper;
+    }
 }

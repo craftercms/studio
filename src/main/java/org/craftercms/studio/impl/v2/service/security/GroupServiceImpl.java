@@ -18,17 +18,15 @@
 
 package org.craftercms.studio.impl.v2.service.security;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.StudioXmlConstants;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
-import org.craftercms.studio.api.v2.dal.GroupDAL;
 import org.craftercms.studio.api.v2.dal.GroupMapper;
-import org.craftercms.studio.api.v2.dal.UserDAL;
 import org.craftercms.studio.api.v2.service.security.GroupService;
+import org.craftercms.studio.api.v2.service.security.SecurityProvider;
 import org.craftercms.studio.model.Group;
 import org.craftercms.studio.model.User;
 import org.dom4j.Document;
@@ -45,18 +43,10 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARAT
 import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_SITE;
 import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.DOCUMENT_ELM_GROUPS_NODE;
 import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.DOCUMENT_ROLE_MAPPINGS;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_GLOBAL_CONFIG_BASE_PATH;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_GLOBAL_ROLE_MAPPINGS_FILE_NAME;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.GROUP_DESCRIPTION;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.GROUP_ID;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.GROUP_NAME;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ID;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LIMIT;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.OFFSET;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ORG_ID;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SORT;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USERNAMES;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USER_IDS;
 
 public class GroupServiceImpl implements GroupService {
 
@@ -65,122 +55,46 @@ public class GroupServiceImpl implements GroupService {
     private GroupMapper groupMapper;
     private StudioConfiguration studioConfiguration;
     private ContentService contentService;
+    private SecurityProvider securityProvider;
 
     @Override
     public List<Group> getAllGroups(int orgId, int offset, int limit, String sort) {
-        // Prepare parameters
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put(ORG_ID, orgId);
-        params.put(OFFSET, offset);
-        params.put(LIMIT, limit);
-        params.put(SORT, sort);
-        List<GroupDAL> groups = groupMapper.getAllGroupsForOrganization(params);
-
-        List<Group> toRet = new ArrayList<Group>();
-        groups.forEach(g -> {
-            Group group = new Group();
-            group.setId(g.getId());
-            group.setDesc(g.getGroupDescription());
-            group.setName(g.getGroupName());
-            toRet.add(group);
-        });
-
-        return toRet;
+        return securityProvider.getAllGroups(orgId, offset, limit, sort);
     }
 
     @Override
     public void createGroup(int orgId, String groupName, String groupDescription) {
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put(ORG_ID, orgId);
-        params.put(GROUP_NAME, groupName);
-        params.put(GROUP_DESCRIPTION, groupDescription);
-        groupMapper.createGroup(params);
+        securityProvider.createGroup(orgId, groupName, groupDescription);
     }
 
     @Override
     public void updateGroup(int orgId, Group group) {
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put(ID, group.getId());
-        params.put(ORG_ID, orgId);
-        params.put(GROUP_NAME, group.getName());
-        params.put(GROUP_DESCRIPTION, group.getDesc());
-        groupMapper.updateGroup(params);
+        securityProvider.updateGroup(orgId, group);
     }
 
     @Override
     public void deleteGroup(int groupId) {
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put(ID, groupId);
-        groupMapper.deleteGroup(params);
+        securityProvider.deleteGroup(groupId);
     }
 
     @Override
     public Group getGroup(int groupId) {
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put(GROUP_ID, groupId);
-        GroupDAL gDAL = groupMapper.getGroup(params);
-        Group toRet = new Group();
-        toRet.setId(gDAL.getId());
-        toRet.setName(gDAL.getGroupName());
-        toRet.setDesc(gDAL.getGroupDescription());
-        return toRet;
+        return securityProvider.getGroup(groupId);
     }
 
     @Override
     public List<User> getGroupMembers(int groupId, int offset, int limit, String sort) {
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put(GROUP_ID, groupId);
-        params.put(OFFSET, offset);
-        params.put(LIMIT, limit);
-        params.put(SORT, sort);
-        List<UserDAL> uDALs = groupMapper.getGroupMembers(params);
-        List<User> toRet = new ArrayList<User>();
-        uDALs.forEach(u -> {
-            User user = new User();
-            user.setId(u.getId());
-            user.setUsername(u.getUsername());
-            user.setFirstName(u.getFirstName());
-            user.setLastName(u.getLastName());
-            user.setEmail(u.getEmail());
-            user.setEnabled(u.isEnabled());
-            user.setExternallyManaged(u.getExternallyManaged() != 0);
-            toRet.add(user);
-        });
-        return toRet;
+        return securityProvider.getGroupMembers(groupId, offset, limit, sort);
     }
 
     @Override
     public void addGroupMembers(int groupId, List<Integer> userIds, List<String> usernames) {
-        List<Integer> allUserIds = new ArrayList<Integer>();
-        allUserIds.addAll(userIds);
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put(USERNAMES, usernames);
-        if (CollectionUtils.isNotEmpty(usernames)) {
-            allUserIds.addAll(groupMapper.getUserIdsForUsernames(params));
-        }
-        if (CollectionUtils.isNotEmpty(allUserIds)) {
-            params = new HashMap<String, Object>();
-            params.put(USER_IDS, allUserIds);
-            params.put(GROUP_ID, groupId);
-            groupMapper.addGroupMembers(params);
-        }
+        securityProvider.addGroupMembers(groupId, userIds, usernames);
     }
 
     @Override
     public void removeGroupMembers(int groupId, List<Integer> userIds, List<String> usernames) {
-        List<Integer> allUserIds = new ArrayList<Integer>();
-        allUserIds.addAll(userIds);
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put(USERNAMES, usernames);
-        if (CollectionUtils.isNotEmpty(usernames)) {
-            allUserIds.addAll(groupMapper.getUserIdsForUsernames(params));
-        }
-        if (CollectionUtils.isNotEmpty(allUserIds)) {
-            params = new HashMap<String, Object>();
-            params.put(USER_IDS, allUserIds);
-            params.put(GROUP_ID, groupId);
-            groupMapper.removeGroupMembers(params);
-        }
+        securityProvider.removeGroupMembers(groupId, userIds, usernames);
     }
 
     @Override
@@ -224,6 +138,46 @@ public class GroupServiceImpl implements GroupService {
         return groupRoleMap;
     }
 
+    @Override
+    public List<String> getGlobalGroups() {
+        Map<String, List<String>> groupRoleMapping = loadGlobalGroupMappings();
+        List<String> toRet = new ArrayList<String>();
+        toRet.addAll(groupRoleMapping.keySet());
+        return toRet;
+    }
+
+    private Map<String, List<String>> loadGlobalGroupMappings() {
+        Map<String, List<String>> groupRoleMap = new HashMap<String, List<String>>();
+        String siteConfigPath =
+                studioConfiguration.getProperty(CONFIGURATION_GLOBAL_CONFIG_BASE_PATH);
+        String siteGroupRoleMappingConfigPath =
+                siteConfigPath + FILE_SEPARATOR +
+                        studioConfiguration.getProperty(CONFIGURATION_GLOBAL_ROLE_MAPPINGS_FILE_NAME);
+        Document document = null;
+        try {
+            document = contentService.getContentAsDocument(StringUtils.EMPTY, siteGroupRoleMappingConfigPath);
+            Element root = document.getRootElement();
+            if (root.getName().equals(DOCUMENT_ROLE_MAPPINGS)) {
+                List<Node> groupNodes = root.selectNodes(DOCUMENT_ELM_GROUPS_NODE);
+                for (Node node : groupNodes) {
+                    String name = node.valueOf(StudioXmlConstants.DOCUMENT_ATTR_PERMISSIONS_NAME);
+                    if (!StringUtils.isEmpty(name)) {
+                        List<Node> roleNodes = node.selectNodes(StudioXmlConstants.DOCUMENT_ELM_PERMISSION_ROLE);
+                        List<String> roles = new ArrayList<String>();
+                        for (Node roleNode : roleNodes) {
+                            roles.add(roleNode.getText());
+                        }
+                        groupRoleMap.put(name, roles);
+                    }
+                }
+            }
+        } catch (DocumentException e) {
+            logger.error("Error while reading global group role mappings file "
+                    + siteGroupRoleMappingConfigPath);
+        }
+        return groupRoleMap;
+    }
+
     public GroupMapper getGroupMapper() {
         return groupMapper;
     }
@@ -246,5 +200,13 @@ public class GroupServiceImpl implements GroupService {
 
     public void setContentService(ContentService contentService) {
         this.contentService = contentService;
+    }
+
+    public SecurityProvider getSecurityProvider() {
+        return securityProvider;
+    }
+
+    public void setSecurityProvider(SecurityProvider securityProvider) {
+        this.securityProvider = securityProvider;
     }
 }

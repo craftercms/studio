@@ -16,16 +16,14 @@
  *
  */
 
-package org.craftercms.studio.impl.v1.service.security;
+package org.craftercms.studio.impl.v2.service.security;
 
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.commons.http.RequestContext;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
-import org.craftercms.studio.api.v2.dal.GroupDAO;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
-import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationSystemException;
 import org.craftercms.studio.api.v1.exception.security.BadCredentialsException;
@@ -36,10 +34,11 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.activity.ActivityService;
+import org.craftercms.studio.api.v2.dal.GroupDAO;
 import org.craftercms.studio.api.v2.dal.UserGroup;
+import org.craftercms.studio.model.User;
 
 import javax.servlet.http.HttpServletRequest;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -103,7 +102,15 @@ public class AuthenticationHeadersSecurityProvider extends DbWithLdapExtensionSe
                     } else {
                         logger.debug("User does not exist in studio db. Adding user " + usernameHeader);
                         try {
-                            boolean success = createUser(usernameHeader, password, firstName, lastName, email, true);
+                            User user = new User();
+                            user.setUsername(usernameHeader);
+                            user.setPassword(password);
+                            user.setFirstName(firstName);
+                            user.setLastName(firstName);
+                            user.setEmail(email);
+                            user.setExternallyManaged(true);
+                            user.setEnabled(true);
+                            boolean success = createUser(user);
                             if (success) {
                                 ActivityService.ActivityType activityType = ActivityService.ActivityType.CREATED;
                                 Map<String, String> extraInfo = new HashMap<String, String>();
@@ -124,7 +131,7 @@ public class AuthenticationHeadersSecurityProvider extends DbWithLdapExtensionSe
                     user.setFirstName(firstName);
                     user.setLastName(lastName);
                     user.setEmail(email);
-                    user.setGroups(new ArrayList<UserGroup>());
+                    //user.setGroups(new ArrayList<UserGroup>());
 
                     logger.debug("Update user groups in database.");
                     if (StringUtils.isNoneEmpty(groups)) {
@@ -142,7 +149,7 @@ public class AuthenticationHeadersSecurityProvider extends DbWithLdapExtensionSe
                                     g.setOrganization(null);
                                     UserGroup ug = new UserGroup();
                                     ug.setGroup(g);
-                                    user.getGroups().add(ug);
+                                    //user.getGroups().add(ug);
                                     try {
                                         upsertUserGroup(siteId, g.getGroupName(), usernameHeader);
                                     } catch (GroupAlreadyExistsException | SiteNotFoundException |

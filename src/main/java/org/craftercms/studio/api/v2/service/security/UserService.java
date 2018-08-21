@@ -18,6 +18,7 @@
 
 package org.craftercms.studio.api.v2.service.security;
 
+import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
 import org.craftercms.studio.model.Group;
 import org.craftercms.studio.model.User;
 
@@ -27,7 +28,7 @@ public interface UserService {
 
     List<User> getAllUsersForSite(int orgId, String site, int offset, int limit, String sort);
 
-    void createUser(User user);
+    void createUser(User user) throws UserAlreadyExistsException;
 
     void updateUser(User user);
 

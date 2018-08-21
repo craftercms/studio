@@ -24,16 +24,19 @@ import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.User;
+import org.craftercms.studio.api.v2.service.security.SecurityProvider;
+import org.craftercms.studio.model.Group;
 import org.springframework.security.access.AccessDecisionVoter;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_DEFAULT_ADMIN_GROUP;
@@ -94,14 +97,20 @@ public abstract class StudioAbstractAccessDecisionVoter implements AccessDecisio
             int total = siteService.getSitesPerUserTotal(currentUser.getUsername());
             List<SiteFeed> sitesFeed = siteService.getSitesPerUser(currentUser.getUsername(), 0, total);
 
-            Set<String> sites = new HashSet<String>();
+            Map<String, Long> sites = new HashMap<String, Long>();
             for (SiteFeed site : sitesFeed) {
-                sites.add(site.getSiteId());
+                sites.put(site.getSiteId(), site.getId());
             }
 
-            boolean toRet = sites.contains(siteId);
+            boolean toRet = sites.containsKey(siteId);
             if (toRet) {
-                Set<String> userGroups = securityProvider.getUserGroupsPerSite(currentUser.getUsername(), siteId);
+                List<Group> userGroups = securityProvider.getUserGroups(sites.get(siteId), currentUser.getUsername());
+                for (Group g : userGroups) {
+                    if (g.getName().equals(studioConfiguration.getProperty(CONFIGURATION_SITE_DEFAULT_ADMIN_GROUP))) {
+                        toRet = true;
+                        break;
+                    }
+                }
                 toRet = userGroups.contains(studioConfiguration.getProperty(CONFIGURATION_SITE_DEFAULT_ADMIN_GROUP));
             }
             return toRet;
@@ -116,11 +125,12 @@ public abstract class StudioAbstractAccessDecisionVoter implements AccessDecisio
     }
 
     protected boolean isAdmin(User user) {
-        Set<String> userGroups = securityProvider.getUserGroups(user.getUsername());
+        List<Group> userGroups = securityProvider.getUserGroups(1, user.getUsername());
         boolean toRet = false;
         if (CollectionUtils.isNotEmpty(userGroups)) {
-            for (String group : userGroups) {
-                if (StringUtils.equalsIgnoreCase(group, studioConfiguration.getProperty(SECURITY_GLOBAL_ADMIN_GROUP))) {
+            for (Group group : userGroups) {
+                if (StringUtils.equalsIgnoreCase(group.getName(),
+                        studioConfiguration.getProperty(SECURITY_GLOBAL_ADMIN_GROUP))) {
                     toRet = true;
                     break;
                 }

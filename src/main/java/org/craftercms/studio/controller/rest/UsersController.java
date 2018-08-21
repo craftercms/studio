@@ -21,6 +21,7 @@ package org.craftercms.studio.controller.rest;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.site.SiteService;
@@ -77,13 +78,21 @@ public class UsersController {
 
     @PostMapping(value = "/api/2/users", consumes = MediaType.APPLICATION_JSON_VALUE)
     public StudioResponseBody createUser(@RequestBody User user) {
-        userService.createUser(user);
+        try {
+            userService.createUser(user);
 
-        StudioResponseBody responseBody = new StudioResponseBody();
-        ResultOne result = new ResultOne();
-        result.setResponse(ApiResponse.CODE_0);
-        responseBody.setResult(result);
-        return responseBody;
+            StudioResponseBody responseBody = new StudioResponseBody();
+            ResultOne result = new ResultOne();
+            result.setResponse(ApiResponse.CODE_0);
+            responseBody.setResult(result);
+            return responseBody;
+        } catch (UserAlreadyExistsException e) {
+            StudioResponseBody responseBody = new StudioResponseBody();
+            ResultOne result = new ResultOne();
+            result.setResponse(ApiResponse.CODE_0);
+            responseBody.setResult(result);
+            return responseBody;
+        }
     }
 
     @PatchMapping(value = "/api/2/users", consumes = MediaType.APPLICATION_JSON_VALUE)

@@ -23,7 +23,7 @@ import java.util.Map;
 
 public interface UserMapper {
 
-    List<UserDAL> getAllUsersForSite(Map params);
+    List<UserDAO> getAllUsersForSite(Map params);
 
     void createUser(Map params);
 
@@ -33,9 +33,15 @@ public interface UserMapper {
 
     void deleteUsers(Map params);
 
-    UserDAL getUserByIdOrUsername(Map params);
+    UserDAO getUserByIdOrUsername(Map params);
 
     void enableUsers(Map params);
 
-    List<GroupDAL> getUserGroups(Map params);
+    List<GroupDAO> getUserGroups(Map params);
+
+    int getAllUsersTotal();
+
+    void setUserPassword(Map params);
+
+    Integer userExists(Map params);
 }

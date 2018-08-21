@@ -22,7 +22,7 @@
 
 <mapper namespace="org.craftercms.studio.api.v2.dal.GroupMapper">
 
-    <resultMap id="UserMap" type="org.craftercms.studio.api.v2.dal.UserDAL">
+    <resultMap id="UserMap" type="org.craftercms.studio.api.v2.dal.UserDAO">
         <id property="id" column="id"/>
         <result property="recordLastUpdated" column="record_last_updated"/>
         <result property="username" column="username"/>
@@ -37,7 +37,7 @@
 
         <collection property="groups" ofType="org.craftercms.studio.api.v2.dal.UserGroup">
             <result property="recordLastUpdated" column="record_last_updated"/>
-            <association property="group" javaType="org.craftercms.studio.api.v2.dal.GroupDAL">
+            <association property="group" javaType="org.craftercms.studio.api.v2.dal.GroupDAO">
                 <id property="id" column="id"/>
                 <result property="groupName" column="group_name"/>
             </association>
@@ -45,7 +45,7 @@
 
     </resultMap>
 
-    <resultMap id="GroupMap" type="org.craftercms.studio.api.v2.dal.GroupDAL">
+    <resultMap id="GroupMap" type="org.craftercms.studio.api.v2.dal.GroupDAO">
         <id property="id" column="id"/>
         <result property="recordLastUpdated" column="record_last_updated"/>
         <result property="groupName" column="group_name"/>

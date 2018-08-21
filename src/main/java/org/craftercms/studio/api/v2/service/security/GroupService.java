@@ -42,4 +42,6 @@ public interface GroupService {
     void removeGroupMembers(int groupId, List<Integer> userIds, List<String> usernames);
 
     List<String> getSiteGroups(String siteId);
+
+    List<String> getGlobalGroups();
 }

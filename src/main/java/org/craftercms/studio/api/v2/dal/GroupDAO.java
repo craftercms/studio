@@ -23,7 +23,7 @@ import org.springframework.security.core.GrantedAuthority;
 import java.io.Serializable;
 import java.time.ZonedDateTime;
 
-public class GroupDAL implements Serializable, GrantedAuthority {
+public class GroupDAO implements Serializable, GrantedAuthority {
 
     private static final long serialVersionUID = 4723035066512137838L;
 

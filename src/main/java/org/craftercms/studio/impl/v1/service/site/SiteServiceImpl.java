@@ -74,7 +74,6 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepository
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotBareException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
-import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -96,7 +95,6 @@ import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.api.v1.service.objectstate.State;
 import org.craftercms.studio.api.v1.service.objectstate.TransitionEvent;
 import org.craftercms.studio.api.v1.service.search.SearchService;
-import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteConfigNotFoundException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
@@ -109,6 +107,8 @@ import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
 import org.craftercms.studio.api.v1.to.SiteTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
+import org.craftercms.studio.api.v2.service.security.GroupService;
+import org.craftercms.studio.api.v2.service.security.SecurityProvider;
 import org.craftercms.studio.impl.v1.repository.job.RebuildRepositoryMetadata;
 import org.craftercms.studio.impl.v1.repository.job.SyncDatabaseWithRepository;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
@@ -169,6 +169,7 @@ public class SiteServiceImpl implements SiteService {
     protected RebuildRepositoryMetadata rebuildRepositoryMetadata;
     protected SyncDatabaseWithRepository syncDatabaseWithRepository;
     protected EventService eventService;
+    protected GroupService groupService;
 
     protected StudioConfiguration studioConfiguration;
 
@@ -503,7 +504,10 @@ public class SiteServiceImpl implements SiteService {
                 addDefaultGroupsForNewSite(siteId);
 
                 // Add creator to admin group
-                securityService.addUserToGroup(siteId, getDefaultAdminGroup(), securityService.getCurrentUser());
+                List<String> userList = new ArrayList<String>();
+                userList.add(securityService.getCurrentUser());
+                // TODO: DB: FIGURE THIS OUT
+                groupService.addGroupMembers(1, new ArrayList<Integer>(), userList);
 
                 reloadSiteConfiguration(siteId);
 	        } catch(Exception e) {
@@ -682,13 +686,14 @@ public class SiteServiceImpl implements SiteService {
         List<String> defaultGroups = getDefaultGroups();
         for (String group : defaultGroups) {
             String description = group + SITE_DEFAULT_GROUPS_DESCRIPTION;
-            try {
-                securityService.createGroup(group, description, siteId);
-            } catch (SiteNotFoundException e) {
-	            logger.warn("Default group: " + group + " not created. Site " + siteId + "is not found.", e);
-            } catch (GroupAlreadyExistsException e) {
-                logger.warn("Default group: " + group + " not created. It already exists for site " + siteId + ".", e);
-            }
+            //try {
+                groupService.createGroup(1, group, description);
+            //} catch (SiteNotFoundException e) {
+	        //    logger.warn("Default group: " + group + " not created. Site " + siteId + "is not found.", e);
+            //} catch (GroupAlreadyExistsException e) {
+            //    logger.warn("Default group: " + group + " not created. It already exists for site " + siteId + ".",
+            // e);
+            //}
         }
     }
 
@@ -900,7 +905,10 @@ public class SiteServiceImpl implements SiteService {
                 addDefaultGroupsForNewSite(siteId);
 
                 // Add creator to admin group
-                securityService.addUserToGroup(siteId, getDefaultAdminGroup(), securityService.getCurrentUser());
+                List<String> userList = new ArrayList<String>();
+                userList.add(securityService.getCurrentUser());
+                // TODO: DB: FIGURE THIS OUT
+                groupService.addGroupMembers(1, new ArrayList<Integer>(), userList);
 
                 logger.debug("Loading configuration for site " + siteId);
                 reloadSiteConfiguration(siteId);
@@ -1104,7 +1112,10 @@ public class SiteServiceImpl implements SiteService {
                 addDefaultGroupsForNewSite(siteId);
 
                 // Add creator to admin group
-                securityService.addUserToGroup(siteId, getDefaultAdminGroup(), securityService.getCurrentUser());
+                List<String> userList = new ArrayList<String>();
+                userList.add(securityService.getCurrentUser());
+                // TODO: DB: FIGURE THIS OUT
+                groupService.addGroupMembers(1, new ArrayList<Integer>(), userList);
 
                 logger.debug("Loading configuration for site " + siteId);
                 reloadSiteConfiguration(siteId);
@@ -2028,4 +2039,11 @@ public class SiteServiceImpl implements SiteService {
 		this.entitlementValidator = entitlementValidator;
 	}
 
+    public GroupService getGroupService() {
+        return groupService;
+    }
+
+    public void setGroupService(GroupService groupService) {
+        this.groupService = groupService;
+    }
 }

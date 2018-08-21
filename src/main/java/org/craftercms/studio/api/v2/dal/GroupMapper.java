@@ -23,7 +23,7 @@ import java.util.Map;
 
 public interface GroupMapper {
 
-    List<GroupDAL> getAllGroupsForOrganization(Map params);
+    List<GroupDAO> getAllGroupsForOrganization(Map params);
 
     void createGroup(Map params);
 
@@ -31,9 +31,9 @@ public interface GroupMapper {
 
     void deleteGroup(Map params);
 
-    GroupDAL getGroup(Map params);
+    GroupDAO getGroup(Map params);
 
-    List<UserDAL> getGroupMembers(Map params);
+    List<UserDAO> getGroupMembers(Map params);
 
     void addGroupMembers(Map params);
 

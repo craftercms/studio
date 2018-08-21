@@ -25,14 +25,14 @@ public class UserGroup implements Serializable {
 
     private static final long serialVersionUID = -1030917735504714929L;
 
-    private GroupDAL group;
+    private GroupDAO group;
     private ZonedDateTime recordLastUpdated;
 
-    public GroupDAL getGroup() {
+    public GroupDAO getGroup() {
         return group;
     }
 
-    public void setGroup(GroupDAL group) {
+    public void setGroup(GroupDAO group) {
         this.group = group;
     }
 

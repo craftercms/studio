@@ -25,7 +25,7 @@ import org.craftercms.commons.entitlements.model.EntitlementType;
 import org.craftercms.commons.entitlements.model.Module;
 import org.craftercms.commons.entitlements.validator.EntitlementValidator;
 import org.craftercms.commons.http.RequestContext;
-import org.craftercms.studio.api.v2.dal.GroupDAL;
+import org.craftercms.studio.api.v2.dal.GroupDAO;
 import org.craftercms.studio.api.v1.dal.GroupPerSiteResult;
 import org.craftercms.studio.api.v1.dal.GroupResult;
 import org.craftercms.studio.api.v2.dal.SecurityMapper;
@@ -56,7 +56,6 @@ import org.springframework.dao.DuplicateKeyException;
 import javax.servlet.http.HttpSession;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -91,8 +90,8 @@ public class DbSecurityProvider implements SecurityProvider {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(USER_ID, -1);
         params.put(USERNAME, user);
-        List<GroupDAL> groups = userMapper.getUserGroups(params);
-        for (GroupDAL g : groups) {
+        List<GroupDAO> groups = userMapper.getUserGroups(params);
+        for (GroupDAO g : groups) {
             userGroups.add(g.getGroupName());
         }
         return userGroups;
@@ -104,8 +103,8 @@ public class DbSecurityProvider implements SecurityProvider {
         Map<String, String> params = new HashMap<String, String>();
         params.put("username", user);
         params.put("siteId", site);
-        List<GroupDAL> groups = securityMapper.getUserGroupsPerSite(params);
-        for (GroupDAL g : groups) {
+        List<GroupDAO> groups = securityMapper.getUserGroupsPerSite(params);
+        for (GroupDAO g : groups) {
             userGroups.add(g.getGroupName());
         }
         return userGroups;

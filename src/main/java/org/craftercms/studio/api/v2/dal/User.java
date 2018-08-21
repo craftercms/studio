@@ -66,7 +66,7 @@ public class User implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        List<GroupDAL> toRet = new ArrayList<GroupDAL>();
+        List<GroupDAO> toRet = new ArrayList<GroupDAO>();
         groups.forEach((g) -> toRet.add(g.getGroup()));
         return toRet;
     }

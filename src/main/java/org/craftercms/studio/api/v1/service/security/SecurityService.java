@@ -20,14 +20,9 @@ package org.craftercms.studio.api.v1.service.security;
 
 import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.studio.api.v1.exception.ServiceException;
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationSystemException;
 import org.craftercms.studio.api.v1.exception.security.BadCredentialsException;
-import org.craftercms.studio.api.v1.exception.security.DeleteUserNotAllowedException;
-import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
-import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.PasswordDoesNotMatchException;
-import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.UserExternallyManagedException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 
@@ -66,10 +61,6 @@ public interface SecurityService {
 
     boolean validateTicket(String token);
 
-    void addUserGroup(String groupName);
-
-    void addUserGroup(String parentGroup, String groupName);
-
     void reloadConfiguration(String site);
 
     void reloadGlobalConfiguration();
@@ -84,73 +75,6 @@ public interface SecurityService {
      */
     boolean userExists(String username);
 
-    /**
-     * Create new user with given parameters
-     *
-     * @param username username
-     * @param password password
-     * @param firstName User's first name
-     * @param lastName User's last name
-     * @param email User's email address
-     * @return true if success, otherwise false
-     */
-    boolean createUser(String username, String password, String firstName, String lastName, String email) throws
-        UserAlreadyExistsException, EntitlementException;
-
-    /**
-     * Delete user with given username
-     *
-     * @param username
-     * @return true if user is successfully deleted
-     */
-    boolean deleteUser(String username) throws UserNotFoundException, DeleteUserNotAllowedException;
-
-    /**
-     * Update user details
-     *
-     * @param username
-     * @param firstName
-     * @param lastName
-     * @param email
-     * @return true if user is successfully updated
-     */
-    boolean updateUser(String username, String firstName, String lastName, String email)
-            throws UserNotFoundException, UserExternallyManagedException;
-
-    /**
-     * Enable/disable user with given username
-     *
-     * @param username username
-     * @param enabled true: enable user; false: disable user
-     * @return true if user is successfully enabled/disabled
-     */
-    boolean enableUser(String username, boolean enabled) throws UserNotFoundException, UserExternallyManagedException;
-
-    /**
-     * Create group with given parameters
-     *
-     * @param groupName
-     * @param description
-     * @param siteId
-     * @return true if group is successfully created
-     */
-    boolean createGroup(String groupName, String description, String siteId)
-            throws GroupAlreadyExistsException, SiteNotFoundException;
-
-    /**
-     * Get status for given user
-     *
-     * @param username username
-     * @return user status
-     */
-    Map<String, Object> getUserStatus(String username) throws UserNotFoundException;
-
-    /**
-     * Get all users
-     *
-     * @return list of all users
-     */
-    List<Map<String, Object>> getAllUsers(int start, int number);
 
     /**
      * Get all users
@@ -159,122 +83,6 @@ public interface SecurityService {
      */
     int getAllUsersTotal();
 
-    /**
-     * Get all users for given site
-     *
-     * @param site
-     * @param start
-     * @param number
-     * @return get list of users per site, paginated
-     */
-    List<Map<String, Object>> getUsersPerSite(String site, int start, int number) throws SiteNotFoundException;
-    /**
-     * Get number of all users for given site
-     *
-     * @param site
-     * @return total number of users for site
-     */
-    int getUsersPerSiteTotal(String site) throws SiteNotFoundException;
-
-
-    /**
-     * Get group for given site with given name
-     *
-     * @param site site id
-     * @param group group name
-     * @return group details
-     */
-    Map<String, Object> getGroup(String site, String group) throws GroupNotFoundException, SiteNotFoundException;
-
-    /**
-     * Get all groups
-     *
-     * @param start start index
-     * @param number Number of records to retrieve in the result set
-     */
-    List<Map<String, Object>> getAllGroups(int start, int number);
-
-    /**
-     * Get all groups for given site
-     *
-     * @param site site id
-     * @param start start index
-     * @param number number of records to retrieve in the result set
-     * @return list of groups per site, paginated
-     */
-    List<Map<String, Object>> getGroupsPerSite(String site, int start, int number) throws SiteNotFoundException;
-
-    /**
-     * Get number of all groups for given site
-     *
-     * @param site site id
-     * @return total number of groups for site
-     */
-    int getGroupsPerSiteTotal(String site) throws SiteNotFoundException;
-
-    /**
-     * Get all users for given site and group
-     *
-     * @param site site id
-     * @param group group name
-     * @param start start index
-     * @param number number of records to retrieve in the result set
-     * @return list of users
-     */
-    List<Map<String, Object>> getUsersPerGroup(String site, String group, int start, int number) throws
-            GroupNotFoundException, SiteNotFoundException;
-
-    /**
-     * Get number of all users for given site and group
-     *
-     * @param site site id
-     * @param group group name
-     * @return list of users
-     */
-    int getUsersPerGroupTotal(String site, String group) throws
-            GroupNotFoundException, SiteNotFoundException;
-
-    /**
-     * Update group with given parameters
-     *
-     * @param groupName
-     * @param description
-     * @param siteId
-     * @return true if group is successfully updated
-     */
-    boolean updateGroup(String siteId, String groupName, String description)
-            throws GroupNotFoundException, SiteNotFoundException;
-
-    /**
-     * Delete group for given site with given name
-     *
-     * @param site site id
-     * @param group group name
-     * @return true if group is successfully deleted
-     */
-    boolean deleteGroup(String site, String group) throws GroupNotFoundException, SiteNotFoundException;
-
-    /**
-     * Add user to the group
-     *
-     * @param siteId site id
-     * @param groupName group name
-     * @param username username
-     * @return true if user is successfully added to the group
-     */
-    boolean addUserToGroup(String siteId, String groupName, String username) throws UserAlreadyExistsException,
-            UserNotFoundException, GroupNotFoundException, SiteNotFoundException;
-
-    /**
-     * Remove user from the group
-     *
-     * @param siteId site id
-     * @param groupName group name
-     * @param username username
-     * @return true if user is successfully removed from the group
-     */
-    boolean removeUserFromGroup(String siteId, String groupName, String username)
-            throws UserNotFoundException, GroupNotFoundException, SiteNotFoundException;
 
     /**
      * Forgot password for given user
