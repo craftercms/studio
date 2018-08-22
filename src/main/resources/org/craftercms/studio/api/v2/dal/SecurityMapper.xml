@@ -22,7 +22,7 @@
 
 <mapper namespace="org.craftercms.studio.api.v2.dal.SecurityMapper">
 
-    <resultMap id="UserMap" type="org.craftercms.studio.api.v2.dal.User">
+    <resultMap id="UserMap" type="org.craftercms.studio.api.v2.dal.UserDAO">
         <id property="id" column="id"/>
         <result property="recordLastUpdated" column="record_last_updated"/>
         <result property="username" column="username"/>

@@ -25,7 +25,7 @@
     </settings>
 
     <typeAliases>
-        <typeAlias type="org.craftercms.studio.api.v2.dal.User" alias="User"/>
+        <typeAlias type="org.craftercms.studio.api.v2.dal.UserDAO" alias="User"/>
         <typeAlias type="org.craftercms.studio.api.v2.dal.GroupDAO" alias="Group"/>
         <typeAlias type="org.craftercms.studio.api.v1.dal.Role" alias="Role"/>
         <typeAlias type="org.craftercms.studio.api.v1.dal.Permission" alias="Permission"/>
