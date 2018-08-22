@@ -31,41 +31,42 @@ import org.craftercms.studio.model.User;
 import java.util.List;
 
 public interface SecurityProvider {
-    List<User> getAllUsersForSite(int orgId, List<String> groupNames, int offset, int limit, String sort);
+    List<User> getAllUsersForSite(long orgId, List<String> groupNames, int offset, int limit, String sort);
 
     boolean createUser(User user) throws UserAlreadyExistsException;
 
     void updateUser(User user);
 
-    void deleteUsers(List<Integer> userIds, List<String> usernames);
+    void deleteUsers(List<Long> userIds, List<String> usernames);
 
-    User getUserByIdOrUsername(int userId, String username);
+    User getUserByIdOrUsername(long userId, String username);
 
-    void enableUsers(List<Integer> userIds, List<String> usernames, boolean enabled);
+    void enableUsers(List<Long> userIds, List<String> usernames, boolean enabled);
 
     List<Group> getUserGroups(long userId, String username);
 
-    List<Group> getAllGroups(int orgId, int offset, int limit, String sort);
+    List<Group> getAllGroups(long orgId, int offset, int limit, String sort);
 
-    void createGroup(int orgId, String groupName, String groupDescription);
+    void createGroup(long orgId, String groupName, String groupDescription);
 
-    void updateGroup(int orgId, Group group);
+    void updateGroup(long orgId, Group group);
 
-    void deleteGroup(int groupId);
+    void deleteGroup(long groupId);
 
-    Group getGroup(int groupId);
+    Group getGroup(long groupId);
 
-    List<User> getGroupMembers(int groupId, int offset, int limit, String sort);
+    List<User> getGroupMembers(long groupId, int offset, int limit, String sort);
 
-    boolean addGroupMembers(long groupId, List<Integer> userIds, List<String> usernames);
+    boolean addGroupMembers(long groupId, List<Long> userIds, List<String> usernames);
 
-    void removeGroupMembers(int groupId, List<Integer> userIds, List<String> usernames);
+    void removeGroupMembers(long groupId, List<Long> userIds, List<String> usernames);
 
     int getAllUsersTotal();
 
     String getCurrentUser();
 
-    String authenticate(String username, String password) throws BadCredentialsException, AuthenticationSystemException, EntitlementException;
+    String authenticate(String username, String password)
+            throws BadCredentialsException, AuthenticationSystemException, EntitlementException;
 
     boolean validateTicket(String ticket);
 

@@ -20,10 +20,10 @@ package org.craftercms.studio.model;
 
 import java.util.List;
 
-public class AddMemembers {
+public class AddGroupMembers {
 
     private List<String> usernames;
-    private List<Integer> userIds;
+    private List<Long> userIds;
 
     public List<String> getUsernames() {
         return usernames;
@@ -33,11 +33,11 @@ public class AddMemembers {
         this.usernames = usernames;
     }
 
-    public List<Integer> getUserIds() {
+    public List<Long> getUserIds() {
         return userIds;
     }
 
-    public void setUserIds(List<Integer> userIds) {
+    public void setUserIds(List<Long> userIds) {
         this.userIds = userIds;
     }
 }

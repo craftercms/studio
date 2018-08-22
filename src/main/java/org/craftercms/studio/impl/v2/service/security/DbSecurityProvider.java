@@ -47,7 +47,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_USERNAME;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.HTTP_SESSION_ATTRIBUTE_STUDIO_USER;
 import static org.craftercms.studio.api.v1.service.security.SecurityService.STUDIO_SESSION_TOKEN_ATRIBUTE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_SESSION_TIMEOUT;
@@ -80,7 +79,7 @@ public class DbSecurityProvider implements SecurityProvider {
     protected StudioConfiguration studioConfiguration;
 
     @Override
-    public List<User> getAllUsersForSite(int orgId, List<String> groupNames, int offset, int limit, String sort) {
+    public List<User> getAllUsersForSite(long orgId, List<String> groupNames, int offset, int limit, String sort) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(GROUP_NAMES, groupNames);
         params.put(OFFSET, offset);
@@ -136,8 +135,8 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public void deleteUsers(List<Integer> userIds, List<String> usernames) {
-        List<Integer> allUserIds = new ArrayList<Integer>();
+    public void deleteUsers(List<Long> userIds, List<String> usernames) {
+        List<Long> allUserIds = new ArrayList<Long>();
         allUserIds.addAll(userIds);
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(USERNAMES, usernames);
@@ -152,7 +151,7 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public User getUserByIdOrUsername(int userId, String username) {
+    public User getUserByIdOrUsername(long userId, String username) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(USER_ID, userId);
         params.put(USERNAME, username);
@@ -171,8 +170,8 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public void enableUsers(List<Integer> userIds, List<String> usernames, boolean enabled) {
-        List<Integer> allUserIds = new ArrayList<Integer>();
+    public void enableUsers(List<Long> userIds, List<String> usernames, boolean enabled) {
+        List<Long> allUserIds = new ArrayList<Long>();
         allUserIds.addAll(userIds);
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(USERNAMES, usernames);
@@ -205,7 +204,7 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public List<Group> getAllGroups(int orgId, int offset, int limit, String sort) {
+    public List<Group> getAllGroups(long orgId, int offset, int limit, String sort) {
         // Prepare parameters
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(ORG_ID, orgId);
@@ -227,7 +226,7 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public void createGroup(int orgId, String groupName, String groupDescription) {
+    public void createGroup(long orgId, String groupName, String groupDescription) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(ORG_ID, orgId);
         params.put(GROUP_NAME, groupName);
@@ -236,7 +235,7 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public void updateGroup(int orgId, Group group) {
+    public void updateGroup(long orgId, Group group) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(ID, group.getId());
         params.put(ORG_ID, orgId);
@@ -246,14 +245,14 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public void deleteGroup(int groupId) {
+    public void deleteGroup(long groupId) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(ID, groupId);
         groupMapper.deleteGroup(params);
     }
 
     @Override
-    public Group getGroup(int groupId) {
+    public Group getGroup(long groupId) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(GROUP_ID, groupId);
         GroupDAO gDAL = groupMapper.getGroup(params);
@@ -265,7 +264,7 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public List<User> getGroupMembers(int groupId, int offset, int limit, String sort) {
+    public List<User> getGroupMembers(long groupId, int offset, int limit, String sort) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(GROUP_ID, groupId);
         params.put(OFFSET, offset);
@@ -288,8 +287,8 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public boolean addGroupMembers(long groupId, List<Integer> userIds, List<String> usernames) {
-        List<Integer> allUserIds = new ArrayList<Integer>();
+    public boolean addGroupMembers(long groupId, List<Long> userIds, List<String> usernames) {
+        List<Long> allUserIds = new ArrayList<Long>();
         allUserIds.addAll(userIds);
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(USERNAMES, usernames);
@@ -307,8 +306,8 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public void removeGroupMembers(int groupId, List<Integer> userIds, List<String> usernames) {
-        List<Integer> allUserIds = new ArrayList<Integer>();
+    public void removeGroupMembers(long groupId, List<Long> userIds, List<String> usernames) {
+        List<Long> allUserIds = new ArrayList<Long>();
         allUserIds.addAll(userIds);
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(USERNAMES, usernames);

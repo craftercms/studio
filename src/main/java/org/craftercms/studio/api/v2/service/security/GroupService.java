@@ -25,23 +25,90 @@ import java.util.List;
 
 public interface GroupService {
 
-    List<Group> getAllGroups(int orgId, int offset, int limit, String sort);
+    /**
+     * Get all groups
+     *
+     * @param orgId Organization identifier
+     * @param offset Result set offset
+     * @param limit Result set limit
+     * @param sort Sort order
+     * @return List of groups
+     */
+    List<Group> getAllGroups(long orgId, int offset, int limit, String sort);
 
-    void createGroup(int orgId, String groupName, String groupDescription);
+    /**
+     * Create group
+     *
+     * @param orgId Organization identifier
+     * @param groupName Group name
+     * @param groupDescription Group description
+     */
+    void createGroup(long orgId, String groupName, String groupDescription);
 
-    void updateGroup(int orgId, Group group);
+    /**
+     * Update group
+     *
+     * @param orgId Organization identifier
+     * @param group Group to update
+     */
+    void updateGroup(long orgId, Group group);
 
-    void deleteGroup(int groupId);
+    /**
+     * Delete group
+     *
+     * @param groupId Group identifier
+     */
+    void deleteGroup(long groupId);
 
-    Group getGroup(int groupId);
+    /**
+     * Get group
+     *
+     * @param groupId Group identifier
+     * @return Group
+     */
+    Group getGroup(long groupId);
 
-    List<User> getGroupMembers(int groupId, int offset, int limit, String sort);
+    /**
+     * Get group members
+     *
+     * @param groupId Group identifier
+     * @param offset Result set offset
+     * @param limit Result set limit
+     * @param sort Sort order
+     * @return List of users
+     */
+    List<User> getGroupMembers(long groupId, int offset, int limit, String sort);
 
-    void addGroupMembers(int groupId, List<Integer> userIds, List<String> usernames);
+    /**
+     * Add users to the group
+     *
+     * @param groupId Group identifier
+     * @param userIds List of user identifiers
+     * @param usernames List of usernames
+     */
+    void addGroupMembers(long groupId, List<Long> userIds, List<String> usernames);
 
-    void removeGroupMembers(int groupId, List<Integer> userIds, List<String> usernames);
+    /**
+     * Remove users from the group
+     *
+     * @param groupId Group identifier
+     * @param userIds List of user identifiers
+     * @param usernames List of usernames
+     */
+    void removeGroupMembers(long groupId, List<Long> userIds, List<String> usernames);
 
+    /**
+     * Get groups for site
+     *
+     * @param siteId Site identifier
+     * @return List of group names
+     */
     List<String> getSiteGroups(String siteId);
 
+    /**
+     * Get global groups
+     *
+     * @return List of group names
+     */
     List<String> getGlobalGroups();
 }

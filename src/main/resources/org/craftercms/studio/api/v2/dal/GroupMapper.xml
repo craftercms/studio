@@ -136,7 +136,7 @@
         </foreach>
     </insert>
 
-    <select id="getUserIdsForUsernames" parameterType="java.util.Map" resultType="Integer">
+    <select id="getUserIdsForUsernames" parameterType="java.util.Map" resultType="Long">
         SELECT id FROM `user` WHERE username IN
         <foreach collection="usernames" item="username" index="index" separator="," open="(" close=")">
             #{username}

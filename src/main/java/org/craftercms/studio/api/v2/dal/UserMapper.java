@@ -23,25 +23,90 @@ import java.util.Map;
 
 public interface UserMapper {
 
+    /**
+     * Get all users for given site
+     *
+     * @param params SQL query parameters
+     * @return List of users
+     */
     List<UserDAO> getAllUsersForSite(Map params);
 
-    void createUser(Map params);
+    /**
+     * Create user
+     *
+     * @param params SQL query parameters
+     * @return Number of rows affected in DB
+     */
+    int createUser(Map params);
 
-    void updateUser(Map params);
+    /**
+     * Update user
+     *
+     * @param params SQL query parameters
+     * @return Number of rows affected in DB
+     */
+    int updateUser(Map params);
 
-    List<Integer> getUserIdsForUsernames(Map params);
+    /**
+     * Get ids for users
+     *
+     * @param params SQL query parameters
+     * @return List of user ids
+     */
+    List<Long> getUserIdsForUsernames(Map params);
 
-    void deleteUsers(Map params);
+    /**
+     * Delete users
+     *
+     * @param params SQL query params
+     * @return Number of rows affected in DB
+     */
+    int deleteUsers(Map params);
 
+    /**
+     * Get user by id or username
+     *
+     * @param params SQL query parameters
+     * @return
+     */
     UserDAO getUserByIdOrUsername(Map params);
 
-    void enableUsers(Map params);
+    /**
+     * Enable/disable users
+     *
+     * @param params SQL query parameters
+     * @return Number of rows affected in DB
+     */
+    int enableUsers(Map params);
 
+    /**
+     * Get user groups
+     *
+     * @param params SQL query parameters
+     * @return List of groups
+     */
     List<GroupDAO> getUserGroups(Map params);
 
+    /**
+     * Get total number of users
+     *
+     * @return
+     */
     int getAllUsersTotal();
 
-    void setUserPassword(Map params);
+    /**
+     * Set password for user
+     *
+     * @param params SQL query parameters
+     * @return Number of rows affected
+     */
+    int setUserPassword(Map params);
 
+    /**
+     * Check if user exists
+     *
+     * @param params
+     * @return
+     */
     Integer userExists(Map params);
 }

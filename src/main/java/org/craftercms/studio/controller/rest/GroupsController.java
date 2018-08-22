@@ -22,7 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.service.security.GroupService;
-import org.craftercms.studio.model.AddMemembers;
+import org.craftercms.studio.model.AddGroupMembers;
 import org.craftercms.studio.model.ApiResponse;
 import org.craftercms.studio.model.Entity;
 import org.craftercms.studio.model.Group;
@@ -51,6 +51,14 @@ public class GroupsController {
 
     private GroupService groupService;
 
+    /**
+     * Get groups API
+     *
+     * @param offset offset parameter
+     * @param limit limit parameter
+     * @param sort sort parameter
+     * @return Response containing list of groups
+     */
     @GetMapping("/api/2/groups")
     public StudioResponseBody getAllGroups(
             @RequestParam("offset") Optional<Integer> offset,
@@ -72,6 +80,12 @@ public class GroupsController {
         return responseBody;
     }
 
+    /**
+     * Create group API
+     *
+     * @param group Group to create
+     * @return Response object
+     */
     @PostMapping(value = "/api/2/groups", consumes = MediaType.APPLICATION_JSON_VALUE)
     public StudioResponseBody createGroup(@RequestBody Group group) {
         groupService.createGroup(1, group.getName(), group.getDesc());
@@ -83,6 +97,12 @@ public class GroupsController {
         return responseBody;
     }
 
+    /**
+     * Update group API
+     *
+     * @param group Group to update
+     * @return Response object
+     */
     @PatchMapping(value = "/api/2/groups", consumes = MediaType.APPLICATION_JSON_VALUE)
     public StudioResponseBody updateGroup(@RequestBody Group group) {
         groupService.updateGroup(1, group);
@@ -94,6 +114,12 @@ public class GroupsController {
         return responseBody;
     }
 
+    /**
+     * Delete group API
+     *
+     * @param groupId Group identifier
+     * @return Response object
+     */
     @DeleteMapping("/api/2/groups")
     public StudioResponseBody deleteGroup(@RequestParam("id") int groupId) {
         groupService.deleteGroup(groupId);
@@ -105,6 +131,12 @@ public class GroupsController {
         return responseBody;
     }
 
+    /**
+     * Get group API
+     *
+     * @param groupId Group identifier
+     * @return Response containing requested group
+     */
     @GetMapping("/api/2/groups/{groupId}")
     public StudioResponseBody getGroup(@PathVariable("groupId") int groupId) {
         Group group = groupService.getGroup(groupId);
@@ -117,6 +149,15 @@ public class GroupsController {
         return responseBody;
     }
 
+    /**
+     * Get group members API
+     *
+     * @param groupId Group identifier
+     * @param offset Result set offset
+     * @param limit Result set limit
+     * @param sort Sort order
+     * @return Response containing list od users
+     */
     @GetMapping("/api/2/groups/{groupId}/members")
     public StudioResponseBody getGroupMembers(@PathVariable("groupId") int groupId, @RequestParam("offset") int offset,
                                             @RequestParam("limit") int limit, @RequestParam("sort") String sort) {
@@ -132,10 +173,17 @@ public class GroupsController {
         return responseBody;
     }
 
+    /**
+     * Add group members API
+     *
+     * @param groupId Group identifiers
+     * @param addGroupMembers Add members request body (json representation)
+     * @return Response object
+     */
     @PostMapping(value = "/api/2/groups/{groupId}/members", consumes = MediaType.APPLICATION_JSON_VALUE)
     public StudioResponseBody addGroupMembers(@PathVariable("groupId") int groupId,
-                                              @RequestBody AddMemembers addMemembers) {
-        groupService.addGroupMembers(groupId, addMemembers.getUserIds(), addMemembers.getUsernames());
+                                              @RequestBody AddGroupMembers addGroupMembers) {
+        groupService.addGroupMembers(groupId, addGroupMembers.getUserIds(), addGroupMembers.getUsernames());
 
         StudioResponseBody responseBody = new StudioResponseBody();
         ResultOne result = new ResultOne();
@@ -144,9 +192,17 @@ public class GroupsController {
         return responseBody;
     }
 
+    /**
+     * Remove group members API
+     *
+     * @param groupId Group identifier
+     * @param userIds List of user identifiers
+     * @param usernames List of usernames
+     * @return Response object
+     */
     @DeleteMapping("/api/2/groups/{groupId}/members")
     public StudioResponseBody removeGroupMembers(@PathVariable("groupId") int groupId,
-                                   @RequestParam("userId") List<Integer> userIds,
+                                   @RequestParam("userId") List<Long> userIds,
                                    @RequestParam("username") List<String> usernames) {
         groupService.removeGroupMembers(groupId, userIds, usernames);
 
@@ -156,7 +212,6 @@ public class GroupsController {
         responseBody.setResult(result);
         return responseBody;
     }
-
 
     public GroupService getGroupService() {
         return groupService;

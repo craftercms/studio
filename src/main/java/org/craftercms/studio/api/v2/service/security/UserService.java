@@ -26,17 +26,17 @@ import java.util.List;
 
 public interface UserService {
 
-    List<User> getAllUsersForSite(int orgId, String site, int offset, int limit, String sort);
+    List<User> getAllUsersForSite(long orgId, String site, int offset, int limit, String sort);
 
     void createUser(User user) throws UserAlreadyExistsException;
 
     void updateUser(User user);
 
-    void deleteUsers(List<Integer> userIds, List<String> usernames);
+    void deleteUsers(List<Long> userIds, List<String> usernames);
 
-    User getUserByIdOrUsername(int userId, String username);
+    User getUserByIdOrUsername(long userId, String username);
 
-    void enableUsers(List<Integer> userIds, List<String> usernames, boolean enabled);
+    void enableUsers(List<Long> userIds, List<String> usernames, boolean enabled);
 
-    List<Group> getUserGroups(int userId, String username);
+    List<Group> getUserGroups(long userId, String username);
 }

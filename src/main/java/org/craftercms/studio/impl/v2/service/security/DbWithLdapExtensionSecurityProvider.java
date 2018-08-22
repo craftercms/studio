@@ -365,7 +365,7 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
         if (groupDAO != null) {
             List<String> usernames = new ArrayList<String>();
             usernames.add(username);
-            boolean success = addGroupMembers(groupDAO.getId(), new ArrayList<Integer>(), usernames);
+            boolean success = addGroupMembers(groupDAO.getId(), new ArrayList<Long>(), usernames);
             if (success){
                 ActivityService.ActivityType activityType = ActivityService.ActivityType.ADD_USER_TO_GROUP;
                 Map<String, String> extraInfo = new HashMap<>();

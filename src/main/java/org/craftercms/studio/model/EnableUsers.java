@@ -23,7 +23,7 @@ import java.util.List;
 public class EnableUsers {
 
     private List<String> usernames;
-    private List<Integer> userIds;
+    private List<Long> userIds;
 
     public List<String> getUsernames() {
         return usernames;
@@ -33,11 +33,11 @@ public class EnableUsers {
         this.usernames = usernames;
     }
 
-    public List<Integer> getUserIds() {
+    public List<Long> getUserIds() {
         return userIds;
     }
 
-    public void setUserIds(List<Integer> userIds) {
+    public void setUserIds(List<Long> userIds) {
         this.userIds = userIds;
     }
 }

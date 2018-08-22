@@ -63,7 +63,7 @@ public class UserServiceImpl implements UserService {
     private SecurityProvider securityProvider;
 
     @Override
-    public List<User> getAllUsersForSite(int orgId, String siteId, int offset, int limit, String sort) {
+    public List<User> getAllUsersForSite(long orgId, String siteId, int offset, int limit, String sort) {
         List<String> groupNames = groupService.getSiteGroups(siteId);
         return securityProvider.getAllUsersForSite(orgId, groupNames, offset, limit, sort);
     }
@@ -79,22 +79,22 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void deleteUsers(List<Integer> userIds, List<String> usernames) {
+    public void deleteUsers(List<Long> userIds, List<String> usernames) {
         securityProvider.deleteUsers(userIds, usernames);
     }
 
     @Override
-    public User getUserByIdOrUsername(int userId, String username) {
+    public User getUserByIdOrUsername(long userId, String username) {
         return securityProvider.getUserByIdOrUsername(userId, username);
     }
 
     @Override
-    public void enableUsers(List<Integer> userIds, List<String> usernames, boolean enabled) {
+    public void enableUsers(List<Long> userIds, List<String> usernames, boolean enabled) {
         securityProvider.enableUsers(userIds, usernames, enabled);
     }
 
     @Override
-    public List<Group> getUserGroups(int userId, String username) {
+    public List<Group> getUserGroups(long userId, String username) {
         return securityProvider.getUserGroups(userId, username);
     }
 

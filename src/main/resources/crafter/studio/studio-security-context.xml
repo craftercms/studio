@@ -62,7 +62,7 @@
     </bean>
 
     <bean id="studioUserDetailsManager" class="org.craftercms.studio.impl.v1.service.security.UserDetailsManagerImpl">
-        <property name="securityMapper" ref="securityMapper"/>
+        <property name="userMapper" ref="userMapper"/>
     </bean>
 
     <ldap:context-source id="ldapContextSource"

@@ -27,7 +27,7 @@ import java.util.Map;
 
 public interface SecurityMapper {
 
-    User getUser(String username);
+    UserDAO getUser(String username);
 
     List<GroupDAO> getUserGroups(String username);
 
@@ -69,7 +69,7 @@ public interface SecurityMapper {
 
     List<GroupPerSiteResult> getGroupsPerSiteData(Map params);
 
-    List<User> getUsersPerGroup(Map params);
+    List<UserDAO> getUsersPerGroup(Map params);
 
     int getUsersPerGroupTotal(Map params);
 

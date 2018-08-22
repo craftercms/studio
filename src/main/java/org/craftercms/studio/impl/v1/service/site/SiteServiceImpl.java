@@ -507,7 +507,7 @@ public class SiteServiceImpl implements SiteService {
                 List<String> userList = new ArrayList<String>();
                 userList.add(securityService.getCurrentUser());
                 // TODO: DB: FIGURE THIS OUT
-                groupService.addGroupMembers(1, new ArrayList<Integer>(), userList);
+                groupService.addGroupMembers(1, new ArrayList<Long>(), userList);
 
                 reloadSiteConfiguration(siteId);
 	        } catch(Exception e) {
@@ -908,7 +908,7 @@ public class SiteServiceImpl implements SiteService {
                 List<String> userList = new ArrayList<String>();
                 userList.add(securityService.getCurrentUser());
                 // TODO: DB: FIGURE THIS OUT
-                groupService.addGroupMembers(1, new ArrayList<Integer>(), userList);
+                groupService.addGroupMembers(1, new ArrayList<Long>(), userList);
 
                 logger.debug("Loading configuration for site " + siteId);
                 reloadSiteConfiguration(siteId);
@@ -1115,7 +1115,7 @@ public class SiteServiceImpl implements SiteService {
                 List<String> userList = new ArrayList<String>();
                 userList.add(securityService.getCurrentUser());
                 // TODO: DB: FIGURE THIS OUT
-                groupService.addGroupMembers(1, new ArrayList<Integer>(), userList);
+                groupService.addGroupMembers(1, new ArrayList<Long>(), userList);
 
                 logger.debug("Loading configuration for site " + siteId);
                 reloadSiteConfiguration(siteId);

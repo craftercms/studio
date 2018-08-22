@@ -102,19 +102,19 @@ public class MappedSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public void deleteUsers(List<Integer> userIds, List<String> usernames) {
+    public void deleteUsers(List<Long> userIds, List<String> usernames) {
         SecurityProvider provider = lookupProvider(getProviderType());
         provider.deleteUsers(userIds, usernames);
     }
 
     @Override
-    public User getUserByIdOrUsername(int userId, String username) {
+    public User getUserByIdOrUsername(long userId, String username) {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.getUserByIdOrUsername(userId, username);
     }
 
     @Override
-    public void enableUsers(List<Integer> userIds, List<String> usernames, boolean enabled) {
+    public void enableUsers(List<Long> userIds, List<String> usernames, boolean enabled) {
         SecurityProvider provider = lookupProvider(getProviderType());
         provider.enableUsers(userIds, usernames, enabled);
     }
@@ -126,55 +126,55 @@ public class MappedSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public List<Group> getAllGroups(int orgId, int offset, int limit, String sort) {
+    public List<Group> getAllGroups(long orgId, int offset, int limit, String sort) {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.getAllGroups(orgId, offset, limit, sort);
     }
 
     @Override
-    public void createGroup(int orgId, String groupName, String groupDescription) {
+    public void createGroup(long orgId, String groupName, String groupDescription) {
         SecurityProvider provider = lookupProvider(getProviderType());
         provider.createGroup(orgId, groupName, groupDescription);
     }
 
     @Override
-    public void updateGroup(int orgId, Group group) {
+    public void updateGroup(long orgId, Group group) {
         SecurityProvider provider = lookupProvider(getProviderType());
         provider.updateGroup(orgId, group);
     }
 
     @Override
-    public void deleteGroup(int groupId) {
+    public void deleteGroup(long groupId) {
         SecurityProvider provider = lookupProvider(getProviderType());
         provider.deleteGroup(groupId);
     }
 
     @Override
-    public Group getGroup(int groupId) {
+    public Group getGroup(long groupId) {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.getGroup(groupId);
     }
 
     @Override
-    public List<User> getGroupMembers(int groupId, int offset, int limit, String sort) {
+    public List<User> getGroupMembers(long groupId, int offset, int limit, String sort) {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.getGroupMembers(groupId, offset, limit, sort);
     }
 
     @Override
-    public void addGroupMembers(int groupId, List<Integer> userIds, List<String> usernames) {
+    public boolean addGroupMembers(long groupId, List<Long> userIds, List<String> usernames) {
         SecurityProvider provider = lookupProvider(getProviderType());
-        provider.addGroupMembers(groupId, userIds, usernames);
+        return provider.addGroupMembers(groupId, userIds, usernames);
     }
 
     @Override
-    public void removeGroupMembers(int groupId, List<Integer> userIds, List<String> usernames) {
+    public void removeGroupMembers(long groupId, List<Long> userIds, List<String> usernames) {
         SecurityProvider provider = lookupProvider(getProviderType());
         provider.removeGroupMembers(groupId, userIds, usernames);
     }
 
     @Override
-    public List<User> getAllUsersForSite(int orgId, List<String> groupNames, int offset, int limit, String sort) {
+    public List<User> getAllUsersForSite(long orgId, List<String> groupNames, int offset, int limit, String sort) {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.getAllUsersForSite(orgId, groupNames, offset, limit, sort);
     }
@@ -234,5 +234,11 @@ public class MappedSecurityProvider implements SecurityProvider {
     public boolean userExists(String username) {
         SecurityProvider securityProvider = lookupProvider(getProviderType());
         return securityProvider.userExists(username);
+    }
+
+    @Override
+    public boolean groupExists(String groupName) {
+        SecurityProvider securityProvider = lookupProvider(getProviderType());
+        return securityProvider.groupExists(groupName);
     }
 }

@@ -23,25 +23,91 @@ import java.util.Map;
 
 public interface GroupMapper {
 
+    /**
+     * Get all groups for given organization
+     *
+     * @param params SQL query paramters
+     * @return List of groups
+     */
     List<GroupDAO> getAllGroupsForOrganization(Map params);
 
-    void createGroup(Map params);
+    /**
+     * Create group
+     *
+     * @param params SQL query parameters
+     * @return Number of affected rows in DB
+     */
+    Integer createGroup(Map params);
 
-    void updateGroup(Map params);
+    /**
+     * Update group
+     *
+     * @param params SQL query parameters
+     * @return Number of affected rows in DB
+     */
+    Integer updateGroup(Map params);
 
-    void deleteGroup(Map params);
+    /**
+     * Delete group
+     *
+     * @param params SQL query parameters
+     * @return Number of affected rows in DB
+     */
+    Integer deleteGroup(Map params);
 
+    /**
+     * Get group by group id
+     *
+     * @param params SQL query parameters
+     * @return Group or null if not found
+     */
     GroupDAO getGroup(Map params);
 
+    /**
+     * Get group by group name
+     *
+     * @param params SQL query parameters
+     * @return Group or null if not found
+     */
     GroupDAO getGroupByName(Map params);
 
+    /**
+     * Get group members
+     *
+     * @param params SQL query parameters
+     * @return List of users, group members
+     */
     List<UserDAO> getGroupMembers(Map params);
 
+    /**
+     * Add users to the group
+     *
+     * @param params SQL query parameters
+     * @return Number of rows affected in DB
+     */
     Integer addGroupMembers(Map params);
 
-    List<Integer> getUserIdsForUsernames(Map params);
+    /**
+     * Get User ids for usernames
+     *
+     * @param params SQL query parameters
+     * @return List of user ids
+     */
+    List<Long> getUserIdsForUsernames(Map params);
 
-    void removeGroupMembers(Map params);
+    /**
+     * Remove users from the group
+     *
+     * @param params SQL query parameters
+     * @return Number of rows affected in DB
+     */
+    Integer removeGroupMembers(Map params);
 
+    /**
+     * Check if group exists
+     *
+     * @param params SQL query parameters
+     * @return Number of groups
+     */
     Integer groupExists(Map params);
 }

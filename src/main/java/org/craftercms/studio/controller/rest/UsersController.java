@@ -61,6 +61,15 @@ public class UsersController {
     private GroupService groupService;
     private SiteService siteService;
 
+    /**
+     * Get all users API
+     *
+     * @param siteId Site identifier
+     * @param offset Result set offset
+     * @param limit Result set limit
+     * @param sort Sort order
+     * @return Response containing list of users
+     */
     @GetMapping("/api/2/users")
     public StudioResponseBody getAllUsers(@RequestParam("siteId") String siteId, @RequestParam("offset") int offset,
                                           @RequestParam("limit") int limit, @RequestParam("sort") String sort) {
@@ -76,6 +85,12 @@ public class UsersController {
         return responseBody;
     }
 
+    /**
+     * Create user API
+     *
+     * @param user User to create
+     * @return Response object
+     */
     @PostMapping(value = "/api/2/users", consumes = MediaType.APPLICATION_JSON_VALUE)
     public StudioResponseBody createUser(@RequestBody User user) {
         try {
@@ -95,6 +110,12 @@ public class UsersController {
         }
     }
 
+    /**
+     * Update user API
+     *
+     * @param user User to update
+     * @return Response object
+     */
     @PatchMapping(value = "/api/2/users", consumes = MediaType.APPLICATION_JSON_VALUE)
     public StudioResponseBody updateUser(@RequestBody User user) {
         userService.updateUser(user);
@@ -106,8 +127,15 @@ public class UsersController {
         return responseBody;
     }
 
+    /**
+     * Delete users API
+     *
+     * @param userIds List of user identifiers
+     * @param usernames List of usernames
+     * @return Response object
+     */
     @DeleteMapping("/api/2/users")
-    public StudioResponseBody deleteUser(@RequestParam("userId") List<Integer> userIds,
+    public StudioResponseBody deleteUser(@RequestParam("userId") List<Long> userIds,
                            @RequestParam("username") List<String> usernames) {
         userService.deleteUsers(userIds, usernames);
 
@@ -118,6 +146,12 @@ public class UsersController {
         return responseBody;
     }
 
+    /**
+     * Get user API
+     *
+     * @param userId User identifier
+     * @return Response containing user
+     */
     @GetMapping("/api/2/users/{userId}")
     public StudioResponseBody getUser(@PathVariable String userId) {
         int uId = -1;
@@ -137,6 +171,12 @@ public class UsersController {
         return responseBody;
     }
 
+    /**
+     * Enable users API
+     *
+     * @param enableUsers Enable users request body (json representation)
+     * @return Response object
+     */
     @PatchMapping(value = "/api/2/users/enable", consumes = MediaType.APPLICATION_JSON_VALUE)
     public StudioResponseBody enableUsers(@RequestBody EnableUsers enableUsers) {
         userService.enableUsers(enableUsers.getUserIds(), enableUsers.getUsernames(), true);
@@ -148,6 +188,12 @@ public class UsersController {
         return responseBody;
     }
 
+    /**
+     * Disable users API
+     *
+     * @param enableUsers Disable users request body (json representation)
+     * @return Response object
+     */
     @PatchMapping(value = "/api/2/users/disable", consumes = MediaType.APPLICATION_JSON_VALUE)
     public StudioResponseBody disableUsers(@RequestBody EnableUsers enableUsers) {
         userService.enableUsers(enableUsers.getUserIds(), enableUsers.getUsernames(), false);
@@ -159,6 +205,15 @@ public class UsersController {
         return responseBody;
     }
 
+    /**
+     * Get user sites API
+     *
+     * @param userId User identifier
+     * @param offset Result set offset
+     * @param limit Result set limit
+     * @param sort Sort order
+     * @return Response containing list of sites
+     */
     @GetMapping("/api/2/users/{userId}/sites")
     public StudioResponseBody getUserSites(@PathVariable String userId, @RequestParam int offset,
                                            @RequestParam int limit, @RequestParam String sort) {

@@ -58,42 +58,42 @@ public class GroupServiceImpl implements GroupService {
     private SecurityProvider securityProvider;
 
     @Override
-    public List<Group> getAllGroups(int orgId, int offset, int limit, String sort) {
+    public List<Group> getAllGroups(long orgId, int offset, int limit, String sort) {
         return securityProvider.getAllGroups(orgId, offset, limit, sort);
     }
 
     @Override
-    public void createGroup(int orgId, String groupName, String groupDescription) {
+    public void createGroup(long orgId, String groupName, String groupDescription) {
         securityProvider.createGroup(orgId, groupName, groupDescription);
     }
 
     @Override
-    public void updateGroup(int orgId, Group group) {
+    public void updateGroup(long orgId, Group group) {
         securityProvider.updateGroup(orgId, group);
     }
 
     @Override
-    public void deleteGroup(int groupId) {
+    public void deleteGroup(long groupId) {
         securityProvider.deleteGroup(groupId);
     }
 
     @Override
-    public Group getGroup(int groupId) {
+    public Group getGroup(long groupId) {
         return securityProvider.getGroup(groupId);
     }
 
     @Override
-    public List<User> getGroupMembers(int groupId, int offset, int limit, String sort) {
+    public List<User> getGroupMembers(long groupId, int offset, int limit, String sort) {
         return securityProvider.getGroupMembers(groupId, offset, limit, sort);
     }
 
     @Override
-    public void addGroupMembers(int groupId, List<Integer> userIds, List<String> usernames) {
+    public void addGroupMembers(long groupId, List<Long> userIds, List<String> usernames) {
         securityProvider.addGroupMembers(groupId, userIds, usernames);
     }
 
     @Override
-    public void removeGroupMembers(int groupId, List<Integer> userIds, List<String> usernames) {
+    public void removeGroupMembers(long groupId, List<Long> userIds, List<String> usernames) {
         securityProvider.removeGroupMembers(groupId, userIds, usernames);
     }
 
