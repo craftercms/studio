@@ -321,6 +321,17 @@ public class SecurityServiceImpl implements SecurityService {
 
     @Override
     @ValidateParams
+    public Set<String> getGlobalUserRoles(@ValidateStringParam(name = "user") String user) {
+        Set<String> roles = new HashSet<>();
+
+        PermissionsConfigTO globalRolesConfig = loadGlobalRolesConfiguration();
+        addGlobalUserRoles(user, roles, globalRolesConfig);
+
+        return roles;
+    }
+
+    @Override
+    @ValidateParams
     public Set<String> getUserRoles(@ValidateStringParam(name = "site") final String site,
                                     @ValidateStringParam(name = "user") String user) {
 
@@ -344,6 +355,7 @@ public class SecurityServiceImpl implements SecurityService {
         } else {
             logger.debug("No groups found for " + user + " in " + site);
         }
+
         return new HashSet<String>(0);
     }
 

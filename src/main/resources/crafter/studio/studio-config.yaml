@@ -46,6 +46,8 @@ studio.repo.published.commitMessage: "Publish event triggered by {username} on {
 ############################################################
 # Location where global configuration files are stored.
 studio.configuration.global.configBasePath: /configuration
+# File name where global menu configuration is stored
+studio.configuration.global.menuFileName: global-menu-config.xml
 # File name where global configuration of user role mappings is stored.
 studio.configuration.global.roleMappingFileName: global-role-mappings-config.xml
 # File name where global configuration of user permissions mappings is stored.

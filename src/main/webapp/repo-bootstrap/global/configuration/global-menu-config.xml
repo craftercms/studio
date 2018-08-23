@@ -1,0 +1,29 @@
+<!--
+    This file contains global menu configuration for Crafter Studio.
+	The global menu shows up as the first screen after a user logs in
+	and displays a list of tools for the user including the list of sites.
+
+    The structure of this file is:
+	<globalMenu>
+		<items>
+			<item>
+				<id />
+				<label />
+				<icon />
+				<role />
+			</item>
+		</items>
+	</globalMenu>
+
+-->
+
+<globalMenu>
+	<items>
+		<item>
+			<id />
+			<label />
+			<icon />
+			<role />
+		</item>
+	</items>
+</globalMenu>
