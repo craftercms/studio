@@ -18,14 +18,12 @@
 
 def webDavService = applicationContext["studioWebDavService"]
 
-response.setHeader("Content-Type", "text/html")
-
 def sendError = { code, msg ->
     response.status = code
-    def writer = response.writer
-    writer.println("<script>document.domain = \"${request.serverName}\";</script>")
-    writer.println("{\"hasError\":true,\"errors\":[\"${msg}\"]}")
-    writer.flush()
+    return [
+            hasErrors : true,
+            errors: [ msg ]
+    ]
 }
 
 def site = params.site_id
@@ -47,10 +45,8 @@ if(!path) {
 try {
     def items = webDavService.list(site, profileId, path)
 
-    def writer = response.writer
-    writer.println("<script>document.domain = \"${request.serverName}\";</script>")
-    writer.println("[${items.collect{ "{\"name\":\"${it.name}\",\"url\":\"${it.url}\",\"folder\":\"${it.folder}\"}" }.join(",")}]")
-    writer.flush()
+    return items
+
 } catch (e) {
     logger.error("Listing of path ${path} failed", e)
 

@@ -21,6 +21,7 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang.StringUtils;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.exception.WebDavException;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -30,6 +31,7 @@ import org.craftercms.studio.api.v1.webdav.WebDavItem;
 import org.craftercms.studio.api.v1.webdav.WebDavProfile;
 import org.craftercms.studio.api.v1.webdav.WebDavProfileReader;
 import org.springframework.beans.factory.annotation.Required;
+import org.springframework.web.util.UriUtils;
 import com.github.sardine.DavResource;
 import com.github.sardine.Sardine;
 import com.github.sardine.SardineFactory;
@@ -62,9 +64,13 @@ public class WebDavServiceImpl implements WebDavService {
         throws
         WebDavException {
         WebDavProfile profile = profileReader.getProfile(site, profileId);
-        String finalPath = profile.getBaseUrl() + "/" + path;
+        String finalPath = profile.getBaseUrl();
         Sardine sardine = SardineFactory.begin(profile.getUsername(), profile.getPassword());
         try {
+            if(StringUtils.isNotEmpty(path)) {
+                finalPath += UriUtils.encode(path.endsWith("/")? path : path + "/", "UTF-8");
+            }
+
             logger.info("Listing resources at {0}", finalPath);
             List<DavResource> resources = sardine.list(finalPath);
             logger.info("Found {0} resources", resources.size());
@@ -88,11 +94,15 @@ public class WebDavServiceImpl implements WebDavService {
                          final InputStream content)
         throws WebDavException {
         WebDavProfile profile = profileReader.getProfile(site, profileId);
-        String uploadUrl = profile.getBaseUrl() + path;
-        String fileUrl = uploadUrl + "/" + filename;
-
+        String uploadUrl = profile.getBaseUrl();
         try {
+            if(StringUtils.isNotEmpty(path)) {
+                uploadUrl +=  path.startsWith("/")? path : "/" + path;
+            }
+            String fileUrl = uploadUrl + "/" + UriUtils.encode(filename, "UTF-8");
+
             logger.info("Starting upload of file {0}", filename);
+            logger.info("Uploading file to {0}", fileUrl);
             Sardine sardine = SardineFactory.begin(profile.getUsername(), profile.getPassword());
             try {
                 logger.info("Creating upload folder {0}", uploadUrl);

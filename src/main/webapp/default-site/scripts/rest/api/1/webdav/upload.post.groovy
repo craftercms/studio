@@ -65,7 +65,7 @@ if (ServletFileUpload.isMultipartContent(request)) {
 
                 def writer = response.writer
                 writer.println("<script>document.domain = \"${request.serverName}\";</script>")
-                writer.println(url)
+                writer.println('"' + url + '"')
                 writer.flush()
             } catch (e) {
                 logger.error("Upload of file ${filename} failed", e)
