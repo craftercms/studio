@@ -68,14 +68,16 @@ public class WebDavServiceImpl implements WebDavService {
         Sardine sardine = SardineFactory.begin(profile.getUsername(), profile.getPassword());
         try {
             if(StringUtils.isNotEmpty(path)) {
-                finalPath += UriUtils.encode(path.endsWith("/")? path : path + "/", "UTF-8");
+                finalPath += path;
+            }
+            if(!finalPath.endsWith("/")) {
+                finalPath += "/";
             }
 
-            logger.info("Listing resources at {0}", finalPath);
+            logger.debug("Listing resources at {0}", finalPath);
             List<DavResource> resources = sardine.list(finalPath);
-            logger.info("Found {0} resources", resources.size());
+            logger.debug("Found {0} resources", resources.size());
             return resources.stream()
-                .filter(r -> !r.isDirectory())
                 .map(r -> new WebDavItem(r.getDisplayName(), profile.getBaseUrl() + r.getPath(), r.isDirectory()))
                 .collect(Collectors.toList());
         } catch (Exception e) {
@@ -101,17 +103,17 @@ public class WebDavServiceImpl implements WebDavService {
             }
             String fileUrl = uploadUrl + "/" + UriUtils.encode(filename, "UTF-8");
 
-            logger.info("Starting upload of file {0}", filename);
-            logger.info("Uploading file to {0}", fileUrl);
+            logger.debug("Starting upload of file {0}", filename);
+            logger.debug("Uploading file to {0}", fileUrl);
             Sardine sardine = SardineFactory.begin(profile.getUsername(), profile.getPassword());
             try {
-                logger.info("Creating upload folder {0}", uploadUrl);
+                logger.debug("Creating upload folder {0}", uploadUrl);
                 sardine.createDirectory(uploadUrl);
             } catch (Exception e) {
-                logger.info("Upload folder already exists");
+                logger.debug("Upload folder already exists");
             }
             sardine.put(fileUrl, content);
-            logger.info("Upload complete");
+            logger.debug("Upload complete");
             return fileUrl;
         } catch (Exception e ) {
             throw new WebDavException("Error uploading file", e);
