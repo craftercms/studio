@@ -716,8 +716,7 @@
         <property name="contentService" ref="cstudioContentService"/>
     </bean>
 
-    <bean id="studioWebDavService" class="org.craftercms.studio.impl.v1.service.webdav.WebDavServiceImpl"
-          init-method="init">
+    <bean id="studioWebDavService" class="org.craftercms.studio.impl.v1.service.webdav.WebDavServiceImpl">
         <property name="profileReader" ref="studioWebDavProfileReader"/>
     </bean>
 
