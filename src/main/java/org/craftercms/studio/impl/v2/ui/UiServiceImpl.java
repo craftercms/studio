@@ -59,11 +59,11 @@ public class UiServiceImpl implements UiService {
             HierarchicalConfiguration menuConfig = getGlobalMenuConfig();
             List<MenuItem> menuItems = new ArrayList<>();
 
-            List<HierarchicalConfiguration> itemsConfig = menuConfig.configurationsAt("globalMenu");
+            List<HierarchicalConfiguration> itemsConfig = menuConfig.configurationsAt("items.item");
             if (CollectionUtils.isNotEmpty(itemsConfig)) {
                 for (HierarchicalConfiguration itemConfig : itemsConfig) {
-                    String requiredRole = getRequiredStringProperty(itemConfig, "id");
-                    if (roles.contains(requiredRole)) {
+                    String requiredRole = getRequiredStringProperty(itemConfig, "role");
+                    if (requiredRole.equals("*") || roles.contains(requiredRole)) {
                         MenuItem item = new MenuItem();
                         item.setId(getRequiredStringProperty(itemConfig, "id"));
                         item.setLabel(getRequiredStringProperty(itemConfig, "label"));

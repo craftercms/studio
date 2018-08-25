@@ -309,6 +309,12 @@
         <property name="securityProvider" ref="securityProvider" />
     </bean>
 
+    <bean id="studioUiService" class="org.craftercms.studio.impl.v2.ui.UiServiceImpl">
+        <property name="studioConfiguration" ref="studioConfiguration"/>
+        <property name="securityService" ref="cstudioSecurityService"/>
+        <property name="contentService" ref="cstudioContentService"/>
+    </bean>
+
     <!-- ////////////////////////////////////// -->
     <!--      Managers                          -->
     <!-- ////////////////////////////////////// -->
