@@ -39,6 +39,7 @@
         <mariadb4j.version>2.2.7</mariadb4j.version>
         <jackson.version>2.9.6</jackson.version>
         <bouncycastle.version>1.60</bouncycastle.version>
+        <sardine.version>5.8</sardine.version>
     </properties>
 
     <licenses>
@@ -442,6 +443,13 @@
                     <artifactId>bcpkix-jdk15on</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+
+        <!-- WebDAV Client -->
+        <dependency>
+            <groupId>com.github.lookfirst</groupId>
+            <artifactId>sardine</artifactId>
+            <version>${sardine.version}</version>
         </dependency>
 
         <!-- BouncyCastle Provider -->
