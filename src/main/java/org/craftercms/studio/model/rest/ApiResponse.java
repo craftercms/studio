@@ -16,10 +16,16 @@
  *
  */
 
-package org.craftercms.studio.model;
+package org.craftercms.studio.model.rest;
 
 import org.apache.commons.lang3.StringUtils;
 
+/**
+ * Represents the response of an API operation.
+ *
+ * @author Dejan Brkic
+ * @author avasquez
+ */
 public class ApiResponse {
 
     public static final ApiResponse OK =
@@ -111,34 +117,58 @@ public class ApiResponse {
         this.documentationUrl = documentationUrl;
     }
 
+    /**
+     * Returns the response code.
+     */
     public int getCode() {
         return code;
     }
 
+    /**
+     * Sets the response code.
+     */
     public void setCode(int code) {
         this.code = code;
     }
 
+    /**
+     * Returns the detailed message of the response.
+     */
     public String getMessage() {
         return message;
     }
 
+    /**
+     * Sets the detailed message of the response.
+     */
     public void setMessage(String message) {
         this.message = message;
     }
 
+    /**
+     * Returns what the user can do in order to address the issue indicated by the response.
+     */
     public String getRemedialAction() {
         return remedialAction;
     }
 
+    /**
+     * Sets what the user can do in order to address the issue indicated by the response.
+     */
     public void setRemedialAction(String remedialAction) {
         this.remedialAction = remedialAction;
     }
 
+    /**
+     * Returns the URL to documentation related to the response.
+     */
     public String getDocumentationUrl() {
         return documentationUrl;
     }
 
+    /**
+     * Sets the URL to documentation related to the response.
+     */
     public void setDocumentationUrl(String documentationUrl) {
         this.documentationUrl = documentationUrl;
     }

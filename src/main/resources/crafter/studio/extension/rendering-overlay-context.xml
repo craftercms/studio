@@ -34,7 +34,7 @@
         <property name="siteService" ref="cstudioSiteServiceSimple" />
     </bean>
     
-    <bean id="studioUiController" class="org.craftercms.studio.controller.rest.UiController">
+    <bean id="studioUiController" class="org.craftercms.studio.controller.rest.v2.UiController">
         <property name="uiService" ref="studioUiService"/>
     </bean>
 

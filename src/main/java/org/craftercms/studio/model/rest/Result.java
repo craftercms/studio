@@ -18,16 +18,26 @@
 
 package org.craftercms.studio.model.rest;
 
-import org.craftercms.studio.model.ApiResponse;
-
+/**
+ * The result of an API operation. A basic result only contains the API response.
+ *
+ * @author Dejan Brkic
+ * @author avasquez
+ */
 public class Result {
 
     protected ApiResponse response;
 
+    /**
+     * Returns the API response.
+     */
     public ApiResponse getResponse() {
         return response;
     }
 
+    /**
+     * Sets the API response.
+     */
     public void setResponse(ApiResponse response) {
         this.response = response;
     }

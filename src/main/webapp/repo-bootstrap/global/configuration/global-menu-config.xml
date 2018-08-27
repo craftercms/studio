@@ -20,10 +20,22 @@
 <globalMenu>
 	<items>
 		<item>
-			<id />
-			<label />
-			<icon />
-			<role />
+			<id>home.globalMenu.sites</id>
+			<label>Sites</label>
+			<icon>fa-sitemap</icon>
+			<role>*</role>
 		</item>
+        <item>
+            <id>home.globalMenu.users</id>
+            <label>Users</label>
+            <icon>fa-user</icon>
+            <role>crafter-admin</role>
+        </item>
+        <item>
+            <id>home.globalMenu.groups</id>
+            <label>Groups</label>
+            <icon>fa-users</icon>
+            <role>crafter-admin</role>
+        </item>
 	</items>
 </globalMenu>

@@ -18,32 +18,58 @@
 
 package org.craftercms.studio.model.rest;
 
+/**
+ * A paginated {@link ResultList}.
+ *
+ * @param <T> the entity type
+ *
+ * @author Dejan Brkic
+ * @author avasquez
+ */
 public class PaginatedResultList<T> extends ResultList<T> {
 
     protected int total;
     protected int offset;
     protected int limit;
 
+    /**
+     * Returns the total of results.
+     */
     public int getTotal() {
         return total;
     }
 
+    /**
+     * Sets the total of results.
+     */
     public void setTotal(int total) {
         this.total = total;
     }
 
+    /**
+     * Returns the offset in the total of results this result list starts.
+     */
     public int getOffset() {
         return offset;
     }
 
+    /**
+     * Sets the offset in the total of results this result list starts.
+     */
     public void setOffset(int offset) {
         this.offset = offset;
     }
 
+    /**
+     * Returns the number of items in the result list.
+     */
     public int getLimit() {
         return limit;
     }
 
+    /**
+     * Sets the number of items in the result list.
+     */
     public void setLimit(int limit) {
         this.limit = limit;
     }

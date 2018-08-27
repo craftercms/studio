@@ -20,14 +20,26 @@ package org.craftercms.studio.model.rest;
 
 import java.util.List;
 
+/**
+ * Contains the response body of a bulk API operation.
+ *
+ * @author Dejan Brkic
+ * @author avasquez
+ */
 public class BulkApiResponseBody {
 
     protected List<Result> results;
 
+    /**
+     * Returns the API results.
+     */
     public List<Result> getResults() {
         return results;
     }
 
+    /**
+     * Sets the API results.
+     */
     public void setResults(List<Result> results) {
         this.results = results;
     }

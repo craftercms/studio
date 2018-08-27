@@ -18,14 +18,26 @@
 
 package org.craftercms.studio.model.rest;
 
+/**
+ * Contains the response body of an API operation.
+ *
+ * @author Dejan Brkic
+ * @author avasquez
+ */
 public class ApiResponseBody {
 
     protected Result result;
 
+    /**
+     * Returns the API result.
+     */
     public Result getResult() {
         return result;
     }
 
+    /**
+     * Sets the API result.
+     */
     public void setResult(Result result) {
         this.result = result;
     }

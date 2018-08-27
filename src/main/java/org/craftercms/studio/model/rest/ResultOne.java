@@ -18,14 +18,28 @@
 
 package org.craftercms.studio.model.rest;
 
+/**
+ * A {@link Result} where the actual result is a single entity.
+ *
+ * @param <T> the entity type
+ *
+ * @author Dejan Brkic
+ * @author avasquez
+ */
 public class ResultOne<T> extends Result {
 
     protected T entity;
 
+    /**
+     * Returns the result entity.
+     */
     public T getEntity() {
         return entity;
     }
 
+    /**
+     * Sets the result entity.
+     */
     public void setEntity(T entity) {
         this.entity = entity;
     }
