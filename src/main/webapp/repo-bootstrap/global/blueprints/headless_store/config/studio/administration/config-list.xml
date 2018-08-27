@@ -141,6 +141,12 @@
             <samplePath>/studio/administration/samples/sample-box.xml</samplePath>
         </file>
         <file>
+            <path>/studio/webdav/webdav.xml</path>
+            <title>WebDAV Profiles</title>
+            <description>WebDAV Profiles</description>
+            <samplePath>/studio/administration/samples/sample-webdav.xml</samplePath>
+        </file>
+        <file>
             <path>/studio/asset-processing/asset-processing-config.xml</path>
             <title>Asset Processing</title>
             <description>Asset Processing</description>
