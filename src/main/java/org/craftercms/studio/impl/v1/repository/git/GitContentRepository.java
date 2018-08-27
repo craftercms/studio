@@ -1812,7 +1812,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         logger.debug("Basic authentication");
                         pushCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(remoteUsername,
                                 remotePassword));
-                        pushCommand.call();
                         break;
                     case RemoteRepository.AuthenticationType.TOKEN:
                         logger.debug("Token based authentication");
