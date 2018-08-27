@@ -158,4 +158,6 @@ package org.craftercms.studio.api.v1.constant;
      */
     String REPO_COMMIT_MESSAGE_USERNAME_VAR = "{username}";
     String REPO_COMMIT_MESSAGE_PATH_VAR = "{path}";
+
+    String HTTP_SESSION_ATTRIBUTE_STUDIO_USER = "studio_user";
 }

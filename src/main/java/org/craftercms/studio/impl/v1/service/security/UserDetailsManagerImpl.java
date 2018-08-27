@@ -1,6 +1,5 @@
 /*
- * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2016 Crafter Software Corporation.
+ * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,21 +18,35 @@
 
 package org.craftercms.studio.impl.v1.service.security;
 
-import org.craftercms.studio.api.v1.dal.SecurityMapper;
-import org.craftercms.studio.api.v1.dal.User;
 import org.craftercms.studio.api.v1.service.security.UserDetailsManager;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.craftercms.studio.api.v2.dal.UserDAO;
+import org.craftercms.studio.api.v2.dal.UserMapper;
 import org.springframework.security.core.userdetails.UserDetails;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USERNAME;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USER_ID;
 
 public class UserDetailsManagerImpl implements UserDetailsManager {
 
+    protected UserMapper userMapper;
 
     @Override
-    public UserDetails loadUserByUsername(String userName) {
-        User user = securityMapper.getUser(userName);
+    public UserDetails loadUserByUsername(String username) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put(USER_ID, -1);
+        params.put(USERNAME, username);
+        UserDAO user = userMapper.getUserByIdOrUsername(params);
         return user;
     }
 
-    @Autowired
-    private SecurityMapper securityMapper;
+    public UserMapper getUserMapper() {
+        return userMapper;
+    }
+
+    public void setUserMapper(UserMapper userMapper) {
+        this.userMapper = userMapper;
+    }
 }

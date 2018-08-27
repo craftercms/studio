@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    WebDAV profiles configuration file. This files configures 0 or more
+    profiles with the information required to connect to a WebDAV server.
+
+    For every profile you need to specify:
+    <profile>
+        <id/>
+        <baseUrl/>
+        <username/>
+        <password/>
+    </profile>
+
+    id:	a unique id for this profile, this will be referenced in the
+        control defined in the content type
+    baseUrl: Full URL of the WebDAV server
+    username: WebDAV account username
+    password: WebDAV account password (recommended to be encrypted)
+-->
+<webdav>
+    <profile>
+        <id>webdav-default</id>
+        <baseUrl>...</baseUrl>
+        <username>...</username>
+        <password>...</password>
+    </profile>
+</webdav>

@@ -1,6 +1,5 @@
 /*
- * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2017 Crafter Software Corporation.
+ * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,6 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 
 package org.craftercms.studio.impl.v1.web.security.access;
@@ -25,10 +25,10 @@ import org.craftercms.studio.api.v1.exception.security.AuthenticationSystemExcep
 import org.craftercms.studio.api.v1.exception.security.BadCredentialsException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.security.UserDetailsManager;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
+import org.craftercms.studio.api.v2.service.security.SecurityProvider;
 import org.craftercms.studio.impl.v1.util.SessionTokenUtils;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -61,7 +61,8 @@ public class StudioAuthenticationTokenProcessingFilter extends GenericFilterBean
     private SecurityProvider securityProvider;
 
     @Override
-    public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
+    public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain)
+            throws IOException, ServletException {
 
         HttpServletRequest httpRequest = this.getAsHttpRequest(servletRequest);
         HttpSession httpSession = httpRequest.getSession();
@@ -76,10 +77,13 @@ public class StudioAuthenticationTokenProcessingFilter extends GenericFilterBean
                 if (SessionTokenUtils.validateToken(authToken, userDetails.getUsername())) {
 
                     UsernamePasswordAuthenticationToken authentication =
-                            new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                            new UsernamePasswordAuthenticationToken(userDetails, null,
+                                    userDetails.getAuthorities());
                     SecurityContextHolder.getContext().setAuthentication(authentication);
 
-                    if (httpRequest.getRequestURI().startsWith(httpRequest.getContextPath() + "/api/1") && !getIgnoreRenewTokenUrls().contains(HttpUtils.getRequestUriWithoutContextPath(httpRequest))) {
+                    if (httpRequest.getRequestURI().startsWith(httpRequest.getContextPath() + "/api/1") &&
+                            !getIgnoreRenewTokenUrls()
+                                    .contains(HttpUtils.getRequestUriWithoutContextPath(httpRequest))) {
                         int timeout = Integer.parseInt(studioConfiguration.getProperty(SECURITY_SESSION_TIMEOUT));
                         String newToken = SessionTokenUtils.createToken(userDetails.getUsername(), timeout);
                         httpSession.setAttribute(STUDIO_SESSION_TOKEN_ATRIBUTE, newToken);
@@ -92,12 +96,14 @@ public class StudioAuthenticationTokenProcessingFilter extends GenericFilterBean
             } else {
                 if (isAuthenticationHeadersEnabled()) {
                     // If user not authenticated check for authentication headers
-                    String usernameHeader = httpRequest.getHeader(studioConfiguration.getProperty(AUTHENTICATION_HEADERS_USERNAME));
+                    String usernameHeader =
+                            httpRequest.getHeader(studioConfiguration.getProperty(AUTHENTICATION_HEADERS_USERNAME));
                     try {
                         securityService.authenticate(usernameHeader, RandomStringUtils.randomAlphanumeric(16));
                         UserDetails userDetails = this.userDetailsManager.loadUserByUsername(usernameHeader);
                         UsernamePasswordAuthenticationToken authentication =
-                                new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                                new UsernamePasswordAuthenticationToken(userDetails, null,
+                                        userDetails.getAuthorities());
                         SecurityContextHolder.getContext().setAuthentication(authentication);
                     } catch (BadCredentialsException | AuthenticationSystemException | EntitlementException e) {
                         crafterLogger.error("Unable to authenticate user using authentication headers.");
@@ -128,15 +134,35 @@ public class StudioAuthenticationTokenProcessingFilter extends GenericFilterBean
         return Boolean.parseBoolean(enabledString);
     }
 
-    public UserDetailsManager getUserDetailsManager() { return userDetailsManager; }
-    public void setUserDetailsManager(UserDetailsManager userDetailsManager) { this.userDetailsManager = userDetailsManager; }
+    public UserDetailsManager getUserDetailsManager() {
+        return userDetailsManager;
+    }
 
-    public SecurityService getSecurityService() { return securityService; }
-    public void setSecurityService(SecurityService securityService) { this.securityService = securityService; }
+    public void setUserDetailsManager(UserDetailsManager userDetailsManager) {
+        this.userDetailsManager = userDetailsManager;
+    }
 
-    public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
-    public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
+    public SecurityService getSecurityService() {
+        return securityService;
+    }
 
-    public SecurityProvider getSecurityProvider() { return securityProvider; }
-    public void setSecurityProvider(SecurityProvider securityProvider) { this.securityProvider = securityProvider; }
+    public void setSecurityService(SecurityService securityService) {
+        this.securityService = securityService;
+    }
+
+    public StudioConfiguration getStudioConfiguration() {
+        return studioConfiguration;
+    }
+
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+        this.studioConfiguration = studioConfiguration;
+    }
+
+    public SecurityProvider getSecurityProvider() {
+        return securityProvider;
+    }
+
+    public void setSecurityProvider(SecurityProvider securityProvider) {
+        this.securityProvider = securityProvider;
+    }
 }

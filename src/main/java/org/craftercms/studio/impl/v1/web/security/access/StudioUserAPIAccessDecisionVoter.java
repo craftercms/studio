@@ -1,6 +1,5 @@
 /*
- * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2017 Crafter Software Corporation.
+ * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,6 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 
 package org.craftercms.studio.impl.v1.web.security.access;
@@ -28,17 +28,14 @@ import net.sf.json.JSONObject;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.craftercms.studio.api.v1.dal.User;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v2.dal.UserDAO;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.FilterInvocation;
 
-/**
- * Created by dejanbrkic on 4/19/17.
- */
 public class StudioUserAPIAccessDecisionVoter extends StudioAbstractAccessDecisionVoter {
 
     private final static Logger logger = LoggerFactory.getLogger(StudioUserAPIAccessDecisionVoter.class);
@@ -97,9 +94,9 @@ public class StudioUserAPIAccessDecisionVoter extends StudioAbstractAccessDecisi
                     logger.debug("Failed to extract username from POST request");
                 }
             }
-            User currentUser = null;
+            UserDAO currentUser = null;
             try {
-                currentUser = (User)authentication.getPrincipal();
+                currentUser = (UserDAO) authentication.getPrincipal();
             } catch (ClassCastException e) {
                 // anonymous user
                 if (!authentication.getPrincipal().toString().equals("anonymousUser")) {

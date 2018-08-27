@@ -1,6 +1,5 @@
 /*
- * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2017 Crafter Software Corporation.
+ * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,67 +17,11 @@
  */
 
 
-import org.apache.commons.lang3.StringUtils
-import scripts.api.SecurityServices
-
 def result = [:]
 
-def start = 0
-def number = 25
+result.message = "API deprecated."
+def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/2/users"
+response.addHeader("Location", locationHeader)
+response.setStatus(301)
 
-/** Validate Parameters */
-def invalidParams = false;
-def paramsList = []
-
-// start
-try {
-    if (StringUtils.isNotEmpty(params.start)) {
-        start = params.start.toInteger()
-        if (start < 0) {
-            invalidParams = true
-            paramsList.add("start")
-        }
-    }
-} catch (Exception exc) {
-    invalidParams = true
-    paramsList.add("start")
-}
-
-// number
-try {
-    if (StringUtils.isNotEmpty(params.number)) {
-        number = params.number.toInteger()
-        if (number < 0) {
-            invalidParams = true
-            paramsList.add("number")
-        }
-    }
-} catch (Exception exc) {
-    invalidParams = true
-    paramsList.add("number")
-}
-
-if (invalidParams) {
-    response.setStatus(400)
-    result.message = "Invalid parameter(s): " + paramsList
-} else {
-    def context = SecurityServices.createContext(applicationContext, request)
-    try {
-        def total = SecurityServices.getAllUsersTotal(context)
-        def users = SecurityServices.getAllUsers(context, start, number)
-        if (users != null) {
-            def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/1/services/api/1/user/get-all.json?start=" + start + "&number=" + number
-            response.addHeader("Location", locationHeader)
-            result.users = users
-            result.total = total
-            response.setStatus(200)
-        } else {
-            response.setStatus(500)
-            result.message = "Internal server error"
-        }
-    } catch (Exception e) {
-        response.setStatus(500)
-        result.message = "Internal server error: \n" + e
-    }
-}
 return result

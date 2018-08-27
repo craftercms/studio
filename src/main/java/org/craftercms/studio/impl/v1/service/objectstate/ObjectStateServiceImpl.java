@@ -34,7 +34,6 @@ import org.craftercms.studio.api.v1.service.objectstate.State;
 import org.craftercms.studio.api.v1.service.objectstate.TransitionEvent;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -51,7 +50,6 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
 
     protected State[][] transitionTable = null;
 
-    @Autowired
     protected ItemStateMapper itemStateMapper;
 
     protected GeneralLockService generalLockService;
@@ -623,5 +621,13 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
 
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
+    }
+
+    public ItemStateMapper getItemStateMapper() {
+        return itemStateMapper;
+    }
+
+    public void setItemStateMapper(ItemStateMapper itemStateMapper) {
+        this.itemStateMapper = itemStateMapper;
     }
 }

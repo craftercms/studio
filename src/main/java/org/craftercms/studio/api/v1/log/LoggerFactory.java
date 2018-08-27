@@ -57,7 +57,7 @@ public class LoggerFactory {
 		}
 		else {
 			retLogger = new ConsoleLoggerImpl();
-			retLogger.warn("no log provider available");
+			retLogger.warn("no log provider available " + target.getCanonicalName());
 		}
 		
 		return retLogger;

@@ -16,18 +16,22 @@
  *
  */
 
-package org.craftercms.studio.api.v1.dal;
+package org.craftercms.studio.api.v2.dal;
+
+import org.craftercms.studio.api.v1.dal.GroupPerSiteResult;
+import org.craftercms.studio.api.v1.dal.GroupResult;
+import org.craftercms.studio.api.v1.dal.UserProfileResult;
 
 import java.util.List;
 import java.util.Map;
 
 public interface SecurityMapper {
 
-    User getUser(String username);
+    UserDAO getUser(String username);
 
-    List<Group> getUserGroups(String username);
+    List<GroupDAO> getUserGroups(String username);
 
-    List<Group> getUserGroupsPerSite(Map params);
+    List<GroupDAO> getUserGroupsPerSite(Map params);
 
     void createUser(Map params);
 
@@ -65,7 +69,7 @@ public interface SecurityMapper {
 
     List<GroupPerSiteResult> getGroupsPerSiteData(Map params);
 
-    List<User> getUsersPerGroup(Map params);
+    List<UserDAO> getUsersPerGroup(Map params);
 
     int getUsersPerGroupTotal(Map params);
 
@@ -79,7 +83,7 @@ public interface SecurityMapper {
 
     void deleteGroup(Map params);
 
-    Group getGroupObject(Map params);
+    GroupDAO getGroupObject(Map params);
 
     void addUserToGroup(Map params);
 

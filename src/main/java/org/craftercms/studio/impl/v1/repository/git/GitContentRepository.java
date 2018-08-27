@@ -82,13 +82,13 @@ import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentHistoryProvider;
-import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
 import org.craftercms.studio.api.v1.to.RepoOperationTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
+import org.craftercms.studio.api.v2.service.security.SecurityProvider;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.CheckoutCommand;
 import org.eclipse.jgit.api.CreateBranchCommand;
@@ -142,7 +142,6 @@ import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
 import org.eclipse.jgit.util.FS;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.web.context.ServletContextAware;
 
@@ -180,11 +179,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     protected SecurityProvider securityProvider;
     protected StudioConfiguration studioConfiguration;
     protected ServicesConfig servicesConfig;
-
-    @Autowired
     protected GitLogMapper gitLogMapper;
-
-    @Autowired
     protected RemoteRepositoryMapper remoteRepositoryMapper;
 
     @Override
@@ -2356,5 +2351,21 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
     public void setServicesConfig(ServicesConfig servicesConfig) {
         this.servicesConfig = servicesConfig;
+    }
+
+    public GitLogMapper getGitLogMapper() {
+        return gitLogMapper;
+    }
+
+    public void setGitLogMapper(GitLogMapper gitLogMapper) {
+        this.gitLogMapper = gitLogMapper;
+    }
+
+    public RemoteRepositoryMapper getRemoteRepositoryMapper() {
+        return remoteRepositoryMapper;
+    }
+
+    public void setRemoteRepositoryMapper(RemoteRepositoryMapper remoteRepositoryMapper) {
+        this.remoteRepositoryMapper = remoteRepositoryMapper;
     }
 }
