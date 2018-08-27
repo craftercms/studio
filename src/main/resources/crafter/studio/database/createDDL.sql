@@ -23,7 +23,7 @@ CREATE TABLE _meta (
   PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version) VALUES ('3.0.17') ;
+INSERT INTO _meta (version) VALUES ('3.1.0') ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`             BIGINT(20)   NOT NULL AUTO_INCREMENT,
@@ -168,53 +168,120 @@ CREATE TABLE IF NOT EXISTS `item_metadata` (
 
 CREATE TABLE IF NOT EXISTS `user`
 (
-  `username`           VARCHAR(255) NOT NULL,
-  `password`           VARCHAR(255) NOT NULL,
-  `firstname`          VARCHAR(255) NOT NULL,
-  `lastname`           VARCHAR(255) NOT NULL,
-  `email`              VARCHAR(255) NOT NULL,
-  `enabled`            INT          NOT NULL,
-  `externally_managed` INT          NOT NULL DEFAULT 0,
-  PRIMARY KEY (`username`)
+  `id`                    BIGINT(20)   NOT NULL AUTO_INCREMENT,
+  `record_last_updated`   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `username`              VARCHAR(32)  NOT NULL,
+  `password`              VARCHAR(24)  NOT NULL,
+  `first_name`             VARCHAR(16)  NOT NULL,
+  `last_name`              VARCHAR(16)  NOT NULL,
+  `externally_managed`    INT          NOT NULL DEFAULT 0,
+  `timezone`              VARCHAR(16)  NULL,
+  `locale`                VARCHAR(8)   NULL,
+  `email`                 VARCHAR(255) NOT NULL,
+  `enabled`               INT          NOT NULL,
+  PRIMARY KEY (`id`),
+  INDEX `user_ix_record_last_updated` (`record_last_updated` DESC),
+  UNIQUE INDEX `user_ix_username` (`username`),
+  INDEX `user_ix_first_name` (`first_name`),
+  INDEX `user_ix_last_name` (`last_name`)
 )
   ENGINE = InnoDB
   DEFAULT CHARSET = utf8
   ROW_FORMAT = DYNAMIC ;
 
-INSERT IGNORE INTO `user` (username, password, firstname, lastname, email, enabled, externally_managed)
-VALUES ('admin', 'vTwNOJ8GJdyrP7rrvQnpwsd2hCV1xRrJdTX2sb51i+w=|R68ms0Od3AngQMdEeKY6lA==', 'admin', 'admin',
-        'evaladmin@example.com', 1, 0) ;
+INSERT IGNORE INTO `user` (id, record_last_updated, username, password, first_name, last_name,
+                           externally_managed, timezone, locale, email, enabled)
+VALUES (1, CURRENT_TIMESTAMP, 'admin', 'vTwNOJ8GJdyrP7rrvQnpwsd2hCV1xRrJdTX2sb51i+w=|R68ms0Od3AngQMdEeKY6lA==',
+        'admin', 'admin', 0, 'EST5EDT', 'en/US', 'evaladmin@example.com', 1) ;
+
+CREATE TABLE IF NOT EXISTS `organization`
+(
+  `id`                  BIGINT(20)  NOT NULL AUTO_INCREMENT,
+  `record_last_updated` DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `org_name`            VARCHAR(32) NOT NULL,
+  `org_desc`            TEXT        NULL,
+  PRIMARY KEY (`id`),
+  INDEX `organization_ix_record_last_updated` (`record_last_updated` DESC),
+  UNIQUE INDEX `organization_ix_org_name` (`org_name`)
+)
+  ENGINE = InnoDB
+  DEFAULT CHARSET = utf8
+  ROW_FORMAT = DYNAMIC ;
+
+INSERT IGNORE INTO `organization` (id, record_last_updated, org_name, org_desc)
+VALUES (1, CURRENT_TIMESTAMP, 'studio', 'studio default organization') ;
+
+
+CREATE TABLE IF NOT EXISTS `organization_user`
+(
+  `user_id`   BIGINT(20) NOT NULL,
+  `org_id`    BIGINT(20) NOT NULL,
+  `record_last_updated` DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`user_id`, `org_id`),
+  FOREIGN KEY org_member_ix_user_id(user_id) REFERENCES `user` (`id`) ON DELETE CASCADE,
+  FOREIGN KEY org_member_ix_org_id(org_id) REFERENCES `organization` (`id`) ON DELETE CASCADE,
+  INDEX `org_member_ix_record_last_updated` (`record_last_updated` DESC)
+)
+  ENGINE = InnoDB
+  DEFAULT CHARSET = utf8
+  ROW_FORMAT = DYNAMIC ;
+
+INSERT IGNORE INTO `organization_user` (user_id, org_id)
+VALUES (1, 1) ;
 
 CREATE TABLE IF NOT EXISTS `group`
 (
-  `id`                 BIGINT(20)   NOT NULL AUTO_INCREMENT,
-  `name`               VARCHAR(255) NOT NULL,
-  `description`        VARCHAR(3000),
-  `site_id`            BIGINT(20),
-  `externally_managed` INT          NOT NULL DEFAULT 0,
+  `id`                  BIGINT(20)  NOT NULL AUTO_INCREMENT,
+  `record_last_updated` DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `org_id`              BIGINT(20)  NOT NULL,
+  `group_name`          VARCHAR(32) NOT NULL,
+  `group_description`   TEXT,
   PRIMARY KEY (`id`),
-  FOREIGN KEY group_site_fk(site_id) REFERENCES site (id)
-    ON DELETE CASCADE,
-  UNIQUE `uq_group_name_siteid` (`name`, `site_id`)
+  INDEX `group_ix_record_last_updated` (`record_last_updated` DESC),
+  FOREIGN KEY group_ix_org_id(org_id) REFERENCES `organization` (`id`) ON DELETE CASCADE,
+  INDEX `group_ix_group_name` (`group_name`)
 )
   ENGINE = InnoDB
   DEFAULT CHARSET = utf8
   ROW_FORMAT = DYNAMIC ;
 
+INSERT IGNORE INTO `group` (id, record_last_updated, org_id, group_name, group_description)
+VALUES (1, CURRENT_TIMESTAMP, 1, 'crafter-admin', 'Crafter Administrator group') ;
+
+INSERT IGNORE INTO `group` (id, record_last_updated, org_id, group_name, group_description)
+VALUES (2, CURRENT_TIMESTAMP, 1, 'crafter-create-sites', 'Crafter Create Sites group') ;
+
+INSERT IGNORE INTO `group` (id, record_last_updated, org_id, group_name, group_description)
+VALUES (3, CURRENT_TIMESTAMP, 1, 'Admin', 'Administrator group') ;
+
+INSERT IGNORE INTO `group` (id, record_last_updated, org_id, group_name, group_description)
+VALUES (4, CURRENT_TIMESTAMP, 1, 'Author', 'Author group') ;
+
+INSERT IGNORE INTO `group` (id, record_last_updated, org_id, group_name, group_description)
+VALUES (5, CURRENT_TIMESTAMP, 1, 'Publisher', 'Publisher group') ;
+
+INSERT IGNORE INTO `group` (id, record_last_updated, org_id, group_name, group_description)
+VALUES (6, CURRENT_TIMESTAMP, 1, 'Developer', 'Developer group') ;
+
+INSERT IGNORE INTO `group` (id, record_last_updated, org_id, group_name, group_description)
+VALUES (7, CURRENT_TIMESTAMP, 1, 'Reviewer', 'Reviewer group') ;
+
 CREATE TABLE IF NOT EXISTS group_user
 (
-  `id`       BIGINT(20)   NOT NULL AUTO_INCREMENT,
-  `username` VARCHAR(255) NOT NULL,
-  `groupid`  BIGINT       NOT NULL,
-  PRIMARY KEY (`id`),
-  FOREIGN KEY user_ug_foreign_key(username) REFERENCES `user` (username)
+  `user_id` VARCHAR(255) NOT NULL,
+  `group_id`  BIGINT       NOT NULL,
+  `record_last_updated` DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`user_id`, `group_id`),
+  FOREIGN KEY group_member_ix_user_id(`user_id`) REFERENCES `user` (`id`)
     ON DELETE CASCADE,
-  FOREIGN KEY group_ug_foreign_key(groupid) REFERENCES `group` (id)
-    ON DELETE CASCADE
+  FOREIGN KEY group_member_ix_user_id(`group_id`) REFERENCES `group` (`id`)
+    ON DELETE CASCADE,
+  INDEX `group_member_ix_record_last_updated` (`record_last_updated` DESC)
 )
   ENGINE = InnoDB
   DEFAULT CHARSET = utf8
   ROW_FORMAT = DYNAMIC ;
+
 
 CREATE TABLE IF NOT EXISTS gitlog
 (
@@ -253,10 +320,6 @@ CREATE TABLE IF NOT EXISTS remote_repository
 INSERT IGNORE INTO site (site_id, name, description, system)
 VALUES ('studio_root', 'Studio Root', 'Studio Root for global permissions', 1) ;
 
-INSERT IGNORE INTO `group` (name, description, site_id) VALUES ('crafter-admin', 'crafter admin', 1) ;
-INSERT IGNORE INTO `group` (name, description, site_id)
-VALUES ('crafter-create-sites', 'crafter-create-sites', 1) ;
-
-INSERT IGNORE INTO group_user (username, groupid) VALUES ('admin', 1) ;
-INSERT IGNORE INTO group_user (username, groupid) VALUES ('admin', 2) ;
+INSERT IGNORE INTO group_user (user_id, group_id) VALUES (1, 1) ;
+INSERT IGNORE INTO group_user (user_id, group_id) VALUES (1, 2) ;
 

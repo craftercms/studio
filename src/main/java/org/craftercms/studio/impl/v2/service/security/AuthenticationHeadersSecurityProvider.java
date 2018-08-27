@@ -1,6 +1,5 @@
 /*
- * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2017 Crafter Software Corporation.
+ * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,18 +13,17 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 
-package org.craftercms.studio.impl.v1.service.security;
+package org.craftercms.studio.impl.v2.service.security;
 
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.commons.http.RequestContext;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
-import org.craftercms.studio.api.v1.dal.Group;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
-import org.craftercms.studio.api.v1.dal.User;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationSystemException;
 import org.craftercms.studio.api.v1.exception.security.BadCredentialsException;
@@ -36,9 +34,11 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.activity.ActivityService;
+import org.craftercms.studio.api.v2.dal.GroupDAO;
+import org.craftercms.studio.api.v2.dal.UserGroup;
+import org.craftercms.studio.model.User;
 
 import javax.servlet.http.HttpServletRequest;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -102,7 +102,15 @@ public class AuthenticationHeadersSecurityProvider extends DbWithLdapExtensionSe
                     } else {
                         logger.debug("User does not exist in studio db. Adding user " + usernameHeader);
                         try {
-                            boolean success = createUser(usernameHeader, password, firstName, lastName, email, true);
+                            User user = new User();
+                            user.setUsername(usernameHeader);
+                            user.setPassword(password);
+                            user.setFirstName(firstName);
+                            user.setLastName(firstName);
+                            user.setEmail(email);
+                            user.setExternallyManaged(true);
+                            user.setEnabled(true);
+                            boolean success = createUser(user);
                             if (success) {
                                 ActivityService.ActivityType activityType = ActivityService.ActivityType.CREATED;
                                 Map<String, String> extraInfo = new HashMap<String, String>();
@@ -120,10 +128,10 @@ public class AuthenticationHeadersSecurityProvider extends DbWithLdapExtensionSe
 
                     User user = new User();
                     user.setUsername(usernameHeader);
-                    user.setFirstname(firstName);
-                    user.setLastname(lastName);
+                    user.setFirstName(firstName);
+                    user.setLastName(lastName);
                     user.setEmail(email);
-                    user.setGroups(new ArrayList<Group>());
+                    //user.setGroups(new ArrayList<UserGroup>());
 
                     logger.debug("Update user groups in database.");
                     if (StringUtils.isNoneEmpty(groups)) {
@@ -135,22 +143,14 @@ public class AuthenticationHeadersSecurityProvider extends DbWithLdapExtensionSe
                                 params.put("siteId", siteId);
                                 SiteFeed siteFeed = siteFeedMapper.getSite(params);
                                 if (siteFeed != null) {
-                                    Group g = new Group();
-                                    g.setName(groupsArray[i + 1]);
-                                    g.setExternallyManaged(1);
-                                    g.setDescription("Externally managed group");
-                                    g.setSiteId(siteFeed.getId());
-                                    g.setSite(siteFeed.getSiteId());
-                                    user.getGroups().add(g);
-                                    try {
-                                        upsertUserGroup(siteId, g.getName(), usernameHeader);
-                                    } catch (GroupAlreadyExistsException | SiteNotFoundException |
-                                            UserNotFoundException | UserAlreadyExistsException |
-                                            GroupNotFoundException e) {
-                                        logger.error("Failed to upsert user groups data from authentication " +
-                                                "headers, site ID: " + siteId + " group: " + g.getName() +
-                                                " username: " + usernameHeader, e);
-                                    }
+                                    GroupDAO g = new GroupDAO();
+                                    g.setGroupName(groupsArray[i + 1]);
+                                    g.setGroupDescription("Externally managed group");
+                                    g.setOrganization(null);
+                                    UserGroup ug = new UserGroup();
+                                    ug.setGroup(g);
+                                    //user.getGroups().add(ug);
+                                    upsertUserGroup(siteId, g.getGroupName(), usernameHeader);
                                 }
                             }
                         }

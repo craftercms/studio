@@ -42,7 +42,6 @@ import org.craftercms.studio.api.v1.to.CalculateDependenciesEntityTO;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.DeleteDependencyConfigTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
@@ -75,9 +74,7 @@ public class DependencyServiceImpl implements DependencyService {
 
     private static final Logger logger = LoggerFactory.getLogger(DependencyServiceImpl.class);
 
-    @Autowired
     protected DependencyMapper dependencyMapper;
-    @Autowired
     protected ItemStateMapper itemStateMapper;
     protected StudioConfiguration studioConfiguration;
     protected SiteService siteService;
@@ -743,5 +740,21 @@ public class DependencyServiceImpl implements DependencyService {
 
     public void setServicesConfig(ServicesConfig servicesConfig) {
         this.servicesConfig = servicesConfig;
+    }
+
+    public DependencyMapper getDependencyMapper() {
+        return dependencyMapper;
+    }
+
+    public void setDependencyMapper(DependencyMapper dependencyMapper) {
+        this.dependencyMapper = dependencyMapper;
+    }
+
+    public ItemStateMapper getItemStateMapper() {
+        return itemStateMapper;
+    }
+
+    public void setItemStateMapper(ItemStateMapper itemStateMapper) {
+        this.itemStateMapper = itemStateMapper;
     }
 }

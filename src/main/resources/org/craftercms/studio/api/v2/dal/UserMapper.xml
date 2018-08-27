@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  ~
+  -->
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.craftercms.studio.api.v2.dal.UserMapper">
+
+    <resultMap id="UserMap" type="org.craftercms.studio.api.v2.dal.UserDAO">
+        <id property="id" column="id"/>
+        <result property="recordLastUpdated" column="record_last_updated"/>
+        <result property="username" column="username"/>
+        <result property="password" column="password"/>
+        <result property="firstName" column="first_name"/>
+        <result property="lastName" column="last_name"/>
+        <result property="externallyManaged" column="externally_managed"/>
+        <result property="timezone" column="timezone"/>
+        <result property="locale" column="locale"/>
+        <result property="email" column="email"/>
+        <result property="active" column="enabled"/>
+
+        <collection property="groups" ofType="org.craftercms.studio.api.v2.dal.UserGroup">
+            <result property="recordLastUpdated" column="record_last_updated"/>
+            <association property="group" javaType="org.craftercms.studio.api.v2.dal.GroupDAO">
+                <id property="id" column="id"/>
+                <result property="groupName" column="group_name"/>
+            </association>
+        </collection>
+    </resultMap>
+
+    <resultMap id="GroupMap" type="org.craftercms.studio.api.v2.dal.GroupDAO">
+        <id property="id" column="id"/>
+        <result property="recordLastUpdated" column="record_last_updated"/>
+        <result property="groupName" column="group_name"/>
+        <result property="groupDescription" column="group_description"/>
+    </resultMap>
+
+    <select id="getAllUsersForSite" parameterType="java.util.Map" resultMap="UserMap">
+        SELECT u.*
+        FROM ((`user` u INNER JOIN `group_user` gu ON gu.user_id = u.id)
+        INNER JOIN `group` g ON gu.group_id = g.id)
+        WHERE g.group_name IN
+        <foreach collection="groupNames" index="index" separator="," item="groupName" open="(" close=")">
+            #{groupName}
+        </foreach>
+        ORDER BY #{sort}
+        LIMIT #{offset}, #{limit}
+    </select>
+    
+    <insert id="createUser" parameterType="java.util.Map">
+        INSERT INTO `user` (record_last_updated, username, password, first_name, last_name,
+                           externally_managed, timezone, locale, email, enabled)
+        VALUES (CURRENT_TIMESTAMP, #{username}, #{password}, #{firstName}, #{lastName},
+                           #{externallyManaged}, #{timezone}, #{locale}, #{email}, #{enabled})
+    </insert>
+
+    <update id="updateUser" parameterType="java.util.Map">
+        UPDATE `user`
+        SET record_last_updated = CURRENT_TIMESTAMP,
+            first_name = #{firstName},
+            last_name = #{lastName},
+            email = #{email},
+            timezone = #{timezone},
+            locale = #{locale}
+        WHERE id = #{userId}
+    </update>
+
+    <select id="getUserIdsForUsernames" parameterType="java.util.Map" resultType="Long">
+        SELECT id FROM `user` WHERE username IN
+        <foreach collection="usernames" item="username" index="index" separator="," open="(" close=")">
+            #{username}
+        </foreach>
+    </select>
+
+    <delete id="deleteUsers" parameterType="java.util.Map">
+        DELETE FROM `user`
+        WHERE id IN
+        <foreach collection="userIds" item="userId" index="index" separator="," open="(" close=")">
+            #{userId}
+        </foreach>
+    </delete>
+
+    <select id="getUserByIdOrUsername" parameterType="java.util.Map" resultMap="UserMap">
+        SELECT *
+        FROM `user`
+        WHERE id = #{userId} OR username = #{username}
+    </select>
+
+    <update id="enableUsers" parameterType="java.util.Map">
+        UPDATE `user`
+        SET enabled = #{enabled}
+        WHERE id IN
+        <foreach collection="userIds" item="userId" index="index" separator="," open="(" close=")">
+            #{userId}
+        </foreach>
+    </update>
+
+    <select id="getUserGroups" parameterType="java.util.Map" resultMap="GroupMap">
+        SELECT g.*
+        FROM ((`group` g INNER JOIN `group_user` gu ON gu.group_id = g.id)
+          INNER JOIN `user` u ON gu.user_id = u.id)
+        WHERE u.id = #{userId} OR u.username = #{username}
+    </select>
+
+    <select id="getAllUsersTotal" resultType="int" parameterType="java.util.Map">
+            SELECT COUNT(DISTINCT username)
+            FROM `user`
+    </select>
+
+    <update id="setUserPassword" parameterType="java.util.Map">
+            UPDATE `user`
+            SET password = #{password}
+            WHERE username = #{username}
+    </update>
+
+    <select id="userExists" resultType="Integer" parameterType="java.util.Map">
+            SELECT COUNT (1)
+            FROM `user` cu
+            WHERE cu.username = #{username}
+    </select>
+</mapper>

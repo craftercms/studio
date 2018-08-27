@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:jdbc="http://www.springframework.org/schema/jdbc" xmlns="http://www.springframework.org/schema/beans"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc.xsd">
+       xmlns:mybatis="http://mybatis.org/schema/mybatis-spring"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc.xsd http://mybatis.org/schema/mybatis-spring http://mybatis.org/schema/mybatis-spring.xsd">
 
-    <bean id="dataSource" class="org.apache.commons.dbcp2.BasicDataSource" depends-on="studioConfiguration,databaseInitializer" destroy-method="close">
+    <bean id="dataSource" class="org.apache.commons.dbcp2.BasicDataSource" depends-on="studioConfiguration" destroy-method="close">
         <property name="driverClassName" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_DRIVER)}" />
         <property name="url" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_URL)}" />
         <property name="username" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_USERNAME)}" />
@@ -26,35 +27,97 @@
     </bean>
 
     <!-- define the SqlSessionFactory -->
-    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean" depends-on="databaseInitializer" >
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
         <property name="dataSource" ref="dataSource"/>
         <property name="typeAliasesPackage" value="org.craftercms.studio.api.domain"/>
         <property name="configLocation" value="classpath:crafter/studio/database/mybatis-config.xml"/>
     </bean>
 
-    <!-- scan for mappers and let them be autowired -->
-    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer" depends-on="databaseInitializer">
-        <property name="basePackage" value="org.craftercms.studio.api.v1.dal"/>
-        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>
-    </bean>
-
-    <bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate" depends-on="databaseInitializer">
+    <bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate">
         <constructor-arg index="0" ref="sqlSessionFactory"/>
     </bean>
 
-    <bean id="databaseInitializer" class="org.craftercms.studio.impl.v1.dal.DataSourceInitializerImpl"
+    <!-- scan for mappers and let them be autowired -->
+    <!-- bean class="org.mybatis.spring.mapper.MapperScannerConfigurer" depends-on="databaseInitializer">
+        <property name="basePackage" value="org.craftercms.studio.api.v1.dal,org.craftercms.studio.api.v2.dal" />
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>
+    </bean -->
+
+    <bean id="databaseInitializer" class="org.craftercms.studio.impl.v2.dal.DataSourceInitializerImpl"
           init-method="initDataSource" depends-on="studioMariaDBService">
         <property name="delimiter" value=" ;"/>
         <property name="studioConfiguration" ref="studioConfiguration"/>
-        <property name="mariaDB4jService" ref="studioMariaDBService" />
         <property name="integrityValidator" ref="crafter.databaseValidator"/>
+        <property name="contentRepository" ref="contentRepository" />
+        <property name="sqlSessionFactory" ref="sqlSessionFactory" />
     </bean>
 
     <bean id="studioMariaDBService" class="ch.vorburger.mariadb4j.springframework.MariaDB4jSpringService"
-          init-method="start" destroy-method="stop" depends-on="studioConfiguration">
+          destroy-method="stop" depends-on="studioConfiguration" >
         <property name="defaultBaseDir" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_BASE_PATH)}" />
         <property name="defaultDataDir" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_DATA_PATH)}" />
         <property name="defaultPort" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_PORT)}"  />
         <property name="defaultSocket" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_SOCKET)}" />
+    </bean>
+
+    <!-- MyBatis Mappers -->
+    <bean id="auditFeedMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
+        <property name="mapperInterface" value="org.craftercms.studio.api.v1.dal.AuditFeedMapper" />
+        <property name="sqlSessionFactory" ref="sqlSessionFactory" />
+    </bean>
+
+    <bean id="dependencyMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
+        <property name="mapperInterface" value="org.craftercms.studio.api.v1.dal.DependencyMapper" />
+        <property name="sqlSessionFactory" ref="sqlSessionFactory" />
+    </bean>
+
+    <bean id="groupMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
+        <property name="mapperInterface" value="org.craftercms.studio.api.v2.dal.GroupMapper" />
+        <property name="sqlSessionFactory" ref="sqlSessionFactory" />
+    </bean>
+
+    <bean id="gitLogMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
+        <property name="mapperInterface" value="org.craftercms.studio.api.v1.dal.GitLogMapper" />
+        <property name="sqlSessionFactory" ref="sqlSessionFactory" />
+    </bean>
+
+    <bean id="itemMetadataMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
+        <property name="mapperInterface" value="org.craftercms.studio.api.v1.dal.ItemMetadataMapper" />
+        <property name="sqlSessionFactory" ref="sqlSessionFactory" />
+    </bean>
+
+    <bean id="itemStateMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
+        <property name="mapperInterface" value="org.craftercms.studio.api.v1.dal.ItemStateMapper" />
+        <property name="sqlSessionFactory" ref="sqlSessionFactory" />
+    </bean>
+
+    <bean id="navigationOrderSequenceMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
+        <property name="mapperInterface" value="org.craftercms.studio.api.v1.dal.NavigationOrderSequenceMapper" />
+        <property name="sqlSessionFactory" ref="sqlSessionFactory" />
+    </bean>
+
+    <bean id="publishRequestMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
+        <property name="mapperInterface" value="org.craftercms.studio.api.v1.dal.PublishRequestMapper" />
+        <property name="sqlSessionFactory" ref="sqlSessionFactory" />
+    </bean>
+
+    <bean id="remoteRepositoryMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
+        <property name="mapperInterface" value="org.craftercms.studio.api.v1.dal.RemoteRepositoryMapper" />
+        <property name="sqlSessionFactory" ref="sqlSessionFactory" />
+    </bean>
+
+    <bean id="securityMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
+        <property name="mapperInterface" value="org.craftercms.studio.api.v2.dal.SecurityMapper" />
+        <property name="sqlSessionFactory" ref="sqlSessionFactory" />
+    </bean>
+
+    <bean id="siteFeedMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
+        <property name="mapperInterface" value="org.craftercms.studio.api.v1.dal.SiteFeedMapper" />
+        <property name="sqlSessionFactory" ref="sqlSessionFactory" />
+    </bean>
+
+    <bean id="userMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
+        <property name="mapperInterface" value="org.craftercms.studio.api.v2.dal.UserMapper" />
+        <property name="sqlSessionFactory" ref="sqlSessionFactory" />
     </bean>
 </beans>

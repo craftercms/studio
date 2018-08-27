@@ -1,0 +1,343 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  ~
+  -->
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.craftercms.studio.api.v2.dal.SecurityMapper">
+
+    <resultMap id="UserMap" type="org.craftercms.studio.api.v2.dal.UserDAO">
+        <id property="id" column="id"/>
+        <result property="recordLastUpdated" column="record_last_updated"/>
+        <result property="username" column="username"/>
+        <result property="password" column="password"/>
+        <result property="firstName" column="first_name"/>
+        <result property="lastName" column="last_name"/>
+        <result property="externallyManaged" column="externally_managed"/>
+        <result property="timezone" column="timezone"/>
+        <result property="locale" column="locale"/>
+        <result property="email" column="email"/>
+        <result property="active" column="enabled"/>
+
+        <collection property="groups" ofType="org.craftercms.studio.api.v2.dal.UserGroup">
+            <result property="recordLastUpdated" column="record_last_updated"/>
+            <association property="group" javaType="org.craftercms.studio.api.v2.dal.GroupDAO">
+                <id property="id" column="id"/>
+                <result property="groupName" column="group_name"/>
+            </association>
+        </collection>
+
+    </resultMap>
+
+    <resultMap id="GroupMap" type="org.craftercms.studio.api.v2.dal.GroupDAO">
+        <id property="id" column="id"/>
+        <result property="recordLastUpdated" column="record_last_updated"/>
+        <result property="groupName" column="group_name"/>
+        <result property="groupDescription" column="group_description"/>
+        <association property="organization" column="org_id" javaType="org.craftercms.studio.api.v2.dal.Organization"
+                     select="selectOrganizationById"/>
+    </resultMap>
+
+    <resultMap id="OrganizationMap" type="org.craftercms.studio.api.v2.dal.Organization">
+        <id property="id" column="id"/>
+        <result property="recordLastUpdated" column="record_last_updated"/>
+        <result property="name" column="org_name"/>
+        <result property="description" column="ord_desc"/>
+    </resultMap>
+
+    <resultMap id="UserProfileResultMap" type="org.craftercms.studio.api.v1.dal.UserProfileResult">
+        <id property="username" column="username"/>
+        <result property="firstName" column="firstname"/>
+        <result property="lastName" column="lastname"/>
+        <result property="email" column="email"/>
+        <result property="externallyManaged" column="externally_managed"/>
+        <result property="groupName" column="groupname"/>
+        <result property="siteId" column="siteid"/>
+        <result property="siteName" column="siteName"/>
+    </resultMap>
+
+    <resultMap id="GroupResultMap" type="org.craftercms.studio.api.v1.dal.GroupResult">
+        <result property="siteId" column="site_id"/>
+        <result property="siteName" column="site_name"/>
+        <result property="groupName" column="group_name"/>
+        <result property="groupDescription" column="group_description"/>
+    </resultMap>
+
+    <resultMap id="GroupPerSiteResultMap" type="org.craftercms.studio.api.v1.dal.GroupPerSiteResult">
+        <result property="groupName" column="group_name"/>
+        <result property="groupDescription" column="group_description"/>
+        <result property="username" column="username"/>
+        <result property="firstName" column="first_name"/>
+        <result property="lastName" column="last_name"/>
+        <result property="email" column="email"/>
+        <result property="externallyManaged" column="externally_managed"/>
+    </resultMap>
+
+    <select id="selectOrganizationById" resultMap="OrganizationMap">
+            SELECT * FROM organization where id = #{id}
+    </select>
+
+    <select id="getUser" resultMap="UserMap">
+        SELECT * FROM `user` WHERE username = #{username}
+    </select>
+
+    <select id="getUserDetails" resultMap="UserProfileResultMap">
+            SELECT cu.username
+            FROM `user` cu LEFT JOIN group_user cug ON cu.id = cug.user_id
+              LEFT JOIN `group` cg ON cug.group_id = cg.id
+            WHERE cu.username = #{username}
+    </select>
+
+    <select id="getAllUsersQuery" resultType="java.lang.String" parameterType="java.util.Map">
+            SELECT DISTINCT cu.username AS username
+            FROM `user` cu LEFT JOIN group_user cug ON cu.id = cug.user_id
+            LEFT JOIN `group` cg ON cug.group_id = cg.id
+            ORDER BY username
+            LIMIT #{start}, #{number}
+    </select>
+
+    <select id="getAllUsersQueryTotal" resultType="int" parameterType="java.util.Map">
+            SELECT COUNT(DISTINCT cu.username)
+            FROM `user` cu LEFT JOIN group_user cug ON cu.id = cug.user_id
+            LEFT JOIN `group` cg ON cug.group_id = cg.id
+    </select>
+
+
+    <select id="getAllUsersData" resultMap="UserProfileResultMap" parameterType="java.util.Map">
+        SELECT cu.username AS username, cu.first_name AS first_name, cu.last_name AS last_name, cu.email AS email,
+        cu.externally_managed AS externally_managed, cg.group_name AS group_name
+        FROM `user` cu LEFT JOIN group_user cug ON cu.id = cug.user_id
+        LEFT JOIN `group` cg ON cug.group_id = cg.id
+        WHERE cu.username IN
+        <foreach item="username" index="index" collection="usernames"
+                 open="(" separator="," close=")">
+            #{username}
+        </foreach>
+        ORDER BY username, group_name
+    </select>
+
+    <select id="getUsersPerSiteData" resultMap="UserProfileResultMap" parameterType="java.util.Map">
+        SELECT cu.username AS username, cu.first_name AS firstname, cu.last_name AS lastname, cu.email AS email,
+        cu.externally_managed AS externally_managed, cg.group_name AS groupname
+        FROM `user` cu INNER JOIN group_user cug ON cu.id = cug.user_id
+        INNER JOIN `group` cg ON cug.group_id = cg.id
+        WHERE cu.username IN
+        <foreach item="username" index="index" collection="usernames"
+                 open="(" separator="," close=")">
+            #{username}
+        </foreach>
+        ORDER BY username
+    </select>
+
+    <select id="getUsersPerSiteQuery" resultType="java.lang.String" parameterType="java.util.Map">
+            SELECT DISTINCT cu.username AS username
+            FROM `user` cu INNER JOIN group_user cug ON cu.id = cug.user_id
+            INNER JOIN `group` cg ON cug.group_id = cg.id
+            ORDER BY username
+            LIMIT #{start}, #{number}
+    </select>
+
+    <select id="getUsersPerSiteQueryTotal" resultType="int" parameterType="java.util.Map">
+            SELECT COUNT(DISTINCT cu.username)
+            FROM `user` cu INNER JOIN group_user cug ON cu.id = cug.user_id
+            INNER JOIN `group` cg ON cug.group_id = cg.id
+    </select>
+
+    <select id="getUserGroups" resultType="Group">
+            SELECT `group`.* FROM
+            ((`user` INNER JOIN group_user ON `user`.id = group_user.user_id)
+            INNER JOIN `group` ON group_user.group_id = `group`.id)
+            WHERE `user`.username = #{username}
+    </select>
+
+    <select id="getUserGroupsPerSite" resultType="Group">
+            SELECT `group`.* FROM
+            (((`user` INNER JOIN group_user ON `user`.id = group_user.user_id)
+            INNER JOIN `group` ON group_user.group_id = `group`.id)
+            WHERE `user`.username = #{username}
+    </select>
+
+    <insert id="createUser" parameterType="java.util.Map">
+            INSERT INTO `user` (username, password, first_name, last_name, email, enabled, externally_managed)
+            VALUES (#{username}, #{password}, #{firstname}, #{lastname}, #{email}, 1, #{externallyManaged})
+    </insert>
+
+    <delete id="deleteUser" parameterType="java.util.Map">
+            DELETE FROM `user` WHERE username = #{username}
+        </delete>
+
+    <update id="updateUser" parameterType="java.util.Map">
+        UPDATE `user`
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="firstname != null">first_name = #{firstname},</if>
+            <if test="lastname != null">last_name = #{lastname},</if>
+            <if test="email != null">email = #{email}</if>
+        </trim>
+        WHERE username = #{username}
+    </update>
+
+    <update id="enableUser" parameterType="java.util.Map">
+            UPDATE `user`
+            SET enabled = #{enabled}
+            WHERE username = #{username}
+    </update>
+
+    <insert id="createGroup" parameterType="java.util.Map">
+            INSERT INTO `group` (group_name, group_description, externally_managed)
+            VALUES (#{name}, #{description}, #{externallyManaged})
+    </insert>
+
+    <select id="getGroup" parameterType="java.util.Map" resultType="java.util.Map">
+            SELECT cg.group_name AS group_name, cg.group_description AS description
+            FROM `group` cg
+            WHERE cg.group_name = #{groupName}
+    </select>
+
+    <select id="getGroupObject" parameterType="java.util.Map" resultMap="GroupMap">
+            SELECT cg.*
+            FROM `group` cg
+            WHERE  cg.group_name = #{groupName}
+    </select>
+
+    <select id="getAllGroupsQuery" resultType="long" parameterType="java.util.Map">
+            SELECT DISTINCT cg.id
+            FROM `group` cg
+            ORDER BY cg.group_name
+            LIMIT #{start},#{number}
+    </select>
+
+    <select id="getAllGroupsData" resultMap="GroupResultMap" parameterType="java.util.Map">
+        SELECT cg.group_name AS group_name, cg.group_description AS group_description
+        FROM `group` cg
+        WHERE cg.id IN
+        <foreach item="groupid" index="index" collection="groupids"
+                 open="(" separator="," close=")">
+            #{groupid}
+        </foreach>
+        ORDER BY cg.group_name
+    </select>
+
+    <select id="getGroupsPerSiteQuery" resultType="long" parameterType="java.util.Map">
+            SELECT
+              DISTINCT cg.id AS group_id
+            FROM `group` cg
+              LEFT JOIN group_user cug ON cg.id = cug.group_id
+              LEFT JOIN `user` cu ON cug.user_id = cu.id
+            ORDER BY cg.group_name
+            LIMIT #{start},#{number}
+    </select>
+
+    <select id="getGroupsPerSiteQueryTotal" resultType="int" parameterType="java.util.Map">
+            SELECT
+            COUNT(DISTINCT cg.id)
+            FROM `group` cg
+            LEFT JOIN group_user cug ON cg.id = cug.group_id
+            LEFT JOIN `user` cu ON cug.user_id = cu.id
+            ORDER BY cg.group_name
+    </select>
+
+    <select id="getGroupsPerSiteData" resultMap="GroupPerSiteResultMap" parameterType="java.util.Map">
+        SELECT
+        cg.group_name AS group_name,
+        cg.group_description AS group_description,
+        cu.username AS username,
+        cu.first_name AS first_name,
+        cu.last_name AS last_name,
+        cu.externally_managed AS externally_managed,
+        cu.email AS email
+        FROM `group` cg
+        LEFT JOIN group_user cug ON cg.id = cug.group_id
+        LEFT JOIN `user` cu ON cug.user_id = cu.id
+        WHERE cg.id IN
+        <foreach item="groupid" index="index" collection="groupids"
+                 open="(" separator="," close=")">
+            #{groupid}
+        </foreach>
+        ORDER BY cg.group_name
+    </select>
+
+    <select id="getUsersPerGroup" resultMap="UserMap" parameterType="java.util.Map">
+            SELECT cu.*
+            FROM `group` cg
+              INNER JOIN group_user cug ON cg.id = cug.group_id
+              INNER JOIN `user` cu ON cug.user_id = cu.id
+            WHERE cg.group_name = #{groupName}
+            LIMIT #{start},#{number}
+    </select>
+
+    <select id="getUsersPerGroupTotal" resultType="int" parameterType="java.util.Map">
+            SELECT COUNT(1)
+            FROM `group` cg
+            INNER JOIN group_user cug ON cg.id = cug.group_id
+            INNER JOIN `user` cu ON cug.user_id = cu.user_id
+            WHERE cg.group_name = #{groupName}
+    </select>
+
+    <update id="updateGroup" parameterType="java.util.Map">
+            UPDATE `group`
+            SET description = #{description}
+            WHERE group_name = #{groupName}
+    </update>
+
+    <update id="deleteGroup" parameterType="java.util.Map">
+            DELETE FROM `group` WHERE group_name=#{groupName}
+    </update>
+
+    <insert id="addUserToGroup" parameterType="java.util.Map">
+            INSERT INTO group_user (user_id, group_id) VALUES (#{userId}, #{groupId})
+    </insert>
+
+    <insert id="removeUserFromGroup" parameterType="java.util.Map">
+            DELETE FROM group_user WHERE user_id = #{user_id} AND group_id = #{groupId}
+    </insert>
+
+    <update id="setUserPassword" parameterType="java.util.Map">
+            UPDATE `user`
+            SET password = #{password}
+            WHERE username = #{username}
+    </update>
+
+    <select id="userExistsInGroup" resultType="Integer" parameterType="java.util.Map">
+            SELECT COUNT (1)
+            FROM `group` cg
+            INNER JOIN group_user cug ON cg.id = cug.group_id
+            INNER JOIN `user` cu ON cug.user_id = cu.id
+            WHERE cu.username = #{username}
+            AND cg.group_name = #{groupName}
+    </select>
+
+    <select id="userExists" resultType="Integer" parameterType="java.util.Map">
+            SELECT COUNT (1)
+            FROM `user` cu
+            WHERE cu.username = #{username}
+    </select>
+
+    <select id="groupExists" resultType="Integer" parameterType="java.util.Map">
+            SELECT COUNT (1)
+            FROM `group` cg
+            WHERE  cg.group_name = #{groupName}
+    </select>
+
+    <select id="isSystemUser" resultType="int" parameterType="java.util.Map">
+            SELECT COUNT(1)
+            FROM `user` cu INNER JOIN group_user cug ON cu.id = cug.user_id
+            INNER JOIN `group` cg ON cug.group_id = cg.id
+            WHERE cu.username = #{username}
+    </select>
+</mapper>

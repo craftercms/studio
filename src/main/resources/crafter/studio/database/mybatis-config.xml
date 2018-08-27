@@ -1,6 +1,5 @@
 <!--
-  ~ Crafter Studio Web-content authoring solution
-  ~ Copyright (C) 2007-2015 Crafter Software Corporation.
+  ~ Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -14,6 +13,7 @@
   ~
   ~ You should have received a copy of the GNU General Public License
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  ~
   -->
 <!DOCTYPE configuration
         PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
@@ -25,9 +25,10 @@
     </settings>
 
     <typeAliases>
-        <typeAlias type="org.craftercms.studio.api.v1.dal.User" alias="User"/>
-        <typeAlias type="org.craftercms.studio.api.v1.dal.Group" alias="Group"/>
+        <typeAlias type="org.craftercms.studio.api.v2.dal.UserDAO" alias="User"/>
+        <typeAlias type="org.craftercms.studio.api.v2.dal.GroupDAO" alias="Group"/>
         <typeAlias type="org.craftercms.studio.api.v1.dal.Role" alias="Role"/>
         <typeAlias type="org.craftercms.studio.api.v1.dal.Permission" alias="Permission"/>
     </typeAliases>
+
 </configuration>

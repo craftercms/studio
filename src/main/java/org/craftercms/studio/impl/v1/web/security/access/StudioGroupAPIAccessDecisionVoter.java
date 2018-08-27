@@ -23,10 +23,10 @@ import net.sf.json.JSONObject;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.craftercms.studio.api.v1.dal.User;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
+import org.craftercms.studio.api.v2.dal.UserDAO;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.core.Authentication;
@@ -66,9 +66,9 @@ public class StudioGroupAPIAccessDecisionVoter extends StudioAbstractAccessDecis
             requestUri = request.getRequestURI().replace(request.getContextPath(), "");
             String siteParam = request.getParameter("site_id");
             String userParam = request.getParameter("username");
-            User currentUser = null;
+            UserDAO currentUser = null;
             try {
-                currentUser = (User)authentication.getPrincipal();
+                currentUser = (UserDAO) authentication.getPrincipal();
             } catch (ClassCastException e) {
                 // anonymous user
                 if (!authentication.getPrincipal().toString().equals("anonymousUser")) {

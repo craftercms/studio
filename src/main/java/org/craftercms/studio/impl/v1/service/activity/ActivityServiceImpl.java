@@ -1,6 +1,5 @@
 /*
- * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2016 Crafter Software Corporation.
+ * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,12 +13,17 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 package org.craftercms.studio.impl.v1.service.activity;
 
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import net.sf.json.JSONObject;
 
@@ -46,7 +50,6 @@ import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.util.DebugUtils;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_PAGE;
@@ -81,7 +84,6 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
     /** activity feed format **/
     protected static final String ACTIVITY_FEED_FORMAT = "json";
 
-    @Autowired
     protected AuditFeedMapper auditFeedMapper;
 
     protected SiteService siteService;
@@ -97,7 +99,10 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 
     @Override
     @ValidateParams
-    public void postActivity(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "user") String user, @ValidateStringParam(name = "contentId") String contentId, ActivityType activity, ActivitySource source, Map<String,String> extraInfo) {
+    public void postActivity(@ValidateStringParam(name = "site") String site,
+                             @ValidateStringParam(name = "user") String user,
+                             @ValidateStringParam(name = "contentId") String contentId,
+                             ActivityType activity, ActivitySource source, Map<String,String> extraInfo) {
 
         JSONObject activityPost = new JSONObject();
         activityPost.put(ACTIVITY_PROP_USER, user);
@@ -109,12 +114,13 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
         if (extraInfo != null) {
             contentType = extraInfo.get(DmConstants.KEY_CONTENT_TYPE);
         }
-        postActivity(activity.toString(), source.toString(), site, null, activityPost.toString(),contentId,contentType, user);
+        postActivity(activity.toString(), source.toString(), site, null, activityPost.toString(),
+                contentId,contentType, user);
 
     }
 
-    private void postActivity(String activityType, String activitySource, String siteNetwork, String appTool, String activityData,
-                              String contentId, String contentType, String approver) {
+    private void postActivity(String activityType, String activitySource, String siteNetwork, String appTool,
+                              String activityData, String contentId, String contentType, String approver) {
         String currentUser = (StringUtils.isEmpty(approver)) ? securityService.getCurrentUser() : approver;
         try {
             // optional - default to empty string
@@ -208,7 +214,9 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 
     @Override
     @ValidateParams
-    public void renameContentId(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "oldUrl") String oldUrl, @ValidateSecurePathParam(name = "newUrl") String newUrl) {
+    public void renameContentId(@ValidateStringParam(name = "site") String site,
+                                @ValidateSecurePathParam(name = "oldUrl") String oldUrl,
+                                @ValidateSecurePathParam(name = "newUrl") String newUrl) {
         DebugUtils.addDebugStack(logger);
         logger.debug("Rename " + oldUrl + " to " + newUrl);
         Map<String, String> params = new HashMap<String, String>();
@@ -220,7 +228,14 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 
     @Override
     @ValidateParams
-    public List<ContentItemTO> getActivities(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "user") String user, @ValidateIntegerParam(name = "num") int num, @ValidateStringParam(name = "sort") String sort, boolean ascending, boolean excludeLive, @ValidateStringParam(name = "filterType") String filterType) throws ServiceException {
+    public List<ContentItemTO> getActivities(@ValidateStringParam(name = "site") String site,
+                                             @ValidateStringParam(name = "user") String user,
+                                             @ValidateIntegerParam(name = "num") int num,
+                                             @ValidateStringParam(name = "sort") String sort,
+                                             boolean ascending,
+                                             boolean excludeLive,
+                                             @ValidateStringParam(name = "filterType") String filterType)
+            throws ServiceException {
         int startPos = 0;
         List<ContentItemTO> contentItems = new ArrayList<ContentItemTO>();
         boolean hasMoreItems = true;
@@ -240,7 +255,8 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
      * Returns all non-live items if hideLiveItems is true, else should return all feeds back
      *
      */
-    protected boolean getActivityFeeds(String user, String site,int startPos, int size, String filterType,boolean hideLiveItems,List<ContentItemTO> contentItems,int remainingItem){
+    protected boolean getActivityFeeds(String user, String site,int startPos, int size, String filterType,
+                                       boolean hideLiveItems, List<ContentItemTO> contentItems, int remainingItem) {
         List<String> activityFeedEntries = new ArrayList<String>();
 
         if (!getUserNamesAreCaseSensitive()) {
@@ -264,7 +280,8 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
         if (activityFeedEntries != null && activityFeedEntries.size() > 0) {
             for (int index = 0; index < activityFeedEntries.size() && remainingItem!=0; index++) {
                 JSONObject feedObject = JSONObject.fromObject(activityFeedEntries.get(index));
-                String id = (feedObject.containsKey(ACTIVITY_PROP_CONTENTID)) ? feedObject.getString(ACTIVITY_PROP_CONTENTID) : "";
+                String id = (feedObject.containsKey(ACTIVITY_PROP_CONTENTID)) ?
+                        feedObject.getString(ACTIVITY_PROP_CONTENTID) : "";
                 ContentItemTO item = createActivityItem(site, feedObject, id);
                 item.published = true;
                 item.setPublished(true);
@@ -292,12 +309,14 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
             ContentItemTO item = contentService.getContentItem(site, id, 0);
             if(item == null || item.isDeleted()) {
                 item = contentService.createDummyDmContentItemForDeletedNode(site, id);
-                String modifier = (feedObject.containsKey(ACTIVITY_PROP_FEEDUSER)) ? feedObject.getString(ACTIVITY_PROP_FEEDUSER) : "";
+                String modifier = (feedObject.containsKey(ACTIVITY_PROP_FEEDUSER)) ?
+                        feedObject.getString(ACTIVITY_PROP_FEEDUSER) : "";
                 if(modifier != null && !modifier.isEmpty()) {
                     item.user = modifier;
                 }
 
-                String activitySummary = (feedObject.containsKey(ACTIVITY_PROP_ACTIVITY_SUMMARY)) ? feedObject.getString(ACTIVITY_PROP_ACTIVITY_SUMMARY) : "";
+                String activitySummary = (feedObject.containsKey(ACTIVITY_PROP_ACTIVITY_SUMMARY)) ?
+                        feedObject.getString(ACTIVITY_PROP_ACTIVITY_SUMMARY) : "";
                 JSONObject summaryObject = JSONObject.fromObject(activitySummary);
                 if (summaryObject.containsKey(DmConstants.KEY_CONTENT_TYPE)) {
                     String contentType = (String)summaryObject.get(DmConstants.KEY_CONTENT_TYPE);
@@ -313,7 +332,8 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
                 }
                 item.setLockOwner("");
             }
-            String postDate = (feedObject.containsKey(ACTIVITY_PROP_POST_DATE)) ? feedObject.getString(ACTIVITY_PROP_POST_DATE) : "";
+            String postDate = (feedObject.containsKey(ACTIVITY_PROP_POST_DATE)) ?
+                    feedObject.getString(ACTIVITY_PROP_POST_DATE) : "";
             ZonedDateTime editedDate = ZonedDateTime.parse(postDate);
             if (editedDate != null) {
                 item.eventDate = editedDate.withZoneSameInstant(ZoneOffset.UTC);
@@ -328,14 +348,16 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
         }
     }
 
-    private List<AuditFeed> selectUserFeedEntries(String feedUserId, String format, String siteId, int startPos, int feedSize, String contentType, boolean hideLiveItems) {
+    private List<AuditFeed> selectUserFeedEntries(String feedUserId, String format, String siteId, int startPos,
+                                                  int feedSize, String contentType, boolean hideLiveItems) {
         HashMap<String,Object> params = new HashMap<String,Object>();
         params.put("userId",feedUserId);
         params.put("summaryFormat",format);
         params.put("siteNetwork",siteId);
         params.put("startPos", startPos);
         params.put("feedSize", feedSize);
-        params.put("activities", Arrays.asList(ActivityType.CREATED, ActivityType.DELETED, ActivityType.UPDATED, ActivityType.MOVED));
+        params.put("activities", Arrays.asList(ActivityType.CREATED, ActivityType.DELETED, ActivityType.UPDATED,
+                ActivityType.MOVED));
         if(StringUtils.isNotEmpty(contentType) && !contentType.toLowerCase().equals("all")){
             params.put("contentType",contentType.toLowerCase());
         }
@@ -353,7 +375,8 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 
     @Override
     @ValidateParams
-    public AuditFeed getDeletedActivity(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) {
+    public AuditFeed getDeletedActivity(@ValidateStringParam(name = "site") String site,
+                                        @ValidateSecurePathParam(name = "path") String path) {
         HashMap<String,String> params = new HashMap<String,String>();
         params.put("contentId", path);
         params.put("siteNetwork", site);
@@ -372,7 +395,10 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 
     @Override
     @ValidateParams
-    public List<AuditFeed> getAuditLogForSite(@ValidateStringParam(name = "site") String site, @ValidateIntegerParam(name = "start") int start, @ValidateIntegerParam(name = "number") int number, @ValidateStringParam(name = "user") String user, List<String> actions)
+    public List<AuditFeed> getAuditLogForSite(@ValidateStringParam(name = "site") String site,
+                                              @ValidateIntegerParam(name = "start") int start,
+                                              @ValidateIntegerParam(name = "number") int number,
+                                              @ValidateStringParam(name = "user") String user, List<String> actions)
             throws SiteNotFoundException {
         if (!siteService.exists(site)) {
             throw new SiteNotFoundException();
@@ -393,7 +419,9 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 
     @Override
     @ValidateParams
-    public long getAuditLogForSiteTotal(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "user") String user, List<String> actions)
+    public long getAuditLogForSiteTotal(@ValidateStringParam(name = "site") String site,
+                                        @ValidateStringParam(name = "user") String user,
+                                        List<String> actions)
             throws SiteNotFoundException {
         if (!siteService.exists(site)) {
             throw new SiteNotFoundException();
@@ -429,12 +457,35 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
         this.contentService = contentService;
     }
 
-    public SecurityService getSecurityService() {return securityService; }
-    public void setSecurityService(SecurityService securityService) { this.securityService = securityService; }
+    public SecurityService getSecurityService() {
+        return securityService;
+    }
 
-    public StudioConfiguration getStudioConfiguration() { return studioConfiguration; }
-    public void setStudioConfiguration(StudioConfiguration studioConfiguration) { this.studioConfiguration = studioConfiguration; }
+    public void setSecurityService(SecurityService securityService) {
+        this.securityService = securityService;
+    }
 
-    public DeploymentService getDeploymentService() { return deploymentService; }
-    public void setDeploymentService(DeploymentService deploymentService) { this.deploymentService = deploymentService; }
+    public StudioConfiguration getStudioConfiguration() {
+        return studioConfiguration;
+    }
+
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+        this.studioConfiguration = studioConfiguration;
+    }
+
+    public DeploymentService getDeploymentService() {
+        return deploymentService;
+    }
+
+    public void setDeploymentService(DeploymentService deploymentService) {
+        this.deploymentService = deploymentService;
+    }
+
+    public AuditFeedMapper getAuditFeedMapper() {
+        return auditFeedMapper;
+    }
+
+    public void setAuditFeedMapper(AuditFeedMapper auditFeedMapper) {
+        this.auditFeedMapper = auditFeedMapper;
+    }
 }

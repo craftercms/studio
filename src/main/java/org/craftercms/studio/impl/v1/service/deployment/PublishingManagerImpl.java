@@ -48,13 +48,12 @@ import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.deployment.PublishingManager;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.api.v1.service.objectstate.TransitionEvent;
-import org.craftercms.studio.api.v1.service.security.SecurityProvider;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
+import org.craftercms.studio.api.v2.service.security.SecurityProvider;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.PUBLISHING_MANAGER_INDEX_FILE;
@@ -79,8 +78,6 @@ public class PublishingManagerImpl implements PublishingManager {
     protected StudioConfiguration studioConfiguration;
     protected DependencyService dependencyService;
     protected DeploymentHistoryProvider deploymentHistoryProvider;
-
-    @Autowired
     protected PublishRequestMapper publishRequestMapper;
 
     @Override
@@ -501,5 +498,13 @@ public class PublishingManagerImpl implements PublishingManager {
 
     public void setDeploymentHistoryProvider(DeploymentHistoryProvider deploymentHistoryProvider) {
         this.deploymentHistoryProvider = deploymentHistoryProvider;
+    }
+
+    public PublishRequestMapper getPublishRequestMapper() {
+        return publishRequestMapper;
+    }
+
+    public void setPublishRequestMapper(PublishRequestMapper publishRequestMapper) {
+        this.publishRequestMapper = publishRequestMapper;
     }
 }
