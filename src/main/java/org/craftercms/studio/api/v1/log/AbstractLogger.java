@@ -40,8 +40,7 @@ public abstract class AbstractLogger implements Logger {
 		try {
 			resources = ResourceBundle.getBundle("/org/craftercms/cstudio/studio-message-resources"); // locale
 			pattern = resources.getString(msg);
-		}
-		catch(Exception noResourceErr) {
+		} catch(Exception e) {
 			// no resource for msg ID (caller just sent string)
 		}
 		
@@ -53,9 +52,8 @@ public abstract class AbstractLogger implements Logger {
         try {
             MessageFormat msgFormat = new MessageFormat(pattern); //use locale from some external source
             retMessage = msgFormat.format(args);
-        }
-        catch(Exception eExpandFailure) {
-            retMessage = pattern + " and arguments " + args + " failed to expand in to message " + eExpandFailure;
+        } catch(Exception e) {
+            retMessage = pattern;
         }
 		
 		return retMessage;

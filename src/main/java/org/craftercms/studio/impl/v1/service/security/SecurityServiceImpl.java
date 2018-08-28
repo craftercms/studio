@@ -344,6 +344,7 @@ public class SecurityServiceImpl implements SecurityService {
         } else {
             logger.debug("No groups found for " + user + " in " + site);
         }
+
         return new HashSet<String>(0);
     }
 

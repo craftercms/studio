@@ -821,11 +821,11 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /ui/views/global-menu:
+  /ui/views/global_menu:
     get:
       tags:
         - ui
-      summary: Get the global menu tools available to the current user
+      summary: Get the global menu items available to the current user
       operationId: getGlobalMenu
       description: 'Required Permission: "LOGGED_IN"'
       responses:
@@ -844,7 +844,7 @@ paths:
                       entities:
                         type: array
                         items:
-                          $ref: '#/components/schemas/GlobalMenuTool'
+                          $ref: '#/components/schemas/MenuItem'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '500':
@@ -944,18 +944,18 @@ components:
         desc:
           type: string
           description: Site description
-    GlobalMenuTool:
+    MenuItem:
       type: object
       properties:
         id:
           type: string
-          description: 'Tool ID, unique and immutable'
+          description: 'Menu item ID, unique and immutable'
         label:
           type: string
-          description: 'Tool label'
+          description: 'Menu item label'
         icon:
           type: string
-          description: 'Tool icon as a Font Awesome id, example: fa-smile'
+          description: 'Menu item icon as a Font Awesome id, example: fa-smile'
   responses:
     NotFound:
       description: Resource not found
