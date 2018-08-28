@@ -75,9 +75,9 @@ studio.configuration.site.environment.configFileName: environment-config.xml
 # File name where configuration of content type is stored.
 studio.configuration.site.contentTypes.configFileName: config.xml
 # Default user groups when site is created
-studio.configuration.site.defaultGroups: Author,Publisher,Developer,Reviewer,Admin
+studio.configuration.defaultGroups: Author,Publisher,Developer,Reviewer,Admin
 # Default admin group when site is created to add creator as admin
-studio.configuration.site.defaultAdminGroup: Admin
+studio.configuration.defaultAdminGroup: Admin
 # Location where data sources configuration is stored for a site.
 studio.configuration.site.dataSources.configBasePath: /config/studio/data-sources
 # File name where data sources configuration is stored.

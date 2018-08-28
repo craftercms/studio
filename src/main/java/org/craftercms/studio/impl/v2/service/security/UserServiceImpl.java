@@ -24,6 +24,7 @@ import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsExceptio
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.dal.GroupDAO;
+import org.craftercms.studio.api.v2.dal.QueryParameterNames;
 import org.craftercms.studio.api.v2.dal.UserDAO;
 import org.craftercms.studio.api.v2.dal.UserMapper;
 import org.craftercms.studio.api.v2.service.security.GroupService;
@@ -41,6 +42,7 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.EMAIL;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ENABLED;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.EXTERNALLY_MANAGED;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.FIRST_NAME;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.GROUP_NAME;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.GROUP_NAMES;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LAST_NAME;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LIMIT;
@@ -96,6 +98,15 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<Group> getUserGroups(long userId, String username) {
         return securityProvider.getUserGroups(userId, username);
+    }
+
+    @Override
+    public boolean isUserMemberOfGroup(String username, String groupName) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put(GROUP_NAME, groupName);
+        params.put(USERNAME, username);
+        int result = userMapper.isUserMemberOfGroup(params);
+        return result > 0;
     }
 
     public UserMapper getUserMapper() {

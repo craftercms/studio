@@ -21,6 +21,7 @@ package org.craftercms.studio.api.v2.service.security;
 import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationSystemException;
 import org.craftercms.studio.api.v1.exception.security.BadCredentialsException;
+import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.PasswordDoesNotMatchException;
 import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.UserExternallyManagedException;
@@ -47,7 +48,7 @@ public interface SecurityProvider {
 
     List<Group> getAllGroups(long orgId, int offset, int limit, String sort);
 
-    void createGroup(long orgId, String groupName, String groupDescription);
+    void createGroup(long orgId, String groupName, String groupDescription) throws GroupAlreadyExistsException;
 
     void updateGroup(long orgId, Group group);
 

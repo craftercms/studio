@@ -109,4 +109,11 @@ public interface UserMapper {
      * @return
      */
     Integer userExists(Map params);
+
+    /**
+     * Check if user is member of given group
+     * @param params SQL query parameters
+     * @return if true result > 0
+     */
+    Integer isUserMemberOfGroup(Map params);
 }

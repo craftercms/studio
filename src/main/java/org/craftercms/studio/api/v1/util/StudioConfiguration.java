@@ -81,8 +81,8 @@ public interface StudioConfiguration {
     String CONFIGURATION_SITE_ENVIRONMENT = "studio.configuration.site.environment";
     String CONFIGURATION_SITE_ENVIRONMENT_CONFIG_FILE_NAME = "studio.configuration.site.environment.configFileName";
     String CONFIGURATION_SITE_CONTENT_TYPES_CONFIG_FILE_NAME = "studio.configuration.site.contentTypes.configFileName";
-    String CONFIGURATION_SITE_DEFAULT_GROUPS = "studio.configuration.site.defaultGroups";
-    String CONFIGURATION_SITE_DEFAULT_ADMIN_GROUP = "studio.configuration.site.defaultAdminGroup";
+    String CONFIGURATION_DEFAULT_GROUPS = "studio.configuration.defaultGroups";
+    String CONFIGURATION_DEFAULT_ADMIN_GROUP = "studio.configuration.defaultAdminGroup";
     String CONFIGURATION_SITE_DATA_SOURCES_CONFIG_BASE_PATH = "studio.configuration.site.dataSources.configBasePath";
     String CONFIGURATION_SITE_DATA_SOURCES_CONFIG_FILE_NAME = "studio.configuration.site.dataSources.configFileName";
     String CONFIGURATION_SITE_PREVIEW_DESTROY_CONTEXT_URL = "studio.configuration.site.preview.destroy.sontext.url";
