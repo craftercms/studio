@@ -23,7 +23,7 @@
 			<id>home.globalMenu.sites</id>
 			<label>Sites</label>
 			<icon>fa-sitemap</icon>
-			<role>*</role>
+			<permission>*</permission>
 		</item>
         <item>
             <id>home.globalMenu.users</id>
