@@ -18,14 +18,14 @@
 
 package org.craftercms.studio.impl.v2.dal;
 
+import ch.vorburger.mariadb4j.DB;
+import ch.vorburger.mariadb4j.MariaDB4jService;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.jdbc.RuntimeSqlException;
 import org.apache.ibatis.jdbc.ScriptRunner;
-import org.apache.ibatis.session.SqlSession;
-import org.apache.ibatis.session.SqlSessionFactory;
 import org.craftercms.commons.crypto.CryptoUtils;
 import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
@@ -63,6 +63,7 @@ import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -73,6 +74,7 @@ import java.util.Map;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_DRIVER;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_INITIALIZER_CONFIGURE_DB_SCRIPT_LOCATION;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_INITIALIZER_CREATE_DB_SCRIPT_LOCATION;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_INITIALIZER_ENABLED;
@@ -113,7 +115,7 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
     protected StudioConfiguration studioConfiguration;
     protected ContentRepository contentRepository;
 
-    protected SqlSessionFactory sqlSessionFactory;
+    protected MariaDB4jService mariaDB4jService;
 
     protected DbIntegrityValidator integrityValidator;
 
@@ -123,13 +125,20 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
             String configureDbScriptPath = getConfigureDBScriptPath();
             String createDbScriptPath = getCreateDBScriptPath();
 
+            logger.debug("Get MariaDB service");
+            DB db = mariaDB4jService.getDB();
             Connection conn = null;
             Statement statement = null;
             ResultSet rs = null;
             String dbVersion = StringUtils.EMPTY;
 
-            SqlSession session = sqlSessionFactory.openSession();
-            conn = session.getConnection();
+            try {
+                logger.debug("Get DB connection");
+                Class.forName(studioConfiguration.getProperty(DB_DRIVER));
+                conn = DriverManager.getConnection(studioConfiguration.getProperty(DB_INITIALIZER_URL));
+            } catch (SQLException | ClassNotFoundException e) {
+                logger.error("Error while getting connection to DB", e);
+            }
 
             // Configure DB
             logger.info("Configure database from script " + configureDbScriptPath);
@@ -494,11 +503,11 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
         this.integrityValidator = integrityValidator;
     }
 
-    public SqlSessionFactory getSqlSessionFactory() {
-        return sqlSessionFactory;
+    public MariaDB4jService getMariaDB4jService() {
+        return mariaDB4jService;
     }
 
-    public void setSqlSessionFactory(SqlSessionFactory sqlSessionFactory) {
-        this.sqlSessionFactory = sqlSessionFactory;
+    public void setMariaDB4jService(MariaDB4jService mariaDB4jService) {
+        this.mariaDB4jService = mariaDB4jService;
     }
 }
