@@ -171,7 +171,7 @@ CREATE TABLE IF NOT EXISTS `user`
   `id`                    BIGINT(20)   NOT NULL AUTO_INCREMENT,
   `record_last_updated`   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `username`              VARCHAR(32)  NOT NULL,
-  `password`              VARCHAR(24)  NOT NULL,
+  `password`              VARCHAR(128)  NOT NULL,
   `first_name`             VARCHAR(16)  NOT NULL,
   `last_name`              VARCHAR(16)  NOT NULL,
   `externally_managed`    INT          NOT NULL DEFAULT 0,
@@ -268,13 +268,13 @@ VALUES (7, CURRENT_TIMESTAMP, 1, 'Reviewer', 'Reviewer group') ;
 
 CREATE TABLE IF NOT EXISTS group_user
 (
-  `user_id` VARCHAR(255) NOT NULL,
-  `group_id`  BIGINT       NOT NULL,
+  `user_id`  BIGINT(20) NOT NULL,
+  `group_id`  BIGINT(20)       NOT NULL,
   `record_last_updated` DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`user_id`, `group_id`),
   FOREIGN KEY group_member_ix_user_id(`user_id`) REFERENCES `user` (`id`)
     ON DELETE CASCADE,
-  FOREIGN KEY group_member_ix_user_id(`group_id`) REFERENCES `group` (`id`)
+  FOREIGN KEY group_member_ix_group_id(`group_id`) REFERENCES `group` (`id`)
     ON DELETE CASCADE,
   INDEX `group_member_ix_record_last_updated` (`record_last_updated` DESC)
 )

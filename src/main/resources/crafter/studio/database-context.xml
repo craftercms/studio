@@ -49,7 +49,7 @@
         <property name="studioConfiguration" ref="studioConfiguration"/>
         <property name="integrityValidator" ref="crafter.databaseValidator"/>
         <property name="contentRepository" ref="contentRepository" />
-        <property name="sqlSessionFactory" ref="sqlSessionFactory" />
+        <property name="mariaDB4jService" ref="studioMariaDBService" />
     </bean>
 
     <bean id="studioMariaDBService" class="ch.vorburger.mariadb4j.springframework.MariaDB4jSpringService"
