@@ -53,8 +53,6 @@ public interface SecurityService {
 
     String getCurrentToken();
 
-    Set<String> getGlobalUserRoles(String user);
-
     Set<String> getUserRoles(String site, String user);
 
     Map<String, Object> getUserProfile(String user);

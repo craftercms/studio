@@ -1,22 +1,4 @@
-/*
- * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- */
-
-package org.craftercms.studio.impl.v2.ui;
+package org.craftercms.studio.impl.v2.service.ui.internal;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.configuration2.Configuration;
@@ -29,7 +11,6 @@ import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.exception.ConfigurationException;
-import org.craftercms.studio.api.v2.ui.UiService;
 import org.craftercms.studio.impl.v1.util.ConfigUtils;
 import org.craftercms.studio.model.ui.MenuItem;
 import org.springframework.beans.factory.annotation.Required;
@@ -43,14 +24,22 @@ import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATIO
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_GLOBAL_MENU_FILE_NAME;
 
 /**
- * Default implementation of {@link UiService}.
+ * Default implementation of {@link UiServiceInternal}.
  *
  * @author avasquez
  */
-public class UiServiceImpl implements UiService {
+public class UiServiceInternalImpl implements UiServiceInternal {
+
+    private static final String MENU_ITEMS_CONFIG_KEY = "items.item";
+    private static final String PERMISSION_CONFIG_KEY = "permission";
+    private static final String ID_CONFIG_KEY = "id";
+    private static final String LABEL_CONFIG_KEY = "label";
+    private static final String ICON_CONFIG_KEY = "icon";
+
+    private static final String ANY_PERMISSION_WILDCARD = "*";
+
 
     private StudioConfiguration studioConfiguration;
-    private SecurityService securityService;
     private ContentService contentService;
 
     @Required
@@ -59,33 +48,26 @@ public class UiServiceImpl implements UiService {
     }
 
     @Required
-    public void setSecurityService(SecurityService securityService) {
-        this.securityService = securityService;
-    }
-
-    @Required
     public void setContentService(ContentService contentService) {
         this.contentService = contentService;
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public List<MenuItem> getGlobalMenu() throws AuthenticationException, ServiceException {
-        String user = securityService.getCurrentUser();
-        if (StringUtils.isNotEmpty(user)) {
-            Set<String> roles = securityService.getGlobalUserRoles(user);
+    public List<MenuItem> getGlobalMenu(Set<String> permissions) throws ServiceException {
+        if (CollectionUtils.isNotEmpty(permissions)) {
             HierarchicalConfiguration menuConfig = getGlobalMenuConfig();
             List<MenuItem> menuItems = new ArrayList<>();
 
-            List<HierarchicalConfiguration> itemsConfig = menuConfig.configurationsAt("items.item");
+            List<HierarchicalConfiguration> itemsConfig = menuConfig.configurationsAt(MENU_ITEMS_CONFIG_KEY);
             if (CollectionUtils.isNotEmpty(itemsConfig)) {
                 for (HierarchicalConfiguration itemConfig : itemsConfig) {
-                    String requiredRole = getRequiredStringProperty(itemConfig, "role");
-                    if (requiredRole.equals("*") || roles.contains(requiredRole)) {
+                    String requiredPermission = getRequiredStringProperty(itemConfig, PERMISSION_CONFIG_KEY);
+                    if (requiredPermission.equals(ANY_PERMISSION_WILDCARD) ||
+                        permissions.contains(requiredPermission)) {
                         MenuItem item = new MenuItem();
-                        item.setId(getRequiredStringProperty(itemConfig, "id"));
-                        item.setLabel(getRequiredStringProperty(itemConfig, "label"));
-                        item.setIcon(getRequiredStringProperty(itemConfig, "icon"));
+                        item.setId(getRequiredStringProperty(itemConfig, ID_CONFIG_KEY));
+                        item.setLabel(getRequiredStringProperty(itemConfig, LABEL_CONFIG_KEY));
+                        item.setIcon(getRequiredStringProperty(itemConfig, ICON_CONFIG_KEY));
 
                         menuItems.add(item);
                     }
@@ -96,15 +78,14 @@ public class UiServiceImpl implements UiService {
 
             return menuItems;
         } else {
-            throw new AuthenticationException("User is not authenticated");
+            return null;
         }
     }
-
 
     protected HierarchicalConfiguration getGlobalMenuConfig() throws ConfigurationException {
         String configPath = getGlobalMenuConfigPath();
 
-        try (InputStream is = contentService.getContent(StringUtils.EMPTY, configPath);) {
+        try (InputStream is = contentService.getContent(StringUtils.EMPTY, configPath)) {
             return ConfigUtils.readXmlConfiguration(is);
         } catch (Exception e) {
             throw new ConfigurationException("Unable to read global menu config @ " + configPath, e);

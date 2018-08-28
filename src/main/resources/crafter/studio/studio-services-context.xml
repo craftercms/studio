@@ -309,10 +309,14 @@
         <property name="securityProvider" ref="securityProvider" />
     </bean>
 
-    <bean id="studioUiService" class="org.craftercms.studio.impl.v2.ui.UiServiceImpl">
+    <bean id="uiServiceInternal" class="org.craftercms.studio.impl.v2.service.ui.internal.UiServiceInternalImpl">
         <property name="studioConfiguration" ref="studioConfiguration"/>
-        <property name="securityService" ref="cstudioSecurityService"/>
         <property name="contentService" ref="cstudioContentService"/>
+    </bean>
+
+    <bean id="uiService" class="org.craftercms.studio.impl.v2.service.ui.UiServiceImpl">
+        <property name="securityService" ref="cstudioSecurityService"/>
+        <property name="uiServiceInternal" ref="uiServiceInternal"/>
     </bean>
 
     <!-- ////////////////////////////////////// -->

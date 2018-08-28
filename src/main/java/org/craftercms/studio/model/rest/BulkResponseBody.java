@@ -26,7 +26,7 @@ import java.util.List;
  * @author Dejan Brkic
  * @author avasquez
  */
-public class BulkApiResponseBody {
+public class BulkResponseBody {
 
     protected List<Result> results;
 

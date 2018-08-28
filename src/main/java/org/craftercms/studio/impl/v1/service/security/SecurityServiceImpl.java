@@ -321,17 +321,6 @@ public class SecurityServiceImpl implements SecurityService {
 
     @Override
     @ValidateParams
-    public Set<String> getGlobalUserRoles(@ValidateStringParam(name = "user") String user) {
-        Set<String> roles = new HashSet<>();
-
-        PermissionsConfigTO globalRolesConfig = loadGlobalRolesConfiguration();
-        addGlobalUserRoles(user, roles, globalRolesConfig);
-
-        return roles;
-    }
-
-    @Override
-    @ValidateParams
     public Set<String> getUserRoles(@ValidateStringParam(name = "site") final String site,
                                     @ValidateStringParam(name = "user") String user) {
 

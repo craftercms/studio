@@ -10,7 +10,7 @@
 				<id />
 				<label />
 				<icon />
-				<role />
+				<permission />
 			</item>
 		</items>
 	</globalMenu>
@@ -29,13 +29,13 @@
             <id>home.globalMenu.users</id>
             <label>Users</label>
             <icon>fa-user</icon>
-            <role>crafter-admin</role>
+            <permission>create-site</permission>
         </item>
         <item>
             <id>home.globalMenu.groups</id>
             <label>Groups</label>
             <icon>fa-users</icon>
-            <role>crafter-admin</role>
+            <permission>create-site</permission>
         </item>
 	</items>
 </globalMenu>

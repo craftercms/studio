@@ -22,7 +22,7 @@ import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v2.ui.UiService;
 import org.craftercms.studio.model.rest.ApiResponse;
-import org.craftercms.studio.model.rest.ApiResponseBody;
+import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.ResultList;
 import org.craftercms.studio.model.ui.MenuItem;
 import org.springframework.beans.factory.annotation.Required;
@@ -47,12 +47,12 @@ public class UiController {
     }
 
     @GetMapping("/views/global_menu")
-    public ApiResponseBody getGlobalMenu() throws AuthenticationException, ServiceException {
+    public ResponseBody getGlobalMenu() throws AuthenticationException, ServiceException {
         ResultList<MenuItem> result = new ResultList<>();
         result.setResponse(ApiResponse.OK);
         result.setEntities(uiService.getGlobalMenu());
 
-        ApiResponseBody responseBody = new ApiResponseBody();
+        ResponseBody responseBody = new ResponseBody();
         responseBody.setResult(result);
 
         return responseBody;

@@ -24,7 +24,7 @@ package org.craftercms.studio.model.rest;
  * @author Dejan Brkic
  * @author avasquez
  */
-public class ApiResponseBody {
+public class ResponseBody {
 
     protected Result result;
 
