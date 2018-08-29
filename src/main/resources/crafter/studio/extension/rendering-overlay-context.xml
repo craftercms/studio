@@ -22,6 +22,8 @@
     <!-- ////////////////////////////////////// -->
     <!--      Controllers                       -->
     <!-- ////////////////////////////////////// -->
+    <bean id="studioRestExceptionHandlers" class="org.craftercms.studio.controller.rest.v2.ExceptionHandlers"/>
+
     <bean id="studioGroupsController" class="org.craftercms.studio.controller.rest.GroupsController">
         <property name="groupService" ref="groupService" />
     </bean>
@@ -30,6 +32,10 @@
         <property name="userService" ref="userService" />
         <property name="groupService" ref="groupService" />
         <property name="siteService" ref="cstudioSiteServiceSimple" />
+    </bean>
+    
+    <bean id="studioUiController" class="org.craftercms.studio.controller.rest.v2.UiController">
+        <property name="uiService" ref="uiService"/>
     </bean>
 
     <bean id="studio.binaryView" class="org.craftercms.studio.impl.v1.util.spring.mvc.BinaryView">
