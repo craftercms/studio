@@ -20,10 +20,13 @@ package org.craftercms.studio.impl.v2.service.security;
 
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.StudioXmlConstants;
+import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
+import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
+import org.craftercms.studio.api.v2.dal.GroupDAO;
 import org.craftercms.studio.api.v2.dal.GroupMapper;
 import org.craftercms.studio.api.v2.service.security.GroupService;
 import org.craftercms.studio.api.v2.service.security.SecurityProvider;
@@ -47,6 +50,7 @@ import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATIO
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_GLOBAL_ROLE_MAPPINGS_FILE_NAME;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.GROUP_NAME;
 
 public class GroupServiceImpl implements GroupService {
 
@@ -63,7 +67,7 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
-    public void createGroup(long orgId, String groupName, String groupDescription) {
+    public void createGroup(long orgId, String groupName, String groupDescription) throws GroupAlreadyExistsException {
         securityProvider.createGroup(orgId, groupName, groupDescription);
     }
 
@@ -176,6 +180,22 @@ public class GroupServiceImpl implements GroupService {
                     + siteGroupRoleMappingConfigPath);
         }
         return groupRoleMap;
+    }
+
+    @Override
+    public Group getGroupByName(String groupName) throws GroupNotFoundException {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put(GROUP_NAME, groupName);
+        GroupDAO groupDAO = groupMapper.getGroupByName(params);
+        if (groupDAO != null) {
+            Group g = new Group();
+            g.setId(groupDAO.getId());
+            g.setName(groupDAO.getGroupName());
+            g.setDesc(groupDAO.getGroupDescription());
+            return g;
+        } else {
+            throw new GroupNotFoundException();
+        }
     }
 
     public GroupMapper getGroupMapper() {

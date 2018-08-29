@@ -157,6 +157,6 @@
     </select>
 
     <select id="getGroupByName" parameterType="java.util.Map" resultMap="GroupMap">
-        SELECT * FROM `group` WHERE group_name = #{groupName}
+        SELECT * FROM `group` WHERE group_name = #{groupName} LIMIT 0, 1
     </select>
 </mapper>

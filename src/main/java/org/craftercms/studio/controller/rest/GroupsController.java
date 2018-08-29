@@ -19,6 +19,7 @@
 package org.craftercms.studio.controller.rest;
 
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.service.security.GroupService;
@@ -88,11 +89,19 @@ public class GroupsController {
      */
     @PostMapping(value = "/api/2/groups", consumes = MediaType.APPLICATION_JSON_VALUE)
     public StudioResponseBody createGroup(@RequestBody Group group) {
-        groupService.createGroup(1, group.getName(), group.getDesc());
+        try {
+            groupService.createGroup(1, group.getName(), group.getDesc());
+        } catch (GroupAlreadyExistsException e) {
+            StudioResponseBody errorBody = new StudioResponseBody();
+            ResultOne errorResult = new ResultOne();
+            errorResult.setResponse(ApiResponse.CODE_4000);
+            errorBody.setResult(errorResult);
+            return errorBody;
+        }
 
         StudioResponseBody responseBody = new StudioResponseBody();
         ResultOne result = new ResultOne();
-        result.setResponse(ApiResponse.CODE_0);
+        result.setResponse(ApiResponse.CODE_1);
         responseBody.setResult(result);
         return responseBody;
     }

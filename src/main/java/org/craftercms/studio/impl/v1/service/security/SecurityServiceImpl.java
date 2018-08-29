@@ -99,7 +99,27 @@ import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_LASTNA
 import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_USERNAME;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SECURITY_AUTHENTICATION_TYPE;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.*;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_DEFAULT_ADMIN_GROUP;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_GLOBAL_CONFIG_BASE_PATH;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_GLOBAL_PERMISSION_MAPPINGS_FILE_NAME;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_GLOBAL_ROLE_MAPPINGS_FILE_NAME;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_PERMISSION_MAPPINGS_FILE_NAME;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.MAIL_FROM_DEFAULT;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.MAIL_SMTP_AUTH;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_ALGORITHM;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_KEY;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_SALT;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_TYPE;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_FORGOT_PASSWORD_EMAIL_TEMPLATE;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_FORGOT_PASSWORD_MESSAGE_SUBJECT;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_FORGOT_PASSWORD_TOKEN_TIMEOUT;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_GLOBAL_ADMIN_GROUP;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_RESET_PASSWORD_SERVICE_URL;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_SESSION_TIMEOUT;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_TYPE;
 
 /**
  * @author Dejan Brkic
@@ -849,7 +869,7 @@ public class SecurityServiceImpl implements SecurityService {
         if (CollectionUtils.isNotEmpty(userGroups)) {
             for (Group group : userGroups) {
                 if (StringUtils.equalsIgnoreCase(group.getName(),
-                        studioConfiguration.getProperty(CONFIGURATION_SITE_DEFAULT_ADMIN_GROUP))) {
+                        studioConfiguration.getProperty(CONFIGURATION_DEFAULT_ADMIN_GROUP))) {
                     toRet = true;
                     break;
                 }

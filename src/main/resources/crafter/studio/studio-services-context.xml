@@ -115,6 +115,7 @@
         <property name="previewDeployer" ref="previewDeployer"/>
         <property name="entitlementValidator" ref="crafter.entitlementValidator"/>
         <property name="groupService" ref="groupService" />
+        <property name="userService" ref="userService"/>
     </bean>
 
     <bean id="cstudioImportService" class="org.craftercms.studio.impl.v1.service.content.ImportServiceImpl">

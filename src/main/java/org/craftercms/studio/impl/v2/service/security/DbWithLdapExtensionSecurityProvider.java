@@ -356,8 +356,10 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
 
     protected boolean upsertUserGroup(String siteId, String groupName, String username) {
 
-        if (!groupExists( groupName)) {
+        try {
             createGroup(1, groupName, "Externally managed group - " + groupName);
+        } catch (GroupAlreadyExistsException e) {
+            logger.warn("Externally managed group: " + groupName + " not created. It already exists .");
         }
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(GROUP_NAME, groupName);

@@ -39,7 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_DEFAULT_ADMIN_GROUP;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_DEFAULT_ADMIN_GROUP;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_GLOBAL_ADMIN_GROUP;
 
 public abstract class StudioAbstractAccessDecisionVoter implements AccessDecisionVoter {
@@ -106,12 +106,12 @@ public abstract class StudioAbstractAccessDecisionVoter implements AccessDecisio
             if (toRet) {
                 List<Group> userGroups = securityProvider.getUserGroups(sites.get(siteId), currentUser.getUsername());
                 for (Group g : userGroups) {
-                    if (g.getName().equals(studioConfiguration.getProperty(CONFIGURATION_SITE_DEFAULT_ADMIN_GROUP))) {
+                    if (g.getName().equals(studioConfiguration.getProperty(CONFIGURATION_DEFAULT_ADMIN_GROUP))) {
                         toRet = true;
                         break;
                     }
                 }
-                toRet = userGroups.contains(studioConfiguration.getProperty(CONFIGURATION_SITE_DEFAULT_ADMIN_GROUP));
+                toRet = userGroups.contains(studioConfiguration.getProperty(CONFIGURATION_DEFAULT_ADMIN_GROUP));
             }
             return toRet;
         } catch (UserNotFoundException e) {

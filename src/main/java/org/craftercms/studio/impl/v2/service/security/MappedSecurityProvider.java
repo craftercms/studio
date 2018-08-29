@@ -21,6 +21,7 @@ package org.craftercms.studio.impl.v2.service.security;
 import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationSystemException;
 import org.craftercms.studio.api.v1.exception.security.BadCredentialsException;
+import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.PasswordDoesNotMatchException;
 import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.UserExternallyManagedException;
@@ -132,7 +133,7 @@ public class MappedSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public void createGroup(long orgId, String groupName, String groupDescription) {
+    public void createGroup(long orgId, String groupName, String groupDescription) throws GroupAlreadyExistsException {
         SecurityProvider provider = lookupProvider(getProviderType());
         provider.createGroup(orgId, groupName, groupDescription);
     }

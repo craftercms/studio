@@ -39,4 +39,6 @@ public interface UserService {
     void enableUsers(List<Long> userIds, List<String> usernames, boolean enabled);
 
     List<Group> getUserGroups(long userId, String username);
+
+    boolean isUserMemberOfGroup(String username, String groupName);
 }
