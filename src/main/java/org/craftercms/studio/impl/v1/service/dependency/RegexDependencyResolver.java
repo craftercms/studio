@@ -51,8 +51,6 @@ public class RegexDependencyResolver implements DependencyResolver {
 
     private static final Logger logger = LoggerFactory.getLogger(RegexDependencyResolver.class);
 
-    private static final String PARENT_DEPENDENCY_TYPE = "parent";
-
     protected ContentService contentService;
     protected StudioConfiguration studioConfiguration;
 
@@ -60,60 +58,24 @@ public class RegexDependencyResolver implements DependencyResolver {
     public Map<String, Set<String>> resolve(String site, String path) {
         Map<String, Set<String>> toRet = new HashMap<String, Set<String>>();
         try {
-            DependencyResolverConfigTO config = getConfiguraion(site);
+            logger.debug("Get dependency resolver configuration for site " + site);
+            DependencyResolverConfigTO config = getConfiguration(site);
             if (config != null) {
-                String content = contentService.getContentAsString(site, path);
-                if (content != null) {
-                    Map<String, DependencyResolverConfigTO.ItemType> itemTypes = config.getItemTypes();
-                    if (itemTypes != null) {
-                        for (Map.Entry<String, DependencyResolverConfigTO.ItemType> entry : itemTypes.entrySet()) {
-                            DependencyResolverConfigTO.ItemType itemType = entry.getValue();
-                            List<String> includes = itemType.getIncludes();
-                            if (ContentUtils.matchesPatterns(path, includes)) {
-                                Map<String, DependencyResolverConfigTO.DependencyType> dependencyTypes =
-                                        itemType.getDependencyTypes();
-                                for (Map.Entry<String, DependencyResolverConfigTO.DependencyType> dependencyTypeEntry :
-                                        dependencyTypes.entrySet()) {
-                                    Set<String> extractedPaths = new HashSet<String>();
-                                    DependencyResolverConfigTO.DependencyType dependencyType = dependencyTypeEntry.getValue();
-                                    List<DependencyResolverConfigTO.DependencyExtractionPattern> extractionPatterns =
-                                            dependencyType.getIncludes();
-                                    for (DependencyResolverConfigTO.DependencyExtractionPattern extractionPattern :
-                                            extractionPatterns) {
-                                        Pattern pattern = Pattern.compile(extractionPattern.getFindRegex());
-                                        Matcher matcher = pattern.matcher(content);
-                                        while (matcher.find()) {
-                                            String matchedPath = matcher.group();
-                                            if (CollectionUtils.isNotEmpty(extractionPattern.getTransforms())) {
-                                                for (DependencyResolverConfigTO.DependencyExtractionTransform transform :
-                                                        extractionPattern.getTransforms()) {
-                                                    Pattern find = Pattern.compile(transform.getMatch());
-                                                    Matcher replaceMatcher = find.matcher(matchedPath);
-                                                    matchedPath = replaceMatcher.replaceAll(transform.getReplace());
-                                                }
-                                            }
-                                            if (contentService.contentExists(site, matchedPath)) {
-                                                extractedPaths.add(matchedPath);
-                                            } else {
-                                                String message = "Found reference to " + matchedPath + " in content at " +
-                                                        path + " but content does not exist in referenced path for site " +
-                                                        site + ".\n"
-                                                        + "Regular expression for extracting dependencies matched " +
-                                                        "string, and after applying transformation rules to get value " +
-                                                        "for dependency path, that dependency path was not found in" +
-                                                        " site repository as a content.";
-                                                logger.debug(message);
-                                            }
-                                        }
-                                    }
-                                    toRet.put(dependencyType.getName(), extractedPaths);
-                                }
-                            }
-                        }
+                logger.debug("Determine item type of content for site: " + site + ", path: " + path);
+                DependencyResolverConfigTO.ItemType itemType = getItemTypeResolverConfig(site, path, config);
+                if (itemType != null) {
+                    String content = contentService.getContentAsString(site, path);
+                    if (content != null) {
+                        Map<String, DependencyResolverConfigTO.DependencyType> dependencyTypes =
+                                itemType.getDependencyTypes();
+                        logger.debug("Get dependencies of content for site: " + site + ", path: " + path);
+                        toRet = getDependencies(site, path, content, dependencyTypes);
+                    } else {
+                        logger.error("Failed to extract dependencies. " +
+                                "Content was empty/null found for site: " + site + ", path: " + path);
                     }
                 } else {
-                    logger.error("Failed to extract dependencies. Content not found for site: " + site + ", path: "
-                            + path);
+                    logger.debug("No dependency extraction required for site: " + site + ", path: " + path);
                 }
             } else {
                 String configLocation = getConfigLocation(site);
@@ -127,11 +89,13 @@ public class RegexDependencyResolver implements DependencyResolver {
     }
 
     @SuppressWarnings("unchecked")
-    private DependencyResolverConfigTO getConfiguraion(String site) {
+    private DependencyResolverConfigTO getConfiguration(String site) {
         DependencyResolverConfigTO config = null;
+        logger.debug("Get configuration location for site " + site);
         String configLocation = getConfigLocation(site);
         Document document = null;
         try {
+            logger.debug("Load configuration as xml document from " + configLocation);
             document = contentService.getContentAsDocument(site, configLocation);
         } catch (DocumentException e) {
             logger.error("Failed to load dependency resolver configuration from location: " + configLocation, e);
@@ -140,53 +104,59 @@ public class RegexDependencyResolver implements DependencyResolver {
             Element root = document.getRootElement();
             config = new DependencyResolverConfigTO();
 
-            Element itemTypesEl = root.element("item-types");
+            Element itemTypesEl = root.element(XML_CONFIGURATION_ROOT_ELEMENT);
             if (itemTypesEl != null) {
-                Map<String, DependencyResolverConfigTO.ItemType> itemTypes = new HashMap<String, DependencyResolverConfigTO.ItemType>();
-                Iterator<Element> iterItemTypes = itemTypesEl.elementIterator("item-type");
+                logger.debug("Load configuration accoridng to XML structure");
+                Map<String, DependencyResolverConfigTO.ItemType> itemTypes =
+                        new HashMap<String, DependencyResolverConfigTO.ItemType>();
+                Iterator<Element> iterItemTypes = itemTypesEl.elementIterator(XML_CONFIGURATION_ITEM_TYPE);
+                logger.debug("Populate item types");
                 while (iterItemTypes.hasNext()) {
                     DependencyResolverConfigTO.ItemType itemType = new DependencyResolverConfigTO.ItemType();
                     List<String> itemTypeIncludes = new ArrayList<String>();
-                    Map<String, DependencyResolverConfigTO.DependencyType> dependencyTypes = new HashMap<String, DependencyResolverConfigTO.DependencyType>();
+                    Map<String, DependencyResolverConfigTO.DependencyType> dependencyTypes =
+                            new HashMap<String, DependencyResolverConfigTO.DependencyType>();
                     Element itemTypeEl = iterItemTypes.next();
-                    String typeName = itemTypeEl.valueOf("name");
-                    Element includesIT = itemTypeEl.element("includes");
-                    Iterator<Element> iterPathPatterns = includesIT.elementIterator("path-pattern");
+                    String typeName = itemTypeEl.valueOf(XML_CONFIGURATION_NAME);
+                    Element includesIT = itemTypeEl.element(XML_CONFIGURATION_INCLUDES);
+                    Iterator<Element> iterPathPatterns = includesIT.elementIterator(XML_CONFIGURATION_PATH_PATTERN);
                     while (iterPathPatterns.hasNext()) {
                         Element pathPattern = iterPathPatterns.next();
                         String pathPatternValue = pathPattern.getStringValue();
                         itemTypeIncludes.add(pathPatternValue);
                     }
                     itemType.setIncludes(itemTypeIncludes);
-                    Element dependencyTypesEl = itemTypeEl.element("dependency-types");
-                    Iterator<Element> iterDependencyTypes = dependencyTypesEl.elementIterator("dependency-type");
+                    Element dependencyTypesEl = itemTypeEl.element(XML_CONFIGURATION_DEPENDENCY_TYPES);
+                    Iterator<Element> iterDependencyTypes = dependencyTypesEl.elementIterator(XML_CONFIGURATION_DEPENDENCY_TYPE);
+                    logger.debug("Populate dependency types for " + typeName);
                     while (iterDependencyTypes.hasNext()) {
                         Element dependencyTypeEl = iterDependencyTypes.next();
                         DependencyResolverConfigTO.DependencyType dependencyType =
                                 new DependencyResolverConfigTO.DependencyType();
-                        List<DependencyResolverConfigTO.DependencyExtractionPattern> patterns = new ArrayList<DependencyResolverConfigTO.DependencyExtractionPattern>();
-                        String dependencyTypeName = dependencyTypeEl.valueOf("name");
+                        List<DependencyResolverConfigTO.DependencyExtractionPattern> patterns =
+                                new ArrayList<DependencyResolverConfigTO.DependencyExtractionPattern>();
+                        String dependencyTypeName = dependencyTypeEl.valueOf(XML_CONFIGURATION_NAME);
                         dependencyType.setName(dependencyTypeName);
-                        Element dependencyTypeIncludesEl = dependencyTypeEl.element("includes");
+                        Element dependencyTypeIncludesEl = dependencyTypeEl.element(XML_CONFIGURATION_INCLUDES);
                         Iterator<Element> iterDependencyTypeIncludes =
-                                dependencyTypeIncludesEl.elementIterator("pattern");
+                                dependencyTypeIncludesEl.elementIterator(XML_CONFIGURATION_PATTERN);
                         while (iterDependencyTypeIncludes.hasNext()) {
                             DependencyResolverConfigTO.DependencyExtractionPattern pattern =
                                     new DependencyResolverConfigTO.DependencyExtractionPattern();
                             List<DependencyResolverConfigTO.DependencyExtractionTransform> transforms =
                                     new ArrayList<DependencyResolverConfigTO.DependencyExtractionTransform>();
                             Element patternEl = iterDependencyTypeIncludes.next();
-                            Element findRegexEl = patternEl.element("find-regex");
+                            Element findRegexEl = patternEl.element(XML_CONFIGURATION_FIND_REGEX);
                             pattern.setFindRegex(findRegexEl.getStringValue());
-                            Element transformsEl = patternEl.element("transforms");
+                            Element transformsEl = patternEl.element(XML_CONFIGURATION_TRANSFORMS);
                             if (transformsEl != null) {
-                                Iterator<Element> iterTransformEl = transformsEl.elementIterator("transform");
+                                Iterator<Element> iterTransformEl = transformsEl.elementIterator(XML_CONFIGURATION_TRANSFORM);
                                 while (iterTransformEl.hasNext()) {
                                     Element transformEl = iterTransformEl.next();
                                     DependencyResolverConfigTO.DependencyExtractionTransform transform =
                                             new DependencyResolverConfigTO.DependencyExtractionTransform();
-                                    Element matchEl = transformEl.element("match");
-                                    Element replaceEl = transformEl.element("replace");
+                                    Element matchEl = transformEl.element(XML_CONFIGURATION_MATCH);
+                                    Element replaceEl = transformEl.element(XML_CONFIGURATION_REPLACE);
                                     transform.setMatch(matchEl.getStringValue());
                                     transform.setReplace(replaceEl.getStringValue());
                                     transforms.add(transform);
@@ -203,9 +173,76 @@ public class RegexDependencyResolver implements DependencyResolver {
                 }
                 config.setItemTypes(itemTypes);
             }
+        } else {
+            logger.warn("Dependency resolver XML configuration for site " + site + " does not exist at " + configLocation);
         }
 
         return config;
+    }
+
+    private DependencyResolverConfigTO.ItemType getItemTypeResolverConfig(String site, String path,
+                                                                          DependencyResolverConfigTO config) {
+        logger.debug("Loop through all item types to match path against include patterns");
+        Map<String, DependencyResolverConfigTO.ItemType> itemTypes = config.getItemTypes();
+        DependencyResolverConfigTO.ItemType itemType = null;
+        if (itemTypes != null) {
+            for (Map.Entry<String, DependencyResolverConfigTO.ItemType> entry : itemTypes.entrySet()) {
+                DependencyResolverConfigTO.ItemType it = entry.getValue();
+                List<String> includes = it.getIncludes();
+                if (ContentUtils.matchesPatterns(path, includes)) {
+                    itemType = it;
+                    break;
+                }
+            }
+        }
+        return itemType;
+    }
+
+    private Map<String, Set<String>> getDependencies(String site, String path, String content, Map<String,
+            DependencyResolverConfigTO.DependencyType> dependencyTypes) {
+        Map<String, Set<String>> toRet = new HashMap<String, Set<String>>();
+        logger.debug("Loop through all dependency types");
+        for (Map.Entry<String, DependencyResolverConfigTO.DependencyType> dependencyTypeEntry :
+                dependencyTypes.entrySet()) {
+            Set<String> extractedPaths = new HashSet<String>();
+            DependencyResolverConfigTO.DependencyType dependencyType = dependencyTypeEntry.getValue();
+            List<DependencyResolverConfigTO.DependencyExtractionPattern> extractionPatterns =
+                    dependencyType.getIncludes();
+            logger.debug("Loop through all extraction patterns for " + dependencyTypeEntry.getKey());
+            for (DependencyResolverConfigTO.DependencyExtractionPattern extractionPattern :
+                    extractionPatterns) {
+                Pattern pattern = Pattern.compile(extractionPattern.getFindRegex());
+                Matcher matcher = pattern.matcher(content);
+                logger.debug("Matching content against regular expression " + extractionPattern.getFindRegex());
+                while (matcher.find()) {
+                    String matchedPath = matcher.group();
+                    logger.debug("Matched path: " + matchedPath + ". Apply transformations");
+                    if (CollectionUtils.isNotEmpty(extractionPattern.getTransforms())) {
+                        for (DependencyResolverConfigTO.DependencyExtractionTransform transform :
+                                extractionPattern.getTransforms()) {
+                            Pattern find = Pattern.compile(transform.getMatch());
+                            Matcher replaceMatcher = find.matcher(matchedPath);
+                            matchedPath = replaceMatcher.replaceAll(transform.getReplace());
+                        }
+                    }
+                    if (contentService.contentExists(site, matchedPath)) {
+                        logger.debug("Content exists for matched path " + matchedPath + ". Adding to the result set");
+                        extractedPaths.add(matchedPath);
+                    } else {
+                        String message = "Found reference to " + matchedPath + " in content at " +
+                                path + " but content does not exist in referenced path for site " +
+                                site + ".\n"
+                                + "Regular expression for extracting dependencies matched " +
+                                "string, and after applying transformation rules to get value " +
+                                "for dependency path, that dependency path was not found in" +
+                                " site repository as a content.";
+                        logger.debug(message);
+                    }
+                }
+            }
+            toRet.put(dependencyType.getName(), extractedPaths);
+        }
+        return toRet;
     }
 
     private String getConfigLocation(String site) {
