@@ -18,6 +18,8 @@
 
 package org.craftercms.studio.api.v2.service.security;
 
+import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
+import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
 import org.craftercms.studio.model.Group;
 import org.craftercms.studio.model.User;
 
@@ -43,7 +45,7 @@ public interface GroupService {
      * @param groupName Group name
      * @param groupDescription Group description
      */
-    void createGroup(long orgId, String groupName, String groupDescription);
+    void createGroup(long orgId, String groupName, String groupDescription) throws GroupAlreadyExistsException;
 
     /**
      * Update group
@@ -111,4 +113,11 @@ public interface GroupService {
      * @return List of group names
      */
     List<String> getGlobalGroups();
+
+    /**
+     * Get group by name
+     * @param groupName group name
+     * @return group object
+     */
+    Group getGroupByName(String groupName) throws GroupNotFoundException;
 }

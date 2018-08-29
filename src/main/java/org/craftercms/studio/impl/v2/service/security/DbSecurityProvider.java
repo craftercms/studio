@@ -26,6 +26,7 @@ import org.craftercms.commons.http.RequestContext;
 import org.craftercms.studio.api.v1.ebus.RepositoryEventContext;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationSystemException;
 import org.craftercms.studio.api.v1.exception.security.BadCredentialsException;
+import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.PasswordDoesNotMatchException;
 import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.UserExternallyManagedException;
@@ -226,7 +227,10 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public void createGroup(long orgId, String groupName, String groupDescription) {
+    public void createGroup(long orgId, String groupName, String groupDescription) throws GroupAlreadyExistsException {
+        if (groupExists(groupName)) {
+            throw new GroupAlreadyExistsException();
+        }
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(ORG_ID, orgId);
         params.put(GROUP_NAME, groupName);

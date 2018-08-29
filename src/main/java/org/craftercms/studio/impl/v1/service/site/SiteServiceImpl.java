@@ -74,6 +74,7 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepository
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotBareException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -109,9 +110,11 @@ import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.api.v2.service.security.GroupService;
 import org.craftercms.studio.api.v2.service.security.SecurityProvider;
+import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.impl.v1.repository.job.RebuildRepositoryMetadata;
 import org.craftercms.studio.impl.v1.repository.job.SyncDatabaseWithRepository;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
+import org.craftercms.studio.model.Group;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.DocumentHelper;
@@ -127,11 +130,11 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOTE_REPOS
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_DEFAULT_GROUPS_DESCRIPTION;
 import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.BLUE_PRINTS_PATH;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_DEFAULT_ADMIN_GROUP;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_DEFAULT_GROUPS;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_GLOBAL_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_DEFAULT_ADMIN_GROUP;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_DEFAULT_GROUPS;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_ENVIRONMENT;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_ENVIRONMENT_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_PREVIEW_DESTROY_CONTEXT_URL;
@@ -170,6 +173,7 @@ public class SiteServiceImpl implements SiteService {
     protected SyncDatabaseWithRepository syncDatabaseWithRepository;
     protected EventService eventService;
     protected GroupService groupService;
+    protected UserService userService;
 
     protected StudioConfiguration studioConfiguration;
 
@@ -504,10 +508,14 @@ public class SiteServiceImpl implements SiteService {
                 addDefaultGroupsForNewSite(siteId);
 
                 // Add creator to admin group
-                List<String> userList = new ArrayList<String>();
-                userList.add(securityService.getCurrentUser());
-                // TODO: DB: FIGURE THIS OUT
-                groupService.addGroupMembers(1, new ArrayList<Long>(), userList);
+                String creator = securityService.getCurrentUser();
+                String adminGroup = studioConfiguration.getProperty(CONFIGURATION_DEFAULT_ADMIN_GROUP);
+                if (!userService.isUserMemberOfGroup(creator, adminGroup)) {
+                    List<String> userList = new ArrayList<String>();
+                    userList.add(securityService.getCurrentUser());
+                    Group group = groupService.getGroupByName(adminGroup);
+                    groupService.addGroupMembers(group.getId(), new ArrayList<Long>(), userList);
+                }
 
                 reloadSiteConfiguration(siteId);
 	        } catch(Exception e) {
@@ -686,14 +694,11 @@ public class SiteServiceImpl implements SiteService {
         List<String> defaultGroups = getDefaultGroups();
         for (String group : defaultGroups) {
             String description = group + SITE_DEFAULT_GROUPS_DESCRIPTION;
-            //try {
+            try {
                 groupService.createGroup(1, group, description);
-            //} catch (SiteNotFoundException e) {
-	        //    logger.warn("Default group: " + group + " not created. Site " + siteId + "is not found.", e);
-            //} catch (GroupAlreadyExistsException e) {
-            //    logger.warn("Default group: " + group + " not created. It already exists for site " + siteId + ".",
-            // e);
-            //}
+            } catch (GroupAlreadyExistsException e) {
+                logger.warn("Default group: " + group + " not created. It already exists.", e);
+            }
         }
     }
 
@@ -905,10 +910,14 @@ public class SiteServiceImpl implements SiteService {
                 addDefaultGroupsForNewSite(siteId);
 
                 // Add creator to admin group
-                List<String> userList = new ArrayList<String>();
-                userList.add(securityService.getCurrentUser());
-                // TODO: DB: FIGURE THIS OUT
-                groupService.addGroupMembers(1, new ArrayList<Long>(), userList);
+                String creator = securityService.getCurrentUser();
+                String adminGroup = studioConfiguration.getProperty(CONFIGURATION_DEFAULT_ADMIN_GROUP);
+                if (!userService.isUserMemberOfGroup(creator, adminGroup)) {
+                    List<String> userList = new ArrayList<String>();
+                    userList.add(securityService.getCurrentUser());
+                    Group group = groupService.getGroupByName(adminGroup);
+                    groupService.addGroupMembers(group.getId(), new ArrayList<Long>(), userList);
+                }
 
                 logger.debug("Loading configuration for site " + siteId);
                 reloadSiteConfiguration(siteId);
@@ -1112,10 +1121,14 @@ public class SiteServiceImpl implements SiteService {
                 addDefaultGroupsForNewSite(siteId);
 
                 // Add creator to admin group
-                List<String> userList = new ArrayList<String>();
-                userList.add(securityService.getCurrentUser());
-                // TODO: DB: FIGURE THIS OUT
-                groupService.addGroupMembers(1, new ArrayList<Long>(), userList);
+                String creator = securityService.getCurrentUser();
+                String adminGroup = studioConfiguration.getProperty(CONFIGURATION_DEFAULT_ADMIN_GROUP);
+                if (!userService.isUserMemberOfGroup(creator, adminGroup)) {
+                    List<String> userList = new ArrayList<String>();
+                    userList.add(securityService.getCurrentUser());
+                    Group group = groupService.getGroupByName(adminGroup);
+                    groupService.addGroupMembers(group.getId(), new ArrayList<Long>(), userList);
+                }
 
                 logger.debug("Loading configuration for site " + siteId);
                 reloadSiteConfiguration(siteId);
@@ -1871,11 +1884,11 @@ public class SiteServiceImpl implements SiteService {
     }
 
     public List<String> getDefaultGroups() {
-        return Arrays.asList(studioConfiguration.getProperty(CONFIGURATION_SITE_DEFAULT_GROUPS).split(","));
+        return Arrays.asList(studioConfiguration.getProperty(CONFIGURATION_DEFAULT_GROUPS).split(","));
     }
 
     public String getDefaultAdminGroup() {
-	    return studioConfiguration.getProperty(CONFIGURATION_SITE_DEFAULT_ADMIN_GROUP);
+	    return studioConfiguration.getProperty(CONFIGURATION_DEFAULT_ADMIN_GROUP);
     }
 
     /** getter site service dal */
@@ -2045,5 +2058,13 @@ public class SiteServiceImpl implements SiteService {
 
     public void setGroupService(GroupService groupService) {
         this.groupService = groupService;
+    }
+
+    public UserService getUserService() {
+        return userService;
+    }
+
+    public void setUserService(UserService userService) {
+        this.userService = userService;
     }
 }
