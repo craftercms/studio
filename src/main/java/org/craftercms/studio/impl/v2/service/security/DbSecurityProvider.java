@@ -57,6 +57,7 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.EXTERNALLY_MA
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.FIRST_NAME;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.GROUP_DESCRIPTION;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.GROUP_ID;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.GROUP_IDS;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.GROUP_NAME;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.GROUP_NAMES;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ID;
@@ -249,9 +250,9 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public void deleteGroup(long groupId) {
+    public void deleteGroup(List<Long> groupIds) {
         Map<String, Object> params = new HashMap<String, Object>();
-        params.put(ID, groupId);
+        params.put(GROUP_IDS, groupIds);
         groupMapper.deleteGroup(params);
     }
 

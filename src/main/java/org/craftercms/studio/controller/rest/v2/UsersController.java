@@ -16,7 +16,7 @@
  *
  */
 
-package org.craftercms.studio.controller.rest;
+package org.craftercms.studio.controller.rest.v2;
 
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
