@@ -38,6 +38,8 @@ public abstract class QueryParameterNames {
 
     // Group ID
     public static final String GROUP_ID = "groupId";
+    // Group IDs
+    public static final String GROUP_IDS = "groupIds";
     // Group name
     public static final String GROUP_NAME = "groupName";
     // Group names

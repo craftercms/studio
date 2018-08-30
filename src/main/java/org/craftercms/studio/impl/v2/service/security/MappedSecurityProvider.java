@@ -145,9 +145,9 @@ public class MappedSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public void deleteGroup(long groupId) {
+    public void deleteGroup(List<Long> groupIds) {
         SecurityProvider provider = lookupProvider(getProviderType());
-        provider.deleteGroup(groupId);
+        provider.deleteGroup(groupIds);
     }
 
     @Override

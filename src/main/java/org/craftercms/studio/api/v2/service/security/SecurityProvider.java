@@ -52,7 +52,7 @@ public interface SecurityProvider {
 
     void updateGroup(long orgId, Group group);
 
-    void deleteGroup(long groupId);
+    void deleteGroup(List<Long> groupIds);
 
     Group getGroup(long groupId);
 

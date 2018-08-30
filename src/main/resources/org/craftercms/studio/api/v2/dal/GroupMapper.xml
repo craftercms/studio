@@ -122,6 +122,13 @@
         SELECT * FROM `group` WHERE id = #{groupId}
     </select>
 
+    <delete id="deleteGroups" parameterType="java.util.Map">
+        DELETE FROM `group` WHERE id IN
+        <foreach collection="groupIds" item="groupId" index="index" separator="," open="(" close=")" >
+            #{groupId}
+        </foreach>
+    </delete>
+
     <select id="getGroupMembers" parameterType="java.util.Map" resultMap="UserMap">
         SELECT u.* FROM `user` u INNER JOIN `group_user` gu ON u.id = gu.user_id
         WHERE gu.group_id = #{groupId}
