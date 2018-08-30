@@ -662,7 +662,8 @@
     <!-- ////////////////////////////////////// -->
     <!--         Dependencies                   -->
     <!-- ////////////////////////////////////// -->
-    <bean id="studioDependencyResolver" class="org.craftercms.studio.impl.v1.service.dependency.RegexDependencyResolver">
+    <bean id="studioDependencyResolver"
+          class="org.craftercms.studio.impl.v1.service.dependency.RegexDependencyResolver">
         <property name="contentService" ref="cstudioContentService"/>
         <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
