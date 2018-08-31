@@ -71,8 +71,10 @@ public class UsersController {
      * @return Response containing list of users
      */
     @GetMapping("/api/2/users")
-    public StudioResponseBody getAllUsers(@RequestParam("siteId") String siteId, @RequestParam("offset") int offset,
-                                          @RequestParam("limit") int limit, @RequestParam("sort") String sort) {
+    public StudioResponseBody getAllUsers(@RequestParam(value = "siteId", required = false) String siteId,
+                                          @RequestParam(value = "offset", required = false) int offset,
+                                          @RequestParam(value = "limit", required = false) int limit,
+                                          @RequestParam(value = "sort", required = false) String sort) {
         List<User> users = userService.getAllUsersForSite(1, siteId, offset, limit, sort);
 
         StudioResponseBody responseBody = new StudioResponseBody();
@@ -135,8 +137,8 @@ public class UsersController {
      * @return Response object
      */
     @DeleteMapping("/api/2/users")
-    public StudioResponseBody deleteUser(@RequestParam("userId") List<Long> userIds,
-                           @RequestParam("username") List<String> usernames) {
+    public StudioResponseBody deleteUser(@RequestParam(value = "userId", required = false) List<Long> userIds,
+                           @RequestParam(value = "username", required = false) List<String> usernames) {
         userService.deleteUsers(userIds, usernames);
 
         StudioResponseBody responseBody = new StudioResponseBody();
@@ -153,7 +155,7 @@ public class UsersController {
      * @return Response containing user
      */
     @GetMapping("/api/2/users/{userId}")
-    public StudioResponseBody getUser(@PathVariable String userId) {
+    public StudioResponseBody getUser(@PathVariable("userId") String userId) {
         int uId = -1;
         String username = StringUtils.EMPTY;
         if (StringUtils.isNumeric(userId)) {
@@ -215,8 +217,10 @@ public class UsersController {
      * @return Response containing list of sites
      */
     @GetMapping("/api/2/users/{userId}/sites")
-    public StudioResponseBody getUserSites(@PathVariable String userId, @RequestParam int offset,
-                                           @RequestParam int limit, @RequestParam String sort) {
+    public StudioResponseBody getUserSites(@PathVariable("userId") String userId,
+                                           @RequestParam(value = "offset", required = false) int offset,
+                                           @RequestParam(value = "limit", required = false) int limit,
+                                           @RequestParam(value = "sort", required = false) String sort) {
         List<Site> sites = new ArrayList<Site>();
         Set<String> allSites = siteService.getAllAvailableSites();
         Map<String, List<String>> siteGroupsMap = new HashMap<String, List<String>>();
