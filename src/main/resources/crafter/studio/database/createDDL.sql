@@ -246,25 +246,22 @@ CREATE TABLE IF NOT EXISTS `group`
   ROW_FORMAT = DYNAMIC ;
 
 INSERT IGNORE INTO `group` (id, record_last_updated, org_id, group_name, group_description)
-VALUES (1, CURRENT_TIMESTAMP, 1, 'crafter-admin', 'Crafter Administrator group') ;
+VALUES (1, CURRENT_TIMESTAMP, 1, 'org-admin', 'Organization Administrator group') ;
 
 INSERT IGNORE INTO `group` (id, record_last_updated, org_id, group_name, group_description)
-VALUES (2, CURRENT_TIMESTAMP, 1, 'crafter-create-sites', 'Crafter Create Sites group') ;
+VALUES (2, CURRENT_TIMESTAMP, 1, 'site_admin', 'Site Administrator group') ;
 
 INSERT IGNORE INTO `group` (id, record_last_updated, org_id, group_name, group_description)
-VALUES (3, CURRENT_TIMESTAMP, 1, 'Admin', 'Administrator group') ;
+VALUES (3, CURRENT_TIMESTAMP, 1, 'site_author', 'Site Author group') ;
 
 INSERT IGNORE INTO `group` (id, record_last_updated, org_id, group_name, group_description)
-VALUES (4, CURRENT_TIMESTAMP, 1, 'Author', 'Author group') ;
+VALUES (4, CURRENT_TIMESTAMP, 1, 'site_publisher', 'Site Publisher group') ;
 
 INSERT IGNORE INTO `group` (id, record_last_updated, org_id, group_name, group_description)
-VALUES (5, CURRENT_TIMESTAMP, 1, 'Publisher', 'Publisher group') ;
+VALUES (5, CURRENT_TIMESTAMP, 1, 'site_developer', 'Site Developer group') ;
 
 INSERT IGNORE INTO `group` (id, record_last_updated, org_id, group_name, group_description)
-VALUES (6, CURRENT_TIMESTAMP, 1, 'Developer', 'Developer group') ;
-
-INSERT IGNORE INTO `group` (id, record_last_updated, org_id, group_name, group_description)
-VALUES (7, CURRENT_TIMESTAMP, 1, 'Reviewer', 'Reviewer group') ;
+VALUES (6, CURRENT_TIMESTAMP, 1, 'site_reviewer', 'Site Reviewer group') ;
 
 CREATE TABLE IF NOT EXISTS group_user
 (
@@ -321,5 +318,4 @@ INSERT IGNORE INTO site (site_id, name, description, system)
 VALUES ('studio_root', 'Studio Root', 'Studio Root for global permissions', 1) ;
 
 INSERT IGNORE INTO group_user (user_id, group_id) VALUES (1, 1) ;
-INSERT IGNORE INTO group_user (user_id, group_id) VALUES (1, 2) ;
 
