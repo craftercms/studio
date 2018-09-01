@@ -1,4 +1,4 @@
-ALTER TABLE `remote_repository` DROP COLUMN `remote_branch` ;
+ALTER TABLE `remote_repository` DROP COLUMN IF EXISTS `remote_branch` ;
 
 UPDATE `audit` SET `source` = 'API' WHERE `source` = 'UI' ;
 
