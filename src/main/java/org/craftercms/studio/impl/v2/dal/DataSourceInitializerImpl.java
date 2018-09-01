@@ -31,7 +31,7 @@ import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.StudioXmlConstants;
 import org.craftercms.commons.entitlements.validator.DbIntegrityValidator;
-import org.craftercms.studio.api.v1.dal.DataSourceInitializer;
+import org.craftercms.studio.api.v2.dal.DataSourceInitializer;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.DatabaseUpgradeUnsupportedVersionException;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -351,14 +351,12 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
                     }
 
                     writeToRepo(siteId, siteRoleMappingsConfigFullPath, IOUtils.toInputStream(document.asXML()));
-                    //contentRepository.writeContent(siteId, siteRoleMappingsConfigFullPath, IOUtils.toInputStream(
-                    //        document.asXML()));
 
                 } else {
                     logger.error("Permission mapping not found for " + siteId + ":" + filename);
                 }
             } catch (DocumentException e) {
-                e.printStackTrace();
+                logger.error("Error while reading permission mapping for " + siteId + ":" + filename);
             } finally {
                 try {
                     if (is != null) {

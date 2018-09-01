@@ -1,6 +1,5 @@
 /*
- * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2016 Crafter Software Corporation.
+ * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,7 +16,7 @@
  *
  */
 
-package org.craftercms.studio.api.v1.dal;
+package org.craftercms.studio.api.v2.dal;
 
 import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.studio.api.v1.exception.DatabaseUpgradeUnsupportedVersionException;
