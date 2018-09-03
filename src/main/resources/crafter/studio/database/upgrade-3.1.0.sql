@@ -1,5 +1,5 @@
 UPDATE `group`
-SET group_name = 'org_admin', group_description = 'Organization Administrator group'
+SET group_name = 'system_admin', group_description = 'System Administrator group'
 WHERE group_name = 'crafter-admin' ;
 
 UPDATE `group`

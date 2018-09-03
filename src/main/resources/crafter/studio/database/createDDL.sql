@@ -191,8 +191,8 @@ CREATE TABLE IF NOT EXISTS `user`
 
 INSERT IGNORE INTO `user` (id, record_last_updated, username, password, first_name, last_name,
                            externally_managed, timezone, locale, email, enabled)
-VALUES (1, CURRENT_TIMESTAMP, 'admin', 'vTwNOJ8GJdyrP7rrvQnpwsd2hCV1xRrJdTX2sb51i+w=|R68ms0Od3AngQMdEeKY6lA==',
-        'admin', 'admin', 0, 'EST5EDT', 'en/US', 'evaladmin@example.com', 1) ;
+VALUES (1, CURRENT_TIMESTAMP, 'sysadmin', 'vTwNOJ8GJdyrP7rrvQnpwsd2hCV1xRrJdTX2sb51i+w=|R68ms0Od3AngQMdEeKY6lA==',
+        'sysadmin', 'sysadmin', 0, 'EST5EDT', 'en/US', 'evaladmin@example.com', 1) ;
 
 CREATE TABLE IF NOT EXISTS `organization`
 (
@@ -246,7 +246,7 @@ CREATE TABLE IF NOT EXISTS `group`
   ROW_FORMAT = DYNAMIC ;
 
 INSERT IGNORE INTO `group` (id, record_last_updated, org_id, group_name, group_description)
-VALUES (1, CURRENT_TIMESTAMP, 1, 'org_admin', 'Organization Administrator group') ;
+VALUES (1, CURRENT_TIMESTAMP, 1, 'system_admin', 'System Administrator group') ;
 
 INSERT IGNORE INTO `group` (id, record_last_updated, org_id, group_name, group_description)
 VALUES (2, CURRENT_TIMESTAMP, 1, 'site_admin', 'Site Administrator group') ;
