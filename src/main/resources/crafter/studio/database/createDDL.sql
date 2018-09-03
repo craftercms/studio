@@ -246,7 +246,7 @@ CREATE TABLE IF NOT EXISTS `group`
   ROW_FORMAT = DYNAMIC ;
 
 INSERT IGNORE INTO `group` (id, record_last_updated, org_id, group_name, group_description)
-VALUES (1, CURRENT_TIMESTAMP, 1, 'org-admin', 'Organization Administrator group') ;
+VALUES (1, CURRENT_TIMESTAMP, 1, 'org_admin', 'Organization Administrator group') ;
 
 INSERT IGNORE INTO `group` (id, record_last_updated, org_id, group_name, group_description)
 VALUES (2, CURRENT_TIMESTAMP, 1, 'site_admin', 'Site Administrator group') ;
