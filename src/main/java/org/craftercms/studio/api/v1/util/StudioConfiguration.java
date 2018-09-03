@@ -128,7 +128,6 @@ public interface StudioConfiguration {
     String SECURITY_FORGOT_PASSWORD_EMAIL_TEMPLATE = "studio.security.forgotPassword.email.template";
     String SECURITY_FORGOT_PASSWORD_TOKEN_TIMEOUT = "studio.security.forgotPassword.token.timeout";
     String SECURITY_RESET_PASSWORD_SERVICE_URL = "studio.security.resetPassword.serviceUrl";
-    String SECURITY_GLOBAL_ADMIN_GROUP = "studio.security.global.adminGroup";
 
     /** LDAP */
     String SECURITY_LDAP_SERVER_URL = "studio.security.ldap.serverUrl";
@@ -139,16 +138,10 @@ public interface StudioConfiguration {
     String SECURITY_LDAP_USER_ATTRIBUTE_FIRST_NAME = "studio.security.ldap.userAttribute.firstName";
     String SECURITY_LDAP_USER_ATTRIBUTE_LAST_NAME = "studio.security.ldap.userAttribute.lastName";
     String SECURITY_LDAP_USER_ATTRIBUTE_EMAIL = "studio.security.ldap.userAttribute.email";
-    String SECURITY_LDAP_USER_ATTRIBUTE_SITE_ID = "studio.security.ldap.userAttribute.siteId";
-    String SECURITY_LDAP_USER_ATTRIBUTE_SITE_ID_REGEX = "studio.security.ldap.userAttribute.siteId.regex";
-    String SECURITY_LDAP_USER_ATTRIBUTE_SITE_ID_MATCH_INDEX = "studio.security.ldap.userAttribute.siteId.matchIndex";
-    String SECURITY_LDAP_USER_ATTRIBUTE_SITE_ID_GROUP_NAME_MATCH_INDEX =
-            "studio.security.ldap.userAttribute.siteId.groupName.matchIndex";
     String SECURITY_LDAP_USER_ATTRIBUTE_GROUP_NAME = "studio.security.ldap.userAttribute.groupName";
     String SECURITY_LDAP_USER_ATTRIBUTE_GROUP_NAME_REGEX = "studio.security.ldap.userAttribute.groupName.regex";
     String SECURITY_LDAP_USER_ATTRIBUTE_GROUP_NAME_MATCH_INDEX =
             "studio.security.ldap.userAttribute.groupName.matchIndex";
-    String SECURITY_LDAP_DEFAULT_SITE_ID = "studio.security.ldap.defaultSiteId";
 
     /** Authentication headers **/
     String AUTHENTICATION_HEADERS_ENABLED = "studio.authentication.headers.enabled";
