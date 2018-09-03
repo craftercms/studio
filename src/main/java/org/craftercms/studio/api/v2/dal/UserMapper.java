@@ -32,6 +32,14 @@ public interface UserMapper {
     List<UserDAO> getAllUsersForSite(Map params);
 
     /**
+     * Get all users
+     *
+     * @param params SQL query parameters
+     * @return List of users
+     */
+    List<UserDAO> getAllUsers(Map params);
+
+    /**
      * Create user
      *
      * @param params SQL query parameters
@@ -86,6 +94,13 @@ public interface UserMapper {
      * @return List of groups
      */
     List<GroupDAO> getUserGroups(Map params);
+
+    /**
+     * Get total number of users
+     *
+     * @return
+     */
+    int getAllUsersForSiteTotal(Map params);
 
     /**
      * Get total number of users

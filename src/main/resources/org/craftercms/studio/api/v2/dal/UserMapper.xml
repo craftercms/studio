@@ -62,6 +62,13 @@
         ORDER BY #{sort}
         LIMIT #{offset}, #{limit}
     </select>
+
+    <select id="getAllUsers" parameterType="java.util.Map" resultMap="UserMap">
+        SELECT u.*
+        FROM `user` u
+        ORDER BY #{sort}
+        LIMIT #{offset}, #{limit}
+    </select>
     
     <insert id="createUser" parameterType="java.util.Map">
         INSERT INTO `user` (record_last_updated, username, password, first_name, last_name,
@@ -116,6 +123,16 @@
         FROM ((`group` g INNER JOIN `group_user` gu ON gu.group_id = g.id)
           INNER JOIN `user` u ON gu.user_id = u.id)
         WHERE u.id = #{userId} OR u.username = #{username}
+    </select>
+
+    <select id="getAllUsersForSiteTotal" parameterType="java.util.Map" resultType="Integer">
+        SELECT count(1)
+        FROM ((`user` u INNER JOIN `group_user` gu ON gu.user_id = u.id)
+        INNER JOIN `group` g ON gu.group_id = g.id)
+        WHERE g.group_name IN
+        <foreach collection="groupNames" index="index" separator="," item="groupName" open="(" close=")">
+            #{groupName}
+        </foreach>
     </select>
 
     <select id="getAllUsersTotal" resultType="int" parameterType="java.util.Map">
