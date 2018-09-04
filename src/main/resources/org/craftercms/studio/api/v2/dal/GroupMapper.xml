@@ -96,6 +96,11 @@
         LIMIT #{offset}, #{limit}
     </select>
 
+    <select id="getAllGroupsForOrganizationTotal" resultType="Integer" parameterType="java.util.Map">
+        SELECT count(1) FROM `group`
+        WHERE org_id = #{orgId}
+    </select>
+
     <select id="selectOrganizationById" resultMap="OrganizationMap">
             SELECT * FROM organization where id = #{id}
     </select>

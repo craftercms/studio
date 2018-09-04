@@ -51,6 +51,7 @@ import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATIO
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.GROUP_NAME;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ORG_ID;
 
 public class GroupServiceImpl implements GroupService {
 
@@ -64,6 +65,13 @@ public class GroupServiceImpl implements GroupService {
     @Override
     public List<Group> getAllGroups(long orgId, int offset, int limit, String sort) {
         return securityProvider.getAllGroups(orgId, offset, limit, sort);
+    }
+
+    @Override
+    public int getAllGroupsTotal(long orgId) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put(ORG_ID, orgId);
+        return groupMapper.getAllGroupsForOrganizationTotal(params);
     }
 
     @Override

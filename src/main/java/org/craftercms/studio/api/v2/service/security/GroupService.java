@@ -39,6 +39,14 @@ public interface GroupService {
     List<Group> getAllGroups(long orgId, int offset, int limit, String sort);
 
     /**
+     * Get total number of all groups
+     *
+     * @param orgId Organization identifier
+     * @return Number of groups
+     */
+    int getAllGroupsTotal(long orgId);
+
+    /**
      * Create group
      *
      * @param orgId Organization identifier
