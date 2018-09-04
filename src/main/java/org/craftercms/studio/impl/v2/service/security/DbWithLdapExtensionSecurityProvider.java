@@ -31,9 +31,8 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.activity.ActivityService;
-import org.craftercms.studio.api.v2.dal.GroupDAO;
-import org.craftercms.studio.api.v2.dal.UserDAO;
-import org.craftercms.studio.api.v2.dal.UserGroup;
+import org.craftercms.studio.api.v2.dal.GroupTO;
+import org.craftercms.studio.api.v2.dal.UserGroupTO;
 import org.craftercms.studio.model.User;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.ldap.AuthenticationException;
@@ -79,9 +78,9 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
             throws BadCredentialsException, AuthenticationSystemException, EntitlementException {
 
         // Mapper for user data if user is successfully authenticated
-        AuthenticatedLdapEntryContextMapper<UserDAO> mapper = new AuthenticatedLdapEntryContextMapper<UserDAO>() {
+        AuthenticatedLdapEntryContextMapper<UserTO> mapper = new AuthenticatedLdapEntryContextMapper<UserTO>() {
             @Override
-            public UserDAO mapWithContext(DirContext dirContext, LdapEntryIdentification ldapEntryIdentification) {
+            public UserTO mapWithContext(DirContext dirContext, LdapEntryIdentification ldapEntryIdentification) {
                 try {
                     // User entry - extract attributes
                     DirContextOperations dirContextOperations =
@@ -99,9 +98,9 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
                     Attribute groupNameAttrib = attributes.get(groupNameAttribName);
 
 
-                    UserDAO userDao = new UserDAO();
-                    userDao.setActive(1);
-                    userDao.setUsername(username);
+                    UserTO user = new UserTO();
+                    user.setEnabled(true);
+                    user.setUsername(username);
 
                     if (emailAttrib != null && emailAttrib.get() != null) {
                         userDao.setEmail(emailAttrib.get().toString());
@@ -293,11 +292,11 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
         }
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(GROUP_NAME, groupName);
-        GroupDAO groupDAO = groupMapper.getGroupByName(params);
-        if (groupDAO != null) {
+        GroupTO groupTO = groupMapper.getGroupByName(params);
+        if (groupTO != null) {
             List<String> usernames = new ArrayList<String>();
             usernames.add(username);
-            boolean success = addGroupMembers(groupDAO.getId(), new ArrayList<Long>(), usernames);
+            boolean success = addGroupMembers(groupTO.getId(), new ArrayList<Long>(), usernames);
             if (success){
                 ActivityService.ActivityType activityType = ActivityService.ActivityType.ADD_USER_TO_GROUP;
                 Map<String, String> extraInfo = new HashMap<>();

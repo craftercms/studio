@@ -33,9 +33,9 @@ import org.craftercms.studio.api.v1.exception.security.UserExternallyManagedExce
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.job.CronJobContext;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
-import org.craftercms.studio.api.v2.dal.GroupDAO;
+import org.craftercms.studio.api.v2.dal.GroupTO;
 import org.craftercms.studio.api.v2.dal.GroupMapper;
-import org.craftercms.studio.api.v2.dal.UserDAO;
+import org.craftercms.studio.api.v2.dal.UserTO;
 import org.craftercms.studio.api.v2.dal.UserMapper;
 import org.craftercms.studio.api.v2.service.security.SecurityProvider;
 import org.craftercms.studio.impl.v1.util.SessionTokenUtils;
@@ -87,17 +87,17 @@ public class DbSecurityProvider implements SecurityProvider {
         params.put(OFFSET, offset);
         params.put(LIMIT, limit);
         params.put(SORT, "");
-        List<UserDAO> userDAOS = userMapper.getAllUsersForSite(params);
+        List<UserTO> userTOS = userMapper.getAllUsersForSite(params);
         List<User> users = new ArrayList<User>();
-        userDAOS.forEach(userDAO -> {
+        userTOS.forEach(userTO -> {
             User u = new User();
-            u.setId(userDAO.getId());
-            u.setUsername(userDAO.getUsername());
-            u.setFirstName(userDAO.getFirstName());
-            u.setLastName(userDAO.getLastName());
-            u.setEmail(userDAO.getEmail());
-            u.setEnabled(userDAO.isEnabled());
-            u.setExternallyManaged(userDAO.getExternallyManaged() != 0);
+            u.setId(userTO.getId());
+            u.setUsername(userTO.getUsername());
+            u.setFirstName(userTO.getFirstName());
+            u.setLastName(userTO.getLastName());
+            u.setEmail(userTO.getEmail());
+            u.setEnabled(userTO.isEnabled());
+            u.setExternallyManaged(userTO.getExternallyManaged() != 0);
             users.add(u);
         });
 
@@ -157,7 +157,7 @@ public class DbSecurityProvider implements SecurityProvider {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(USER_ID, userId);
         params.put(USERNAME, username);
-        UserDAO uDAO = userMapper.getUserByIdOrUsername(params);
+        UserTO uDAO = userMapper.getUserByIdOrUsername(params);
         User user = new User();
         if (uDAO != null) {
             user.setId(uDAO.getId());
@@ -193,7 +193,7 @@ public class DbSecurityProvider implements SecurityProvider {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(USER_ID, userId);
         params.put(USERNAME, username);
-        List<GroupDAO> gDAOs = userMapper.getUserGroups(params);
+        List<GroupTO> gDAOs = userMapper.getUserGroups(params);
         List<Group> userGroups = new ArrayList<Group>();
         gDAOs.forEach(g -> {
             Group group = new Group();
@@ -213,7 +213,7 @@ public class DbSecurityProvider implements SecurityProvider {
         params.put(OFFSET, offset);
         params.put(LIMIT, limit);
         params.put(SORT, sort);
-        List<GroupDAO> groups = groupMapper.getAllGroupsForOrganization(params);
+        List<GroupTO> groups = groupMapper.getAllGroupsForOrganization(params);
 
         List<Group> toRet = new ArrayList<Group>();
         groups.forEach(g -> {
@@ -260,7 +260,7 @@ public class DbSecurityProvider implements SecurityProvider {
     public Group getGroup(long groupId) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(GROUP_ID, groupId);
-        GroupDAO gDAL = groupMapper.getGroup(params);
+        GroupTO gDAL = groupMapper.getGroup(params);
         Group toRet = new Group();
         toRet.setId(gDAL.getId());
         toRet.setName(gDAL.getGroupName());
@@ -275,7 +275,7 @@ public class DbSecurityProvider implements SecurityProvider {
         params.put(OFFSET, offset);
         params.put(LIMIT, limit);
         params.put(SORT, sort);
-        List<UserDAO> uDAOs = groupMapper.getGroupMembers(params);
+        List<UserTO> uDAOs = groupMapper.getGroupMembers(params);
         List<User> toRet = new ArrayList<User>();
         uDAOs.forEach(u -> {
             User user = new User();
@@ -362,7 +362,7 @@ public class DbSecurityProvider implements SecurityProvider {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(USER_ID, -1);
         params.put(USERNAME, username);
-        UserDAO user = userMapper.getUserByIdOrUsername(params);
+        UserTO user = userMapper.getUserByIdOrUsername(params);
         if (user != null && user.isEnabled() && CryptoUtils.matchPassword(user.getPassword(), password)) {
             String token = createToken(user);
             storeSessionTicket(token);
@@ -373,7 +373,7 @@ public class DbSecurityProvider implements SecurityProvider {
         }
     }
 
-    protected String createToken(UserDAO user) {
+    protected String createToken(UserTO user) {
         int timeout = Integer.parseInt(studioConfiguration.getProperty(SECURITY_SESSION_TIMEOUT));
         String token = SessionTokenUtils.createToken(user.getUsername(), timeout);
         return token;
@@ -461,7 +461,7 @@ public class DbSecurityProvider implements SecurityProvider {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(USER_ID, -1);
         params.put(USERNAME, username);
-        UserDAO user = userMapper.getUserByIdOrUsername(params);
+        UserTO user = userMapper.getUserByIdOrUsername(params);
         if (user.getExternallyManaged() > 0) {
             throw new UserExternallyManagedException();
         } else {
@@ -487,7 +487,7 @@ public class DbSecurityProvider implements SecurityProvider {
             Map<String, Object> params = new HashMap<String, Object>();
             params.put(USER_ID, -1);
             params.put(USERNAME, username);
-            UserDAO user = userMapper.getUserByIdOrUsername(params);
+            UserTO user = userMapper.getUserByIdOrUsername(params);
             if (user.getExternallyManaged() > 0) {
                 throw new UserExternallyManagedException();
             } else {

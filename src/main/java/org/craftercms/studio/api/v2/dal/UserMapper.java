@@ -29,7 +29,7 @@ public interface UserMapper {
      * @param params SQL query parameters
      * @return List of users
      */
-    List<UserDAO> getAllUsersForSite(Map params);
+    List<UserTO> getAllUsersForSite(Map params);
 
     /**
      * Get all users
@@ -77,7 +77,7 @@ public interface UserMapper {
      * @param params SQL query parameters
      * @return
      */
-    UserDAO getUserByIdOrUsername(Map params);
+    UserTO getUserByIdOrUsername(Map params);
 
     /**
      * Enable/disable users
@@ -93,7 +93,7 @@ public interface UserMapper {
      * @param params SQL query parameters
      * @return List of groups
      */
-    List<GroupDAO> getUserGroups(Map params);
+    List<GroupTO> getUserGroups(Map params);
 
     /**
      * Get total number of users

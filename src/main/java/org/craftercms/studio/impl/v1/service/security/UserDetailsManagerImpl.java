@@ -19,7 +19,7 @@
 package org.craftercms.studio.impl.v1.service.security;
 
 import org.craftercms.studio.api.v1.service.security.UserDetailsManager;
-import org.craftercms.studio.api.v2.dal.UserDAO;
+import org.craftercms.studio.api.v2.dal.UserTO;
 import org.craftercms.studio.api.v2.dal.UserMapper;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -38,7 +38,7 @@ public class UserDetailsManagerImpl implements UserDetailsManager {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(USER_ID, -1);
         params.put(USERNAME, username);
-        UserDAO user = userMapper.getUserByIdOrUsername(params);
+        UserTO user = userMapper.getUserByIdOrUsername(params);
         return user;
     }
 

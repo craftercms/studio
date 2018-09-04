@@ -18,32 +18,22 @@
 
 package org.craftercms.studio.api.v2.dal;
 
-import org.springframework.security.core.GrantedAuthority;
-
 import java.io.Serializable;
 import java.time.ZonedDateTime;
 
-public class GroupDAO implements Serializable, GrantedAuthority {
+public class UserGroupTO implements Serializable {
 
-    private static final long serialVersionUID = 4723035066512137838L;
+    private static final long serialVersionUID = -1030917735504714929L;
 
-    private long id;
+    private GroupTO group;
     private ZonedDateTime recordLastUpdated;
-    private Organization organization;
-    private String groupName;
-    private String groupDescription;
 
-    @Override
-    public String getAuthority() {
-        return groupName;
+    public GroupTO getGroup() {
+        return group;
     }
 
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
+    public void setGroup(GroupTO group) {
+        this.group = group;
     }
 
     public ZonedDateTime getRecordLastUpdated() {
@@ -52,29 +42,5 @@ public class GroupDAO implements Serializable, GrantedAuthority {
 
     public void setRecordLastUpdated(ZonedDateTime recordLastUpdated) {
         this.recordLastUpdated = recordLastUpdated;
-    }
-
-    public Organization getOrganization() {
-        return organization;
-    }
-
-    public void setOrganization(Organization organization) {
-        this.organization = organization;
-    }
-
-    public String getGroupName() {
-        return groupName;
-    }
-
-    public void setGroupName(String groupName) {
-        this.groupName = groupName;
-    }
-
-    public String getGroupDescription() {
-        return groupDescription;
-    }
-
-    public void setGroupDescription(String groupDescription) {
-        this.groupDescription = groupDescription;
     }
 }
