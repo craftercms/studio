@@ -71,7 +71,7 @@ public class GroupServiceImpl implements GroupService {
     public int getAllGroupsTotal(long orgId) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(ORG_ID, orgId);
-        return groupMapper.getAllGroupsForOrganizationTotal(params);
+        return groupDAO.getAllGroupsForOrganizationTotal(params);
     }
 
     @Override

@@ -37,7 +37,7 @@ public interface UserDAO {
      * @param params SQL query parameters
      * @return List of users
      */
-    List<UserDAO> getAllUsers(Map params);
+    List<UserTO> getAllUsers(Map params);
 
     /**
      * Create user

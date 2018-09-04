@@ -21,21 +21,24 @@ package org.craftercms.studio.impl.v2.service.security;
 import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v2.dal.GroupDAO;
-import org.craftercms.studio.api.v2.dal.QueryParameterNames;
 import org.craftercms.studio.api.v2.dal.UserDAO;
-import org.craftercms.studio.api.v2.dal.UserMapper;
+import org.craftercms.studio.api.v2.dal.UserTO;
 import org.craftercms.studio.api.v2.service.security.GroupService;
 import org.craftercms.studio.api.v2.service.security.SecurityProvider;
 import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.model.Group;
 import org.craftercms.studio.model.User;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.GROUP_NAME;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.GROUP_NAMES;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LIMIT;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.OFFSET;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SORT;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USERNAME;
 
 public class UserServiceImpl implements UserService {
@@ -58,17 +61,17 @@ public class UserServiceImpl implements UserService {
         params.put(OFFSET, offset);
         params.put(LIMIT, limit);
         params.put(SORT, sort);
-        List<UserDAO> userDaos = userMapper.getAllUsers(params);
+        List<UserTO> userTOs = userDAO.getAllUsers(params);
         List<User> users = new ArrayList<User>();
-        userDaos.forEach(userDAO -> {
+        userTOs.forEach(userTO -> {
             User u = new User();
-            u.setId(userDAO.getId());
-            u.setUsername(userDAO.getUsername());
-            u.setFirstName(userDAO.getFirstName());
-            u.setLastName(userDAO.getLastName());
-            u.setEmail(userDAO.getEmail());
-            u.setEnabled(userDAO.isEnabled());
-            u.setExternallyManaged(userDAO.getExternallyManaged() != 0);
+            u.setId(userTO.getId());
+            u.setUsername(userTO.getUsername());
+            u.setFirstName(userTO.getFirstName());
+            u.setLastName(userTO.getLastName());
+            u.setEmail(userTO.getEmail());
+            u.setEnabled(userTO.isEnabled());
+            u.setExternallyManaged(userTO.getExternallyManaged() != 0);
             users.add(u);
         });
         return users;
@@ -79,12 +82,12 @@ public class UserServiceImpl implements UserService {
         List<String> groupNames = groupService.getSiteGroups(siteId);
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(GROUP_NAMES, groupNames);
-        return userMapper.getAllUsersForSiteTotal(params);
+        return userDAO.getAllUsersForSiteTotal(params);
     }
 
     @Override
     public int getAllUsersTotal() {
-        return userMapper.getAllUsersTotal();
+        return userDAO.getAllUsersTotal();
     }
 
     @Override

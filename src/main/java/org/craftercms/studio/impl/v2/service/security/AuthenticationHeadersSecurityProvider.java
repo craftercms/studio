@@ -23,7 +23,6 @@ import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.commons.http.RequestContext;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
-import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationSystemException;
 import org.craftercms.studio.api.v1.exception.security.BadCredentialsException;
 import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
@@ -33,6 +32,7 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.activity.ActivityService;
 import org.craftercms.studio.api.v2.dal.GroupTO;
 import org.craftercms.studio.api.v2.dal.UserGroupTO;
+import org.craftercms.studio.api.v2.dal.UserTO;
 import org.craftercms.studio.model.User;
 
 import javax.servlet.http.HttpServletRequest;
@@ -122,11 +122,11 @@ public class AuthenticationHeadersSecurityProvider extends DbWithLdapExtensionSe
                         }
                     }
 
-                    User user = new User();
-                    user.setUsername(usernameHeader);
-                    user.setFirstName(firstName);
-                    user.setLastName(lastName);
-                    user.setEmail(email);
+                    UserTO userTO = new UserTO();
+                    userTO.setUsername(usernameHeader);
+                    userTO.setFirstName(firstName);
+                    userTO.setLastName(lastName);
+                    userTO.setEmail(email);
                     //user.setGroups(new ArrayList<UserGroup>());
 
                     logger.debug("Update user groups in database.");
@@ -139,12 +139,12 @@ public class AuthenticationHeadersSecurityProvider extends DbWithLdapExtensionSe
                                 g.setOrganization(null);
                                 UserGroupTO ug = new UserGroupTO();
                                 ug.setGroup(g);
-                                user.getGroups().add(ug);
-                                upsertUserGroup(siteId, g.getGroupName(), usernameHeader);
+                                userTO.getGroups().add(ug);
+                                upsertUserGroup(g.getGroupName(), usernameHeader);
                             }
                     }
 
-                    String token = createToken(user);
+                    String token = createToken(userTO);
                     storeSessionTicket(token);
                     storeSessionUsername(username);
                     return token;
