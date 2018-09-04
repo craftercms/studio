@@ -22,7 +22,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
-import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationSystemException;
 import org.craftercms.studio.api.v1.exception.security.BadCredentialsException;
@@ -263,7 +262,9 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
 
         UserGroup userGroup = new UserGroup();
         userGroup.setGroup(group);
-
+        if (userDao.getGroups() == null) {
+            userDao.setGroups(new ArrayList<UserGroup>());
+        }
         userDao.getGroups().add(userGroup);
     }
 

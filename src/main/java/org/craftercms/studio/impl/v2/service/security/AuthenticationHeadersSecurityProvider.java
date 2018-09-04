@@ -23,7 +23,6 @@ import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.commons.http.RequestContext;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
-import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationSystemException;
 import org.craftercms.studio.api.v1.exception.security.BadCredentialsException;
 import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
@@ -134,24 +133,17 @@ public class AuthenticationHeadersSecurityProvider extends DbWithLdapExtensionSe
                     logger.debug("Update user groups in database.");
                     if (StringUtils.isNoneEmpty(groups)) {
                         String[] groupsArray = groups.split(",");
-                        if (groupsArray.length % 2 == 0) {
-                            for (int i = 0; i < groupsArray.length; i += 2) {
-                                String siteId = groupsArray[i];
-                                Map<String, Object> params = new HashMap<String, Object>();
-                                params.put("siteId", siteId);
-                                SiteFeed siteFeed = siteFeedMapper.getSite(params);
-                                if (siteFeed != null) {
-                                    GroupDAO g = new GroupDAO();
-                                    g.setGroupName(groupsArray[i + 1]);
-                                    g.setGroupDescription("Externally managed group");
-                                    g.setOrganization(null);
-                                    UserGroup ug = new UserGroup();
-                                    ug.setGroup(g);
-                                    userDao.getGroups().add(ug);
-                                    upsertUserGroup(g.getGroupName(), usernameHeader);
-                                }
-                            }
+                        for (int i = 0; i < groupsArray.length; i++) {
+                            GroupDAO g = new GroupDAO();
+                            g.setGroupName(StringUtils.trim(groupsArray[i]));
+                            g.setGroupDescription("Externally managed group");
+                            g.setOrganization(null);
+                            UserGroup ug = new UserGroup();
+                            ug.setGroup(g);
+                            userDao.getGroups().add(ug);
+                            upsertUserGroup(g.getGroupName(), usernameHeader);
                         }
+
                     }
 
                     String token = createToken(userDao);
