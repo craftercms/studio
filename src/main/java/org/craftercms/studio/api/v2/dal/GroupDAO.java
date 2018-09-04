@@ -21,7 +21,7 @@ package org.craftercms.studio.api.v2.dal;
 import java.util.List;
 import java.util.Map;
 
-public interface GroupMapper {
+public interface GroupDAO {
 
     /**
      * Get all groups for given organization

@@ -27,7 +27,7 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.GroupTO;
-import org.craftercms.studio.api.v2.dal.GroupMapper;
+import org.craftercms.studio.api.v2.dal.GroupDAO;
 import org.craftercms.studio.api.v2.service.security.GroupService;
 import org.craftercms.studio.api.v2.service.security.SecurityProvider;
 import org.craftercms.studio.model.Group;
@@ -57,7 +57,7 @@ public class GroupServiceImpl implements GroupService {
 
     private static final Logger logger = LoggerFactory.getLogger(GroupServiceImpl.class);
 
-    private GroupMapper groupMapper;
+    private GroupDAO groupDAO;
     private StudioConfiguration studioConfiguration;
     private ContentService contentService;
     private SecurityProvider securityProvider;
@@ -194,7 +194,7 @@ public class GroupServiceImpl implements GroupService {
     public Group getGroupByName(String groupName) throws GroupNotFoundException {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(GROUP_NAME, groupName);
-        GroupTO groupTO = groupMapper.getGroupByName(params);
+        GroupTO groupTO = groupDAO.getGroupByName(params);
         if (groupTO != null) {
             Group g = new Group();
             g.setId(groupTO.getId());
@@ -206,12 +206,12 @@ public class GroupServiceImpl implements GroupService {
         }
     }
 
-    public GroupMapper getGroupMapper() {
-        return groupMapper;
+    public GroupDAO getGroupDAO() {
+        return groupDAO;
     }
 
-    public void setGroupMapper(GroupMapper groupMapper) {
-        this.groupMapper = groupMapper;
+    public void setGroupDAO(GroupDAO groupDAO) {
+        this.groupDAO = groupDAO;
     }
 
     public StudioConfiguration getStudioConfiguration() {

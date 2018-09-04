@@ -20,7 +20,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="org.craftercms.studio.api.v2.dal.SecurityMapper">
+<mapper namespace="org.craftercms.studio.api.v2.dal.SecurityDAO">
 
     <resultMap id="UserMap" type="org.craftercms.studio.api.v2.dal.UserTO">
         <id property="id" column="id"/>

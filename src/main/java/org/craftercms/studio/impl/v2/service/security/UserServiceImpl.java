@@ -42,7 +42,7 @@ public class UserServiceImpl implements UserService {
 
     private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 
-    private UserMapper userMapper;
+    private UserDAO userDAO;
     private GroupService groupService;
     private SecurityProvider securityProvider;
 
@@ -122,16 +122,16 @@ public class UserServiceImpl implements UserService {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(GROUP_NAME, groupName);
         params.put(USERNAME, username);
-        int result = userMapper.isUserMemberOfGroup(params);
+        int result = userDAO.isUserMemberOfGroup(params);
         return result > 0;
     }
 
-    public UserMapper getUserMapper() {
-        return userMapper;
+    public UserDAO getUserDAO() {
+        return userDAO;
     }
 
-    public void setUserMapper(UserMapper userMapper) {
-        this.userMapper = userMapper;
+    public void setUserDAO(UserDAO userDAO) {
+        this.userDAO = userDAO;
     }
 
     public GroupService getGroupService() {

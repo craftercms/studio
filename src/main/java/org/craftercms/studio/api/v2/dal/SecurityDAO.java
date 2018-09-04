@@ -25,7 +25,7 @@ import org.craftercms.studio.api.v1.dal.UserProfileResult;
 import java.util.List;
 import java.util.Map;
 
-public interface SecurityMapper {
+public interface SecurityDAO {
 
     UserTO getUser(String username);
 
