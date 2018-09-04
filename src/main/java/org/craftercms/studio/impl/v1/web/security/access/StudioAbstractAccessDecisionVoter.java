@@ -39,8 +39,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.ORGANIZATION_ADMIN_GROUP;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_DEFAULT_ADMIN_GROUP;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_GLOBAL_ADMIN_GROUP;
 
 public abstract class StudioAbstractAccessDecisionVoter implements AccessDecisionVoter {
 
@@ -129,8 +129,7 @@ public abstract class StudioAbstractAccessDecisionVoter implements AccessDecisio
         boolean toRet = false;
         if (CollectionUtils.isNotEmpty(userGroups)) {
             for (Group group : userGroups) {
-                if (StringUtils.equalsIgnoreCase(group.getName(),
-                        studioConfiguration.getProperty(SECURITY_GLOBAL_ADMIN_GROUP))) {
+                if (StringUtils.equalsIgnoreCase(group.getName(), ORGANIZATION_ADMIN_GROUP)) {
                     toRet = true;
                     break;
                 }

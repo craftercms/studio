@@ -194,24 +194,12 @@ studio.security.ldap.userAttribute.firstName: cn
 studio.security.ldap.userAttribute.lastName: sn
 # LDAP email attribute
 studio.security.ldap.userAttribute.email: mail
-# LDAP site ID attribute
-studio.security.ldap.userAttribute.siteId: crafterSite
-# LDAP site ID attribute name regex
-studio.security.ldap.userAttribute.siteId.regex: .*
-# LDAP site ID attribute match index
-studio.security.ldap.userAttribute.siteId.matchIndex: 0
-# LDAP group name match index for the site ID attribute
-studio.security.ldap.userAttribute.siteId.groupName.matchIndex: 1
 # LDAP groups attribute
 studio.security.ldap.userAttribute.groupName: crafterGroup
 # LDAP groups attribute name regex
 studio.security.ldap.userAttribute.groupName.regex: .*
 # LDAP groups attribute match index
 studio.security.ldap.userAttribute.groupName.matchIndex: 0
-# LDAP default site if site ID attribute not found
-studio.security.ldap.defaultSiteId: default
-# Global admin group
-studio.security.global.adminGroup: crafter-admin
 # Authentication via headers enabled
 studio.authentication.headers.enabled: false
 # Authentication header for secure key
@@ -229,7 +217,7 @@ studio.authentication.headers.lastName: lastname
 studio.authentication.headers.email: email
 # Authentication header for groups: comma separated list of sites and groups
 #   Example:
-#   craftercms1645,Author,anothersite,Author
+#   site_author,site_xyz_developer
 studio.authentication.headers.groups: groups
 
 ###############################################################
