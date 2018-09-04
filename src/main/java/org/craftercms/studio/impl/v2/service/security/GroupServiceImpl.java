@@ -77,8 +77,8 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
-    public void deleteGroup(long groupId) {
-        securityProvider.deleteGroup(groupId);
+    public void deleteGroup(List<Long> groupIds) {
+        securityProvider.deleteGroup(groupIds);
     }
 
     @Override

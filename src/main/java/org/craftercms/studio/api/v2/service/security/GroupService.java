@@ -56,11 +56,11 @@ public interface GroupService {
     void updateGroup(long orgId, Group group);
 
     /**
-     * Delete group
+     * Delete group(s)
      *
-     * @param groupId Group identifier
+     * @param groupIds Group identifiers
      */
-    void deleteGroup(long groupId);
+    void deleteGroup(List<Long> groupIds);
 
     /**
      * Get group

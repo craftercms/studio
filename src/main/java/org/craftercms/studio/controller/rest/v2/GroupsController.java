@@ -16,7 +16,7 @@
  *
  */
 
-package org.craftercms.studio.controller.rest;
+package org.craftercms.studio.controller.rest.v2;
 
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
@@ -126,12 +126,12 @@ public class GroupsController {
     /**
      * Delete group API
      *
-     * @param groupId Group identifier
+     * @param groupIds Group identifier
      * @return Response object
      */
     @DeleteMapping("/api/2/groups")
-    public StudioResponseBody deleteGroup(@RequestParam("id") int groupId) {
-        groupService.deleteGroup(groupId);
+    public StudioResponseBody deleteGroup(@RequestParam("id") List<Long> groupIds) {
+        groupService.deleteGroup(groupIds);
 
         StudioResponseBody responseBody = new StudioResponseBody();
         ResultOne result = new ResultOne();

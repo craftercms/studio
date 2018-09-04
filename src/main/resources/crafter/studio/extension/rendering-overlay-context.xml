@@ -24,11 +24,11 @@
     <!-- ////////////////////////////////////// -->
     <bean id="studioRestExceptionHandlers" class="org.craftercms.studio.controller.rest.v2.ExceptionHandlers"/>
 
-    <bean id="studioGroupsController" class="org.craftercms.studio.controller.rest.GroupsController">
+    <bean id="studioGroupsController" class="org.craftercms.studio.controller.rest.v2.GroupsController">
         <property name="groupService" ref="groupService" />
     </bean>
 
-    <bean id="studioUsersController" class="org.craftercms.studio.controller.rest.UsersController">
+    <bean id="studioUsersController" class="org.craftercms.studio.controller.rest.v2.UsersController">
         <property name="userService" ref="userService" />
         <property name="groupService" ref="groupService" />
         <property name="siteService" ref="cstudioSiteServiceSimple" />

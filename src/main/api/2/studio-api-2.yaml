@@ -613,7 +613,7 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'  
         '500':
-          $ref: '#/components/responses/InternalServerError'                        
+          $ref: '#/components/responses/InternalServerError'
 
   /users/{id}:
     get:
@@ -821,6 +821,33 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /user:
+    get:
+      tags:
+      - users
+      summary: Get current authenticated in user
+      description: 'Required Permission: "LOGGED_IN"'
+      operationId: getAuthenticatedUser
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: object
+                    properties:
+                      response:
+                        $ref: '#/components/schemas/ApiResponse'
+                      entity:
+                        $ref: '#/components/schemas/AuthenticatedUser'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /ui/views/global_menu:
     get:
       tags:
@@ -920,7 +947,39 @@ components:
           description: Indicates if the user is enabled
         externallyManaged:
           type: boolean
-          description: Indicates if a user is managed in by an external system (LDAP, SAML, etc.)        
+          description: Indicates if a user is managed in by an external system (LDAP, SAML, etc.)
+    AuthenticatedUser:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: 'User ID, unique and immutable'
+        username:
+          type: string
+          description: Username, unique
+        password:
+          type: string
+          description: User's password
+        firstName:
+          type: string
+          description: User's first name
+        lastName:
+          type: string
+          description: User's last name
+        email:
+          type: string
+          description: User's email address
+        enabled:
+          type: boolean
+          description: Indicates if the user is enabled
+        externallyManaged:
+          type: boolean
+          description: Indicates if a user is managed in by an external system (LDAP, SAML, etc.)
+        authenticationType:
+          type: string
+          description: |-
+            The authentication type used to log in the user. Possible values are: DB, LDAP, AUTH_HEADERS
     Group:
       type: object
       properties:
