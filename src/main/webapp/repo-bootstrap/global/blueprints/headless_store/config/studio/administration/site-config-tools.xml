@@ -250,10 +250,6 @@
             <label>Configuration</label>
         </tool>
         <tool>
-            <name>groups</name>
-            <label>Groups</label>
-        </tool>
-        <tool>
             <name>audit</name>
             <label>Audit</label>
         </tool>

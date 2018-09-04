@@ -168,8 +168,10 @@ public class GroupsController {
      * @return Response containing list od users
      */
     @GetMapping("/api/2/groups/{groupId}/members")
-    public StudioResponseBody getGroupMembers(@PathVariable("groupId") int groupId, @RequestParam("offset") int offset,
-                                            @RequestParam("limit") int limit, @RequestParam("sort") String sort) {
+    public StudioResponseBody getGroupMembers(@PathVariable("groupId") int groupId,
+                                              @RequestParam(value = "offset", required = false) int offset,
+                                              @RequestParam(value = "limit", required = false) int limit,
+                                              @RequestParam(value = "sort", required = false) String sort) {
         List<User> users = groupService.getGroupMembers(groupId, offset, limit, sort);
 
         StudioResponseBody responseBody = new StudioResponseBody();
@@ -211,8 +213,8 @@ public class GroupsController {
      */
     @DeleteMapping("/api/2/groups/{groupId}/members")
     public StudioResponseBody removeGroupMembers(@PathVariable("groupId") int groupId,
-                                   @RequestParam("userId") List<Long> userIds,
-                                   @RequestParam("username") List<String> usernames) {
+                                   @RequestParam(value = "userId", required = false) List<Long> userIds,
+                                   @RequestParam(value = "username", required = false) List<String> usernames) {
         groupService.removeGroupMembers(groupId, userIds, usernames);
 
         StudioResponseBody responseBody = new StudioResponseBody();
