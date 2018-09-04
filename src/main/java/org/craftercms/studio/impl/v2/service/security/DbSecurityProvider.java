@@ -37,6 +37,7 @@ import org.craftercms.studio.api.v2.dal.GroupTO;
 import org.craftercms.studio.api.v2.dal.GroupDAO;
 import org.craftercms.studio.api.v2.dal.UserTO;
 import org.craftercms.studio.api.v2.dal.UserDAO;
+import org.craftercms.studio.api.v2.service.security.AuthenticationType;
 import org.craftercms.studio.api.v2.service.security.SecurityProvider;
 import org.craftercms.studio.impl.v1.util.SessionTokenUtils;
 import org.craftercms.studio.model.Group;
@@ -48,8 +49,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.craftercms.studio.api.v1.constant.StudioConstants.HTTP_SESSION_ATTRIBUTE_STUDIO_USER;
-import static org.craftercms.studio.api.v1.service.security.SecurityService.STUDIO_SESSION_TOKEN_ATRIBUTE;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.HTTP_SESSION_ATTRIBUTE_AUTHENTICATION;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_SESSION_TIMEOUT;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.EMAIL;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ENABLED;
@@ -339,7 +339,11 @@ public class DbSecurityProvider implements SecurityProvider {
 
         if(context != null) {
             HttpSession httpSession = context.getRequest().getSession();
-            username = (String)httpSession.getAttribute(HTTP_SESSION_ATTRIBUTE_STUDIO_USER);
+            Authentication auth = (Authentication) httpSession.getAttribute(HTTP_SESSION_ATTRIBUTE_AUTHENTICATION);
+
+            if (auth != null) {
+                username = auth.getUsername();
+            }
         } else {
             CronJobContext cronJobContext = CronJobContext.getCurrent();
 
@@ -365,8 +369,9 @@ public class DbSecurityProvider implements SecurityProvider {
         UserTO user = userDAO.getUserByIdOrUsername(params);
         if (user != null && user.isEnabled() && CryptoUtils.matchPassword(user.getPassword(), password)) {
             String token = createToken(user);
-            storeSessionTicket(token);
-            storeSessionUsername(username);
+
+            storeAuthentication(new Authentication(username, token, AuthenticationType.DB));
+
             return token;
         } else {
             throw new BadCredentialsException();
@@ -385,21 +390,19 @@ public class DbSecurityProvider implements SecurityProvider {
         return token;
     }
 
-    protected void storeSessionTicket(String ticket) {
+    protected void storeAuthentication(Authentication authentication) {
         RequestContext context = RequestContext.getCurrent();
-
         if(context != null) {
             HttpSession httpSession = context.getRequest().getSession();
-            httpSession.setAttribute(STUDIO_SESSION_TOKEN_ATRIBUTE, ticket);
+            httpSession.setAttribute(HTTP_SESSION_ATTRIBUTE_AUTHENTICATION, authentication);
         }
     }
 
-    protected void storeSessionUsername(String username) {
+    protected void deleteAuthentication() {
         RequestContext context = RequestContext.getCurrent();
-
         if(context != null) {
             HttpSession httpSession = context.getRequest().getSession();
-            httpSession.setAttribute("studio_user", username);
+            httpSession.removeAttribute(HTTP_SESSION_ATTRIBUTE_AUTHENTICATION);
         }
     }
 
@@ -415,12 +418,16 @@ public class DbSecurityProvider implements SecurityProvider {
 
     @Override
     public String getCurrentToken() {
-        String ticket;
+        String ticket = null;
         RequestContext context = RequestContext.getCurrent();
 
         if (context != null) {
             HttpSession httpSession = context.getRequest().getSession();
-            ticket = (String)httpSession.getAttribute(STUDIO_SESSION_TOKEN_ATRIBUTE);
+            Authentication auth = (Authentication) httpSession.getAttribute(HTTP_SESSION_ATTRIBUTE_AUTHENTICATION);
+
+            if (auth != null) {
+                ticket = auth.getToken();
+            }
         } else {
             ticket = getJobOrEventTicket();
         }
@@ -430,6 +437,19 @@ public class DbSecurityProvider implements SecurityProvider {
         }
 
         return ticket;
+    }
+
+    @Override
+    public Authentication getAuthentication() {
+        Authentication auth = null;
+        RequestContext context = RequestContext.getCurrent();
+
+        if (context != null) {
+            HttpSession httpSession = context.getRequest().getSession();
+            auth = (Authentication) httpSession.getAttribute(HTTP_SESSION_ATTRIBUTE_AUTHENTICATION);
+        }
+
+        return auth;
     }
 
     protected String getJobOrEventTicket() {
@@ -450,8 +470,8 @@ public class DbSecurityProvider implements SecurityProvider {
 
     @Override
     public boolean logout() {
-        storeSessionTicket(null);
-        storeSessionUsername(null);
+        deleteAuthentication();
+
         return true;
     }
 

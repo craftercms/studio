@@ -33,6 +33,7 @@ import org.craftercms.studio.api.v1.service.activity.ActivityService;
 import org.craftercms.studio.api.v2.dal.GroupTO;
 import org.craftercms.studio.api.v2.dal.UserGroupTO;
 import org.craftercms.studio.api.v2.dal.UserTO;
+import org.craftercms.studio.api.v2.service.security.AuthenticationType;
 import org.craftercms.studio.model.User;
 
 import javax.servlet.http.HttpServletRequest;
@@ -145,8 +146,9 @@ public class AuthenticationHeadersSecurityProvider extends DbWithLdapExtensionSe
                     }
 
                     String token = createToken(userTO);
-                    storeSessionTicket(token);
-                    storeSessionUsername(username);
+
+                    storeAuthentication(new Authentication(username, token, AuthenticationType.AUTH_HEADERS));
+
                     return token;
                 }
             }
