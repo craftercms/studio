@@ -29,7 +29,7 @@ public interface GroupMapper {
      * @param params SQL query paramters
      * @return List of groups
      */
-    List<GroupDAO> getAllGroupsForOrganization(Map params);
+    List<GroupTO> getAllGroupsForOrganization(Map params);
 
     /**
      * Create group
@@ -61,7 +61,7 @@ public interface GroupMapper {
      * @param params SQL query parameters
      * @return Group or null if not found
      */
-    GroupDAO getGroup(Map params);
+    GroupTO getGroup(Map params);
 
     /**
      * Get group by group name
@@ -69,7 +69,7 @@ public interface GroupMapper {
      * @param params SQL query parameters
      * @return Group or null if not found
      */
-    GroupDAO getGroupByName(Map params);
+    GroupTO getGroupByName(Map params);
 
     /**
      * Get group members
@@ -77,7 +77,7 @@ public interface GroupMapper {
      * @param params SQL query parameters
      * @return List of users, group members
      */
-    List<UserDAO> getGroupMembers(Map params);
+    List<UserTO> getGroupMembers(Map params);
 
     /**
      * Add users to the group

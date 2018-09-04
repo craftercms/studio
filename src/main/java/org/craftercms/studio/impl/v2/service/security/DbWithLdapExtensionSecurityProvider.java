@@ -24,18 +24,16 @@ import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationSystemException;
 import org.craftercms.studio.api.v1.exception.security.BadCredentialsException;
 import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
-import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.activity.ActivityService;
-import org.craftercms.studio.api.v2.dal.GroupDAO;
-import org.craftercms.studio.api.v2.dal.UserGroup;
+import org.craftercms.studio.api.v2.dal.GroupTO;
+import org.craftercms.studio.api.v2.dal.UserGroupTO;
 import org.craftercms.studio.model.User;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.ldap.AuthenticationException;
@@ -327,13 +325,13 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
     }
 
     private void addGroupToUser(User user, String groupName, SiteFeed siteFeed) {
-        GroupDAO group = new GroupDAO();
+        GroupTO group = new GroupTO();
         group.setGroupName(groupName);
         group.setGroupDescription("Externally managed group");
         group.setOrganization(null);
 
-        UserGroup userGroup = new UserGroup();
-        userGroup.setGroup(group);
+        UserGroupTO userGroupTO = new UserGroupTO();
+        userGroupTO.setGroup(group);
 
         // user.getGroups().add(userGroup);
     }
@@ -363,11 +361,11 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
         }
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(GROUP_NAME, groupName);
-        GroupDAO groupDAO = groupMapper.getGroupByName(params);
-        if (groupDAO != null) {
+        GroupTO groupTO = groupMapper.getGroupByName(params);
+        if (groupTO != null) {
             List<String> usernames = new ArrayList<String>();
             usernames.add(username);
-            boolean success = addGroupMembers(groupDAO.getId(), new ArrayList<Long>(), usernames);
+            boolean success = addGroupMembers(groupTO.getId(), new ArrayList<Long>(), usernames);
             if (success){
                 ActivityService.ActivityType activityType = ActivityService.ActivityType.ADD_USER_TO_GROUP;
                 Map<String, String> extraInfo = new HashMap<>();

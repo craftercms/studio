@@ -18,13 +18,9 @@
 
 package org.craftercms.studio.impl.v2.service.security;
 
-import org.apache.commons.collections4.CollectionUtils;
-import org.craftercms.commons.crypto.CryptoUtils;
 import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v2.dal.GroupDAO;
-import org.craftercms.studio.api.v2.dal.UserDAO;
 import org.craftercms.studio.api.v2.dal.UserMapper;
 import org.craftercms.studio.api.v2.service.security.GroupService;
 import org.craftercms.studio.api.v2.service.security.SecurityProvider;
@@ -32,28 +28,12 @@ import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.model.Group;
 import org.craftercms.studio.model.User;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.EMAIL;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ENABLED;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.EXTERNALLY_MANAGED;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.FIRST_NAME;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.GROUP_NAME;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.GROUP_NAMES;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LAST_NAME;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LIMIT;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LOCALE;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.OFFSET;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PASSWORD;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SORT;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.TIMEZONE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USERNAME;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USERNAMES;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USER_ID;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USER_IDS;
 
 public class UserServiceImpl implements UserService {
 

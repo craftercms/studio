@@ -26,7 +26,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-public class UserDAO implements UserDetails {
+public class UserTO implements UserDetails {
 
     private static final long serialVersionUID = 968000561389890945L;
 
@@ -42,7 +42,7 @@ public class UserDAO implements UserDetails {
     private String email;
     private int active;
 
-    private List<UserGroup> groups;
+    private List<UserGroupTO> groups;
 
     @Override
     public boolean isAccountNonExpired() {
@@ -66,7 +66,7 @@ public class UserDAO implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        List<GroupDAO> toRet = new ArrayList<GroupDAO>();
+        List<GroupTO> toRet = new ArrayList<GroupTO>();
         groups.forEach((g) -> toRet.add(g.getGroup()));
         return toRet;
     }
@@ -161,11 +161,11 @@ public class UserDAO implements UserDetails {
         this.active = active;
     }
 
-    public List<UserGroup> getGroups() {
+    public List<UserGroupTO> getGroups() {
         return groups;
     }
 
-    public void setGroups(List<UserGroup> groups) {
+    public void setGroups(List<UserGroupTO> groups) {
         this.groups = groups;
     }
 }

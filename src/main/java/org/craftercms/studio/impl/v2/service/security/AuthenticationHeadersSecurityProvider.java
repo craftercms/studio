@@ -24,22 +24,18 @@ import org.craftercms.commons.http.RequestContext;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationSystemException;
 import org.craftercms.studio.api.v1.exception.security.BadCredentialsException;
-import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
-import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.activity.ActivityService;
-import org.craftercms.studio.api.v2.dal.GroupDAO;
-import org.craftercms.studio.api.v2.dal.UserGroup;
+import org.craftercms.studio.api.v2.dal.GroupTO;
+import org.craftercms.studio.api.v2.dal.UserGroupTO;
 import org.craftercms.studio.model.User;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -143,11 +139,11 @@ public class AuthenticationHeadersSecurityProvider extends DbWithLdapExtensionSe
                                 params.put("siteId", siteId);
                                 SiteFeed siteFeed = siteFeedMapper.getSite(params);
                                 if (siteFeed != null) {
-                                    GroupDAO g = new GroupDAO();
+                                    GroupTO g = new GroupTO();
                                     g.setGroupName(groupsArray[i + 1]);
                                     g.setGroupDescription("Externally managed group");
                                     g.setOrganization(null);
-                                    UserGroup ug = new UserGroup();
+                                    UserGroupTO ug = new UserGroupTO();
                                     ug.setGroup(g);
                                     //user.getGroups().add(ug);
                                     upsertUserGroup(siteId, g.getGroupName(), usernameHeader);
