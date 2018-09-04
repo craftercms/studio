@@ -62,7 +62,7 @@
     </bean>
 
     <bean id="studioUserDetailsManager" class="org.craftercms.studio.impl.v1.service.security.UserDetailsManagerImpl">
-        <property name="userMapper" ref="userMapper"/>
+        <property name="userDAO" ref="userMapper"/>
     </bean>
 
     <ldap:context-source id="ldapContextSource"
@@ -111,8 +111,8 @@
     </bean>
 
     <bean id="cstudioDbSecurityProvider" class="org.craftercms.studio.impl.v2.service.security.DbSecurityProvider">
-        <property name="userMapper" ref="userMapper" />
-        <property name="groupMapper" ref="groupMapper" />
+        <property name="userDAO" ref="userMapper" />
+        <property name="groupDAO" ref="groupMapper" />
         <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 

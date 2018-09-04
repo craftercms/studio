@@ -20,7 +20,7 @@ package org.craftercms.studio.impl.v1.service.security;
 
 import org.craftercms.studio.api.v1.service.security.UserDetailsManager;
 import org.craftercms.studio.api.v2.dal.UserTO;
-import org.craftercms.studio.api.v2.dal.UserMapper;
+import org.craftercms.studio.api.v2.dal.UserDAO;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.HashMap;
@@ -31,22 +31,22 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USER_ID;
 
 public class UserDetailsManagerImpl implements UserDetailsManager {
 
-    protected UserMapper userMapper;
+    protected UserDAO userDAO;
 
     @Override
     public UserDetails loadUserByUsername(String username) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(USER_ID, -1);
         params.put(USERNAME, username);
-        UserTO user = userMapper.getUserByIdOrUsername(params);
+        UserTO user = userDAO.getUserByIdOrUsername(params);
         return user;
     }
 
-    public UserMapper getUserMapper() {
-        return userMapper;
+    public UserDAO getUserDAO() {
+        return userDAO;
     }
 
-    public void setUserMapper(UserMapper userMapper) {
-        this.userMapper = userMapper;
+    public void setUserDAO(UserDAO userDAO) {
+        this.userDAO = userDAO;
     }
 }

@@ -21,74 +21,34 @@ package org.craftercms.studio.api.v2.dal;
 import java.util.List;
 import java.util.Map;
 
-public interface GroupMapper {
+public interface UserDAO {
 
     /**
-     * Get all groups for given organization
-     *
-     * @param params SQL query paramters
-     * @return List of groups
-     */
-    List<GroupTO> getAllGroupsForOrganization(Map params);
-
-    /**
-     * Create group
+     * Get all users for given site
      *
      * @param params SQL query parameters
-     * @return Number of affected rows in DB
+     * @return List of users
      */
-    Integer createGroup(Map params);
+    List<UserTO> getAllUsersForSite(Map params);
 
     /**
-     * Update group
-     *
-     * @param params SQL query parameters
-     * @return Number of affected rows in DB
-     */
-    Integer updateGroup(Map params);
-
-    /**
-     * Delete group
-     *
-     * @param params SQL query parameters
-     * @return Number of affected rows in DB
-     */
-    Integer deleteGroup(Map params);
-
-    /**
-     * Get group by group id
-     *
-     * @param params SQL query parameters
-     * @return Group or null if not found
-     */
-    GroupTO getGroup(Map params);
-
-    /**
-     * Get group by group name
-     *
-     * @param params SQL query parameters
-     * @return Group or null if not found
-     */
-    GroupTO getGroupByName(Map params);
-
-    /**
-     * Get group members
-     *
-     * @param params SQL query parameters
-     * @return List of users, group members
-     */
-    List<UserTO> getGroupMembers(Map params);
-
-    /**
-     * Add users to the group
+     * Create user
      *
      * @param params SQL query parameters
      * @return Number of rows affected in DB
      */
-    Integer addGroupMembers(Map params);
+    int createUser(Map params);
 
     /**
-     * Get User ids for usernames
+     * Update user
+     *
+     * @param params SQL query parameters
+     * @return Number of rows affected in DB
+     */
+    int updateUser(Map params);
+
+    /**
+     * Get ids for users
      *
      * @param params SQL query parameters
      * @return List of user ids
@@ -96,18 +56,64 @@ public interface GroupMapper {
     List<Long> getUserIdsForUsernames(Map params);
 
     /**
-     * Remove users from the group
+     * Delete users
+     *
+     * @param params SQL query params
+     * @return Number of rows affected in DB
+     */
+    int deleteUsers(Map params);
+
+    /**
+     * Get user by id or username
+     *
+     * @param params SQL query parameters
+     * @return
+     */
+    UserTO getUserByIdOrUsername(Map params);
+
+    /**
+     * Enable/disable users
      *
      * @param params SQL query parameters
      * @return Number of rows affected in DB
      */
-    Integer removeGroupMembers(Map params);
+    int enableUsers(Map params);
 
     /**
-     * Check if group exists
+     * Get user groups
      *
      * @param params SQL query parameters
-     * @return Number of groups
+     * @return List of groups
      */
-    Integer groupExists(Map params);
+    List<GroupTO> getUserGroups(Map params);
+
+    /**
+     * Get total number of users
+     *
+     * @return
+     */
+    int getAllUsersTotal();
+
+    /**
+     * Set password for user
+     *
+     * @param params SQL query parameters
+     * @return Number of rows affected
+     */
+    int setUserPassword(Map params);
+
+    /**
+     * Check if user exists
+     *
+     * @param params
+     * @return
+     */
+    Integer userExists(Map params);
+
+    /**
+     * Check if user is member of given group
+     * @param params SQL query parameters
+     * @return if true result > 0
+     */
+    Integer isUserMemberOfGroup(Map params);
 }

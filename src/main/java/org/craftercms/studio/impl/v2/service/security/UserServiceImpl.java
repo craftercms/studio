@@ -21,7 +21,7 @@ package org.craftercms.studio.impl.v2.service.security;
 import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v2.dal.UserMapper;
+import org.craftercms.studio.api.v2.dal.UserDAO;
 import org.craftercms.studio.api.v2.service.security.GroupService;
 import org.craftercms.studio.api.v2.service.security.SecurityProvider;
 import org.craftercms.studio.api.v2.service.security.UserService;
@@ -39,7 +39,7 @@ public class UserServiceImpl implements UserService {
 
     private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 
-    private UserMapper userMapper;
+    private UserDAO userDAO;
     private GroupService groupService;
     private SecurityProvider securityProvider;
 
@@ -84,16 +84,16 @@ public class UserServiceImpl implements UserService {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(GROUP_NAME, groupName);
         params.put(USERNAME, username);
-        int result = userMapper.isUserMemberOfGroup(params);
+        int result = userDAO.isUserMemberOfGroup(params);
         return result > 0;
     }
 
-    public UserMapper getUserMapper() {
-        return userMapper;
+    public UserDAO getUserDAO() {
+        return userDAO;
     }
 
-    public void setUserMapper(UserMapper userMapper) {
-        this.userMapper = userMapper;
+    public void setUserDAO(UserDAO userDAO) {
+        this.userDAO = userDAO;
     }
 
     public GroupService getGroupService() {

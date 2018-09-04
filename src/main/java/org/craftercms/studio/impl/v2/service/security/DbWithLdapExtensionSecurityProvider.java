@@ -347,7 +347,7 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
             params.put("lastname", lastName);
             params.put("email", email);
             params.put("externallyManaged", 1);
-            userMapper.updateUser(params);
+            userDAO.updateUser(params);
             return true;
         }
     }
@@ -361,7 +361,7 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
         }
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(GROUP_NAME, groupName);
-        GroupTO groupTO = groupMapper.getGroupByName(params);
+        GroupTO groupTO = groupDAO.getGroupByName(params);
         if (groupTO != null) {
             List<String> usernames = new ArrayList<String>();
             usernames.add(username);
