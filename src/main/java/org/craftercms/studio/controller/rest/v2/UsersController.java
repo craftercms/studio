@@ -72,9 +72,9 @@ public class UsersController {
      */
     @GetMapping("/api/2/users")
     public StudioResponseBody getAllUsers(@RequestParam(value = "siteId", required = false) String siteId,
-                                          @RequestParam(value = "offset", required = false) int offset,
-                                          @RequestParam(value = "limit", required = false) int limit,
-                                          @RequestParam(value = "sort", required = false) String sort) {
+                      @RequestParam(value = "offset", required = false, defaultValue = "0") int offset,
+                      @RequestParam(value = "limit", required = false, defaultValue = "10") int limit,
+                      @RequestParam(value = "sort", required = false, defaultValue = StringUtils.EMPTY) String sort) {
         List<User> users = null;
         int total = 0;
         if (StringUtils.isEmpty(siteId)) {
