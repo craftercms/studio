@@ -31,7 +31,7 @@ import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.StudioXmlConstants;
 import org.craftercms.commons.entitlements.validator.DbIntegrityValidator;
-import org.craftercms.studio.api.v1.dal.DataSourceInitializer;
+import org.craftercms.studio.api.v2.dal.DataSourceInitializer;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.DatabaseUpgradeUnsupportedVersionException;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -89,7 +89,7 @@ import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryC
 public class DataSourceInitializerImpl implements DataSourceInitializer {
 
     private final static Logger logger = LoggerFactory.getLogger(DataSourceInitializerImpl.class);
-    private final static String CURRENT_DB_VERSION = "3.1.0";
+    private final static String CURRENT_DB_VERSION = "3.1.0.1";
     private final static String DB_VERSION_3_0_0 = "3.0.0";
     private final static String DB_VERSION_2_5_X = "2.5.x";
     private final static String DB_VERSION_3_0_X = "3.0";
@@ -205,25 +205,42 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
                                 throw new DatabaseUpgradeUnsupportedVersionException(
                                         "Automated migration from 2.5.x DB is not supported yet.");
                             default:
-                                logger.info("Database version is " + dbVersion + ", required version is " +
-                                        CURRENT_DB_VERSION);
-                                String upgradeScriptPath = getUpgradeDBScriptPath();
-                                upgradeScriptPath = upgradeScriptPath.replace("{version}", dbVersion);
-                                logger.info("Upgrading database from script " + upgradeScriptPath);
-                                sr = new ScriptRunner(conn);
+                                while (!dbVersion.equals(CURRENT_DB_VERSION)) {
+                                    logger.info("Database version is " + dbVersion + ", required version is " +
+                                            CURRENT_DB_VERSION);
+                                    String upgradeScriptPath = getUpgradeDBScriptPath();
+                                    upgradeScriptPath = upgradeScriptPath.replace("{version}", dbVersion);
+                                    logger.info("Upgrading database from script " + upgradeScriptPath);
+                                    sr = new ScriptRunner(conn);
 
-                                sr.setDelimiter(delimiter);
-                                sr.setStopOnError(true);
-                                sr.setLogWriter(null);
-                                is = getClass().getClassLoader().getResourceAsStream(upgradeScriptPath);
-                                reader = new InputStreamReader(is);
-                                try {
-                                    sr.runScript(reader);
-                                    integrityValidator.store(conn);
-                                } catch (RuntimeSqlException e) {
-                                    logger.error("Error while running upgrade DB script", e);
+                                    sr.setDelimiter(delimiter);
+                                    sr.setStopOnError(true);
+                                    sr.setLogWriter(null);
+                                    is = getClass().getClassLoader().getResourceAsStream(upgradeScriptPath);
+                                    reader = new InputStreamReader(is);
+                                    try {
+                                        sr.runScript(reader);
+                                    } catch (RuntimeSqlException e) {
+                                        logger.error("Error while running upgrade DB script", e);
+                                        break;
+                                    }
+                                    statement = conn.createStatement();
+                                    rs = statement.executeQuery(DB_QUERY_GET_META_TABLE_VERSION);
+                                    if (rs.next()) {
+                                        dbVersion = rs.getString(1);
+                                    } else {
+                                        // TODO: DB: Error ?
+                                        throw new DatabaseUpgradeUnsupportedVersionException(
+                                                "Could not determine database version from _meta table");
+                                    }
                                 }
                                 break;
+                        }
+
+                        try {
+                            integrityValidator.store(conn);
+                        } catch (RuntimeSqlException e) {
+                            logger.error("Integrity validator error after running upgrade DB scripts", e);
                         }
 
                         if (dbVersion.startsWith(DB_VERSION_3_0_X)) {
@@ -334,14 +351,12 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
                     }
 
                     writeToRepo(siteId, siteRoleMappingsConfigFullPath, IOUtils.toInputStream(document.asXML()));
-                    //contentRepository.writeContent(siteId, siteRoleMappingsConfigFullPath, IOUtils.toInputStream(
-                    //        document.asXML()));
 
                 } else {
                     logger.error("Permission mapping not found for " + siteId + ":" + filename);
                 }
             } catch (DocumentException e) {
-                e.printStackTrace();
+                logger.error("Error while reading permission mapping for " + siteId + ":" + filename);
             } finally {
                 try {
                     if (is != null) {
