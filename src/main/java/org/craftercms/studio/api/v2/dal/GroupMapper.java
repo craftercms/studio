@@ -32,6 +32,14 @@ public interface GroupMapper {
     List<GroupDAO> getAllGroupsForOrganization(Map params);
 
     /**
+     * Get all groups for given organization
+     *
+     * @param params SQL query paramters
+     * @return List of groups
+     */
+    int getAllGroupsForOrganizationTotal(Map params);
+
+    /**
      * Create group
      *
      * @param params SQL query parameters

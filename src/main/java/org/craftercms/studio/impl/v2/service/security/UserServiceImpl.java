@@ -24,6 +24,7 @@ import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsExceptio
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.dal.GroupDAO;
+import org.craftercms.studio.api.v2.dal.QueryParameterNames;
 import org.craftercms.studio.api.v2.dal.UserDAO;
 import org.craftercms.studio.api.v2.dal.UserMapper;
 import org.craftercms.studio.api.v2.service.security.GroupService;
@@ -67,6 +68,41 @@ public class UserServiceImpl implements UserService {
     public List<User> getAllUsersForSite(long orgId, String siteId, int offset, int limit, String sort) {
         List<String> groupNames = groupService.getSiteGroups(siteId);
         return securityProvider.getAllUsersForSite(orgId, groupNames, offset, limit, sort);
+    }
+
+    @Override
+    public List<User> getAllUsers(int offset, int limit, String sort) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put(OFFSET, offset);
+        params.put(LIMIT, limit);
+        params.put(SORT, sort);
+        List<UserDAO> userDaos = userMapper.getAllUsers(params);
+        List<User> users = new ArrayList<User>();
+        userDaos.forEach(userDAO -> {
+            User u = new User();
+            u.setId(userDAO.getId());
+            u.setUsername(userDAO.getUsername());
+            u.setFirstName(userDAO.getFirstName());
+            u.setLastName(userDAO.getLastName());
+            u.setEmail(userDAO.getEmail());
+            u.setEnabled(userDAO.isEnabled());
+            u.setExternallyManaged(userDAO.getExternallyManaged() != 0);
+            users.add(u);
+        });
+        return users;
+    }
+
+    @Override
+    public int getAllUsersForSiteTotal(long orgId, String siteId) {
+        List<String> groupNames = groupService.getSiteGroups(siteId);
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put(GROUP_NAMES, groupNames);
+        return userMapper.getAllUsersForSiteTotal(params);
+    }
+
+    @Override
+    public int getAllUsersTotal() {
+        return userMapper.getAllUsersTotal();
     }
 
     @Override
