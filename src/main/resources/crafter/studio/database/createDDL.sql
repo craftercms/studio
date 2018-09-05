@@ -191,8 +191,8 @@ CREATE TABLE IF NOT EXISTS `user`
 
 INSERT IGNORE INTO `user` (id, record_last_updated, username, password, first_name, last_name,
                            externally_managed, timezone, locale, email, enabled)
-VALUES (1, CURRENT_TIMESTAMP, 'sysadmin', 'vTwNOJ8GJdyrP7rrvQnpwsd2hCV1xRrJdTX2sb51i+w=|R68ms0Od3AngQMdEeKY6lA==',
-        'sysadmin', 'sysadmin', 0, 'EST5EDT', 'en/US', 'evaladmin@example.com', 1) ;
+VALUES (1, CURRENT_TIMESTAMP, 'admin', 'vTwNOJ8GJdyrP7rrvQnpwsd2hCV1xRrJdTX2sb51i+w=|R68ms0Od3AngQMdEeKY6lA==',
+        'admin', 'admin', 0, 'EST5EDT', 'en/US', 'evaladmin@example.com', 1) ;
 
 CREATE TABLE IF NOT EXISTS `organization`
 (
