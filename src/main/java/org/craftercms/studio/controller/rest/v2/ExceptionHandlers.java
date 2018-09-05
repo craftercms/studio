@@ -21,6 +21,8 @@ package org.craftercms.studio.controller.rest.v2;
 import org.craftercms.commons.http.HttpUtils;
 import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
+import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
+import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.model.rest.ApiResponse;
@@ -47,6 +49,20 @@ public class ExceptionHandlers {
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public ResponseBody handleAuthenticationException(HttpServletRequest request, ServiceException e) {
         return handleExceptionInternal(request, e, ApiResponse.UNAUTHENTICATED);
+    }
+
+    @ExceptionHandler(UserAlreadyExistsException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ResponseBody handleUserAlreadyExistsException(HttpServletRequest request, ServiceException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.USER_ALREADY_EXISTS);
+        return handleExceptionInternal(request, e, response);
+    }
+
+    @ExceptionHandler(GroupAlreadyExistsException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ResponseBody handleGroupAlreadyExistsException(HttpServletRequest request, ServiceException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.GROUP_ALREADY_EXISTS);
+        return handleExceptionInternal(request, e, response);
     }
 
     @ExceptionHandler(ServiceException.class)
