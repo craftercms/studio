@@ -71,7 +71,7 @@
         <property name="sqlSessionFactory" ref="sqlSessionFactory" />
     </bean>
 
-    <bean id="groupMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
+    <bean id="groupDAO" class="org.mybatis.spring.mapper.MapperFactoryBean">
         <property name="mapperInterface" value="org.craftercms.studio.api.v2.dal.GroupDAO" />
         <property name="sqlSessionFactory" ref="sqlSessionFactory" />
     </bean>
@@ -116,7 +116,7 @@
         <property name="sqlSessionFactory" ref="sqlSessionFactory" />
     </bean>
 
-    <bean id="userMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
+    <bean id="userDAO" class="org.mybatis.spring.mapper.MapperFactoryBean">
         <property name="mapperInterface" value="org.craftercms.studio.api.v2.dal.UserDAO" />
         <property name="sqlSessionFactory" ref="sqlSessionFactory" />
     </bean>
