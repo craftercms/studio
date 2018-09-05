@@ -20,9 +20,9 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="org.craftercms.studio.api.v2.dal.GroupMapper">
+<mapper namespace="org.craftercms.studio.api.v2.dal.GroupDAO">
 
-    <resultMap id="UserMap" type="org.craftercms.studio.api.v2.dal.UserDAO">
+    <resultMap id="UserMap" type="org.craftercms.studio.api.v2.dal.UserTO">
         <id property="id" column="id"/>
         <result property="recordLastUpdated" column="record_last_updated"/>
         <result property="username" column="username"/>
@@ -35,9 +35,9 @@
         <result property="email" column="email"/>
         <result property="active" column="enabled"/>
 
-        <collection property="groups" ofType="org.craftercms.studio.api.v2.dal.UserGroup">
+        <collection property="groups" ofType="org.craftercms.studio.api.v2.dal.UserGroupTO">
             <result property="recordLastUpdated" column="record_last_updated"/>
-            <association property="group" javaType="org.craftercms.studio.api.v2.dal.GroupDAO">
+            <association property="group" javaType="org.craftercms.studio.api.v2.dal.GroupTO">
                 <id property="id" column="id"/>
                 <result property="groupName" column="group_name"/>
             </association>
@@ -45,16 +45,16 @@
 
     </resultMap>
 
-    <resultMap id="GroupMap" type="org.craftercms.studio.api.v2.dal.GroupDAO">
+    <resultMap id="GroupMap" type="org.craftercms.studio.api.v2.dal.GroupTO">
         <id property="id" column="id"/>
         <result property="recordLastUpdated" column="record_last_updated"/>
         <result property="groupName" column="group_name"/>
         <result property="groupDescription" column="group_description"/>
-        <association property="organization" column="org_id" javaType="org.craftercms.studio.api.v2.dal.Organization"
+        <association property="organization" column="org_id" javaType="org.craftercms.studio.api.v2.dal.OrganizationTO"
                      select="selectOrganizationById"/>
     </resultMap>
 
-    <resultMap id="OrganizationMap" type="org.craftercms.studio.api.v2.dal.Organization">
+    <resultMap id="OrganizationMap" type="org.craftercms.studio.api.v2.dal.OrganizationTO">
         <id property="id" column="id"/>
         <result property="recordLastUpdated" column="record_last_updated"/>
         <result property="name" column="org_name"/>
@@ -94,6 +94,11 @@
         WHERE org_id = #{orgId}
         ORDER BY #{sort}
         LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="getAllGroupsForOrganizationTotal" resultType="Integer" parameterType="java.util.Map">
+        SELECT count(1) FROM `group`
+        WHERE org_id = #{orgId}
     </select>
 
     <select id="selectOrganizationById" resultMap="OrganizationMap">

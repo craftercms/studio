@@ -18,6 +18,7 @@
 
 package org.craftercms.studio.controller.rest.v2;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -62,17 +63,18 @@ public class GroupsController {
      */
     @GetMapping("/api/2/groups")
     public StudioResponseBody getAllGroups(
-            @RequestParam("offset") Optional<Integer> offset,
-            @RequestParam("limit") Optional<Integer> limit,
-            @RequestParam("sort") Optional<String> sort
+            @RequestParam(value = "offset", required = false, defaultValue = "0") int offset,
+            @RequestParam(value = "limit", required = false, defaultValue = "10") int limit,
+            @RequestParam(value = "sort", required = false, defaultValue = StringUtils.EMPTY) String sort
             ) {
-        int iOffset = offset.isPresent() ? offset.get() : 0;
-        int iLimit = limit.isPresent() ? limit.get() : 10;
-        String sSort = sort.isPresent() ? sort.get() : StringUtils.EMPTY;
-        List<Group> groups = groupService.getAllGroups(1, iOffset, iLimit, sSort);
+        int total = groupService.getAllGroupsTotal(1);
+        List<Group> groups = groupService.getAllGroups(1, offset, limit, sort);
 
         StudioResponseBody responseBody = new StudioResponseBody();
         ResultList result = new ResultList();
+        result.setTotal(total);
+        result.setOffset(offset);
+        result.setLimit(CollectionUtils.isEmpty(groups) ? 0 : groups.size());
         result.setResponse(ApiResponse.CODE_0);
         List<Entity> entities = new ArrayList<Entity>();
         entities.addAll(groups);

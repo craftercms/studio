@@ -33,10 +33,10 @@ import org.craftercms.studio.api.v1.exception.security.UserExternallyManagedExce
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.job.CronJobContext;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
+import org.craftercms.studio.api.v2.dal.GroupTO;
 import org.craftercms.studio.api.v2.dal.GroupDAO;
-import org.craftercms.studio.api.v2.dal.GroupMapper;
+import org.craftercms.studio.api.v2.dal.UserTO;
 import org.craftercms.studio.api.v2.dal.UserDAO;
-import org.craftercms.studio.api.v2.dal.UserMapper;
 import org.craftercms.studio.api.v2.service.security.SecurityProvider;
 import org.craftercms.studio.impl.v1.util.SessionTokenUtils;
 import org.craftercms.studio.model.Group;
@@ -76,8 +76,8 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USER_IDS;
 
 public class DbSecurityProvider implements SecurityProvider {
 
-    protected UserMapper userMapper;
-    protected GroupMapper groupMapper;
+    protected UserDAO userDAO;
+    protected GroupDAO groupDAO;
     protected StudioConfiguration studioConfiguration;
 
     @Override
@@ -87,17 +87,17 @@ public class DbSecurityProvider implements SecurityProvider {
         params.put(OFFSET, offset);
         params.put(LIMIT, limit);
         params.put(SORT, "");
-        List<UserDAO> userDAOS = userMapper.getAllUsersForSite(params);
+        List<UserTO> userTOS = userDAO.getAllUsersForSite(params);
         List<User> users = new ArrayList<User>();
-        userDAOS.forEach(userDAO -> {
+        userTOS.forEach(userTO -> {
             User u = new User();
-            u.setId(userDAO.getId());
-            u.setUsername(userDAO.getUsername());
-            u.setFirstName(userDAO.getFirstName());
-            u.setLastName(userDAO.getLastName());
-            u.setEmail(userDAO.getEmail());
-            u.setEnabled(userDAO.isEnabled());
-            u.setExternallyManaged(userDAO.getExternallyManaged() != 0);
+            u.setId(userTO.getId());
+            u.setUsername(userTO.getUsername());
+            u.setFirstName(userTO.getFirstName());
+            u.setLastName(userTO.getLastName());
+            u.setEmail(userTO.getEmail());
+            u.setEnabled(userTO.isEnabled());
+            u.setExternallyManaged(userTO.getExternallyManaged() != 0);
             users.add(u);
         });
 
@@ -120,7 +120,7 @@ public class DbSecurityProvider implements SecurityProvider {
         params.put(TIMEZONE, "");
         params.put(LOCALE, "");
         params.put(ENABLED, user.isEnabled() ? 1 : 0);
-        userMapper.createUser(params);
+        userDAO.createUser(params);
         return true;
     }
 
@@ -133,7 +133,7 @@ public class DbSecurityProvider implements SecurityProvider {
         params.put(EMAIL, user.getEmail());
         params.put(TIMEZONE, "");
         params.put(LOCALE, "");
-        userMapper.updateUser(params);
+        userDAO.updateUser(params);
     }
 
     @Override
@@ -143,12 +143,12 @@ public class DbSecurityProvider implements SecurityProvider {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(USERNAMES, usernames);
         if (CollectionUtils.isNotEmpty(usernames)) {
-            allUserIds.addAll(userMapper.getUserIdsForUsernames(params));
+            allUserIds.addAll(userDAO.getUserIdsForUsernames(params));
         }
         if (CollectionUtils.isNotEmpty(allUserIds)) {
             params = new HashMap<String, Object>();
             params.put(USER_IDS, allUserIds);
-            userMapper.deleteUsers(params);
+            userDAO.deleteUsers(params);
         }
     }
 
@@ -157,7 +157,7 @@ public class DbSecurityProvider implements SecurityProvider {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(USER_ID, userId);
         params.put(USERNAME, username);
-        UserDAO uDAO = userMapper.getUserByIdOrUsername(params);
+        UserTO uDAO = userDAO.getUserByIdOrUsername(params);
         User user = new User();
         if (uDAO != null) {
             user.setId(uDAO.getId());
@@ -178,13 +178,13 @@ public class DbSecurityProvider implements SecurityProvider {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(USERNAMES, usernames);
         if (CollectionUtils.isNotEmpty(usernames)) {
-            allUserIds.addAll(userMapper.getUserIdsForUsernames(params));
+            allUserIds.addAll(userDAO.getUserIdsForUsernames(params));
         }
         if (CollectionUtils.isNotEmpty(allUserIds)) {
             params = new HashMap<String, Object>();
             params.put(USER_IDS, allUserIds);
             params.put(ENABLED, enabled ? 1 : 0);
-            userMapper.enableUsers(params);
+            userDAO.enableUsers(params);
         }
     }
 
@@ -193,7 +193,7 @@ public class DbSecurityProvider implements SecurityProvider {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(USER_ID, userId);
         params.put(USERNAME, username);
-        List<GroupDAO> gDAOs = userMapper.getUserGroups(params);
+        List<GroupTO> gDAOs = userDAO.getUserGroups(params);
         List<Group> userGroups = new ArrayList<Group>();
         gDAOs.forEach(g -> {
             Group group = new Group();
@@ -213,7 +213,7 @@ public class DbSecurityProvider implements SecurityProvider {
         params.put(OFFSET, offset);
         params.put(LIMIT, limit);
         params.put(SORT, sort);
-        List<GroupDAO> groups = groupMapper.getAllGroupsForOrganization(params);
+        List<GroupTO> groups = groupDAO.getAllGroupsForOrganization(params);
 
         List<Group> toRet = new ArrayList<Group>();
         groups.forEach(g -> {
@@ -236,7 +236,7 @@ public class DbSecurityProvider implements SecurityProvider {
         params.put(ORG_ID, orgId);
         params.put(GROUP_NAME, groupName);
         params.put(GROUP_DESCRIPTION, groupDescription);
-        groupMapper.createGroup(params);
+        groupDAO.createGroup(params);
     }
 
     @Override
@@ -246,21 +246,21 @@ public class DbSecurityProvider implements SecurityProvider {
         params.put(ORG_ID, orgId);
         params.put(GROUP_NAME, group.getName());
         params.put(GROUP_DESCRIPTION, group.getDesc());
-        groupMapper.updateGroup(params);
+        groupDAO.updateGroup(params);
     }
 
     @Override
     public void deleteGroup(List<Long> groupIds) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(GROUP_IDS, groupIds);
-        groupMapper.deleteGroup(params);
+        groupDAO.deleteGroup(params);
     }
 
     @Override
     public Group getGroup(long groupId) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(GROUP_ID, groupId);
-        GroupDAO gDAL = groupMapper.getGroup(params);
+        GroupTO gDAL = groupDAO.getGroup(params);
         Group toRet = new Group();
         toRet.setId(gDAL.getId());
         toRet.setName(gDAL.getGroupName());
@@ -275,7 +275,7 @@ public class DbSecurityProvider implements SecurityProvider {
         params.put(OFFSET, offset);
         params.put(LIMIT, limit);
         params.put(SORT, sort);
-        List<UserDAO> uDAOs = groupMapper.getGroupMembers(params);
+        List<UserTO> uDAOs = groupDAO.getGroupMembers(params);
         List<User> toRet = new ArrayList<User>();
         uDAOs.forEach(u -> {
             User user = new User();
@@ -298,13 +298,13 @@ public class DbSecurityProvider implements SecurityProvider {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(USERNAMES, usernames);
         if (CollectionUtils.isNotEmpty(usernames)) {
-            allUserIds.addAll(groupMapper.getUserIdsForUsernames(params));
+            allUserIds.addAll(groupDAO.getUserIdsForUsernames(params));
         }
         if (CollectionUtils.isNotEmpty(allUserIds)) {
             params = new HashMap<String, Object>();
             params.put(USER_IDS, allUserIds);
             params.put(GROUP_ID, groupId);
-            int result = groupMapper.addGroupMembers(params);
+            int result = groupDAO.addGroupMembers(params);
             return result > 0;
         }
         return false;
@@ -317,19 +317,19 @@ public class DbSecurityProvider implements SecurityProvider {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(USERNAMES, usernames);
         if (CollectionUtils.isNotEmpty(usernames)) {
-            allUserIds.addAll(groupMapper.getUserIdsForUsernames(params));
+            allUserIds.addAll(groupDAO.getUserIdsForUsernames(params));
         }
         if (CollectionUtils.isNotEmpty(allUserIds)) {
             params = new HashMap<String, Object>();
             params.put(USER_IDS, allUserIds);
             params.put(GROUP_ID, groupId);
-            groupMapper.removeGroupMembers(params);
+            groupDAO.removeGroupMembers(params);
         }
     }
 
     @Override
     public int getAllUsersTotal() {
-        return userMapper.getAllUsersTotal();
+        return userDAO.getAllUsersTotal();
     }
 
     @Override
@@ -362,7 +362,7 @@ public class DbSecurityProvider implements SecurityProvider {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(USER_ID, -1);
         params.put(USERNAME, username);
-        UserDAO user = userMapper.getUserByIdOrUsername(params);
+        UserTO user = userDAO.getUserByIdOrUsername(params);
         if (user != null && user.isEnabled() && CryptoUtils.matchPassword(user.getPassword(), password)) {
             String token = createToken(user);
             storeSessionTicket(token);
@@ -373,7 +373,7 @@ public class DbSecurityProvider implements SecurityProvider {
         }
     }
 
-    protected String createToken(UserDAO user) {
+    protected String createToken(UserTO user) {
         int timeout = Integer.parseInt(studioConfiguration.getProperty(SECURITY_SESSION_TIMEOUT));
         String token = SessionTokenUtils.createToken(user.getUsername(), timeout);
         return token;
@@ -461,7 +461,7 @@ public class DbSecurityProvider implements SecurityProvider {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(USER_ID, -1);
         params.put(USERNAME, username);
-        UserDAO user = userMapper.getUserByIdOrUsername(params);
+        UserTO user = userDAO.getUserByIdOrUsername(params);
         if (user.getExternallyManaged() > 0) {
             throw new UserExternallyManagedException();
         } else {
@@ -470,7 +470,7 @@ public class DbSecurityProvider implements SecurityProvider {
                 params = new HashMap<String, Object>();
                 params.put(USERNAME, username);
                 params.put(PASSWORD, hashedPassword);
-                userMapper.setUserPassword(params);
+                userDAO.setUserPassword(params);
                 return true;
             } else {
                 throw new PasswordDoesNotMatchException();
@@ -487,7 +487,7 @@ public class DbSecurityProvider implements SecurityProvider {
             Map<String, Object> params = new HashMap<String, Object>();
             params.put(USER_ID, -1);
             params.put(USERNAME, username);
-            UserDAO user = userMapper.getUserByIdOrUsername(params);
+            UserTO user = userDAO.getUserByIdOrUsername(params);
             if (user.getExternallyManaged() > 0) {
                 throw new UserExternallyManagedException();
             } else {
@@ -495,7 +495,7 @@ public class DbSecurityProvider implements SecurityProvider {
                 params = new HashMap<String, Object>();
                 params.put(USERNAME, username);
                 params.put(PASSWORD, hashedPassword);
-                userMapper.setUserPassword(params);
+                userDAO.setUserPassword(params);
                 return true;
             }
         }
@@ -505,7 +505,7 @@ public class DbSecurityProvider implements SecurityProvider {
     public boolean userExists(String username) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(USERNAME, username);
-        Integer result = userMapper.userExists(params);
+        Integer result = userDAO.userExists(params);
         return (result > 0);
     }
 
@@ -513,24 +513,24 @@ public class DbSecurityProvider implements SecurityProvider {
     public boolean groupExists(String groupName) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(GROUP_NAME, groupName);
-        Integer result = groupMapper.groupExists(params);
+        Integer result = groupDAO.groupExists(params);
         return (result > 0);
     }
 
-    public UserMapper getUserMapper() {
-        return userMapper;
+    public UserDAO getUserDAO() {
+        return userDAO;
     }
 
-    public void setUserMapper(UserMapper userMapper) {
-        this.userMapper = userMapper;
+    public void setUserDAO(UserDAO userDAO) {
+        this.userDAO = userDAO;
     }
 
-    public GroupMapper getGroupMapper() {
-        return groupMapper;
+    public GroupDAO getGroupDAO() {
+        return groupDAO;
     }
 
-    public void setGroupMapper(GroupMapper groupMapper) {
-        this.groupMapper = groupMapper;
+    public void setGroupDAO(GroupDAO groupDAO) {
+        this.groupDAO = groupDAO;
     }
 
     public StudioConfiguration getStudioConfiguration() {

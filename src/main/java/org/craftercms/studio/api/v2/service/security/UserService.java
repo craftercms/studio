@@ -28,6 +28,12 @@ public interface UserService {
 
     List<User> getAllUsersForSite(long orgId, String site, int offset, int limit, String sort);
 
+    List<User> getAllUsers(int offset, int limit, String sort);
+
+    int getAllUsersForSiteTotal(long orgId, String site);
+
+    int getAllUsersTotal();
+
     void createUser(User user) throws UserAlreadyExistsException;
 
     void updateUser(User user);

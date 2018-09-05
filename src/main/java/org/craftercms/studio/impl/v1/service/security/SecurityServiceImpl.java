@@ -98,6 +98,7 @@ import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_FIRSTN
 import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_LASTNAME;
 import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_USERNAME;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.ORGANIZATION_ADMIN_GROUP;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SECURITY_AUTHENTICATION_TYPE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_DEFAULT_ADMIN_GROUP;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_GLOBAL_CONFIG_BASE_PATH;
@@ -116,7 +117,6 @@ import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIP
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_FORGOT_PASSWORD_EMAIL_TEMPLATE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_FORGOT_PASSWORD_MESSAGE_SUBJECT;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_FORGOT_PASSWORD_TOKEN_TIMEOUT;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_GLOBAL_ADMIN_GROUP;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_RESET_PASSWORD_SERVICE_URL;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_SESSION_TIMEOUT;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_TYPE;
@@ -851,8 +851,7 @@ public class SecurityServiceImpl implements SecurityService {
         boolean toRet = false;
         if (CollectionUtils.isNotEmpty(userGroups)) {
             for (Group group : userGroups) {
-                if (StringUtils.equalsIgnoreCase(group.getName(),
-                        studioConfiguration.getProperty(SECURITY_GLOBAL_ADMIN_GROUP))) {
+                if (StringUtils.equalsIgnoreCase(group.getName(), ORGANIZATION_ADMIN_GROUP)) {
                     toRet = true;
                     break;
                 }

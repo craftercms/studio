@@ -72,13 +72,25 @@ public class UsersController {
      */
     @GetMapping("/api/2/users")
     public StudioResponseBody getAllUsers(@RequestParam(value = "siteId", required = false) String siteId,
-                                          @RequestParam(value = "offset", required = false) int offset,
-                                          @RequestParam(value = "limit", required = false) int limit,
-                                          @RequestParam(value = "sort", required = false) String sort) {
-        List<User> users = userService.getAllUsersForSite(1, siteId, offset, limit, sort);
+                      @RequestParam(value = "offset", required = false, defaultValue = "0") int offset,
+                      @RequestParam(value = "limit", required = false, defaultValue = "10") int limit,
+                      @RequestParam(value = "sort", required = false, defaultValue = StringUtils.EMPTY) String sort) {
+        List<User> users = null;
+        int total = 0;
+        if (StringUtils.isEmpty(siteId)) {
+            total = userService.getAllUsersTotal();
+            users = userService.getAllUsers(offset, limit, sort);
+        } else {
+            total = userService.getAllUsersForSiteTotal(1, siteId);
+            users = userService.getAllUsersForSite(1, siteId, offset, limit, sort);
+        }
+
 
         StudioResponseBody responseBody = new StudioResponseBody();
         ResultList result = new ResultList();
+        result.setTotal(total);
+        result.setOffset(offset);
+        result.setLimit(users.size());
         result.setResponse(ApiResponse.CODE_0);
         responseBody.setResult(result);
         List<Entity> entities = new ArrayList<Entity>();

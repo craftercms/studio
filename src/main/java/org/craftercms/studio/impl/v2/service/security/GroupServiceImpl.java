@@ -26,8 +26,8 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
+import org.craftercms.studio.api.v2.dal.GroupTO;
 import org.craftercms.studio.api.v2.dal.GroupDAO;
-import org.craftercms.studio.api.v2.dal.GroupMapper;
 import org.craftercms.studio.api.v2.service.security.GroupService;
 import org.craftercms.studio.api.v2.service.security.SecurityProvider;
 import org.craftercms.studio.model.Group;
@@ -51,12 +51,13 @@ import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATIO
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.GROUP_NAME;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ORG_ID;
 
 public class GroupServiceImpl implements GroupService {
 
     private static final Logger logger = LoggerFactory.getLogger(GroupServiceImpl.class);
 
-    private GroupMapper groupMapper;
+    private GroupDAO groupDAO;
     private StudioConfiguration studioConfiguration;
     private ContentService contentService;
     private SecurityProvider securityProvider;
@@ -64,6 +65,13 @@ public class GroupServiceImpl implements GroupService {
     @Override
     public List<Group> getAllGroups(long orgId, int offset, int limit, String sort) {
         return securityProvider.getAllGroups(orgId, offset, limit, sort);
+    }
+
+    @Override
+    public int getAllGroupsTotal(long orgId) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put(ORG_ID, orgId);
+        return groupDAO.getAllGroupsForOrganizationTotal(params);
     }
 
     @Override
@@ -186,24 +194,24 @@ public class GroupServiceImpl implements GroupService {
     public Group getGroupByName(String groupName) throws GroupNotFoundException {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(GROUP_NAME, groupName);
-        GroupDAO groupDAO = groupMapper.getGroupByName(params);
-        if (groupDAO != null) {
+        GroupTO groupTO = groupDAO.getGroupByName(params);
+        if (groupTO != null) {
             Group g = new Group();
-            g.setId(groupDAO.getId());
-            g.setName(groupDAO.getGroupName());
-            g.setDesc(groupDAO.getGroupDescription());
+            g.setId(groupTO.getId());
+            g.setName(groupTO.getGroupName());
+            g.setDesc(groupTO.getGroupDescription());
             return g;
         } else {
             throw new GroupNotFoundException();
         }
     }
 
-    public GroupMapper getGroupMapper() {
-        return groupMapper;
+    public GroupDAO getGroupDAO() {
+        return groupDAO;
     }
 
-    public void setGroupMapper(GroupMapper groupMapper) {
-        this.groupMapper = groupMapper;
+    public void setGroupDAO(GroupDAO groupDAO) {
+        this.groupDAO = groupDAO;
     }
 
     public StudioConfiguration getStudioConfiguration() {
