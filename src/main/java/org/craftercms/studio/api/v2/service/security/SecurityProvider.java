@@ -26,6 +26,7 @@ import org.craftercms.studio.api.v1.exception.security.PasswordDoesNotMatchExcep
 import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.UserExternallyManagedException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.impl.v2.service.security.Authentication;
 import org.craftercms.studio.model.Group;
 import org.craftercms.studio.model.User;
 
@@ -72,6 +73,8 @@ public interface SecurityProvider {
     boolean validateTicket(String ticket);
 
     String getCurrentToken();
+
+    Authentication getAuthentication();
 
     boolean logout();
 

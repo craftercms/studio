@@ -34,6 +34,7 @@ import org.craftercms.studio.api.v1.service.activity.ActivityService;
 import org.craftercms.studio.api.v2.dal.GroupTO;
 import org.craftercms.studio.api.v2.dal.UserGroupTO;
 import org.craftercms.studio.api.v2.dal.UserTO;
+import org.craftercms.studio.model.AuthenticationType;
 import org.craftercms.studio.model.User;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.ldap.AuthenticationException;
@@ -205,14 +206,12 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
             }
 
             for (UserGroupTO userGroup : userTO.getGroups()) {
-
                 upsertUserGroup(userGroup.getGroup().getGroupName(), userTO.getUsername());
-
             }
 
             String token = createToken(userTO);
-            storeSessionTicket(token);
-            storeSessionUsername(username);
+
+            storeAuthentication(new Authentication(username, token, AuthenticationType.LDAP));
 
             return token;
         } else {

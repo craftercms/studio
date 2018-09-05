@@ -25,6 +25,7 @@ import org.craftercms.studio.api.v1.exception.security.BadCredentialsException;
 import org.craftercms.studio.api.v1.exception.security.PasswordDoesNotMatchException;
 import org.craftercms.studio.api.v1.exception.security.UserExternallyManagedException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.impl.v2.service.security.Authentication;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -52,6 +53,11 @@ public interface SecurityService {
 	String getCurrentUser();
 
     String getCurrentToken();
+
+    /**
+     * Returns the {@link Authentication} for the current user or null if not user is authenticated.
+     */
+    Authentication getCurrentAuthentication();
 
     Set<String> getUserRoles(String site, String user);
 
