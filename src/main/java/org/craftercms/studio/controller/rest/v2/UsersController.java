@@ -268,11 +268,12 @@ public class UsersController {
     public ResponseBody getAuthenticatedUser() throws AuthenticationException, ServiceException {
         AuthenticatedUser user = userService.getAuthenticatedUser();
 
-//        ResultOn result = new Result();
-//        result.setResponse(org.craftercms.studio.model.rest.ApiResponse.OK);
-//
-//        ResponseBody responseBody = new ResponseBody();
-//        responseBody.setResult(result);
+        ResultOne result = new ResultOne();
+        result.setResponse(ApiResponse.OK);
+        result.setEntity(user);
+
+        ResponseBody responseBody = new ResponseBody();
+        responseBody.setResult(result);
 
         return responseBody;
     }
