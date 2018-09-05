@@ -215,17 +215,10 @@ public class UsersController {
      * Get user sites API
      *
      * @param userId User identifier
-     * @param offset Result set offset
-     * @param limit Result set limit
-     * @param sort Sort order
      * @return Response containing list of sites
      */
     @GetMapping("/api/2/users/{userId}/sites")
-    public ResponseBody getUserSites(
-        @PathVariable("userId") String userId,
-        @RequestParam(value = "offset", required = false, defaultValue = "0") int offset,
-        @RequestParam(value = "limit", required = false, defaultValue = "10") int limit,
-        @RequestParam(value = "sort", required = false, defaultValue = StringUtils.EMPTY) String sort) {
+    public ResponseBody getUserSites(@PathVariable("userId") String userId) {
 
         List<Site> sites = new ArrayList<>();
         Set<String> allSites = siteService.getAllAvailableSites();

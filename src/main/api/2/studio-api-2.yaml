@@ -5,7 +5,7 @@ info:
   description: |-
     Crafter Studio API v2
     https://docs.craftercms.org/en/3.0/developers/projects/studio/index.html
-  version: '2'
+  version: '2.0.1'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -759,28 +759,6 @@ paths:
           in: path
           description: The user ID. Username can also be used
           required: true
-          schema:
-            type: string
-        - name: offset
-          in: query
-          description: Offset of first record in the response
-          required: false
-          schema:
-            type: integer
-            format: int32
-        - name: limit
-          in: query
-          description: Number of records to return
-          required: false
-          schema:
-            type: integer
-            format: int32
-        - name: sort
-          in: query
-          description: |-
-            The fields to use for sorting, plus the `asc` or `desc` keyword. Multiple fields are separated by
-            commas. Finally, the value should match the following regex: `([a-zA-Z_][a-zA-Z_0-9]*,?)+ (asc|desc)`?
-          required: false
           schema:
             type: string
       responses:
