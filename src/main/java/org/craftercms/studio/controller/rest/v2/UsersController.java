@@ -27,16 +27,16 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.service.security.GroupService;
 import org.craftercms.studio.api.v2.service.security.UserService;
-import org.craftercms.studio.model.ApiResponse;
 import org.craftercms.studio.model.EnableUsers;
-import org.craftercms.studio.model.Entity;
 import org.craftercms.studio.model.Group;
-import org.craftercms.studio.model.ResultList;
-import org.craftercms.studio.model.ResultOne;
 import org.craftercms.studio.model.Site;
-import org.craftercms.studio.model.StudioResponseBody;
 import org.craftercms.studio.model.User;
+import org.craftercms.studio.model.rest.ApiResponse;
+import org.craftercms.studio.model.rest.ResponseBody;
+import org.craftercms.studio.model.rest.ResultList;
+import org.craftercms.studio.model.rest.ResultOne;
 import org.springframework.http.MediaType;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -71,10 +71,12 @@ public class UsersController {
      * @return Response containing list of users
      */
     @GetMapping("/api/2/users")
-    public StudioResponseBody getAllUsers(@RequestParam(value = "siteId", required = false) String siteId,
-                      @RequestParam(value = "offset", required = false, defaultValue = "0") int offset,
-                      @RequestParam(value = "limit", required = false, defaultValue = "10") int limit,
-                      @RequestParam(value = "sort", required = false, defaultValue = StringUtils.EMPTY) String sort) {
+    public ResponseBody getAllUsers(
+        @RequestParam(value = "siteId", required = false) String siteId,
+        @RequestParam(value = "offset", required = false, defaultValue = "0") int offset,
+        @RequestParam(value = "limit", required = false, defaultValue = "10") int limit,
+        @RequestParam(value = "sort", required = false, defaultValue = StringUtils.EMPTY) String sort) {
+
         List<User> users = null;
         int total = 0;
         if (StringUtils.isEmpty(siteId)) {
@@ -86,16 +88,14 @@ public class UsersController {
         }
 
 
-        StudioResponseBody responseBody = new StudioResponseBody();
-        ResultList result = new ResultList();
+        ResponseBody responseBody = new ResponseBody();
+        ResultList<User> result = new ResultList<>();
         result.setTotal(total);
         result.setOffset(offset);
-        result.setLimit(users.size());
-        result.setResponse(ApiResponse.CODE_0);
+        result.setLimit(CollectionUtils.isEmpty(users) ? 0 : users.size());
+        result.setResponse(ApiResponse.OK);
         responseBody.setResult(result);
-        List<Entity> entities = new ArrayList<Entity>();
-        entities.addAll(users);
-        result.setEntities(entities);
+        result.setEntities(users);
         return responseBody;
     }
 
@@ -106,22 +106,14 @@ public class UsersController {
      * @return Response object
      */
     @PostMapping(value = "/api/2/users", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public StudioResponseBody createUser(@RequestBody User user) {
-        try {
-            userService.createUser(user);
+    public ResponseBody createUser(@RequestBody User user) throws UserAlreadyExistsException {
+        userService.createUser(user);
 
-            StudioResponseBody responseBody = new StudioResponseBody();
-            ResultOne result = new ResultOne();
-            result.setResponse(ApiResponse.CODE_0);
-            responseBody.setResult(result);
-            return responseBody;
-        } catch (UserAlreadyExistsException e) {
-            StudioResponseBody responseBody = new StudioResponseBody();
-            ResultOne result = new ResultOne();
-            result.setResponse(ApiResponse.CODE_0);
-            responseBody.setResult(result);
-            return responseBody;
-        }
+        ResponseBody responseBody = new ResponseBody();
+        ResultOne<User> result = new ResultOne<>();
+        result.setResponse(ApiResponse.CREATED);
+        responseBody.setResult(result);
+        return responseBody;
     }
 
     /**
@@ -131,12 +123,12 @@ public class UsersController {
      * @return Response object
      */
     @PatchMapping(value = "/api/2/users", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public StudioResponseBody updateUser(@RequestBody User user) {
+    public ResponseBody updateUser(@RequestBody User user) {
         userService.updateUser(user);
 
-        StudioResponseBody responseBody = new StudioResponseBody();
+        ResponseBody responseBody = new ResponseBody();
         ResultOne result = new ResultOne();
-        result.setResponse(ApiResponse.CODE_0);
+        result.setResponse(ApiResponse.OK);
         responseBody.setResult(result);
         return responseBody;
     }
@@ -149,13 +141,13 @@ public class UsersController {
      * @return Response object
      */
     @DeleteMapping("/api/2/users")
-    public StudioResponseBody deleteUser(@RequestParam(value = "userId", required = false) List<Long> userIds,
+    public ResponseBody deleteUser(@RequestParam(value = "userId", required = false) List<Long> userIds,
                            @RequestParam(value = "username", required = false) List<String> usernames) {
         userService.deleteUsers(userIds, usernames);
 
-        StudioResponseBody responseBody = new StudioResponseBody();
+        ResponseBody responseBody = new ResponseBody();
         ResultOne result = new ResultOne();
-        result.setResponse(ApiResponse.CODE_0);
+        result.setResponse(ApiResponse.DELETED);
         responseBody.setResult(result);
         return responseBody;
     }
@@ -167,7 +159,7 @@ public class UsersController {
      * @return Response containing user
      */
     @GetMapping("/api/2/users/{userId}")
-    public StudioResponseBody getUser(@PathVariable("userId") String userId) {
+    public ResponseBody getUser(@PathVariable("userId") String userId) {
         int uId = -1;
         String username = StringUtils.EMPTY;
         if (StringUtils.isNumeric(userId)) {
@@ -177,9 +169,9 @@ public class UsersController {
         }
         User user = userService.getUserByIdOrUsername(uId, username);
 
-        StudioResponseBody responseBody = new StudioResponseBody();
-        ResultOne result = new ResultOne();
-        result.setResponse(ApiResponse.CODE_0);
+        ResponseBody responseBody = new ResponseBody();
+        ResultOne<User> result = new ResultOne<>();
+        result.setResponse(ApiResponse.OK);
         result.setEntity(user);
         responseBody.setResult(result);
         return responseBody;
@@ -192,12 +184,12 @@ public class UsersController {
      * @return Response object
      */
     @PatchMapping(value = "/api/2/users/enable", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public StudioResponseBody enableUsers(@RequestBody EnableUsers enableUsers) {
+    public ResponseBody enableUsers(@RequestBody EnableUsers enableUsers) {
         userService.enableUsers(enableUsers.getUserIds(), enableUsers.getUsernames(), true);
 
-        StudioResponseBody responseBody = new StudioResponseBody();
+        ResponseBody responseBody = new ResponseBody();
         ResultOne result = new ResultOne();
-        result.setResponse(ApiResponse.CODE_0);
+        result.setResponse(ApiResponse.OK);
         responseBody.setResult(result);
         return responseBody;
     }
@@ -209,12 +201,12 @@ public class UsersController {
      * @return Response object
      */
     @PatchMapping(value = "/api/2/users/disable", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public StudioResponseBody disableUsers(@RequestBody EnableUsers enableUsers) {
+    public ResponseBody disableUsers(@RequestBody EnableUsers enableUsers) {
         userService.enableUsers(enableUsers.getUserIds(), enableUsers.getUsernames(), false);
 
-        StudioResponseBody responseBody = new StudioResponseBody();
+        ResponseBody responseBody = new ResponseBody();
         ResultOne result = new ResultOne();
-        result.setResponse(ApiResponse.CODE_0);
+        result.setResponse(ApiResponse.OK);
         responseBody.setResult(result);
         return responseBody;
     }
@@ -229,16 +221,16 @@ public class UsersController {
      * @return Response containing list of sites
      */
     @GetMapping("/api/2/users/{userId}/sites")
-    public StudioResponseBody getUserSites(@PathVariable("userId") String userId,
-                                           @RequestParam(value = "offset", required = false) int offset,
-                                           @RequestParam(value = "limit", required = false) int limit,
-                                           @RequestParam(value = "sort", required = false) String sort) {
-        List<Site> sites = new ArrayList<Site>();
+    public ResponseBody getUserSites(
+        @PathVariable("userId") String userId,
+        @RequestParam(value = "offset", required = false, defaultValue = "0") int offset,
+        @RequestParam(value = "limit", required = false, defaultValue = "10") int limit,
+        @RequestParam(value = "sort", required = false, defaultValue = StringUtils.EMPTY) String sort) {
+
+        List<Site> sites = new ArrayList<>();
         Set<String> allSites = siteService.getAllAvailableSites();
-        Map<String, List<String>> siteGroupsMap = new HashMap<String, List<String>>();
-        allSites.forEach(s -> {
-            siteGroupsMap.put(s, groupService.getSiteGroups(s));
-        });
+        Map<String, List<String>> siteGroupsMap = new HashMap<>();
+        allSites.forEach(s -> siteGroupsMap.put(s, groupService.getSiteGroups(s)));
         int uId = -1;
         String username = StringUtils.EMPTY ;
         if ( StringUtils.isNumeric(userId)) {
@@ -264,13 +256,11 @@ public class UsersController {
             }
         });
 
-        StudioResponseBody responseBody = new StudioResponseBody();
-        ResultList result = new ResultList();
-        result.setResponse(ApiResponse.CODE_0);
+        ResponseBody responseBody = new ResponseBody();
+        ResultList<Site> result = new ResultList<>();
+        result.setResponse(ApiResponse.OK);
         responseBody.setResult(result);
-        List<Entity> entities = new ArrayList<Entity>();
-        entities.addAll(sites);
-        result.setEntities(entities);
+        result.setEntities(sites);
         return responseBody;
     }
 

@@ -25,13 +25,12 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.service.security.GroupService;
 import org.craftercms.studio.model.AddGroupMembers;
-import org.craftercms.studio.model.ApiResponse;
-import org.craftercms.studio.model.Entity;
 import org.craftercms.studio.model.Group;
-import org.craftercms.studio.model.ResultList;
-import org.craftercms.studio.model.ResultOne;
-import org.craftercms.studio.model.StudioResponseBody;
 import org.craftercms.studio.model.User;
+import org.craftercms.studio.model.rest.ApiResponse;
+import org.craftercms.studio.model.rest.ResponseBody;
+import org.craftercms.studio.model.rest.ResultList;
+import org.craftercms.studio.model.rest.ResultOne;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -42,9 +41,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 public class GroupsController {
@@ -62,7 +59,7 @@ public class GroupsController {
      * @return Response containing list of groups
      */
     @GetMapping("/api/2/groups")
-    public StudioResponseBody getAllGroups(
+    public ResponseBody getAllGroups(
             @RequestParam(value = "offset", required = false, defaultValue = "0") int offset,
             @RequestParam(value = "limit", required = false, defaultValue = "10") int limit,
             @RequestParam(value = "sort", required = false, defaultValue = StringUtils.EMPTY) String sort
@@ -70,15 +67,13 @@ public class GroupsController {
         int total = groupService.getAllGroupsTotal(1);
         List<Group> groups = groupService.getAllGroups(1, offset, limit, sort);
 
-        StudioResponseBody responseBody = new StudioResponseBody();
-        ResultList result = new ResultList();
+        ResponseBody responseBody = new ResponseBody();
+        ResultList<Group> result = new ResultList<>();
         result.setTotal(total);
         result.setOffset(offset);
         result.setLimit(CollectionUtils.isEmpty(groups) ? 0 : groups.size());
-        result.setResponse(ApiResponse.CODE_0);
-        List<Entity> entities = new ArrayList<Entity>();
-        entities.addAll(groups);
-        result.setEntities(entities);
+        result.setResponse(ApiResponse.OK);
+        result.setEntities(groups);
         responseBody.setResult(result);
         return responseBody;
     }
@@ -90,20 +85,12 @@ public class GroupsController {
      * @return Response object
      */
     @PostMapping(value = "/api/2/groups", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public StudioResponseBody createGroup(@RequestBody Group group) {
-        try {
-            groupService.createGroup(1, group.getName(), group.getDesc());
-        } catch (GroupAlreadyExistsException e) {
-            StudioResponseBody errorBody = new StudioResponseBody();
-            ResultOne errorResult = new ResultOne();
-            errorResult.setResponse(ApiResponse.CODE_4000);
-            errorBody.setResult(errorResult);
-            return errorBody;
-        }
+    public ResponseBody createGroup(@RequestBody Group group) throws GroupAlreadyExistsException {
+        groupService.createGroup(1, group.getName(), group.getDesc());
 
-        StudioResponseBody responseBody = new StudioResponseBody();
+        ResponseBody responseBody = new ResponseBody();
         ResultOne result = new ResultOne();
-        result.setResponse(ApiResponse.CODE_1);
+        result.setResponse(ApiResponse.CREATED);
         responseBody.setResult(result);
         return responseBody;
     }
@@ -115,12 +102,12 @@ public class GroupsController {
      * @return Response object
      */
     @PatchMapping(value = "/api/2/groups", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public StudioResponseBody updateGroup(@RequestBody Group group) {
+    public ResponseBody updateGroup(@RequestBody Group group) {
         groupService.updateGroup(1, group);
 
-        StudioResponseBody responseBody = new StudioResponseBody();
+        ResponseBody responseBody = new ResponseBody();
         ResultOne result = new ResultOne();
-        result.setResponse(ApiResponse.CODE_0);
+        result.setResponse(ApiResponse.OK);
         responseBody.setResult(result);
         return responseBody;
     }
@@ -132,12 +119,12 @@ public class GroupsController {
      * @return Response object
      */
     @DeleteMapping("/api/2/groups")
-    public StudioResponseBody deleteGroup(@RequestParam("id") List<Long> groupIds) {
+    public ResponseBody deleteGroup(@RequestParam("id") List<Long> groupIds) {
         groupService.deleteGroup(groupIds);
 
-        StudioResponseBody responseBody = new StudioResponseBody();
+        ResponseBody responseBody = new ResponseBody();
         ResultOne result = new ResultOne();
-        result.setResponse(ApiResponse.CODE_0);
+        result.setResponse(ApiResponse.DELETED);
         responseBody.setResult(result);
         return responseBody;
     }
@@ -149,12 +136,12 @@ public class GroupsController {
      * @return Response containing requested group
      */
     @GetMapping("/api/2/groups/{groupId}")
-    public StudioResponseBody getGroup(@PathVariable("groupId") int groupId) {
+    public ResponseBody getGroup(@PathVariable("groupId") int groupId) {
         Group group = groupService.getGroup(groupId);
 
-        StudioResponseBody responseBody = new StudioResponseBody();
-        ResultOne result = new ResultOne();
-        result.setResponse(ApiResponse.CODE_0);
+        ResponseBody responseBody = new ResponseBody();
+        ResultOne<Group> result = new ResultOne<>();
+        result.setResponse(ApiResponse.OK);
         result.setEntity(group);
         responseBody.setResult(result);
         return responseBody;
@@ -170,19 +157,19 @@ public class GroupsController {
      * @return Response containing list od users
      */
     @GetMapping("/api/2/groups/{groupId}/members")
-    public StudioResponseBody getGroupMembers(@PathVariable("groupId") int groupId,
-                                              @RequestParam(value = "offset", required = false) int offset,
-                                              @RequestParam(value = "limit", required = false) int limit,
-                                              @RequestParam(value = "sort", required = false) String sort) {
+    public ResponseBody getGroupMembers(
+        @PathVariable("groupId") int groupId,
+        @RequestParam(value = "offset", required = false, defaultValue = "0") int offset,
+        @RequestParam(value = "limit", required = false, defaultValue = "10") int limit,
+        @RequestParam(value = "sort", required = false, defaultValue = StringUtils.EMPTY) String sort) {
+
         List<User> users = groupService.getGroupMembers(groupId, offset, limit, sort);
 
-        StudioResponseBody responseBody = new StudioResponseBody();
-        ResultList result = new ResultList();
-        result.setResponse(ApiResponse.CODE_0);
+        ResponseBody responseBody = new ResponseBody();
+        ResultList<User> result = new ResultList<>();
+        result.setResponse(ApiResponse.OK);
         responseBody.setResult(result);
-        List<Entity> entities = new ArrayList<Entity>();
-        entities.addAll(users);
-        result.setEntities(entities);
+        result.setEntities(users);
         return responseBody;
     }
 
@@ -194,13 +181,13 @@ public class GroupsController {
      * @return Response object
      */
     @PostMapping(value = "/api/2/groups/{groupId}/members", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public StudioResponseBody addGroupMembers(@PathVariable("groupId") int groupId,
+    public ResponseBody addGroupMembers(@PathVariable("groupId") int groupId,
                                               @RequestBody AddGroupMembers addGroupMembers) {
         groupService.addGroupMembers(groupId, addGroupMembers.getUserIds(), addGroupMembers.getUsernames());
 
-        StudioResponseBody responseBody = new StudioResponseBody();
+        ResponseBody responseBody = new ResponseBody();
         ResultOne result = new ResultOne();
-        result.setResponse(ApiResponse.CODE_0);
+        result.setResponse(ApiResponse.OK);
         responseBody.setResult(result);
         return responseBody;
     }
@@ -214,14 +201,14 @@ public class GroupsController {
      * @return Response object
      */
     @DeleteMapping("/api/2/groups/{groupId}/members")
-    public StudioResponseBody removeGroupMembers(@PathVariable("groupId") int groupId,
+    public ResponseBody removeGroupMembers(@PathVariable("groupId") int groupId,
                                    @RequestParam(value = "userId", required = false) List<Long> userIds,
                                    @RequestParam(value = "username", required = false) List<String> usernames) {
         groupService.removeGroupMembers(groupId, userIds, usernames);
 
-        StudioResponseBody responseBody = new StudioResponseBody();
+        ResponseBody responseBody = new ResponseBody();
         ResultOne result = new ResultOne();
-        result.setResponse(ApiResponse.CODE_0);
+        result.setResponse(ApiResponse.DELETED);
         responseBody.setResult(result);
         return responseBody;
     }

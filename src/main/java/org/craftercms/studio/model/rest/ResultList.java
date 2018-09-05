@@ -30,18 +30,54 @@ import java.util.List;
  */
 public class ResultList<T> extends Result {
 
+    /**
+     * List of entities.
+     */
     private List<T> entities;
 
     /**
-     * Returns the result entities.
+     * Total number of entities found.
      */
+    private int total;
+
+    /**
+     * Offset used to retrieve the entities list.
+     */
+    private int offset;
+
+    /**
+     * Limit used to retrieve the entities list.
+     */
+    private int limit;
+
+    public int getTotal() {
+        return total;
+    }
+
+    public void setTotal(int total) {
+        this.total = total;
+    }
+
+    public int getOffset() {
+        return offset;
+    }
+
+    public void setOffset(int offset) {
+        this.offset = offset;
+    }
+
+    public int getLimit() {
+        return limit;
+    }
+
+    public void setLimit(int limit) {
+        this.limit = limit;
+    }
+
     public List<T> getEntities() {
         return entities;
     }
 
-    /**
-     * Sets the result entities.
-     */
     public void setEntities(List<T> entities) {
         this.entities = entities;
     }
