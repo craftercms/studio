@@ -212,6 +212,12 @@ public class MappedSecurityProvider implements SecurityProvider {
     }
 
     @Override
+    public Authentication getAuthentication() {
+        SecurityProvider provider = lookupProvider(getProviderType());
+        return provider.getAuthentication();
+    }
+
+    @Override
     public boolean logout() {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.logout();

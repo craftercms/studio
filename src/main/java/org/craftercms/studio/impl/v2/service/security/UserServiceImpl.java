@@ -18,6 +18,8 @@
 
 package org.craftercms.studio.impl.v2.service.security;
 
+import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -26,6 +28,7 @@ import org.craftercms.studio.api.v2.dal.UserTO;
 import org.craftercms.studio.api.v2.service.security.GroupService;
 import org.craftercms.studio.api.v2.service.security.SecurityProvider;
 import org.craftercms.studio.api.v2.service.security.UserService;
+import org.craftercms.studio.model.AuthenticatedUser;
 import org.craftercms.studio.model.Group;
 import org.craftercms.studio.model.User;
 
@@ -127,6 +130,26 @@ public class UserServiceImpl implements UserService {
         params.put(USERNAME, username);
         int result = userDAO.isUserMemberOfGroup(params);
         return result > 0;
+    }
+
+    @Override
+    public AuthenticatedUser getAuthenticatedUser() throws AuthenticationException, ServiceException {
+        Authentication authentication = securityProvider.getAuthentication();
+        if (authentication != null) {
+            String username = authentication.getUsername();
+            User user = securityProvider.getUserByIdOrUsername(0, username);
+
+            if (user != null) {
+                AuthenticatedUser authUser = new AuthenticatedUser(user);
+                authUser.setAuthenticationType(authentication.getAuthenticationType());
+
+                return authUser;
+            } else {
+                throw new ServiceException("Current authenticated user '" + username + "' wasn't found in repository");
+            }
+        } else {
+            throw new AuthenticationException("User should be authenticated");
+        }
     }
 
     public UserDAO getUserDAO() {

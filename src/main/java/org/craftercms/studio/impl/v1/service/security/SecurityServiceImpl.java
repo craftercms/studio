@@ -69,6 +69,7 @@ import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.service.security.GroupService;
 import org.craftercms.studio.api.v2.service.security.SecurityProvider;
 import org.craftercms.studio.impl.v1.util.SessionTokenUtils;
+import org.craftercms.studio.impl.v2.service.security.Authentication;
 import org.craftercms.studio.model.Group;
 import org.craftercms.studio.model.User;
 import org.dom4j.Document;
@@ -176,6 +177,11 @@ public class SecurityServiceImpl implements SecurityService {
     @Override
     public String getCurrentToken() {
         return securityProvider.getCurrentToken();
+    }
+
+    @Override
+    public Authentication getCurrentAuthentication() {
+        return securityProvider.getAuthentication();
     }
 
     @Override
