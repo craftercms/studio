@@ -268,7 +268,7 @@ public class UsersController {
     public ResponseBody getAuthenticatedUser() throws AuthenticationException, ServiceException {
         AuthenticatedUser user = userService.getAuthenticatedUser();
 
-        ResultOne result = new ResultOne();
+        ResultOne<AuthenticatedUser> result = new ResultOne();
         result.setResponse(ApiResponse.OK);
         result.setEntity(user);
 
