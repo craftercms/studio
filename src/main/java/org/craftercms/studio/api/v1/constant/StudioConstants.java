@@ -119,7 +119,7 @@ package org.craftercms.studio.api.v1.constant;
      * System constants
      */
     String FILE_SEPARATOR = "/";
-    String ORGANIZATION_ADMIN_GROUP = "org_admin";
+    String SYSTEM_ADMIN_GROUP = "system_admin";
 
     /**
      * Remote repository create option
