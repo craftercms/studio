@@ -313,7 +313,9 @@ public class DbSecurityProvider implements SecurityProvider {
     @Override
     public void removeGroupMembers(long groupId, List<Long> userIds, List<String> usernames) {
         List<Long> allUserIds = new ArrayList<Long>();
-        allUserIds.addAll(userIds);
+        if (CollectionUtils.isNotEmpty(userIds)) {
+            allUserIds.addAll(userIds);
+        }
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(USERNAMES, usernames);
         if (CollectionUtils.isNotEmpty(usernames)) {
