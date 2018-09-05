@@ -32,6 +32,7 @@ import org.craftercms.studio.model.Group;
 import org.craftercms.studio.model.Site;
 import org.craftercms.studio.model.User;
 import org.craftercms.studio.model.rest.ApiResponse;
+import org.craftercms.studio.model.rest.PaginatedResultList;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.ResultList;
 import org.craftercms.studio.model.rest.ResultOne;
@@ -89,7 +90,7 @@ public class UsersController {
 
 
         ResponseBody responseBody = new ResponseBody();
-        ResultList<User> result = new ResultList<>();
+        PaginatedResultList<User> result = new PaginatedResultList<>();
         result.setTotal(total);
         result.setOffset(offset);
         result.setLimit(CollectionUtils.isEmpty(users) ? 0 : users.size());

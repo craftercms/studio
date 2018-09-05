@@ -55,8 +55,6 @@ public class ExceptionHandlers {
     @ResponseStatus(HttpStatus.CONFLICT)
     public ResponseBody handleUserAlreadyExistsException(HttpServletRequest request, ServiceException e) {
         ApiResponse response = new ApiResponse(ApiResponse.USER_ALREADY_EXISTS);
-        response.setMessage(response.getMessage() + ": " + e.getMessage());
-
         return handleExceptionInternal(request, e, response);
     }
 
@@ -64,8 +62,6 @@ public class ExceptionHandlers {
     @ResponseStatus(HttpStatus.CONFLICT)
     public ResponseBody handleGroupAlreadyExistsException(HttpServletRequest request, ServiceException e) {
         ApiResponse response = new ApiResponse(ApiResponse.GROUP_ALREADY_EXISTS);
-        response.setMessage(response.getMessage() + ": " + e.getMessage());
-
         return handleExceptionInternal(request, e, response);
     }
 

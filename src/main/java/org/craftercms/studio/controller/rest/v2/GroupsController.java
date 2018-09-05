@@ -28,6 +28,7 @@ import org.craftercms.studio.model.AddGroupMembers;
 import org.craftercms.studio.model.Group;
 import org.craftercms.studio.model.User;
 import org.craftercms.studio.model.rest.ApiResponse;
+import org.craftercms.studio.model.rest.PaginatedResultList;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.ResultList;
 import org.craftercms.studio.model.rest.ResultOne;
@@ -68,7 +69,7 @@ public class GroupsController {
         List<Group> groups = groupService.getAllGroups(1, offset, limit, sort);
 
         ResponseBody responseBody = new ResponseBody();
-        ResultList<Group> result = new ResultList<>();
+        PaginatedResultList<Group> result = new PaginatedResultList<>();
         result.setTotal(total);
         result.setOffset(offset);
         result.setLimit(CollectionUtils.isEmpty(groups) ? 0 : groups.size());
@@ -168,8 +169,8 @@ public class GroupsController {
         ResponseBody responseBody = new ResponseBody();
         ResultList<User> result = new ResultList<>();
         result.setResponse(ApiResponse.OK);
-        responseBody.setResult(result);
         result.setEntities(users);
+        responseBody.setResult(result);
         return responseBody;
     }
 
