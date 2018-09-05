@@ -31,9 +31,9 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.activity.ActivityService;
-import org.craftercms.studio.api.v2.dal.GroupDAO;
-import org.craftercms.studio.api.v2.dal.UserDAO;
-import org.craftercms.studio.api.v2.dal.UserGroup;
+import org.craftercms.studio.api.v2.dal.GroupTO;
+import org.craftercms.studio.api.v2.dal.UserGroupTO;
+import org.craftercms.studio.api.v2.dal.UserTO;
 import org.craftercms.studio.model.User;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.ldap.AuthenticationException;
@@ -79,9 +79,9 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
             throws BadCredentialsException, AuthenticationSystemException, EntitlementException {
 
         // Mapper for user data if user is successfully authenticated
-        AuthenticatedLdapEntryContextMapper<UserDAO> mapper = new AuthenticatedLdapEntryContextMapper<UserDAO>() {
+        AuthenticatedLdapEntryContextMapper<UserTO> mapper = new AuthenticatedLdapEntryContextMapper<UserTO>() {
             @Override
-            public UserDAO mapWithContext(DirContext dirContext, LdapEntryIdentification ldapEntryIdentification) {
+            public UserTO mapWithContext(DirContext dirContext, LdapEntryIdentification ldapEntryIdentification) {
                 try {
                     // User entry - extract attributes
                     DirContextOperations dirContextOperations =
@@ -99,33 +99,33 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
                     Attribute groupNameAttrib = attributes.get(groupNameAttribName);
 
 
-                    UserDAO userDao = new UserDAO();
-                    userDao.setActive(1);
-                    userDao.setUsername(username);
+                    UserTO userTO = new UserTO();
+                    userTO.setActive(1);
+                    userTO.setUsername(username);
 
                     if (emailAttrib != null && emailAttrib.get() != null) {
-                        userDao.setEmail(emailAttrib.get().toString());
+                        userTO.setEmail(emailAttrib.get().toString());
                     } else {
                         logger.error("No LDAP attribute " + emailAttribName + " found for username " + username +
                                      ". User will not be imported into DB.");
                         return null;
                     }
                     if (firstNameAttrib != null && firstNameAttrib.get() != null) {
-                        userDao.setFirstName(firstNameAttrib.get().toString());
+                        userTO.setFirstName(firstNameAttrib.get().toString());
                     } else {
                         logger.warn("No LDAP attribute " + firstNameAttribName + " found for username " + username);
                     }
                     if (lastNameAttrib != null && lastNameAttrib.get() != null) {
-                        userDao.setLastName(lastNameAttrib.get().toString());
+                        userTO.setLastName(lastNameAttrib.get().toString());
                     } else {
                         logger.warn("No LDAP attribute " + lastNameAttribName + " found for username " + username);
                     }
 
 
-                    extractGroupsFromAttribute(userDao, groupNameAttribName, groupNameAttrib);
+                    extractGroupsFromAttribute(userTO, groupNameAttribName, groupNameAttrib);
 
 
-                    return userDao;
+                    return userTO;
                 } catch (NamingException e) {
                     logger.error("Error getting details from LDAP for username " + username, e);
 
@@ -137,9 +137,9 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
         // Create ldap query to authenticate user
         LdapQuery ldapQuery = query()
                 .where(studioConfiguration.getProperty(SECURITY_LDAP_USER_ATTRIBUTE_USERNAME)).is(username);
-        UserDAO userDao;
+        UserTO userTO;
         try {
-            userDao = ldapTemplate.authenticate(ldapQuery, password, mapper);
+            userTO = ldapTemplate.authenticate(ldapQuery, password, mapper);
         } catch (EmptyResultDataAccessException e) {
             logger.info("User " + username +
                         " not found with external security provider. Trying to authenticate against studio database");
@@ -160,17 +160,17 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
             throw new AuthenticationSystemException("Authentication failed with the LDAP system", e);
         }
 
-        if (userDao != null) {
+        if (userTO != null) {
             // When user authenticated against LDAP, upsert user data into studio database
             if (super.userExists(username)) {
                 try {
-                    boolean success = updateUserInternal(userDao.getUsername(), userDao.getFirstName(),
-                            userDao.getLastName(), userDao.getEmail());
+                    boolean success = updateUserInternal(userTO.getUsername(), userTO.getFirstName(),
+                            userTO.getLastName(), userTO.getEmail());
                     if (success) {
                         ActivityService.ActivityType activityType = ActivityService.ActivityType.UPDATED;
                         Map<String, String> extraInfo = new HashMap<>();
                         extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
-                        activityService.postActivity(getSystemSite(), userDao.getUsername(), userDao.getUsername(),
+                        activityService.postActivity(getSystemSite(), userTO.getUsername(), userTO.getUsername(),
                                                      activityType, ActivityService.ActivitySource.API, extraInfo);
                     }
                 } catch (UserNotFoundException e) {
@@ -183,10 +183,10 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
             } else {
                 try {
                     User user = new User();
-                    user.setUsername(userDao.getUsername());
-                    user.setPassword(userDao.getPassword());
-                    user.setEmail(userDao.getEmail());
-                    user.setFirstName(userDao.getFirstName());
+                    user.setUsername(userTO.getUsername());
+                    user.setPassword(userTO.getPassword());
+                    user.setEmail(userTO.getEmail());
+                    user.setFirstName(userTO.getFirstName());
                     user.setExternallyManaged(true);
                     boolean success = createUser(user);
                     if (success) {
@@ -204,13 +204,13 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
                 }
             }
 
-            for (UserGroup userGroup : userDao.getGroups()) {
+            for (UserGroupTO userGroup : userTO.getGroups()) {
 
-                upsertUserGroup(userGroup.getGroup().getGroupName(), userDao.getUsername());
+                upsertUserGroup(userGroup.getGroup().getGroupName(), userTO.getUsername());
 
             }
 
-            String token = createToken(userDao);
+            String token = createToken(userTO);
             storeSessionTicket(token);
             storeSessionUsername(username);
 
@@ -236,7 +236,7 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
         return StringUtils.EMPTY;
     }
 
-    private void extractGroupsFromAttribute(UserDAO user, String groupNameAttribName, Attribute groupNameAttrib) throws
+    private void extractGroupsFromAttribute(UserTO user, String groupNameAttribName, Attribute groupNameAttrib) throws
             NamingException {
         if (groupNameAttrib != null && groupNameAttrib.size() > 0) {
             NamingEnumeration groupAttribValues = groupNameAttrib.getAll();
@@ -254,18 +254,18 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
         }
     }
 
-    private void addGroupToUser(UserDAO userDao, String groupName) {
-        GroupDAO group = new GroupDAO();
+    private void addGroupToUser(UserTO userTO, String groupName) {
+        GroupTO group = new GroupTO();
         group.setGroupName(groupName);
         group.setGroupDescription("Externally managed group");
         group.setOrganization(null);
 
-        UserGroup userGroup = new UserGroup();
+        UserGroupTO userGroup = new UserGroupTO();
         userGroup.setGroup(group);
-        if (userDao.getGroups() == null) {
-            userDao.setGroups(new ArrayList<UserGroup>());
+        if (userTO.getGroups() == null) {
+            userTO.setGroups(new ArrayList<UserGroupTO>());
         }
-        userDao.getGroups().add(userGroup);
+        userTO.getGroups().add(userGroup);
     }
 
     protected boolean updateUserInternal(String username, String firstName, String lastName, String email)
@@ -279,7 +279,7 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
             params.put("lastname", lastName);
             params.put("email", email);
             params.put("externallyManaged", 1);
-            userMapper.updateUser(params);
+            userDAO.updateUser(params);
             return true;
         }
     }
@@ -293,11 +293,11 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
         }
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(GROUP_NAME, groupName);
-        GroupDAO groupDAO = groupMapper.getGroupByName(params);
-        if (groupDAO != null) {
+        GroupTO groupTO = groupDAO.getGroupByName(params);
+        if (groupTO != null) {
             List<String> usernames = new ArrayList<String>();
             usernames.add(username);
-            boolean success = addGroupMembers(groupDAO.getId(), new ArrayList<Long>(), usernames);
+            boolean success = addGroupMembers(groupTO.getId(), new ArrayList<Long>(), usernames);
             if (success){
                 ActivityService.ActivityType activityType = ActivityService.ActivityType.ADD_USER_TO_GROUP;
                 Map<String, String> extraInfo = new HashMap<>();

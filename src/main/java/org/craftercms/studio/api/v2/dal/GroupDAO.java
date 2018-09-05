@@ -18,63 +18,104 @@
 
 package org.craftercms.studio.api.v2.dal;
 
-import org.springframework.security.core.GrantedAuthority;
+import java.util.List;
+import java.util.Map;
 
-import java.io.Serializable;
-import java.time.ZonedDateTime;
+public interface GroupDAO {
 
-public class GroupDAO implements Serializable, GrantedAuthority {
+    /**
+     * Get all groups for given organization
+     *
+     * @param params SQL query paramters
+     * @return List of groups
+     */
+    List<GroupTO> getAllGroupsForOrganization(Map params);
 
-    private static final long serialVersionUID = 4723035066512137838L;
+    /**
+     * Get all groups for given organization
+     *
+     * @param params SQL query paramters
+     * @return List of groups
+     */
+    int getAllGroupsForOrganizationTotal(Map params);
 
-    private long id;
-    private ZonedDateTime recordLastUpdated;
-    private Organization organization;
-    private String groupName;
-    private String groupDescription;
+    /**
+     * Create group
+     *
+     * @param params SQL query parameters
+     * @return Number of affected rows in DB
+     */
+    Integer createGroup(Map params);
 
-    @Override
-    public String getAuthority() {
-        return groupName;
-    }
+    /**
+     * Update group
+     *
+     * @param params SQL query parameters
+     * @return Number of affected rows in DB
+     */
+    Integer updateGroup(Map params);
 
-    public long getId() {
-        return id;
-    }
+    /**
+     * Delete group
+     *
+     * @param params SQL query parameters
+     * @return Number of affected rows in DB
+     */
+    Integer deleteGroup(Map params);
 
-    public void setId(long id) {
-        this.id = id;
-    }
+    /**
+     * Get group by group id
+     *
+     * @param params SQL query parameters
+     * @return Group or null if not found
+     */
+    GroupTO getGroup(Map params);
 
-    public ZonedDateTime getRecordLastUpdated() {
-        return recordLastUpdated;
-    }
+    /**
+     * Get group by group name
+     *
+     * @param params SQL query parameters
+     * @return Group or null if not found
+     */
+    GroupTO getGroupByName(Map params);
 
-    public void setRecordLastUpdated(ZonedDateTime recordLastUpdated) {
-        this.recordLastUpdated = recordLastUpdated;
-    }
+    /**
+     * Get group members
+     *
+     * @param params SQL query parameters
+     * @return List of users, group members
+     */
+    List<UserTO> getGroupMembers(Map params);
 
-    public Organization getOrganization() {
-        return organization;
-    }
+    /**
+     * Add users to the group
+     *
+     * @param params SQL query parameters
+     * @return Number of rows affected in DB
+     */
+    Integer addGroupMembers(Map params);
 
-    public void setOrganization(Organization organization) {
-        this.organization = organization;
-    }
+    /**
+     * Get User ids for usernames
+     *
+     * @param params SQL query parameters
+     * @return List of user ids
+     */
+    List<Long> getUserIdsForUsernames(Map params);
 
-    public String getGroupName() {
-        return groupName;
-    }
+    /**
+     * Remove users from the group
+     *
+     * @param params SQL query parameters
+     * @return Number of rows affected in DB
+     */
+    Integer removeGroupMembers(Map params);
 
-    public void setGroupName(String groupName) {
-        this.groupName = groupName;
-    }
-
-    public String getGroupDescription() {
-        return groupDescription;
-    }
-
-    public void setGroupDescription(String groupDescription) {
-        this.groupDescription = groupDescription;
-    }
+    /**
+     * Check if group exists
+     *
+     * @param params SQL query parameters
+     * @return Number of groups
+     */
+    Integer groupExists(Map params);
 }

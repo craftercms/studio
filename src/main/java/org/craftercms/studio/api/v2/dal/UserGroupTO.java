@@ -21,21 +21,19 @@ package org.craftercms.studio.api.v2.dal;
 import java.io.Serializable;
 import java.time.ZonedDateTime;
 
-public class Organization implements Serializable {
+public class UserGroupTO implements Serializable {
 
-    private static final long serialVersionUID = 411039684759551781L;
+    private static final long serialVersionUID = -1030917735504714929L;
 
-    private long id;
+    private GroupTO group;
     private ZonedDateTime recordLastUpdated;
-    private String name;
-    private String description;
 
-    public long getId() {
-        return id;
+    public GroupTO getGroup() {
+        return group;
     }
 
-    public void setId(long id) {
-        this.id = id;
+    public void setGroup(GroupTO group) {
+        this.group = group;
     }
 
     public ZonedDateTime getRecordLastUpdated() {
@@ -44,21 +42,5 @@ public class Organization implements Serializable {
 
     public void setRecordLastUpdated(ZonedDateTime recordLastUpdated) {
         this.recordLastUpdated = recordLastUpdated;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
     }
 }

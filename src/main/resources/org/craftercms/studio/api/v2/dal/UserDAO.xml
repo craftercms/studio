@@ -20,9 +20,9 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="org.craftercms.studio.api.v2.dal.UserMapper">
+<mapper namespace="org.craftercms.studio.api.v2.dal.UserDAO">
 
-    <resultMap id="UserMap" type="org.craftercms.studio.api.v2.dal.UserDAO">
+    <resultMap id="UserMap" type="org.craftercms.studio.api.v2.dal.UserTO">
         <id property="id" column="id"/>
         <result property="recordLastUpdated" column="record_last_updated"/>
         <result property="username" column="username"/>
@@ -35,16 +35,16 @@
         <result property="email" column="email"/>
         <result property="active" column="enabled"/>
 
-        <collection property="groups" ofType="org.craftercms.studio.api.v2.dal.UserGroup">
+        <collection property="groups" ofType="org.craftercms.studio.api.v2.dal.UserGroupTO">
             <result property="recordLastUpdated" column="record_last_updated"/>
-            <association property="group" javaType="org.craftercms.studio.api.v2.dal.GroupDAO">
+            <association property="group" javaType="org.craftercms.studio.api.v2.dal.GroupTO">
                 <id property="id" column="id"/>
                 <result property="groupName" column="group_name"/>
             </association>
         </collection>
     </resultMap>
 
-    <resultMap id="GroupMap" type="org.craftercms.studio.api.v2.dal.GroupDAO">
+    <resultMap id="GroupMap" type="org.craftercms.studio.api.v2.dal.GroupTO">
         <id property="id" column="id"/>
         <result property="recordLastUpdated" column="record_last_updated"/>
         <result property="groupName" column="group_name"/>

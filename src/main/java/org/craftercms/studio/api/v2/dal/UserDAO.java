@@ -18,154 +18,117 @@
 
 package org.craftercms.studio.api.v2.dal;
 
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
-
-import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
-public class UserDAO implements UserDetails {
+public interface UserDAO {
 
-    private static final long serialVersionUID = 968000561389890945L;
+    /**
+     * Get all users for given site
+     *
+     * @param params SQL query parameters
+     * @return List of users
+     */
+    List<UserTO> getAllUsersForSite(Map params);
 
-    private long id;
-    private ZonedDateTime recordLastUpdated;
-    private String username;
-    private String password;
-    private String firstName;
-    private String lastName;
-    private int externallyManaged;
-    private String timezone;
-    private String locale;
-    private String email;
-    private int active;
+    /**
+     * Get all users
+     *
+     * @param params SQL query parameters
+     * @return List of users
+     */
+    List<UserTO> getAllUsers(Map params);
 
-    private List<UserGroup> groups;
+    /**
+     * Create user
+     *
+     * @param params SQL query parameters
+     * @return Number of rows affected in DB
+     */
+    int createUser(Map params);
 
-    @Override
-    public boolean isAccountNonExpired() {
-        return true;
-    }
+    /**
+     * Update user
+     *
+     * @param params SQL query parameters
+     * @return Number of rows affected in DB
+     */
+    int updateUser(Map params);
 
-    @Override
-    public boolean isAccountNonLocked() {
-        return true;
-    }
+    /**
+     * Get ids for users
+     *
+     * @param params SQL query parameters
+     * @return List of user ids
+     */
+    List<Long> getUserIdsForUsernames(Map params);
 
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
+    /**
+     * Delete users
+     *
+     * @param params SQL query params
+     * @return Number of rows affected in DB
+     */
+    int deleteUsers(Map params);
 
-    @Override
-    public boolean isEnabled() {
-        return active != 0;
-    }
+    /**
+     * Get user by id or username
+     *
+     * @param params SQL query parameters
+     * @return
+     */
+    UserTO getUserByIdOrUsername(Map params);
 
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        List<GroupDAO> toRet = new ArrayList<GroupDAO>();
-        groups.forEach((g) -> toRet.add(g.getGroup()));
-        return toRet;
-    }
+    /**
+     * Enable/disable users
+     *
+     * @param params SQL query parameters
+     * @return Number of rows affected in DB
+     */
+    int enableUsers(Map params);
 
-    public long getId() {
-        return id;
-    }
+    /**
+     * Get user groups
+     *
+     * @param params SQL query parameters
+     * @return List of groups
+     */
+    List<GroupTO> getUserGroups(Map params);
 
-    public void setId(long id) {
-        this.id = id;
-    }
+    /**
+     * Get total number of users
+     *
+     * @return
+     */
+    int getAllUsersForSiteTotal(Map params);
 
-    public ZonedDateTime getRecordLastUpdated() {
-        return recordLastUpdated;
-    }
+    /**
+     * Get total number of users
+     *
+     * @return
+     */
+    int getAllUsersTotal();
 
-    public void setRecordLastUpdated(ZonedDateTime recordLastUpdated) {
-        this.recordLastUpdated = recordLastUpdated;
-    }
+    /**
+     * Set password for user
+     *
+     * @param params SQL query parameters
+     * @return Number of rows affected
+     */
+    int setUserPassword(Map params);
 
-    @Override
-    public String getUsername() {
-        return username;
-    }
+    /**
+     * Check if user exists
+     *
+     * @param params
+     * @return
+     */
+    Integer userExists(Map params);
 
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    @Override
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getFirstName() {
-        return firstName;
-    }
-
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
-
-    public int getExternallyManaged() {
-        return externallyManaged;
-    }
-
-    public void setExternallyManaged(int externallyManaged) {
-        this.externallyManaged = externallyManaged;
-    }
-
-    public String getTimezone() {
-        return timezone;
-    }
-
-    public void setTimezone(String timezone) {
-        this.timezone = timezone;
-    }
-
-    public String getLocale() {
-        return locale;
-    }
-
-    public void setLocale(String locale) {
-        this.locale = locale;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public int getActive() {
-        return active;
-    }
-
-    public void setActive(int active) {
-        this.active = active;
-    }
-
-    public List<UserGroup> getGroups() {
-        return groups;
-    }
-
-    public void setGroups(List<UserGroup> groups) {
-        this.groups = groups;
-    }
+    /**
+     * Check if user is member of given group
+     * @param params SQL query parameters
+     * @return if true result > 0
+     */
+    Integer isUserMemberOfGroup(Map params);
 }
