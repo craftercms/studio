@@ -1,4 +1,4 @@
-package org.craftercms.studio.api.v2.service.security;
+package org.craftercms.studio.model;
 
 /**
  * Contains the different type of authentications that Studio can handle.

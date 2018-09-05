@@ -25,7 +25,6 @@ import org.craftercms.studio.api.v1.exception.security.BadCredentialsException;
 import org.craftercms.studio.api.v1.exception.security.PasswordDoesNotMatchException;
 import org.craftercms.studio.api.v1.exception.security.UserExternallyManagedException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v2.service.security.AuthenticationType;
 import org.craftercms.studio.impl.v2.service.security.Authentication;
 
 import javax.servlet.http.HttpServletRequest;

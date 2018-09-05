@@ -1,6 +1,6 @@
 package org.craftercms.studio.impl.v2.service.security;
 
-import org.craftercms.studio.api.v2.service.security.AuthenticationType;
+import org.craftercms.studio.model.AuthenticationType;
 
 /**
  * Simple class that represents a Studio authentication.

@@ -26,6 +26,7 @@ import org.craftercms.studio.api.v2.dal.UserTO;
 import org.craftercms.studio.api.v2.service.security.GroupService;
 import org.craftercms.studio.api.v2.service.security.SecurityProvider;
 import org.craftercms.studio.api.v2.service.security.UserService;
+import org.craftercms.studio.model.AuthenticatedUser;
 import org.craftercms.studio.model.Group;
 import org.craftercms.studio.model.User;
 
@@ -127,6 +128,18 @@ public class UserServiceImpl implements UserService {
         params.put(USERNAME, username);
         int result = userDAO.isUserMemberOfGroup(params);
         return result > 0;
+    }
+
+    @Override
+    public AuthenticatedUser getAuthenticatedUser() {
+        Authentication authentication = securityProvider.getAuthentication();
+        String username = authentication.getUsername();
+        User user = securityProvider.getUserByIdOrUsername(0, username);
+        AuthenticatedUser authUser = new AuthenticatedUser(user);
+
+        authUser.setAuthenticationType(authentication.getAuthenticationType());
+
+        return authUser;
     }
 
     public UserDAO getUserDAO() {

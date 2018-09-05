@@ -37,7 +37,7 @@ import org.craftercms.studio.api.v2.dal.GroupTO;
 import org.craftercms.studio.api.v2.dal.GroupDAO;
 import org.craftercms.studio.api.v2.dal.UserTO;
 import org.craftercms.studio.api.v2.dal.UserDAO;
-import org.craftercms.studio.api.v2.service.security.AuthenticationType;
+import org.craftercms.studio.model.AuthenticationType;
 import org.craftercms.studio.api.v2.service.security.SecurityProvider;
 import org.craftercms.studio.impl.v1.util.SessionTokenUtils;
 import org.craftercms.studio.model.Group;
