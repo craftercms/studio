@@ -18,6 +18,8 @@
 
 package org.craftercms.studio.api.v2.service.security;
 
+import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
 import org.craftercms.studio.model.AuthenticatedUser;
 import org.craftercms.studio.model.Group;
@@ -49,5 +51,5 @@ public interface UserService {
 
     boolean isUserMemberOfGroup(String username, String groupName);
 
-    AuthenticatedUser getAuthenticatedUser();
+    AuthenticatedUser getAuthenticatedUser() throws AuthenticationException, ServiceException;
 }

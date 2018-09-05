@@ -20,17 +20,16 @@ package org.craftercms.studio.controller.rest.v2;
 
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
+import org.craftercms.studio.api.v1.exception.ServiceException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.service.security.GroupService;
 import org.craftercms.studio.api.v2.service.security.UserService;
-import org.craftercms.studio.model.EnableUsers;
-import org.craftercms.studio.model.Group;
-import org.craftercms.studio.model.Site;
-import org.craftercms.studio.model.User;
+import org.craftercms.studio.model.*;
 import org.craftercms.studio.model.rest.ApiResponse;
 import org.craftercms.studio.model.rest.PaginatedResultList;
 import org.craftercms.studio.model.rest.ResponseBody;
@@ -262,6 +261,19 @@ public class UsersController {
         result.setResponse(ApiResponse.OK);
         responseBody.setResult(result);
         result.setEntities(sites);
+        return responseBody;
+    }
+
+    @GetMapping("/api/2/user")
+    public ResponseBody getAuthenticatedUser() throws AuthenticationException, ServiceException {
+        AuthenticatedUser user = userService.getAuthenticatedUser();
+
+//        ResultOn result = new Result();
+//        result.setResponse(org.craftercms.studio.model.rest.ApiResponse.OK);
+//
+//        ResponseBody responseBody = new ResponseBody();
+//        responseBody.setResult(result);
+
         return responseBody;
     }
 
