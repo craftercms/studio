@@ -99,8 +99,8 @@ import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_FIRSTN
 import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_LASTNAME;
 import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_USERNAME;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.ORGANIZATION_ADMIN_GROUP;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SECURITY_AUTHENTICATION_TYPE;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SYSTEM_ADMIN_GROUP;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_DEFAULT_ADMIN_GROUP;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_GLOBAL_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_GLOBAL_PERMISSION_MAPPINGS_FILE_NAME;
@@ -857,7 +857,7 @@ public class SecurityServiceImpl implements SecurityService {
         boolean toRet = false;
         if (CollectionUtils.isNotEmpty(userGroups)) {
             for (Group group : userGroups) {
-                if (StringUtils.equalsIgnoreCase(group.getName(), ORGANIZATION_ADMIN_GROUP)) {
+                if (StringUtils.equalsIgnoreCase(group.getName(), SYSTEM_ADMIN_GROUP)) {
                     toRet = true;
                     break;
                 }

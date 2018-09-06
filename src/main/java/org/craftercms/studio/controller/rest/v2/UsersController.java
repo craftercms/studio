@@ -143,8 +143,8 @@ public class UsersController {
      * @return Response object
      */
     @DeleteMapping("/api/2/users")
-    public ResponseEntity<ResponseBody> deleteUser(@RequestParam(value = "userId", required = false) List<Long> userIds,
-                                                  @RequestParam(value = "username", required = false) List<String> usernames) {
+    public ResponseBody deleteUser(@RequestParam(value = "id", required = false) List<Long> userIds,
+                           @RequestParam(value = "username", required = false) List<String> usernames) {
         userService.deleteUsers(userIds, usernames);
 
         ResponseBody responseBody = new ResponseBody();
