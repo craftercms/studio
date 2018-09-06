@@ -32,9 +32,7 @@ import org.craftercms.studio.model.rest.PaginatedResultList;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.ResultList;
 import org.craftercms.studio.model.rest.ResultOne;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -42,7 +40,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -123,14 +120,14 @@ public class GroupsController {
      * @return Response object
      */
     @DeleteMapping("/api/2/groups")
-    public ResponseEntity<ResponseBody> deleteGroup(@RequestParam("id") List<Long> groupIds) {
+    public ResponseBody deleteGroup(@RequestParam("id") List<Long> groupIds) {
         groupService.deleteGroup(groupIds);
 
         ResponseBody responseBody = new ResponseBody();
         ResultOne result = new ResultOne();
         result.setResponse(ApiResponse.DELETED);
         responseBody.setResult(result);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(responseBody);
+        return responseBody;
     }
 
     /**
@@ -205,7 +202,7 @@ public class GroupsController {
      * @return Response object
      */
     @DeleteMapping("/api/2/groups/{groupId}/members")
-    public ResponseEntity<ResponseBody> removeGroupMembers(@PathVariable("groupId") int groupId,
+    public ResponseBody removeGroupMembers(@PathVariable("groupId") int groupId,
                                    @RequestParam(value = "userId", required = false) List<Long> userIds,
                                    @RequestParam(value = "username", required = false) List<String> usernames) {
         groupService.removeGroupMembers(groupId, userIds, usernames);
@@ -214,7 +211,7 @@ public class GroupsController {
         ResultOne result = new ResultOne();
         result.setResponse(ApiResponse.DELETED);
         responseBody.setResult(result);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(responseBody);
+        return responseBody;
     }
 
     public GroupService getGroupService() {

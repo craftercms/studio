@@ -178,7 +178,7 @@ paths:
             items:
               type: string
       responses:
-        '204':
+        '200':
           description: Deleted
           content:
             application/json:
@@ -396,7 +396,7 @@ paths:
             items:
               type: string
       responses:
-        '204':
+        '200':
           description: Deleted
           content:
             application/json:
@@ -584,7 +584,7 @@ paths:
             items:
               type: string
       responses:
-        '204':
+        '200':
           description: Deleted
           content:
             application/json:

@@ -35,9 +35,7 @@ import org.craftercms.studio.model.rest.PaginatedResultList;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.ResultList;
 import org.craftercms.studio.model.rest.ResultOne;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -151,7 +149,7 @@ public class UsersController {
         ResultOne result = new ResultOne();
         result.setResponse(ApiResponse.DELETED);
         responseBody.setResult(result);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(responseBody);
+        return responseBody;
     }
 
     /**
