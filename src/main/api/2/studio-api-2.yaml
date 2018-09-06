@@ -63,7 +63,7 @@ paths:
               schema:
                 type: object
                 properties:
-                  result:          
+                  result:
                     type: object
                     properties:
                       response:
@@ -85,7 +85,7 @@ paths:
                         items:
                           $ref: '#/components/schemas/Group'
         '400':
-          $ref: '#/components/responses/BadRequest'                             
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '500':
@@ -111,21 +111,21 @@ paths:
               schema:
                 type: object
                 properties:
-                  result:          
+                  result:
                     type: object
                     properties:
                       response:
-                        $ref: '#/components/schemas/ApiResponse'                  
+                        $ref: '#/components/schemas/ApiResponse'
                       entity:
-                        $ref: '#/components/schemas/Group'              
+                        $ref: '#/components/schemas/Group'
         '400':
-          $ref: '#/components/responses/BadRequest'                          
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '409':
-          $ref: '#/components/responses/Conflict'          
+          $ref: '#/components/responses/Conflict'
         '500':
-          $ref: '#/components/responses/InternalServerError'                
+          $ref: '#/components/responses/InternalServerError'
     patch:
       tags:
         - groups
@@ -147,19 +147,19 @@ paths:
               schema:
                 type: object
                 properties:
-                  result:          
+                  result:
                     type: object
                     properties:
                       response:
                         $ref: '#/components/schemas/ApiResponse'
                       entity:
-                        $ref: '#/components/schemas/Group'                
+                        $ref: '#/components/schemas/Group'
         '400':
-          $ref: '#/components/responses/BadRequest'                          
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '404':
-          $ref: '#/components/responses/NotFound'          
+          $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
     delete:
@@ -178,28 +178,24 @@ paths:
             items:
               type: string
       responses:
-        '207':
-          description: Multiple results
+        '200':
+          description: Deleted
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  results:                  
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        response:
-                          $ref: '#/components/schemas/ApiResponse'  
-                        entity:
-                          $ref: '#/components/schemas/Group'              
+                  results:
+                    type: object
+                    properties:
+                      response:
+                        $ref: '#/components/schemas/ApiResponse'
         '400':
-          $ref: '#/components/responses/BadRequest'                          
+          $ref: '#/components/responses/BadRequest'
         '401':
-          $ref: '#/components/responses/Unauthorized'  
+          $ref: '#/components/responses/Unauthorized'
         '500':
-          $ref: '#/components/responses/InternalServerError'           
+          $ref: '#/components/responses/InternalServerError'
 
   /groups/{id}:
     get:
@@ -224,19 +220,19 @@ paths:
               schema:
                 type: object
                 properties:
-                  result:          
+                  result:
                     type: object
                     properties:
                       response:
                         $ref: '#/components/schemas/ApiResponse'
                       entity:
-                        $ref: '#/components/schemas/Group'             
+                        $ref: '#/components/schemas/Group'
         '400':
-          $ref: '#/components/responses/BadRequest'                             
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '404':
-          $ref: '#/components/responses/NotFound'         
+          $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
@@ -285,7 +281,7 @@ paths:
               schema:
                 type: object
                 properties:
-                  result:          
+                  result:
                     type: object
                     properties:
                       response:
@@ -307,13 +303,13 @@ paths:
                         items:
                           $ref: '#/components/schemas/User'
         '400':
-          $ref: '#/components/responses/BadRequest'                             
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '404':
-          $ref: '#/components/responses/NotFound'             
+          $ref: '#/components/responses/NotFound'
         '500':
-          $ref: '#/components/responses/InternalServerError'   
+          $ref: '#/components/responses/InternalServerError'
     post:
       tags:
         - groups
@@ -327,7 +323,7 @@ paths:
           required: true
           schema:
             type: integer
-            format: int64   
+            format: int64
       requestBody:
         description: List of userIds/usernames to add
         required: true
@@ -343,7 +339,7 @@ paths:
                 usernames:
                   type: array
                   items:
-                    type: string                        
+                    type: string
       responses:
         '207':
           description: Multiple results
@@ -352,21 +348,21 @@ paths:
               schema:
                 type: object
                 properties:
-                  results:                  
+                  results:
                     type: array
                     items:
                       type: object
                       properties:
                         response:
-                          $ref: '#/components/schemas/ApiResponse'  
+                          $ref: '#/components/schemas/ApiResponse'
                         entity:
-                          $ref: '#/components/schemas/User'              
+                          $ref: '#/components/schemas/User'
         '400':
-          $ref: '#/components/responses/BadRequest'                          
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '404':
-          $ref: '#/components/responses/NotFound'          
+          $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
     delete:
@@ -398,32 +394,28 @@ paths:
           schema:
             type: array
             items:
-              type: string                      
+              type: string
       responses:
-        '207':
-          description: Multiple results
+        '200':
+          description: Deleted
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  results:                  
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        response:
-                          $ref: '#/components/schemas/ApiResponse'  
-                        entity:
-                          $ref: '#/components/schemas/User'              
+                  results:
+                    type: object
+                    properties:
+                      response:
+                        $ref: '#/components/schemas/ApiResponse'
         '400':
-          $ref: '#/components/responses/BadRequest'                          
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '404':
-          $ref: '#/components/responses/NotFound'          
+          $ref: '#/components/responses/NotFound'
         '500':
-          $ref: '#/components/responses/InternalServerError' 
+          $ref: '#/components/responses/InternalServerError'
 
   /users:
     get:
@@ -438,7 +430,7 @@ paths:
           description: The site ID to filter users for a particular site
           required: false
           schema:
-            type: string    
+            type: string
         - name: offset
           in: query
           description: Offset of first record in the response
@@ -460,7 +452,7 @@ paths:
             commas. Finally, the value should match the following regex: `([a-zA-Z_][a-zA-Z_0-9]*,?)+ (asc|desc)`?
           required: false
           schema:
-            type: string                         
+            type: string
       responses:
         '200':
           description: OK
@@ -469,7 +461,7 @@ paths:
               schema:
                 type: object
                 properties:
-                  result:          
+                  result:
                     type: object
                     properties:
                       response:
@@ -491,7 +483,7 @@ paths:
                         items:
                           $ref: '#/components/schemas/User'
         '400':
-          $ref: '#/components/responses/BadRequest'                             
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '500':
@@ -517,19 +509,19 @@ paths:
               schema:
                 type: object
                 properties:
-                  result:          
+                  result:
                     type: object
                     properties:
                       response:
-                        $ref: '#/components/schemas/ApiResponse'                  
+                        $ref: '#/components/schemas/ApiResponse'
                       entity:
-                        $ref: '#/components/schemas/User'                                       
+                        $ref: '#/components/schemas/User'
         '400':
-          $ref: '#/components/responses/BadRequest'                          
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '409':
-          $ref: '#/components/responses/Conflict'          
+          $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
     patch:
@@ -553,19 +545,19 @@ paths:
               schema:
                 type: object
                 properties:
-                  result:          
+                  result:
                     type: object
                     properties:
                       response:
-                        $ref: '#/components/schemas/ApiResponse'                  
+                        $ref: '#/components/schemas/ApiResponse'
                       entity:
-                        $ref: '#/components/schemas/User'                                          
+                        $ref: '#/components/schemas/User'
         '400':
-          $ref: '#/components/responses/BadRequest'                          
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '404':
-          $ref: '#/components/responses/NotFound'          
+          $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
     delete:
@@ -590,28 +582,25 @@ paths:
           schema:
             type: array
             items:
-              type: string              
+              type: string
       responses:
-        '207':
-          description: Multiple results
+        '200':
+          description: Deleted
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  results:                  
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        response:
-                          $ref: '#/components/schemas/ApiResponse'  
-                        entity:
-                          $ref: '#/components/schemas/User'              
+                  results:
+                  type:
+                    type: object
+                    properties:
+                      response:
+                        $ref: '#/components/schemas/ApiResponse'
         '400':
-          $ref: '#/components/responses/BadRequest'                          
+          $ref: '#/components/responses/BadRequest'
         '401':
-          $ref: '#/components/responses/Unauthorized'  
+          $ref: '#/components/responses/Unauthorized'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
@@ -637,22 +626,22 @@ paths:
               schema:
                 type: object
                 properties:
-                  result:          
+                  result:
                     type: object
                     properties:
                       response:
                         $ref: '#/components/schemas/ApiResponse'
                       entity:
-                        $ref: '#/components/schemas/Group'             
+                        $ref: '#/components/schemas/Group'
         '400':
-          $ref: '#/components/responses/BadRequest'                             
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '404':
-          $ref: '#/components/responses/NotFound'          
+          $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
-         
+
   /users/enable:
     patch:
       tags:
@@ -675,7 +664,7 @@ paths:
                 usernames:
                   type: array
                   items:
-                    type: string    
+                    type: string
       responses:
         '207':
           description: Multiple results
@@ -684,17 +673,17 @@ paths:
               schema:
                 type: object
                 properties:
-                  results:                  
+                  results:
                     type: array
                     items:
                       type: object
                       properties:
                         response:
-                          $ref: '#/components/schemas/ApiResponse'  
+                          $ref: '#/components/schemas/ApiResponse'
                         entity:
-                          $ref: '#/components/schemas/User'                                         
+                          $ref: '#/components/schemas/User'
         '400':
-          $ref: '#/components/responses/BadRequest'                             
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '500':
@@ -722,7 +711,7 @@ paths:
                 usernames:
                   type: array
                   items:
-                    type: string    
+                    type: string
       responses:
         '207':
           description: Multiple results
@@ -731,17 +720,17 @@ paths:
               schema:
                 type: object
                 properties:
-                  results:                  
+                  results:
                     type: array
                     items:
                       type: object
                       properties:
                         response:
-                          $ref: '#/components/schemas/ApiResponse'  
+                          $ref: '#/components/schemas/ApiResponse'
                         entity:
-                          $ref: '#/components/schemas/User'                                        
+                          $ref: '#/components/schemas/User'
         '400':
-          $ref: '#/components/responses/BadRequest'                             
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '500':
@@ -769,7 +758,7 @@ paths:
               schema:
                 type: object
                 properties:
-                  result:          
+                  result:
                     type: object
                     properties:
                       response:
@@ -779,11 +768,11 @@ paths:
                         items:
                           $ref: '#/components/schemas/Site'
         '400':
-          $ref: '#/components/responses/BadRequest'                             
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '404':
-          $ref: '#/components/responses/NotFound'             
+          $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
@@ -882,7 +871,7 @@ components:
           description: The detailed message of the response
         remedialAction:
           type: string
-          description: What the user can do in order to address the issue indicated by the response 
+          description: What the user can do in order to address the issue indicated by the response
         documentationUrl:
           type: string
           description: A URL to documentation related to the response
@@ -892,13 +881,13 @@ components:
         id:
           type: integer
           format: int64
-          description: 'User ID, unique and immutable'      
+          description: 'User ID, unique and immutable'
         username:
           type: string
           description: Username, unique
         password:
           type: string
-          description: User's password          
+          description: User's password
         firstName:
           type: string
           description: User's first name
@@ -989,11 +978,11 @@ components:
           schema:
             type: object
             properties:
-              result:          
+              result:
                 type: object
                 properties:
                   response:
-                    $ref: '#/components/schemas/ApiResponse'  
+                    $ref: '#/components/schemas/ApiResponse'
     Conflict:
       description: Resource already exists
       content:
@@ -1001,11 +990,11 @@ components:
           schema:
             type: object
             properties:
-              result:          
+              result:
                 type: object
                 properties:
                   response:
-                    $ref: '#/components/schemas/ApiResponse'                   
+                    $ref: '#/components/schemas/ApiResponse'
     BadRequest:
       description: Invalid request
       content:
@@ -1013,7 +1002,7 @@ components:
           schema:
             type: object
             properties:
-              result:          
+              result:
                 type: object
                 properties:
                   response:
@@ -1025,7 +1014,7 @@ components:
           schema:
             type: object
             properties:
-              result:          
+              result:
                 type: object
                 properties:
                   response:
@@ -1037,11 +1026,11 @@ components:
           schema:
             type: object
             properties:
-              result:          
+              result:
                 type: object
                 properties:
                   response:
-                    $ref: '#/components/schemas/ApiResponse'                     
+                    $ref: '#/components/schemas/ApiResponse'
   securitySchemes: null
   links: {}
   callbacks: {}
