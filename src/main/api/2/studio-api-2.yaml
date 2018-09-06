@@ -341,21 +341,21 @@ paths:
                   items:
                     type: string
       responses:
-        '207':
-          description: Multiple results
+        '200':
+          description: OK
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  results:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        response:
-                          $ref: '#/components/schemas/ApiResponse'
-                        entity:
+                  result:
+                    type: object
+                    properties:
+                      response:
+                        $ref: '#/components/schemas/ApiResponse'
+                      entities:
+                        type: array
+                        items:
                           $ref: '#/components/schemas/User'
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -666,21 +666,21 @@ paths:
                   items:
                     type: string
       responses:
-        '207':
-          description: Multiple results
+        '200':
+          description: OK
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  results:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        response:
-                          $ref: '#/components/schemas/ApiResponse'
-                        entity:
+                  result:
+                    type: object
+                    properties:
+                      response:
+                        $ref: '#/components/schemas/ApiResponse'
+                      entities:
+                        type: array
+                        items:
                           $ref: '#/components/schemas/User'
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -713,21 +713,21 @@ paths:
                   items:
                     type: string
       responses:
-        '207':
-          description: Multiple results
+        '200':
+          description: OK
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  results:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        response:
-                          $ref: '#/components/schemas/ApiResponse'
-                        entity:
+                  result:
+                    type: object
+                    properties:
+                      response:
+                        $ref: '#/components/schemas/ApiResponse'
+                      entities:
+                        type: array
+                        items:
                           $ref: '#/components/schemas/User'
         '400':
           $ref: '#/components/responses/BadRequest'
