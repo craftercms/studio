@@ -78,6 +78,8 @@ public class PreviewDeployerImpl implements PreviewDeployer {
         String requestUrl = getDeployTargetUrl(site);
         HttpPost postRequest = new HttpPost(requestUrl);
 
+        logger.error("Preview sync");
+
         if (context.isWaitTillDeploymentIsDone()) {
             String requestBody = getDeployTargetRequestBody(true);
             HttpEntity requestEntity = new StringEntity(requestBody, ContentType.APPLICATION_JSON);
