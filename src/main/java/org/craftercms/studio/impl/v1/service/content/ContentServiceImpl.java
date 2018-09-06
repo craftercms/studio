@@ -373,11 +373,6 @@ public class ContentServiceImpl implements ContentService {
                 // TODO: SJ: 2.7.x
                 objectStateService.insertNewEntry(site, itemTo);
             }
-
-            // Sync preview
-            PreviewEventContext context = new PreviewEventContext();
-            context.setSite(site);
-            eventService.publish(EVENT_PREVIEW_SYNC, context);
         }  catch (RuntimeException e) {
             logger.error("error writing content", e);
 
@@ -521,10 +516,6 @@ public class ContentServiceImpl implements ContentService {
                 }
             }
 
-            PreviewEventContext context = new PreviewEventContext();
-            context.setSite(site);
-            eventService.publish(EVENT_PREVIEW_SYNC, context);
-
             Map<String, Object> toRet = new HashMap<String, Object>();
             toRet.put("success", true);
             toRet.put("message", item);
@@ -622,12 +613,6 @@ public class ContentServiceImpl implements ContentService {
         if (StringUtils.isNotEmpty(commitId)) {
             _contentRepository.insertGitLog(site, commitId, 1);
         }
-
-        PreviewEventContext context = new PreviewEventContext();
-        context.setSite(site);
-        eventService.publish(EVENT_PREVIEW_SYNC, context);
-
-
         // TODO: SJ: Add commitId to database for this item in version 2.7.x
 
         if (commitId != null) {
@@ -927,10 +912,6 @@ public class ContentServiceImpl implements ContentService {
                 logger.error("Repository move failed site {0} from {1} to {2}", site, sourcePath, targetPath);
                 movePath = fromPath;
             }
-
-            PreviewEventContext context = new PreviewEventContext();
-            context.setSite(site);
-            eventService.publish(EVENT_PREVIEW_SYNC, context);
         }
         catch(ServiceException eMoveErr) {
             logger.error("Content not found while moving content for site {0} from {1} to {2}, new name is {3}",
@@ -1886,13 +1867,6 @@ public class ContentServiceImpl implements ContentService {
             siteService.updateLastCommitId(site, commitId);
             toReturn = true;
         }
-
-        if (toReturn) {
-            PreviewEventContext context = new PreviewEventContext();
-            context.setSite(site);
-            eventService.publish(EVENT_PREVIEW_SYNC, context);
-        }
-
         return toReturn;
     }
 
@@ -2429,11 +2403,7 @@ public class ContentServiceImpl implements ContentService {
                 _contentRepository.insertGitLog(site, entry.getValue(), 1);
             }
             siteService.updateLastCommitId(site, _contentRepository.getRepoLastCommitId(site));
-
-            PreviewEventContext context = new PreviewEventContext();
-            context.setSite(site);
-            eventService.publish(EVENT_PREVIEW_SYNC, context);
-             toRet = true;
+            toRet = true;
 
         } else {
             logger.error("Repository move failed site {0} from {1} to {2}", site, path, targetPath);
