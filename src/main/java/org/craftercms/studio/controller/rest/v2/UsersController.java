@@ -27,10 +27,12 @@ import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsExceptio
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.service.security.GroupService;
 import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.model.*;
 import org.craftercms.studio.model.rest.ApiResponse;
+import org.craftercms.studio.model.rest.EnableUsers;
 import org.craftercms.studio.model.rest.PaginatedResultList;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.ResultList;
@@ -47,6 +49,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -142,8 +145,13 @@ public class UsersController {
      */
     @DeleteMapping("/api/2/users")
     public ResponseBody deleteUser(@RequestParam(value = "id", required = false) List<Long> userIds,
-                           @RequestParam(value = "username", required = false) List<String> usernames) {
-        userService.deleteUsers(userIds, usernames);
+                           @RequestParam(value = "username", required = false) List<String> usernames)
+        throws InvalidParametersException {
+
+        ValidationUtils.validateAllLists(userIds, usernames);
+
+        userService.deleteUsers(userIds != null? userIds : Collections.emptyList(),
+                                usernames != null? usernames : Collections.emptyList());
 
         ResponseBody responseBody = new ResponseBody();
         ResultOne result = new ResultOne();
@@ -184,7 +192,11 @@ public class UsersController {
      * @return Response object
      */
     @PatchMapping(value = "/api/2/users/enable", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseBody enableUsers(@RequestBody EnableUsers enableUsers) {
+    public ResponseBody enableUsers(@RequestBody EnableUsers enableUsers) throws InvalidParametersException {
+
+
+        ValidationUtils.validateEnableUsers(enableUsers);
+
         userService.enableUsers(enableUsers.getUserIds(), enableUsers.getUsernames(), true);
 
         ResponseBody responseBody = new ResponseBody();
@@ -201,7 +213,10 @@ public class UsersController {
      * @return Response object
      */
     @PatchMapping(value = "/api/2/users/disable", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseBody disableUsers(@RequestBody EnableUsers enableUsers) {
+    public ResponseBody disableUsers(@RequestBody EnableUsers enableUsers) throws InvalidParametersException {
+
+        ValidationUtils.validateEnableUsers(enableUsers);
+
         userService.enableUsers(enableUsers.getUserIds(), enableUsers.getUsernames(), false);
 
         ResponseBody responseBody = new ResponseBody();

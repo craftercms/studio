@@ -16,28 +16,18 @@
  *
  */
 
-package org.craftercms.studio.model;
+package org.craftercms.studio.api.v2.exception;
 
-import java.util.List;
+import org.craftercms.studio.api.v1.exception.ServiceException;
 
-public class AddGroupMembers {
+/**
+ * Exception thrown when there is an error with the parameters received by a controller.
+ * @author joseross
+ */
+public class InvalidParametersException extends ServiceException {
 
-    private List<String> usernames;
-    private List<Long> userIds;
-
-    public List<String> getUsernames() {
-        return usernames;
+    public InvalidParametersException(final String message) {
+        super(message);
     }
 
-    public void setUsernames(List<String> usernames) {
-        this.usernames = usernames;
-    }
-
-    public List<Long> getUserIds() {
-        return userIds;
-    }
-
-    public void setUserIds(List<Long> userIds) {
-        this.userIds = userIds;
-    }
 }

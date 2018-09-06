@@ -16,14 +16,15 @@
  *
  */
 
-package org.craftercms.studio.model;
+package org.craftercms.studio.model.rest;
 
+import java.util.Collections;
 import java.util.List;
 
-public class EnableUsers {
+public class AddGroupMembers {
 
-    private List<String> usernames;
-    private List<Long> userIds;
+    private List<String> usernames = Collections.emptyList();
+    private List<Long> userIds = Collections.emptyList();
 
     public List<String> getUsernames() {
         return usernames;
