@@ -35,7 +35,9 @@ import org.craftercms.studio.model.rest.PaginatedResultList;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.ResultList;
 import org.craftercms.studio.model.rest.ResultOne;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -141,15 +143,15 @@ public class UsersController {
      * @return Response object
      */
     @DeleteMapping("/api/2/users")
-    public ResponseBody deleteUser(@RequestParam(value = "userId", required = false) List<Long> userIds,
-                           @RequestParam(value = "username", required = false) List<String> usernames) {
+    public ResponseEntity<ResponseBody> deleteUser(@RequestParam(value = "userId", required = false) List<Long> userIds,
+                                                  @RequestParam(value = "username", required = false) List<String> usernames) {
         userService.deleteUsers(userIds, usernames);
 
         ResponseBody responseBody = new ResponseBody();
         ResultOne result = new ResultOne();
         result.setResponse(ApiResponse.DELETED);
         responseBody.setResult(result);
-        return responseBody;
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(responseBody);
     }
 
     /**
