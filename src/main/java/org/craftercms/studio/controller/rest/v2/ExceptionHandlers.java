@@ -70,6 +70,7 @@ public class ExceptionHandlers {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseBody handleInvalidParametersException(HttpServletRequest request, ServiceException e) {
         ApiResponse response = new ApiResponse(ApiResponse.INVALID_PARAMS);
+        response.setMessage(response.getMessage() + " : " + e.getMessage());
         return handleExceptionInternal(request, e, response);
     }
 
