@@ -38,7 +38,7 @@ public abstract class ValidationUtils {
      * @param lists lists to validate
      * @throws InvalidParametersException if all lists are null or empty
      */
-    public static void validateAllLists(List<?>... lists) throws InvalidParametersException {
+    public static void validateAnyListNonEmpty(List<?>... lists) throws InvalidParametersException {
         long validLists = Arrays.stream(lists).filter(Objects::nonNull).filter(list -> !list.isEmpty()).count();
         if(validLists == 0) {
             throw new InvalidParametersException("All parameters are empty or null");

@@ -148,7 +148,7 @@ public class UsersController {
                            @RequestParam(value = "username", required = false) List<String> usernames)
         throws InvalidParametersException {
 
-        ValidationUtils.validateAllLists(userIds, usernames);
+        ValidationUtils.validateAnyListNonEmpty(userIds, usernames);
 
         userService.deleteUsers(userIds != null? userIds : Collections.emptyList(),
                                 usernames != null? usernames : Collections.emptyList());
