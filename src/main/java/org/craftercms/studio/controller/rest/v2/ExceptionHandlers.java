@@ -25,6 +25,7 @@ import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsExcepti
 import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.model.rest.ApiResponse;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.Result;
@@ -62,6 +63,14 @@ public class ExceptionHandlers {
     @ResponseStatus(HttpStatus.CONFLICT)
     public ResponseBody handleGroupAlreadyExistsException(HttpServletRequest request, ServiceException e) {
         ApiResponse response = new ApiResponse(ApiResponse.GROUP_ALREADY_EXISTS);
+        return handleExceptionInternal(request, e, response);
+    }
+
+    @ExceptionHandler(InvalidParametersException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseBody handleInvalidParametersException(HttpServletRequest request, ServiceException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.INVALID_PARAMS);
+        response.setMessage(response.getMessage() + " : " + e.getMessage());
         return handleExceptionInternal(request, e, response);
     }
 

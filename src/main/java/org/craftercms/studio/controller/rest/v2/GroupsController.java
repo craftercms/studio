@@ -23,8 +23,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.service.security.GroupService;
-import org.craftercms.studio.model.AddGroupMembers;
+import org.craftercms.studio.model.rest.AddGroupMembers;
 import org.craftercms.studio.model.Group;
 import org.craftercms.studio.model.User;
 import org.craftercms.studio.model.rest.ApiResponse;
@@ -42,6 +43,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Collections;
 import java.util.List;
 
 @RestController
@@ -183,7 +185,10 @@ public class GroupsController {
      */
     @PostMapping(value = "/api/2/groups/{groupId}/members", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseBody addGroupMembers(@PathVariable("groupId") int groupId,
-                                              @RequestBody AddGroupMembers addGroupMembers) {
+                                        @RequestBody AddGroupMembers addGroupMembers) throws InvalidParametersException {
+
+        ValidationUtils.validateAddGroupMembers(addGroupMembers);
+
         groupService.addGroupMembers(groupId, addGroupMembers.getUserIds(), addGroupMembers.getUsernames());
 
         ResponseBody responseBody = new ResponseBody();
@@ -204,8 +209,13 @@ public class GroupsController {
     @DeleteMapping("/api/2/groups/{groupId}/members")
     public ResponseBody removeGroupMembers(@PathVariable("groupId") int groupId,
                                    @RequestParam(value = "userId", required = false) List<Long> userIds,
-                                   @RequestParam(value = "username", required = false) List<String> usernames) {
-        groupService.removeGroupMembers(groupId, userIds, usernames);
+                                   @RequestParam(value = "username", required = false) List<String> usernames)
+        throws InvalidParametersException {
+
+        ValidationUtils.validateAnyListNonEmpty(userIds, usernames);
+
+        groupService.removeGroupMembers(groupId, userIds != null? userIds : Collections.emptyList(),
+                                        usernames != null? usernames : Collections.emptyList());
 
         ResponseBody responseBody = new ResponseBody();
         ResultOne result = new ResultOne();
