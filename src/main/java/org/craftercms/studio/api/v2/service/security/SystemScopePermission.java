@@ -16,35 +16,28 @@
  *
  */
 
-package org.craftercms.studio.model;
+package org.craftercms.studio.api.v2.service.security;
 
-public class Group implements Entity {
+import java.util.List;
 
-    private long id;
-    private String name;
-    private String desc;
+public class SystemScopePermission {
 
-    public long getId() {
-        return id;
+    private String role;
+    List<String> allowedPermissions;
+
+    public String getRole() {
+        return role;
     }
 
-    public void setId(long id) {
-        this.id = id;
+    public void setRole(String role) {
+        this.role = role;
     }
 
-    public String getName() {
-        return name;
+    public List<String> getAllowedPermissions() {
+        return allowedPermissions;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDesc() {
-        return desc;
-    }
-
-    public void setDesc(String desc) {
-        this.desc = desc;
+    public void setAllowedPermissions(List<String> allowedPermissions) {
+        this.allowedPermissions = allowedPermissions;
     }
 }

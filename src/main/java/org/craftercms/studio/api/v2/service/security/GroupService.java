@@ -22,7 +22,8 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.model.Group;
+import org.craftercms.studio.api.v2.dal.GroupTO;
+import org.craftercms.studio.api.v2.exception.OrganizationNotFoundException;
 import org.craftercms.studio.model.User;
 
 import java.util.List;
@@ -38,7 +39,7 @@ public interface GroupService {
      * @param sort Sort order
      * @return List of groups
      */
-    List<Group> getAllGroups(long orgId, int offset, int limit, String sort) throws ServiceLayerException;
+    List<GroupTO> getAllGroups(long orgId, int offset, int limit, String sort) throws ServiceLayerException, OrganizationNotFoundException;
 
     /**
      * Get total number of all groups
@@ -56,7 +57,7 @@ public interface GroupService {
      * @param groupDescription Group description
      * @return the created group
      */
-    Group createGroup(long orgId, String groupName, String groupDescription) throws GroupAlreadyExistsException,
+    GroupTO createGroup(long orgId, String groupName, String groupDescription) throws GroupAlreadyExistsException,
         ServiceLayerException;
 
     /**
@@ -66,7 +67,7 @@ public interface GroupService {
      * @param group Group to update
      * @return the updated group
      */
-    Group updateGroup(long orgId, Group group) throws ServiceLayerException;
+    GroupTO updateGroup(long orgId, GroupTO group) throws ServiceLayerException;
 
     /**
      * Delete group(s)
@@ -81,7 +82,7 @@ public interface GroupService {
      * @param groupId Group identifier
      * @return Group
      */
-    Group getGroup(long groupId) throws ServiceLayerException;
+    GroupTO getGroup(long groupId) throws ServiceLayerException;
 
     /**
      * Get group members
@@ -130,6 +131,6 @@ public interface GroupService {
      * @param groupName group name
      * @return group object
      */
-    Group getGroupByName(String groupName) throws GroupNotFoundException, ServiceLayerException;
+    GroupTO getGroupByName(String groupName) throws GroupNotFoundException, ServiceLayerException;
 
 }

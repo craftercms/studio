@@ -41,7 +41,6 @@ import org.craftercms.studio.api.v2.dal.UserDAO;
 import org.craftercms.studio.model.AuthenticationType;
 import org.craftercms.studio.api.v2.service.security.SecurityProvider;
 import org.craftercms.studio.impl.v1.util.SessionTokenUtils;
-import org.craftercms.studio.model.Group;
 import org.craftercms.studio.model.User;
 
 import javax.servlet.http.HttpSession;
@@ -218,7 +217,7 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public List<Group> getUserGroups(long userId, String username) throws ServiceLayerException {
+    public List<GroupTO> getUserGroups(long userId, String username) throws ServiceLayerException {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(USER_ID, userId);
         params.put(USERNAME, username);
@@ -228,19 +227,11 @@ public class DbSecurityProvider implements SecurityProvider {
         } catch (Exception e) {
             throw new ServiceLayerException("Unknown database error", e);
         }
-        List<Group> userGroups = new ArrayList<Group>();
-        gDAOs.forEach(g -> {
-            Group group = new Group();
-            group.setId(g.getId());
-            group.setName(g.getGroupName());
-            group.setDesc(g.getGroupDescription());
-            userGroups.add(group);
-        });
-        return userGroups;
+        return gDAOs;
     }
 
     @Override
-    public List<Group> getAllGroups(long orgId, int offset, int limit, String sort) throws ServiceLayerException {
+    public List<GroupTO> getAllGroups(long orgId, int offset, int limit, String sort) throws ServiceLayerException {
         // Prepare parameters
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(ORG_ID, orgId);
@@ -254,20 +245,12 @@ public class DbSecurityProvider implements SecurityProvider {
             throw new ServiceLayerException("Unknown database error", e);
         }
 
-        List<Group> toRet = new ArrayList<Group>();
-        groups.forEach(g -> {
-            Group group = new Group();
-            group.setId(g.getId());
-            group.setDesc(g.getGroupDescription());
-            group.setName(g.getGroupName());
-            toRet.add(group);
-        });
-
-        return toRet;
+        return groups;
     }
 
     @Override
-    public Group createGroup(long orgId, String groupName, String groupDescription) throws GroupAlreadyExistsException,
+    public GroupTO createGroup(long orgId, String groupName, String groupDescription) throws
+            GroupAlreadyExistsException,
         ServiceLayerException {
         if (groupExists(groupName)) {
             throw new GroupAlreadyExistsException();
@@ -280,10 +263,10 @@ public class DbSecurityProvider implements SecurityProvider {
         try {
             groupDAO.createGroup(params);
 
-            Group group = new Group();
+            GroupTO group = new GroupTO();
             group.setId((Long) params.get(ID));
-            group.setName(groupName);
-            group.setDesc(groupDescription);
+            group.setGroupName(groupName);
+            group.setGroupDescription(groupDescription);
 
             return group;
         } catch (Exception e) {
@@ -292,12 +275,12 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public Group updateGroup(long orgId, Group group) throws ServiceLayerException {
+    public GroupTO updateGroup(long orgId, GroupTO group) throws ServiceLayerException {
         Map<String, Object> params = new HashMap<>();
         params.put(ID, group.getId());
         params.put(ORG_ID, orgId);
-        params.put(GROUP_NAME, group.getName());
-        params.put(GROUP_DESCRIPTION, group.getDesc());
+        params.put(GROUP_NAME, group.getGroupName());
+        params.put(GROUP_DESCRIPTION, group.getGroupDescription());
         try {
             groupDAO.updateGroup(params);
             return group;
@@ -318,7 +301,7 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public Group getGroup(long groupId) throws ServiceLayerException {
+    public GroupTO getGroup(long groupId) throws ServiceLayerException {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(GROUP_ID, groupId);
         GroupTO gDAL;
@@ -327,11 +310,7 @@ public class DbSecurityProvider implements SecurityProvider {
         } catch (Exception e) {
             throw new ServiceLayerException("Unknown database error", e);
         }
-        Group toRet = new Group();
-        toRet.setId(gDAL.getId());
-        toRet.setName(gDAL.getGroupName());
-        toRet.setDesc(gDAL.getGroupDescription());
-        return toRet;
+        return gDAL;
     }
 
     @Override

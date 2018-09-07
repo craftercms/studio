@@ -38,13 +38,16 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v2.dal.GroupTO;
 import org.craftercms.studio.api.v2.dal.UserDAO;
 import org.craftercms.studio.api.v2.dal.UserTO;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.security.GroupService;
 import org.craftercms.studio.api.v2.service.security.SecurityProvider;
 import org.craftercms.studio.api.v2.service.security.UserService;
-import org.craftercms.studio.model.*;
+import org.craftercms.studio.model.AuthenticatedUser;
+import org.craftercms.studio.model.Site;
+import org.craftercms.studio.model.User;
 
 import java.util.*;
 
@@ -167,7 +170,7 @@ public class UserServiceImpl implements UserService {
         generalLockService.lock(REMOVE_SYSTEM_ADMIN_MEMBER_LOCK);
         try {
             try {
-                Group g = groupService.getGroupByName(SYSTEM_ADMIN_GROUP);
+                GroupTO g = groupService.getGroupByName(SYSTEM_ADMIN_GROUP);
                 List<User> members = groupService.getGroupMembers(g.getId(), 0, Integer.MAX_VALUE, StringUtils.EMPTY);
                 if (CollectionUtils.isNotEmpty(members)) {
                     List<User> membersAfterRemove = new ArrayList<User>();
@@ -218,13 +221,13 @@ public class UserServiceImpl implements UserService {
     public List<Site> getUserSites(long userId, String username) throws ServiceLayerException {
         List<Site> sites = new ArrayList<>();
         Set<String> allSites = siteService.getAllAvailableSites();
-        List<Group> userGroups = getUserGroups(userId, username);
+        List<GroupTO> userGroups = getUserGroups(userId, username);
         boolean isSysAdmin = isUserMemberOfGroup(username, SYSTEM_ADMIN_GROUP);
 
         // Iterate all sites. If the user has any of the site groups, it has access to the site
         for (String siteId : allSites) {
             List<String> siteGroups = groupService.getSiteGroups(siteId);
-            if (isSysAdmin || userGroups.stream().anyMatch(userGroup -> siteGroups.contains(userGroup.getName()))) {
+            if (isSysAdmin || userGroups.stream().anyMatch(userGroup -> siteGroups.contains(userGroup.getGroupName()))) {
                 try {
                     SiteFeed siteFeed = siteService.getSite(siteId);
                     Site site = new Site();
@@ -244,15 +247,15 @@ public class UserServiceImpl implements UserService {
     @Override
     @HasPermission(type = DefaultPermission.class, action = "read_users")
     public List<String> getUserSiteRoles(long userId, String username, String site) throws ServiceLayerException {
-        List<Group> groups = getUserGroups(userId, username);
+        List<GroupTO> groups = getUserGroups(userId, username);
 
         if (CollectionUtils.isNotEmpty(groups)) {
             Map<String, List<String>> roleMappings = configurationService.geRoleMappings(site);
             Set<String> userRoles = new LinkedHashSet<>();
 
             if (MapUtils.isNotEmpty(roleMappings)) {
-                for (Group group : groups) {
-                    String groupName = group.getName();
+                for (GroupTO group : groups) {
+                    String groupName = group.getGroupName();
                     List<String> roles = roleMappings.get(groupName);
                     if (CollectionUtils.isNotEmpty(roles)) {
                         userRoles.addAll(roles);
@@ -324,7 +327,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<Group> getUserGroups(long userId, String username) throws ServiceLayerException {
+    public List<GroupTO> getUserGroups(long userId, String username) throws ServiceLayerException {
         return securityProvider.getUserGroups(userId, username);
     }
 

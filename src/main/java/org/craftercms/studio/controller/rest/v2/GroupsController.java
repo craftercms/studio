@@ -25,9 +25,9 @@ import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsExcepti
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v2.dal.GroupTO;
 import org.craftercms.studio.api.v2.service.security.GroupService;
 import org.craftercms.studio.model.rest.AddGroupMembers;
-import org.craftercms.studio.model.Group;
 import org.craftercms.studio.model.User;
 import org.craftercms.studio.model.rest.ApiResponse;
 import org.craftercms.studio.model.rest.PaginatedResultList;
@@ -73,10 +73,10 @@ public class GroupsController {
             @RequestParam(value = "sort", required = false, defaultValue = StringUtils.EMPTY) String sort
             ) throws ServiceLayerException {
         int total = groupService.getAllGroupsTotal(DEFAULT_ORGANIZATION_ID);
-        List<Group> groups = groupService.getAllGroups(DEFAULT_ORGANIZATION_ID, offset, limit, sort);
+        List<GroupTO> groups = groupService.getAllGroups(DEFAULT_ORGANIZATION_ID, offset, limit, sort);
 
         ResponseBody responseBody = new ResponseBody();
-        PaginatedResultList<Group> result = new PaginatedResultList<>();
+        PaginatedResultList<GroupTO> result = new PaginatedResultList<>();
         result.setTotal(total);
         result.setOffset(offset);
         result.setLimit(CollectionUtils.isEmpty(groups) ? 0 : groups.size());
@@ -94,11 +94,11 @@ public class GroupsController {
      */
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping(value = "/api/2/groups", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseBody createGroup(@RequestBody Group group) throws GroupAlreadyExistsException,
+    public ResponseBody createGroup(@RequestBody GroupTO group) throws GroupAlreadyExistsException,
         ServiceLayerException {
-        Group newGroup = groupService.createGroup(DEFAULT_ORGANIZATION_ID, group.getName(), group.getDesc());
+        GroupTO newGroup = groupService.createGroup(DEFAULT_ORGANIZATION_ID, group.getGroupName(), group.getGroupDescription());
         ResponseBody responseBody = new ResponseBody();
-        ResultOne<Group> result = new ResultOne<>();
+        ResultOne<GroupTO> result = new ResultOne<>();
         result.setResponse(ApiResponse.CREATED);
         result.setEntity(newGroup);
         responseBody.setResult(result);
@@ -112,11 +112,11 @@ public class GroupsController {
      * @return Response object
      */
     @PatchMapping(value = "/api/2/groups", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseBody updateGroup(@RequestBody Group group) throws ServiceLayerException {
-        Group updatedGroup = groupService.updateGroup(DEFAULT_ORGANIZATION_ID, group);
+    public ResponseBody updateGroup(@RequestBody GroupTO group) throws ServiceLayerException {
+        GroupTO updatedGroup = groupService.updateGroup(DEFAULT_ORGANIZATION_ID, group);
 
         ResponseBody responseBody = new ResponseBody();
-        ResultOne<Group> result = new ResultOne<>();
+        ResultOne<GroupTO> result = new ResultOne<>();
         result.setResponse(ApiResponse.OK);
         result.setEntity(updatedGroup);
         responseBody.setResult(result);
@@ -148,10 +148,10 @@ public class GroupsController {
      */
     @GetMapping("/api/2/groups/{groupId}")
     public ResponseBody getGroup(@PathVariable("groupId") int groupId) throws ServiceLayerException {
-        Group group = groupService.getGroup(groupId);
+        GroupTO group = groupService.getGroup(groupId);
 
         ResponseBody responseBody = new ResponseBody();
-        ResultOne<Group> result = new ResultOne<>();
+        ResultOne<GroupTO> result = new ResultOne<>();
         result.setResponse(ApiResponse.OK);
         result.setEntity(group);
         responseBody.setResult(result);

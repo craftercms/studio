@@ -30,7 +30,6 @@ import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.UserTO;
 import org.craftercms.studio.api.v2.service.security.SecurityProvider;
-import org.craftercms.studio.model.Group;
 import org.springframework.security.access.AccessDecisionVoter;
 
 import java.util.Collection;

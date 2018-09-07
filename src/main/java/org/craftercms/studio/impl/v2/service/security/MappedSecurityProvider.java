@@ -31,7 +31,6 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.service.security.SecurityProvider;
-import org.craftercms.studio.model.Group;
 import org.craftercms.studio.model.User;
 
 import java.util.HashMap;

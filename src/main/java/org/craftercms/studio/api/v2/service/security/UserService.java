@@ -22,7 +22,10 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.model.*;
+import org.craftercms.studio.api.v2.dal.GroupTO;
+import org.craftercms.studio.model.AuthenticatedUser;
+import org.craftercms.studio.model.Site;
+import org.craftercms.studio.model.User;
 
 import java.util.List;
 
@@ -65,7 +68,7 @@ public interface UserService {
      TODO: All methods below here should be part of the internal service.
      */
 
-    List<Group> getUserGroups(long userId, String username) throws ServiceLayerException;
+    List<GroupTO> getUserGroups(long userId, String username) throws ServiceLayerException;
 
     boolean isUserMemberOfGroup(String username, String groupName) throws ServiceLayerException;
 

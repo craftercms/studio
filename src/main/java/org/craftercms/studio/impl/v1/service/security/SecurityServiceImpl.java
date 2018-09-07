@@ -72,7 +72,6 @@ import org.craftercms.studio.api.v2.service.security.SecurityProvider;
 import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.impl.v1.util.SessionTokenUtils;
 import org.craftercms.studio.impl.v2.service.security.Authentication;
-import org.craftercms.studio.model.Group;
 import org.craftercms.studio.model.User;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;

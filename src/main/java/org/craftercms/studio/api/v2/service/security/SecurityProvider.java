@@ -27,8 +27,8 @@ import org.craftercms.studio.api.v1.exception.security.PasswordDoesNotMatchExcep
 import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.UserExternallyManagedException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v2.dal.GroupTO;
 import org.craftercms.studio.impl.v2.service.security.Authentication;
-import org.craftercms.studio.model.Group;
 import org.craftercms.studio.model.User;
 
 import java.util.List;
@@ -47,18 +47,18 @@ public interface SecurityProvider {
 
     List<User> enableUsers(List<Long> userIds, List<String> usernames, boolean enabled) throws ServiceLayerException, UserNotFoundException;
 
-    List<Group> getUserGroups(long userId, String username) throws ServiceLayerException;
+    List<GroupTO> getUserGroups(long userId, String username) throws ServiceLayerException;
 
-    List<Group> getAllGroups(long orgId, int offset, int limit, String sort) throws ServiceLayerException;
+    List<GroupTO> getAllGroups(long orgId, int offset, int limit, String sort) throws ServiceLayerException;
 
-    Group createGroup(long orgId, String groupName, String groupDescription) throws GroupAlreadyExistsException,
+    GroupTO createGroup(long orgId, String groupName, String groupDescription) throws GroupAlreadyExistsException,
         ServiceLayerException;
 
-    Group updateGroup(long orgId, Group group) throws ServiceLayerException;
+    GroupTO updateGroup(long orgId, GroupTO group) throws ServiceLayerException;
 
     void deleteGroup(List<Long> groupIds) throws ServiceLayerException;
 
-    Group getGroup(long groupId) throws ServiceLayerException;
+    GroupTO getGroup(long groupId) throws ServiceLayerException;
 
     List<User> getGroupMembers(long groupId, int offset, int limit, String sort) throws ServiceLayerException;
 
