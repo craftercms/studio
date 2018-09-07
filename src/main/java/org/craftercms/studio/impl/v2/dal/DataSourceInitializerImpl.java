@@ -89,10 +89,12 @@ import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryC
 public class DataSourceInitializerImpl implements DataSourceInitializer {
 
     private final static Logger logger = LoggerFactory.getLogger(DataSourceInitializerImpl.class);
-    private final static String CURRENT_DB_VERSION = "3.1.0.1";
+    private final static String CURRENT_DB_VERSION = "3.1.0.2";
     private final static String DB_VERSION_3_0_0 = "3.0.0";
     private final static String DB_VERSION_2_5_X = "2.5.x";
     private final static String DB_VERSION_3_0_X = "3.0";
+    private final static String DB_VERSION_3_1_0 = "3.1.0";
+    private final static String DB_VERSION_3_1_0_1 = "3.1.0.1";
 
     /**
      * Database queries
@@ -131,6 +133,7 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
             Statement statement = null;
             ResultSet rs = null;
             String dbVersion = StringUtils.EMPTY;
+            String initialDbVersion = StringUtils.EMPTY;
 
             try {
                 logger.debug("Get DB connection");
@@ -193,6 +196,8 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
                             }
                         }
 
+                        initialDbVersion = dbVersion;
+
                         switch (dbVersion) {
                             case CURRENT_DB_VERSION:
                                 // DB up to date - nothing to upgrade
@@ -243,12 +248,14 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
                             logger.error("Integrity validator error after running upgrade DB scripts", e);
                         }
 
-                        if (dbVersion.startsWith(DB_VERSION_3_0_X)) {
+                        if (initialDbVersion.startsWith(DB_VERSION_3_0_X) ||
+                                initialDbVersion.equals(DB_VERSION_3_1_0) ||
+                                initialDbVersion.equals(DB_VERSION_3_1_0_1)) {
                             statement = conn.createStatement();
                             rs = statement.executeQuery(DB_QUERY_GET_ALL_SITES);
                             while (rs.next()) {
                                 String siteId = rs.getString(1);
-                                updateRoleMappings(siteId);
+                                updateRoleMappings(siteId, initialDbVersion);
                             }
                         }
 
@@ -310,7 +317,7 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
         }
     }
 
-    private void updateRoleMappings(String siteId) {
+    private void updateRoleMappings(String siteId, String initialDbVersion) {
         String siteConfigPath = studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH);
         siteConfigPath = siteConfigPath.replaceFirst(StudioConstants.PATTERN_SITE, siteId);
         String filename = studioConfiguration.getProperty(CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME);
@@ -345,7 +352,11 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
                             String name = node.valueOf(StudioXmlConstants.DOCUMENT_ATTR_PERMISSIONS_NAME);
                             if (!StringUtils.isEmpty(name)) {
                                 Attribute attribute = node.attribute(StudioXmlConstants.DOCUMENT_ATTR_NAME);
-                                attribute.setValue(siteId + "_" + name);
+                                if (initialDbVersion.startsWith(DB_VERSION_3_0_X)) {
+                                    attribute.setValue(StringUtils.lowerCase(siteId + "_" + name));
+                                } else {
+                                    attribute.setValue(StringUtils.lowerCase(name));
+                                }
                             }
                         }
                     }
