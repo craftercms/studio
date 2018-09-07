@@ -23,7 +23,7 @@ CREATE TABLE _meta (
   PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version) VALUES ('3.1.0') ;
+INSERT INTO _meta (version) VALUES ('3.1.0.2') ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`             BIGINT(20)   NOT NULL AUTO_INCREMENT,
