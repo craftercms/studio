@@ -185,7 +185,7 @@ paths:
               schema:
                 type: object
                 properties:
-                  results:
+                  result:
                     type: object
                     properties:
                       response:
@@ -403,7 +403,7 @@ paths:
               schema:
                 type: object
                 properties:
-                  results:
+                  result:
                     type: object
                     properties:
                       response:
@@ -591,8 +591,7 @@ paths:
               schema:
                 type: object
                 properties:
-                  results:
-                  type:
+                  result:
                     type: object
                     properties:
                       response:
@@ -1031,7 +1030,7 @@ components:
                 properties:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
-  securitySchemes: null
+  securitySchemes: {}
   links: {}
   callbacks: {}
 security: []
