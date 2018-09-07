@@ -1,6 +1,8 @@
 UPDATE `group`
 SET group_name = LCASE(group_name) ;
 
+ALTER TABLE `group` ADD UNIQUE INDEX `group_ix_group_name` (`group_name`) ;
+
 INSERT IGNORE INTO `group` (record_last_updated, org_id, group_name, group_description)
 VALUES (CURRENT_TIMESTAMP, 1, 'site_admin', 'Site Administrator group') ;
 

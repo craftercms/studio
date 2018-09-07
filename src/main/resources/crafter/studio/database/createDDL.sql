@@ -239,7 +239,7 @@ CREATE TABLE IF NOT EXISTS `group`
   PRIMARY KEY (`id`),
   INDEX `group_ix_record_last_updated` (`record_last_updated` DESC),
   FOREIGN KEY group_ix_org_id(org_id) REFERENCES `organization` (`id`) ON DELETE CASCADE,
-  INDEX `group_ix_group_name` (`group_name`)
+  UNIQUE INDEX `group_ix_group_name` (`group_name`)
 )
   ENGINE = InnoDB
   DEFAULT CHARSET = utf8
