@@ -64,6 +64,14 @@ public interface GroupDAO {
     Integer deleteGroup(Map params);
 
     /**
+     * Delete group
+     *
+     * @param params SQL query parameters
+     * @return Number of affected rows in DB
+     */
+    Integer deleteGroups(Map params);
+
+    /**
      * Get group by group id
      *
      * @param params SQL query parameters
