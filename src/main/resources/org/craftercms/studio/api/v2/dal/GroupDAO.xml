@@ -142,7 +142,7 @@
     </select>
 
     <insert id="addGroupMembers" parameterType="java.util.Map" >
-        INSERT INTO `group_user` (user_id, group_id) VALUES
+        INSERT IGNORE INTO `group_user` (user_id, group_id) VALUES
         <foreach collection="userIds" item="userId" index="index" separator="," >
             (#{userId}, #{groupId})
         </foreach>

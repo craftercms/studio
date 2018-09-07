@@ -253,7 +253,7 @@ public class DbSecurityProvider implements SecurityProvider {
     public void deleteGroup(List<Long> groupIds) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(GROUP_IDS, groupIds);
-        groupDAO.deleteGroup(params);
+        groupDAO.deleteGroups(params);
     }
 
     @Override
