@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
-import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.to.CalculateDependenciesEntityTO;
 
@@ -43,10 +43,10 @@ public interface DependencyService {
 	 * @param path Path to item to scan
 	 * @throws SiteNotFoundException Site doesn't exist
 	 * @throws ContentNotFoundException Path doesn't exist
-	 * @throws ServiceException Internal error, see exception details
+	 * @throws ServiceLayerException Internal error, see exception details
 	 */
 	Set<String> upsertDependencies(String site, String path)
-            throws SiteNotFoundException, ContentNotFoundException, ServiceException;
+            throws SiteNotFoundException, ContentNotFoundException, ServiceLayerException;
 
 	/**
 	 * Scan a list of items for direct dependencies and synchroniz
@@ -58,10 +58,10 @@ public interface DependencyService {
 	 * @throws SiteNotFoundException Site doesn't exist
 	 * @throws ContentNotFoundException One or more paths doesn't exist
 	 *  (database won't be updated for any of the items)
-	 * @throws ServiceException Internal error, see exception details
+	 * @throws ServiceLayerException Internal error, see exception details
 	 */
 	Set<String> upsertDependencies(String site, List<String> paths)
-            throws SiteNotFoundException, ContentNotFoundException, ServiceException;
+            throws SiteNotFoundException, ContentNotFoundException, ServiceLayerException;
 
 	/**
 	 * Get a all publishing dependencies of a list of items. A publishing
@@ -73,10 +73,10 @@ public interface DependencyService {
 	 * @param path Paths to item to retrieve deps for
 	 * @throws SiteNotFoundException Site doesn't exist
 	 * @throws ContentNotFoundException Path doesn't exist
-	 * @throws ServiceException Internal error, see exception details
+	 * @throws ServiceLayerException Internal error, see exception details
 	 */
 	Set<String> getPublishingDependencies(String site, String path)
-            throws SiteNotFoundException, ContentNotFoundException, ServiceException;
+            throws SiteNotFoundException, ContentNotFoundException, ServiceLayerException;
 
 	/**
 	 * Get a all publishing dependencies of a list of items. A publishing
@@ -88,10 +88,10 @@ public interface DependencyService {
 	 * @param paths List of paths to items to retrieve deps for
 	 * @throws SiteNotFoundException Site doesn't exist
 	 * @throws ContentNotFoundException One or more paths doesn't exist
-	 * @throws ServiceException Internal error, see exception details
+	 * @throws ServiceLayerException Internal error, see exception details
 	 */
 	Set<String> getPublishingDependencies(String site, List<String> paths)
-            throws SiteNotFoundException, ContentNotFoundException, ServiceException;
+            throws SiteNotFoundException, ContentNotFoundException, ServiceLayerException;
 
 	/**
 	 * Get item-specific dependencies of an item. An item-specific
@@ -104,10 +104,10 @@ public interface DependencyService {
 	 * @param depth Depth of tree to traverse. Depth of -1 disables depth limits
 	 * @throws SiteNotFoundException Site doesn't exist
 	 * @throws ContentNotFoundException Path doesn't exist
-	 * @throws ServiceException Internal error, see exception details
+	 * @throws ServiceLayerException Internal error, see exception details
 	 */
 	Set<String> getItemSpecificDependencies(String site, String path, int depth)
-            throws SiteNotFoundException, ContentNotFoundException, ServiceException;
+            throws SiteNotFoundException, ContentNotFoundException, ServiceLayerException;
 
 	/**
 	 * Get all item dependencies of an item.
@@ -117,10 +117,10 @@ public interface DependencyService {
 	 * @param depth Depth of tree to traverse. Depth of -1 disables depth limits
 	 * @throws SiteNotFoundException Site doesn't exist
 	 * @throws ContentNotFoundException Path doesn't exist
-	 * @throws ServiceException Internal error, see exception details
+	 * @throws ServiceLayerException Internal error, see exception details
 	 */
 	Set<String> getItemDependencies(String site, String path, int depth)
-            throws SiteNotFoundException, ContentNotFoundException, ServiceException;
+            throws SiteNotFoundException, ContentNotFoundException, ServiceLayerException;
 
 	/**
 	 * Get all items that depend on this item.
@@ -130,10 +130,10 @@ public interface DependencyService {
 	 * @param depth Depth of tree to traverse. Depth of -1 disables depth limits
 	 * @throws SiteNotFoundException Site doesn't exist
 	 * @throws ContentNotFoundException Path doesn't exist
-	 * @throws ServiceException Internal error, see exception details
+	 * @throws ServiceLayerException Internal error, see exception details
 	 */
 	Set<String> getItemsDependingOn(String site, String path, int depth)
-            throws SiteNotFoundException, ContentNotFoundException, ServiceException;
+            throws SiteNotFoundException, ContentNotFoundException, ServiceLayerException;
 
 	/**
 	 * Move an item and make sure dependency paths remain correct.
@@ -143,10 +143,10 @@ public interface DependencyService {
 	 * @param newPath Path the item moves to
 	 * @throws SiteNotFoundException Site doesn't exist
 	 * @throws ContentNotFoundException Path doesn't exist
-	 * @throws ServiceException Internal error, see exception details
+	 * @throws ServiceLayerException Internal error, see exception details
 	 */
 	Set<String> moveDependencies(String site, String oldPath, String newPath)
-            throws SiteNotFoundException, ContentNotFoundException, ServiceException;
+            throws SiteNotFoundException, ContentNotFoundException, ServiceLayerException;
 
 	/**
 	 * Delete an item dependencies from the database.
@@ -155,18 +155,18 @@ public interface DependencyService {
 	 * @param path Path to items to retrieve deps for
 	 * @throws SiteNotFoundException Site doesn't exist
 	 * @throws ContentNotFoundException Path doesn't exist
-	 * @throws ServiceException Internal error, see exception details
+	 * @throws ServiceLayerException Internal error, see exception details
 	 */
 	void deleteItemDependencies(String site, String path)
-            throws SiteNotFoundException, ContentNotFoundException, ServiceException;
+            throws SiteNotFoundException, ContentNotFoundException, ServiceLayerException;
 
 	/**
 	 * Delete all dependencies from the database for a given site.
 	 * 
 	 * @param site Site to operate on
-	 * @throws ServiceException Internal error, see exception details
+	 * @throws ServiceLayerException Internal error, see exception details
 	 */
-	void deleteSiteDependencies(String site) throws ServiceException;
+	void deleteSiteDependencies(String site) throws ServiceLayerException;
 
     /**
      *
@@ -175,10 +175,10 @@ public interface DependencyService {
      * @return Set of paths included as delete dependencies
      * @throws SiteNotFoundException Site doesn't exist
      * @throws ContentNotFoundException Content doesn't exist
-     * @throws ServiceException Internal error
+     * @throws ServiceLayerException Internal error
      */
 	Set<String> getDeleteDependencies(String site, String path)
-            throws SiteNotFoundException, ContentNotFoundException, ServiceException;
+            throws SiteNotFoundException, ContentNotFoundException, ServiceLayerException;
 
     /**
      *
@@ -187,10 +187,10 @@ public interface DependencyService {
      * @return Set of paths included as delete dependencies
      * @throws SiteNotFoundException Site doesn't exist
      * @throws ContentNotFoundException Content doesn't exist
-     * @throws ServiceException Internal error
+     * @throws ServiceLayerException Internal error
      */
 	Set<String> getDeleteDependencies(String site, List<String> paths)
-            throws SiteNotFoundException, ContentNotFoundException, ServiceException;
+            throws SiteNotFoundException, ContentNotFoundException, ServiceLayerException;
 
     /**
      * Calculate dependencies for publishing
@@ -201,7 +201,7 @@ public interface DependencyService {
      * @throws SiteNotFoundException site does not exist
      */
 	Map<String, List<CalculateDependenciesEntityTO>> calculateDependencies(String site, List<String> paths)
-            throws ServiceException;
+            throws ServiceLayerException;
 
     /**
      * Calculate dependencies paths for publishing
@@ -209,6 +209,6 @@ public interface DependencyService {
      * @param paths list of items to calculate dependencies for
      * @return dependencies paths
      */
-	Set<String> calculateDependenciesPaths(String site, List<String> paths) throws ServiceException;
+	Set<String> calculateDependenciesPaths(String site, List<String> paths) throws ServiceLayerException;
 
 }

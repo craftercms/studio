@@ -17,7 +17,7 @@
  */
 package org.craftercms.studio.impl.v1.service.workflow.operation;
 
-import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.service.workflow.WorkflowService;
 import org.craftercms.studio.api.v1.service.workflow.context.GoLiveContext;
 
@@ -33,7 +33,7 @@ public class PreGoLiveOperation extends SubmitLifeCycleOperation {
 
     @Override
     @SuppressWarnings("unchecked")
-    public Object execute() throws ServiceException {
+    public Object execute() throws ServiceLayerException {
         workflowService.preGoLive(uris, context, rescheduledUris);
         return null;
     }

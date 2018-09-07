@@ -5,7 +5,7 @@ package org.craftercms.studio.api.v1.exception;
  *
  * @author avasquez
  */
-public class AwsException extends ServiceException {
+public class AwsException extends ServiceLayerException {
 
     public AwsException(String message) {
         super(message);

@@ -17,7 +17,7 @@
  */
 package org.craftercms.studio.api.v1.service.clipboard;
 
-import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 
 import javax.servlet.http.HttpSession;
 
@@ -41,7 +41,7 @@ public interface ClipboardService {
      * @param path - path of item to be cut
      * @return true if item is properly placed on clipboard
      */
-    boolean cut(String site, String path, HttpSession session) throws ServiceException;
+    boolean cut(String site, String path, HttpSession session) throws ServiceLayerException;
 
     /**
      * copy a set of items and store on clipboard
@@ -50,7 +50,7 @@ public interface ClipboardService {
      * @param path - path of item to be copied
      * @return true if item is properly placed on clipboard
      */
-    boolean copy(String site, String path, HttpSession session) throws ServiceException;
+    boolean copy(String site, String path, HttpSession session) throws ServiceLayerException;
 
     /**
      * copy a set of items and store on clipboard
@@ -59,7 +59,7 @@ public interface ClipboardService {
      * @param clipItem - item to be copied
      * @return true if item is properly placed on clipboard
      */
-    boolean copy(String site, ClipboardItem clipItem, HttpSession session) throws ServiceException;
+    boolean copy(String site, ClipboardItem clipItem, HttpSession session) throws ServiceLayerException;
 
     /**
      * paste a list of items provided to the specified destination
@@ -68,9 +68,9 @@ public interface ClipboardService {
      * @param destination
      *          the root folder of all items' destination
      * @return a list of pasted items (new paths)
-     * @throws org.craftercms.studio.api.v1.exception.ServiceException
+     * @throws ServiceLayerException
      */
-    Set<String> paste(String site, String destination, HttpSession session) throws ServiceException;
+    Set<String> paste(String site, String destination, HttpSession session) throws ServiceLayerException;
 
     /**
      * get the items on clipboard
@@ -78,7 +78,7 @@ public interface ClipboardService {
      * @param site - the project ID
      * @return clipped item or null
      */
-    ClipboardItem getItems(String site, HttpSession session) throws ServiceException;
+    ClipboardItem getItems(String site, HttpSession session) throws ServiceLayerException;
 
     ClipboardStore getClipboardStore(String site,  HttpSession session);
 

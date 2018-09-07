@@ -24,7 +24,7 @@ import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.ItemState;
-import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
@@ -418,7 +418,7 @@ public class ImportServiceImpl implements ImportService {
         } catch (FileNotFoundException e) {
             logger.warn("[IMPORT] " + filePath + " does not exist.");
 
-        } catch (ServiceException e) {
+        } catch (ServiceLayerException e) {
             logger.error("[IMPORT] failed to import " + filePath, e);
         } finally {
             ContentUtils.release(in);

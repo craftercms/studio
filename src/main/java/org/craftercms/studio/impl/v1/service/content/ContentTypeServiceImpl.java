@@ -26,7 +26,7 @@ import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
-import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
@@ -56,14 +56,14 @@ public class ContentTypeServiceImpl implements ContentTypeService {
 
     @Override
     @ValidateParams
-    public ContentTypeConfigTO getContentTypeForContent(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) throws ServiceException {
+    public ContentTypeConfigTO getContentTypeForContent(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path) throws ServiceLayerException {
         ContentItemTO itemTO = contentService.getContentItem(site, path, 0);
         if (itemTO != null) {
             String type = itemTO.getContentType();
             if (!StringUtils.isEmpty(type)) {
                 return servicesConfig.getContentTypeConfig(site, type);
             } else {
-                throw new ServiceException("No content type specified for " + path + " in site: " + site);
+                throw new ServiceLayerException("No content type specified for " + path + " in site: " + site);
             }
         } else {
             throw new ContentNotFoundException(path + " is not found in site: " + site);
@@ -98,14 +98,14 @@ public class ContentTypeServiceImpl implements ContentTypeService {
 
     @Override
     @ValidateParams
-    public ContentTypeConfigTO getContentTypeByRelativePath(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "relativePath") String relativePath) throws ServiceException {
+    public ContentTypeConfigTO getContentTypeByRelativePath(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "relativePath") String relativePath) throws ServiceLayerException {
         ContentItemTO item = contentService.getContentItem(site, relativePath, 0);
         if (item != null) {
             String type = item.getContentType();
             if (!StringUtils.isEmpty(type)) {
                 return servicesConfig.getContentTypeConfig(site, type);
             } else {
-                throw new ServiceException("No content type specified for " + relativePath + " in site: " + site);
+                throw new ServiceLayerException("No content type specified for " + relativePath + " in site: " + site);
             }
         } else {
             throw new ContentNotFoundException(relativePath + " is not found in site: " + site);
@@ -126,7 +126,7 @@ public class ContentTypeServiceImpl implements ContentTypeService {
 
     @Override
     @ValidateParams
-    public List<ContentTypeConfigTO> getAllowedContentTypesForPath(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "relativePath") String relativePath) throws ServiceException {
+    public List<ContentTypeConfigTO> getAllowedContentTypesForPath(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "relativePath") String relativePath) throws ServiceLayerException {
         String user = securityService.getCurrentUser();
         Set<String> userRoles = securityService.getUserRoles(site, user);
         List<ContentTypeConfigTO> allContentTypes = getAllContentTypes(site);
@@ -175,7 +175,7 @@ public class ContentTypeServiceImpl implements ContentTypeService {
 
     @Override
     @ValidateParams
-    public boolean changeContentType(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, @ValidateStringParam(name = "contentType") String contentType) throws ServiceException {
+    public boolean changeContentType(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, @ValidateStringParam(name = "contentType") String contentType) throws ServiceLayerException {
         ContentTypeConfigTO contentTypeConfigTO = getContentType(site, contentType);
         if (contentTypeConfigTO.getFormPath().equalsIgnoreCase(DmConstants.CONTENT_TYPE_CONFIG_FORM_PATH_SIMPLE)){
             // Simple form engine is not using templates - skip copying template and merging content

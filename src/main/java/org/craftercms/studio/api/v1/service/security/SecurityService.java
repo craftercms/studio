@@ -19,7 +19,7 @@
 package org.craftercms.studio.api.v1.service.security;
 
 import org.craftercms.commons.entitlements.exception.EntitlementException;
-import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationSystemException;
 import org.craftercms.studio.api.v1.exception.security.BadCredentialsException;
 import org.craftercms.studio.api.v1.exception.security.PasswordDoesNotMatchException;
@@ -61,7 +61,7 @@ public interface SecurityService {
 
     Set<String> getUserRoles(String site, String user);
 
-    Map<String, Object> getUserProfile(String user);
+    Map<String, Object> getUserProfile(String user) throws ServiceLayerException;
 
     Set<String> getUserPermissions(String site, String path, String user, List<String> groups);
 
@@ -79,7 +79,7 @@ public interface SecurityService {
      * @param username username
      * @return true if user exists
      */
-    boolean userExists(String username);
+    boolean userExists(String username) throws ServiceLayerException;
 
 
     /**
@@ -87,7 +87,7 @@ public interface SecurityService {
      *
      * @return number of all users
      */
-    int getAllUsersTotal();
+    int getAllUsersTotal() throws ServiceLayerException;
 
 
     /**
@@ -97,7 +97,7 @@ public interface SecurityService {
      * @return forgot password
      */
     Map<String, Object> forgotPassword(String username)
-            throws ServiceException, UserNotFoundException, UserExternallyManagedException;
+            throws ServiceLayerException, UserNotFoundException, UserExternallyManagedException;
 
     /**
      * Forgot password token to validate
@@ -105,7 +105,8 @@ public interface SecurityService {
      * @param token token
      * @return true if given token is valid
      */
-    boolean validateToken(String token) throws UserNotFoundException, UserExternallyManagedException;
+    boolean validateToken(String token) throws UserNotFoundException, UserExternallyManagedException,
+        ServiceLayerException;
 
     /**
      * Change password
@@ -115,8 +116,8 @@ public interface SecurityService {
      * @param newPassword new password
      * @return true if user's password is successfully changed
      */
-    boolean changePassword(String username, String current, String newPassword)
-            throws UserNotFoundException, PasswordDoesNotMatchException, UserExternallyManagedException;
+    boolean changePassword(String username, String current, String newPassword) throws UserNotFoundException,
+        PasswordDoesNotMatchException, UserExternallyManagedException, ServiceLayerException;
 
     /**
      * Set user password - forgot password token
@@ -125,8 +126,8 @@ public interface SecurityService {
      * @param newPassword new password
      * @return true if uses's password is successfully set
      */
-    Map<String, Object> setUserPassword(String token, String newPassword)
-            throws UserNotFoundException, UserExternallyManagedException;
+    Map<String, Object> setUserPassword(String token, String newPassword) throws UserNotFoundException,
+        UserExternallyManagedException, ServiceLayerException;
 
     /**
      * Reset user password
@@ -135,8 +136,8 @@ public interface SecurityService {
      * @param newPassword new password
      * @return true if user's password is successfully reset
      */
-    boolean resetPassword(String username, String newPassword)
-            throws UserNotFoundException, UserExternallyManagedException;
+    boolean resetPassword(String username, String newPassword) throws UserNotFoundException,
+        UserExternallyManagedException, ServiceLayerException;
 
     /**
      * Validate user's active session
@@ -144,7 +145,7 @@ public interface SecurityService {
      * @param request
      * @return true if user session is valid
      */
-    boolean validateSession(HttpServletRequest request);
+    boolean validateSession(HttpServletRequest request) throws ServiceLayerException;
 
     /**
      * Check if given user is site admin

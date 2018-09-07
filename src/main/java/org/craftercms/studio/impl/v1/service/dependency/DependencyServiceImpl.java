@@ -25,7 +25,7 @@ import org.craftercms.studio.api.v1.dal.DependencyEntity;
 import org.craftercms.studio.api.v1.dal.DependencyMapper;
 import org.craftercms.studio.api.v1.dal.ItemStateMapper;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
-import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -87,7 +87,7 @@ public class DependencyServiceImpl implements DependencyService {
 
     @Override
     public Set<String> upsertDependencies(String site, String path)
-            throws SiteNotFoundException, ContentNotFoundException, ServiceException {
+            throws SiteNotFoundException, ContentNotFoundException, ServiceLayerException {
         Set<String> toRet = new HashSet<String>();
         logger.debug("Resolving dependencies for content site: " + site + " path: " + path);
         Map<String, Set<String>> dependencies = dependencyResolver.resolve(site, path);
@@ -115,7 +115,7 @@ public class DependencyServiceImpl implements DependencyService {
             } catch (Exception e) {
                 logger.debug("Rolling back transaction.");
                 transactionManager.rollback(txStatus);
-                throw new ServiceException("Failed to upsert dependencies for site: " + site + " path: " + path, e);
+                throw new ServiceLayerException("Failed to upsert dependencies for site: " + site + " path: " + path, e);
             }
 
         }
@@ -124,7 +124,7 @@ public class DependencyServiceImpl implements DependencyService {
 
     @Override
     public Set<String> upsertDependencies(String site, List<String> paths)
-            throws SiteNotFoundException, ContentNotFoundException, ServiceException {
+            throws SiteNotFoundException, ContentNotFoundException, ServiceLayerException {
         Set<String> toRet = new HashSet<String>();
         List<DependencyEntity> dependencyEntities = new ArrayList<>();
         StringBuilder sbPaths = new StringBuilder();
@@ -158,7 +158,7 @@ public class DependencyServiceImpl implements DependencyService {
         } catch (Exception e) {
             logger.debug("Rolling back transaction.");
             transactionManager.rollback(txStatus);
-            throw new ServiceException("Failed to upsert dependencies for site: " + site + " paths: " +
+            throw new ServiceLayerException("Failed to upsert dependencies for site: " + site + " paths: " +
                     sbPaths.toString(), e);
         }
 
@@ -206,7 +206,7 @@ public class DependencyServiceImpl implements DependencyService {
 
     @Override
     public Set<String> getPublishingDependencies(String site, String path)
-            throws SiteNotFoundException, ContentNotFoundException, ServiceException {
+            throws SiteNotFoundException, ContentNotFoundException, ServiceLayerException {
         logger.debug("Get publishing dependencies for site: " + site + " path:" + path);
         List<String> paths = new ArrayList<String>();
         paths.add(path);
@@ -215,7 +215,7 @@ public class DependencyServiceImpl implements DependencyService {
 
     @Override
     public Set<String> getPublishingDependencies(String site, List<String> paths)
-            throws SiteNotFoundException, ContentNotFoundException, ServiceException {
+            throws SiteNotFoundException, ContentNotFoundException, ServiceLayerException {
         Set<String> toRet = new HashSet<String>();
         Set<String> pathsParams = new HashSet<String>();
 
@@ -245,7 +245,7 @@ public class DependencyServiceImpl implements DependencyService {
 
     @Override
     public Set<String> getItemSpecificDependencies(String site, String path, int depth)
-            throws SiteNotFoundException, ContentNotFoundException, ServiceException {
+            throws SiteNotFoundException, ContentNotFoundException, ServiceLayerException {
         // Check if site exists
         if (!siteService.exists(site)) {
             throw new SiteNotFoundException();
@@ -293,7 +293,7 @@ public class DependencyServiceImpl implements DependencyService {
 
     @Override
     public Set<String> getItemDependencies(String site, String path, int depth)
-            throws SiteNotFoundException, ContentNotFoundException, ServiceException {
+            throws SiteNotFoundException, ContentNotFoundException, ServiceLayerException {
         // Check if site exists
         if (!siteService.exists(site)) {
             throw new SiteNotFoundException();
@@ -340,7 +340,7 @@ public class DependencyServiceImpl implements DependencyService {
 
     @Override
     public Set<String> getItemsDependingOn(String site, String path, int depth)
-            throws SiteNotFoundException, ContentNotFoundException, ServiceException {
+            throws SiteNotFoundException, ContentNotFoundException, ServiceLayerException {
         // Check if site exists
         if (!siteService.exists(site)) {
             throw new SiteNotFoundException();
@@ -387,7 +387,7 @@ public class DependencyServiceImpl implements DependencyService {
 
     @Override
     public Set<String> moveDependencies(String site, String oldPath, String newPath)
-            throws SiteNotFoundException, ContentNotFoundException, ServiceException {
+            throws SiteNotFoundException, ContentNotFoundException, ServiceLayerException {
         // Check if site exists
         if (!siteService.exists(site)) {
             throw new SiteNotFoundException();
@@ -409,7 +409,7 @@ public class DependencyServiceImpl implements DependencyService {
 
     @Override
     public void deleteItemDependencies(String site, String path)
-            throws SiteNotFoundException, ContentNotFoundException, ServiceException {
+            throws SiteNotFoundException, ContentNotFoundException, ServiceLayerException {
         if (!siteService.exists(site)) {
             throw new SiteNotFoundException();
         }
@@ -422,7 +422,7 @@ public class DependencyServiceImpl implements DependencyService {
     }
 
     @Override
-    public void deleteSiteDependencies(String site) throws ServiceException {
+    public void deleteSiteDependencies(String site) throws ServiceLayerException {
         logger.debug("Delete all dependencies for site: " + site);
         Map<String, String> params = new HashMap<String, String>();
         params.put(SITE_PARAM, site);
@@ -431,7 +431,7 @@ public class DependencyServiceImpl implements DependencyService {
 
     @Override
     public Set<String> getDeleteDependencies(String site, String path)
-            throws SiteNotFoundException, ContentNotFoundException, ServiceException {
+            throws SiteNotFoundException, ContentNotFoundException, ServiceLayerException {
         // Check if site exists
         if (!siteService.exists(site)) {
             throw new SiteNotFoundException();
@@ -451,7 +451,7 @@ public class DependencyServiceImpl implements DependencyService {
 
     @Override
     public Set<String> getDeleteDependencies(String site, List<String> paths)
-            throws SiteNotFoundException, ContentNotFoundException, ServiceException {
+            throws SiteNotFoundException, ContentNotFoundException, ServiceLayerException {
         // Check if site exists
         if (!siteService.exists(site)) {
             throw new SiteNotFoundException();
@@ -558,7 +558,7 @@ public class DependencyServiceImpl implements DependencyService {
 
     @Override
     public Map<String, List<CalculateDependenciesEntityTO>> calculateDependencies(String site, List<String> paths)
-            throws ServiceException {
+            throws ServiceLayerException {
         Map<String, List<CalculateDependenciesEntityTO>> toRet =
                 new HashMap<String, List<CalculateDependenciesEntityTO>>();
         List<CalculateDependenciesEntityTO> entities = new ArrayList<CalculateDependenciesEntityTO>();
@@ -587,13 +587,13 @@ public class DependencyServiceImpl implements DependencyService {
     }
 
     @Override
-    public Set<String> calculateDependenciesPaths(String site, List<String> paths) throws ServiceException {
+    public Set<String> calculateDependenciesPaths(String site, List<String> paths) throws ServiceLayerException {
         Map<String, String> dependencies = calculatePublishingDependencies(site, paths);
         return dependencies.keySet();
     }
 
     private Map<String, String> calculatePublishingDependencies(String site, List<String> paths)
-            throws SiteNotFoundException, ContentNotFoundException, ServiceException {
+            throws SiteNotFoundException, ContentNotFoundException, ServiceLayerException {
         Set<String> toRet = new HashSet<String>();
         Set<String> pathsParams = new HashSet<String>();
 

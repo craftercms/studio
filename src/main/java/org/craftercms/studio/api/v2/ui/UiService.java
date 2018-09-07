@@ -18,7 +18,7 @@
 
 package org.craftercms.studio.api.v2.ui;
 
-import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.model.ui.MenuItem;
 
@@ -37,8 +37,8 @@ public interface UiService {
      * @return the list of menu items
      *
      * @throws AuthenticationException if not user is logged in
-     * @throws ServiceException if another error occurs
+     * @throws ServiceLayerException if another error occurs
      */
-    List<MenuItem> getGlobalMenu() throws AuthenticationException, ServiceException;
+    List<MenuItem> getGlobalMenu() throws AuthenticationException, ServiceLayerException;
 
 }

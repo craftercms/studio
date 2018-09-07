@@ -29,7 +29,7 @@ import org.craftercms.commons.git.auth.SshUsernamePasswordAuthConfigurator;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.dal.RemoteRepository;
-import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
@@ -769,7 +769,7 @@ public class GitContentRepositoryHelper {
      *
      * @return current user as a PersonIdent
      */
-    public PersonIdent getCurrentUserIdent() {
+    public PersonIdent getCurrentUserIdent() throws ServiceLayerException {
         String userName = securityProvider.getCurrentUser();
         return getAuthorIdent(userName);
     }
@@ -780,7 +780,7 @@ public class GitContentRepositoryHelper {
      * @param author author
      * @return author user as a PersonIdent
      */
-    public PersonIdent getAuthorIdent(String author) {
+    public PersonIdent getAuthorIdent(String author) throws ServiceLayerException {
         User user = securityProvider.getUserByIdOrUsername(-1, author);
         PersonIdent currentUserIdent =
                 new PersonIdent(user.getFirstName() + " " + user.getLastName(), user.getEmail());
@@ -838,7 +838,7 @@ public class GitContentRepositoryHelper {
                                                 String authenticationType, String remoteUsername,
                                                 String remotePassword, String remoteToken, String remotePrivateKey)
             throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
-            RemoteRepositoryNotFoundException, ServiceException {
+            RemoteRepositoryNotFoundException, ServiceLayerException {
 
         boolean toRet = true;
         // prepare a new folder for the cloned repository
@@ -880,7 +880,7 @@ public class GitContentRepositoryHelper {
 
                     break;
                 default:
-                    throw new ServiceException("Unsupported authentication type " + authenticationType);
+                    throw new ServiceLayerException("Unsupported authentication type " + authenticationType);
             }
             if (StringUtils.isNotEmpty(remoteBranch)) {
                 cloneCommand.setBranch(remoteBranch);

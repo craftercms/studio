@@ -19,7 +19,7 @@ package org.craftercms.studio.api.v1.service.activity;
 
 
 import org.craftercms.studio.api.v1.dal.AuditFeed;
-import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 
@@ -86,10 +86,10 @@ public interface ActivityService {
 	 * @param excludeLive
 	 * 			exclude live items?
 	 * @return a list of activities
-	 * @throws org.craftercms.studio.api.v1.exception.ServiceException
+	 * @throws ServiceLayerException
 	 */
 	List<ContentItemTO> getActivities(String site, String user, int num, String sort, boolean ascending,
-                                      boolean excludeLive, String filterType) throws ServiceException;
+                                      boolean excludeLive, String filterType) throws ServiceLayerException;
 
 	/**
 	 * Get activity for deleted content

@@ -17,9 +17,9 @@
  */
 package org.craftercms.studio.api.v1.exception.repository;
 
-import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 
-public class RemoteAlreadyExistsException extends ServiceException {
+public class RemoteAlreadyExistsException extends ServiceLayerException {
 
 
     private static final long serialVersionUID = 6422788562443045182L;

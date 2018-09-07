@@ -22,7 +22,7 @@ import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.BlueprintNotFoundException;
 import org.craftercms.studio.api.v1.exception.PreviewDeployerUnreachableException;
 import org.craftercms.studio.api.v1.exception.SearchUnreachableException;
-import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.SiteCreationException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -57,14 +57,14 @@ public interface SiteService {
 	 * (can be any kind of content)
 	 * @param path
 	 */
-    boolean writeConfiguration(String site, String path, InputStream content) throws ServiceException;
+    boolean writeConfiguration(String site, String path, InputStream content) throws ServiceLayerException;
 
 	/**
 	 * write configuraiton content at the given path
 	 * (can be any kind of content)
 	 * @param path
 	 */
-	boolean writeConfiguration(String path, InputStream content) throws ServiceException;
+	boolean writeConfiguration(String path, InputStream content) throws ServiceLayerException;
 
 	/**
 	 * given a site ID return the configuration as a document
@@ -129,7 +129,7 @@ public interface SiteService {
                                     String remoteName, String remoteUrl, String remoteBranch, boolean singleBranch,
                                     String authenticationType, String remoteUsername, String remotePassword,
                                     String remoteToken, String remotePrivateKey, String createOption)
-            throws ServiceException, InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
+            throws ServiceLayerException, InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
             RemoteRepositoryNotFoundException, RemoteRepositoryNotBareException, InvalidRemoteUrlException;
 
     /**
@@ -199,7 +199,7 @@ public interface SiteService {
      * @return number of sites
      * @throws UserNotFoundException
      */
-    int getSitesPerUserTotal(String username) throws UserNotFoundException;
+    int getSitesPerUserTotal(String username) throws UserNotFoundException, ServiceLayerException;
 
     /**
      * Get sites that user is allowed access to for given username
@@ -210,7 +210,8 @@ public interface SiteService {
      * @return number of sites
      * @throws UserNotFoundException
      */
-    List<SiteFeed> getSitesPerUser(String username, int start, int number) throws UserNotFoundException;
+    List<SiteFeed> getSitesPerUser(String username, int start, int number) throws UserNotFoundException,
+		ServiceLayerException;
 
     /**
      * Get site details
@@ -264,7 +265,7 @@ public interface SiteService {
     boolean addRemote(String siteId, String remoteName, String remoteUrl,
                       String authenticationType, String remoteUsername, String remotePassword, String remoteToken,
                       String remotePrivateKey)
-            throws InvalidRemoteUrlException, ServiceException;
+            throws InvalidRemoteUrlException, ServiceLayerException;
 
     /**
      * Remove remote with given name for site
@@ -281,5 +282,5 @@ public interface SiteService {
      * @return list of names of remote repositories
      * @throws SiteNotFoundException
      */
-    List<RemoteRepositoryInfoTO> listRemote(String siteId) throws ServiceException;
+    List<RemoteRepositoryInfoTO> listRemote(String siteId) throws ServiceLayerException;
 }

@@ -37,7 +37,7 @@ import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.AuditFeed;
 import org.craftercms.studio.api.v1.dal.AuditFeedMapper;
-import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -127,7 +127,7 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
             if (siteNetwork == null) {
                 siteNetwork = "";
             } else if (siteNetwork.length() > MAX_LEN_SITE_ID) {
-                throw new ServiceException("Invalid site network - exceeds " + MAX_LEN_SITE_ID + " chars: "
+                throw new ServiceLayerException("Invalid site network - exceeds " + MAX_LEN_SITE_ID + " chars: "
                         + siteNetwork);
             }
 
@@ -135,14 +135,15 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
             if (appTool == null) {
                 appTool = "";
             } else if (appTool.length() > MAX_LEN_APP_TOOL_ID) {
-                throw new ServiceException("Invalid app tool - exceeds " + MAX_LEN_APP_TOOL_ID + " chars: " + appTool);
+                throw new ServiceLayerException("Invalid app tool - exceeds " + MAX_LEN_APP_TOOL_ID + " chars: " +
+                    appTool);
             }
 
             // required
             if (StringUtils.isEmpty(activityType)) {
-                throw new ServiceException("Invalid activity type - activity type is empty");
+                throw new ServiceLayerException("Invalid activity type - activity type is empty");
             } else if (activityType.length() > MAX_LEN_ACTIVITY_TYPE) {
-                throw new ServiceException("Invalid activity type - exceeds " + MAX_LEN_ACTIVITY_TYPE + " chars: "
+                throw new ServiceLayerException("Invalid activity type - exceeds " + MAX_LEN_ACTIVITY_TYPE + " chars: "
                         + activityType);
             }
 
@@ -150,15 +151,15 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
             if (activityData == null) {
                 activityData = "";
             } else if (activityType.length() > MAX_LEN_ACTIVITY_DATA) {
-                throw new ServiceException("Invalid activity data - exceeds " + MAX_LEN_ACTIVITY_DATA + " chars: "
+                throw new ServiceLayerException("Invalid activity data - exceeds " + MAX_LEN_ACTIVITY_DATA + " chars: "
                         + activityData);
             }
 
             // required
             if (StringUtils.isEmpty(currentUser)) {
-                throw new ServiceException("Invalid user - user is empty");
+                throw new ServiceLayerException("Invalid user - user is empty");
             } else if (currentUser.length() > MAX_LEN_USER_ID) {
-                throw new ServiceException("Invalid user - exceeds " + MAX_LEN_USER_ID + " chars: " + currentUser);
+                throw new ServiceLayerException("Invalid user - exceeds " + MAX_LEN_USER_ID + " chars: " + currentUser);
             } else {
                 // user names are not case-sensitive
                 currentUser = currentUser.toLowerCase();
@@ -168,7 +169,7 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
             if (contentType == null) {
                 contentType = CONTENT_TYPE_PAGE;
             }
-        } catch (ServiceException e) {
+        } catch (ServiceLayerException e) {
             // log error and throw exception
             logger.error("Error in getting feeds", e);
         }
@@ -193,11 +194,11 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
                 logger.debug("Posted: " + activityPost);
 
             } catch (Exception e) {
-                throw new ServiceException("Failed to post activity: " + e, e);
+                throw new ServiceLayerException("Failed to post activity: " + e, e);
             }
         }
 
-        catch (ServiceException e) {
+        catch (ServiceLayerException e) {
             // log error, subsume exception (for post activity)
             logger.error("Error in posting feed", e);
         }
@@ -235,7 +236,7 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
                                              boolean ascending,
                                              boolean excludeLive,
                                              @ValidateStringParam(name = "filterType") String filterType)
-            throws ServiceException {
+            throws ServiceLayerException {
         int startPos = 0;
         List<ContentItemTO> contentItems = new ArrayList<ContentItemTO>();
         boolean hasMoreItems = true;

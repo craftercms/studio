@@ -29,7 +29,7 @@ import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.DmConstants;
-import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
@@ -139,7 +139,9 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
 
     @Override
     @ValidateParams
-    public void bulkGoLive(@ValidateStringParam(name = "site") String site, @ValidateStringParam String environment, @ValidateSecurePathParam(name = "path") String path) throws ServiceException {
+    public void bulkGoLive(@ValidateStringParam(name = "site") String site,
+                           @ValidateStringParam String environment,
+                           @ValidateSecurePathParam(name = "path") String path) throws ServiceLayerException {
         logger.info("Starting Bulk Publish to '" + environment + "' for path " + path + " site " + site);
 
         String queryPath = path;

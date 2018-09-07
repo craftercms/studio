@@ -19,6 +19,7 @@
 package org.craftercms.studio.impl.v2.service.security;
 
 import org.craftercms.commons.entitlements.exception.EntitlementException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationSystemException;
 import org.craftercms.studio.api.v1.exception.security.BadCredentialsException;
 import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
@@ -91,97 +92,101 @@ public class MappedSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public boolean createUser(User user) throws UserAlreadyExistsException {
+    public boolean createUser(User user) throws UserAlreadyExistsException, ServiceLayerException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.createUser(user);
     }
 
     @Override
-    public void updateUser(User user) {
+    public void updateUser(User user) throws ServiceLayerException {
         SecurityProvider provider = lookupProvider(getProviderType());
         provider.updateUser(user);
     }
 
     @Override
-    public void deleteUsers(List<Long> userIds, List<String> usernames) {
+    public void deleteUsers(List<Long> userIds, List<String> usernames) throws ServiceLayerException {
         SecurityProvider provider = lookupProvider(getProviderType());
         provider.deleteUsers(userIds, usernames);
     }
 
     @Override
-    public User getUserByIdOrUsername(long userId, String username) {
+    public User getUserByIdOrUsername(long userId, String username) throws ServiceLayerException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.getUserByIdOrUsername(userId, username);
     }
 
     @Override
-    public void enableUsers(List<Long> userIds, List<String> usernames, boolean enabled) {
+    public void enableUsers(List<Long> userIds, List<String> usernames, boolean enabled) throws ServiceLayerException {
         SecurityProvider provider = lookupProvider(getProviderType());
         provider.enableUsers(userIds, usernames, enabled);
     }
 
     @Override
-    public List<Group> getUserGroups(long userId, String username) {
+    public List<Group> getUserGroups(long userId, String username) throws ServiceLayerException {
         SecurityProvider provider =  lookupProvider(getProviderType());
         return provider.getUserGroups(userId, username);
     }
 
     @Override
-    public List<Group> getAllGroups(long orgId, int offset, int limit, String sort) {
+    public List<Group> getAllGroups(long orgId, int offset, int limit, String sort) throws ServiceLayerException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.getAllGroups(orgId, offset, limit, sort);
     }
 
     @Override
-    public void createGroup(long orgId, String groupName, String groupDescription) throws GroupAlreadyExistsException {
+    public void createGroup(long orgId, String groupName, String groupDescription) throws GroupAlreadyExistsException,
+        ServiceLayerException {
         SecurityProvider provider = lookupProvider(getProviderType());
         provider.createGroup(orgId, groupName, groupDescription);
     }
 
     @Override
-    public void updateGroup(long orgId, Group group) {
+    public void updateGroup(long orgId, Group group) throws ServiceLayerException {
         SecurityProvider provider = lookupProvider(getProviderType());
         provider.updateGroup(orgId, group);
     }
 
     @Override
-    public void deleteGroup(List<Long> groupIds) {
+    public void deleteGroup(List<Long> groupIds) throws ServiceLayerException {
         SecurityProvider provider = lookupProvider(getProviderType());
         provider.deleteGroup(groupIds);
     }
 
     @Override
-    public Group getGroup(long groupId) {
+    public Group getGroup(long groupId) throws ServiceLayerException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.getGroup(groupId);
     }
 
     @Override
-    public List<User> getGroupMembers(long groupId, int offset, int limit, String sort) {
+    public List<User> getGroupMembers(long groupId, int offset, int limit, String sort) throws ServiceLayerException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.getGroupMembers(groupId, offset, limit, sort);
     }
 
     @Override
-    public boolean addGroupMembers(long groupId, List<Long> userIds, List<String> usernames) {
+    public boolean addGroupMembers(long groupId, List<Long> userIds, List<String> usernames) throws
+        ServiceLayerException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.addGroupMembers(groupId, userIds, usernames);
     }
 
     @Override
-    public void removeGroupMembers(long groupId, List<Long> userIds, List<String> usernames) {
+    public void removeGroupMembers(long groupId, List<Long> userIds, List<String> usernames) throws
+        ServiceLayerException {
         SecurityProvider provider = lookupProvider(getProviderType());
         provider.removeGroupMembers(groupId, userIds, usernames);
     }
 
     @Override
-    public List<User> getAllUsersForSite(long orgId, List<String> groupNames, int offset, int limit, String sort) {
+    public List<User> getAllUsersForSite(long orgId, List<String> groupNames, int offset, int limit, String sort)
+        throws ServiceLayerException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.getAllUsersForSite(orgId, groupNames, offset, limit, sort);
     }
 
     @Override
-    public int getAllUsersTotal() {
+    public int getAllUsersTotal() throws ServiceLayerException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.getAllUsersTotal();
     }
@@ -225,26 +230,26 @@ public class MappedSecurityProvider implements SecurityProvider {
 
     @Override
     public boolean changePassword(String username, String current, String newPassword)
-            throws PasswordDoesNotMatchException, UserExternallyManagedException {
+        throws PasswordDoesNotMatchException, UserExternallyManagedException, ServiceLayerException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.changePassword(username, current, newPassword);
     }
 
     @Override
     public boolean setUserPassword(String username, String newPassword)
-            throws UserNotFoundException, UserExternallyManagedException {
+        throws UserNotFoundException, UserExternallyManagedException, ServiceLayerException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.setUserPassword(username, newPassword);
     }
 
     @Override
-    public boolean userExists(String username) {
+    public boolean userExists(String username) throws ServiceLayerException {
         SecurityProvider securityProvider = lookupProvider(getProviderType());
         return securityProvider.userExists(username);
     }
 
     @Override
-    public boolean groupExists(String groupName) {
+    public boolean groupExists(String groupName) throws ServiceLayerException {
         SecurityProvider securityProvider = lookupProvider(getProviderType());
         return securityProvider.groupExists(groupName);
     }

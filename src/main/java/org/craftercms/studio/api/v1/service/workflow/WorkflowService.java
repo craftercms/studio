@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.service.workflow.context.GoLiveContext;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.DmDependencyTO;
@@ -43,13 +43,14 @@ public interface WorkflowService {
 	 */
 	void submitToGoLive(String site, List<String> paths, ZonedDateTime scheduledDate, boolean sendApprovedNotice, String submitter);
 
-	ResultTO submitToGoLive(String site, String username, String request) throws ServiceException;
+	ResultTO submitToGoLive(String site, String username, String request) throws ServiceLayerException;
 
     void preGoLive(Set<String> uris, GoLiveContext context, Set<String> rescheduledUris);
 
-	Map<String, Object> getGoLiveItems(String site, String sort, boolean ascending) throws ServiceException;
+	Map<String, Object> getGoLiveItems(String site, String sort, boolean ascending) throws ServiceLayerException;
 
-	Map<String, Object> getInProgressItems(String site, String sort, boolean ascending, boolean inProgressOnly) throws ServiceException;
+	Map<String, Object> getInProgressItems(String site, String sort, boolean ascending, boolean inProgressOnly)
+		throws ServiceLayerException;
 
 	/**
 	 * cancel the workflow pending on the given item.
@@ -58,11 +59,11 @@ public interface WorkflowService {
 	 * @param path
 	 * @param cancelWorkflow
 	 * 			cancel the pending workflow instance this content belongs to?
-	 * @throws ServiceException
+	 * @throws ServiceLayerException
 	 */
-	boolean removeFromWorkflow(String site, String path, boolean cancelWorkflow) throws ServiceException;
+	boolean removeFromWorkflow(String site, String path, boolean cancelWorkflow) throws ServiceLayerException;
 
-	List<ContentItemTO> getWorkflowAffectedPaths(String site, String path) throws ServiceException;
+	List<ContentItemTO> getWorkflowAffectedPaths(String site, String path) throws ServiceLayerException;
 
 	/**
 	 * update workflow sandboxes if the content at the given path is in workflow
@@ -78,16 +79,17 @@ public interface WorkflowService {
      * @param site
      * @param request
      * @return call result
-     * @throws ServiceException
+     * @throws ServiceLayerException
      */
     ResultTO goDelete(String site, String request, String user);
 
     Map<ZonedDateTime, List<DmDependencyTO>> groupByDate(List<DmDependencyTO> submittedItems, ZonedDateTime now);
 
     void preScheduleDelete(Set<String> uris, ZonedDateTime _date,
-                           GoLiveContext context, Set rescheduledUris) throws ServiceException;
+                           GoLiveContext context, Set rescheduledUris) throws ServiceLayerException;
 
-    List<String> preDelete(Set<String> urisToDelete, GoLiveContext context,Set<String> rescheduledUris) throws ServiceException;
+    List<String> preDelete(Set<String> urisToDelete, GoLiveContext context,Set<String> rescheduledUris) throws
+		ServiceLayerException;
 
     boolean isRescheduleRequest(DmDependencyTO dependencyTO, String site);
 
@@ -99,13 +101,14 @@ public interface WorkflowService {
      * @param site
      * @param request
      * @return call result
-     * @throws ServiceException
+     * @throws ServiceLayerException
      */
-    ResultTO goLive(final String site, final String request) throws ServiceException;
+    ResultTO goLive(final String site, final String request) throws ServiceLayerException;
 
-    ResultTO reject(final String site, final String user, final String request) throws ServiceException;
+    ResultTO reject(final String site, final String user, final String request) throws ServiceLayerException;
 
-    void fillQueue(String site, GoLiveQueue goLiveQueue, GoLiveQueue inProcessQueue) throws ServiceException;
+    void fillQueue(String site, GoLiveQueue goLiveQueue, GoLiveQueue inProcessQueue) throws ServiceLayerException;
 
-    boolean cleanWorkflow(final String url, final String site, final Set<DmDependencyTO> dependents) throws ServiceException;
+    boolean cleanWorkflow(final String url, final String site, final Set<DmDependencyTO> dependents) throws
+		ServiceLayerException;
 }

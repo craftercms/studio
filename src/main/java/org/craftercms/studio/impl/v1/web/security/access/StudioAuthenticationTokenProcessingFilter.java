@@ -21,6 +21,7 @@ package org.craftercms.studio.impl.v1.web.security.access;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.commons.http.HttpUtils;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationSystemException;
 import org.craftercms.studio.api.v1.exception.security.BadCredentialsException;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -110,6 +111,8 @@ public class StudioAuthenticationTokenProcessingFilter extends GenericFilterBean
                     }
                 }
             }
+        } catch (ServiceLayerException e) {
+            logger.error("Unknown service error trying to authenticate user", e);
         } finally {
             semaphore.unlock();
         }

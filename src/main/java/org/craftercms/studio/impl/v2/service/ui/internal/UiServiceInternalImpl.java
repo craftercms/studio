@@ -5,10 +5,8 @@ import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.lang.UrlUtils;
-import org.craftercms.studio.api.v1.exception.ServiceException;
-import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.service.content.ContentService;
-import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.exception.ConfigurationException;
 import org.craftercms.studio.impl.v1.util.ConfigUtils;
@@ -53,7 +51,7 @@ public class UiServiceInternalImpl implements UiServiceInternal {
     }
 
     @Override
-    public List<MenuItem> getGlobalMenu(Set<String> permissions) throws ServiceException {
+    public List<MenuItem> getGlobalMenu(Set<String> permissions) throws ServiceLayerException {
         if (CollectionUtils.isNotEmpty(permissions)) {
             HierarchicalConfiguration menuConfig = getGlobalMenuConfig();
             List<MenuItem> menuItems = new ArrayList<>();

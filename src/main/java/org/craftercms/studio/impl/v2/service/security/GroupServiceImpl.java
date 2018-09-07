@@ -20,6 +20,7 @@ package org.craftercms.studio.impl.v2.service.security;
 
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.StudioXmlConstants;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -63,49 +64,55 @@ public class GroupServiceImpl implements GroupService {
     private SecurityProvider securityProvider;
 
     @Override
-    public List<Group> getAllGroups(long orgId, int offset, int limit, String sort) {
+    public List<Group> getAllGroups(long orgId, int offset, int limit, String sort) throws ServiceLayerException {
         return securityProvider.getAllGroups(orgId, offset, limit, sort);
     }
 
     @Override
-    public int getAllGroupsTotal(long orgId) {
+    public int getAllGroupsTotal(long orgId) throws ServiceLayerException {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(ORG_ID, orgId);
-        return groupDAO.getAllGroupsForOrganizationTotal(params);
+        try {
+            return groupDAO.getAllGroupsForOrganizationTotal(params);
+        } catch (Exception e) {
+            throw new ServiceLayerException("Unknown database error", e);
+        }
     }
 
     @Override
-    public void createGroup(long orgId, String groupName, String groupDescription) throws GroupAlreadyExistsException {
+    public void createGroup(long orgId, String groupName, String groupDescription) throws GroupAlreadyExistsException,
+        ServiceLayerException {
         securityProvider.createGroup(orgId, groupName, groupDescription);
     }
 
     @Override
-    public void updateGroup(long orgId, Group group) {
+    public void updateGroup(long orgId, Group group) throws ServiceLayerException {
         securityProvider.updateGroup(orgId, group);
     }
 
     @Override
-    public void deleteGroup(List<Long> groupIds) {
+    public void deleteGroup(List<Long> groupIds) throws ServiceLayerException {
         securityProvider.deleteGroup(groupIds);
     }
 
     @Override
-    public Group getGroup(long groupId) {
+    public Group getGroup(long groupId) throws ServiceLayerException {
         return securityProvider.getGroup(groupId);
     }
 
     @Override
-    public List<User> getGroupMembers(long groupId, int offset, int limit, String sort) {
+    public List<User> getGroupMembers(long groupId, int offset, int limit, String sort) throws ServiceLayerException {
         return securityProvider.getGroupMembers(groupId, offset, limit, sort);
     }
 
     @Override
-    public void addGroupMembers(long groupId, List<Long> userIds, List<String> usernames) {
+    public void addGroupMembers(long groupId, List<Long> userIds, List<String> usernames) throws ServiceLayerException {
         securityProvider.addGroupMembers(groupId, userIds, usernames);
     }
 
     @Override
-    public void removeGroupMembers(long groupId, List<Long> userIds, List<String> usernames) {
+    public void removeGroupMembers(long groupId, List<Long> userIds, List<String> usernames)
+        throws ServiceLayerException {
         securityProvider.removeGroupMembers(groupId, userIds, usernames);
     }
 
@@ -191,10 +198,15 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
-    public Group getGroupByName(String groupName) throws GroupNotFoundException {
+    public Group getGroupByName(String groupName) throws GroupNotFoundException, ServiceLayerException {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(GROUP_NAME, groupName);
-        GroupTO groupTO = groupDAO.getGroupByName(params);
+        GroupTO groupTO;
+        try {
+            groupTO = groupDAO.getGroupByName(params);
+        } catch (Exception e) {
+            throw new ServiceLayerException("Unknown database error", e);
+        }
         if (groupTO != null) {
             Group g = new Group();
             g.setId(groupTO.getId());

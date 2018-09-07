@@ -18,7 +18,7 @@
 
 package org.craftercms.studio.api.v2.service.security;
 
-import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
 import org.craftercms.studio.model.AuthenticatedUser;
@@ -29,27 +29,28 @@ import java.util.List;
 
 public interface UserService {
 
-    List<User> getAllUsersForSite(long orgId, String site, int offset, int limit, String sort);
+    List<User> getAllUsersForSite(long orgId, String site, int offset, int limit, String sort)
+        throws ServiceLayerException;
 
-    List<User> getAllUsers(int offset, int limit, String sort);
+    List<User> getAllUsers(int offset, int limit, String sort) throws ServiceLayerException;
 
-    int getAllUsersForSiteTotal(long orgId, String site);
+    int getAllUsersForSiteTotal(long orgId, String site) throws ServiceLayerException;
 
-    int getAllUsersTotal();
+    int getAllUsersTotal() throws ServiceLayerException;
 
-    void createUser(User user) throws UserAlreadyExistsException;
+    void createUser(User user) throws UserAlreadyExistsException, ServiceLayerException;
 
-    void updateUser(User user);
+    void updateUser(User user) throws ServiceLayerException;
 
-    void deleteUsers(List<Long> userIds, List<String> usernames);
+    void deleteUsers(List<Long> userIds, List<String> usernames) throws ServiceLayerException;
 
-    User getUserByIdOrUsername(long userId, String username);
+    User getUserByIdOrUsername(long userId, String username) throws ServiceLayerException;
 
-    void enableUsers(List<Long> userIds, List<String> usernames, boolean enabled);
+    void enableUsers(List<Long> userIds, List<String> usernames, boolean enabled) throws ServiceLayerException;
 
-    List<Group> getUserGroups(long userId, String username);
+    List<Group> getUserGroups(long userId, String username) throws ServiceLayerException;
 
-    boolean isUserMemberOfGroup(String username, String groupName);
+    boolean isUserMemberOfGroup(String username, String groupName) throws ServiceLayerException;
 
-    AuthenticatedUser getAuthenticatedUser() throws AuthenticationException, ServiceException;
+    AuthenticatedUser getAuthenticatedUser() throws AuthenticationException, ServiceLayerException;
 }

@@ -17,7 +17,7 @@
  */
 package org.craftercms.studio.api.v1.exception;
 
-public class PreviewDeployerUnreachableException extends ServiceException {
+public class PreviewDeployerUnreachableException extends ServiceLayerException {
 
 
     private static final long serialVersionUID = 6422788562443045181L;

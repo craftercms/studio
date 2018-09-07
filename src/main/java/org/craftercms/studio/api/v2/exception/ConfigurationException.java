@@ -18,14 +18,14 @@
 
 package org.craftercms.studio.api.v2.exception;
 
-import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 
 /**
  * Exception thrown when there's an error while reading a configuration.
  *
  * @author avasquez
  */
-public class ConfigurationException extends ServiceException {
+public class ConfigurationException extends ServiceLayerException {
 
     public ConfigurationException(String message) {
         super(message);
