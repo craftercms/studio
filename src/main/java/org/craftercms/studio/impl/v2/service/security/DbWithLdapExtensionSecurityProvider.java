@@ -104,6 +104,7 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
                     UserTO userTO = new UserTO();
                     userTO.setActive(1);
                     userTO.setUsername(username);
+                    userTO.setPassword(password);
 
                     if (emailAttrib != null && emailAttrib.get() != null) {
                         userTO.setEmail(emailAttrib.get().toString());
@@ -190,6 +191,7 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
                         user.setPassword(userTO.getPassword());
                         user.setEmail(userTO.getEmail());
                         user.setFirstName(userTO.getFirstName());
+                        user.setLastName(userTO.getLastName());
                         user.setExternallyManaged(true);
                         boolean success = createUser(user);
                         if (success) {
