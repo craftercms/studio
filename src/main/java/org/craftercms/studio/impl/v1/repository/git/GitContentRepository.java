@@ -1540,25 +1540,21 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     @Override
-    public List<DeploymentSyncHistory> getDeploymentHistory(String site, String sandboxBranch, ZonedDateTime fromDate,
-                                                            ZonedDateTime toDate, DmFilterWrapper dmFilterWrapper,
+    public List<DeploymentSyncHistory> getDeploymentHistory(String site, List<String> environmentNames,
+                                                            ZonedDateTime fromDate, ZonedDateTime toDate,
+                                                            DmFilterWrapper dmFilterWrapper,
                                                             String filterType, int numberOfItems) {
         List<DeploymentSyncHistory> toRet = new ArrayList<DeploymentSyncHistory>();
         Repository publishedRepo = helper.getRepository(site, PUBLISHED);
         int counter = 0;
-        String sandboxBranchName = sandboxBranch;
-        if (StringUtils.isEmpty(sandboxBranchName)) {
-            sandboxBranchName = studioConfiguration.getProperty(REPO_SANDBOX_BRANCH);
-        }
         try (Git git = new Git(publishedRepo)) {
             // List all environments
             List<Ref> environments = git.branchList().call();
             for (int i = 0; i < environments.size() && counter < numberOfItems; i++) {
                 Ref env = environments.get(i);
                 String environment = env.getName();
-                if (!environment.equals(sandboxBranchName) &&
-                        !environment.equals(Constants.R_HEADS + sandboxBranchName)) {
-
+                environment = environment.replace(Constants.R_HEADS, "");
+                if (environmentNames.contains(environment)) {
                     List<RevFilter> filters = new ArrayList<RevFilter>();
                     filters.add(CommitTimeRevFilter.after(fromDate.toInstant().toEpochMilli()));
                     filters.add(CommitTimeRevFilter.before(toDate.toInstant().toEpochMilli()));

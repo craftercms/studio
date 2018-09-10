@@ -19,6 +19,7 @@ package org.craftercms.studio.impl.v1.service.deployment;
 
 import net.sf.json.JSONObject;
 import org.apache.commons.collections.FastArrayList;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.validation.annotations.param.ValidateIntegerParam;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
@@ -472,9 +473,8 @@ public class DeploymentServiceImpl implements DeploymentService {
         // get the filtered list of attempts in a specific date range
         ZonedDateTime toDate = ZonedDateTime.now(ZoneOffset.UTC);
         ZonedDateTime fromDate = toDate.minusDays(daysFromToday);
-        SiteFeed siteFeed = siteService.getSite(site);
         List<DeploymentSyncHistory> deployReports = deploymentHistoryProvider.getDeploymentHistory(site,
-                siteFeed.getSandboxBranch(), fromDate, toDate, dmFilterWrapper, filterType, numberOfItems);
+                getEnvironmentNames(site), fromDate, toDate, dmFilterWrapper, filterType, numberOfItems);
         List<DmDeploymentTaskTO> tasks = new ArrayList<DmDeploymentTaskTO>();
 
         if (deployReports != null) {
@@ -516,6 +516,18 @@ public class DeploymentServiceImpl implements DeploymentService {
             }
         }
         return tasks;
+    }
+
+    private List<String> getEnvironmentNames(String siteId) {
+        List<PublishingChannelTO> channelsTO = !servicesConfig.isStagingEnvironmentEnabled(siteId) ?
+                getAvailablePublishingChannelGroupsForSite(siteId) : getPublishedEnvironments(siteId);
+        List<String> toRet = new ArrayList<String>();
+        if (CollectionUtils.isNotEmpty(channelsTO)) {
+            channelsTO.forEach(channel -> {
+                toRet.add(channel.getName());
+            });
+        }
+        return toRet;
     }
 
     /**
@@ -715,7 +727,7 @@ public class DeploymentServiceImpl implements DeploymentService {
             @ValidateStringParam(name = "site") String site,
             @ValidateSecurePathParam(name = "path") String path) {
         List<PublishingChannelTO> channelsTO = !servicesConfig.isStagingEnvironmentEnabled(site) ?
-                getAvailablePublishingChannelGroupsForSite(site, path) : getPublishedEnvironments(site);
+                getAvailablePublishingChannelGroupsForSite(site) : getPublishedEnvironments(site);
         List<PublishingChannelTO> publishChannels = new ArrayList<PublishingChannelTO>();
         List<PublishingChannelTO> updateStatusChannels = new ArrayList<PublishingChannelTO>();
         for (PublishingChannelTO channelTO : channelsTO) {
@@ -752,7 +764,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         return publishedEnvironments;
     }
 
-    protected List<PublishingChannelTO> getAvailablePublishingChannelGroupsForSite(String site, String path) {
+    protected List<PublishingChannelTO> getAvailablePublishingChannelGroupsForSite(String site) {
         List<PublishingChannelTO> channelTOs = new ArrayList<PublishingChannelTO>();
         List<String> channels = getPublishingChannels(site);
         for (String ch : channels) {
