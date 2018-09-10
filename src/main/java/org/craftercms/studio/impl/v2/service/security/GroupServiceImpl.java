@@ -170,46 +170,6 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
-    public List<String> getGlobalGroups() {
-        Map<String, List<String>> groupRoleMapping = loadGlobalGroupMappings();
-        List<String> toRet = new ArrayList<String>();
-        toRet.addAll(groupRoleMapping.keySet());
-        return toRet;
-    }
-
-    private Map<String, List<String>> loadGlobalGroupMappings() {
-        Map<String, List<String>> groupRoleMap = new HashMap<String, List<String>>();
-        String siteConfigPath =
-                studioConfiguration.getProperty(CONFIGURATION_GLOBAL_CONFIG_BASE_PATH);
-        String siteGroupRoleMappingConfigPath =
-                siteConfigPath + FILE_SEPARATOR +
-                        studioConfiguration.getProperty(CONFIGURATION_GLOBAL_ROLE_MAPPINGS_FILE_NAME);
-        Document document = null;
-        try {
-            document = contentService.getContentAsDocument(StringUtils.EMPTY, siteGroupRoleMappingConfigPath);
-            Element root = document.getRootElement();
-            if (root.getName().equals(DOCUMENT_ROLE_MAPPINGS)) {
-                List<Node> groupNodes = root.selectNodes(DOCUMENT_ELM_GROUPS_NODE);
-                for (Node node : groupNodes) {
-                    String name = node.valueOf(StudioXmlConstants.DOCUMENT_ATTR_PERMISSIONS_NAME);
-                    if (!StringUtils.isEmpty(name)) {
-                        List<Node> roleNodes = node.selectNodes(StudioXmlConstants.DOCUMENT_ELM_PERMISSION_ROLE);
-                        List<String> roles = new ArrayList<String>();
-                        for (Node roleNode : roleNodes) {
-                            roles.add(roleNode.getText());
-                        }
-                        groupRoleMap.put(name, roles);
-                    }
-                }
-            }
-        } catch (DocumentException e) {
-            logger.error("Error while reading global group role mappings file "
-                    + siteGroupRoleMappingConfigPath);
-        }
-        return groupRoleMap;
-    }
-
-    @Override
     public Group getGroupByName(String groupName) throws GroupNotFoundException, ServiceLayerException {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(GROUP_NAME, groupName);
