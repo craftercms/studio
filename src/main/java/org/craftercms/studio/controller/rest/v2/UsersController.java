@@ -20,14 +20,13 @@ package org.craftercms.studio.controller.rest.v2;
 
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
-import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.service.security.GroupService;
 import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.model.*;
@@ -78,7 +77,7 @@ public class UsersController {
         @RequestParam(value = "siteId", required = false) String siteId,
         @RequestParam(value = "offset", required = false, defaultValue = "0") int offset,
         @RequestParam(value = "limit", required = false, defaultValue = "10") int limit,
-        @RequestParam(value = "sort", required = false, defaultValue = StringUtils.EMPTY) String sort) {
+        @RequestParam(value = "sort", required = false, defaultValue = StringUtils.EMPTY) String sort) throws ServiceLayerException {
 
         List<User> users = null;
         int total = 0;
@@ -109,7 +108,7 @@ public class UsersController {
      * @return Response object
      */
     @PostMapping(value = "/api/2/users", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseBody createUser(@RequestBody User user) throws UserAlreadyExistsException {
+    public ResponseBody createUser(@RequestBody User user) throws UserAlreadyExistsException, ServiceLayerException {
         userService.createUser(user);
 
         ResponseBody responseBody = new ResponseBody();
@@ -126,7 +125,7 @@ public class UsersController {
      * @return Response object
      */
     @PatchMapping(value = "/api/2/users", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseBody updateUser(@RequestBody User user) {
+    public ResponseBody updateUser(@RequestBody User user) throws ServiceLayerException {
         userService.updateUser(user);
 
         ResponseBody responseBody = new ResponseBody();
@@ -146,7 +145,7 @@ public class UsersController {
     @DeleteMapping("/api/2/users")
     public ResponseBody deleteUser(@RequestParam(value = "id", required = false) List<Long> userIds,
                            @RequestParam(value = "username", required = false) List<String> usernames)
-        throws InvalidParametersException {
+        throws ServiceLayerException {
 
         ValidationUtils.validateAnyListNonEmpty(userIds, usernames);
 
@@ -167,7 +166,7 @@ public class UsersController {
      * @return Response containing user
      */
     @GetMapping("/api/2/users/{userId}")
-    public ResponseBody getUser(@PathVariable("userId") String userId) {
+    public ResponseBody getUser(@PathVariable("userId") String userId) throws ServiceLayerException {
         int uId = -1;
         String username = StringUtils.EMPTY;
         if (StringUtils.isNumeric(userId)) {
@@ -192,7 +191,7 @@ public class UsersController {
      * @return Response object
      */
     @PatchMapping(value = "/api/2/users/enable", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseBody enableUsers(@RequestBody EnableUsers enableUsers) throws InvalidParametersException {
+    public ResponseBody enableUsers(@RequestBody EnableUsers enableUsers) throws ServiceLayerException {
 
 
         ValidationUtils.validateEnableUsers(enableUsers);
@@ -213,7 +212,7 @@ public class UsersController {
      * @return Response object
      */
     @PatchMapping(value = "/api/2/users/disable", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseBody disableUsers(@RequestBody EnableUsers enableUsers) throws InvalidParametersException {
+    public ResponseBody disableUsers(@RequestBody EnableUsers enableUsers) throws ServiceLayerException {
 
         ValidationUtils.validateEnableUsers(enableUsers);
 
@@ -233,7 +232,7 @@ public class UsersController {
      * @return Response containing list of sites
      */
     @GetMapping("/api/2/users/{userId}/sites")
-    public ResponseBody getUserSites(@PathVariable("userId") String userId) {
+    public ResponseBody getUserSites(@PathVariable("userId") String userId) throws ServiceLayerException {
 
         List<Site> sites = new ArrayList<>();
         Set<String> allSites = siteService.getAllAvailableSites();
@@ -273,7 +272,7 @@ public class UsersController {
     }
 
     @GetMapping("/api/2/user")
-    public ResponseBody getAuthenticatedUser() throws AuthenticationException, ServiceException {
+    public ResponseBody getAuthenticatedUser() throws AuthenticationException, ServiceLayerException {
         AuthenticatedUser user = userService.getAuthenticatedUser();
 
         ResultOne<AuthenticatedUser> result = new ResultOne<>();

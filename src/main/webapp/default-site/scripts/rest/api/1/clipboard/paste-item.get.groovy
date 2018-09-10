@@ -17,7 +17,7 @@
  */
 
 import org.apache.commons.lang3.StringUtils
-import org.craftercms.studio.api.v1.exception.ServiceException
+import org.craftercms.studio.api.v1.exception.ServiceLayerException
 import scripts.api.ClipboardServices
 
 def result = [:]
@@ -51,7 +51,7 @@ if (invalidParams) {
     try {
         result.status = ClipboardServices.paste(site, destination, context)
         result.site = site
-    } catch (ServiceException error) {
+    } catch (ServiceLayerException error) {
         result.site = site
         result.error = error.message
         response.status = 500

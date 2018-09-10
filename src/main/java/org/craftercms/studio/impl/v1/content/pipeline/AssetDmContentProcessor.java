@@ -22,7 +22,7 @@ import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.content.pipeline.PipelineContent;
 import org.craftercms.studio.api.v1.dal.ItemMetadata;
 import org.craftercms.studio.api.v1.exception.ContentProcessException;
-import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.activity.ActivityService;
@@ -102,7 +102,7 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
             } else {
                 result.setItem(assetInfo);
             }
-        } catch (ServiceException e) {
+        } catch (ServiceLayerException e) {
             throw new ContentProcessException("Failed to write " + content.getId()+", "+e, e);
         } finally {
             content.closeContentStream();
@@ -125,13 +125,13 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
      * @param unlock
      * 			unlock the content upon update?
      * @return asset information
-     * @throws ServiceException
+     * @throws ServiceLayerException
      */
     protected ContentAssetInfoTO writeContentAsset(PipelineContent content, String site, String user, String path,
                                                    String assetName, InputStream in, int width, int height,
                                                    boolean createFolders, boolean isPreview, boolean unlock,
                                                    boolean isSystemAsset, ResultTO result)
-            throws ServiceException {
+            throws ServiceLayerException {
         logger.debug("Writing content asset: [site: " + site + ", path: " + path + ", assetName: "
                 + assetName + ", createFolders: " + createFolders);
 
@@ -187,7 +187,7 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
                 assetInfo.setFileExtension(ext);
                 return assetInfo;
             } else {
-                throw new ServiceException(path + " does not exist or not a directory.");
+                throw new ServiceLayerException(path + " does not exist or not a directory.");
             }
         } finally {
             ContentUtils.release(in);
@@ -202,11 +202,11 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
      * @param isPreview
      * @param unlock
      * 			unlock the content upon update?
-     * @throws ServiceException
+     * @throws ServiceLayerException
      */
     protected void updateFile(String site, ContentItemTO contentItem, String relativePath, InputStream input,
                               String user, boolean isPreview, boolean unlock, ResultTO result)
-            throws ServiceException {
+            throws ServiceLayerException {
         boolean success = false;
         try {
             success = contentService.writeContent(site, relativePath, input);

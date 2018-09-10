@@ -68,7 +68,7 @@ import org.craftercms.studio.api.v1.dal.GitLogMapper;
 import org.craftercms.studio.api.v1.dal.RemoteRepository;
 import org.craftercms.studio.api.v1.dal.RemoteRepositoryMapper;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
-import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
@@ -264,22 +264,27 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         String commitId = null;
 
         synchronized (helper.getRepository(site, StringUtils.isEmpty(site) ? GitRepositories.GLOBAL : SANDBOX)) {
-            Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GitRepositories.GLOBAL :
-                    GitRepositories.SANDBOX);
+            Repository repo =
+                helper.getRepository(site, StringUtils.isEmpty(site)? GitRepositories.GLOBAL: GitRepositories.SANDBOX);
 
-            if (repo != null) {
-                if (helper.writeFile(repo, site, path, content)) {
-                    PersonIdent user = helper.getCurrentUserIdent();
-                    String username = securityProvider.getCurrentUser();
-                    String comment = studioConfiguration.getProperty(REPO_SANDBOX_WRITE_COMMIT_MESSAGE)
+            try {
+
+                if (repo != null) {
+                    if (helper.writeFile(repo, site, path, content)) {
+                        PersonIdent user = helper.getCurrentUserIdent();
+                        String username = securityProvider.getCurrentUser();
+                        String comment = studioConfiguration.getProperty(REPO_SANDBOX_WRITE_COMMIT_MESSAGE)
                             .replace(REPO_COMMIT_MESSAGE_USERNAME_VAR, username)
                             .replace(REPO_COMMIT_MESSAGE_PATH_VAR, path);
-                    commitId = helper.commitFile(repo, site, path, comment, user);
+                        commitId = helper.commitFile(repo, site, path, comment, user);
+                    } else {
+                        logger.error("Failed to write content site: " + site + " path: " + path);
+                    }
                 } else {
-                    logger.error("Failed to write content site: " + site + " path: " + path);
+                    logger.error("Missing repository during write for site: " + site + " path: " + path);
                 }
-            } else {
-                logger.error("Missing repository during write for site: " + site + " path: " + path);
+            } catch (ServiceLayerException e) {
+                logger.error("Unknown service error during write for site: " + site + " path: " + path, e);
             }
         }
 
@@ -332,8 +337,13 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             }
 
             if (result) {
-                commitId = helper.commitFile(repo, site, emptyFilePath.toString(), "Created folder site: " +
-                        site + " path: " + path + FILE_SEPARATOR + name, helper.getCurrentUserIdent());
+                try {
+                    commitId = helper.commitFile(repo, site, emptyFilePath.toString(), "Created folder site: "
+                        + site + " path: " + path + FILE_SEPARATOR + name, helper.getCurrentUserIdent());
+                } catch (ServiceLayerException e) {
+                    logger.error("Unknown service error during commit for site: " + site + " path: "
+                        + emptyFilePath, e);
+                }
             }
         }
 
@@ -366,6 +376,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 git.close();
             } catch (GitAPIException e) {
                 logger.error("Error while deleting content for site: " + site + " path: " + path, e);
+            } catch (ServiceLayerException e) {
+                logger.error("Unknown service error during delete for site: " + site + " path: " + path, e);
             }
         }
 
@@ -475,7 +487,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     toRet.put(pathToCommit, commitId);
                 }
                 git.close();
-            } catch (IOException | GitAPIException e) {
+            } catch (IOException | GitAPIException | ServiceLayerException e) {
                 logger.error("Error while moving content for site: " + site + " fromPath: " + fromPath +
                         " toPath: " + toPath + " newName: " + newName);
             }
@@ -516,7 +528,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 commitId = commit.getName();
 
                 git.close();
-            } catch (IOException | GitAPIException e) {
+            } catch (IOException | GitAPIException | ServiceLayerException e) {
                 logger.error("Error while copying content for site: " + site + " fromPath: " + fromPath +
                         " toPath: " + toPath + " newName: ");
             }
@@ -686,7 +698,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     toReturn = versionLabel;
 
                     git.close();
-                } catch (GitAPIException err) {
+                } catch (GitAPIException | ServiceLayerException err) {
                     logger.error("error creating new version for site:  " + site + " path: " + path, err);
                 }
             } else {
@@ -1758,7 +1770,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                                          String remoteUsername, String remotePassword, String remoteToken,
                                          String remotePrivateKey)
             throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
-            RemoteRepositoryNotFoundException, InvalidRemoteUrlException, ServiceException {
+            RemoteRepositoryNotFoundException, InvalidRemoteUrlException, ServiceLayerException {
         boolean toReturn;
 
         // clone remote git repository for site content
@@ -1772,7 +1784,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 insertRemoteToDb(siteId, remoteName, remoteUrl, authenticationType, remoteUsername, remotePassword,
                         remoteToken, remotePrivateKey);
             } catch (CryptoException e) {
-                throw new ServiceException(e);
+                throw new ServiceLayerException(e);
             }
             // update site name variable inside config files
             logger.debug("Update site name configuration variables for site " + siteId);
@@ -1797,7 +1809,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                                           String remoteUsername, String remotePassword, String remoteToken,
                                           String remotePrivateKey) throws InvalidRemoteRepositoryException,
             InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException,
-            RemoteRepositoryNotBareException, ServiceException {
+            RemoteRepositoryNotBareException, ServiceLayerException {
         boolean toRet = true;
         try (Repository repo = helper.getRepository(siteId, SANDBOX)) {
             try (Git git = new Git(repo)) {
@@ -1832,7 +1844,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         pkauth = true;
                         break;
                     default:
-                        throw new ServiceException("Unsupported authentication type " + authenticationType);
+                        throw new ServiceLayerException("Unsupported authentication type " + authenticationType);
                 }
 
                 logger.debug("Push site " + siteId + " to remote repository " + remoteName + "(" + remoteUrl +")");
@@ -1872,10 +1884,10 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     throw new RemoteRepositoryNotFoundException("Remote repository not found: " + remoteName + " (" +
                             remoteUrl + ")");
                 }
-            } catch (ServiceException | IOException e) {
+            } catch (ServiceLayerException | IOException e) {
                 logger.error("Failed to push newly created site " + siteId + " to remote repository " +
                         remoteUrl, e);
-                throw new ServiceException(e);
+                throw new ServiceLayerException(e);
             }
         } catch (GitAPIException e) {
                 logger.error("Failed to push newly created site " + siteId + " to remote repository " +
@@ -1889,7 +1901,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     public boolean addRemote(String siteId, String remoteName, String remoteUrl,
                              String authenticationType, String remoteUsername, String remotePassword,
                              String remoteToken, String remotePrivateKey)
-            throws InvalidRemoteUrlException, ServiceException {
+            throws InvalidRemoteUrlException, ServiceLayerException {
         try {
             logger.debug("Add remote " + remoteName + " to the sandbox repo for the site " + siteId);
             Repository repo = helper.getRepository(siteId, SANDBOX);
@@ -1912,14 +1924,14 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             } catch (GitAPIException e) {
                 logger.error("Error while adding remote " + remoteName + " (url: " + remoteUrl + ") for site " +
                         siteId, e);
-                throw new ServiceException("Error while adding remote " + remoteName + " (url: " + remoteUrl +
+                throw new ServiceLayerException("Error while adding remote " + remoteName + " (url: " + remoteUrl +
                         ") for site " + siteId, e);
             }
 
             insertRemoteToDb(siteId, remoteName, remoteUrl, authenticationType, remoteUsername, remotePassword,
                     remoteToken, remotePrivateKey);
         } catch (CryptoException e) {
-            throw new ServiceException(e);
+            throw new ServiceLayerException(e);
         }
         return true;
     }
@@ -1992,7 +2004,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     @Override
-    public List<RemoteRepositoryInfoTO> listRemote(String siteId, String sandboxBranch) throws ServiceException {
+    public List<RemoteRepositoryInfoTO> listRemote(String siteId, String sandboxBranch) throws ServiceLayerException {
         List<RemoteRepositoryInfoTO> res = new ArrayList<RemoteRepositoryInfoTO>();
         try (Repository repo = helper.getRepository(siteId, SANDBOX)) {
 
@@ -2041,7 +2053,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                                 Files.delete(tempKey);
                                 break;
                             default:
-                                throw new ServiceException("Unsupported authentication type " +
+                                throw new ServiceLayerException("Unsupported authentication type " +
                                         remoteRepository.getAuthenticationType());
                         }
                     }
@@ -2123,7 +2135,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     @Override
-    public boolean pushToRemote(String siteId, String remoteName, String remoteBranch) throws ServiceException,
+    public boolean pushToRemote(String siteId, String remoteName, String remoteBranch) throws ServiceLayerException,
             InvalidRemoteUrlException {
         logger.debug("Get remote data from database for remote " + remoteName + " and site " + siteId);
         Map<String, String> params = new HashMap<String, String>();
@@ -2178,7 +2190,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     Files.delete(tempKey);
                     break;
                 default:
-                    throw new ServiceException("Unsupported authentication type " +
+                    throw new ServiceLayerException("Unsupported authentication type " +
                             remoteRepository.getAuthenticationType());
             }
             return true;
@@ -2188,13 +2200,13 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         } catch (IOException | JGitInternalException | GitAPIException | CryptoException e) {
             logger.error("Error while pushing to remote " + remoteName + " branch "
                     + remoteBranch + " for site " + siteId, e);
-            throw new ServiceException("Error while pushing to remote " + remoteName + " branch "
+            throw new ServiceLayerException("Error while pushing to remote " + remoteName + " branch "
                     + remoteBranch + " for site " + siteId, e);
         }
     }
 
     @Override
-    public boolean pullFromRemote(String siteId, String remoteName, String remoteBranch) throws ServiceException,
+    public boolean pullFromRemote(String siteId, String remoteName, String remoteBranch) throws ServiceLayerException,
             InvalidRemoteUrlException {
         logger.debug("Get remote data from database for remote " + remoteName + " and site " + siteId);
         Map<String, String> params = new HashMap<String, String>();
@@ -2249,7 +2261,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     Files.delete(tempKey);
                     break;
                 default:
-                    throw new ServiceException("Unsupported authentication type " +
+                    throw new ServiceLayerException("Unsupported authentication type " +
                             remoteRepository.getAuthenticationType());
             }
             return true;
@@ -2259,10 +2271,10 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         } catch (GitAPIException e) {
             logger.error("Error while pulling from remote " + remoteName + " branch "
                     + remoteBranch + " for site " + siteId, e);
-            throw new ServiceException("Error while pulling from remote " + remoteName + " branch "
+            throw new ServiceLayerException("Error while pulling from remote " + remoteName + " branch "
                     + remoteBranch + " for site " + siteId, e);
         } catch (CryptoException | IOException e) {
-            throw new ServiceException(e);
+            throw new ServiceLayerException(e);
         }
     }
 
@@ -2299,7 +2311,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     @Override
-    public void resetStagingRepository(String siteId) throws ServiceException {
+    public void resetStagingRepository(String siteId) throws ServiceLayerException {
         Repository repo = helper.getRepository(siteId, PUBLISHED);
         String stagingName = servicesConfig.getStagingEnvironment(siteId);
         String liveName = servicesConfig.getLiveEnvironment(siteId);
@@ -2317,7 +2329,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         .call();
             } catch (GitAPIException e) {
                 logger.error("Error while reseting staging environment for site: " + siteId);
-                throw new ServiceException(e);
+                throw new ServiceLayerException(e);
             }
         }
     }

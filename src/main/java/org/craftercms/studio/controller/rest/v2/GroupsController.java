@@ -20,10 +20,10 @@ package org.craftercms.studio.controller.rest.v2;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.service.security.GroupService;
 import org.craftercms.studio.model.rest.AddGroupMembers;
 import org.craftercms.studio.model.Group;
@@ -66,7 +66,7 @@ public class GroupsController {
             @RequestParam(value = "offset", required = false, defaultValue = "0") int offset,
             @RequestParam(value = "limit", required = false, defaultValue = "10") int limit,
             @RequestParam(value = "sort", required = false, defaultValue = StringUtils.EMPTY) String sort
-            ) {
+            ) throws ServiceLayerException {
         int total = groupService.getAllGroupsTotal(1);
         List<Group> groups = groupService.getAllGroups(1, offset, limit, sort);
 
@@ -88,7 +88,8 @@ public class GroupsController {
      * @return Response object
      */
     @PostMapping(value = "/api/2/groups", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseBody createGroup(@RequestBody Group group) throws GroupAlreadyExistsException {
+    public ResponseBody createGroup(@RequestBody Group group) throws GroupAlreadyExistsException,
+        ServiceLayerException {
         groupService.createGroup(1, group.getName(), group.getDesc());
 
         ResponseBody responseBody = new ResponseBody();
@@ -105,7 +106,7 @@ public class GroupsController {
      * @return Response object
      */
     @PatchMapping(value = "/api/2/groups", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseBody updateGroup(@RequestBody Group group) {
+    public ResponseBody updateGroup(@RequestBody Group group) throws ServiceLayerException {
         groupService.updateGroup(1, group);
 
         ResponseBody responseBody = new ResponseBody();
@@ -122,7 +123,7 @@ public class GroupsController {
      * @return Response object
      */
     @DeleteMapping("/api/2/groups")
-    public ResponseBody deleteGroup(@RequestParam("id") List<Long> groupIds) {
+    public ResponseBody deleteGroup(@RequestParam("id") List<Long> groupIds) throws ServiceLayerException {
         groupService.deleteGroup(groupIds);
 
         ResponseBody responseBody = new ResponseBody();
@@ -139,7 +140,7 @@ public class GroupsController {
      * @return Response containing requested group
      */
     @GetMapping("/api/2/groups/{groupId}")
-    public ResponseBody getGroup(@PathVariable("groupId") int groupId) {
+    public ResponseBody getGroup(@PathVariable("groupId") int groupId) throws ServiceLayerException {
         Group group = groupService.getGroup(groupId);
 
         ResponseBody responseBody = new ResponseBody();
@@ -164,7 +165,8 @@ public class GroupsController {
         @PathVariable("groupId") int groupId,
         @RequestParam(value = "offset", required = false, defaultValue = "0") int offset,
         @RequestParam(value = "limit", required = false, defaultValue = "10") int limit,
-        @RequestParam(value = "sort", required = false, defaultValue = StringUtils.EMPTY) String sort) {
+        @RequestParam(value = "sort", required = false, defaultValue = StringUtils.EMPTY) String sort)
+        throws ServiceLayerException {
 
         List<User> users = groupService.getGroupMembers(groupId, offset, limit, sort);
 
@@ -185,7 +187,7 @@ public class GroupsController {
      */
     @PostMapping(value = "/api/2/groups/{groupId}/members", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseBody addGroupMembers(@PathVariable("groupId") int groupId,
-                                        @RequestBody AddGroupMembers addGroupMembers) throws InvalidParametersException {
+                                        @RequestBody AddGroupMembers addGroupMembers) throws ServiceLayerException {
 
         ValidationUtils.validateAddGroupMembers(addGroupMembers);
 
@@ -210,7 +212,7 @@ public class GroupsController {
     public ResponseBody removeGroupMembers(@PathVariable("groupId") int groupId,
                                    @RequestParam(value = "userId", required = false) List<Long> userIds,
                                    @RequestParam(value = "username", required = false) List<String> usernames)
-        throws InvalidParametersException {
+        throws ServiceLayerException {
 
         ValidationUtils.validateAnyListNonEmpty(userIds, usernames);
 

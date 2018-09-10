@@ -44,7 +44,7 @@ import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.dal.ItemMetadata;
 import org.craftercms.studio.api.v1.dal.ItemState;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
-import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
@@ -150,13 +150,13 @@ public class WorkflowServiceImpl implements WorkflowService {
     @ValidateParams
     public ResultTO submitToGoLive(@ValidateStringParam(name = "site") String site,
                                    @ValidateStringParam(name = "username") String username,
-                                   String request) throws ServiceException {
+                                   String request) throws ServiceLayerException {
         return submitForApproval(site, username, request, false);
     }
 
     @SuppressWarnings("unchecked")
     protected ResultTO submitForApproval(final String site, String submittedBy, final String request,
-                                         final boolean delete) throws ServiceException {
+                                         final boolean delete) throws ServiceLayerException {
         RequestContext requestContext = RequestContextBuilder.buildSubmitContext(site, submittedBy);
         ResultTO result = new ResultTO();
         try {
@@ -240,7 +240,7 @@ public class WorkflowServiceImpl implements WorkflowService {
 
     protected List<DmError> submitToGoLive(List<DmDependencyTO> submittedItems, ZonedDateTime scheduledDate,
                                            boolean sendEmail, boolean submitForDeletion, RequestContext requestContext,
-                                           String submissionComment, String environment) throws ServiceException {
+                                           String submissionComment, String environment) throws ServiceLayerException {
         List<DmError> errors = new ArrayList<DmError>();
         String site = requestContext.getSite();
         String submittedBy = requestContext.getUser();
@@ -282,7 +282,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                                                    ZonedDateTime scheduledDate, boolean sendEmail,
                                                                    boolean submitForDeletion, String submittedBy,
                                                    DependencyRules rule, String submissionComment, String environment)
-            throws ServiceException {
+            throws ServiceLayerException {
         doSubmit(site, submittedItem, scheduledDate, sendEmail, submitForDeletion, submittedBy, true,
             submissionComment, environment);
         Set<DmDependencyTO> stringSet;
@@ -309,7 +309,7 @@ public class WorkflowServiceImpl implements WorkflowService {
     protected void doSubmit(final String site, final DmDependencyTO dependencyTO, final ZonedDateTime scheduledDate,
                             final boolean sendEmail, final boolean submitForDeletion, final String user,
                             final boolean notifyAdmin, final String submissionComment, String environment)
-            throws ServiceException {
+            throws ServiceLayerException {
         //first remove from workflow
         removeFromWorkflow(site, dependencyTO.getUri(), true);
         ContentItemTO item = contentService.getContentItem(site, dependencyTO.getUri());
@@ -352,7 +352,7 @@ public class WorkflowServiceImpl implements WorkflowService {
     @ValidateParams
     public Map<String, Object> getGoLiveItems(@ValidateStringParam(name = "site") String site,
                                               @ValidateStringParam(name = "sort") String sort, boolean ascending)
-            throws ServiceException {
+            throws ServiceLayerException {
         DmContentItemComparator comparator = new DmContentItemComparator(sort, ascending, false, false);
         List<ContentItemTO> items = getGoLiveItems(site, comparator);
 
@@ -371,7 +371,7 @@ public class WorkflowServiceImpl implements WorkflowService {
     }
 
     protected List<ContentItemTO> getGoLiveItems(final String site, final DmContentItemComparator comparator)
-            throws ServiceException {
+            throws ServiceLayerException {
         List<String> displayPatterns = servicesConfig.getDisplayInWidgetPathPatterns(site);
         List<ContentItemTO> categoryItems = getCategoryItems(site);
         GoLiveQueue queue = new GoLiveQueue();
@@ -433,7 +433,7 @@ public class WorkflowServiceImpl implements WorkflowService {
     @Override
     @ValidateParams
     public void fillQueue(@ValidateStringParam(name = "site") String site, GoLiveQueue goLiveQueue,
-                          GoLiveQueue inProcessQueue) throws ServiceException {
+                          GoLiveQueue inProcessQueue) throws ServiceLayerException {
         List<ItemState> changeSet = objectStateService.getSubmittedItems(site);
         // TODO: implement list changed all
 
@@ -464,7 +464,7 @@ public class WorkflowServiceImpl implements WorkflowService {
     }
 
     protected void addToQueue(String site, GoLiveQueue queue, GoLiveQueue inProcessQueue, ContentItemTO item,
-                              ItemState itemState) throws ServiceException {
+                              ItemState itemState) throws ServiceLayerException {
         if (item != null) {
             State state = State.valueOf(itemState.getState());
             //add only submitted items to go live Q.
@@ -487,7 +487,7 @@ public class WorkflowServiceImpl implements WorkflowService {
     @ValidateParams
     public Map<String, Object> getInProgressItems(@ValidateStringParam(name = "site") String site,
                                                   @ValidateStringParam(name = "sort") String sort, boolean ascending,
-                                                  boolean inProgressOnly) throws ServiceException {
+                                                  boolean inProgressOnly) throws ServiceLayerException {
         DmContentItemComparator comparator =
                 new DmContentItemComparator(sort, ascending, true, true);
         comparator.setSecondLevelCompareRequired(true);
@@ -509,7 +509,7 @@ public class WorkflowServiceImpl implements WorkflowService {
     }
 
     protected List<ContentItemTO> getInProgressItems(final String site, final DmContentItemComparator comparator,
-                                                     final boolean inProgressOnly) throws ServiceException {
+                                                     final boolean inProgressOnly) throws ServiceLayerException {
         final List<ContentItemTO> categoryItems = new ArrayList<>();
 
         List<ContentItemTO>categoryItems1 = getCategoryItems(site);
@@ -595,13 +595,13 @@ public class WorkflowServiceImpl implements WorkflowService {
     @ValidateParams
     public boolean removeFromWorkflow(@ValidateStringParam(name = "site") String site,
                                       @ValidateSecurePathParam(name = "path") String path, boolean cancelWorkflow)
-            throws ServiceException {
+            throws ServiceLayerException {
         Set<String> processedPaths = new HashSet<>();
         return removeFromWorkflow(site, path, processedPaths, cancelWorkflow);
     }
 
     protected boolean removeFromWorkflow(String site,  String path, Set<String> processedPaths, boolean cancelWorkflow)
-            throws ServiceException {
+            throws ServiceLayerException {
         // remove submitted aspects from all dependent items
         if (!processedPaths.contains(path)) {
             processedPaths.add(path);
@@ -616,7 +616,7 @@ public class WorkflowServiceImpl implements WorkflowService {
         return false;
     }
 
-    protected void _cancelWorkflow(String site, String path) throws ServiceException {
+    protected void _cancelWorkflow(String site, String path) throws ServiceLayerException {
         List<String> allItemsToCancel = getWorkflowAffectedPathsInternal(site, path);
         List<String> paths = new ArrayList<String>();
         for (String affectedItem : allItemsToCancel) {
@@ -643,7 +643,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                 State.NEW_UNPUBLISHED_UNLOCKED);
     }
 
-    protected List<String> getWorkflowAffectedPathsInternal(String site, String path) throws ServiceException {
+    protected List<String> getWorkflowAffectedPathsInternal(String site, String path) throws ServiceLayerException {
         List<String> affectedPaths = new ArrayList<String>();
         List<String> filteredPaths = new ArrayList<String>();
         if (objectStateService.isInWorkflow(site, path)) {
@@ -678,7 +678,7 @@ public class WorkflowServiceImpl implements WorkflowService {
     @ValidateParams
     public List<ContentItemTO> getWorkflowAffectedPaths(@ValidateStringParam(name = "site") String site,
                                                         @ValidateSecurePathParam(name = "path") String path)
-            throws ServiceException {
+            throws ServiceLayerException {
         List<String> affectedPaths = getWorkflowAffectedPathsInternal(site, path);
         return getWorkflowAffectedItems(site, affectedPaths);
     }
@@ -714,7 +714,7 @@ public class WorkflowServiceImpl implements WorkflowService {
      * @param site
      * @param request
      * @return call result
-     * @throws ServiceException
+     * @throws ServiceLayerException
      */
     @Override
     @ValidateParams
@@ -729,7 +729,7 @@ public class WorkflowServiceImpl implements WorkflowService {
      * @param site
      * @param request
      * @return call result
-     * @throws ServiceException
+     * @throws ServiceLayerException
      */
     @SuppressWarnings("unchecked")
     protected ResultTO approve(String site, String request, Operation operation) {
@@ -759,7 +759,7 @@ public class WorkflowServiceImpl implements WorkflowService {
 
             int length = items.size();
             if (length == 0) {
-                throw new ServiceException("No items provided to go live.");
+                throw new ServiceLayerException("No items provided to go live.");
             }
 
             String responseMessageKey = null;
@@ -871,7 +871,7 @@ public class WorkflowServiceImpl implements WorkflowService {
 
             result.setSuccess(false);
             result.setMessage(e.getMessage());
-        } catch (ServiceException e) {
+        } catch (ServiceLayerException e) {
             logger.error("error performing operation " + operation + " " + e);
             result.setSuccess(false);
             result.setMessage(e.getMessage());
@@ -885,7 +885,7 @@ public class WorkflowServiceImpl implements WorkflowService {
      * @param site
      * @param request
      * @return call result
-     * @throws ServiceException
+     * @throws ServiceLayerException
      */
     @SuppressWarnings("unchecked")
     protected ResultTO approve_new(String site, String request, Operation operation) {
@@ -915,7 +915,7 @@ public class WorkflowServiceImpl implements WorkflowService {
 
             int length = items.size();
             if (length == 0) {
-                throw new ServiceException("No items provided to go live.");
+                throw new ServiceLayerException("No items provided to go live.");
             }
 
             List<String> submittedPaths = new ArrayList<String>();
@@ -1035,7 +1035,7 @@ public class WorkflowServiceImpl implements WorkflowService {
 
             result.setSuccess(false);
             result.setMessage(e.getMessage());
-        } catch (ServiceException e) {
+        } catch (ServiceLayerException e) {
             logger.error("error performing operation " + operation + " " + e);
             result.setSuccess(false);
             result.setMessage(e.getMessage());
@@ -1049,7 +1049,7 @@ public class WorkflowServiceImpl implements WorkflowService {
      * @param site
      * @param request
      * @return call result
-     * @throws ServiceException
+     * @throws ServiceLayerException
      */
     @SuppressWarnings("unchecked")
     protected ResultTO approveWithoutDependencies(String site, String request, Operation operation) {
@@ -1079,7 +1079,7 @@ public class WorkflowServiceImpl implements WorkflowService {
 
             int length = items.size();
             if (length == 0) {
-                throw new ServiceException("No items provided to go live.");
+                throw new ServiceLayerException("No items provided to go live.");
             }
 
             List<String> submittedPaths = new ArrayList<String>();
@@ -1187,7 +1187,7 @@ public class WorkflowServiceImpl implements WorkflowService {
 
             result.setSuccess(false);
             result.setMessage(e.getMessage());
-        } catch (ServiceException e) {
+        } catch (ServiceLayerException e) {
             logger.error("error performing operation " + operation + " " + e);
             result.setSuccess(false);
             result.setMessage(e.getMessage());
@@ -1205,7 +1205,7 @@ public class WorkflowServiceImpl implements WorkflowService {
      * @throws net.sf.json.JSONException
      */
     protected DmDependencyTO getSubmittedItem(String site, JSONObject item, SimpleDateFormat format,
-                                              String globalSchDate) throws JSONException, ServiceException {
+                                              String globalSchDate) throws JSONException, ServiceLayerException {
         DmDependencyTO submittedItem = new DmDependencyTO();
         String uri = item.getString(JSON_KEY_URI);
         submittedItem.setUri(uri);
@@ -1437,7 +1437,7 @@ public class WorkflowServiceImpl implements WorkflowService {
      * @throws JSONException
      */
     protected List<DmDependencyTO> getSubmittedItems(String site, JSONArray items, SimpleDateFormat format,
-                                                     String schDate) throws JSONException, ServiceException {
+                                                     String schDate) throws JSONException, ServiceLayerException {
         if (items != null) {
             int length = items.size();
             if (length > 0) {
@@ -1481,7 +1481,7 @@ public class WorkflowServiceImpl implements WorkflowService {
     }
 
     protected void doDelete(String site, List<DmDependencyTO> submittedItems, String approver)
-            throws ServiceException {
+            throws ServiceLayerException {
         long start = System.currentTimeMillis();
         String user = securityService.getCurrentUser();
         // get web project information
@@ -1702,8 +1702,8 @@ public class WorkflowServiceImpl implements WorkflowService {
         }
     }
 
-    protected List<DmDependencyTO> getRefAndChildOfDiffDateFromParent(String site, List<DmDependencyTO> submittedItems,
-                                                                      boolean removeInPages) throws ServiceException {
+    protected List<DmDependencyTO> getRefAndChildOfDiffDateFromParent(
+        String site, List<DmDependencyTO> submittedItems, boolean removeInPages) throws ServiceLayerException {
         List<DmDependencyTO> childAndReferences = new ArrayList<>();
         for (DmDependencyTO submittedItem : submittedItems) {
             List<DmDependencyTO> children = submittedItem.getChildren();
@@ -1806,7 +1806,7 @@ public class WorkflowServiceImpl implements WorkflowService {
 
     protected List<DmDependencyTO> addDependenciesForSubmittedItems(String site, List<DmDependencyTO> submittedItems,
                                                                     SimpleDateFormat format, String globalScheduledDate)
-            throws ServiceException {
+            throws ServiceLayerException {
         List<DmDependencyTO> dependencies = new ArrayList<DmDependencyTO>();
         Set<String> dependenciesPaths = new HashSet<String>();
         for (DmDependencyTO submittedItem : submittedItems) {
@@ -1823,7 +1823,7 @@ public class WorkflowServiceImpl implements WorkflowService {
     protected List<DmDependencyTO> addDependenciesForSubmitForApproval(String site, List<DmDependencyTO> submittedItems,
                                                                        SimpleDateFormat format,
                                                                        String globalScheduledDate)
-            throws ServiceException {
+            throws ServiceLayerException {
         List<DmDependencyTO> dependencies = new ArrayList<DmDependencyTO>();
         Set<String> dependenciesPaths = new HashSet<String>();
         for (DmDependencyTO submittedItem : submittedItems) {
@@ -1836,7 +1836,7 @@ public class WorkflowServiceImpl implements WorkflowService {
     }
 
     protected void resolveSubmittedPaths(String site, DmDependencyTO item, List<String> submittedPaths,
-                                         Set<String> processedPaths) throws ServiceException {
+                                         Set<String> processedPaths) throws ServiceLayerException {
         if (!processedPaths.contains(item.getUri())) {
             if (!submittedPaths.contains(item.getUri())) {
                 submittedPaths.add(item.getUri());
@@ -1893,7 +1893,7 @@ public class WorkflowServiceImpl implements WorkflowService {
     @Override
     public void preScheduleDelete(Set<String> urisToDelete, final ZonedDateTime scheduleDate,
                                   final GoLiveContext context, Set rescheduledUris)
-            throws ServiceException {
+            throws ServiceLayerException {
         final String site = context.getSite();
         final List<String> itemsToDelete = new ArrayList<String>(urisToDelete);
         dmPublishService.unpublish(site, itemsToDelete, context.getApprover(), scheduleDate);
@@ -1901,7 +1901,7 @@ public class WorkflowServiceImpl implements WorkflowService {
 
     @Override
     public List<String> preDelete(Set<String> urisToDelete, GoLiveContext context, Set<String> rescheduledUris)
-            throws ServiceException {
+            throws ServiceLayerException {
         cleanUrisFromWorkflow(urisToDelete, context.getSite());
         cleanUrisFromWorkflow(rescheduledUris, context.getSite());
         List<String> deletedItems =
@@ -1912,13 +1912,13 @@ public class WorkflowServiceImpl implements WorkflowService {
 
     protected List<String> deleteInTransaction(final String site, final List<String> itemsToDelete,
                                                final boolean generateActivity, final String approver)
-            throws ServiceException {
+            throws ServiceLayerException {
         dmPublishService.unpublish(site, itemsToDelete, approver);
         return null;
         //return contentService.deleteContents(site, itemsToDelete, generateActivity, approver);
     }
 
-    protected void cleanUrisFromWorkflow(final Set<String> uris, final String site) throws ServiceException {
+    protected void cleanUrisFromWorkflow(final Set<String> uris, final String site) throws ServiceLayerException {
         if (uris != null && !uris.isEmpty()) {
             for (String uri : uris) {
                 cleanWorkflow(uri, site, Collections.<DmDependencyTO>emptySet());
@@ -1932,12 +1932,12 @@ public class WorkflowServiceImpl implements WorkflowService {
      * @param site
      * @param request
      * @return call result
-     * @throws ServiceException
+     * @throws ServiceLayerException
      */
     @Override
     @ValidateParams
     public ResultTO goLive(@ValidateStringParam(name = "site") final String site, final String request)
-            throws ServiceException {
+            throws ServiceLayerException {
         try {
             if (isEnablePublishingWithoutDependencies()) {
                 return approveWithoutDependencies(site, request, Operation.GO_LIVE);
@@ -1954,7 +1954,7 @@ public class WorkflowServiceImpl implements WorkflowService {
     @ValidateParams
     public boolean cleanWorkflow(@ValidateSecurePathParam(name = "url") final String url,
                                  @ValidateStringParam(name = "site") final String site,
-                                 final Set<DmDependencyTO> dependents) throws ServiceException {
+                                 final Set<DmDependencyTO> dependents) throws ServiceLayerException {
         _cancelWorkflow(site, url);
         return true;
     }
@@ -1963,10 +1963,10 @@ public class WorkflowServiceImpl implements WorkflowService {
      * approve workflows and schedule them as specified in the request
      *
      * @param site
-     * @throws ServiceException
+     * @throws ServiceLayerException
      */
     protected void goLive(final String site, final List<DmDependencyTO> submittedItems, String approver)
-            throws ServiceException {
+            throws ServiceLayerException {
         goLive(site, submittedItems, approver, null);
     }
 
@@ -1974,11 +1974,11 @@ public class WorkflowServiceImpl implements WorkflowService {
      * approve workflows and schedule them as specified in the request
      *
      * @param site
-     * @throws ServiceException
+     * @throws ServiceLayerException
      */
     protected void goLive(final String site, final List<DmDependencyTO> submittedItems, String approver,
                           MultiChannelPublishingContext mcpContext)
-            throws ServiceException {
+            throws ServiceLayerException {
         // get web project information
         final ZonedDateTime now = ZonedDateTime.now(ZoneOffset.UTC);
         if (submittedItems != null) {
@@ -2075,7 +2075,7 @@ public class WorkflowServiceImpl implements WorkflowService {
      */
     @SuppressWarnings("deprecation")
     protected void submitToWorkflow(final String site, final ZonedDateTime launchDate, final String label,
-                                    final List<String> paths) throws ServiceException {
+                                    final List<String> paths) throws ServiceLayerException {
         submitToWorkflow(site, launchDate, label, paths, null);
     }
 
@@ -2090,7 +2090,7 @@ public class WorkflowServiceImpl implements WorkflowService {
     @SuppressWarnings("deprecation")
     protected void submitToWorkflow(final String site, final ZonedDateTime launchDate, final String label,
                                     final List<String> paths, final MultiChannelPublishingContext mcpContext)
-            throws ServiceException {
+            throws ServiceLayerException {
         _submit(site, launchDate, label, paths, mcpContext);
     }
 
@@ -2165,7 +2165,8 @@ public class WorkflowServiceImpl implements WorkflowService {
     @SuppressWarnings("unchecked")
     @ValidateParams
     public ResultTO reject(@ValidateStringParam(name = "site") String site,
-                           @ValidateStringParam(name = "user") String user, String request) throws ServiceException {
+                           @ValidateStringParam(name = "user") String user,
+                           String request) throws ServiceLayerException {
         ResultTO result = new ResultTO();
         try {
             String approver = user;

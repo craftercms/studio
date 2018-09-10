@@ -19,6 +19,7 @@
 package org.craftercms.studio.api.v2.service.security;
 
 import org.craftercms.commons.entitlements.exception.EntitlementException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationSystemException;
 import org.craftercms.studio.api.v1.exception.security.BadCredentialsException;
 import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
@@ -33,42 +34,44 @@ import org.craftercms.studio.model.User;
 import java.util.List;
 
 public interface SecurityProvider {
-    List<User> getAllUsersForSite(long orgId, List<String> groupNames, int offset, int limit, String sort);
+    List<User> getAllUsersForSite(long orgId, List<String> groupNames, int offset, int limit, String sort)
+        throws ServiceLayerException;
 
-    boolean createUser(User user) throws UserAlreadyExistsException;
+    boolean createUser(User user) throws UserAlreadyExistsException, ServiceLayerException;
 
-    void updateUser(User user);
+    void updateUser(User user) throws ServiceLayerException;
 
-    void deleteUsers(List<Long> userIds, List<String> usernames);
+    void deleteUsers(List<Long> userIds, List<String> usernames) throws ServiceLayerException;
 
-    User getUserByIdOrUsername(long userId, String username);
+    User getUserByIdOrUsername(long userId, String username) throws ServiceLayerException;
 
-    void enableUsers(List<Long> userIds, List<String> usernames, boolean enabled);
+    void enableUsers(List<Long> userIds, List<String> usernames, boolean enabled) throws ServiceLayerException;
 
-    List<Group> getUserGroups(long userId, String username);
+    List<Group> getUserGroups(long userId, String username) throws ServiceLayerException;
 
-    List<Group> getAllGroups(long orgId, int offset, int limit, String sort);
+    List<Group> getAllGroups(long orgId, int offset, int limit, String sort) throws ServiceLayerException;
 
-    void createGroup(long orgId, String groupName, String groupDescription) throws GroupAlreadyExistsException;
+    void createGroup(long orgId, String groupName, String groupDescription) throws GroupAlreadyExistsException,
+        ServiceLayerException;
 
-    void updateGroup(long orgId, Group group);
+    void updateGroup(long orgId, Group group) throws ServiceLayerException;
 
-    void deleteGroup(List<Long> groupIds);
+    void deleteGroup(List<Long> groupIds) throws ServiceLayerException;
 
-    Group getGroup(long groupId);
+    Group getGroup(long groupId) throws ServiceLayerException;
 
-    List<User> getGroupMembers(long groupId, int offset, int limit, String sort);
+    List<User> getGroupMembers(long groupId, int offset, int limit, String sort) throws ServiceLayerException;
 
-    boolean addGroupMembers(long groupId, List<Long> userIds, List<String> usernames);
+    boolean addGroupMembers(long groupId, List<Long> userIds, List<String> usernames) throws ServiceLayerException;
 
-    void removeGroupMembers(long groupId, List<Long> userIds, List<String> usernames);
+    void removeGroupMembers(long groupId, List<Long> userIds, List<String> usernames) throws ServiceLayerException;
 
-    int getAllUsersTotal();
+    int getAllUsersTotal() throws ServiceLayerException;
 
     String getCurrentUser();
 
-    String authenticate(String username, String password)
-            throws BadCredentialsException, AuthenticationSystemException, EntitlementException;
+    String authenticate(String username, String password) throws BadCredentialsException,
+        AuthenticationSystemException, EntitlementException;
 
     boolean validateTicket(String ticket);
 
@@ -78,13 +81,13 @@ public interface SecurityProvider {
 
     boolean logout();
 
-    boolean changePassword(String username, String current, String newPassword)
-            throws PasswordDoesNotMatchException, UserExternallyManagedException;
+    boolean changePassword(String username, String current, String newPassword) throws PasswordDoesNotMatchException,
+        UserExternallyManagedException, ServiceLayerException;
 
-    boolean setUserPassword(String username, String newPassword)
-            throws UserNotFoundException, UserExternallyManagedException;
+    boolean setUserPassword(String username, String newPassword) throws UserNotFoundException,
+        UserExternallyManagedException, ServiceLayerException;
 
-    boolean userExists(String username);
+    boolean userExists(String username) throws ServiceLayerException;
 
-    boolean groupExists(String groupName);
+    boolean groupExists(String groupName) throws ServiceLayerException;
 }

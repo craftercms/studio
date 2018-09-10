@@ -20,7 +20,7 @@ package org.craftercms.studio.api.v1.service.deployment;
 import org.craftercms.studio.api.v1.dal.PublishRequest;
 import org.craftercms.studio.api.v1.exception.CommitNotFoundException;
 import org.craftercms.studio.api.v1.exception.EnvironmentNotFoundException;
-import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
@@ -73,13 +73,13 @@ public interface DeploymentService {
             String filterType) throws SiteNotFoundException;
 
     List<ContentItemTO> getScheduledItems(String site, String sort, boolean ascending, String subSort,
-                                          boolean subAscending, String filterType) throws ServiceException;
+                                          boolean subAscending, String filterType) throws ServiceLayerException;
 
     Map<String, List<PublishingChannelTO>> getAvailablePublishingChannelGroups(String site, String path);
 
-    void syncAllContentToPreview(String site, boolean waitTillDone) throws ServiceException;
+    void syncAllContentToPreview(String site, boolean waitTillDone) throws ServiceLayerException;
 
-    void bulkGoLive(String site, String environment, String path) throws ServiceException;
+    void bulkGoLive(String site, String environment, String path) throws ServiceLayerException;
 
     /**
      * Get last deployment date time for given site and path
@@ -123,12 +123,12 @@ public interface DeploymentService {
      * @throws EnvironmentNotFoundException
      */
     void publishItems(String site, String environment, ZonedDateTime schedule, List<String> paths,
-                      String submissionComment) throws ServiceException, DeploymentException;
+                      String submissionComment) throws ServiceLayerException, DeploymentException;
 
     /**
      * Reset staging environment to live for given site
      *
      * @param siteId site id to use for resetting
      */
-    void resetStagingEnvironment(String siteId) throws ServiceException;
+    void resetStagingEnvironment(String siteId) throws ServiceLayerException;
 }

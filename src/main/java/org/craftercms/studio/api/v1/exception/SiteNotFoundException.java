@@ -17,7 +17,7 @@
  ******************************************************************************/
 package org.craftercms.studio.api.v1.exception;
 
-public class SiteNotFoundException extends ServiceException {
+public class SiteNotFoundException extends ServiceLayerException {
 
 	/**
 	 * 

@@ -20,7 +20,7 @@ package org.craftercms.studio.impl.v1.util;
 
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.DmConstants;
-import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 
 import java.util.Map;
 
@@ -36,7 +36,7 @@ public class PathMacrosTransaltor {
      *
      * @param path
      */
-    public static String resolvePath(String path,Map<String,String> properties) throws ServiceException {
+    public static String resolvePath(String path,Map<String,String> properties) throws ServiceLayerException {
 
         String pageId = properties.get(DmConstants.KEY_PAGE_ID);
 

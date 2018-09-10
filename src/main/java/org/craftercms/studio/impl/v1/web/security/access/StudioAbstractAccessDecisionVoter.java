@@ -21,6 +21,7 @@ package org.craftercms.studio.impl.v1.web.security.access;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -72,6 +73,9 @@ public abstract class StudioAbstractAccessDecisionVoter implements AccessDecisio
         } catch (UserNotFoundException e) {
             logger.info("User is not site member", e);
             return false;
+        } catch (ServiceLayerException e) {
+            logger.warn("Error getting user membership", e);
+            return false;
         }
     }
 
@@ -88,6 +92,9 @@ public abstract class StudioAbstractAccessDecisionVoter implements AccessDecisio
             return sites.contains(siteId);
         } catch (UserNotFoundException e) {
             logger.info("User is not site member", e);
+            return false;
+        } catch (ServiceLayerException e) {
+            logger.warn("Error getting user membership", e);
             return false;
         }
     }
@@ -117,6 +124,9 @@ public abstract class StudioAbstractAccessDecisionVoter implements AccessDecisio
         } catch (UserNotFoundException e) {
             logger.info("User is not site member", e);
             return false;
+        } catch (ServiceLayerException e) {
+            logger.error("Error getting user memberships", e);
+            return false;
         }
     }
 
@@ -125,7 +135,13 @@ public abstract class StudioAbstractAccessDecisionVoter implements AccessDecisio
     }
 
     protected boolean isAdmin(UserTO user) {
-        List<Group> userGroups = securityProvider.getUserGroups(1, user.getUsername());
+        List<Group> userGroups = null;
+        try {
+            userGroups = securityProvider.getUserGroups(1, user.getUsername());
+        } catch (ServiceLayerException e) {
+            logger.error("Error getting user memberships", e);
+            return false;
+        }
         boolean toRet = false;
         if (CollectionUtils.isNotEmpty(userGroups)) {
             for (Group group : userGroups) {

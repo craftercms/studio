@@ -65,7 +65,7 @@ import org.craftercms.studio.api.v1.exception.BlueprintNotFoundException;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.PreviewDeployerUnreachableException;
 import org.craftercms.studio.api.v1.exception.SearchUnreachableException;
-import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.SiteCreationException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -188,7 +188,7 @@ public class SiteServiceImpl implements SiteService {
     @ValidateParams
     public boolean writeConfiguration(@ValidateStringParam(name = "site") String site,
                                       @ValidateSecurePathParam(name = "path") String path, InputStream content)
-            throws ServiceException {
+            throws ServiceLayerException {
         // Write site configuration
         ActivityService.ActivityType activityType = ActivityService.ActivityType.UPDATED;
         if (!contentRepository.contentExists(site, path)) {
@@ -232,7 +232,7 @@ public class SiteServiceImpl implements SiteService {
 	@Override
     @ValidateParams
 	public boolean writeConfiguration(@ValidateSecurePathParam(name = "path") String path, InputStream content)
-            throws ServiceException {
+            throws ServiceLayerException {
 	    // Write global configuration
         String commitId = contentRepository.writeContent("", path, content);
         boolean toReturn = StringUtils.isEmpty(commitId);
@@ -419,7 +419,7 @@ public class SiteServiceImpl implements SiteService {
 	    // Attempt to create the search index for the new site
 	    try {
 		    searchService.createIndex(siteId);
-	    } catch (ServiceException e) {
+	    } catch (ServiceLayerException e) {
 		    success = false;
 		    logger.error("Error while creating site: " + siteName + " ID: " + siteId + " from blueprint: " +
 			    blueprintName + ". Is the Search running and configured correctly in Studio?", e);
@@ -445,7 +445,7 @@ public class SiteServiceImpl implements SiteService {
 			        // Rollback search index creation
 			        try {
 				        searchService.deleteIndex(siteId);
-			        } catch (ServiceException e) {
+			        } catch (ServiceLayerException e) {
 				        logger.error("Error while rolling back/deleting site: " + siteName + " ID: " + siteId +
 					        " from blueprint: " + blueprintName + ". This means the site search index (core) is " +
 					        "still present, but the site is not successfully created.", e);
@@ -533,7 +533,7 @@ public class SiteServiceImpl implements SiteService {
 
 			    try {
 				    searchService.deleteIndex(siteId);
-			    } catch (ServiceException ex) {
+			    } catch (ServiceLayerException ex) {
 				    logger.error("Error while rolling back/deleting site: " + siteName + " ID: " + siteId +
 					    " from blueprint: " + blueprintName + ". This means the site search index (core) is " +
 					    "still present, but the site is not successfully created.", ex);
@@ -548,7 +548,7 @@ public class SiteServiceImpl implements SiteService {
 		    // Now that everything is created, we can sync the preview deployer with the new content
 		    try {
 			    deploymentService.syncAllContentToPreview(siteId, true);
-		    } catch (ServiceException e) {
+		    } catch (ServiceLayerException e) {
 			    // TODO: SJ: We need better exception handling here
 			    logger.error("Error while syncing site: " + siteName + " ID: " + siteId + " to preview. Site was "
 				    + "successfully created otherwise. Ignoring.", e);
@@ -660,7 +660,7 @@ public class SiteServiceImpl implements SiteService {
                     } catch (ContentNotFoundException e) {
                         logger.error("Failed to extract dependencies for document: site " + site + " path " +
                                 childPath, e);
-                    } catch (ServiceException e) {
+                    } catch (ServiceLayerException e) {
                         logger.error("Failed to extract dependencies for document: site " + site + " path " +
                                 childPath, e);
                     }
@@ -682,7 +682,7 @@ public class SiteServiceImpl implements SiteService {
                         if (isCss || isJs || isTemplate) {
                             dependencyService.upsertDependencies(site, childPath);
                         }
-                    } catch (ServiceException e) {
+                    } catch (ServiceLayerException e) {
                         logger.error("Failed to extract dependencies for: site " + site + " path " + childPath, e);
                     }
                 }
@@ -698,6 +698,8 @@ public class SiteServiceImpl implements SiteService {
                 groupService.createGroup(1, group, description);
             } catch (GroupAlreadyExistsException e) {
                 logger.warn("Default group: " + group + " not created. It already exists.", e);
+            } catch (ServiceLayerException e) {
+                logger.warn("Error creating group " + group, e);
             }
         }
     }
@@ -714,7 +716,7 @@ public class SiteServiceImpl implements SiteService {
                                            String remoteUsername, String remotePassword, String remoteToken,
                                            String remotePrivateKey,
                                            @ValidateStringParam(name = "createOption") String createOption)
-            throws ServiceException, InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
+            throws ServiceLayerException, InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
             RemoteRepositoryNotFoundException, RemoteRepositoryNotBareException, InvalidRemoteUrlException {
         if (exists(siteId)) {
             throw new SiteAlreadyExistsException();
@@ -761,7 +763,7 @@ public class SiteServiceImpl implements SiteService {
                                        String remoteUrl, String remoteBranch, boolean singleBranch,
                                        String authenticationType, String remoteUsername, String remotePassword,
                                        String remoteToken, String remotePrivateKey)
-            throws ServiceException, InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
+            throws ServiceLayerException, InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
             RemoteRepositoryNotFoundException, InvalidRemoteUrlException {
         boolean success = true;
 
@@ -775,7 +777,7 @@ public class SiteServiceImpl implements SiteService {
         try {
             logger.debug("Creating search index for site " + siteId);
             searchService.createIndex(siteId);
-        } catch (ServiceException e) {
+        } catch (ServiceLayerException e) {
             success = false;
             logger.error("Error while creating site: " + siteId + " ID: " + siteId + " as clone from remote " +
                     "repository: " + remoteName + " (" + remoteUrl + "). Is the Search running and configured " +
@@ -804,7 +806,7 @@ public class SiteServiceImpl implements SiteService {
                 // Rollback search index creation
                 try {
                     searchService.deleteIndex(siteId);
-                } catch (ServiceException e) {
+                } catch (ServiceLayerException e) {
                     logger.error("Error while rolling back/deleting site: " + siteId + " ID: " + siteId +
                             " as clone from remote repository: " + remoteName + " (" + remoteUrl + ")." +
                             " This means the site search index (core) is still present, but the site is not " +
@@ -826,7 +828,7 @@ public class SiteServiceImpl implements SiteService {
                         singleBranch, authenticationType, remoteUsername, remotePassword, remoteToken,
                         remotePrivateKey);
             } catch (InvalidRemoteRepositoryException | InvalidRemoteRepositoryCredentialsException |
-                    RemoteRepositoryNotFoundException | InvalidRemoteUrlException | ServiceException e) {
+                    RemoteRepositoryNotFoundException | InvalidRemoteUrlException | ServiceLayerException e) {
 
                 contentRepository.deleteSite(siteId);
 
@@ -840,7 +842,7 @@ public class SiteServiceImpl implements SiteService {
 
                 try {
                     searchService.deleteIndex(siteId);
-                } catch (ServiceException ex) {
+                } catch (ServiceLayerException ex) {
                     logger.error("Error while rolling back/deleting site: " + siteId + " ID: " + siteId +
                             " as clone from remote repository: " + remoteName + " (" + remoteUrl + ")." +
                             " This means the site search index (core) is still present, but the site is not " +
@@ -939,7 +941,7 @@ public class SiteServiceImpl implements SiteService {
                                         String remoteName, String remoteUrl, String remoteBranch,
                                         String authenticationType, String remoteUsername, String remotePassword,
                                         String remoteToken, String remotePrivateKey)
-            throws ServiceException, InvalidRemoteRepositoryCredentialsException, InvalidRemoteRepositoryException,
+            throws ServiceLayerException, InvalidRemoteRepositoryCredentialsException, InvalidRemoteRepositoryException,
             RemoteRepositoryNotFoundException, RemoteRepositoryNotBareException, InvalidRemoteUrlException {
         if (exists(siteId)) {
             throw new SiteAlreadyExistsException();
@@ -960,7 +962,7 @@ public class SiteServiceImpl implements SiteService {
         try {
             logger.debug("Creating search index for site " + siteId);
             searchService.createIndex(siteId);
-        } catch (ServiceException e) {
+        } catch (ServiceLayerException e) {
             success = false;
             logger.error("Error while creating site: " + siteId + " ID: " + siteId + " from blueprint: " +
                     blueprintName + ". Is the Search running and configured correctly in Studio?", e);
@@ -985,7 +987,7 @@ public class SiteServiceImpl implements SiteService {
                 // Rollback search index creation
                 try {
                     searchService.deleteIndex(siteId);
-                } catch (ServiceException e) {
+                } catch (ServiceLayerException e) {
                     logger.error("Error while rolling back/deleting site: " + siteId + " ID: " + siteId +
                             " from blueprint: " + blueprintName + ". This means the site search index (core) is " +
                             "still present, but the site is not successfully created.", e);
@@ -1016,7 +1018,7 @@ public class SiteServiceImpl implements SiteService {
 
                 try {
                     searchService.deleteIndex(siteId);
-                } catch (ServiceException ex) {
+                } catch (ServiceLayerException ex) {
                     logger.error("Error while rolling back/deleting site: " + siteId + " ID: " + siteId +
                             " from blueprint: " + blueprintName + ". This means the site search index (core) is " +
                             "still present, but the site is not successfully created.", ex);
@@ -1037,7 +1039,7 @@ public class SiteServiceImpl implements SiteService {
                             remoteUsername, remotePassword, remoteToken, remotePrivateKey);
                 } catch (RemoteRepositoryNotFoundException | InvalidRemoteRepositoryException |
                         InvalidRemoteRepositoryCredentialsException | RemoteRepositoryNotBareException |
-                        InvalidRemoteUrlException | ServiceException e) {
+                        InvalidRemoteUrlException | ServiceLayerException e) {
                     // TODO: SJ: We need better exception handling here
                     success = false;
                     logger.error("Error while creating site: " + siteId + " ID: " + siteId + " from blueprint: " +
@@ -1056,7 +1058,7 @@ public class SiteServiceImpl implements SiteService {
 
                     try {
                         searchService.deleteIndex(siteId);
-                    } catch (ServiceException ex) {
+                    } catch (ServiceLayerException ex) {
                         logger.error("Error while rolling back/deleting site: " + siteId + " ID: " + siteId +
                                 " from blueprint: " + blueprintName + ". This means the site search index (core) is " +
                                 "still present, but the site is not successfully created.", ex);
@@ -1148,7 +1150,7 @@ public class SiteServiceImpl implements SiteService {
 
                 try {
                     searchService.deleteIndex(siteId);
-                } catch (ServiceException ex) {
+                } catch (ServiceLayerException ex) {
                     logger.error("Error while rolling back/deleting site: " + siteId + " ID: " + siteId +
                             " from blueprint: " + blueprintName + ". This means the site search index (core) is " +
                             "still present, but the site is not successfully created.", ex);
@@ -1163,7 +1165,7 @@ public class SiteServiceImpl implements SiteService {
             // Now that everything is created, we can sync the preview deployer with the new content
             try {
                 deploymentService.syncAllContentToPreview(siteId, true);
-            } catch (ServiceException e) {
+            } catch (ServiceLayerException e) {
                 // TODO: SJ: We need better exception handling here
                 logger.error("Error while syncing site: " + siteId + " ID: " + siteId + " to preview. Site was "
                         + "successfully created otherwise. Ignoring.", e);
@@ -1524,7 +1526,7 @@ public class SiteServiceImpl implements SiteService {
                         logger.debug("Extract dependencies for site: " + site + " path: " + repoOperation.getPath());
                         try {
                             dependencyService.deleteItemDependencies(site, repoOperation.getPath());
-                        } catch (ServiceException e) {
+                        } catch (ServiceLayerException e) {
                             logger.error("Error deleting dependencies for site " + site + " file: " +
                                     repoOperation.getPath(), e);
                         }
@@ -1640,7 +1642,7 @@ public class SiteServiceImpl implements SiteService {
         try {
             logger.debug("Sync preview for site " + site);
             deploymentService.syncAllContentToPreview(site, false);
-        } catch (ServiceException e) {
+        } catch (ServiceLayerException e) {
             logger.error("Error synchronizing preview with repository for site: " + site, e);
         }
 
@@ -1682,7 +1684,7 @@ public class SiteServiceImpl implements SiteService {
 				    dependencyService.upsertDependencies(site, path);
 			    }
 		    }
-	    } catch (ServiceException e) {
+	    } catch (ServiceLayerException e) {
 		    logger.error("Error extracting dependencies for site " + site + " file: " + path, e);
 		    toReturn = false;
 	    }
@@ -1699,7 +1701,7 @@ public class SiteServiceImpl implements SiteService {
     @Override
     @ValidateParams
     public int getSitesPerUserTotal(@ValidateStringParam(name = "username") String username)
-            throws UserNotFoundException {
+		throws UserNotFoundException, ServiceLayerException {
 	    if (securityService.userExists(username)) {
             Map<String, Object> params = new HashMap<String, Object>();
             params.put("username", username);
@@ -1714,7 +1716,7 @@ public class SiteServiceImpl implements SiteService {
     public List<SiteFeed> getSitesPerUser(@ValidateStringParam(name = "username") String username,
                                           @ValidateIntegerParam(name = "start") int start,
                                           @ValidateIntegerParam(name = "number") int number)
-            throws UserNotFoundException {
+		throws UserNotFoundException, ServiceLayerException {
         if (securityService.userExists(username)) {
             Map<String, Object> params = new HashMap<String, Object>();
             params.put("username", username);
@@ -1820,7 +1822,7 @@ public class SiteServiceImpl implements SiteService {
     public boolean addRemote(String siteId, String remoteName, String remoteUrl,
                              String authenticationType, String remoteUsername, String remotePassword,
                              String remoteToken, String remotePrivateKey)
-            throws InvalidRemoteUrlException, ServiceException {
+            throws InvalidRemoteUrlException, ServiceLayerException {
         if (!exists(siteId)) {
             throw new SiteNotFoundException();
         }
@@ -1859,7 +1861,7 @@ public class SiteServiceImpl implements SiteService {
     }
 
     @Override
-    public List<RemoteRepositoryInfoTO> listRemote(String siteId) throws ServiceException {
+    public List<RemoteRepositoryInfoTO> listRemote(String siteId) throws ServiceLayerException {
         if (!exists(siteId)) {
             throw new SiteNotFoundException();
         }

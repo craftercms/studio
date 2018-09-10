@@ -49,7 +49,7 @@ import org.craftercms.studio.api.v1.dal.ItemMetadata;
 import org.craftercms.studio.api.v1.dal.ItemState;
 import org.craftercms.studio.api.v1.ebus.PreviewEventContext;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
-import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v1.executor.ProcessContentExecutor;
@@ -249,7 +249,7 @@ public class ContentServiceImpl implements ContentService {
                              @ValidateStringParam(name = "contentType") String contentType, InputStream input,
                              @ValidateStringParam(name = "createFolders") String createFolders,
                              @ValidateStringParam(name = "edit") String edit,
-                             @ValidateStringParam(name = "unlock") String unlock) throws ServiceException {
+                             @ValidateStringParam(name = "unlock") String unlock) throws ServiceLayerException {
         // TODO: SJ: refactor for 2.7.x
 
         try {
@@ -264,7 +264,7 @@ public class ContentServiceImpl implements ContentService {
                 logger.debug("Validation completed, duration : {0} ms", System.currentTimeMillis() - start);
             }
         } catch (EntitlementException e) {
-            throw new ServiceException("Unable to complete request due to entitlement limits. Please contact your "
+            throw new ServiceLayerException("Unable to complete request due to entitlement limits. Please contact your "
                 + "system administrator.");
         }
 
@@ -305,7 +305,7 @@ public class ContentServiceImpl implements ContentService {
                         // TODO: SJ: Review and refactor/redo
                         logger.error("Error Content {0} is being processed (Object State is system "
                                 + "processing);", fileName);
-                        throw new ServiceException("Content " + fileName + " is in system processing, we can't write "
+                        throw new ServiceLayerException("Content " + fileName + " is in system processing, we can't write "
                                 + "it");
                     }
 
@@ -320,7 +320,7 @@ public class ContentServiceImpl implements ContentService {
                 // Content does not exist; check for moved content and deleted content
                 if (objectStateService.deletedPathExists(site, path) ||
                         objectMetadataManager.movedPathExists(site, path)) {
-                    throw new ServiceException("Content " + path + " for site " + site + ", cannot be created " +
+                    throw new ServiceLayerException("Content " + path + " for site " + site + ", cannot be created " +
                             "because this name/URL was in use by another content item that has been moved or" +
                             " deleted by not yet published.");
                 }
@@ -399,7 +399,7 @@ public class ContentServiceImpl implements ContentService {
                                       @ValidateStringParam(name = "createFolders") final String createFolders,
                                       @ValidateStringParam(name = "edit") final  String edit,
                                       @ValidateStringParam(name = "unlock") final String unlock,
-                                      final boolean createFolder) throws ServiceException {
+                                      final boolean createFolder) throws ServiceLayerException {
         // TODO: SJ: The parameters need to be properly typed. Can't have Strings that actually mean boolean. Fix in
         // TODO: SJ: 2.7.x
         String id = site + ":" + path + ":" + fileName + ":" + contentType;
@@ -411,7 +411,7 @@ public class ContentServiceImpl implements ContentService {
         try {
             writeContent(site, path, fileName, contentType, input, createFolders, edit, unlock);
             moveContent(site, path, targetPath);
-        } catch (ServiceException | RuntimeException e) {
+        } catch (ServiceLayerException | RuntimeException e) {
             logger.error("Error while executing write and rename for site '{}' path '{}' targetPath '{}' "
                     + "fileName '{}' content type '{}'", e, site, path, targetPath, fileName, contentType);
         }
@@ -433,7 +433,7 @@ public class ContentServiceImpl implements ContentService {
      * @param unlock
      * 			unlock the content upon edit?
      * @return content asset info
-     * @throws ServiceException
+     * @throws ServiceLayerException
      */
     @Override
     @ValidateParams
@@ -442,7 +442,7 @@ public class ContentServiceImpl implements ContentService {
                                                  @ValidateStringParam(name = "assetName") String assetName,
                                                  InputStream in, String isImage, String allowedWidth,
                                                  String allowedHeight, String allowLessSize, String draft,
-                                                 String unlock, String systemAsset) throws ServiceException {
+                                                 String unlock, String systemAsset) throws ServiceLayerException {
 
         try {
             long start = 0;
@@ -456,7 +456,7 @@ public class ContentServiceImpl implements ContentService {
                 logger.debug("Validation completed, duration : {0} ms", System.currentTimeMillis() - start);
             }
         } catch (EntitlementException e) {
-            throw new ServiceException("Unable to complete request due to entitlement limits. Please contact your "
+            throw new ServiceLayerException("Unable to complete request due to entitlement limits. Please contact your "
                 + "system administrator.");
         }
 
@@ -501,9 +501,9 @@ public class ContentServiceImpl implements ContentService {
 
             if (objectStateService.deletedPathExists(site, path) ||
                     objectMetadataManager.movedPathExists(site, path)) {
-                throw new ServiceException("Content " + path + " for site " + site + ", cannot be created because" +
-                        " this name/URL was in use by another content item that has been moved or deleted by " +
-                        "not yet published.");
+                throw new ServiceLayerException("Content " + path + " for site " + site + ", cannot be created because"
+                    + " this name/URL was in use by another content item that has been moved or deleted by "
+                    + "not yet published.");
             }
             ResultTO result = processContent(id, in, false, params, DmConstants.CONTENT_CHAIN_ASSET);
             ContentAssetInfoTO assetInfoTO = (ContentAssetInfoTO)result.getItem();
@@ -548,7 +548,7 @@ public class ContentServiceImpl implements ContentService {
     @ValidateParams
     public boolean writeContent(@ValidateStringParam(name = "site") String site,
                                 @ValidateSecurePathParam(name = "path") String path, InputStream content)
-            throws ServiceException {
+            throws ServiceLayerException {
         boolean result;
 
         String commitId = _contentRepository.writeContent(site, path, content);
@@ -615,7 +615,7 @@ public class ContentServiceImpl implements ContentService {
         objectMetadataManager.deleteObjectMetadata(site, path);
         try {
             dependencyService.deleteItemDependencies(site, path);
-        } catch (ServiceException e) {
+        } catch (ServiceLayerException e) {
             logger.error("Error deleting dependencies for site " + site + " path " + path, e);
         }
 
@@ -818,9 +818,9 @@ public class ContentServiceImpl implements ContentService {
                 retNewFileName = copyPath;
             }
         }
-        catch(ServiceException eServiceException) {
+        catch(ServiceLayerException eServiceLayerException) {
             logger.info("General Error while copying content for site {0} from {1} to {2}, new name is {3}",
-                    eServiceException, site, fromPath, toPath, copyPath);
+                eServiceLayerException, site, fromPath, toPath, copyPath);
         }
 
         return retNewFileName;
@@ -842,7 +842,7 @@ public class ContentServiceImpl implements ContentService {
                                                             String sourceContentPath,
                                                     @ValidateSecurePathParam(name = "dependencyPath")
                                                             String dependencyPath)
-            throws ServiceException {
+            throws ServiceLayerException {
         Map<String,String> copyDependency = new HashMap<String,String>();
         if(sourceContentPath.endsWith(DmConstants.XML_PATTERN) && dependencyPath.endsWith(DmConstants.XML_PATTERN)){
             ContentItemTO dependencyItem = getContentItem(site, sourceContentPath);
@@ -932,7 +932,7 @@ public class ContentServiceImpl implements ContentService {
             context.setSite(site);
             eventService.publish(EVENT_PREVIEW_SYNC, context);
         }
-        catch(ServiceException eMoveErr) {
+        catch(ServiceLayerException eMoveErr) {
             logger.error("Content not found while moving content for site {0} from {1} to {2}, new name is {3}",
                     eMoveErr, site, fromPath, toPath, movePath);
         }
@@ -1008,12 +1008,12 @@ public class ContentServiceImpl implements ContentService {
     protected void updateDependenciesOnMove(String site, String fromPath, String movePath) {
         try {
             dependencyService.deleteItemDependencies(site, fromPath);
-        } catch (ServiceException e) {
+        } catch (ServiceLayerException e) {
             logger.error("Error while deleting dependencies for site " + site + " path " + fromPath, e);
         }
         try {
             dependencyService.upsertDependencies(site, movePath);
-        } catch (ServiceException  e) {
+        } catch (ServiceLayerException e) {
             logger.error("Error while updating dependencies on move content site: " + site + " path: "
                     + movePath, e);
         }
@@ -1047,7 +1047,7 @@ public class ContentServiceImpl implements ContentService {
     }
 
     protected Map<String, String> constructNewPathforCutCopy(String site, String fromPath, String toPath,
-                                                             boolean adjustOnCollide) throws ServiceException {
+                                                             boolean adjustOnCollide) throws ServiceLayerException {
         Map<String, String> result = new HashMap<String, String>();
 
         // The following rules apply to content under the site folder
@@ -1209,7 +1209,7 @@ public class ContentServiceImpl implements ContentService {
                 result.put("ALT_NAME", "true");
             }
             catch(Exception altPathGenErr) {
-                throw new ServiceException("Unable to generate an alternative path for name collision: " +
+                throw new ServiceLayerException("Unable to generate an alternative path for name collision: " +
                         proposedDestPath, altPathGenErr);
             }
         }
@@ -1222,7 +1222,7 @@ public class ContentServiceImpl implements ContentService {
     @SuppressWarnings("unchecked")
     protected Map<String, String> getItemSpecificDependencies(String site, String path, Document document,
                                                               Map<String, String> copyDependencies)
-            throws ServiceException {
+            throws ServiceLayerException {
         Set<String> deps = dependencyService.getItemSpecificDependencies(site, path, 1);
         for (String dep : deps) {
             copyDependencies.put(dep, dep);
@@ -1279,7 +1279,7 @@ public class ContentServiceImpl implements ContentService {
     @SuppressWarnings("unchecked")
     protected Document updateContentOnCopy(Document document, String filename, String folder, Map<String,
         String> params, String modifier)
-            throws ServiceException {
+            throws ServiceLayerException {
 
         //update pageId and groupId with the new one
         Element root = document.getRootElement();
@@ -1876,7 +1876,7 @@ public class ContentServiceImpl implements ContentService {
         if (commitId != null) {
             try {
                 dependencyService.upsertDependencies(site, path);
-            } catch (ServiceException e) {
+            } catch (ServiceLayerException e) {
                 logger.error("Error while extracting dependencies for reverted content. Site: " + site + " path: " +
                         path + " version: " + version);
             }
@@ -2041,7 +2041,7 @@ public class ContentServiceImpl implements ContentService {
     public ResultTO processContent(@ValidateStringParam(name = "id") String id, InputStream input, boolean isXml,
                                    Map<String, String> params,
                                    @ValidateStringParam(name = "contentChainForm") String contentChainForm)
-            throws ServiceException {
+            throws ServiceLayerException {
         // TODO: SJ: Pipeline Processor is not defined right, we need to refactor in 3.1+
         // TODO: SJ: Pipeline should take input, and give you back output
         // TODO: SJ: Presently, this takes action and performs the action as a side effect of the processor chain
@@ -2124,7 +2124,7 @@ public class ContentServiceImpl implements ContentService {
     @ValidateParams
     public GoLiveDeleteCandidates getDeleteCandidates(@ValidateStringParam(name = "site") String site,
                                                       @ValidateSecurePathParam(name = "relativePath")
-                                                              String relativePath) throws ServiceException {
+                                                              String relativePath) throws ServiceLayerException {
         ContentItemTO contentItem = getContentItem(site, relativePath);
         GoLiveDeleteCandidates deletedItems = new GoLiveDeleteCandidates(site, this, objectStateService);
         if (contentItem != null) {
@@ -2138,7 +2138,7 @@ public class ContentServiceImpl implements ContentService {
      * Iterate over all paths inside the folder
      */
     protected void childDeleteItems(String site, ContentItemTO contentItem, GoLiveDeleteCandidates items)
-            throws ServiceException {
+            throws ServiceLayerException {
         // TODO: SJ: Reconsider to be iterative instead of recursive in 3.1+
         // TODO: SJ: Reconsider having bulk operations in the underlying repository to speed things up and result
         // TODO: SJ: in less database writes and repo commits
@@ -2159,7 +2159,7 @@ public class ContentServiceImpl implements ContentService {
     }
 
     protected void addDependenciesToDelete(String site, String sourceContentPath, String dependencyPath,
-                                           GoLiveDeleteCandidates candidates) throws ServiceException {
+                                           GoLiveDeleteCandidates candidates) throws ServiceLayerException {
         Set<String> dependencyParentFolder = new HashSet<String>();
         //add dependencies as well
         Set<String> dependencies = dependencyService.getDeleteDependencies(site, sourceContentPath);
@@ -2183,7 +2183,7 @@ public class ContentServiceImpl implements ContentService {
     }
 
     protected void addRemovedDependenicesToDelete(String site, String relativePath, GoLiveDeleteCandidates candidates)
-            throws ServiceException {
+            throws ServiceLayerException {
         if (relativePath.endsWith(DmConstants.XML_PATTERN) && !objectStateService.isNew(site, relativePath)) {
             DependencyDiffService.DiffRequest diffRequest = new DependencyDiffService.DiffRequest(site, relativePath,
                     null, null, site, true);
@@ -2196,7 +2196,7 @@ public class ContentServiceImpl implements ContentService {
     }
 
     protected List<String> getRemovedDependenices(DependencyDiffService.DiffRequest diffRequest,
-                                                  boolean matchDeletePattern) throws ServiceException {
+                                                  boolean matchDeletePattern) throws ServiceLayerException {
         DependencyDiffService.DiffResponse diffResponse = dependencyDiffService.diff(diffRequest);
         List<String> removedDep = diffResponse.getRemovedDependencies();
         if(matchDeletePattern){
@@ -2207,7 +2207,7 @@ public class ContentServiceImpl implements ContentService {
     }
 
     protected List<String> filterDependenicesMatchingDeletePattern(String site, String sourcePath,
-                                                                   List<String> dependencies) throws ServiceException{
+                                                                   List<String> dependencies) throws ServiceLayerException {
         List<String> matchingDep = new ArrayList<String>();
         if(sourcePath.endsWith(DmConstants.XML_PATTERN) && sourcePath.endsWith(DmConstants.XML_PATTERN)){
             List<DeleteDependencyConfigTO> deleteAssociations = getDeletePatternConfig(site,sourcePath);
@@ -2225,7 +2225,7 @@ public class ContentServiceImpl implements ContentService {
     }
 
     protected List<DeleteDependencyConfigTO> getDeletePatternConfig(String site, String relativePath,
-                                                                    boolean isInLiveRepo) throws ServiceException{
+                                                                    boolean isInLiveRepo) throws ServiceLayerException {
         List<DeleteDependencyConfigTO> deleteAssociations  = new ArrayList<DeleteDependencyConfigTO>();
         ContentItemTO dependencyItem = getContentItem(site, relativePath, 0);
         String contentType = dependencyItem.getContentType();
@@ -2234,7 +2234,7 @@ public class ContentServiceImpl implements ContentService {
     }
 
     protected List<DeleteDependencyConfigTO> getDeletePatternConfig(String site, String relativePath)
-            throws ServiceException{
+            throws ServiceLayerException {
         return getDeletePatternConfig(site,relativePath,false);
     }
 
@@ -2332,7 +2332,7 @@ public class ContentServiceImpl implements ContentService {
                                @ValidateSecurePathParam(name = "relativePath") String relativePath,
                                @ValidateSecurePathParam(name = "before") String before,
                                @ValidateSecurePathParam(name = "after") String after,
-                               @ValidateStringParam(name = "orderName") String orderName) throws ServiceException {
+                               @ValidateStringParam(name = "orderName") String orderName) throws ServiceLayerException {
         Double beforeOrder = null;
         Double afterOrder = null;
         DmOrderTO beforeOrderTO = null;
@@ -2403,7 +2403,7 @@ public class ContentServiceImpl implements ContentService {
     @ValidateParams
     public boolean renameFolder(@ValidateStringParam(name = "site") String site,
                                 @ValidateSecurePathParam(name = "path") String path,
-                                @ValidateStringParam(name = "name") String name) throws ServiceException {
+                                @ValidateStringParam(name = "name") String name) throws ServiceLayerException {
         boolean toRet = false;
 
         String parentPath = FILE_SEPARATOR + FilenameUtils.getPathNoEndSeparator(path);
@@ -2444,7 +2444,7 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     public boolean pushToRemote(String siteId, String remoteName, String remoteBranch)
-            throws ServiceException, InvalidRemoteUrlException {
+            throws ServiceLayerException, InvalidRemoteUrlException {
         if (!siteService.exists(siteId)) {
             throw new SiteNotFoundException();
         }
@@ -2462,7 +2462,7 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     public boolean pullFromRemote(String siteId, String remoteName, String remoteBranch)
-            throws ServiceException, InvalidRemoteUrlException {
+            throws ServiceLayerException, InvalidRemoteUrlException {
         if (!siteService.exists(siteId)) {
             throw new SiteNotFoundException(siteId);
         }

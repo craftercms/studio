@@ -23,7 +23,7 @@ package org.craftercms.studio.api.v1.exception;
  * @author hyanghee
  *
  */
-public class ContentProcessException extends ServiceException {
+public class ContentProcessException extends ServiceLayerException {
 
 	/**
 	 * 

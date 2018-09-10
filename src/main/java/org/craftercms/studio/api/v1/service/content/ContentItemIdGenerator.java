@@ -18,7 +18,7 @@
 package org.craftercms.studio.api.v1.service.content;
 
 
-import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 
 import java.util.Map;
 
@@ -30,5 +30,5 @@ public interface ContentItemIdGenerator {
      * @return pair of id and value
      *
      */
-    public Map<String,String> getIds() throws ServiceException;
+    public Map<String,String> getIds() throws ServiceLayerException;
 }

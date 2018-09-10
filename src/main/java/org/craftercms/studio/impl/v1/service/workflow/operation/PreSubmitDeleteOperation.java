@@ -17,7 +17,7 @@
  */
 package org.craftercms.studio.impl.v1.service.workflow.operation;
 
-import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.service.workflow.WorkflowService;
 import org.craftercms.studio.api.v1.service.workflow.context.GoLiveContext;
 
@@ -32,7 +32,7 @@ public class PreSubmitDeleteOperation extends SubmitLifeCycleOperation<List<Stri
     }
 
     @Override
-    public List<String> execute() throws ServiceException {
+    public List<String> execute() throws ServiceLayerException {
         List<String> stringList = workflowService.preDelete(uris, context, rescheduledUris);
         return stringList;       
     }

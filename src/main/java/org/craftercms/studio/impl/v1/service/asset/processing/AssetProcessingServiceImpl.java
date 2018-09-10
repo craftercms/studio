@@ -42,7 +42,7 @@ import org.craftercms.studio.api.v1.asset.processing.AssetProcessorPipelineResol
 import org.craftercms.studio.api.v1.asset.processing.ProcessorPipelineConfiguration;
 import org.craftercms.studio.api.v1.exception.AssetProcessingException;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
-import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.asset.processing.AssetProcessingService;
@@ -203,7 +203,7 @@ public class AssetProcessingServiceImpl implements AssetProcessingService {
                         }
                     }
                 }
-            } catch (IOException | ServiceException e) {
+            } catch (IOException | ServiceLayerException e) {
                 throw new AssetProcessingException("Error writing output " + output, e);
             }
         }

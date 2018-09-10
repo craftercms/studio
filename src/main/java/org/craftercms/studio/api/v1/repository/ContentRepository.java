@@ -21,7 +21,7 @@ package org.craftercms.studio.api.v1.repository;
 
 import org.craftercms.studio.api.v1.dal.GitLog;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
-import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
@@ -80,7 +80,7 @@ public interface ContentRepository {
      * @param content stream of content to write
      * @return Commit Id if successful, null otherwise
      */
-    String writeContent(String site, String path, InputStream content) throws ServiceException;
+    String writeContent(String site, String path, InputStream content) throws ServiceLayerException;
 
     /**
      * create a folder
@@ -372,7 +372,7 @@ public interface ContentRepository {
                                   String remoteUsername, String remotePassword, String remoteToken,
                                   String remotePrivateKey)
             throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
-            RemoteRepositoryNotFoundException, InvalidRemoteUrlException,  ServiceException;
+            RemoteRepositoryNotFoundException, InvalidRemoteUrlException, ServiceLayerException;
 
     /**
      * Push new site to remote repository
@@ -388,7 +388,7 @@ public interface ContentRepository {
                                    String remoteUsername, String remotePassword, String remoteToken,
                                    String remotePrivateKey) throws InvalidRemoteRepositoryException,
             InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException,
-            RemoteRepositoryNotBareException, ServiceException;
+            RemoteRepositoryNotBareException, ServiceLayerException;
 
     /**
      * Add remote repository for site content repository
@@ -406,7 +406,7 @@ public interface ContentRepository {
     boolean addRemote(String siteId, String remoteName, String remoteUrl,
                       String authenticationType, String remoteUsername, String remotePassword, String remoteToken,
                       String remotePrivateKey)
-            throws InvalidRemoteUrlException, ServiceException;
+            throws InvalidRemoteUrlException, ServiceLayerException;
 
     /**
      * Remove remote with given name for site
@@ -431,7 +431,7 @@ public interface ContentRepository {
      * @param sandboxBranch sandbox branch name
      * @return list of names of remote repositories
      */
-    List<RemoteRepositoryInfoTO> listRemote(String siteId, String sandboxBranch) throws ServiceException;
+    List<RemoteRepositoryInfoTO> listRemote(String siteId, String sandboxBranch) throws ServiceLayerException;
 
     /**
      * Push content to remote repository
@@ -441,7 +441,7 @@ public interface ContentRepository {
      * @param remoteBranch remote branch
      * @return true if operation was successful
      */
-    boolean pushToRemote(String siteId, String remoteName, String remoteBranch) throws ServiceException,
+    boolean pushToRemote(String siteId, String remoteName, String remoteBranch) throws ServiceLayerException,
             InvalidRemoteUrlException;
 
     /**
@@ -452,7 +452,7 @@ public interface ContentRepository {
      * @param remoteBranch remote branch
      * @return true if operation was successful
      */
-    boolean pullFromRemote(String siteId, String remoteName, String remoteBranch) throws ServiceException,
+    boolean pullFromRemote(String siteId, String remoteName, String remoteBranch) throws ServiceLayerException,
             InvalidRemoteUrlException;
 
     /**
@@ -469,7 +469,7 @@ public interface ContentRepository {
      *
      * @param siteId site identifier to use for resetting
      */
-    void resetStagingRepository(String siteId) throws ServiceException;
+    void resetStagingRepository(String siteId) throws ServiceLayerException;
 
     /**
      * Reload repository for given site

@@ -49,7 +49,7 @@ import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.StudioXmlConstants;
-import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationSystemException;
 import org.craftercms.studio.api.v1.exception.security.BadCredentialsException;
 import org.craftercms.studio.api.v1.exception.security.PasswordDoesNotMatchException;
@@ -186,7 +186,8 @@ public class SecurityServiceImpl implements SecurityService {
 
     @Override
     @ValidateParams
-    public Map<String,Object> getUserProfile(@ValidateStringParam(name = "user") String user) {
+    public Map<String,Object> getUserProfile(@ValidateStringParam(name = "user") String user)
+        throws ServiceLayerException {
         Map<String, Object> toRet = new HashMap<String, Object>();
         User u = securityProvider.getUserByIdOrUsername(-1, user);
         if (u != null) {
@@ -228,7 +229,7 @@ public class SecurityServiceImpl implements SecurityService {
                         permissions.add(StudioConstants.PERMISSION_VALUE_NOT_ALLOWED);
                         return permissions;
                     }
-                } catch (ServiceException e) {
+                } catch (ServiceLayerException e) {
                     logger.debug("Error while getting the content type of " + path
                             + ". skipping user role checking on the content.");
                 }
@@ -639,7 +640,7 @@ public class SecurityServiceImpl implements SecurityService {
 
 
     @Override
-    public int getAllUsersTotal() {
+    public int getAllUsersTotal() throws ServiceLayerException {
         return securityProvider.getAllUsersTotal();
     }
 
@@ -647,7 +648,7 @@ public class SecurityServiceImpl implements SecurityService {
     @Override
     @ValidateParams
     public Map<String, Object> forgotPassword(@ValidateStringParam(name = "username") String username)
-            throws ServiceException, UserNotFoundException, UserExternallyManagedException {
+            throws ServiceLayerException, UserNotFoundException, UserExternallyManagedException {
         logger.debug("Getting user profile for " + username);
         User user = securityProvider.getUserByIdOrUsername(-1, username);
         boolean success = false;
@@ -673,13 +674,13 @@ public class SecurityServiceImpl implements SecurityService {
                     try {
                         sendForgotPasswordEmail(email, hashedToken);
                     } catch (MessagingException | IOException | TemplateException e) {
-                        throw new ServiceException("Error while sending forgot password email", e);
+                        throw new ServiceLayerException("Error while sending forgot password email", e);
                     }
                     success = true;
                     message = "OK";
                 } else {
                     logger.info("User " + username + " does not have assigned email with account");
-                    throw new ServiceException("User " + username + " does not have assigned email with account");
+                    throw new ServiceLayerException("User " + username + " does not have assigned email with account");
                 }
             }
         }
@@ -691,8 +692,8 @@ public class SecurityServiceImpl implements SecurityService {
 
     @Override
     @ValidateParams
-    public boolean validateToken(@ValidateStringParam(name = "token") String token)
-            throws UserNotFoundException, UserExternallyManagedException {
+    public boolean validateToken(@ValidateStringParam(name = "token") String token) throws UserNotFoundException,
+        UserExternallyManagedException, ServiceLayerException {
         boolean toRet = false;
         String decryptedToken = decryptToken(token);
         if (StringUtils.isNotEmpty(decryptedToken)) {
@@ -796,7 +797,7 @@ public class SecurityServiceImpl implements SecurityService {
     public boolean changePassword(@ValidateStringParam(name = "username") String username,
                                   @ValidateStringParam(name = "current") String current,
                                   @ValidateStringParam(name = "newPassword") String newPassword)
-            throws PasswordDoesNotMatchException, UserExternallyManagedException {
+        throws PasswordDoesNotMatchException, UserExternallyManagedException, ServiceLayerException {
         return securityProvider.changePassword(username, current, newPassword);
     }
 
@@ -804,7 +805,7 @@ public class SecurityServiceImpl implements SecurityService {
     @ValidateParams
     public Map<String, Object> setUserPassword(@ValidateStringParam(name = "token") String token,
                                                @ValidateStringParam(name = "newPassword") String newPassword)
-            throws UserNotFoundException, UserExternallyManagedException {
+        throws UserNotFoundException, UserExternallyManagedException, ServiceLayerException {
         Map<String, Object> toRet = new HashMap<String, Object>();
         toRet.put("username", StringUtils.EMPTY);
         toRet.put("success", false);
@@ -843,7 +844,7 @@ public class SecurityServiceImpl implements SecurityService {
     @ValidateParams
     public boolean resetPassword(@ValidateStringParam(name = "username") String username,
                                  @ValidateStringParam(name = "newPassword") String newPassword)
-            throws UserNotFoundException, UserExternallyManagedException {
+        throws UserNotFoundException, UserExternallyManagedException, ServiceLayerException {
         String currentUser = getCurrentUser();
         if (isAdmin(currentUser)) {
             return securityProvider.setUserPassword(username, newPassword);
@@ -852,7 +853,7 @@ public class SecurityServiceImpl implements SecurityService {
         }
     }
 
-    private boolean isAdmin(String username) {
+    private boolean isAdmin(String username) throws ServiceLayerException {
         List<Group> userGroups = securityProvider.getUserGroups(-1, username);
         boolean toRet = false;
         if (CollectionUtils.isNotEmpty(userGroups)) {
@@ -869,7 +870,13 @@ public class SecurityServiceImpl implements SecurityService {
     @Override
     @ValidateParams
     public boolean isSiteAdmin(@ValidateStringParam(name = "username") String username, String site) {
-        List<Group> userGroups = securityProvider.getUserGroups(-1, username);
+        List<Group> userGroups = null;
+        try {
+            userGroups = securityProvider.getUserGroups(-1, username);
+        } catch (ServiceLayerException e) {
+            logger.warn("Error getting user memberships", e);
+            return false;
+        }
         boolean toRet = false;
         if (CollectionUtils.isNotEmpty(userGroups)) {
             for (Group group : userGroups) {
@@ -885,12 +892,12 @@ public class SecurityServiceImpl implements SecurityService {
 
     @Override
     @ValidateParams
-    public boolean userExists(@ValidateStringParam(name = "username") String username) {
+    public boolean userExists(@ValidateStringParam(name = "username") String username) throws ServiceLayerException {
         return securityProvider.userExists(username);
     }
 
     @Override
-    public boolean validateSession(HttpServletRequest request) {
+    public boolean validateSession(HttpServletRequest request) throws ServiceLayerException {
         HttpSession httpSession = request.getSession();
         String authToken = (String)httpSession.getAttribute(STUDIO_SESSION_TOKEN_ATRIBUTE);
         String userName = securityProvider.getCurrentUser();

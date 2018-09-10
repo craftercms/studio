@@ -24,6 +24,9 @@ import org.craftercms.commons.entitlements.model.Entitlement;
 import org.craftercms.commons.entitlements.model.EntitlementType;
 import org.craftercms.commons.entitlements.model.Module;
 import org.craftercms.commons.entitlements.usage.EntitlementUsageProvider;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.log.Logger;
+import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.service.security.SecurityProvider;
@@ -36,6 +39,8 @@ import static org.craftercms.commons.entitlements.model.Module.STUDIO;
  * @author joseross
  */
 public class StudioEntitlementUsageProvider implements EntitlementUsageProvider {
+
+    private static final Logger logger = LoggerFactory.getLogger(EntitlementUsageProvider.class);
 
     /**
      * Current instance of {@link ObjectMetadataManager}.
@@ -83,7 +88,12 @@ public class StudioEntitlementUsageProvider implements EntitlementUsageProvider 
 
         Entitlement users = new Entitlement();
         users.setType(EntitlementType.USER);
-        users.setValue(securityProvider.getAllUsersTotal());
+        try {
+            users.setValue(securityProvider.getAllUsersTotal());
+        } catch (ServiceLayerException e) {
+            logger.warn("Error getting total users", e);
+            users.setValue(0);
+        }
 
         Entitlement items = new Entitlement();
         items.setType(EntitlementType.ITEM);

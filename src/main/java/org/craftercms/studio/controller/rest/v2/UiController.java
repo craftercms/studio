@@ -18,7 +18,7 @@
 
 package org.craftercms.studio.controller.rest.v2;
 
-import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v2.ui.UiService;
 import org.craftercms.studio.model.rest.ApiResponse;
@@ -47,7 +47,7 @@ public class UiController {
     }
 
     @GetMapping("/views/global_menu")
-    public ResponseBody getGlobalMenu() throws AuthenticationException, ServiceException {
+    public ResponseBody getGlobalMenu() throws AuthenticationException, ServiceLayerException {
         ResultList<MenuItem> result = new ResultList<>();
         result.setResponse(ApiResponse.OK);
         result.setEntities(uiService.getGlobalMenu());

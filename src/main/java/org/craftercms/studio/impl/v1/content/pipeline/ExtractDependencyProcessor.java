@@ -20,7 +20,7 @@ package org.craftercms.studio.impl.v1.content.pipeline;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.content.pipeline.PipelineContent;
 import org.craftercms.studio.api.v1.exception.ContentProcessException;
-import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.dependency.DependencyService;
@@ -59,7 +59,7 @@ public class ExtractDependencyProcessor extends PathMatchProcessor {
         String path = (folderPath.endsWith(FILE_SEPARATOR)) ? folderPath + fileName : folderPath + FILE_SEPARATOR + fileName;
         try {
             dependencyService.upsertDependencies(site, path);
-        } catch (ServiceException e) {
+        } catch (ServiceLayerException e) {
             throw new ContentProcessException(e);
         }
     }

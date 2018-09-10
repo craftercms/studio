@@ -16,7 +16,7 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
-import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.search.SearchService;
@@ -45,7 +45,7 @@ public class SearchServiceImpl implements SearchService {
 
 	@Override
     @ValidateParams
-	public void createIndex(@ValidateStringParam(name = "siteId") final String siteId) throws ServiceException {
+	public void createIndex(@ValidateStringParam(name = "siteId") final String siteId) throws ServiceLayerException {
 		logger.info("Creating search index for site:" + siteId);
 		String requestUrl = studioConfiguration.getProperty(PREVIEW_SEARCH_CREATE_URL);
 
@@ -60,13 +60,13 @@ public class SearchServiceImpl implements SearchService {
 		try {
 			CloseableHttpResponse response = httpClient.execute(postRequest);
 			if (response.getStatusLine().getStatusCode() != HttpStatus.SC_CREATED) {
-				throw new ServiceException("Error while creating search index for site " + siteId + ". Request URL: "
-					+ requestUrl + ". Request Body: " + rqBody + ". Response: "
+				throw new ServiceLayerException("Error while creating search index for site " + siteId +
+					". Request URL: " + requestUrl + ". Request Body: " + rqBody + ". Response: "
 					+ IOUtils.toString(response.getEntity().getContent()));
 			}
 		} catch (IOException e) {
 			logger.error("Error while creating search index for site " + siteId, e);
-			throw new ServiceException("Error while creating search index for site " + siteId, e);
+			throw new ServiceLayerException("Error while creating search index for site " + siteId, e);
 		} finally {
 			postRequest.releaseConnection();
 		}
@@ -74,7 +74,7 @@ public class SearchServiceImpl implements SearchService {
 
 	@Override
     @ValidateParams
-	public void deleteIndex(@ValidateStringParam(name = "siteId") final String siteId) throws ServiceException {
+	public void deleteIndex(@ValidateStringParam(name = "siteId") final String siteId) throws ServiceLayerException {
 		logger.debug("Deleting search index for site:" + siteId);
 
 		String requestUrl = studioConfiguration.getProperty(PREVIEW_SEARCH_DELETE_URL);
@@ -96,8 +96,8 @@ public class SearchServiceImpl implements SearchService {
 		try {
 			CloseableHttpResponse response = httpClient.execute(postRequest);
 			if (response.getStatusLine().getStatusCode() != HttpStatus.SC_NO_CONTENT) {
-				throw new ServiceException("Error while deleting search index for site " + siteId + ". Request URL: "
-					+ requestUrl + ". Request Body: " + rqBody + ". Response: "
+				throw new ServiceLayerException("Error while deleting search index for site " + siteId +
+					". Request URL: " + requestUrl + ". Request Body: " + rqBody + ". Response: "
 					+ IOUtils.toString(response.getEntity().getContent()));
 			}
 
@@ -105,7 +105,7 @@ public class SearchServiceImpl implements SearchService {
 				response.getStatusLine().getStatusCode());
 		} catch (IOException e) {
 			logger.error("Error while deleting search index for site " + siteId, e);
-			throw new ServiceException("Error while deleting search index for site " + siteId, e);
+			throw new ServiceLayerException("Error while deleting search index for site " + siteId, e);
 		} finally {
 			postRequest.releaseConnection();
 		}

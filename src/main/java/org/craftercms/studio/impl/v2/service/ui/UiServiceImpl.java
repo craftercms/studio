@@ -18,30 +18,17 @@
 
 package org.craftercms.studio.impl.v2.service.ui;
 
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.configuration2.Configuration;
-import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.lang3.StringUtils;
-import org.craftercms.commons.lang.UrlUtils;
-import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
-import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
-import org.craftercms.studio.api.v1.util.StudioConfiguration;
-import org.craftercms.studio.api.v2.exception.ConfigurationException;
 import org.craftercms.studio.api.v2.ui.UiService;
-import org.craftercms.studio.impl.v1.util.ConfigUtils;
 import org.craftercms.studio.impl.v2.service.ui.internal.UiServiceInternal;
 import org.craftercms.studio.model.ui.MenuItem;
 import org.springframework.beans.factory.annotation.Required;
 
-import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_GLOBAL_CONFIG_BASE_PATH;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_GLOBAL_MENU_FILE_NAME;
 
 /**
  * Default implementation of {@link UiService}. Delegates to the {@link UiServiceInternal} for the actual work.
@@ -65,7 +52,7 @@ public class UiServiceImpl implements UiService {
 
     @Override
     @SuppressWarnings("unchecked")
-    public List<MenuItem> getGlobalMenu() throws AuthenticationException, ServiceException {
+    public List<MenuItem> getGlobalMenu() throws AuthenticationException, ServiceLayerException {
         String user = securityService.getCurrentUser();
         if (StringUtils.isNotEmpty(user)) {
             Set<String> permissions = securityService.getUserPermissions(null, "/", user, null);

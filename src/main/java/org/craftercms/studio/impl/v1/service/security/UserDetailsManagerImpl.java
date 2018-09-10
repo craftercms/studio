@@ -18,6 +18,7 @@
 
 package org.craftercms.studio.impl.v1.service.security;
 
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.service.security.UserDetailsManager;
 import org.craftercms.studio.api.v2.dal.UserTO;
 import org.craftercms.studio.api.v2.dal.UserDAO;
@@ -34,12 +35,16 @@ public class UserDetailsManagerImpl implements UserDetailsManager {
     protected UserDAO userDAO;
 
     @Override
-    public UserDetails loadUserByUsername(String username) {
+    public UserDetails loadUserByUsername(String username) throws ServiceLayerException {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(USER_ID, -1);
         params.put(USERNAME, username);
-        UserTO user = userDAO.getUserByIdOrUsername(params);
-        return user;
+        try {
+            UserTO user = userDAO.getUserByIdOrUsername(params);
+            return user;
+        } catch (Exception e) {
+            throw new ServiceLayerException("Unknown database error", e);
+        }
     }
 
     public UserDAO getUserDAO() {

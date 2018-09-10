@@ -18,7 +18,7 @@
 
 package org.craftercms.studio.api.v1.exception;
 
-public class BlueprintNotFoundException extends ServiceException {
+public class BlueprintNotFoundException extends ServiceLayerException {
 
     private static final long serialVersionUID = -2848136136746845231L;
 
