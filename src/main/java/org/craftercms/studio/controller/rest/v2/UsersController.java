@@ -88,7 +88,6 @@ public class UsersController {
             users = userService.getAllUsersForSite(DEFAULT_ORGANIZATION_ID, siteId, offset, limit, sort);
         }
 
-
         ResponseBody responseBody = new ResponseBody();
         PaginatedResultList<User> result = new PaginatedResultList<>();
         result.setTotal(total);

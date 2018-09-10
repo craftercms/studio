@@ -19,6 +19,7 @@
 package org.craftercms.studio.controller.rest.v2;
 
 import org.craftercms.commons.http.HttpUtils;
+import org.craftercms.commons.security.exception.ActionDeniedException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
@@ -51,6 +52,12 @@ public class ExceptionHandlers {
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public ResponseBody handleAuthenticationException(HttpServletRequest request, AuthenticationException e) {
         return handleExceptionInternal(request, e, ApiResponse.UNAUTHENTICATED);
+    }
+
+    @ExceptionHandler(ActionDeniedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ResponseBody handleActionDeniedException(HttpServletRequest request, ActionDeniedException e) {
+        return handleExceptionInternal(request, e, ApiResponse.UNAUTHORIZED);
     }
 
     @ExceptionHandler(UserAlreadyExistsException.class)
