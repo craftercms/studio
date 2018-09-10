@@ -19,7 +19,7 @@
 package org.craftercms.studio.impl.v1.service.dependency;
 
 import org.apache.commons.lang.StringUtils;
-import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.service.dependency.DependencyDiffService;
 import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 
@@ -38,12 +38,12 @@ public class DependencyDiffServiceImpl implements DependencyDiffService {
      * Computes addedDependenices and removedDependenices based on the DiffRequest information provided
      * @param diffRequest
      * @return diff response object
-     * @throws ServiceException
+     * @throws ServiceLayerException
      */
-    public DiffResponse diff(DiffRequest diffRequest) throws ServiceException {
+    public DiffResponse diff(DiffRequest diffRequest) throws ServiceLayerException {
 
         if(diffRequest == null)
-            throw new ServiceException("diffcontext cannot be null");
+            throw new ServiceLayerException("diffcontext cannot be null");
 
         DiffResponse response = new DiffResponse();
         boolean recursive = diffRequest.isRecursive();
@@ -75,7 +75,8 @@ public class DependencyDiffServiceImpl implements DependencyDiffService {
         return response;
     }
 
-    protected List<String> findDependencies(String site, String sandbox, String relativePath, boolean isRecursive, List<String> dependencies) throws ServiceException{
+    protected List<String> findDependencies(String site, String sandbox, String relativePath, boolean isRecursive,
+                                            List<String> dependencies) throws ServiceLayerException {
         Set<String> dependenciesFromDoc = dependencyService.getItemDependencies(site, relativePath, 1);
         dependencies.addAll(dependenciesFromDoc);
         if(isRecursive){

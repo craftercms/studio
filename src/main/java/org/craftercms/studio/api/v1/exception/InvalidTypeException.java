@@ -17,7 +17,7 @@
  ******************************************************************************/
 package org.craftercms.studio.api.v1.exception;
 
-public class InvalidTypeException extends ServiceException {
+public class InvalidTypeException extends ServiceLayerException {
 
 	/**
 	 * 

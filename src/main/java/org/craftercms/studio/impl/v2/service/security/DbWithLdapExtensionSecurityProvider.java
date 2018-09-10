@@ -23,6 +23,7 @@ import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationSystemException;
 import org.craftercms.studio.api.v1.exception.security.BadCredentialsException;
 import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
@@ -54,6 +55,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -103,6 +105,7 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
                     UserTO userTO = new UserTO();
                     userTO.setActive(1);
                     userTO.setUsername(username);
+                    userTO.setPassword(UUID.randomUUID().toString());
 
                     if (emailAttrib != null && emailAttrib.get() != null) {
                         userTO.setEmail(emailAttrib.get().toString());
@@ -163,46 +166,53 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
 
         if (userTO != null) {
             // When user authenticated against LDAP, upsert user data into studio database
-            if (super.userExists(username)) {
-                try {
-                    boolean success = updateUserInternal(userTO.getUsername(), userTO.getFirstName(),
+            try {
+                if (super.userExists(username)) {
+                    try {
+                        boolean success = updateUserInternal(userTO.getUsername(), userTO.getFirstName(),
                             userTO.getLastName(), userTO.getEmail());
-                    if (success) {
-                        ActivityService.ActivityType activityType = ActivityService.ActivityType.UPDATED;
-                        Map<String, String> extraInfo = new HashMap<>();
-                        extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
-                        activityService.postActivity(getSystemSite(), userTO.getUsername(), userTO.getUsername(),
-                                                     activityType, ActivityService.ActivitySource.API, extraInfo);
-                    }
-                } catch (UserNotFoundException e) {
-                    logger.error("Error updating user " + username +
-                                 " with data from external authentication provider", e);
+                        if (success) {
+                            ActivityService.ActivityType activityType = ActivityService.ActivityType.UPDATED;
+                            Map<String, String> extraInfo = new HashMap<>();
+                            extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
+                            activityService.postActivity(getSystemSite(), userTO.getUsername(), userTO.getUsername(),
+                                activityType, ActivityService.ActivitySource.API, extraInfo);
+                        }
+                    } catch (UserNotFoundException e) {
+                        logger.error("Error updating user " + username +
+                            " with data from external authentication provider", e);
 
-                    throw new AuthenticationSystemException("Error updating user " + username +
-                                                            " with data from external authentication provider", e);
-                }
-            } else {
-                try {
-                    User user = new User();
-                    user.setUsername(userTO.getUsername());
-                    user.setPassword(userTO.getPassword());
-                    user.setEmail(userTO.getEmail());
-                    user.setFirstName(userTO.getFirstName());
-                    user.setExternallyManaged(true);
-                    boolean success = createUser(user);
-                    if (success) {
-                        ActivityService.ActivityType activityType = ActivityService.ActivityType.CREATED;
-                        Map<String, String> extraInfo = new HashMap<>();
-                        extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
-                        activityService.postActivity(getSystemSite(), user.getUsername(), user.getUsername(),
-                                                     activityType, ActivityService.ActivitySource.API, extraInfo);
+                        throw new AuthenticationSystemException("Error updating user " + username +
+                            " with data from external authentication provider", e);
                     }
-                } catch (UserAlreadyExistsException e) {
-                    logger.error("Error adding user " + username + " from external authentication provider", e);
+                } else {
+                    try {
+                        User user = new User();
+                        user.setUsername(userTO.getUsername());
+                        user.setPassword(userTO.getPassword());
+                        user.setEmail(userTO.getEmail());
+                        user.setFirstName(userTO.getFirstName());
+                        user.setLastName(userTO.getLastName());
+                        user.setExternallyManaged(true);
+                        boolean success = createUser(user);
+                        if (success) {
+                            ActivityService.ActivityType activityType = ActivityService.ActivityType.CREATED;
+                            Map<String, String> extraInfo = new HashMap<>();
+                            extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
+                            activityService.postActivity(getSystemSite(), user.getUsername(), user.getUsername(),
+                                activityType, ActivityService.ActivitySource.API, extraInfo);
+                        }
+                    } catch (UserAlreadyExistsException e) {
+                        logger.error("Error adding user " + username + " from external authentication provider",
+                                        e);
 
-                    throw new AuthenticationSystemException("Error adding user " + username +
-                                                            " from external authentication provider", e);
+                        throw new AuthenticationSystemException("Error adding user " + username +
+                            " from external authentication provider", e);
+                    }
                 }
+            } catch (ServiceLayerException e) {
+                logger.error("Unknown service error", e);
+                throw  new AuthenticationSystemException("Unknown service error" , e);
             }
 
             for (UserGroupTO userGroup : userTO.getGroups()) {
@@ -268,7 +278,7 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
     }
 
     protected boolean updateUserInternal(String username, String firstName, String lastName, String email)
-            throws UserNotFoundException {
+        throws UserNotFoundException, ServiceLayerException {
         if (!userExists(username)) {
             throw new UserNotFoundException();
         } else {
@@ -289,6 +299,8 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
             createGroup(1, groupName, "Externally managed group - " + groupName);
         } catch (GroupAlreadyExistsException e) {
             logger.warn("Externally managed group: " + groupName + " not created. It already exists .");
+        } catch (ServiceLayerException e) {
+            logger.warn("Error creating group", e);
         }
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(GROUP_NAME, groupName);
@@ -296,7 +308,12 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
         if (groupTO != null) {
             List<String> usernames = new ArrayList<String>();
             usernames.add(username);
-            boolean success = addGroupMembers(groupTO.getId(), new ArrayList<Long>(), usernames);
+            boolean success = false;
+            try {
+                success = addGroupMembers(groupTO.getId(), new ArrayList<Long>(), usernames);
+            } catch (ServiceLayerException e) {
+                logger.error("Error adding user to group", e);
+            }
             if (success){
                 ActivityService.ActivityType activityType = ActivityService.ActivityType.ADD_USER_TO_GROUP;
                 Map<String, String> extraInfo = new HashMap<>();

@@ -17,7 +17,7 @@
  ******************************************************************************/
 package org.craftercms.studio.api.v1.exception;
 
-public class WorkflowNotFoundException extends ServiceException {
+public class WorkflowNotFoundException extends ServiceLayerException {
 
 	/**
 	 * 

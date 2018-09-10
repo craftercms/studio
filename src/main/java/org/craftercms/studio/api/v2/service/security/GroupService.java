@@ -18,6 +18,7 @@
 
 package org.craftercms.studio.api.v2.service.security;
 
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
 import org.craftercms.studio.model.Group;
@@ -36,7 +37,7 @@ public interface GroupService {
      * @param sort Sort order
      * @return List of groups
      */
-    List<Group> getAllGroups(long orgId, int offset, int limit, String sort);
+    List<Group> getAllGroups(long orgId, int offset, int limit, String sort) throws ServiceLayerException;
 
     /**
      * Get total number of all groups
@@ -44,7 +45,7 @@ public interface GroupService {
      * @param orgId Organization identifier
      * @return Number of groups
      */
-    int getAllGroupsTotal(long orgId);
+    int getAllGroupsTotal(long orgId) throws ServiceLayerException;
 
     /**
      * Create group
@@ -53,7 +54,8 @@ public interface GroupService {
      * @param groupName Group name
      * @param groupDescription Group description
      */
-    void createGroup(long orgId, String groupName, String groupDescription) throws GroupAlreadyExistsException;
+    void createGroup(long orgId, String groupName, String groupDescription) throws GroupAlreadyExistsException,
+        ServiceLayerException;
 
     /**
      * Update group
@@ -61,14 +63,14 @@ public interface GroupService {
      * @param orgId Organization identifier
      * @param group Group to update
      */
-    void updateGroup(long orgId, Group group);
+    void updateGroup(long orgId, Group group) throws ServiceLayerException;
 
     /**
      * Delete group(s)
      *
      * @param groupIds Group identifiers
      */
-    void deleteGroup(List<Long> groupIds);
+    void deleteGroup(List<Long> groupIds) throws ServiceLayerException;
 
     /**
      * Get group
@@ -76,7 +78,7 @@ public interface GroupService {
      * @param groupId Group identifier
      * @return Group
      */
-    Group getGroup(long groupId);
+    Group getGroup(long groupId) throws ServiceLayerException;
 
     /**
      * Get group members
@@ -87,7 +89,7 @@ public interface GroupService {
      * @param sort Sort order
      * @return List of users
      */
-    List<User> getGroupMembers(long groupId, int offset, int limit, String sort);
+    List<User> getGroupMembers(long groupId, int offset, int limit, String sort) throws ServiceLayerException;
 
     /**
      * Add users to the group
@@ -96,7 +98,7 @@ public interface GroupService {
      * @param userIds List of user identifiers
      * @param usernames List of usernames
      */
-    void addGroupMembers(long groupId, List<Long> userIds, List<String> usernames);
+    void addGroupMembers(long groupId, List<Long> userIds, List<String> usernames) throws ServiceLayerException;
 
     /**
      * Remove users from the group
@@ -105,7 +107,7 @@ public interface GroupService {
      * @param userIds List of user identifiers
      * @param usernames List of usernames
      */
-    void removeGroupMembers(long groupId, List<Long> userIds, List<String> usernames);
+    void removeGroupMembers(long groupId, List<Long> userIds, List<String> usernames) throws ServiceLayerException;
 
     /**
      * Get groups for site
@@ -127,5 +129,5 @@ public interface GroupService {
      * @param groupName group name
      * @return group object
      */
-    Group getGroupByName(String groupName) throws GroupNotFoundException;
+    Group getGroupByName(String groupName) throws GroupNotFoundException, ServiceLayerException;
 }

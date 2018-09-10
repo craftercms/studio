@@ -19,7 +19,7 @@ package org.craftercms.studio.impl.v1.service.content;
 
 
 import org.craftercms.studio.api.v1.constant.DmConstants;
-import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.AbstractRegistrableService;
@@ -40,7 +40,7 @@ public class ContentItemIdGeneratorImpl extends AbstractRegistrableService imple
     }
 
     @Override
-    public Map<String, String> getIds() throws ServiceException {
+    public Map<String, String> getIds() throws ServiceLayerException {
         Map<String,String> params = new HashMap<String,String>();
         String pageId = UUID.randomUUID().toString();
         String groupId;

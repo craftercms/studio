@@ -19,7 +19,7 @@ package org.craftercms.studio.api.v1.exception;
 /**
  * Exception thrown by image transformation classes.
  */
-public class ImageTransformationException extends ServiceException {
+public class ImageTransformationException extends ServiceLayerException {
 
     public ImageTransformationException(String message, Exception e) {
         super(message, e);

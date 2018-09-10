@@ -33,7 +33,7 @@ import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.PublishRequest;
 import org.craftercms.studio.api.v1.dal.PublishRequestMapper;
 import org.craftercms.studio.api.v1.dal.ItemMetadata;
-import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
@@ -288,7 +288,7 @@ public class PublishingManagerImpl implements PublishingManager {
     public List<DeploymentItemTO> processMandatoryDependencies(PublishRequest item,
                                                                Set<String> pathsToDeploy,
                                                                Set<String> missingDependenciesPaths)
-            throws DeploymentException, ServiceException {
+            throws DeploymentException, ServiceLayerException {
         List<DeploymentItemTO> mandatoryDependencies = new ArrayList<DeploymentItemTO>();
         String site = item.getSite();
         String path = item.getPath();

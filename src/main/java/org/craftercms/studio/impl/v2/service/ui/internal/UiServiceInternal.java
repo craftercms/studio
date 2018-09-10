@@ -1,7 +1,6 @@
 package org.craftercms.studio.impl.v2.service.ui.internal;
 
-import org.craftercms.studio.api.v1.exception.ServiceException;
-import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.model.ui.MenuItem;
 
 import java.util.List;
@@ -21,8 +20,8 @@ public interface UiServiceInternal {
      *
      * @return the list of menu items
      *
-     * @throws ServiceException if another error occurs
+     * @throws ServiceLayerException if another error occurs
      */
-    List<MenuItem> getGlobalMenu(Set<String> permissions) throws ServiceException;
+    List<MenuItem> getGlobalMenu(Set<String> permissions) throws ServiceLayerException;
 
 }

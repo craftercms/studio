@@ -18,7 +18,7 @@
 package org.craftercms.studio.api.v1.service.deployment;
 
 
-import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.service.workflow.context.MultiChannelPublishingContext;
 
 import java.time.ZonedDateTime;
@@ -36,5 +36,5 @@ public interface DmPublishService {
 
     boolean hasChannelsConfigure(String site, MultiChannelPublishingContext mcpContext);
 
-    void bulkGoLive(String site, String environment, String path) throws ServiceException;
+    void bulkGoLive(String site, String environment, String path) throws ServiceLayerException;
 }

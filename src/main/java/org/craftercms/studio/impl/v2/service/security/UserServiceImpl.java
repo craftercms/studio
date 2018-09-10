@@ -18,7 +18,7 @@
 
 package org.craftercms.studio.impl.v2.service.security;
 
-import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -53,18 +53,24 @@ public class UserServiceImpl implements UserService {
     private SecurityProvider securityProvider;
 
     @Override
-    public List<User> getAllUsersForSite(long orgId, String siteId, int offset, int limit, String sort) {
+    public List<User> getAllUsersForSite(long orgId, String siteId, int offset, int limit, String sort) throws
+        ServiceLayerException {
         List<String> groupNames = groupService.getSiteGroups(siteId);
         return securityProvider.getAllUsersForSite(orgId, groupNames, offset, limit, sort);
     }
 
     @Override
-    public List<User> getAllUsers(int offset, int limit, String sort) {
+    public List<User> getAllUsers(int offset, int limit, String sort) throws ServiceLayerException {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(OFFSET, offset);
         params.put(LIMIT, limit);
         params.put(SORT, sort);
-        List<UserTO> userTOs = userDAO.getAllUsers(params);
+        List<UserTO> userTOs;
+        try {
+            userTOs = userDAO.getAllUsers(params);
+        } catch (Exception e) {
+            throw new ServiceLayerException("Unknown database error", e);
+        }
         List<User> users = new ArrayList<User>();
         userTOs.forEach(userTO -> {
             User u = new User();
@@ -81,59 +87,71 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public int getAllUsersForSiteTotal(long orgId, String siteId) {
+    public int getAllUsersForSiteTotal(long orgId, String siteId) throws ServiceLayerException {
         List<String> groupNames = groupService.getSiteGroups(siteId);
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(GROUP_NAMES, groupNames);
-        return userDAO.getAllUsersForSiteTotal(params);
+        try {
+            return userDAO.getAllUsersForSiteTotal(params);
+        } catch (Exception e) {
+            throw new ServiceLayerException("Unknown database error", e);
+        }
     }
 
     @Override
-    public int getAllUsersTotal() {
-        return userDAO.getAllUsersTotal();
+    public int getAllUsersTotal() throws ServiceLayerException {
+        try {
+            return userDAO.getAllUsersTotal();
+        } catch (Exception e) {
+            throw new ServiceLayerException("Unknown database error", e);
+        }
     }
 
     @Override
-    public void createUser(User user) throws UserAlreadyExistsException {
+    public void createUser(User user) throws UserAlreadyExistsException, ServiceLayerException {
         securityProvider.createUser(user);
     }
 
     @Override
-    public void updateUser(User user) {
+    public void updateUser(User user) throws ServiceLayerException {
         securityProvider.updateUser(user);
     }
 
     @Override
-    public void deleteUsers(List<Long> userIds, List<String> usernames) {
+    public void deleteUsers(List<Long> userIds, List<String> usernames) throws ServiceLayerException {
         securityProvider.deleteUsers(userIds, usernames);
     }
 
     @Override
-    public User getUserByIdOrUsername(long userId, String username) {
+    public User getUserByIdOrUsername(long userId, String username) throws ServiceLayerException {
         return securityProvider.getUserByIdOrUsername(userId, username);
     }
 
     @Override
-    public void enableUsers(List<Long> userIds, List<String> usernames, boolean enabled) {
+    public void enableUsers(List<Long> userIds, List<String> usernames, boolean enabled) throws ServiceLayerException {
         securityProvider.enableUsers(userIds, usernames, enabled);
     }
 
     @Override
-    public List<Group> getUserGroups(long userId, String username) {
+    public List<Group> getUserGroups(long userId, String username) throws ServiceLayerException {
         return securityProvider.getUserGroups(userId, username);
     }
 
     @Override
-    public boolean isUserMemberOfGroup(String username, String groupName) {
+    public boolean isUserMemberOfGroup(String username, String groupName) throws ServiceLayerException {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(GROUP_NAME, groupName);
         params.put(USERNAME, username);
-        int result = userDAO.isUserMemberOfGroup(params);
-        return result > 0;
+        try {
+            int result = userDAO.isUserMemberOfGroup(params);
+            return result > 0;
+        } catch (Exception e) {
+            throw new ServiceLayerException("Unknown database error", e);
+        }
     }
 
     @Override
-    public AuthenticatedUser getAuthenticatedUser() throws AuthenticationException, ServiceException {
+    public AuthenticatedUser getAuthenticatedUser() throws AuthenticationException, ServiceLayerException {
         Authentication authentication = securityProvider.getAuthentication();
         if (authentication != null) {
             String username = authentication.getUsername();
@@ -145,7 +163,8 @@ public class UserServiceImpl implements UserService {
 
                 return authUser;
             } else {
-                throw new ServiceException("Current authenticated user '" + username + "' wasn't found in repository");
+                throw new ServiceLayerException("Current authenticated user '" + username +
+                                                "' wasn't found in repository");
             }
         } else {
             throw new AuthenticationException("User should be authenticated");

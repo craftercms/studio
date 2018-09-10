@@ -19,9 +19,10 @@
 
 package org.craftercms.studio.api.v1.service.security;
 
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.springframework.security.core.userdetails.UserDetails;
 
 public interface UserDetailsManager {
 
-    UserDetails loadUserByUsername(String userName);
+    UserDetails loadUserByUsername(String userName) throws ServiceLayerException;
 }

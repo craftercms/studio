@@ -334,7 +334,13 @@ public class CmisServiceImpl implements CmisService {
 
     @Override
     @ValidateParams
-    public void cloneContent(@ValidateStringParam(name = "siteId") String siteId, @ValidateStringParam(name = "cmisRepoId") String cmisRepoId, @ValidateSecurePathParam(name = "cmisPath") String cmisPath, @ValidateSecurePathParam(name = "studioPath") String studioPath) throws CmisUnavailableException, CmisTimeoutException, CmisPathNotFoundException, ServiceException, StudioPathNotFoundException, CmisRepositoryNotFoundException {
+    public void cloneContent(
+        @ValidateStringParam(name = "siteId") String siteId,
+        @ValidateStringParam(name = "cmisRepoId") String cmisRepoId,
+        @ValidateSecurePathParam(name = "cmisPath") String cmisPath,
+        @ValidateSecurePathParam(name = "studioPath") String studioPath)
+        throws CmisUnavailableException, CmisTimeoutException, CmisPathNotFoundException, ServiceLayerException,
+        StudioPathNotFoundException, CmisRepositoryNotFoundException {
         if (!contentService.contentExists(siteId, studioPath)) throw new StudioPathNotFoundException();
         List<CmisContentItemTO> toRet = new ArrayList<CmisContentItemTO>();
         DataSourceRepositoryTO repositoryConfig = getConfiguration(siteId, cmisRepoId);

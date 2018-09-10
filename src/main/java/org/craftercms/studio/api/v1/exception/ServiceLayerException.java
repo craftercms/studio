@@ -17,25 +17,24 @@
  ******************************************************************************/
 package org.craftercms.studio.api.v1.exception;
 
-public class ServiceException extends Exception {
-
+public class ServiceLayerException extends Exception {
 
 	/**
-	 * 
+	 * Base exception for all services.
 	 */
 	protected static final long serialVersionUID = -7587964809295177876L;
 
-	public ServiceException() {}
+	public ServiceLayerException() {}
 	
-	public ServiceException(Throwable e) {
+	public ServiceLayerException(Throwable e) {
 		super(e);
 	}
 	
-	public ServiceException(String message) {
+	public ServiceLayerException(String message) {
 		super(message);
 	}
 	
-	public ServiceException(String message, Exception e) {
+	public ServiceLayerException(String message, Exception e) {
 		super(message, e);
 	}
 

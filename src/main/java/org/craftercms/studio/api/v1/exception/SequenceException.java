@@ -17,7 +17,7 @@
  ******************************************************************************/
 package org.craftercms.studio.api.v1.exception;
 
-public class SequenceException extends ServiceException {
+public class SequenceException extends ServiceLayerException {
 
 	/**
 	 * 

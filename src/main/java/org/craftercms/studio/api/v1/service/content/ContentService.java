@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
-import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v1.to.*;
 import org.dom4j.Document;
@@ -83,7 +83,7 @@ public interface ContentService {
      * @param content stream of content to write
      * @return return true if successful
      */
-    boolean writeContent(String site, String path, InputStream content) throws ServiceException;
+    boolean writeContent(String site, String path, InputStream content) throws ServiceLayerException;
 
     /**
      * create a folder
@@ -199,16 +199,20 @@ public interface ContentService {
      * @param edit
      * @param unlock
      * 			unlock the content upon edit?
-     * @throws ServiceException
+     * @throws ServiceLayerException
      */
     void writeContent(String site, String path, String fileName, String contentType, InputStream input,
-                      String createFolders, String edit, String unlock) throws ServiceException;
+                      String createFolders, String edit, String unlock) throws ServiceLayerException;
 
-    void writeContentAndRename(final String site, final String path, final String targetPath, final String fileName, final String contentType, final InputStream input,
-                               final String createFolders, final  String edit, final String unlock, final boolean createFolder) throws ServiceException;
+    void writeContentAndRename(final String site, final String path, final String targetPath, final String fileName,
+                               final String contentType, final InputStream input, final String createFolders,
+                               final String edit, final String unlock, final boolean createFolder)
+                                throws ServiceLayerException;
 
     Map<String, Object> writeContentAsset(String site, String path, String assetName, InputStream in,
-                                          String isImage, String allowedWidth, String allowedHeight, String allowLessSize, String draft, String unlock, String systemAsset) throws ServiceException;
+                                          String isImage, String allowedWidth, String allowedHeight,
+                                          String allowLessSize, String draft, String unlock, String systemAsset)
+                                            throws ServiceLayerException;
 
     /**
      * get the next available of the given content name at the given path (used for paste/duplicate)
@@ -226,9 +230,10 @@ public interface ContentService {
 
     String getContentTypeClass(String site, String uri);
 
-    ResultTO processContent(String id, InputStream input, boolean isXml, Map<String, String> params, String contentChainForm) throws ServiceException;
+    ResultTO processContent(String id, InputStream input, boolean isXml, Map<String, String> params,
+                            String contentChainForm) throws ServiceLayerException;
 
-    GoLiveDeleteCandidates getDeleteCandidates(String site, String uri) throws ServiceException;
+    GoLiveDeleteCandidates getDeleteCandidates(String site, String uri) throws ServiceLayerException;
 
     void lockContent(String site, String path);
 
@@ -236,7 +241,8 @@ public interface ContentService {
 
     List<DmOrderTO> getItemOrders(String site, String path) throws ContentNotFoundException;
 
-    double reorderItems(String site, String relativePath, String before, String after, String orderName) throws ServiceException;
+    double reorderItems(String site, String relativePath, String before, String after, String orderName)
+        throws ServiceLayerException;
 
     /**
      * rename a folder
@@ -246,7 +252,7 @@ public interface ContentService {
      * @param name a new folder name
      * @return return the reference to the folder renamed
      */
-    boolean renameFolder(String site, String path, String name) throws ServiceException;
+    boolean renameFolder(String site, String path, String name) throws ServiceLayerException;
 
     /**
      * Push content to remote repository
@@ -255,7 +261,8 @@ public interface ContentService {
      * @param remoteBranch remote branch
      * @return true if operation was successful
      */
-    boolean pushToRemote(String siteId, String remoteName, String remoteBranch) throws ServiceException, InvalidRemoteUrlException;
+    boolean pushToRemote(String siteId, String remoteName, String remoteBranch) throws ServiceLayerException,
+        InvalidRemoteUrlException;
 
     /**
      * Pull from remote repository
@@ -264,5 +271,6 @@ public interface ContentService {
      * @param remoteBranch remote branch
      * @return true if operation was successful
      */
-    boolean pullFromRemote(String siteId, String remoteName, String remoteBranch) throws ServiceException, InvalidRemoteUrlException;
+    boolean pullFromRemote(String siteId, String remoteName, String remoteBranch) throws ServiceLayerException,
+        InvalidRemoteUrlException;
 }

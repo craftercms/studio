@@ -22,7 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.exception.ContentProcessException;
-import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.executor.ProcessContentExecutor;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -44,7 +44,8 @@ public class ProcessContentExecutorImpl implements ProcessContentExecutor {
     private static final Logger logger = LoggerFactory.getLogger(ProcessContentExecutorImpl.class);
 
     @Override
-    public ResultTO processContent(String id, InputStream input, boolean isXml, Map<String, String> params, String chainName) throws ServiceException {
+    public ResultTO processContent(String id, InputStream input, boolean isXml, Map<String, String> params,
+                                   String chainName) throws ServiceLayerException {
         final ContentProcessorPipeline chain = processorChains.get(chainName);
         try{
             if (chain != null) {
@@ -72,7 +73,7 @@ public class ProcessContentExecutorImpl implements ProcessContentExecutor {
 
             } else {
                 ContentUtils.release(input);
-                throw new ServiceException(chainName + " is not defined.");
+                throw new ServiceLayerException(chainName + " is not defined.");
             }
         }finally {
             String s = params.get(DmConstants.KEY_USER);

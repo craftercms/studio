@@ -19,6 +19,7 @@ package org.craftercms.studio.impl.v1.service.deployment;
 
 import net.sf.json.JSONObject;
 import org.apache.commons.collections.FastArrayList;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.validation.annotations.param.ValidateIntegerParam;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
@@ -36,7 +37,7 @@ import org.craftercms.studio.api.v1.deployment.Deployer;
 import org.craftercms.studio.api.v1.ebus.PreviewEventContext;
 import org.craftercms.studio.api.v1.exception.CommitNotFoundException;
 import org.craftercms.studio.api.v1.exception.EnvironmentNotFoundException;
-import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -472,9 +473,8 @@ public class DeploymentServiceImpl implements DeploymentService {
         // get the filtered list of attempts in a specific date range
         ZonedDateTime toDate = ZonedDateTime.now(ZoneOffset.UTC);
         ZonedDateTime fromDate = toDate.minusDays(daysFromToday);
-        SiteFeed siteFeed = siteService.getSite(site);
         List<DeploymentSyncHistory> deployReports = deploymentHistoryProvider.getDeploymentHistory(site,
-                siteFeed.getSandboxBranch(), fromDate, toDate, dmFilterWrapper, filterType, numberOfItems);
+                getEnvironmentNames(site), fromDate, toDate, dmFilterWrapper, filterType, numberOfItems);
         List<DmDeploymentTaskTO> tasks = new ArrayList<DmDeploymentTaskTO>();
 
         if (deployReports != null) {
@@ -516,6 +516,18 @@ public class DeploymentServiceImpl implements DeploymentService {
             }
         }
         return tasks;
+    }
+
+    private List<String> getEnvironmentNames(String siteId) {
+        List<PublishingChannelTO> channelsTO = !servicesConfig.isStagingEnvironmentEnabled(siteId) ?
+                getAvailablePublishingChannelGroupsForSite(siteId) : getPublishedEnvironments(siteId);
+        List<String> toRet = new ArrayList<String>();
+        if (CollectionUtils.isNotEmpty(channelsTO)) {
+            channelsTO.forEach(channel -> {
+                toRet.add(channel.getName());
+            });
+        }
+        return toRet;
     }
 
     /**
@@ -583,7 +595,7 @@ public class DeploymentServiceImpl implements DeploymentService {
                                                  @ValidateStringParam(name = "subSort") String subSort,
                                                  boolean subAscending,
                                                  @ValidateStringParam(name = "filterType") String filterType)
-            throws ServiceException {
+            throws ServiceLayerException {
         if (StringUtils.isEmpty(sort)) {
             sort = DmContentItemComparator.SORT_EVENT_DATE;
         }
@@ -636,7 +648,7 @@ public class DeploymentServiceImpl implements DeploymentService {
             if(!(path.endsWith(FILE_SEPARATOR + DmConstants.INDEX_FILE) || path.endsWith(DmConstants.XML_PATTERN))) {
                 path = path + FILE_SEPARATOR + DmConstants.INDEX_FILE;
             }
-        } catch (ServiceException e) {
+        } catch (ServiceLayerException e) {
             logger.error("failed to read site " + site + " path " + path + ". " + e.getMessage());
         }
     }
@@ -651,13 +663,13 @@ public class DeploymentServiceImpl implements DeploymentService {
      * @param comparator
      * @param subComparator
      * @param displayPatterns
-     * @throws ServiceException
+     * @throws ServiceLayerException
      */
     protected void addToScheduledDateList(String site, String environment, ZonedDateTime launchDate,
                                           SimpleDateFormat format, String path, String packageId,
                                           List<ContentItemTO> scheduledItems, DmContentItemComparator comparator,
                                           DmContentItemComparator subComparator, List<String> displayPatterns,
-                                          String filterType) throws ServiceException {
+                                          String filterType) throws ServiceLayerException {
         String timeZone = servicesConfig.getDefaultTimezone(site);
         String dateLabel = launchDate.format(DateTimeFormatter.ofPattern(format.toPattern()));
         // add only if the current node is a file (directories are
@@ -715,7 +727,7 @@ public class DeploymentServiceImpl implements DeploymentService {
             @ValidateStringParam(name = "site") String site,
             @ValidateSecurePathParam(name = "path") String path) {
         List<PublishingChannelTO> channelsTO = !servicesConfig.isStagingEnvironmentEnabled(site) ?
-                getAvailablePublishingChannelGroupsForSite(site, path) : getPublishedEnvironments(site);
+                getAvailablePublishingChannelGroupsForSite(site) : getPublishedEnvironments(site);
         List<PublishingChannelTO> publishChannels = new ArrayList<PublishingChannelTO>();
         List<PublishingChannelTO> updateStatusChannels = new ArrayList<PublishingChannelTO>();
         for (PublishingChannelTO channelTO : channelsTO) {
@@ -752,7 +764,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         return publishedEnvironments;
     }
 
-    protected List<PublishingChannelTO> getAvailablePublishingChannelGroupsForSite(String site, String path) {
+    protected List<PublishingChannelTO> getAvailablePublishingChannelGroupsForSite(String site) {
         List<PublishingChannelTO> channelTOs = new ArrayList<PublishingChannelTO>();
         List<String> channels = getPublishingChannels(site);
         for (String ch : channels) {
@@ -783,7 +795,7 @@ public class DeploymentServiceImpl implements DeploymentService {
     @Override
     @ValidateParams
     public void syncAllContentToPreview(@ValidateStringParam(name = "site") String site, boolean waitTillDone)
-            throws ServiceException {
+            throws ServiceLayerException {
         PreviewEventContext context = new PreviewEventContext(waitTillDone);
         context.setSite(site);
         eventService.publish(EVENT_PREVIEW_SYNC, context);
@@ -805,7 +817,7 @@ public class DeploymentServiceImpl implements DeploymentService {
     @ValidateParams
     public void bulkGoLive(@ValidateStringParam(name = "site") String site,
                            @ValidateStringParam(name = "environment") String environment,
-                           @ValidateSecurePathParam(name = "path") String path) throws ServiceException {
+                           @ValidateSecurePathParam(name = "path") String path) throws ServiceLayerException {
         dmPublishService.bulkGoLive(site, environment, path);
     }
 
@@ -951,7 +963,7 @@ public class DeploymentServiceImpl implements DeploymentService {
     @Override
     public void publishItems(String site, String environment, ZonedDateTime schedule, List<String> paths,
                              String submissionComment)
-            throws ServiceException, DeploymentException {
+            throws ServiceLayerException, DeploymentException {
 
         if (!siteService.exists(site)) {
             throw new SiteNotFoundException();
@@ -982,7 +994,7 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     @Override
-    public void resetStagingEnvironment(String siteId) throws ServiceException {
+    public void resetStagingEnvironment(String siteId) throws ServiceLayerException {
         if (!siteService.exists(siteId)) {
             throw new SiteNotFoundException(siteId);
         }

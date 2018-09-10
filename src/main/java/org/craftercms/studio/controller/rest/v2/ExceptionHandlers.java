@@ -19,7 +19,7 @@
 package org.craftercms.studio.controller.rest.v2;
 
 import org.craftercms.commons.http.HttpUtils;
-import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
@@ -48,35 +48,35 @@ public class ExceptionHandlers {
 
     @ExceptionHandler(AuthenticationException.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    public ResponseBody handleAuthenticationException(HttpServletRequest request, ServiceException e) {
+    public ResponseBody handleAuthenticationException(HttpServletRequest request, AuthenticationException e) {
         return handleExceptionInternal(request, e, ApiResponse.UNAUTHENTICATED);
     }
 
     @ExceptionHandler(UserAlreadyExistsException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
-    public ResponseBody handleUserAlreadyExistsException(HttpServletRequest request, ServiceException e) {
+    public ResponseBody handleUserAlreadyExistsException(HttpServletRequest request, UserAlreadyExistsException e) {
         ApiResponse response = new ApiResponse(ApiResponse.USER_ALREADY_EXISTS);
         return handleExceptionInternal(request, e, response);
     }
 
     @ExceptionHandler(GroupAlreadyExistsException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
-    public ResponseBody handleGroupAlreadyExistsException(HttpServletRequest request, ServiceException e) {
+    public ResponseBody handleGroupAlreadyExistsException(HttpServletRequest request, GroupAlreadyExistsException e) {
         ApiResponse response = new ApiResponse(ApiResponse.GROUP_ALREADY_EXISTS);
         return handleExceptionInternal(request, e, response);
     }
 
     @ExceptionHandler(InvalidParametersException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ResponseBody handleInvalidParametersException(HttpServletRequest request, ServiceException e) {
+    public ResponseBody handleInvalidParametersException(HttpServletRequest request, InvalidParametersException e) {
         ApiResponse response = new ApiResponse(ApiResponse.INVALID_PARAMS);
         response.setMessage(response.getMessage() + " : " + e.getMessage());
         return handleExceptionInternal(request, e, response);
     }
 
-    @ExceptionHandler(ServiceException.class)
+    @ExceptionHandler(ServiceLayerException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ResponseBody handleServiceException(HttpServletRequest request, ServiceException e) {
+    public ResponseBody handleServiceException(HttpServletRequest request, ServiceLayerException e) {
         ApiResponse response = new ApiResponse(ApiResponse.INTERNAL_SYSTEM_FAILURE);
         response.setMessage(response.getMessage() + ": "+ e.getMessage());
 

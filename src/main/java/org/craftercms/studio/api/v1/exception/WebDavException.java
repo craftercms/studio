@@ -21,7 +21,7 @@ package org.craftercms.studio.api.v1.exception;
  * Exception for all errors related to WebDAV
  * @author joseross
  */
-public class WebDavException extends ServiceException {
+public class WebDavException extends ServiceLayerException {
 
     public WebDavException() {
     }

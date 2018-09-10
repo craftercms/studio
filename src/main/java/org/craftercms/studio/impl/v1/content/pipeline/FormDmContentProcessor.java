@@ -25,7 +25,7 @@ import org.craftercms.studio.api.v1.content.pipeline.PipelineContent;
 import org.craftercms.studio.api.v1.dal.ItemMetadata;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ContentProcessException;
-import org.craftercms.studio.api.v1.exception.ServiceException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
@@ -74,7 +74,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
     public void process(PipelineContent content, ResultTO result) throws ContentProcessException {
         try {
             writeContent(content, result);
-        } catch (ServiceException e) {
+        } catch (ServiceLayerException e) {
             logger.error("Failed to write " + content.getId(),e);
             throw new ContentProcessException("Failed to write " + content.getId(), e);
         } finally {
@@ -82,7 +82,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
         }
     }
 
-    protected void writeContent(PipelineContent content, ResultTO result) throws ServiceException {
+    protected void writeContent(PipelineContent content, ResultTO result) throws ServiceLayerException {
         String user = content.getProperty(DmConstants.KEY_USER);
         String site = content.getProperty(DmConstants.KEY_SITE);
         String path = content.getProperty(DmConstants.KEY_PATH);
@@ -245,10 +245,10 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
      * @param isPreview
      * @param unlock
      * 			unlock the content upon update?
-     * @throws ServiceException
+     * @throws ServiceLayerException
      */
     protected void updateFile(String site, ContentItemTO contentItem, String path, InputStream input, String user, boolean isPreview, boolean unlock, ResultTO result)
-            throws ServiceException {
+            throws ServiceLayerException {
 
         boolean success = false;
         try {

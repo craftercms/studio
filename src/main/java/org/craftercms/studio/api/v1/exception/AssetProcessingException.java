@@ -21,7 +21,7 @@ package org.craftercms.studio.api.v1.exception;
  *
  * @author avasquez
  */
-public class AssetProcessingException extends ServiceException {
+public class AssetProcessingException extends ServiceLayerException {
 
     public AssetProcessingException(Throwable t) {
         super(t);

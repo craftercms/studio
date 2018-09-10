@@ -23,6 +23,7 @@ import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.commons.http.RequestContext;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationSystemException;
 import org.craftercms.studio.api.v1.exception.security.BadCredentialsException;
 import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
@@ -39,6 +40,7 @@ import org.craftercms.studio.model.User;
 import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.AUTHENTICATION_HEADERS_EMAIL;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.AUTHENTICATION_HEADERS_ENABLED;
@@ -76,51 +78,56 @@ public class AuthenticationHeadersSecurityProvider extends DbWithLdapExtensionSe
                     String email = request.getHeader(studioConfiguration.getProperty(AUTHENTICATION_HEADERS_EMAIL));
                     String groups = request.getHeader(studioConfiguration.getProperty(AUTHENTICATION_HEADERS_GROUPS));
 
-                    if (userExists(usernameHeader)) {
-                        if (StringUtils.isNoneEmpty(firstName, lastName, email)) {
-                            logger.debug("If user already exists in studio DB, update details.");
+                    try {
+                        if (userExists(usernameHeader)) {
+                            if (StringUtils.isNoneEmpty(firstName, lastName, email)) {
+                                logger.debug("If user already exists in studio DB, update details.");
+                                try {
+                                    boolean success = updateUserInternal(usernameHeader, firstName, lastName, email);
+                                    if (success) {
+                                        ActivityService.ActivityType activityType = ActivityService.ActivityType.UPDATED;
+                                        Map<String, String> extraInfo = new HashMap<String, String>();
+                                        extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
+                                        activityService.postActivity(getSystemSite(), usernameHeader, usernameHeader,
+                                            activityType, ActivityService.ActivitySource.API, extraInfo);
+                                    }
+                                } catch (UserNotFoundException e) {
+                                    logger.error("Error updating user " + username +
+                                        " with data from authentication headers", e);
+
+                                    throw new AuthenticationSystemException("Error updating user " + username +
+                                        " with data from external authentication provider", e);
+                                }
+                            }
+                        } else {
+                            logger.debug("User does not exist in studio db. Adding user " + usernameHeader);
                             try {
-                                boolean success = updateUserInternal(usernameHeader, firstName, lastName, email);
+                                User user = new User();
+                                user.setUsername(usernameHeader);
+                                user.setPassword(UUID.randomUUID().toString());
+                                user.setFirstName(firstName);
+                                user.setLastName(firstName);
+                                user.setEmail(email);
+                                user.setExternallyManaged(true);
+                                user.setEnabled(true);
+                                boolean success = createUser(user);
                                 if (success) {
-                                    ActivityService.ActivityType activityType = ActivityService.ActivityType.UPDATED;
+                                    ActivityService.ActivityType activityType = ActivityService.ActivityType.CREATED;
                                     Map<String, String> extraInfo = new HashMap<String, String>();
                                     extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
                                     activityService.postActivity(getSystemSite(), usernameHeader, usernameHeader,
-                                            activityType, ActivityService.ActivitySource.API, extraInfo);
-                                }
-                            } catch (UserNotFoundException e) {
-                                logger.error("Error updating user " + username
-                                        + " with data from authentication headers", e);
-
-                                throw new AuthenticationSystemException("Error updating user " + username +
-                                        " with data from external authentication provider", e);
-                            }
-                        }
-                    } else {
-                        logger.debug("User does not exist in studio db. Adding user " + usernameHeader);
-                        try {
-                            User user = new User();
-                            user.setUsername(usernameHeader);
-                            user.setPassword(password);
-                            user.setFirstName(firstName);
-                            user.setLastName(firstName);
-                            user.setEmail(email);
-                            user.setExternallyManaged(true);
-                            user.setEnabled(true);
-                            boolean success = createUser(user);
-                            if (success) {
-                                ActivityService.ActivityType activityType = ActivityService.ActivityType.CREATED;
-                                Map<String, String> extraInfo = new HashMap<String, String>();
-                                extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
-                                activityService.postActivity(getSystemSite(), usernameHeader, usernameHeader,
                                         activityType, ActivityService.ActivitySource.API, extraInfo);
-                            }
-                        } catch (UserAlreadyExistsException e) {
-                            logger.error("Error adding user " + username + " from authentication headers", e);
+                                }
+                            } catch (UserAlreadyExistsException | ServiceLayerException e) {
+                                logger.error("Error adding user " + username + " from authentication headers", e);
 
-                            throw new AuthenticationSystemException("Error adding user " + username
-                                    + " from external authentication provider", e);
+                                throw new AuthenticationSystemException("Error adding user " + username +
+                                    " from external authentication provider", e);
+                            }
                         }
+                    } catch (ServiceLayerException e) {
+                        logger.error("Unknown service error", e);
+                        throw  new AuthenticationSystemException("Unknown service error" , e);
                     }
 
                     UserTO userTO = new UserTO();

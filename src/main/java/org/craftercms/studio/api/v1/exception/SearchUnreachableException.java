@@ -17,7 +17,7 @@
  */
 package org.craftercms.studio.api.v1.exception;
 
-public class SearchUnreachableException extends ServiceException {
+public class SearchUnreachableException extends ServiceLayerException {
 
 
     private static final long serialVersionUID = 7422788562443045181L;
