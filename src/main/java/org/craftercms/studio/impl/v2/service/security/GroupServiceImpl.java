@@ -19,6 +19,8 @@
 package org.craftercms.studio.impl.v2.service.security;
 
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.security.permissions.DefaultPermission;
+import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.studio.api.v1.constant.StudioXmlConstants;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
@@ -64,11 +66,13 @@ public class GroupServiceImpl implements GroupService {
     private SecurityProvider securityProvider;
 
     @Override
+    @HasPermission(type = DefaultPermission.class, action = "read_groups")
     public List<Group> getAllGroups(long orgId, int offset, int limit, String sort) throws ServiceLayerException {
         return securityProvider.getAllGroups(orgId, offset, limit, sort);
     }
 
     @Override
+    @HasPermission(type = DefaultPermission.class, action = "read_groups")
     public int getAllGroupsTotal(long orgId) throws ServiceLayerException {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(ORG_ID, orgId);
@@ -80,42 +84,50 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
+    @HasPermission(type = DefaultPermission.class, action = "create_groups")
     public void createGroup(long orgId, String groupName, String groupDescription) throws GroupAlreadyExistsException,
         ServiceLayerException {
         securityProvider.createGroup(orgId, groupName, groupDescription);
     }
 
     @Override
+    @HasPermission(type = DefaultPermission.class, action = "update_groups")
     public void updateGroup(long orgId, Group group) throws ServiceLayerException {
         securityProvider.updateGroup(orgId, group);
     }
 
     @Override
+    @HasPermission(type = DefaultPermission.class, action = "delete_groups")
     public void deleteGroup(List<Long> groupIds) throws ServiceLayerException {
         securityProvider.deleteGroup(groupIds);
     }
 
     @Override
+    @HasPermission(type = DefaultPermission.class, action = "read_groups")
     public Group getGroup(long groupId) throws ServiceLayerException {
         return securityProvider.getGroup(groupId);
     }
 
     @Override
+    @HasPermission(type = DefaultPermission.class, action = "read_groups")
     public List<User> getGroupMembers(long groupId, int offset, int limit, String sort) throws ServiceLayerException {
         return securityProvider.getGroupMembers(groupId, offset, limit, sort);
     }
 
     @Override
+    @HasPermission(type = DefaultPermission.class, action = "update_groups")
     public void addGroupMembers(long groupId, List<Long> userIds, List<String> usernames) throws ServiceLayerException {
         securityProvider.addGroupMembers(groupId, userIds, usernames);
     }
 
     @Override
+    @HasPermission(type = DefaultPermission.class, action = "update_groups")
     public void removeGroupMembers(long groupId, List<Long> userIds, List<String> usernames)
         throws ServiceLayerException {
         securityProvider.removeGroupMembers(groupId, userIds, usernames);
     }
 
+    // TODO: All methods under this one (and including this one) should be part of the internal service
     @Override
     public List<String> getSiteGroups(String siteId) {
         Map<String, List<String>> groupRoleMapping = loadGroupMappings(siteId);
