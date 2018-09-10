@@ -41,7 +41,7 @@ public class PermissionResolverImpl implements PermissionResolver<String, Map<St
 
     @Override
     public Permission getGlobalPermission(String username) throws PermissionException {
-       Set<String> allowedActions = securityService.getUserPermissions("", "", username, null);
+       Set<String> allowedActions = securityService.getUserPermissions("", "/", username, null);
 
        DefaultPermission permission = new DefaultPermission();
        permission.setAllowedActions(allowedActions);

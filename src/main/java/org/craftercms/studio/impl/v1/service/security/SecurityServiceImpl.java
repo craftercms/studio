@@ -248,16 +248,20 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     protected void addGlobalUserRoles(String user, Set<String> roles, PermissionsConfigTO rolesConfig) {
-        List<Group> groups = userService.getUserGroups(-1, user);
-        if (rolesConfig != null && groups != null) {
-            Map<String, List<String>> rolesMap = rolesConfig.getRoles();
-            for (Group group : groups) {
-                String groupName = group.getName();
-                List<String> userRoles = rolesMap.get(groupName);
-                if (roles != null && userRoles != null) {
-                    roles.addAll(userRoles);
+        try {
+            List<Group> groups = userService.getUserGroups(-1, user);
+            if (rolesConfig != null && groups != null) {
+                Map<String, List<String>> rolesMap = rolesConfig.getRoles();
+                for (Group group : groups) {
+                    String groupName = group.getName();
+                    List<String> userRoles = rolesMap.get(groupName);
+                    if (roles != null && userRoles != null) {
+                        roles.addAll(userRoles);
+                    }
                 }
             }
+        } catch (ServiceLayerException e) {
+            logger.error("Unable to retrieve user groups for user {0}", user);
         }
     }
 

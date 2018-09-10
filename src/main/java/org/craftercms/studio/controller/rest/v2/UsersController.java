@@ -19,9 +19,7 @@
 package org.craftercms.studio.controller.rest.v2;
 
 import org.apache.commons.lang3.StringUtils;
-import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -47,12 +45,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 @RestController
 public class UsersController {
@@ -248,8 +242,8 @@ public class UsersController {
     }
 
     @GetMapping("/api/2/user")
-    public ResponseBody getAuthenticatedUser() throws AuthenticationException, ServiceLayerException {
-        AuthenticatedUser user = userService.getAuthenticatedUser();
+    public ResponseBody getCurrentUser() throws AuthenticationException, ServiceLayerException {
+        AuthenticatedUser user = userService.getCurrentUser();
 
         ResultOne<AuthenticatedUser> result = new ResultOne<>();
         result.setResponse(ApiResponse.OK);
@@ -260,6 +254,21 @@ public class UsersController {
 
         return responseBody;
     }
+
+    @GetMapping("/api/2/user/sites")
+    public ResponseBody getCurrentUserSites() throws AuthenticationException, ServiceLayerException {
+        List<Site> sites = userService.getCurrentUserSites();
+
+        ResultList<Site> result = new ResultList<>();
+        result.setResponse(ApiResponse.OK);
+        result.setEntities(sites);
+
+        ResponseBody responseBody = new ResponseBody();
+        responseBody.setResult(result);
+
+        return responseBody;
+    }
+
 
     public UserService getUserService() {
         return userService;
