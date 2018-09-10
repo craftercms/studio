@@ -55,6 +55,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -104,7 +105,7 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
                     UserTO userTO = new UserTO();
                     userTO.setActive(1);
                     userTO.setUsername(username);
-                    userTO.setPassword(password);
+                    userTO.setPassword(UUID.randomUUID().toString());
 
                     if (emailAttrib != null && emailAttrib.get() != null) {
                         userTO.setEmail(emailAttrib.get().toString());

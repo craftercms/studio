@@ -40,6 +40,7 @@ import org.craftercms.studio.model.User;
 import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.AUTHENTICATION_HEADERS_EMAIL;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.AUTHENTICATION_HEADERS_ENABLED;
@@ -103,7 +104,7 @@ public class AuthenticationHeadersSecurityProvider extends DbWithLdapExtensionSe
                             try {
                                 User user = new User();
                                 user.setUsername(usernameHeader);
-                                user.setPassword(password);
+                                user.setPassword(UUID.randomUUID().toString());
                                 user.setFirstName(firstName);
                                 user.setLastName(firstName);
                                 user.setEmail(email);
