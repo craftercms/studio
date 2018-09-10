@@ -779,9 +779,9 @@ paths:
     get:
       tags:
       - users
-      summary: Get current authenticated in user
+      summary: Get current authenticated user
       description: 'Required Permission: "LOGGED_IN"'
-      operationId: getAuthenticatedUser
+      operationId: getCurrentUser
       responses:
         '200':
           description: OK

@@ -55,7 +55,7 @@ public class UiServiceImpl implements UiService {
     public List<MenuItem> getGlobalMenu() throws AuthenticationException, ServiceLayerException {
         String user = securityService.getCurrentUser();
         if (StringUtils.isNotEmpty(user)) {
-            Set<String> permissions = securityService.getUserPermissions("", "", user, null);
+            Set<String> permissions = securityService.getUserPermissions("", "/", user, null);
 
             return uiServiceInternal.getGlobalMenu(permissions);
         } else {

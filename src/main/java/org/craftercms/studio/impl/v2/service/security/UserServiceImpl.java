@@ -68,7 +68,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @HasPermission(type = DefaultPermission.class, action = "read_users")
     public List<User> getAllUsers(int offset, int limit, String sort) throws ServiceLayerException {
-        Map<String, Object> params = new HashMap<String, Object>();
+        Map<String, Object> params = new HashMap<>();
         params.put(OFFSET, offset);
         params.put(LIMIT, limit);
         params.put(SORT, sort);
@@ -97,7 +97,7 @@ public class UserServiceImpl implements UserService {
     @HasPermission(type = DefaultPermission.class, action = "read_users")
     public int getAllUsersForSiteTotal(long orgId, String siteId) throws ServiceLayerException {
         List<String> groupNames = groupService.getSiteGroups(siteId);
-        Map<String, Object> params = new HashMap<String, Object>();
+        Map<String, Object> params = new HashMap<>();
         params.put(GROUP_NAMES, groupNames);
         try {
             return userDAO.getAllUsersForSiteTotal(params);
@@ -179,7 +179,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public AuthenticatedUser getAuthenticatedUser() throws AuthenticationException, ServiceLayerException {
+    public AuthenticatedUser getCurrentUser() throws AuthenticationException, ServiceLayerException {
         Authentication authentication = securityProvider.getAuthentication();
         if (authentication != null) {
             String username = authentication.getUsername();
@@ -205,16 +205,24 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    // TODO: All methods under this one (and including this one) should be part of the internal service
     @Override
-    @HasPermission(type = DefaultPermission.class, action = "read_users")
+    public List<Site> getCurrentUserSites() throws AuthenticationException, ServiceLayerException {
+        Authentication authentication = securityProvider.getAuthentication();
+        if (authentication != null) {
+            return getUserSites(-1, authentication.getUsername());
+        } else {
+            throw new AuthenticationException("User should be authenticated");
+        }
+    }
+
+    @Override
     public List<Group> getUserGroups(long userId, String username) throws ServiceLayerException {
         return securityProvider.getUserGroups(userId, username);
     }
 
     @Override
     public boolean isUserMemberOfGroup(String username, String groupName) throws ServiceLayerException {
-        Map<String, Object> params = new HashMap<String, Object>();
+        Map<String, Object> params = new HashMap<>();
         params.put(GROUP_NAME, groupName);
         params.put(USERNAME, username);
         try {

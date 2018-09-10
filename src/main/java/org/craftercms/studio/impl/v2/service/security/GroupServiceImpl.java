@@ -129,7 +129,6 @@ public class GroupServiceImpl implements GroupService {
         securityProvider.removeGroupMembers(groupId, userIds, usernames);
     }
 
-    // TODO: All methods under this one (and including this one) should be part of the internal service
     @Override
     public List<String> getSiteGroups(String siteId) {
         Map<String, List<String>> groupRoleMapping = loadGroupMappings(siteId);

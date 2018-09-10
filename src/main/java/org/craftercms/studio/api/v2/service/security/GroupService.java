@@ -113,6 +113,10 @@ public interface GroupService {
      */
     void removeGroupMembers(long groupId, List<Long> userIds, List<String> usernames) throws ServiceLayerException;
 
+    /*
+     TODO: All methods below here should be part of the internal service.
+     */
+
     /**
      * Get groups for site
      *
@@ -127,4 +131,5 @@ public interface GroupService {
      * @return group object
      */
     Group getGroupByName(String groupName) throws GroupNotFoundException, ServiceLayerException;
+
 }
