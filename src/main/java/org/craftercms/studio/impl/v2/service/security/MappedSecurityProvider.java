@@ -92,7 +92,7 @@ public class MappedSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public boolean createUser(User user) throws UserAlreadyExistsException, ServiceLayerException {
+    public User createUser(User user) throws UserAlreadyExistsException, ServiceLayerException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.createUser(user);
     }
@@ -110,15 +110,15 @@ public class MappedSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public User getUserByIdOrUsername(long userId, String username) throws ServiceLayerException {
+    public User getUserByIdOrUsername(long userId, String username) throws ServiceLayerException, UserNotFoundException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.getUserByIdOrUsername(userId, username);
     }
 
     @Override
-    public void enableUsers(List<Long> userIds, List<String> usernames, boolean enabled) throws ServiceLayerException {
+    public List<User> enableUsers(List<Long> userIds, List<String> usernames, boolean enabled) throws ServiceLayerException, UserNotFoundException {
         SecurityProvider provider = lookupProvider(getProviderType());
-        provider.enableUsers(userIds, usernames, enabled);
+        return provider.enableUsers(userIds, usernames, enabled);
     }
 
     @Override
@@ -134,16 +134,16 @@ public class MappedSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public void createGroup(long orgId, String groupName, String groupDescription) throws GroupAlreadyExistsException,
+    public Group createGroup(long orgId, String groupName, String groupDescription) throws GroupAlreadyExistsException,
         ServiceLayerException {
         SecurityProvider provider = lookupProvider(getProviderType());
-        provider.createGroup(orgId, groupName, groupDescription);
+        return provider.createGroup(orgId, groupName, groupDescription);
     }
 
     @Override
-    public void updateGroup(long orgId, Group group) throws ServiceLayerException {
+    public Group updateGroup(long orgId, Group group) throws ServiceLayerException {
         SecurityProvider provider = lookupProvider(getProviderType());
-        provider.updateGroup(orgId, group);
+        return provider.updateGroup(orgId, group);
     }
 
     @Override
@@ -165,8 +165,7 @@ public class MappedSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public boolean addGroupMembers(long groupId, List<Long> userIds, List<String> usernames) throws
-        ServiceLayerException {
+    public List<User> addGroupMembers(long groupId, List<Long> userIds, List<String> usernames) throws ServiceLayerException, UserNotFoundException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.addGroupMembers(groupId, userIds, usernames);
     }
@@ -198,8 +197,7 @@ public class MappedSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public String authenticate(String username, String password)
-            throws BadCredentialsException, AuthenticationSystemException, EntitlementException {
+    public String authenticate(String username, String password) throws BadCredentialsException, AuthenticationSystemException, EntitlementException, UserNotFoundException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.authenticate(username, password);
     }

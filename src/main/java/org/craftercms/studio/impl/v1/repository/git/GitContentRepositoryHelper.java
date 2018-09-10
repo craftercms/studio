@@ -33,6 +33,7 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
@@ -769,7 +770,7 @@ public class GitContentRepositoryHelper {
      *
      * @return current user as a PersonIdent
      */
-    public PersonIdent getCurrentUserIdent() throws ServiceLayerException {
+    public PersonIdent getCurrentUserIdent() throws ServiceLayerException, UserNotFoundException {
         String userName = securityProvider.getCurrentUser();
         return getAuthorIdent(userName);
     }
@@ -780,7 +781,7 @@ public class GitContentRepositoryHelper {
      * @param author author
      * @return author user as a PersonIdent
      */
-    public PersonIdent getAuthorIdent(String author) throws ServiceLayerException {
+    public PersonIdent getAuthorIdent(String author) throws ServiceLayerException, UserNotFoundException {
         User user = securityProvider.getUserByIdOrUsername(-1, author);
         PersonIdent currentUserIdent =
                 new PersonIdent(user.getFirstName() + " " + user.getLastName(), user.getEmail());
