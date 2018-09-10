@@ -137,7 +137,7 @@ public abstract class StudioAbstractAccessDecisionVoter implements AccessDecisio
     protected boolean isAdmin(UserTO user) {
         List<Group> userGroups = null;
         try {
-            userGroups = securityProvider.getUserGroups(1, user.getUsername());
+            userGroups = securityProvider.getUserGroups(-1, user.getUsername());
         } catch (ServiceLayerException e) {
             logger.error("Error getting user memberships", e);
             return false;

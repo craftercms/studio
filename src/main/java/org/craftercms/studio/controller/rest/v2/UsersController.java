@@ -54,6 +54,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.DEFAULT_ORGANIZATION_ID;
+
 @RestController
 public class UsersController {
 
@@ -85,8 +87,8 @@ public class UsersController {
             total = userService.getAllUsersTotal();
             users = userService.getAllUsers(offset, limit, sort);
         } else {
-            total = userService.getAllUsersForSiteTotal(1, siteId);
-            users = userService.getAllUsersForSite(1, siteId, offset, limit, sort);
+            total = userService.getAllUsersForSiteTotal(DEFAULT_ORGANIZATION_ID, siteId);
+            users = userService.getAllUsersForSite(DEFAULT_ORGANIZATION_ID, siteId, offset, limit, sort);
         }
 
 
