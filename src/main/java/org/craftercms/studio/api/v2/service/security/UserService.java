@@ -24,6 +24,7 @@ import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsExceptio
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.model.AuthenticatedUser;
 import org.craftercms.studio.model.Group;
+import org.craftercms.studio.model.Site;
 import org.craftercms.studio.model.User;
 
 import java.util.List;
@@ -48,6 +49,8 @@ public interface UserService {
     User getUserByIdOrUsername(long userId, String username) throws ServiceLayerException, UserNotFoundException;
 
     List<User> enableUsers(List<Long> userIds, List<String> usernames, boolean enabled) throws ServiceLayerException, UserNotFoundException;
+
+    List<Site> getUserSites(long userId, String username) throws ServiceLayerException;
 
     List<Group> getUserGroups(long userId, String username) throws ServiceLayerException;
 

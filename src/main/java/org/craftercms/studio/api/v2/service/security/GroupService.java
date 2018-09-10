@@ -122,13 +122,6 @@ public interface GroupService {
     List<String> getSiteGroups(String siteId);
 
     /**
-     * Get global groups
-     *
-     * @return List of group names
-     */
-    List<String> getGlobalGroups();
-
-    /**
      * Get group by name
      * @param groupName group name
      * @return group object

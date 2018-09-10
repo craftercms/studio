@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
     This file contains global menu configuration for Crafter Studio.
 	The global menu shows up as the first screen after a user logs in
@@ -18,24 +19,24 @@
 -->
 
 <globalMenu>
-	<items>
-		<item>
-			<id>home.globalMenu.sites</id>
-			<label>Sites</label>
-			<icon>fa-sitemap</icon>
-			<permission>*</permission>
-		</item>
+    <items>
+        <item>
+            <id>home.globalMenu.sites</id>
+            <label>Sites</label>
+            <icon>fa-sitemap</icon>
+            <permission>*</permission>
+        </item>
         <item>
             <id>home.globalMenu.users</id>
             <label>Users</label>
             <icon>fa-user</icon>
-            <permission>create-site</permission>
+            <permission>create_users</permission>
         </item>
         <item>
             <id>home.globalMenu.groups</id>
             <label>Groups</label>
             <icon>fa-users</icon>
-            <permission>create-site</permission>
+            <permission>create_groups</permission>
         </item>
-	</items>
+    </items>
 </globalMenu>
