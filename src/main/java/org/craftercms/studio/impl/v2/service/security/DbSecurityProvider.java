@@ -91,7 +91,7 @@ public class DbSecurityProvider implements SecurityProvider {
         params.put(GROUP_NAMES, groupNames);
         params.put(OFFSET, offset);
         params.put(LIMIT, limit);
-        params.put(SORT, "");
+        params.put(SORT, StringUtils.EMPTY);
         List<UserTO> userTOS;
         try {
             userTOS = userDAO.getAllUsersForSite(params);
@@ -127,8 +127,8 @@ public class DbSecurityProvider implements SecurityProvider {
         params.put(LAST_NAME, user.getLastName());
         params.put(EMAIL, user.getEmail());
         params.put(EXTERNALLY_MANAGED, user.isExternallyManaged() ? 1 : 0);
-        params.put(TIMEZONE, "");
-        params.put(LOCALE, "");
+        params.put(TIMEZONE, StringUtils.EMPTY);
+        params.put(LOCALE, StringUtils.EMPTY);
         params.put(ENABLED, user.isEnabled() ? 1 : 0);
         try {
             userDAO.createUser(params);
@@ -148,8 +148,8 @@ public class DbSecurityProvider implements SecurityProvider {
         params.put(FIRST_NAME, user.getFirstName());
         params.put(LAST_NAME, user.getLastName());
         params.put(EMAIL, user.getEmail());
-        params.put(TIMEZONE, "");
-        params.put(LOCALE, "");
+        params.put(TIMEZONE, StringUtils.EMPTY);
+        params.put(LOCALE, StringUtils.EMPTY);
         try {
             userDAO.updateUser(params);
         } catch (Exception e) {
