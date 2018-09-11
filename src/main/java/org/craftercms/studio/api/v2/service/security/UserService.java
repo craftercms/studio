@@ -60,6 +60,16 @@ public interface UserService {
      TODO: All methods below here should be part of the internal service.
      */
 
+    List<Site> getUserSites(long userId, String username) throws ServiceLayerException;
+
+    AuthenticatedUser getCurrentUser() throws AuthenticationException, ServiceLayerException;
+
+    List<Site> getCurrentUserSites() throws AuthenticationException, ServiceLayerException;
+
+    /*
+     TODO: All methods below here should be part of the internal service.
+     */
+
     List<Group> getUserGroups(long userId, String username) throws ServiceLayerException;
 
     boolean isUserMemberOfGroup(String username, String groupName) throws ServiceLayerException;
