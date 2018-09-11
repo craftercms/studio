@@ -24,6 +24,7 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -515,7 +516,7 @@ public class SiteServiceImpl implements SiteService {
                     List<String> userList = new ArrayList<String>();
                     userList.add(securityService.getCurrentUser());
                     Group group = groupService.getGroupByName(adminGroup);
-                    groupService.addGroupMembers(group.getId(), new ArrayList<Long>(), userList);
+                    groupService.addGroupMembers(group.getId(), Collections.EMPTY_LIST, userList);
                 }
 
                 reloadSiteConfiguration(siteId);
