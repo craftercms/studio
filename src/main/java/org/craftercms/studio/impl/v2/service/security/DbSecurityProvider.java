@@ -182,23 +182,23 @@ public class DbSecurityProvider implements SecurityProvider {
         Map<String, Object> params = new HashMap<>();
         params.put(USER_ID, userId);
         params.put(USERNAME, username);
-        UserTO uDAO;
+        UserTO userTO;
         try {
-            uDAO = userDAO.getUserByIdOrUsername(params);
+            userTO = userDAO.getUserByIdOrUsername(params);
         } catch (Exception e) {
             throw new ServiceLayerException("Unknown database error", e);
         }
-        if(uDAO == null) {
+        if(userTO == null) {
             throw new UserNotFoundException("No user found for username '" + username + "' or id '" + userId + "'");
         }
         User user = new User();
-        user.setId(uDAO.getId());
-        user.setUsername(uDAO.getUsername());
-        user.setFirstName(uDAO.getFirstName());
-        user.setLastName(uDAO.getLastName());
-        user.setEmail(uDAO.getEmail());
-        user.setEnabled(uDAO.isEnabled());
-        user.setExternallyManaged(uDAO.getExternallyManaged() != 0);
+        user.setId(userTO.getId());
+        user.setUsername(userTO.getUsername());
+        user.setFirstName(userTO.getFirstName());
+        user.setLastName(userTO.getLastName());
+        user.setEmail(userTO.getEmail());
+        user.setEnabled(userTO.isEnabled());
+        user.setExternallyManaged(userTO.getExternallyManaged() != 0);
         return user;
     }
 
@@ -341,14 +341,14 @@ public class DbSecurityProvider implements SecurityProvider {
         params.put(OFFSET, offset);
         params.put(LIMIT, limit);
         params.put(SORT, sort);
-        List<UserTO> uDAOs;
+        List<UserTO> userTOs;
         try {
-            uDAOs = groupDAO.getGroupMembers(params);
+            userTOs = groupDAO.getGroupMembers(params);
         } catch (Exception e) {
             throw new ServiceLayerException("Unknown database error", e);
         }
         List<User> toRet = new ArrayList<User>();
-        uDAOs.forEach(u -> {
+        userTOs.forEach(u -> {
             User user = new User();
             user.setId(u.getId());
             user.setUsername(u.getUsername());
