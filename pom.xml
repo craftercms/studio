@@ -34,7 +34,7 @@
         <spring.security.version>4.2.7.RELEASE</spring.security.version>
         <spring.data.version>2.0.9.RELEASE</spring.data.version>
         <spring.ldap.version>2.3.2.RELEASE</spring.ldap.version>
-        <box.sdk.version>2.21.0</box.sdk.version>
+        <box.sdk.version>2.23.0</box.sdk.version>
         <tinify.version>1.5.1</tinify.version>
         <mariadb4j.version>2.2.7</mariadb4j.version>
         <jackson.version>2.9.6</jackson.version>
