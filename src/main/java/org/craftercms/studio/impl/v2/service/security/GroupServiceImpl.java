@@ -19,6 +19,8 @@
 package org.craftercms.studio.impl.v2.service.security;
 
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.security.permissions.DefaultPermission;
+import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.studio.api.v1.constant.StudioXmlConstants;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
@@ -65,11 +67,13 @@ public class GroupServiceImpl implements GroupService {
     private SecurityProvider securityProvider;
 
     @Override
+    @HasPermission(type = DefaultPermission.class, action = "read_groups")
     public List<Group> getAllGroups(long orgId, int offset, int limit, String sort) throws ServiceLayerException {
         return securityProvider.getAllGroups(orgId, offset, limit, sort);
     }
 
     @Override
+    @HasPermission(type = DefaultPermission.class, action = "read_groups")
     public int getAllGroupsTotal(long orgId) throws ServiceLayerException {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(ORG_ID, orgId);
@@ -81,37 +85,45 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
+    @HasPermission(type = DefaultPermission.class, action = "create_groups")
     public Group createGroup(long orgId, String groupName, String groupDescription) throws GroupAlreadyExistsException,
         ServiceLayerException {
         return securityProvider.createGroup(orgId, groupName, groupDescription);
     }
 
     @Override
+    @HasPermission(type = DefaultPermission.class, action = "update_groups")
     public Group updateGroup(long orgId, Group group) throws ServiceLayerException {
         return securityProvider.updateGroup(orgId, group);
     }
 
     @Override
+    @HasPermission(type = DefaultPermission.class, action = "delete_groups")
     public void deleteGroup(List<Long> groupIds) throws ServiceLayerException {
         securityProvider.deleteGroup(groupIds);
     }
 
     @Override
+    @HasPermission(type = DefaultPermission.class, action = "read_groups")
     public Group getGroup(long groupId) throws ServiceLayerException {
         return securityProvider.getGroup(groupId);
     }
 
     @Override
+    @HasPermission(type = DefaultPermission.class, action = "read_groups")
     public List<User> getGroupMembers(long groupId, int offset, int limit, String sort) throws ServiceLayerException {
         return securityProvider.getGroupMembers(groupId, offset, limit, sort);
     }
 
     @Override
-    public List<User> addGroupMembers(long groupId, List<Long> userIds, List<String> usernames) throws ServiceLayerException, UserNotFoundException {
+    @HasPermission(type = DefaultPermission.class, action = "update_groups")
+    public List<User> addGroupMembers(long groupId, List<Long> userIds, List<String> usernames)
+            throws ServiceLayerException, UserNotFoundException {
         return securityProvider.addGroupMembers(groupId, userIds, usernames);
     }
 
     @Override
+    @HasPermission(type = DefaultPermission.class, action = "update_groups")
     public void removeGroupMembers(long groupId, List<Long> userIds, List<String> usernames)
         throws ServiceLayerException {
         securityProvider.removeGroupMembers(groupId, userIds, usernames);
@@ -153,46 +165,6 @@ public class GroupServiceImpl implements GroupService {
             }
         } catch (DocumentException e) {
             logger.error("Error while reading group role mappings file for site " + siteId + " - "
-                    + siteGroupRoleMappingConfigPath);
-        }
-        return groupRoleMap;
-    }
-
-    @Override
-    public List<String> getGlobalGroups() {
-        Map<String, List<String>> groupRoleMapping = loadGlobalGroupMappings();
-        List<String> toRet = new ArrayList<String>();
-        toRet.addAll(groupRoleMapping.keySet());
-        return toRet;
-    }
-
-    private Map<String, List<String>> loadGlobalGroupMappings() {
-        Map<String, List<String>> groupRoleMap = new HashMap<String, List<String>>();
-        String siteConfigPath =
-                studioConfiguration.getProperty(CONFIGURATION_GLOBAL_CONFIG_BASE_PATH);
-        String siteGroupRoleMappingConfigPath =
-                siteConfigPath + FILE_SEPARATOR +
-                        studioConfiguration.getProperty(CONFIGURATION_GLOBAL_ROLE_MAPPINGS_FILE_NAME);
-        Document document = null;
-        try {
-            document = contentService.getContentAsDocument(StringUtils.EMPTY, siteGroupRoleMappingConfigPath);
-            Element root = document.getRootElement();
-            if (root.getName().equals(DOCUMENT_ROLE_MAPPINGS)) {
-                List<Node> groupNodes = root.selectNodes(DOCUMENT_ELM_GROUPS_NODE);
-                for (Node node : groupNodes) {
-                    String name = node.valueOf(StudioXmlConstants.DOCUMENT_ATTR_PERMISSIONS_NAME);
-                    if (!StringUtils.isEmpty(name)) {
-                        List<Node> roleNodes = node.selectNodes(StudioXmlConstants.DOCUMENT_ELM_PERMISSION_ROLE);
-                        List<String> roles = new ArrayList<String>();
-                        for (Node roleNode : roleNodes) {
-                            roles.add(roleNode.getText());
-                        }
-                        groupRoleMap.put(name, roles);
-                    }
-                }
-            }
-        } catch (DocumentException e) {
-            logger.error("Error while reading global group role mappings file "
                     + siteGroupRoleMappingConfigPath);
         }
         return groupRoleMap;

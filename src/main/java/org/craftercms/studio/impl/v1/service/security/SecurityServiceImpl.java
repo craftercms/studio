@@ -68,6 +68,7 @@ import org.craftercms.studio.api.v1.to.PermissionsConfigTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.service.security.GroupService;
 import org.craftercms.studio.api.v2.service.security.SecurityProvider;
+import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.impl.v1.util.SessionTokenUtils;
 import org.craftercms.studio.impl.v2.service.security.Authentication;
 import org.craftercms.studio.model.Group;
@@ -140,6 +141,7 @@ public class SecurityServiceImpl implements SecurityService {
     protected UserDetailsManager userDetailsManager;
     protected ObjectFactory<FreeMarkerConfig> freeMarkerConfig;
     protected GroupService groupService;
+    protected UserService userService;
 
     @Override
     @ValidateParams
@@ -244,16 +246,20 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     protected void addGlobalUserRoles(String user, Set<String> roles, PermissionsConfigTO rolesConfig) {
-        List<String> groups = groupService.getGlobalGroups();
-        if (rolesConfig != null && groups != null) {
-            Map<String, List<String>> rolesMap = rolesConfig.getRoles();
-            for (String group : groups) {
-                String groupName = group.replaceFirst("GROUP_", "");
-                List<String> userRoles = rolesMap.get(groupName);
-                if (roles != null && userRoles != null) {
-                    roles.addAll(userRoles);
+        try {
+            List<Group> groups = userService.getUserGroups(-1, user);
+            if (rolesConfig != null && groups != null) {
+                Map<String, List<String>> rolesMap = rolesConfig.getRoles();
+                for (Group group : groups) {
+                    String groupName = group.getName();
+                    List<String> userRoles = rolesMap.get(groupName);
+                    if (roles != null && userRoles != null) {
+                        roles.addAll(userRoles);
+                    }
                 }
             }
+        } catch (ServiceLayerException e) {
+            logger.error("Unable to retrieve user groups for user {0}", user);
         }
     }
 
@@ -348,7 +354,6 @@ public class SecurityServiceImpl implements SecurityService {
     @ValidateParams
     public Set<String> getUserRoles(@ValidateStringParam(name = "site") final String site,
                                     @ValidateStringParam(name = "user") String user) {
-
         List<String> groups = groupService.getSiteGroups(site);
         if (groups != null && groups.size() > 0) {
             logger.debug("Groups for " + user + " in " + site + ": " + groups);
@@ -1044,4 +1049,13 @@ public class SecurityServiceImpl implements SecurityService {
     public void setGroupService(GroupService groupService) {
         this.groupService = groupService;
     }
+
+    public UserService getUserService() {
+        return userService;
+    }
+
+    public void setUserService(UserService userService) {
+        this.userService = userService;
+    }
+
 }

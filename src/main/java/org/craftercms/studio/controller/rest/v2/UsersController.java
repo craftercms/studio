@@ -19,9 +19,7 @@
 package org.craftercms.studio.controller.rest.v2;
 
 import org.apache.commons.lang3.StringUtils;
-import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
@@ -50,12 +48,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.DEFAULT_ORGANIZATION_ID;
 
@@ -82,8 +76,8 @@ public class UsersController {
         @RequestParam(value = "siteId", required = false) String siteId,
         @RequestParam(value = "offset", required = false, defaultValue = "0") int offset,
         @RequestParam(value = "limit", required = false, defaultValue = "10") int limit,
-        @RequestParam(value = "sort", required = false, defaultValue = StringUtils.EMPTY) String sort) throws ServiceLayerException {
-
+        @RequestParam(value = "sort", required = false, defaultValue = StringUtils.EMPTY) String sort)
+            throws ServiceLayerException {
         List<User> users = null;
         int total = 0;
         if (StringUtils.isEmpty(siteId)) {
@@ -93,7 +87,6 @@ public class UsersController {
             total = userService.getAllUsersForSiteTotal(DEFAULT_ORGANIZATION_ID, siteId);
             users = userService.getAllUsersForSite(DEFAULT_ORGANIZATION_ID, siteId, offset, limit, sort);
         }
-
 
         ResponseBody responseBody = new ResponseBody();
         PaginatedResultList<User> result = new PaginatedResultList<>();
@@ -154,7 +147,6 @@ public class UsersController {
     public ResponseBody deleteUser(@RequestParam(value = "id", required = false) List<Long> userIds,
                            @RequestParam(value = "username", required = false) List<String> usernames)
         throws ServiceLayerException {
-
         ValidationUtils.validateAnyListNonEmpty(userIds, usernames);
 
         userService.deleteUsers(userIds != null? userIds : Collections.emptyList(),
@@ -199,9 +191,8 @@ public class UsersController {
      * @return Response object
      */
     @PatchMapping(value = "/api/2/users/enable", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseBody enableUsers(@RequestBody EnableUsers enableUsers) throws ServiceLayerException, UserNotFoundException {
-
-
+    public ResponseBody enableUsers(@RequestBody EnableUsers enableUsers) throws ServiceLayerException,
+                                                                                 UserNotFoundException {
         ValidationUtils.validateEnableUsers(enableUsers);
 
         List<User> users = userService.enableUsers(enableUsers.getUserIds(), enableUsers.getUsernames(), true);
@@ -221,8 +212,8 @@ public class UsersController {
      * @return Response object
      */
     @PatchMapping(value = "/api/2/users/disable", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseBody disableUsers(@RequestBody EnableUsers enableUsers) throws ServiceLayerException, UserNotFoundException {
-
+    public ResponseBody disableUsers(@RequestBody EnableUsers enableUsers) throws ServiceLayerException,
+                                                                                  UserNotFoundException {
         ValidationUtils.validateEnableUsers(enableUsers);
 
         List<User> users = userService.enableUsers(enableUsers.getUserIds(), enableUsers.getUsernames(), false);
@@ -243,11 +234,6 @@ public class UsersController {
      */
     @GetMapping("/api/2/users/{userId}/sites")
     public ResponseBody getUserSites(@PathVariable("userId") String userId) throws ServiceLayerException {
-
-        List<Site> sites = new ArrayList<>();
-        Set<String> allSites = siteService.getAllAvailableSites();
-        Map<String, List<String>> siteGroupsMap = new HashMap<>();
-        allSites.forEach(s -> siteGroupsMap.put(s, groupService.getSiteGroups(s)));
         int uId = -1;
         String username = StringUtils.EMPTY ;
         if ( StringUtils.isNumeric(userId)) {
@@ -255,23 +241,8 @@ public class UsersController {
         } else {
             username = userId;
         }
-        List<Group> userGroups = userService.getUserGroups(uId, username);
-        userGroups.forEach(ug -> {
-            for (Map.Entry<String, List<String>> entry : siteGroupsMap.entrySet()) {
-                if (entry.getValue().contains(ug.getName())) {
-                    try {
-                        SiteFeed siteFeed = siteService.getSite(entry.getKey());
-                        Site site = new Site();
-                        site.setId(siteFeed.getId());
-                        site.setDesc(siteFeed.getDescription());
-                        sites.add(site);
-                    } catch (SiteNotFoundException e) {
-                        logger.error("Site not found " + entry.getKey(), e);
-                    }
-                    break;
-                }
-            }
-        });
+
+        List<Site> sites = userService.getUserSites(uId, username);
 
         ResponseBody responseBody = new ResponseBody();
         ResultList<Site> result = new ResultList<>();
@@ -282,8 +253,8 @@ public class UsersController {
     }
 
     @GetMapping("/api/2/user")
-    public ResponseBody getAuthenticatedUser() throws AuthenticationException, ServiceLayerException {
-        AuthenticatedUser user = userService.getAuthenticatedUser();
+    public ResponseBody getCurrentUser() throws AuthenticationException, ServiceLayerException {
+        AuthenticatedUser user = userService.getCurrentUser();
 
         ResultOne<AuthenticatedUser> result = new ResultOne<>();
         result.setResponse(ApiResponse.OK);
@@ -294,6 +265,21 @@ public class UsersController {
 
         return responseBody;
     }
+
+    @GetMapping("/api/2/user/sites")
+    public ResponseBody getCurrentUserSites() throws AuthenticationException, ServiceLayerException {
+        List<Site> sites = userService.getCurrentUserSites();
+
+        ResultList<Site> result = new ResultList<>();
+        result.setResponse(ApiResponse.OK);
+        result.setEntities(sites);
+
+        ResponseBody responseBody = new ResponseBody();
+        responseBody.setResult(result);
+
+        return responseBody;
+    }
+
 
     public UserService getUserService() {
         return userService;

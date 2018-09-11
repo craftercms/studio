@@ -24,7 +24,7 @@
 -->
 
 <permissions>
-    <role name="crafter-admin">
+    <role name="system_admin">
         <rule regex="/.*">
             <allowed-permissions>
                 <permission>Read</permission>
@@ -32,21 +32,16 @@
                 <permission>Delete</permission>
                 <permission>Create Folder</permission>
                 <permission>Publish</permission>
-            </allowed-permissions>
-        </rule>
-    </role>
-    <role name="create-sites">
-        <rule regex="/.*">
-            <allowed-permissions>
                 <permission>create-site</permission>
+                <permission>read_groups</permission>
+                <permission>create_groups</permission>
+                <permission>update_groups</permission>
+                <permission>delete_groups</permission>
+                <permission>read_users</permission>
+                <permission>create_users</permission>
+                <permission>update_users</permission>
+                <permission>delete_users</permission>
             </allowed-permissions>
         </rule>
     </role>
-    <!--<role name="*">-->
-    <!--<rule regex="/.*">-->
-    <!--<allowed-permissions>-->
-    <!--<permission>Read</permission>-->
-    <!--</allowed-permissions>-->
-    <!--</rule>-->
-    <!--</role>-->
 </permissions>

@@ -6,11 +6,8 @@
 
 <role-mappings>
     <groups>
-        <group name="crafter-admin">
-            <role>crafter-admin</role>
-        </group>
-        <group name="crafter-create-sites">
-            <role>create-sites</role>
+        <group name="system_admin">
+            <role>system_admin</role>
         </group>
     </groups>
 </role-mappings>

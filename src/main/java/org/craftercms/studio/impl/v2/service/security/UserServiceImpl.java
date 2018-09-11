@@ -18,12 +18,17 @@
 
 package org.craftercms.studio.impl.v2.service.security;
 
+import org.craftercms.commons.security.permissions.DefaultPermission;
+import org.craftercms.commons.security.permissions.annotations.HasPermission;
+import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.UserDAO;
 import org.craftercms.studio.api.v2.dal.UserTO;
 import org.craftercms.studio.api.v2.service.security.GroupService;
@@ -31,12 +36,10 @@ import org.craftercms.studio.api.v2.service.security.SecurityProvider;
 import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.model.AuthenticatedUser;
 import org.craftercms.studio.model.Group;
+import org.craftercms.studio.model.Site;
 import org.craftercms.studio.model.User;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.GROUP_NAME;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.GROUP_NAMES;
@@ -52,17 +55,20 @@ public class UserServiceImpl implements UserService {
     private UserDAO userDAO;
     private GroupService groupService;
     private SecurityProvider securityProvider;
+    private SiteService siteService;
 
     @Override
-    public List<User> getAllUsersForSite(long orgId, String siteId, int offset, int limit, String sort) throws
-        ServiceLayerException {
+    @HasPermission(type = DefaultPermission.class, action = "read_users")
+    public List<User> getAllUsersForSite(long orgId, String siteId, int offset, int limit, String sort)
+            throws ServiceLayerException {
         List<String> groupNames = groupService.getSiteGroups(siteId);
         return securityProvider.getAllUsersForSite(orgId, groupNames, offset, limit, sort);
     }
 
     @Override
+    @HasPermission(type = DefaultPermission.class, action = "read_users")
     public List<User> getAllUsers(int offset, int limit, String sort) throws ServiceLayerException {
-        Map<String, Object> params = new HashMap<String, Object>();
+        Map<String, Object> params = new HashMap<>();
         params.put(OFFSET, offset);
         params.put(LIMIT, limit);
         params.put(SORT, sort);
@@ -88,9 +94,10 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @HasPermission(type = DefaultPermission.class, action = "read_users")
     public int getAllUsersForSiteTotal(long orgId, String siteId) throws ServiceLayerException {
         List<String> groupNames = groupService.getSiteGroups(siteId);
-        Map<String, Object> params = new HashMap<String, Object>();
+        Map<String, Object> params = new HashMap<>();
         params.put(GROUP_NAMES, groupNames);
         try {
             return userDAO.getAllUsersForSiteTotal(params);
@@ -100,6 +107,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @HasPermission(type = DefaultPermission.class, action = "read_users")
     public int getAllUsersTotal() throws ServiceLayerException {
         try {
             return userDAO.getAllUsersTotal();
@@ -109,50 +117,69 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @HasPermission(type = DefaultPermission.class, action = "create_users")
     public User createUser(User user) throws UserAlreadyExistsException, ServiceLayerException {
         return securityProvider.createUser(user);
     }
 
     @Override
+    @HasPermission(type = DefaultPermission.class, action = "update_users")
     public void updateUser(User user) throws ServiceLayerException {
         securityProvider.updateUser(user);
     }
 
     @Override
+    @HasPermission(type = DefaultPermission.class, action = "delete_users")
     public void deleteUsers(List<Long> userIds, List<String> usernames) throws ServiceLayerException {
         securityProvider.deleteUsers(userIds, usernames);
     }
 
     @Override
-    public User getUserByIdOrUsername(long userId, String username) throws ServiceLayerException, UserNotFoundException {
+    @HasPermission(type = DefaultPermission.class, action = "read_users")
+    public User getUserByIdOrUsername(long userId, String username) throws ServiceLayerException,
+                                                                           UserNotFoundException {
         return securityProvider.getUserByIdOrUsername(userId, username);
     }
 
     @Override
-    public List<User> enableUsers(List<Long> userIds, List<String> usernames, boolean enabled) throws ServiceLayerException, UserNotFoundException {
+    @HasPermission(type = DefaultPermission.class, action = "update_users")
+    public List<User> enableUsers(List<Long> userIds, List<String> usernames, boolean enabled)
+            throws ServiceLayerException, UserNotFoundException {
         return securityProvider.enableUsers(userIds, usernames, enabled);
     }
 
     @Override
-    public List<Group> getUserGroups(long userId, String username) throws ServiceLayerException {
-        return securityProvider.getUserGroups(userId, username);
+    @HasPermission(type = DefaultPermission.class, action = "read_users")
+    public List<Site> getUserSites(long userId, String username) throws ServiceLayerException {
+        List<Site> sites = new ArrayList<>();
+        Map<String, List<String>> siteGroupsMap = new HashMap<>();
+
+        Set<String> allSites = siteService.getAllAvailableSites();
+        allSites.forEach(s -> siteGroupsMap.put(s, groupService.getSiteGroups(s)));
+
+        List<Group> userGroups = getUserGroups(userId, username);
+        userGroups.forEach(ug -> {
+            for (Map.Entry<String, List<String>> entry : siteGroupsMap.entrySet()) {
+                if (entry.getValue().contains(ug.getName())) {
+                    try {
+                        SiteFeed siteFeed = siteService.getSite(entry.getKey());
+                        Site site = new Site();
+                        site.setId(siteFeed.getId());
+                        site.setDesc(siteFeed.getDescription());
+                        sites.add(site);
+                    } catch (SiteNotFoundException e) {
+                        logger.error("Site not found " + entry.getKey(), e);
+                    }
+                    break;
+                }
+            }
+        });
+
+        return sites;
     }
 
     @Override
-    public boolean isUserMemberOfGroup(String username, String groupName) throws ServiceLayerException {
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put(GROUP_NAME, groupName);
-        params.put(USERNAME, username);
-        try {
-            int result = userDAO.isUserMemberOfGroup(params);
-            return result > 0;
-        } catch (Exception e) {
-            throw new ServiceLayerException("Unknown database error", e);
-        }
-    }
-
-    @Override
-    public AuthenticatedUser getAuthenticatedUser() throws AuthenticationException, ServiceLayerException {
+    public AuthenticatedUser getCurrentUser() throws AuthenticationException, ServiceLayerException {
         Authentication authentication = securityProvider.getAuthentication();
         if (authentication != null) {
             String username = authentication.getUsername();
@@ -175,6 +202,34 @@ public class UserServiceImpl implements UserService {
             }
         } else {
             throw new AuthenticationException("User should be authenticated");
+        }
+    }
+
+    @Override
+    public List<Site> getCurrentUserSites() throws AuthenticationException, ServiceLayerException {
+        Authentication authentication = securityProvider.getAuthentication();
+        if (authentication != null) {
+            return getUserSites(-1, authentication.getUsername());
+        } else {
+            throw new AuthenticationException("User should be authenticated");
+        }
+    }
+
+    @Override
+    public List<Group> getUserGroups(long userId, String username) throws ServiceLayerException {
+        return securityProvider.getUserGroups(userId, username);
+    }
+
+    @Override
+    public boolean isUserMemberOfGroup(String username, String groupName) throws ServiceLayerException {
+        Map<String, Object> params = new HashMap<>();
+        params.put(GROUP_NAME, groupName);
+        params.put(USERNAME, username);
+        try {
+            int result = userDAO.isUserMemberOfGroup(params);
+            return result > 0;
+        } catch (Exception e) {
+            throw new ServiceLayerException("Unknown database error", e);
         }
     }
 
@@ -201,4 +256,13 @@ public class UserServiceImpl implements UserService {
     public void setSecurityProvider(SecurityProvider securityProvider) {
         this.securityProvider = securityProvider;
     }
+
+    public SiteService getSiteService() {
+        return siteService;
+    }
+
+    public void setSiteService(SiteService siteService) {
+        this.siteService = siteService;
+    }
+
 }
