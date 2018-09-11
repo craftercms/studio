@@ -120,4 +120,9 @@
         <property name="mapperInterface" value="org.craftercms.studio.api.v2.dal.UserDAO" />
         <property name="sqlSessionFactory" ref="sqlSessionFactory" />
     </bean>
+
+    <bean id="metaDAO" class="org.mybatis.spring.mapper.MapperFactoryBean">
+        <property name="mapperInterface" value="org.craftercms.studio.api.v2.dal.MetaDAO" />
+        <property name="sqlSessionFactory" ref="sqlSessionFactory" />
+    </bean>
 </beans>

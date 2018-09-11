@@ -20,5 +20,7 @@ if(resource != null) {
 }
 else {
 	response.setStatus(404)
-	return "NOT FOUND"
+    def instance = applicationContext.get("instanceService")
+
+	return instance.getInstanceId() //"NOT FOUND"
 }

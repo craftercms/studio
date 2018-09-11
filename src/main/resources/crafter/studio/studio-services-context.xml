@@ -320,6 +320,10 @@
         <property name="uiServiceInternal" ref="uiServiceInternal"/>
     </bean>
 
+    <bean id="instanceService" class="org.craftercms.studio.impl.v2.service.system.InstanceServiceImpl">
+        <property name="metaDAO" ref="metaDAO" />
+    </bean>
+
     <!-- ////////////////////////////////////// -->
     <!--      Managers                          -->
     <!-- ////////////////////////////////////// -->

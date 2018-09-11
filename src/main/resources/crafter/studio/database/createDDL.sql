@@ -20,10 +20,11 @@ USE crafter ;
 CREATE TABLE _meta (
   `version` VARCHAR(10) NOT NULL,
   `integrity` BIGINT(10),
+  `studio_id` VARCHAR(40) NOT NULL,
   PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version) VALUES ('3.1.0.2') ;
+INSERT INTO _meta (version, studio_id) VALUES ('3.1.0.3', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`             BIGINT(20)   NOT NULL AUTO_INCREMENT,
