@@ -21,6 +21,7 @@ def email = ""
 def firstname = ""
 def lastname = ""
 def authenticationType = ""
+def profile = null
 
 if (StringUtils.isEmpty(currentUser)) {
     def studioConfigurationSB = context.applicationContext.get("studioConfiguration")
@@ -35,15 +36,16 @@ if (StringUtils.isEmpty(currentUser)) {
     }
 }
 
-def profile = SecurityServices.getUserProfile(context, currentUser)
-
-if (profile == null || profile.isEmpty()) {
+try {
+    profile = SecurityServices.getUserProfile(context, currentUser)
+} catch(e) {
     profile = [:]
     profile.email = email
     profile.first_name = firstname
     profile.last_name = lastname
     profile.authentication_type = authenticationType;
 }
+
 model.username = currentUser
 model.userEmail = profile.email 
 model.userFirstName = profile.first_name
