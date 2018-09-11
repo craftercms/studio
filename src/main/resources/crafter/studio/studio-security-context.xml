@@ -158,4 +158,27 @@
     <bean id="crafter.csrfFilter" class="org.springframework.security.web.csrf.CsrfFilter">
         <constructor-arg ref="crafter.csrfTokenRepository"/>
     </bean>
+
+    <!-- Permissions -->
+    <bean id="crafter.studioSubjectResolver" class="org.craftercms.studio.permissions.SubjectResolverImpl">
+        <property name="securityService" ref="cstudioSecurityService"/>
+    </bean>
+
+    <bean id="crafter.studioPermissionResolver" class="org.craftercms.studio.permissions.PermissionResolverImpl">
+        <property name="securityService" ref="cstudioSecurityService"/>
+    </bean>
+
+    <bean id="crafter.studioPermissionEvaluator" class="org.craftercms.commons.security.permissions.impl.PermissionEvaluatorImpl">
+        <property name="subjectResolver" ref="crafter.studioSubjectResolver"/>
+        <property name="permissionResolver" ref="crafter.studioPermissionResolver"/>
+    </bean>
+
+    <bean id="crafter.HasPermissionAnnotationHandler" class="org.craftercms.commons.security.permissions.annotations.HasPermissionAnnotationHandler">
+        <property name="permissionEvaluators">
+            <map>
+                <entry key="org.craftercms.commons.security.permissions.DefaultPermission" value-ref="crafter.studioPermissionEvaluator"/>
+            </map>
+        </property>
+    </bean>
+
 </beans>

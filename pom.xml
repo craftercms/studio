@@ -143,6 +143,12 @@
             <version>${project.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.craftercms</groupId>
+            <artifactId>crafter-commons-security</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <!-- Database DALs -->
         <dependency>
             <groupId>org.apache.ibatis</groupId>
