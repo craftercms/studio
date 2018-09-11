@@ -167,5 +167,5 @@ package org.craftercms.studio.api.v1.constant;
 
     String HTTP_SESSION_ATTRIBUTE_STUDIO_USER = "studio_user";
 
-
+    int DEFAULT_ORGANIZATION_ID = 1;
 }

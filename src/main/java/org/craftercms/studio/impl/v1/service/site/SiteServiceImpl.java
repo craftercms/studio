@@ -124,6 +124,7 @@ import org.dom4j.io.SAXReader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.xml.sax.SAXException;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.DEFAULT_ORGANIZATION_ID;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOTE_REPOSITORY_CREATE_OPTION_CLONE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOTE_REPOSITORY_CREATE_OPTION_PUSH;
@@ -695,7 +696,7 @@ public class SiteServiceImpl implements SiteService {
         for (String group : defaultGroups) {
             String description = group + SITE_DEFAULT_GROUPS_DESCRIPTION;
             try {
-                groupService.createGroup(1, group, description);
+                groupService.createGroup(DEFAULT_ORGANIZATION_ID, group, description);
             } catch (GroupAlreadyExistsException e) {
                 logger.warn("Default group: " + group + " not created. It already exists.", e);
             } catch (ServiceLayerException e) {

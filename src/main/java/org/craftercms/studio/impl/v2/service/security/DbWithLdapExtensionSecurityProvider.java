@@ -59,6 +59,7 @@ import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.DEFAULT_ORGANIZATION_ID;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_LDAP_USER_ATTRIBUTE_EMAIL;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_LDAP_USER_ATTRIBUTE_FIRST_NAME;
@@ -296,7 +297,7 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
     protected boolean upsertUserGroup(String groupName, String username) {
 
         try {
-            createGroup(1, groupName, "Externally managed group - " + groupName);
+            createGroup(DEFAULT_ORGANIZATION_ID, groupName, "Externally managed group - " + groupName);
         } catch (GroupAlreadyExistsException e) {
             logger.warn("Externally managed group: " + groupName + " not created. It already exists .");
         } catch (ServiceLayerException e) {
