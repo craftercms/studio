@@ -49,6 +49,8 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Collections;
 import java.util.List;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.DEFAULT_ORGANIZATION_ID;
+
 @RestController
 public class GroupsController {
 
@@ -70,8 +72,8 @@ public class GroupsController {
             @RequestParam(value = "limit", required = false, defaultValue = "10") int limit,
             @RequestParam(value = "sort", required = false, defaultValue = StringUtils.EMPTY) String sort
             ) throws ServiceLayerException {
-        int total = groupService.getAllGroupsTotal(1);
-        List<Group> groups = groupService.getAllGroups(1, offset, limit, sort);
+        int total = groupService.getAllGroupsTotal(DEFAULT_ORGANIZATION_ID);
+        List<Group> groups = groupService.getAllGroups(DEFAULT_ORGANIZATION_ID, offset, limit, sort);
 
         ResponseBody responseBody = new ResponseBody();
         PaginatedResultList<Group> result = new PaginatedResultList<>();
@@ -94,8 +96,7 @@ public class GroupsController {
     @PostMapping(value = "/api/2/groups", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseBody createGroup(@RequestBody Group group) throws GroupAlreadyExistsException,
         ServiceLayerException {
-        Group newGroup = groupService.createGroup(1, group.getName(), group.getDesc());
-
+        Group newGroup = groupService.createGroup(DEFAULT_ORGANIZATION_ID, group.getName(), group.getDesc());
         ResponseBody responseBody = new ResponseBody();
         ResultOne<Group> result = new ResultOne<>();
         result.setResponse(ApiResponse.CREATED);
@@ -112,7 +113,7 @@ public class GroupsController {
      */
     @PatchMapping(value = "/api/2/groups", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseBody updateGroup(@RequestBody Group group) throws ServiceLayerException {
-        Group updatedGroup = groupService.updateGroup(1, group);
+        Group updatedGroup = groupService.updateGroup(DEFAULT_ORGANIZATION_ID, group);
 
         ResponseBody responseBody = new ResponseBody();
         ResultOne<Group> result = new ResultOne<>();
