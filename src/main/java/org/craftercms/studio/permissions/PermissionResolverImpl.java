@@ -28,7 +28,10 @@ import java.util.Map;
 import java.util.Set;
 
 /**
+ * Implementation of {@link PermissionResolver} that resolves user permissions based on Studio's
+ * {@link SecurityService}.
  *
+ * @author avasquez
  */
 public class PermissionResolverImpl implements PermissionResolver<String, Map<String, Object>> {
 
