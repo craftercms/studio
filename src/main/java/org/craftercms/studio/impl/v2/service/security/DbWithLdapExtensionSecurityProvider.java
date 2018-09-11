@@ -79,8 +79,7 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
     protected SiteFeedMapper siteFeedMapper;
 
     @Override
-    public String authenticate(String username, String password)
-            throws BadCredentialsException, AuthenticationSystemException, EntitlementException {
+    public String authenticate(String username, String password) throws BadCredentialsException, AuthenticationSystemException, EntitlementException, UserNotFoundException {
 
         // Mapper for user data if user is successfully authenticated
         AuthenticatedLdapEntryContextMapper<UserTO> mapper = new AuthenticatedLdapEntryContextMapper<UserTO>() {
@@ -195,14 +194,12 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
                         user.setFirstName(userTO.getFirstName());
                         user.setLastName(userTO.getLastName());
                         user.setExternallyManaged(true);
-                        boolean success = createUser(user);
-                        if (success) {
-                            ActivityService.ActivityType activityType = ActivityService.ActivityType.CREATED;
-                            Map<String, String> extraInfo = new HashMap<>();
-                            extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
-                            activityService.postActivity(getSystemSite(), user.getUsername(), user.getUsername(),
-                                activityType, ActivityService.ActivitySource.API, extraInfo);
-                        }
+                        createUser(user);
+                        ActivityService.ActivityType activityType = ActivityService.ActivityType.CREATED;
+                        Map<String, String> extraInfo = new HashMap<>();
+                        extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
+                        activityService.postActivity(getSystemSite(), user.getUsername(), user.getUsername(),
+                            activityType, ActivityService.ActivitySource.API, extraInfo);
                     } catch (UserAlreadyExistsException e) {
                         logger.error("Error adding user " + username + " from external authentication provider",
                                         e);
@@ -294,7 +291,7 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
         }
     }
 
-    protected boolean upsertUserGroup(String groupName, String username) {
+    protected boolean upsertUserGroup(String groupName, String username) throws UserNotFoundException {
 
         try {
             createGroup(DEFAULT_ORGANIZATION_ID, groupName, "Externally managed group - " + groupName);
@@ -309,18 +306,16 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
         if (groupTO != null) {
             List<String> usernames = new ArrayList<String>();
             usernames.add(username);
-            boolean success = false;
             try {
-                success = addGroupMembers(groupTO.getId(), new ArrayList<Long>(), usernames);
-            } catch (ServiceLayerException e) {
-                logger.error("Error adding user to group", e);
-            }
-            if (success){
+                addGroupMembers(groupTO.getId(), new ArrayList<>(), usernames);
+
                 ActivityService.ActivityType activityType = ActivityService.ActivityType.ADD_USER_TO_GROUP;
                 Map<String, String> extraInfo = new HashMap<>();
                 extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
                 activityService.postActivity("", "LDAP", username + " > " + groupName , activityType,
-                        ActivityService.ActivitySource.API, extraInfo);
+                    ActivityService.ActivitySource.API, extraInfo);
+            } catch (ServiceLayerException e) {
+                logger.error("Error adding user to group", e);
             }
 
         }

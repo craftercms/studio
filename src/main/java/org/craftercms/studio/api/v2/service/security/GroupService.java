@@ -21,6 +21,7 @@ package org.craftercms.studio.api.v2.service.security;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.model.Group;
 import org.craftercms.studio.model.User;
 
@@ -53,8 +54,9 @@ public interface GroupService {
      * @param orgId Organization identifier
      * @param groupName Group name
      * @param groupDescription Group description
+     * @return the created group
      */
-    void createGroup(long orgId, String groupName, String groupDescription) throws GroupAlreadyExistsException,
+    Group createGroup(long orgId, String groupName, String groupDescription) throws GroupAlreadyExistsException,
         ServiceLayerException;
 
     /**
@@ -62,8 +64,9 @@ public interface GroupService {
      *
      * @param orgId Organization identifier
      * @param group Group to update
+     * @return the updated group
      */
-    void updateGroup(long orgId, Group group) throws ServiceLayerException;
+    Group updateGroup(long orgId, Group group) throws ServiceLayerException;
 
     /**
      * Delete group(s)
@@ -97,8 +100,9 @@ public interface GroupService {
      * @param groupId Group identifier
      * @param userIds List of user identifiers
      * @param usernames List of usernames
+     * @return users added to the group
      */
-    void addGroupMembers(long groupId, List<Long> userIds, List<String> usernames) throws ServiceLayerException;
+    List<User> addGroupMembers(long groupId, List<Long> userIds, List<String> usernames) throws ServiceLayerException, UserNotFoundException;
 
     /**
      * Remove users from the group

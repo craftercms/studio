@@ -144,8 +144,7 @@ public class SecurityServiceImpl implements SecurityService {
     @Override
     @ValidateParams
     public String authenticate(@ValidateStringParam(name = "username") String username,
-                               @ValidateStringParam(name = "password") String password) throws
-        BadCredentialsException, AuthenticationSystemException, EntitlementException {
+                               @ValidateStringParam(name = "password") String password) throws BadCredentialsException, AuthenticationSystemException, EntitlementException, UserNotFoundException {
         String toRet = securityProvider.authenticate(username, password);
         if (StringUtils.isNotEmpty(toRet)) {
             RequestContext requestContext = RequestContext.getCurrent();
@@ -186,8 +185,7 @@ public class SecurityServiceImpl implements SecurityService {
 
     @Override
     @ValidateParams
-    public Map<String,Object> getUserProfile(@ValidateStringParam(name = "user") String user)
-        throws ServiceLayerException {
+    public Map<String,Object> getUserProfile(@ValidateStringParam(name = "user") String user) throws ServiceLayerException, UserNotFoundException {
         Map<String, Object> toRet = new HashMap<String, Object>();
         User u = securityProvider.getUserByIdOrUsername(-1, user);
         if (u != null) {
