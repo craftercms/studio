@@ -48,17 +48,8 @@ public interface UserService {
 
     User getUserByIdOrUsername(long userId, String username) throws ServiceLayerException, UserNotFoundException;
 
-    List<User> enableUsers(List<Long> userIds, List<String> usernames, boolean enabled) throws ServiceLayerException, UserNotFoundException;
-
-    List<Site> getUserSites(long userId, String username) throws ServiceLayerException;
-
-    AuthenticatedUser getCurrentUser() throws AuthenticationException, ServiceLayerException;
-
-    List<Site> getCurrentUserSites() throws AuthenticationException, ServiceLayerException;
-
-    /*
-     TODO: All methods below here should be part of the internal service.
-     */
+    List<User> enableUsers(List<Long> userIds, List<String> usernames, boolean enabled) throws ServiceLayerException,
+                                                                                               UserNotFoundException;
 
     List<Site> getUserSites(long userId, String username) throws ServiceLayerException;
 
