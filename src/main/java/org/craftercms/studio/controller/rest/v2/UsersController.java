@@ -24,6 +24,7 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.site.SiteService;
@@ -36,6 +37,7 @@ import org.craftercms.studio.model.rest.PaginatedResultList;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.ResultList;
 import org.craftercms.studio.model.rest.ResultOne;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -45,6 +47,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
@@ -53,6 +56,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import static org.craftercms.studio.api.v1.constant.StudioConstants.DEFAULT_ORGANIZATION_ID;
 
 @RestController
 public class UsersController {
@@ -85,8 +90,8 @@ public class UsersController {
             total = userService.getAllUsersTotal();
             users = userService.getAllUsers(offset, limit, sort);
         } else {
-            total = userService.getAllUsersForSiteTotal(1, siteId);
-            users = userService.getAllUsersForSite(1, siteId, offset, limit, sort);
+            total = userService.getAllUsersForSiteTotal(DEFAULT_ORGANIZATION_ID, siteId);
+            users = userService.getAllUsersForSite(DEFAULT_ORGANIZATION_ID, siteId, offset, limit, sort);
         }
 
 
@@ -107,13 +112,15 @@ public class UsersController {
      * @param user User to create
      * @return Response object
      */
+    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping(value = "/api/2/users", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseBody createUser(@RequestBody User user) throws UserAlreadyExistsException, ServiceLayerException {
-        userService.createUser(user);
+        User newUser = userService.createUser(user);
 
         ResponseBody responseBody = new ResponseBody();
         ResultOne<User> result = new ResultOne<>();
         result.setResponse(ApiResponse.CREATED);
+        result.setEntity(newUser);
         responseBody.setResult(result);
         return responseBody;
     }
@@ -129,8 +136,9 @@ public class UsersController {
         userService.updateUser(user);
 
         ResponseBody responseBody = new ResponseBody();
-        ResultOne result = new ResultOne();
+        ResultOne<User> result = new ResultOne<>();
         result.setResponse(ApiResponse.OK);
+        result.setEntity(user);
         responseBody.setResult(result);
         return responseBody;
     }
@@ -166,7 +174,7 @@ public class UsersController {
      * @return Response containing user
      */
     @GetMapping("/api/2/users/{userId}")
-    public ResponseBody getUser(@PathVariable("userId") String userId) throws ServiceLayerException {
+    public ResponseBody getUser(@PathVariable("userId") String userId) throws ServiceLayerException, UserNotFoundException {
         int uId = -1;
         String username = StringUtils.EMPTY;
         if (StringUtils.isNumeric(userId)) {
@@ -191,16 +199,17 @@ public class UsersController {
      * @return Response object
      */
     @PatchMapping(value = "/api/2/users/enable", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseBody enableUsers(@RequestBody EnableUsers enableUsers) throws ServiceLayerException {
+    public ResponseBody enableUsers(@RequestBody EnableUsers enableUsers) throws ServiceLayerException, UserNotFoundException {
 
 
         ValidationUtils.validateEnableUsers(enableUsers);
 
-        userService.enableUsers(enableUsers.getUserIds(), enableUsers.getUsernames(), true);
+        List<User> users = userService.enableUsers(enableUsers.getUserIds(), enableUsers.getUsernames(), true);
 
         ResponseBody responseBody = new ResponseBody();
-        ResultOne result = new ResultOne();
+        ResultList<User> result = new ResultList<>();
         result.setResponse(ApiResponse.OK);
+        result.setEntities(users);
         responseBody.setResult(result);
         return responseBody;
     }
@@ -212,15 +221,16 @@ public class UsersController {
      * @return Response object
      */
     @PatchMapping(value = "/api/2/users/disable", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseBody disableUsers(@RequestBody EnableUsers enableUsers) throws ServiceLayerException {
+    public ResponseBody disableUsers(@RequestBody EnableUsers enableUsers) throws ServiceLayerException, UserNotFoundException {
 
         ValidationUtils.validateEnableUsers(enableUsers);
 
-        userService.enableUsers(enableUsers.getUserIds(), enableUsers.getUsernames(), false);
+        List<User> users = userService.enableUsers(enableUsers.getUserIds(), enableUsers.getUsernames(), false);
 
         ResponseBody responseBody = new ResponseBody();
-        ResultOne result = new ResultOne();
+        ResultList<User> result = new ResultList<>();
         result.setResponse(ApiResponse.OK);
+        result.setEntities(users);
         responseBody.setResult(result);
         return responseBody;
     }

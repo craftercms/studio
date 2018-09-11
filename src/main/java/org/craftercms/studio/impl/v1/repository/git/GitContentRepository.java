@@ -75,6 +75,7 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlExcepti
 import org.craftercms.studio.api.v1.exception.repository.RemoteAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotBareException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
@@ -283,7 +284,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 } else {
                     logger.error("Missing repository during write for site: " + site + " path: " + path);
                 }
-            } catch (ServiceLayerException e) {
+            } catch (ServiceLayerException | UserNotFoundException e) {
                 logger.error("Unknown service error during write for site: " + site + " path: " + path, e);
             }
         }
@@ -340,7 +341,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 try {
                     commitId = helper.commitFile(repo, site, emptyFilePath.toString(), "Created folder site: "
                         + site + " path: " + path + FILE_SEPARATOR + name, helper.getCurrentUserIdent());
-                } catch (ServiceLayerException e) {
+                } catch (ServiceLayerException | UserNotFoundException e) {
                     logger.error("Unknown service error during commit for site: " + site + " path: "
                         + emptyFilePath, e);
                 }
@@ -373,8 +374,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 commitId = helper.commitFile(repo, site, pathToCommit, "Delete file " + path,
                         StringUtils.isEmpty(approver) ? helper.getCurrentUserIdent() : helper.getAuthorIdent(approver));
 
-                git.close();
-            } catch (GitAPIException e) {
+            } catch (GitAPIException | UserNotFoundException e) {
                 logger.error("Error while deleting content for site: " + site + " path: " + path, e);
             } catch (ServiceLayerException e) {
                 logger.error("Unknown service error during delete for site: " + site + " path: " + path, e);
@@ -486,8 +486,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     commitId = commit.getName();
                     toRet.put(pathToCommit, commitId);
                 }
-                git.close();
-            } catch (IOException | GitAPIException | ServiceLayerException e) {
+            } catch (IOException | GitAPIException | ServiceLayerException | UserNotFoundException e) {
                 logger.error("Error while moving content for site: " + site + " fromPath: " + fromPath +
                         " toPath: " + toPath + " newName: " + newName);
             }
@@ -527,8 +526,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         .call();
                 commitId = commit.getName();
 
-                git.close();
-            } catch (IOException | GitAPIException | ServiceLayerException e) {
+            } catch (IOException | GitAPIException | ServiceLayerException | UserNotFoundException e) {
                 logger.error("Error while copying content for site: " + site + " fromPath: " + fromPath +
                         " toPath: " + toPath + " newName: ");
             }
@@ -697,8 +695,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
                     toReturn = versionLabel;
 
-                    git.close();
-                } catch (GitAPIException | ServiceLayerException err) {
+                } catch (GitAPIException | ServiceLayerException | UserNotFoundException err) {
                     logger.error("error creating new version for site:  " + site + " path: " + path, err);
                 }
             } else {

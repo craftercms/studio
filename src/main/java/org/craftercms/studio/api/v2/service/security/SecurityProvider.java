@@ -37,24 +37,24 @@ public interface SecurityProvider {
     List<User> getAllUsersForSite(long orgId, List<String> groupNames, int offset, int limit, String sort)
         throws ServiceLayerException;
 
-    boolean createUser(User user) throws UserAlreadyExistsException, ServiceLayerException;
+    User createUser(User user) throws UserAlreadyExistsException, ServiceLayerException;
 
     void updateUser(User user) throws ServiceLayerException;
 
     void deleteUsers(List<Long> userIds, List<String> usernames) throws ServiceLayerException;
 
-    User getUserByIdOrUsername(long userId, String username) throws ServiceLayerException;
+    User getUserByIdOrUsername(long userId, String username) throws ServiceLayerException, UserNotFoundException;
 
-    void enableUsers(List<Long> userIds, List<String> usernames, boolean enabled) throws ServiceLayerException;
+    List<User> enableUsers(List<Long> userIds, List<String> usernames, boolean enabled) throws ServiceLayerException, UserNotFoundException;
 
     List<Group> getUserGroups(long userId, String username) throws ServiceLayerException;
 
     List<Group> getAllGroups(long orgId, int offset, int limit, String sort) throws ServiceLayerException;
 
-    void createGroup(long orgId, String groupName, String groupDescription) throws GroupAlreadyExistsException,
+    Group createGroup(long orgId, String groupName, String groupDescription) throws GroupAlreadyExistsException,
         ServiceLayerException;
 
-    void updateGroup(long orgId, Group group) throws ServiceLayerException;
+    Group updateGroup(long orgId, Group group) throws ServiceLayerException;
 
     void deleteGroup(List<Long> groupIds) throws ServiceLayerException;
 
@@ -62,7 +62,7 @@ public interface SecurityProvider {
 
     List<User> getGroupMembers(long groupId, int offset, int limit, String sort) throws ServiceLayerException;
 
-    boolean addGroupMembers(long groupId, List<Long> userIds, List<String> usernames) throws ServiceLayerException;
+    List<User> addGroupMembers(long groupId, List<Long> userIds, List<String> usernames) throws ServiceLayerException, UserNotFoundException;
 
     void removeGroupMembers(long groupId, List<Long> userIds, List<String> usernames) throws ServiceLayerException;
 
@@ -70,8 +70,7 @@ public interface SecurityProvider {
 
     String getCurrentUser();
 
-    String authenticate(String username, String password) throws BadCredentialsException,
-        AuthenticationSystemException, EntitlementException;
+    String authenticate(String username, String password) throws BadCredentialsException, AuthenticationSystemException, EntitlementException, UserNotFoundException;
 
     boolean validateTicket(String ticket);
 

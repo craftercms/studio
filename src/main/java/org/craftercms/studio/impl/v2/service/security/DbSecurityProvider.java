@@ -47,8 +47,11 @@ import org.craftercms.studio.model.User;
 import javax.servlet.http.HttpSession;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.HTTP_SESSION_ATTRIBUTE_AUTHENTICATION;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_SESSION_TIMEOUT;
@@ -112,11 +115,11 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public boolean createUser(User user) throws UserAlreadyExistsException, ServiceLayerException {
+    public User createUser(User user) throws UserAlreadyExistsException, ServiceLayerException {
         if (userExists(user.getUsername())) {
             throw new UserAlreadyExistsException();
         }
-        Map<String, Object> params = new HashMap<String, Object>();
+        Map<String, Object> params = new HashMap<>();
         params.put(USERNAME, user.getUsername());
         String hashedPassword = CryptoUtils.hashPassword(user.getPassword());
         params.put(PASSWORD, hashedPassword);
@@ -129,10 +132,13 @@ public class DbSecurityProvider implements SecurityProvider {
         params.put(ENABLED, user.isEnabled() ? 1 : 0);
         try {
             userDAO.createUser(params);
+
+            user.setId((Long) params.get(ID));
+
+            return user;
         } catch (Exception e) {
             throw new ServiceLayerException("Unknown database error", e);
         }
-        return true;
     }
 
     @Override
@@ -172,45 +178,40 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public User getUserByIdOrUsername(long userId, String username) throws ServiceLayerException {
-        Map<String, Object> params = new HashMap<String, Object>();
+    public User getUserByIdOrUsername(long userId, String username) throws ServiceLayerException, UserNotFoundException {
+        Map<String, Object> params = new HashMap<>();
         params.put(USER_ID, userId);
         params.put(USERNAME, username);
-        UserTO uDAO;
+        UserTO userTO;
         try {
-            uDAO = userDAO.getUserByIdOrUsername(params);
+            userTO = userDAO.getUserByIdOrUsername(params);
         } catch (Exception e) {
             throw new ServiceLayerException("Unknown database error", e);
         }
-        User user = new User();
-        if (uDAO != null) {
-            user.setId(uDAO.getId());
-            user.setUsername(uDAO.getUsername());
-            user.setFirstName(uDAO.getFirstName());
-            user.setLastName(uDAO.getLastName());
-            user.setEmail(uDAO.getEmail());
-            user.setEnabled(uDAO.isEnabled());
-            user.setExternallyManaged(uDAO.getExternallyManaged() != 0);
+        if(userTO == null) {
+            throw new UserNotFoundException("No user found for username '" + username + "' or id '" + userId + "'");
         }
+        User user = new User();
+        user.setId(userTO.getId());
+        user.setUsername(userTO.getUsername());
+        user.setFirstName(userTO.getFirstName());
+        user.setLastName(userTO.getLastName());
+        user.setEmail(userTO.getEmail());
+        user.setEnabled(userTO.isEnabled());
+        user.setExternallyManaged(userTO.getExternallyManaged() != 0);
         return user;
     }
 
     @Override
-    public void enableUsers(List<Long> userIds, List<String> usernames, boolean enabled) throws ServiceLayerException {
-        List<Long> allUserIds = new ArrayList<Long>();
-        allUserIds.addAll(userIds);
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put(USERNAMES, usernames);
+    public List<User> enableUsers(List<Long> userIds, List<String> usernames, boolean enabled) throws ServiceLayerException, UserNotFoundException {
+        List<User> users = findUsers(userIds, usernames);
+
+        Map<String, Object> params = new HashMap<>();
+        params.put(USER_IDS, users.stream().map(User::getId).collect(Collectors.toList()));
+        params.put(ENABLED, enabled? 1: 0);
         try {
-            if (CollectionUtils.isNotEmpty(usernames)) {
-                allUserIds.addAll(userDAO.getUserIdsForUsernames(params));
-            }
-            if (CollectionUtils.isNotEmpty(allUserIds)) {
-                params = new HashMap<String, Object>();
-                params.put(USER_IDS, allUserIds);
-                params.put(ENABLED, enabled? 1: 0);
-                userDAO.enableUsers(params);
-            }
+            userDAO.enableUsers(params);
+            return findUsers(userIds, usernames);
         } catch (Exception e) {
             throw new ServiceLayerException("Unknown database error", e);
         }
@@ -266,31 +267,40 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public void createGroup(long orgId, String groupName, String groupDescription) throws GroupAlreadyExistsException,
+    public Group createGroup(long orgId, String groupName, String groupDescription) throws GroupAlreadyExistsException,
         ServiceLayerException {
         if (groupExists(groupName)) {
             throw new GroupAlreadyExistsException();
         }
-        Map<String, Object> params = new HashMap<String, Object>();
+
+        Map<String, Object> params = new HashMap<>();
         params.put(ORG_ID, orgId);
         params.put(GROUP_NAME, groupName);
         params.put(GROUP_DESCRIPTION, groupDescription);
         try {
             groupDAO.createGroup(params);
+
+            Group group = new Group();
+            group.setId((Long) params.get(ID));
+            group.setName(groupName);
+            group.setDesc(groupDescription);
+
+            return group;
         } catch (Exception e) {
             throw new ServiceLayerException("Unknown database error", e);
         }
     }
 
     @Override
-    public void updateGroup(long orgId, Group group) throws ServiceLayerException {
-        Map<String, Object> params = new HashMap<String, Object>();
+    public Group updateGroup(long orgId, Group group) throws ServiceLayerException {
+        Map<String, Object> params = new HashMap<>();
         params.put(ID, group.getId());
         params.put(ORG_ID, orgId);
         params.put(GROUP_NAME, group.getName());
         params.put(GROUP_DESCRIPTION, group.getDesc());
         try {
             groupDAO.updateGroup(params);
+            return group;
         } catch (Exception e) {
             throw new ServiceLayerException("Unknown database error", e);
         }
@@ -331,14 +341,14 @@ public class DbSecurityProvider implements SecurityProvider {
         params.put(OFFSET, offset);
         params.put(LIMIT, limit);
         params.put(SORT, sort);
-        List<UserTO> uDAOs;
+        List<UserTO> userTOs;
         try {
-            uDAOs = groupDAO.getGroupMembers(params);
+            userTOs = groupDAO.getGroupMembers(params);
         } catch (Exception e) {
             throw new ServiceLayerException("Unknown database error", e);
         }
         List<User> toRet = new ArrayList<User>();
-        uDAOs.forEach(u -> {
+        userTOs.forEach(u -> {
             User user = new User();
             user.setId(u.getId());
             user.setUsername(u.getUsername());
@@ -353,27 +363,18 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public boolean addGroupMembers(long groupId, List<Long> userIds, List<String> usernames)
-        throws ServiceLayerException {
-        List<Long> allUserIds = new ArrayList<Long>();
-        allUserIds.addAll(userIds);
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put(USERNAMES, usernames);
+    public List<User> addGroupMembers(long groupId, List<Long> userIds, List<String> usernames) throws ServiceLayerException, UserNotFoundException {
+        List<User> users = findUsers(userIds, usernames);
+
+        Map<String, Object> params = new HashMap<>();
+        params.put(USER_IDS, users.stream().map(User::getId).collect(Collectors.toList()));
+        params.put(GROUP_ID, groupId);
         try {
-            if (CollectionUtils.isNotEmpty(usernames)) {
-                allUserIds.addAll(groupDAO.getUserIdsForUsernames(params));
-            }
-            if (CollectionUtils.isNotEmpty(allUserIds)) {
-                params = new HashMap<String, Object>();
-                params.put(USER_IDS, allUserIds);
-                params.put(GROUP_ID, groupId);
-                int result = groupDAO.addGroupMembers(params);
-                return result > 0;
-            }
+            groupDAO.addGroupMembers(params);
+            return users;
         } catch (Exception e) {
             throw new ServiceLayerException("Unknown database error", e);
         }
-        return false;
     }
 
     @Override
@@ -438,8 +439,7 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public String authenticate(String username, String password) throws BadCredentialsException,
-        AuthenticationSystemException, EntitlementException {
+    public String authenticate(String username, String password) throws BadCredentialsException, AuthenticationSystemException, EntitlementException, UserNotFoundException {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(USER_ID, -1);
         params.put(USERNAME, username);
@@ -579,7 +579,7 @@ public class DbSecurityProvider implements SecurityProvider {
                     throw new PasswordDoesNotMatchException();
                 }
             }
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             throw new ServiceLayerException("Unknown database error", e);
         }
     }
@@ -633,6 +633,20 @@ public class DbSecurityProvider implements SecurityProvider {
         } catch (Exception e) {
             throw new ServiceLayerException("Unknown database error", e);
         }
+    }
+
+    protected List<User> findUsers(List<Long> userIds, List<String> usernames) throws ServiceLayerException, UserNotFoundException {
+        List<User> users = new LinkedList<>();
+        for(long userId : userIds) {
+            users.add(getUserByIdOrUsername(userId, Long.toString(userId)));
+        }
+        for(String username : usernames) {
+            Optional<User> user = users.stream().filter(u -> u.getUsername().equals(username)).findFirst();
+            if(!user.isPresent()) {
+                users.add(getUserByIdOrUsername(-1, username));
+            }
+        }
+        return users;
     }
 
     public UserDAO getUserDAO() {

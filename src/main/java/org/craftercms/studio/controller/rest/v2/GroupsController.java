@@ -22,6 +22,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.service.security.GroupService;
@@ -33,6 +34,7 @@ import org.craftercms.studio.model.rest.PaginatedResultList;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.ResultList;
 import org.craftercms.studio.model.rest.ResultOne;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -41,10 +43,13 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Collections;
 import java.util.List;
+
+import static org.craftercms.studio.api.v1.constant.StudioConstants.DEFAULT_ORGANIZATION_ID;
 
 @RestController
 public class GroupsController {
@@ -67,8 +72,8 @@ public class GroupsController {
             @RequestParam(value = "limit", required = false, defaultValue = "10") int limit,
             @RequestParam(value = "sort", required = false, defaultValue = StringUtils.EMPTY) String sort
             ) throws ServiceLayerException {
-        int total = groupService.getAllGroupsTotal(1);
-        List<Group> groups = groupService.getAllGroups(1, offset, limit, sort);
+        int total = groupService.getAllGroupsTotal(DEFAULT_ORGANIZATION_ID);
+        List<Group> groups = groupService.getAllGroups(DEFAULT_ORGANIZATION_ID, offset, limit, sort);
 
         ResponseBody responseBody = new ResponseBody();
         PaginatedResultList<Group> result = new PaginatedResultList<>();
@@ -87,14 +92,15 @@ public class GroupsController {
      * @param group Group to create
      * @return Response object
      */
+    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping(value = "/api/2/groups", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseBody createGroup(@RequestBody Group group) throws GroupAlreadyExistsException,
         ServiceLayerException {
-        groupService.createGroup(1, group.getName(), group.getDesc());
-
+        Group newGroup = groupService.createGroup(DEFAULT_ORGANIZATION_ID, group.getName(), group.getDesc());
         ResponseBody responseBody = new ResponseBody();
-        ResultOne result = new ResultOne();
+        ResultOne<Group> result = new ResultOne<>();
         result.setResponse(ApiResponse.CREATED);
+        result.setEntity(newGroup);
         responseBody.setResult(result);
         return responseBody;
     }
@@ -107,11 +113,12 @@ public class GroupsController {
      */
     @PatchMapping(value = "/api/2/groups", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseBody updateGroup(@RequestBody Group group) throws ServiceLayerException {
-        groupService.updateGroup(1, group);
+        Group updatedGroup = groupService.updateGroup(DEFAULT_ORGANIZATION_ID, group);
 
         ResponseBody responseBody = new ResponseBody();
-        ResultOne result = new ResultOne();
+        ResultOne<Group> result = new ResultOne<>();
         result.setResponse(ApiResponse.OK);
+        result.setEntity(updatedGroup);
         responseBody.setResult(result);
         return responseBody;
     }
@@ -187,15 +194,17 @@ public class GroupsController {
      */
     @PostMapping(value = "/api/2/groups/{groupId}/members", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseBody addGroupMembers(@PathVariable("groupId") int groupId,
-                                        @RequestBody AddGroupMembers addGroupMembers) throws ServiceLayerException {
+                                        @RequestBody AddGroupMembers addGroupMembers) throws ServiceLayerException, UserNotFoundException {
 
         ValidationUtils.validateAddGroupMembers(addGroupMembers);
 
-        groupService.addGroupMembers(groupId, addGroupMembers.getUserIds(), addGroupMembers.getUsernames());
+        List<User> addedUsers = groupService.addGroupMembers(groupId, addGroupMembers.getUserIds(),
+            addGroupMembers.getUsernames());
 
         ResponseBody responseBody = new ResponseBody();
-        ResultOne result = new ResultOne();
+        ResultList<User> result = new ResultList<>();
         result.setResponse(ApiResponse.OK);
+        result.setEntities(addedUsers);
         responseBody.setResult(result);
         return responseBody;
     }

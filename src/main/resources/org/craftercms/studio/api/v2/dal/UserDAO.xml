@@ -70,11 +70,14 @@
         LIMIT #{offset}, #{limit}
     </select>
     
-    <insert id="createUser" parameterType="java.util.Map">
+    <insert id="createUser" parameterType="java.util.Map" useGeneratedKeys="true" keyColumn="id">
         INSERT INTO `user` (record_last_updated, username, password, first_name, last_name,
                            externally_managed, timezone, locale, email, enabled)
         VALUES (CURRENT_TIMESTAMP, #{username}, #{password}, #{firstName}, #{lastName},
                            #{externallyManaged}, #{timezone}, #{locale}, #{email}, #{enabled})
+        <selectKey resultType="long" order="AFTER" keyProperty="id">
+            select LAST_INSERT_ID() as id
+        </selectKey>
     </insert>
 
     <update id="updateUser" parameterType="java.util.Map">

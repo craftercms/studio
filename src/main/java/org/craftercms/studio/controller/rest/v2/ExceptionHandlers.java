@@ -23,6 +23,7 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
@@ -56,6 +57,13 @@ public class ExceptionHandlers {
     @ResponseStatus(HttpStatus.CONFLICT)
     public ResponseBody handleUserAlreadyExistsException(HttpServletRequest request, UserAlreadyExistsException e) {
         ApiResponse response = new ApiResponse(ApiResponse.USER_ALREADY_EXISTS);
+        return handleExceptionInternal(request, e, response);
+    }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ResponseBody handleUserNotFoundException(HttpServletRequest request, UserNotFoundException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.USER_NOT_FOUND);
         return handleExceptionInternal(request, e, response);
     }
 

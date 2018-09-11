@@ -23,6 +23,7 @@ import org.craftercms.studio.api.v1.constant.StudioXmlConstants;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.content.ContentService;
@@ -80,14 +81,14 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
-    public void createGroup(long orgId, String groupName, String groupDescription) throws GroupAlreadyExistsException,
+    public Group createGroup(long orgId, String groupName, String groupDescription) throws GroupAlreadyExistsException,
         ServiceLayerException {
-        securityProvider.createGroup(orgId, groupName, groupDescription);
+        return securityProvider.createGroup(orgId, groupName, groupDescription);
     }
 
     @Override
-    public void updateGroup(long orgId, Group group) throws ServiceLayerException {
-        securityProvider.updateGroup(orgId, group);
+    public Group updateGroup(long orgId, Group group) throws ServiceLayerException {
+        return securityProvider.updateGroup(orgId, group);
     }
 
     @Override
@@ -106,8 +107,8 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
-    public void addGroupMembers(long groupId, List<Long> userIds, List<String> usernames) throws ServiceLayerException {
-        securityProvider.addGroupMembers(groupId, userIds, usernames);
+    public List<User> addGroupMembers(long groupId, List<Long> userIds, List<String> usernames) throws ServiceLayerException, UserNotFoundException {
+        return securityProvider.addGroupMembers(groupId, userIds, usernames);
     }
 
     @Override

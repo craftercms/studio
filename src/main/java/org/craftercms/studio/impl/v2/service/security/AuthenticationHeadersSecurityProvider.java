@@ -56,8 +56,7 @@ public class AuthenticationHeadersSecurityProvider extends DbWithLdapExtensionSe
     private final static Logger logger = LoggerFactory.getLogger(AuthenticationHeadersSecurityProvider.class);
 
     @Override
-    public String authenticate(String username, String password) throws BadCredentialsException,
-        AuthenticationSystemException, EntitlementException {
+    public String authenticate(String username, String password) throws BadCredentialsException, AuthenticationSystemException, EntitlementException, UserNotFoundException {
         if (isAuthenticationHeadersEnabled()) {
             logger.debug("Authenticating user using authentication headers.");
 
@@ -110,14 +109,12 @@ public class AuthenticationHeadersSecurityProvider extends DbWithLdapExtensionSe
                                 user.setEmail(email);
                                 user.setExternallyManaged(true);
                                 user.setEnabled(true);
-                                boolean success = createUser(user);
-                                if (success) {
-                                    ActivityService.ActivityType activityType = ActivityService.ActivityType.CREATED;
-                                    Map<String, String> extraInfo = new HashMap<String, String>();
-                                    extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
-                                    activityService.postActivity(getSystemSite(), usernameHeader, usernameHeader,
-                                        activityType, ActivityService.ActivitySource.API, extraInfo);
-                                }
+                                createUser(user);
+                                ActivityService.ActivityType activityType = ActivityService.ActivityType.CREATED;
+                                Map<String, String> extraInfo = new HashMap<String, String>();
+                                extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
+                                activityService.postActivity(getSystemSite(), usernameHeader, usernameHeader,
+                                    activityType, ActivityService.ActivitySource.API, extraInfo);
                             } catch (UserAlreadyExistsException | ServiceLayerException e) {
                                 logger.error("Error adding user " + username + " from authentication headers", e);
 

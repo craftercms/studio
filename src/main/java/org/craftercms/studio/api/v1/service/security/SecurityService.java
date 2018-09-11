@@ -44,8 +44,7 @@ public interface SecurityService {
 	 * @param username
 	 * @param password
 	 */
-	String authenticate(String username, String password) throws BadCredentialsException,
-        AuthenticationSystemException, EntitlementException;
+	String authenticate(String username, String password) throws BadCredentialsException, AuthenticationSystemException, EntitlementException, UserNotFoundException;
 
 	/**
 	 * Returns the username of the current user OR NULL if no user is authenticated
@@ -61,7 +60,7 @@ public interface SecurityService {
 
     Set<String> getUserRoles(String site, String user);
 
-    Map<String, Object> getUserProfile(String user) throws ServiceLayerException;
+    Map<String, Object> getUserProfile(String user) throws ServiceLayerException, UserNotFoundException;
 
     Set<String> getUserPermissions(String site, String path, String user, List<String> groups);
 

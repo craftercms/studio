@@ -21,6 +21,7 @@ package org.craftercms.studio.api.v2.service.security;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.model.AuthenticatedUser;
 import org.craftercms.studio.model.Group;
 import org.craftercms.studio.model.User;
@@ -38,15 +39,15 @@ public interface UserService {
 
     int getAllUsersTotal() throws ServiceLayerException;
 
-    void createUser(User user) throws UserAlreadyExistsException, ServiceLayerException;
+    User createUser(User user) throws UserAlreadyExistsException, ServiceLayerException;
 
     void updateUser(User user) throws ServiceLayerException;
 
     void deleteUsers(List<Long> userIds, List<String> usernames) throws ServiceLayerException;
 
-    User getUserByIdOrUsername(long userId, String username) throws ServiceLayerException;
+    User getUserByIdOrUsername(long userId, String username) throws ServiceLayerException, UserNotFoundException;
 
-    void enableUsers(List<Long> userIds, List<String> usernames, boolean enabled) throws ServiceLayerException;
+    List<User> enableUsers(List<Long> userIds, List<String> usernames, boolean enabled) throws ServiceLayerException, UserNotFoundException;
 
     List<Group> getUserGroups(long userId, String username) throws ServiceLayerException;
 

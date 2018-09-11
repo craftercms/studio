@@ -21,6 +21,7 @@ package org.craftercms.studio.impl.v2.service.security;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.dal.UserDAO;
@@ -108,8 +109,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void createUser(User user) throws UserAlreadyExistsException, ServiceLayerException {
-        securityProvider.createUser(user);
+    public User createUser(User user) throws UserAlreadyExistsException, ServiceLayerException {
+        return securityProvider.createUser(user);
     }
 
     @Override
@@ -123,13 +124,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User getUserByIdOrUsername(long userId, String username) throws ServiceLayerException {
+    public User getUserByIdOrUsername(long userId, String username) throws ServiceLayerException, UserNotFoundException {
         return securityProvider.getUserByIdOrUsername(userId, username);
     }
 
     @Override
-    public void enableUsers(List<Long> userIds, List<String> usernames, boolean enabled) throws ServiceLayerException {
-        securityProvider.enableUsers(userIds, usernames, enabled);
+    public List<User> enableUsers(List<Long> userIds, List<String> usernames, boolean enabled) throws ServiceLayerException, UserNotFoundException {
+        return securityProvider.enableUsers(userIds, usernames, enabled);
     }
 
     @Override
@@ -155,7 +156,13 @@ public class UserServiceImpl implements UserService {
         Authentication authentication = securityProvider.getAuthentication();
         if (authentication != null) {
             String username = authentication.getUsername();
-            User user = securityProvider.getUserByIdOrUsername(0, username);
+            User user;
+            try {
+                user = securityProvider.getUserByIdOrUsername(0, username);
+            } catch (UserNotFoundException e) {
+                throw new ServiceLayerException("Current authenticated user '" + username +
+                    "' wasn't found in repository", e);
+            }
 
             if (user != null) {
                 AuthenticatedUser authUser = new AuthenticatedUser(user);
