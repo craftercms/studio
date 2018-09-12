@@ -90,7 +90,7 @@ import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryC
 public class DataSourceInitializerImpl implements DataSourceInitializer {
 
     private final static Logger logger = LoggerFactory.getLogger(DataSourceInitializerImpl.class);
-    private final static String CURRENT_DB_VERSION = "3.1.0.2";
+    private final static String CURRENT_DB_VERSION = "3.1.0.3";
     private final static String DB_VERSION_3_0_0 = "3.0.0";
     private final static String DB_VERSION_2_5_X = "2.5.x";
     private final static String DB_VERSION_3_0_X = "3.0";
