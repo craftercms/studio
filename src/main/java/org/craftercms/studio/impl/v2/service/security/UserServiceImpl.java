@@ -18,8 +18,6 @@
 
 package org.craftercms.studio.impl.v2.service.security;
 
-import org.apache.commons.collections4.CollectionUtils;
-
 import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.commons.entitlements.model.EntitlementType;
 import org.craftercms.commons.entitlements.model.Module;
@@ -137,7 +135,8 @@ public class UserServiceImpl implements UserService {
                 logger.debug("Validation completed, duration : {0} ms", System.currentTimeMillis() - start);
             }
         } catch (EntitlementException e) {
-            throw new ServiceLayerException("Unable to complete request due to entitlement limits. Please contact your system administrator.", e);
+            throw new ServiceLayerException("Unable to complete request due to entitlement limits. Please contact " +
+                                            "your system administrator.", e);
         }
         return securityProvider.createUser(user);
     }
@@ -182,8 +181,7 @@ public class UserServiceImpl implements UserService {
                 try {
                     SiteFeed siteFeed = siteService.getSite(siteName);
                     Site site = new Site();
-                    site.setId(siteFeed.getId());
-                    site.setName(siteFeed.getName());
+                    site.setSiteId(siteFeed.getSiteId());
                     site.setDesc(siteFeed.getDescription());
 
                     sites.add(site);
