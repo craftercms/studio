@@ -18,14 +18,10 @@
 
 package org.craftercms.studio.impl.v2.service.system;
 
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.dal.MetaDAO;
 import org.craftercms.studio.api.v2.service.system.InstanceService;
 
 public class InstanceServiceImpl implements InstanceService {
-
-    private static final Logger logger = LoggerFactory.getLogger(InstanceServiceImpl.class);
 
     protected MetaDAO metaDAO;
 
