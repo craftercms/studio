@@ -19,6 +19,11 @@
 package org.craftercms.studio.impl.v2.service.security;
 
 import org.apache.commons.collections4.CollectionUtils;
+
+import org.craftercms.commons.entitlements.exception.EntitlementException;
+import org.craftercms.commons.entitlements.model.EntitlementType;
+import org.craftercms.commons.entitlements.model.Module;
+import org.craftercms.commons.entitlements.validator.EntitlementValidator;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
@@ -57,6 +62,7 @@ public class UserServiceImpl implements UserService {
     private GroupService groupService;
     private SecurityProvider securityProvider;
     private SiteService siteService;
+    private EntitlementValidator entitlementValidator;
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "read_users")
@@ -120,6 +126,19 @@ public class UserServiceImpl implements UserService {
     @Override
     @HasPermission(type = DefaultPermission.class, action = "create_users")
     public User createUser(User user) throws UserAlreadyExistsException, ServiceLayerException {
+        try {
+            long start = 0;
+            if(logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
+                start = System.currentTimeMillis();
+                logger.debug("Starting entitlement validation");
+            }
+            entitlementValidator.validateEntitlement(Module.STUDIO, EntitlementType.USER, getAllUsersTotal(), 1);
+            if(logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
+                logger.debug("Validation completed, duration : {0} ms", System.currentTimeMillis() - start);
+            }
+        } catch (EntitlementException e) {
+            throw new ServiceLayerException("Unable to complete request due to entitlement limits. Please contact your system administrator.", e);
+        }
         return securityProvider.createUser(user);
     }
 
@@ -262,6 +281,10 @@ public class UserServiceImpl implements UserService {
 
     public void setSiteService(SiteService siteService) {
         this.siteService = siteService;
+    }
+
+    public void setEntitlementValidator(final EntitlementValidator entitlementValidator) {
+        this.entitlementValidator = entitlementValidator;
     }
 
 }
