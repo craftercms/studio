@@ -65,10 +65,8 @@ public abstract class RepositoryUtils {
 
             // Create parent folders
             File folder = file.getParentFile();
-            if (folder != null) {
-                if (!folder.exists()) {
-                    folder.mkdirs();
-                }
+            if (folder != null && !folder.exists()) {
+                folder.mkdirs();
             }
 
             // Create the file if it doesn't exist already
@@ -107,7 +105,7 @@ public abstract class RepositoryUtils {
                 if (status.hasUncommittedChanges() || !status.isClean()) {
                     RevCommit commit;
                     commit = git.commit().setOnly(gitPath).setMessage(message).call();
-                    String commitId = commit.getName();
+                    commit.getName();
                 }
 
                 git.close();
