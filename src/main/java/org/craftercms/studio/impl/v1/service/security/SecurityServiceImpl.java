@@ -354,25 +354,29 @@ public class SecurityServiceImpl implements SecurityService {
     @ValidateParams
     public Set<String> getUserRoles(@ValidateStringParam(name = "site") final String site,
                                     @ValidateStringParam(name = "user") String user) {
-        List<String> groups = groupService.getSiteGroups(site);
-        if (groups != null && groups.size() > 0) {
-            logger.debug("Groups for " + user + " in " + site + ": " + groups);
+        try {
+            List<Group> groups = userService.getUserGroups(-1, user);
+            if (groups != null && groups.size() > 0) {
+                logger.debug("Groups for " + user + " in " + site + ": " + groups);
 
-            PermissionsConfigTO rolesConfig = loadConfiguration(site, getRoleMappingsFileName());
-            Set<String> userRoles = new HashSet<String>();
-            if (rolesConfig != null) {
-                Map<String, List<String>> rolesMap = rolesConfig.getRoles();
-                for (String group : groups) {
-                    String groupName = group.replaceFirst("GROUP_", "");
-                    List<String> roles = rolesMap.get(groupName);
-                    if (roles != null) {
-                        userRoles.addAll(roles);
+                PermissionsConfigTO rolesConfig = loadConfiguration(site, getRoleMappingsFileName());
+                Set<String> userRoles = new HashSet<String>();
+                if (rolesConfig != null) {
+                    Map<String, List<String>> rolesMap = rolesConfig.getRoles();
+                    for (Group group : groups) {
+                        String groupName = group.getName();
+                        List<String> roles = rolesMap.get(groupName);
+                        if (roles != null) {
+                            userRoles.addAll(roles);
+                        }
                     }
                 }
+                return userRoles;
+            } else {
+                logger.debug("No groups found for " + user + " in " + site);
             }
-            return userRoles;
-        } else {
-            logger.debug("No groups found for " + user + " in " + site);
+        } catch (ServiceLayerException e) {
+            logger.error("Error while getting groups for user {0}", e);
         }
 
         return new HashSet<String>(0);

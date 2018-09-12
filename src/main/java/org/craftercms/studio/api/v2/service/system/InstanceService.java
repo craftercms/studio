@@ -16,11 +16,9 @@
  *
  */
 
-def result = [:]
+package org.craftercms.studio.api.v2.service.system;
 
-result.message = "API deprecated."
-def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/2/groups"
-response.addHeader("Location", locationHeader)
-response.setStatus(301)
+public interface InstanceService {
 
-return result
+    String getInstanceId();
+}

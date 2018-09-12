@@ -16,11 +16,25 @@
  *
  */
 
-def result = [:]
+package org.craftercms.studio.impl.v2.service.system;
 
-result.message = "API deprecated."
-def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/2/groups"
-response.addHeader("Location", locationHeader)
-response.setStatus(301)
+import org.craftercms.studio.api.v2.dal.MetaDAO;
+import org.craftercms.studio.api.v2.service.system.InstanceService;
 
-return result
+public class InstanceServiceImpl implements InstanceService {
+
+    protected MetaDAO metaDAO;
+
+    @Override
+    public String getInstanceId() {
+        return metaDAO.getInstanceId();
+    }
+
+    public MetaDAO getMetaDAO() {
+        return metaDAO;
+    }
+
+    public void setMetaDAO(MetaDAO metaDAO) {
+        this.metaDAO = metaDAO;
+    }
+}

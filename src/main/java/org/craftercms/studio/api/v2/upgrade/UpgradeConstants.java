@@ -24,7 +24,7 @@ package org.craftercms.studio.api.v2.upgrade;
  */
 public interface UpgradeConstants {
 
-    String CURRENT_DB_VERSION = "3.1.0.2";
+    String CURRENT_DB_VERSION = "3.1.0.3";
 
     String DB_VERSION_2_5_X = "2.5.x";
     String DB_VERSION_3_0_X = "3.0";

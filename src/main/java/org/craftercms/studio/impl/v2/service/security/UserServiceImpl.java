@@ -18,6 +18,12 @@
 
 package org.craftercms.studio.impl.v2.service.security;
 
+import org.apache.commons.collections4.CollectionUtils;
+
+import org.craftercms.commons.entitlements.exception.EntitlementException;
+import org.craftercms.commons.entitlements.model.EntitlementType;
+import org.craftercms.commons.entitlements.model.Module;
+import org.craftercms.commons.entitlements.validator.EntitlementValidator;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
@@ -56,6 +62,7 @@ public class UserServiceImpl implements UserService {
     private GroupService groupService;
     private SecurityProvider securityProvider;
     private SiteService siteService;
+    private EntitlementValidator entitlementValidator;
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "read_users")
@@ -119,6 +126,19 @@ public class UserServiceImpl implements UserService {
     @Override
     @HasPermission(type = DefaultPermission.class, action = "create_users")
     public User createUser(User user) throws UserAlreadyExistsException, ServiceLayerException {
+        try {
+            long start = 0;
+            if(logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
+                start = System.currentTimeMillis();
+                logger.debug("Starting entitlement validation");
+            }
+            entitlementValidator.validateEntitlement(Module.STUDIO, EntitlementType.USER, getAllUsersTotal(), 1);
+            if(logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
+                logger.debug("Validation completed, duration : {0} ms", System.currentTimeMillis() - start);
+            }
+        } catch (EntitlementException e) {
+            throw new ServiceLayerException("Unable to complete request due to entitlement limits. Please contact your system administrator.", e);
+        }
         return securityProvider.createUser(user);
     }
 
@@ -152,25 +172,23 @@ public class UserServiceImpl implements UserService {
     @HasPermission(type = DefaultPermission.class, action = "read_users")
     public List<Site> getUserSites(long userId, String username) throws ServiceLayerException {
         List<Site> sites = new ArrayList<>();
-        Map<String, List<String>> siteGroupsMap = new HashMap<>();
-
         Set<String> allSites = siteService.getAllAvailableSites();
-        allSites.forEach(s -> siteGroupsMap.put(s, groupService.getSiteGroups(s)));
-
         List<Group> userGroups = getUserGroups(userId, username);
-        userGroups.forEach(ug -> {
-            for (Map.Entry<String, List<String>> entry : siteGroupsMap.entrySet()) {
-                if (entry.getValue().contains(ug.getName())) {
-                    try {
-                        SiteFeed siteFeed = siteService.getSite(entry.getKey());
-                        Site site = new Site();
-                        site.setId(siteFeed.getId());
-                        site.setDesc(siteFeed.getDescription());
-                        sites.add(site);
-                    } catch (SiteNotFoundException e) {
-                        logger.error("Site not found " + entry.getKey(), e);
-                    }
-                    break;
+
+        // Iterate all sites. If the user has any of the site groups, it has access to the site
+        allSites.forEach(siteName -> {
+            List<String> siteGroups = groupService.getSiteGroups(siteName);
+            if (userGroups.stream().anyMatch(userGroup -> siteGroups.contains(userGroup.getName()))) {
+                try {
+                    SiteFeed siteFeed = siteService.getSite(siteName);
+                    Site site = new Site();
+                    site.setId(siteFeed.getId());
+                    site.setName(siteFeed.getName());
+                    site.setDesc(siteFeed.getDescription());
+
+                    sites.add(site);
+                } catch (SiteNotFoundException e) {
+                    logger.error("Site not found: {0}", e, siteName);
                 }
             }
         });
@@ -263,6 +281,10 @@ public class UserServiceImpl implements UserService {
 
     public void setSiteService(SiteService siteService) {
         this.siteService = siteService;
+    }
+
+    public void setEntitlementValidator(final EntitlementValidator entitlementValidator) {
+        this.entitlementValidator = entitlementValidator;
     }
 
 }
