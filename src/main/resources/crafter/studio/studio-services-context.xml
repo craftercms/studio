@@ -310,6 +310,7 @@
         <property name="groupService" ref="groupService" />
         <property name="securityProvider" ref="securityProvider" />
         <property name="siteService" ref="cstudioSiteServiceSimple" />
+        <property name="entitlementValidator" ref="crafter.entitlementValidator"/>
     </bean>
 
     <bean id="uiServiceInternal" class="org.craftercms.studio.impl.v2.service.ui.internal.UiServiceInternalImpl">
