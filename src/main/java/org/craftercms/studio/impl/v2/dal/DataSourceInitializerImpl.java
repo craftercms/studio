@@ -18,63 +18,35 @@
 
 package org.craftercms.studio.impl.v2.dal;
 
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.LinkedList;
+import java.util.List;
+
 import ch.vorburger.mariadb4j.DB;
 import ch.vorburger.mariadb4j.MariaDB4jService;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.jdbc.RuntimeSqlException;
 import org.apache.ibatis.jdbc.ScriptRunner;
 import org.craftercms.commons.crypto.CryptoUtils;
 import org.craftercms.commons.entitlements.exception.EntitlementException;
-import org.craftercms.studio.api.v1.constant.StudioConstants;
-import org.craftercms.studio.api.v1.constant.StudioXmlConstants;
 import org.craftercms.commons.entitlements.validator.DbIntegrityValidator;
-import org.craftercms.studio.api.v2.dal.DataSourceInitializer;
-import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.DatabaseUpgradeUnsupportedVersionException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
-import org.dom4j.Attribute;
-import org.dom4j.Document;
-import org.dom4j.DocumentException;
-import org.dom4j.Element;
-import org.dom4j.io.SAXReader;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.Status;
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.lib.Repository;
-import org.eclipse.jgit.revwalk.RevCommit;
-import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
+import org.craftercms.studio.api.v2.dal.DataSourceInitializer;
+import org.craftercms.studio.api.v2.upgrade.RepositoryUpgrade;
 import org.springframework.context.ApplicationContextException;
-import org.xml.sax.SAXException;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.nio.channels.Channels;
-import java.nio.channels.FileChannel;
-import java.nio.channels.ReadableByteChannel;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_DRIVER;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_INITIALIZER_CONFIGURE_DB_SCRIPT_LOCATION;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_INITIALIZER_CREATE_DB_SCRIPT_LOCATION;
@@ -84,18 +56,12 @@ import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_INITIALIZ
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_INITIALIZER_RANDOM_ADMIN_PASSWORD_LENGTH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_INITIALIZER_UPGRADE_DB_SCRIPT_LOCATION;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_INITIALIZER_URL;
-import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_ROOT;
+import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.*;
 
 
 public class DataSourceInitializerImpl implements DataSourceInitializer {
 
     private final static Logger logger = LoggerFactory.getLogger(DataSourceInitializerImpl.class);
-    private final static String CURRENT_DB_VERSION = "3.1.0.3";
-    private final static String DB_VERSION_3_0_0 = "3.0.0";
-    private final static String DB_VERSION_2_5_X = "2.5.x";
-    private final static String DB_VERSION_3_0_X = "3.0";
-    private final static String DB_VERSION_3_1_0 = "3.1.0";
-    private final static String DB_VERSION_3_1_0_1 = "3.1.0.1";
 
     /**
      * Database queries
@@ -121,6 +87,8 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
     protected MariaDB4jService mariaDB4jService;
 
     protected DbIntegrityValidator integrityValidator;
+
+    protected List<RepositoryUpgrade> repositoryUpgrades;
 
     @Override
     public void initDataSource()  throws DatabaseUpgradeUnsupportedVersionException, EntitlementException {
@@ -242,24 +210,23 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
                                                 "Could not determine database version from _meta table");
                                     }
                                 }
+
+                                statement = conn.createStatement();
+                                rs = statement.executeQuery(DB_QUERY_GET_ALL_SITES);
+                                List<String> sites = new LinkedList<>();
+                                while(rs.next()) {
+                                    sites.add(rs.getString(1));
+                                }
+
+                                runRepositoryUpgrades(sites, initialDbVersion);
+
                                 break;
                         }
 
                         try {
                             integrityValidator.store(conn);
                         } catch (RuntimeSqlException e) {
-                            logger.error("Integrity validator error after running upgrade DB scripts", e);
-                        }
-
-                        if (initialDbVersion.startsWith(DB_VERSION_3_0_X) ||
-                                initialDbVersion.equals(DB_VERSION_3_1_0) ||
-                                initialDbVersion.equals(DB_VERSION_3_1_0_1)) {
-                            statement = conn.createStatement();
-                            rs = statement.executeQuery(DB_QUERY_GET_ALL_SITES);
-                            while (rs.next()) {
-                                String siteId = rs.getString(1);
-                                updateRoleMappings(siteId, initialDbVersion);
-                            }
+                            logger.error("Integrity validator error after running checkRepo DB scripts", e);
                         }
 
                     } else {
@@ -309,7 +276,6 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
                 }
             }
 
-
             try {
                 if (conn != null) {
                     conn.close();
@@ -320,158 +286,13 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
         }
     }
 
-    private void updateRoleMappings(String siteId, String initialDbVersion) {
-        String siteConfigPath = studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH);
-        siteConfigPath = siteConfigPath.replaceFirst(StudioConstants.PATTERN_SITE, siteId);
-        String filename = studioConfiguration.getProperty(CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME);
-        String siteRoleMappingsConfigFullPath = siteConfigPath + FILE_SEPARATOR + filename;
-
-        Document document = null;
-        InputStream is = null;
-        try {
-            is = contentRepository.getContent(siteId, siteRoleMappingsConfigFullPath);
-        } catch (ContentNotFoundException e) {
-            logger.debug("Content not found for path {0}", e, siteRoleMappingsConfigFullPath);
-        }
-
-        if(is != null) {
-            try {
-                SAXReader saxReader = new SAXReader();
-                try {
-                    saxReader.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
-                    saxReader.setFeature("http://xml.org/sax/features/external-general-entities", false);
-                    saxReader.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
-                }catch (SAXException ex){
-                    logger.error("Unable to turn off external entity loading, This could be a security risk.", ex);
-                }
-                document = saxReader.read(is);
-                if (document != null) {
-                    Element root = document.getRootElement();
-                    if (root.getName().equals(StudioXmlConstants.DOCUMENT_ROLE_MAPPINGS)) {
-                        Map<String, List<String>> rolesMap = new HashMap<String, List<String>>();
-
-                        List<Element> groupNodes = root.selectNodes(StudioXmlConstants.DOCUMENT_ELM_GROUPS_NODE);
-                        for (Element node : groupNodes) {
-                            String name = node.valueOf(StudioXmlConstants.DOCUMENT_ATTR_PERMISSIONS_NAME);
-                            if (!StringUtils.isEmpty(name)) {
-                                Attribute attribute = node.attribute(StudioXmlConstants.DOCUMENT_ATTR_NAME);
-                                if (initialDbVersion.startsWith(DB_VERSION_3_0_X)) {
-                                    attribute.setValue(StringUtils.lowerCase(siteId + "_" + name));
-                                } else {
-                                    attribute.setValue(StringUtils.lowerCase(name));
-                                }
-                            }
-                        }
-                    }
-
-                    writeToRepo(siteId, siteRoleMappingsConfigFullPath, IOUtils.toInputStream(document.asXML()));
-
-                } else {
-                    logger.error("Permission mapping not found for " + siteId + ":" + filename);
-                }
-            } catch (DocumentException e) {
-                logger.error("Error while reading permission mapping for " + siteId + ":" + filename);
-            } finally {
-                try {
-                    if (is != null) {
-                        is.close();
-                    }
-                }
-                catch (IOException err) {
-                    logger.debug("Error closing stream for path {0}", err, siteRoleMappingsConfigFullPath);
-                }
-            }
-        }
-    }
-
-    private void writeToRepo(String site, String path, InputStream content) {
-        try {
-            Path repositoryPath = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
-                    studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH), site,
-                    studioConfiguration.getProperty(StudioConfiguration.SANDBOX_PATH), GIT_ROOT);
-            FileRepositoryBuilder builder = new FileRepositoryBuilder();
-            Repository repo = builder
-                    .setGitDir(repositoryPath.toFile())
-                    .readEnvironment()
-                    .findGitDir()
-                    .build();
-
-            // Create basic file
-            File file = new File(repo.getDirectory().getParent(), path);
-
-            String gitPath = getGitPath(path);
-
-            // Create parent folders
-            File folder = file.getParentFile();
-            if (folder != null) {
-                if (!folder.exists()) {
-                    folder.mkdirs();
-                }
-            }
-
-            // Create the file if it doesn't exist already
-            if (!file.exists()) {
-                try {
-                    if (!file.createNewFile()) {
-                        logger.error("error creating file: site: " + site + " path: " + path);
-                    }
-                } catch (IOException e) {
-                    logger.error("error creating file: site: " + site + " path: " + path, e);
-                }
-            }
-
-            // Write the bits
-            try (FileChannel outChannel = new FileOutputStream(file.getPath()).getChannel()) {
-                logger.debug("created the file output channel");
-                ReadableByteChannel inChannel = Channels.newChannel(content);
-                logger.debug("created the file input channel");
-                long amount = 1024 * 1024; // 1MB at a time
-                long count;
-                long offset = 0;
-                while ((count = outChannel.transferFrom(inChannel, offset, amount)) > 0) {
-                    logger.debug("writing the bits: offset = " + offset + " count: " + count);
-                    offset += count;
-                }
-            }
-
-
-            // Add the file to git
-            try (Git git = new Git(repo)) {
-                git.add().addFilepattern(gitPath).call();
-
-                Status status = git.status().addPath(gitPath).call();
-
-                // TODO: SJ: Below needs more thought and refactoring to detect issues with git repo and report them
-                if (status.hasUncommittedChanges() || !status.isClean()) {
-                    RevCommit commit;
-                    commit = git.commit().setOnly(gitPath).setMessage("Upgrade Database").call();
-                    String commitId = commit.getName();
-                }
-
-                git.close();
-            } catch (GitAPIException e) {
-                logger.error("error adding file to git: site: " + site + " path: " + path, e);
-            }
-
-        } catch (IOException e) {
-            logger.error("error writing file: site: " + site + " path: " + path, e);
-        }
-    }
-
-    private String getGitPath(String path) {
-        Path gitPath = Paths.get(path);
-        gitPath = gitPath.normalize();
-        try {
-            gitPath = Paths.get(FILE_SEPARATOR).relativize(gitPath);
-        } catch (IllegalArgumentException e) {
-            logger.debug("Path: " + path + " is already relative path.");
-        }
-        if (StringUtils.isEmpty(gitPath.toString())) {
-            return ".";
-        }
-        String toRet = gitPath.toString();
-        toRet = FilenameUtils.separatorsToUnix(toRet);
-        return toRet;
+    private void runRepositoryUpgrades(final List<String> sites, String currentVersion) {
+        logger.info("Starting content repository upgrades");
+        repositoryUpgrades.forEach(upgrade -> {
+            upgrade.checkGlobalRepo(currentVersion);
+            sites.forEach(site -> upgrade.checkRepo(site, currentVersion));
+        });
+        logger.info("Content repository upgrades completed");
     }
 
     public boolean isEnabled() {
@@ -530,6 +351,10 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
 
     public void setIntegrityValidator(final DbIntegrityValidator integrityValidator) {
         this.integrityValidator = integrityValidator;
+    }
+
+    public void setRepositoryUpgrades(final List<RepositoryUpgrade> repositoryUpgrades) {
+        this.repositoryUpgrades = repositoryUpgrades;
     }
 
     public MariaDB4jService getMariaDB4jService() {
