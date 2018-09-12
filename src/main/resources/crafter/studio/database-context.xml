@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xmlns:jdbc="http://www.springframework.org/schema/jdbc" xmlns="http://www.springframework.org/schema/beans"
-       xmlns:mybatis="http://mybatis.org/schema/mybatis-spring"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc.xsd http://mybatis.org/schema/mybatis-spring http://mybatis.org/schema/mybatis-spring.xsd">
+       xmlns="http://www.springframework.org/schema/beans"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
 
     <bean id="dataSource" class="org.apache.commons.dbcp2.BasicDataSource" depends-on="studioConfiguration" destroy-method="close">
         <property name="driverClassName" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).DB_DRIVER)}" />
@@ -50,7 +50,25 @@
         <property name="integrityValidator" ref="crafter.databaseValidator"/>
         <property name="contentRepository" ref="contentRepository" />
         <property name="mariaDB4jService" ref="studioMariaDBService" />
+        <property name="repositoryUpgrades" ref="repositoryUpgrades"/>
     </bean>
+
+    <bean id="repositoryUpgrade" class="org.craftercms.studio.impl.v2.upgrade.AbstractRepositoryUpgrade"
+          abstract="true">
+        <property name="studioConfiguration" ref="studioConfiguration"/>
+        <property name="contentRepository" ref="contentRepository"/>
+    </bean>
+
+    <util:list id="repositoryUpgrades">
+        <bean class="org.craftercms.studio.impl.v2.upgrade.GlobalConfigurationUpgrade"
+              parent="repositoryUpgrade" init-method="init">
+            <property name="configFiles"
+                      value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).CONFIGURATION_GLOBAL_MENU_FILE_NAME)},
+                          #{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).CONFIGURATION_GLOBAL_ROLE_MAPPINGS_FILE_NAME)},
+                          #{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).CONFIGURATION_GLOBAL_PERMISSION_MAPPINGS_FILE_NAME)}"/>
+        </bean>
+        <bean class="org.craftercms.studio.impl.v2.upgrade.RoleMappingUpgrade" parent="repositoryUpgrade"/>
+    </util:list>
 
     <bean id="studioMariaDBService" class="ch.vorburger.mariadb4j.springframework.MariaDB4jSpringService"
           destroy-method="stop" depends-on="studioConfiguration" >
