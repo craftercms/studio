@@ -309,6 +309,7 @@
         <property name="userDAO" ref="userDAO" />
         <property name="groupService" ref="groupService" />
         <property name="securityProvider" ref="securityProvider" />
+        <property name="siteService" ref="cstudioSiteServiceSimple" />
     </bean>
 
     <bean id="uiServiceInternal" class="org.craftercms.studio.impl.v2.service.ui.internal.UiServiceInternalImpl">
