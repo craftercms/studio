@@ -18,6 +18,7 @@
 
 package org.craftercms.studio.controller.rest.v2;
 
+import org.apache.commons.beanutils.BeanComparator;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
@@ -49,7 +50,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.DEFAULT_ORGANIZATION_ID;
 
@@ -233,7 +236,10 @@ public class UsersController {
      * @return Response containing list of sites
      */
     @GetMapping("/api/2/users/{userId}/sites")
-    public ResponseBody getUserSites(@PathVariable("userId") String userId) throws ServiceLayerException {
+    public ResponseBody getUserSites(@PathVariable("userId") String userId,
+                                     @RequestParam(required = false, defaultValue = "0") int offset,
+                                     @RequestParam(required = false, defaultValue = "10") int limit)
+            throws ServiceLayerException {
         int uId = -1;
         String username = StringUtils.EMPTY ;
         if ( StringUtils.isNumeric(userId)) {
@@ -242,13 +248,22 @@ public class UsersController {
             username = userId;
         }
 
-        List<Site> sites = userService.getUserSites(uId, username);
+
+        List<Site> allSites = userService.getUserSites(uId, username);
+        List<Site> paginatedSites = allSites.stream()
+                            .sorted(new BeanComparator<>("siteId"))
+                            .skip(offset)
+                            .limit(limit)
+                            .collect(Collectors.toList());
 
         ResponseBody responseBody = new ResponseBody();
-        ResultList<Site> result = new ResultList<>();
+        PaginatedResultList<Site> result = new PaginatedResultList<>();
         result.setResponse(ApiResponse.OK);
         responseBody.setResult(result);
-        result.setEntities(sites);
+        result.setTotal(allSites.size());
+        result.setOffset(offset);
+        result.setLimit(limit);
+        result.setEntities(paginatedSites);
         return responseBody;
     }
 
