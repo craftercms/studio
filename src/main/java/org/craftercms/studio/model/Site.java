@@ -20,24 +20,15 @@ package org.craftercms.studio.model;
 
 public class Site implements Entity {
 
-    private long id;
-    private String name;
+    private String siteId;
     private String desc;
 
-    public long getId() {
-        return id;
+    public String getSiteId() {
+        return siteId;
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public void setId(long id) {
-        this.id = id;
+    public void setSiteId(String siteId) {
+        this.siteId = siteId;
     }
 
     public String getDesc() {
@@ -47,4 +38,5 @@ public class Site implements Entity {
     public void setDesc(String desc) {
         this.desc = desc;
     }
+
 }
