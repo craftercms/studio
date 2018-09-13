@@ -20,7 +20,7 @@ package org.craftercms.studio.controller.rest.v2;
 
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
-import org.craftercms.studio.api.v2.ui.UiService;
+import org.craftercms.studio.api.v2.service.ui.UiService;
 import org.craftercms.studio.model.rest.ApiResponse;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.ResultList;
