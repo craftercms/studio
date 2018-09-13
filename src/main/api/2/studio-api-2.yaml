@@ -18,9 +18,9 @@ externalDocs:
   url: 'https://docs.craftercms.org/en/3.0/developers/projects/studio/index.html'
 tags:
   - name: groups
-    description: Groups management operations
+    description: Group management operations
   - name: users
-    description: Users management operations
+    description: User management operations
   - name: user
     description: Current authenticated user operations
   - name: ui
