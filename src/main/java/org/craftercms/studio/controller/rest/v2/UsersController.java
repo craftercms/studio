@@ -168,7 +168,8 @@ public class UsersController {
      * @return Response containing user
      */
     @GetMapping("/api/2/users/{userId}")
-    public ResponseBody getUser(@PathVariable("userId") String userId) throws ServiceLayerException, UserNotFoundException {
+    public ResponseBody getUser(@PathVariable("userId") String userId) throws ServiceLayerException,
+                                                                              UserNotFoundException {
         int uId = -1;
         String username = StringUtils.EMPTY;
         if (StringUtils.isNumeric(userId)) {
@@ -275,7 +276,7 @@ public class UsersController {
      * @param site The site ID
      * @return Response containing list of roles
      */
-    @GetMapping("/api/2/users/{userId}/roles/{site}")
+    @GetMapping("/api/2/users/{userId}/sites/{site}/roles")
     public ResponseBody getUserSiteRoles(@PathVariable("userId") String userId, @PathVariable("site") String site)
             throws ServiceLayerException, UserNotFoundException {
         int uId = -1;
@@ -341,7 +342,7 @@ public class UsersController {
      *
      * @return Response containing current authenticated user roles
      */
-    @GetMapping("/api/2/user/roles/{site}")
+    @GetMapping("/api/2/user/sites/{site}/roles")
     public ResponseBody getCurrentUserSiteRoles(@PathVariable("site") String site) throws AuthenticationException,
                                                                                           ServiceLayerException {
         List<String> sites = userService.getCurrentUserSiteRoles(site);
