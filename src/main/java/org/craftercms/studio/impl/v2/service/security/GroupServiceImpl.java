@@ -32,6 +32,7 @@ import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.GroupTO;
 import org.craftercms.studio.api.v2.dal.GroupDAO;
+import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.security.GroupService;
 import org.craftercms.studio.api.v2.service.security.SecurityProvider;
 import org.craftercms.studio.model.Group;
@@ -62,8 +63,7 @@ public class GroupServiceImpl implements GroupService {
     private static final Logger logger = LoggerFactory.getLogger(GroupServiceImpl.class);
 
     private GroupDAO groupDAO;
-    private StudioConfiguration studioConfiguration;
-    private ContentService contentService;
+    private ConfigurationService configurationService;
     private SecurityProvider securityProvider;
 
     @Override
@@ -130,44 +130,10 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
-    public List<String> getSiteGroups(String siteId) {
-        Map<String, List<String>> groupRoleMapping = loadGroupMappings(siteId);
-        List<String> toRet = new ArrayList<String>();
-        toRet.addAll(groupRoleMapping.keySet());
-        return toRet;
-    }
+    public List<String> getSiteGroups(String siteId) throws ServiceLayerException {
+        Map<String, List<String>> roleMappingsConfig = configurationService.getSiteRoleMappingsConfig(siteId);
 
-    private Map<String, List<String>> loadGroupMappings(String siteId) {
-        Map<String, List<String>> groupRoleMap = new HashMap<String, List<String>>();
-        String siteConfigPath =
-                studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH)
-                        .replaceFirst(PATTERN_SITE, siteId);
-        String siteGroupRoleMappingConfigPath =
-                siteConfigPath + FILE_SEPARATOR +
-                studioConfiguration.getProperty(CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME);
-        Document document = null;
-        try {
-            document = contentService.getContentAsDocument(siteId, siteGroupRoleMappingConfigPath);
-            Element root = document.getRootElement();
-            if (root.getName().equals(DOCUMENT_ROLE_MAPPINGS)) {
-                List<Node> groupNodes = root.selectNodes(DOCUMENT_ELM_GROUPS_NODE);
-                for (Node node : groupNodes) {
-                    String name = node.valueOf(StudioXmlConstants.DOCUMENT_ATTR_PERMISSIONS_NAME);
-                    if (!StringUtils.isEmpty(name)) {
-                        List<Node> roleNodes = node.selectNodes(StudioXmlConstants.DOCUMENT_ELM_PERMISSION_ROLE);
-                        List<String> roles = new ArrayList<String>();
-                        for (Node roleNode : roleNodes) {
-                            roles.add(roleNode.getText());
-                        }
-                        groupRoleMap.put(name, roles);
-                    }
-                }
-            }
-        } catch (DocumentException e) {
-            logger.error("Error while reading group role mappings file for site " + siteId + " - "
-                    + siteGroupRoleMappingConfigPath);
-        }
-        return groupRoleMap;
+        return new ArrayList<>(roleMappingsConfig.keySet());
     }
 
     @Override
@@ -199,20 +165,12 @@ public class GroupServiceImpl implements GroupService {
         this.groupDAO = groupDAO;
     }
 
-    public StudioConfiguration getStudioConfiguration() {
-        return studioConfiguration;
+    public ConfigurationService getConfigurationService() {
+        return configurationService;
     }
 
-    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
-        this.studioConfiguration = studioConfiguration;
-    }
-
-    public ContentService getContentService() {
-        return contentService;
-    }
-
-    public void setContentService(ContentService contentService) {
-        this.contentService = contentService;
+    public void setConfigurationService(ConfigurationService configurationService) {
+        this.configurationService = configurationService;
     }
 
     public SecurityProvider getSecurityProvider() {

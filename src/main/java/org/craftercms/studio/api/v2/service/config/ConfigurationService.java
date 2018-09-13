@@ -15,30 +15,20 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
-package org.craftercms.studio.api.v2.ui;
+package org.craftercms.studio.api.v2.service.config;
 
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
-import org.craftercms.studio.model.ui.MenuItem;
 
 import java.util.List;
+import java.util.Map;
 
 /**
- * Service that provides the UI elements the current user has access to.
+ * Service that helps access different Studio configuration.
  *
  * @author avasquez
  */
-public interface UiService {
+public interface ConfigurationService {
 
-    /**
-     * Returns the global menu items available to the current user.
-     *
-     * @return the list of menu items
-     *
-     * @throws AuthenticationException if not user is logged in
-     * @throws ServiceLayerException if another error occurs
-     */
-    List<MenuItem> getGlobalMenu() throws AuthenticationException, ServiceLayerException;
+    Map<String, List<String>> getSiteRoleMappingsConfig(String site) throws ServiceLayerException;
 
 }

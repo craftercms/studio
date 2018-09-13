@@ -298,16 +298,21 @@
         <property name="contentService" ref="cstudioContentService"/>
     </bean>
 
+    <bean id="configurationService" class="org.craftercms.studio.impl.v2.service.configuration.ConfigurationServiceImpl">
+        <property name="contentService" ref="cstudioContentService" />
+        <property name="studioConfiguration" ref="studioConfiguration" />
+    </bean>
+
     <bean id="groupService" class="org.craftercms.studio.impl.v2.service.security.GroupServiceImpl">
         <property name="groupDAO" ref="groupDAO"/>
-        <property name="studioConfiguration" ref="studioConfiguration" />
-        <property name="contentService" ref="cstudioContentService" />
+        <property name="configurationService" ref="configurationService" />
         <property name="securityProvider" ref="securityProvider" />
     </bean>
 
     <bean id="userService" class="org.craftercms.studio.impl.v2.service.security.UserServiceImpl">
         <property name="userDAO" ref="userDAO" />
         <property name="groupService" ref="groupService" />
+        <property name="configurationService" ref="configurationService" />
         <property name="securityProvider" ref="securityProvider" />
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="entitlementValidator" ref="crafter.entitlementValidator"/>

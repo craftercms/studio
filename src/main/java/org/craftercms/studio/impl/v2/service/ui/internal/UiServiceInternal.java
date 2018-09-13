@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Internal version of the {@link org.craftercms.studio.api.v2.ui.UiService}.
+ * Internal version of the {@link org.craftercms.studio.api.v2.service.ui.UiService}.
  *
  * @author avasquez
  */
