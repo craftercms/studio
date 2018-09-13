@@ -71,8 +71,8 @@ public class ConfigurationServiceImpl implements ConfigurationService {
                 }
             }
         } catch (DocumentException e) {
-            throw new ServiceLayerException("Error while reading group role mappings file for site " + siteId +
-                                            " @ " + roleMappingsConfigPath);
+            throw new ServiceLayerException("Error while reading role mappings file for site " + siteId + " @ " +
+                                            roleMappingsConfigPath);
         }
 
         return roleMappings;
