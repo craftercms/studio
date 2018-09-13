@@ -911,7 +911,14 @@ paths:
         - user
       summary: Get the site roles for the current authenticated user
       description: 'Required Permission: "LOGGED_IN"'
-      operationId: getCurrentUserSiteRoles          
+      operationId: getCurrentUserSiteRoles
+      parameters:
+        - name: site
+          in: path
+          description: The site ID
+          required: true
+          schema:
+            type: string
       responses:
         '200':
           description: OK
