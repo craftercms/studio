@@ -276,7 +276,7 @@ public class UsersController {
      * @param site The site ID
      * @return Response containing list of roles
      */
-    @GetMapping("/api/2//users/{userId}/sites/{site}/roles")
+    @GetMapping("/api/2/users/{userId}/sites/{site}/roles")
     public ResponseBody getUserSiteRoles(@PathVariable("userId") String userId, @PathVariable("site") String site)
             throws ServiceLayerException, UserNotFoundException {
         int uId = -1;
