@@ -22,7 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
-import org.craftercms.studio.api.v2.ui.UiService;
+import org.craftercms.studio.api.v2.service.ui.UiService;
 import org.craftercms.studio.impl.v2.service.ui.internal.UiServiceInternal;
 import org.craftercms.studio.model.ui.MenuItem;
 import org.springframework.beans.factory.annotation.Required;

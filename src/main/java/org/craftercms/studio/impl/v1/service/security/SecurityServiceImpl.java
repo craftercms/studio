@@ -355,6 +355,9 @@ public class SecurityServiceImpl implements SecurityService {
     public Set<String> getUserRoles(@ValidateStringParam(name = "site") final String site,
                                     @ValidateStringParam(name = "user") String user) {
         try {
+            // TODO: We should replace this with userService.getUserSiteRoles, but that one is protected by permissions.
+            // TODO: When the UserService is refactored to use UserServiceInternal, we could use that method and
+            // TODO: remove this one
             List<Group> groups = userService.getUserGroups(-1, user);
             if (groups != null && groups.size() > 0) {
                 logger.debug("Groups for " + user + " in " + site + ": " + groups);

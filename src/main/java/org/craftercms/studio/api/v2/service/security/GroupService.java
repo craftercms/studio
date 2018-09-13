@@ -123,7 +123,7 @@ public interface GroupService {
      * @param siteId Site identifier
      * @return List of group names
      */
-    List<String> getSiteGroups(String siteId);
+    List<String> getSiteGroups(String siteId) throws ServiceLayerException;
 
     /**
      * Get group by name

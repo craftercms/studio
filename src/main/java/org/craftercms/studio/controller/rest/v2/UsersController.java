@@ -238,10 +238,10 @@ public class UsersController {
     public ResponseBody getUserSites(@PathVariable("userId") String userId,
                                      @RequestParam(required = false, defaultValue = "0") int offset,
                                      @RequestParam(required = false, defaultValue = "10") int limit)
-            throws ServiceLayerException {
+            throws ServiceLayerException, UserNotFoundException {
         int uId = -1;
         String username = StringUtils.EMPTY ;
-        if ( StringUtils.isNumeric(userId)) {
+        if (StringUtils.isNumeric(userId)) {
             uId = Integer.parseInt(userId);
         } else {
             username = userId;
@@ -255,17 +255,54 @@ public class UsersController {
                             .limit(limit)
                             .collect(Collectors.toList());
 
-        ResponseBody responseBody = new ResponseBody();
         PaginatedResultList<Site> result = new PaginatedResultList<>();
         result.setResponse(ApiResponse.OK);
-        responseBody.setResult(result);
         result.setTotal(allSites.size());
         result.setOffset(offset);
         result.setLimit(limit);
         result.setEntities(paginatedSites);
+
+        ResponseBody responseBody = new ResponseBody();
+        responseBody.setResult(result);
+
         return responseBody;
     }
 
+    /**
+     * Get user roles for a site API
+     *
+     * @param userId User identifier
+     * @param site The site ID
+     * @return Response containing list of roles
+     */
+    @GetMapping("/api/2/users/{userId}/roles/{site}")
+    public ResponseBody getUserSiteRoles(@PathVariable("userId") String userId, @PathVariable("site") String site)
+            throws ServiceLayerException, UserNotFoundException {
+        int uId = -1;
+        String username = StringUtils.EMPTY ;
+        if (StringUtils.isNumeric(userId)) {
+            uId = Integer.parseInt(userId);
+        } else {
+            username = userId;
+        }
+
+        List<String> roles = userService.getUserSiteRoles(uId, username, site);
+
+        ResultList<String> result = new ResultList<>();
+        result.setResponse(ApiResponse.OK);
+        result.setEntities(roles);
+
+        ResponseBody responseBody = new ResponseBody();
+        responseBody.setResult(result);
+
+        return responseBody;
+    }
+
+    /**
+     * Get current authenticated user API
+     *
+     * @return Response containing current authenticated user
+     */
     @GetMapping("/api/2/user")
     public ResponseBody getCurrentUser() throws AuthenticationException, ServiceLayerException {
         AuthenticatedUser user = userService.getCurrentUser();
@@ -280,11 +317,36 @@ public class UsersController {
         return responseBody;
     }
 
+    /**
+     * Get the sites of the current authenticated user API
+     *
+     * @return Response containing current authenticated user sites
+     */
     @GetMapping("/api/2/user/sites")
     public ResponseBody getCurrentUserSites() throws AuthenticationException, ServiceLayerException {
         List<Site> sites = userService.getCurrentUserSites();
 
         ResultList<Site> result = new ResultList<>();
+        result.setResponse(ApiResponse.OK);
+        result.setEntities(sites);
+
+        ResponseBody responseBody = new ResponseBody();
+        responseBody.setResult(result);
+
+        return responseBody;
+    }
+
+    /**
+     * Get the roles in a site of the current authenticated user API
+     *
+     * @return Response containing current authenticated user roles
+     */
+    @GetMapping("/api/2/user/roles/{site}")
+    public ResponseBody getCurrentUserSiteRoles(@PathVariable("site") String site) throws AuthenticationException,
+                                                                                          ServiceLayerException {
+        List<String> sites = userService.getCurrentUserSiteRoles(site);
+
+        ResultList<String> result = new ResultList<>();
         result.setResponse(ApiResponse.OK);
         result.setEntities(sites);
 

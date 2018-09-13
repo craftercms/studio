@@ -18,6 +18,8 @@
 
 package org.craftercms.studio.impl.v2.service.security;
 
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.commons.entitlements.model.EntitlementType;
 import org.craftercms.commons.entitlements.model.Module;
@@ -35,6 +37,7 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.UserDAO;
 import org.craftercms.studio.api.v2.dal.UserTO;
+import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.security.GroupService;
 import org.craftercms.studio.api.v2.service.security.SecurityProvider;
 import org.craftercms.studio.api.v2.service.security.UserService;
@@ -58,6 +61,7 @@ public class UserServiceImpl implements UserService {
 
     private UserDAO userDAO;
     private GroupService groupService;
+    private ConfigurationService configurationService;
     private SecurityProvider securityProvider;
     private SiteService siteService;
     private EntitlementValidator entitlementValidator;
@@ -175,23 +179,48 @@ public class UserServiceImpl implements UserService {
         List<Group> userGroups = getUserGroups(userId, username);
 
         // Iterate all sites. If the user has any of the site groups, it has access to the site
-        allSites.forEach(siteName -> {
-            List<String> siteGroups = groupService.getSiteGroups(siteName);
+        for (String siteId : allSites) {
+            List<String> siteGroups = groupService.getSiteGroups(siteId);
             if (userGroups.stream().anyMatch(userGroup -> siteGroups.contains(userGroup.getName()))) {
                 try {
-                    SiteFeed siteFeed = siteService.getSite(siteName);
+                    SiteFeed siteFeed = siteService.getSite(siteId);
                     Site site = new Site();
                     site.setSiteId(siteFeed.getSiteId());
                     site.setDesc(siteFeed.getDescription());
 
                     sites.add(site);
                 } catch (SiteNotFoundException e) {
-                    logger.error("Site not found: {0}", e, siteName);
+                    logger.error("Site not found: {0}", e, siteId);
                 }
             }
-        });
+        }
 
         return sites;
+    }
+
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = "read_users")
+    public List<String> getUserSiteRoles(long userId, String username, String site) throws ServiceLayerException {
+        List<Group> groups = getUserGroups(userId, username);
+
+        if (CollectionUtils.isNotEmpty(groups)) {
+            Map<String, List<String>> roleMappings = configurationService.getSiteRoleMappingsConfig(site);
+            Set<String> userRoles = new LinkedHashSet<>();
+
+            if (MapUtils.isNotEmpty(roleMappings)) {
+                for (Group group : groups) {
+                    String groupName = group.getName();
+                    List<String> roles = roleMappings.get(groupName);
+                    if (CollectionUtils.isNotEmpty(roles)) {
+                        userRoles.addAll(roles);
+                    }
+                }
+            }
+
+            return new ArrayList<>(userRoles);
+        } else {
+            return Collections.emptyList();
+        }
     }
 
     @Override
@@ -232,6 +261,16 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public List<String> getCurrentUserSiteRoles(String site) throws AuthenticationException, ServiceLayerException {
+        Authentication authentication = securityProvider.getAuthentication();
+        if (authentication != null) {
+            return getUserSiteRoles(-1, authentication.getUsername(), site);
+        } else {
+            throw new AuthenticationException("User should be authenticated");
+        }
+    }
+
+    @Override
     public List<Group> getUserGroups(long userId, String username) throws ServiceLayerException {
         return securityProvider.getUserGroups(userId, username);
     }
@@ -263,6 +302,14 @@ public class UserServiceImpl implements UserService {
 
     public void setGroupService(GroupService groupService) {
         this.groupService = groupService;
+    }
+
+    public ConfigurationService getConfigurationService() {
+        return configurationService;
+    }
+
+    public void setConfigurationService(ConfigurationService configurationService) {
+        this.configurationService = configurationService;
     }
 
     public SecurityProvider getSecurityProvider() {
