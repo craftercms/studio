@@ -111,7 +111,7 @@ public interface GroupService {
      * @param userIds List of user identifiers
      * @param usernames List of usernames
      */
-    void removeGroupMembers(long groupId, List<Long> userIds, List<String> usernames) throws ServiceLayerException;
+    void removeGroupMembers(long groupId, List<Long> userIds, List<String> usernames) throws ServiceLayerException, UserNotFoundException;
 
     /*
      TODO: All methods below here should be part of the internal service.

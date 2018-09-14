@@ -125,7 +125,7 @@ public class GroupServiceImpl implements GroupService {
     @Override
     @HasPermission(type = DefaultPermission.class, action = "update_groups")
     public void removeGroupMembers(long groupId, List<Long> userIds, List<String> usernames)
-        throws ServiceLayerException {
+        throws ServiceLayerException, UserNotFoundException {
         securityProvider.removeGroupMembers(groupId, userIds, usernames);
     }
 
