@@ -54,7 +54,6 @@ public class GroupServiceImpl implements GroupService {
 
     private static final Logger logger = LoggerFactory.getLogger(GroupServiceImpl.class);
 
-    private GroupDAO groupDAO;
     private ConfigurationService configurationService;
     private SecurityProvider securityProvider;
     private GroupServiceInternal groupServiceInternal;
@@ -176,18 +175,28 @@ public class GroupServiceImpl implements GroupService {
         }
     }
 
-
-
-
-
-
-
-    public GroupDAO getGroupDAO() {
-        return groupDAO;
+    public GroupServiceInternal getGroupServiceInternal() {
+        return groupServiceInternal;
     }
 
-    public void setGroupDAO(GroupDAO groupDAO) {
-        this.groupDAO = groupDAO;
+    public void setGroupServiceInternal(GroupServiceInternal groupServiceInternal) {
+        this.groupServiceInternal = groupServiceInternal;
+    }
+
+    public OrganizationServiceInternal getOrganizationServiceInternal() {
+        return organizationServiceInternal;
+    }
+
+    public void setOrganizationServiceInternal(OrganizationServiceInternal organizationServiceInternal) {
+        this.organizationServiceInternal = organizationServiceInternal;
+    }
+
+    public UserServiceInternal getUserServiceInternal() {
+        return userServiceInternal;
+    }
+
+    public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
+        this.userServiceInternal = userServiceInternal;
     }
 
     public ConfigurationService getConfigurationService() {
