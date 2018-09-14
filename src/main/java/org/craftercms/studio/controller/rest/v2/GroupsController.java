@@ -221,7 +221,7 @@ public class GroupsController {
     public ResponseBody removeGroupMembers(@PathVariable("groupId") int groupId,
                                    @RequestParam(value = "userId", required = false) List<Long> userIds,
                                    @RequestParam(value = "username", required = false) List<String> usernames)
-        throws ServiceLayerException {
+        throws ServiceLayerException, UserNotFoundException {
 
         ValidationUtils.validateAnyListNonEmpty(userIds, usernames);
 
