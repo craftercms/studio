@@ -48,27 +48,7 @@
         <property name="delimiter" value=" ;"/>
         <property name="studioConfiguration" ref="studioConfiguration"/>
         <property name="integrityValidator" ref="crafter.databaseValidator"/>
-        <property name="contentRepository" ref="contentRepository" />
-        <property name="mariaDB4jService" ref="studioMariaDBService" />
-        <property name="repositoryUpgrades" ref="repositoryUpgrades"/>
     </bean>
-
-    <bean id="repositoryUpgrade" class="org.craftercms.studio.impl.v2.upgrade.AbstractRepositoryUpgrade"
-          abstract="true">
-        <property name="studioConfiguration" ref="studioConfiguration"/>
-        <property name="contentRepository" ref="contentRepository"/>
-    </bean>
-
-    <util:list id="repositoryUpgrades">
-        <bean class="org.craftercms.studio.impl.v2.upgrade.GlobalConfigurationUpgrade"
-              parent="repositoryUpgrade" init-method="init">
-            <property name="configFiles"
-                      value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).CONFIGURATION_GLOBAL_MENU_FILE_NAME)},
-                          #{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).CONFIGURATION_GLOBAL_ROLE_MAPPINGS_FILE_NAME)},
-                          #{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).CONFIGURATION_GLOBAL_PERMISSION_MAPPINGS_FILE_NAME)}"/>
-        </bean>
-        <bean class="org.craftercms.studio.impl.v2.upgrade.RoleMappingUpgrade" parent="repositoryUpgrade"/>
-    </util:list>
 
     <bean id="studioMariaDBService" class="ch.vorburger.mariadb4j.springframework.MariaDB4jSpringService"
           destroy-method="stop" depends-on="studioConfiguration" >
