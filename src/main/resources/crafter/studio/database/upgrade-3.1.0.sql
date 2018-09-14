@@ -22,9 +22,4 @@ UPDATE `group`
 SET group_name = 'site_reviewer', group_description = 'Site Reviewer group'
 WHERE group_name = 'Reviewer' ;
 
--- Move users from 'crafter-create-sites' to 'system_admin' then delete the group.
-UPDATE IGNORE group_user SET group_id = 1 WHERE group_id = 2 ;
-DELETE FROM group_user WHERE group_id = 2 ;
-DELETE FROM `group` WHERE id = 2 ;
-
 UPDATE _meta SET version = '3.1.0.1' ;
