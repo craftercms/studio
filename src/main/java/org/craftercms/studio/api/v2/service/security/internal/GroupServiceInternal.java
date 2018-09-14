@@ -18,10 +18,36 @@
 
 package org.craftercms.studio.api.v2.service.security.internal;
 
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.GroupTO;
+import org.craftercms.studio.model.User;
 
 import java.util.List;
 
 public interface GroupServiceInternal {
-    List<GroupTO> getAllGroups(long orgId, int offset, int limit, String sort);
+    List<GroupTO> getAllGroups(long orgId, int offset, int limit, String sort) throws ServiceLayerException;
+
+    int getAllGroupsTotal(long orgId) throws ServiceLayerException;
+
+    GroupTO createGroup(long orgId, String groupName, String groupDescription) throws ServiceLayerException;
+
+    GroupTO updateGroup(long orgId, GroupTO group) throws ServiceLayerException;
+
+    void deleteGroup(List<Long> groupIds) throws ServiceLayerException;
+
+    GroupTO getGroup(long groupId) throws ServiceLayerException;
+
+    List<User> getGroupMembers(long groupId, int offset, int limit, String sort) throws ServiceLayerException;
+
+    List<User> addGroupMembers(long groupId, List<Long> userIds, List<String> usernames) throws ServiceLayerException, UserNotFoundException;
+
+    void removeGroupMembers(long groupId, List<Long> userIds, List<String> usernames) throws ServiceLayerException;
+
+    List<String> getSiteGroups(String siteId);
+
+    GroupTO getGroupByName(String groupName) throws GroupNotFoundException, ServiceLayerException;
+
+    boolean groupExists(String groupName) throws ServiceLayerException;
 }

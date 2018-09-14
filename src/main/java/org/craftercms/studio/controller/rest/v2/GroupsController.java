@@ -22,16 +22,19 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
+import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.dal.GroupTO;
+import org.craftercms.studio.api.v2.exception.OrganizationNotFoundException;
 import org.craftercms.studio.api.v2.service.security.GroupService;
 import org.craftercms.studio.model.rest.AddGroupMembers;
 import org.craftercms.studio.model.User;
 import org.craftercms.studio.model.rest.ApiResponse;
 import org.craftercms.studio.model.rest.PaginatedResultList;
 import org.craftercms.studio.model.rest.ResponseBody;
+import org.craftercms.studio.model.rest.Result;
 import org.craftercms.studio.model.rest.ResultList;
 import org.craftercms.studio.model.rest.ResultOne;
 import org.springframework.http.HttpStatus;
@@ -72,18 +75,27 @@ public class GroupsController {
             @RequestParam(value = "limit", required = false, defaultValue = "10") int limit,
             @RequestParam(value = "sort", required = false, defaultValue = StringUtils.EMPTY) String sort
             ) throws ServiceLayerException {
-        int total = groupService.getAllGroupsTotal(DEFAULT_ORGANIZATION_ID);
-        List<GroupTO> groups = groupService.getAllGroups(DEFAULT_ORGANIZATION_ID, offset, limit, sort);
+        int total = 0;
+        try {
+            total = groupService.getAllGroupsTotal(DEFAULT_ORGANIZATION_ID);
+            List<GroupTO> groups = groupService.getAllGroups(DEFAULT_ORGANIZATION_ID, offset, limit, sort);
 
-        ResponseBody responseBody = new ResponseBody();
-        PaginatedResultList<GroupTO> result = new PaginatedResultList<>();
-        result.setTotal(total);
-        result.setOffset(offset);
-        result.setLimit(CollectionUtils.isEmpty(groups) ? 0 : groups.size());
-        result.setResponse(ApiResponse.OK);
-        result.setEntities(groups);
-        responseBody.setResult(result);
-        return responseBody;
+            ResponseBody responseBody = new ResponseBody();
+            PaginatedResultList<GroupTO> result = new PaginatedResultList<>();
+            result.setTotal(total);
+            result.setOffset(offset);
+            result.setLimit(CollectionUtils.isEmpty(groups) ? 0 : groups.size());
+            result.setResponse(ApiResponse.OK);
+            result.setEntities(groups);
+            responseBody.setResult(result);
+            return responseBody;
+        } catch (OrganizationNotFoundException e) {
+            ResponseBody responseBody = new ResponseBody();
+            Result result = new Result();
+            result.setResponse(ApiResponse.ORG_NOT_FOUND);
+            responseBody.setResult(result);
+            return responseBody;
+        }
     }
 
     /**
@@ -113,13 +125,18 @@ public class GroupsController {
      */
     @PatchMapping(value = "/api/2/groups", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseBody updateGroup(@RequestBody GroupTO group) throws ServiceLayerException {
-        GroupTO updatedGroup = groupService.updateGroup(DEFAULT_ORGANIZATION_ID, group);
-
         ResponseBody responseBody = new ResponseBody();
-        ResultOne<GroupTO> result = new ResultOne<>();
-        result.setResponse(ApiResponse.OK);
-        result.setEntity(updatedGroup);
-        responseBody.setResult(result);
+        try {
+            GroupTO updatedGroup = groupService.updateGroup(DEFAULT_ORGANIZATION_ID, group);
+
+            ResultOne<GroupTO> result = new ResultOne<>();
+            result.setResponse(ApiResponse.OK);
+            result.setEntity(updatedGroup);
+            responseBody.setResult(result);
+        } catch (GroupNotFoundException e) {
+            Result result = new Result();
+            result.setResponse(ApiResponse.GROUP_NOT_FOUND);
+        }
         return responseBody;
     }
 

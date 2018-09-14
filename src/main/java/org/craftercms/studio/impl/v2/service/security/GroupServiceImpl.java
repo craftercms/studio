@@ -75,13 +75,11 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "read_groups")
-    public int getAllGroupsTotal(long orgId) throws ServiceLayerException {
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put(ORG_ID, orgId);
-        try {
-            return groupDAO.getAllGroupsForOrganizationTotal(params);
-        } catch (Exception e) {
-            throw new ServiceLayerException("Unknown database error", e);
+    public int getAllGroupsTotal(long orgId) throws ServiceLayerException, OrganizationNotFoundException {
+        if (organizationServiceInternal.organizationExists(orgId)) {
+            return groupServiceInternal.getAllGroupsTotal(orgId);
+        } else {
+            throw new OrganizationNotFoundException();
         }
     }
 
@@ -90,13 +88,21 @@ public class GroupServiceImpl implements GroupService {
     public GroupTO createGroup(long orgId, String groupName, String groupDescription) throws
             GroupAlreadyExistsException,
         ServiceLayerException {
-        return securityProvider.createGroup(orgId, groupName, groupDescription);
+        if (!groupServiceInternal.groupExists(groupName)) {
+            return groupServiceInternal.createGroup(orgId, groupName, groupDescription);
+        } else {
+            throw new GroupAlreadyExistsException();
+        }
     }
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "update_groups")
-    public GroupTO updateGroup(long orgId, GroupTO group) throws ServiceLayerException {
-        return securityProvider.updateGroup(orgId, group);
+    public GroupTO updateGroup(long orgId, GroupTO group) throws ServiceLayerException, GroupNotFoundException {
+        if (groupServiceInternal.groupExists(group.getGroupName())) {
+            return groupServiceInternal.updateGroup(orgId, group);
+        } else {
+            throw new GroupNotFoundException();
+        }
     }
 
     @Override
@@ -112,26 +118,26 @@ public class GroupServiceImpl implements GroupService {
         } catch (GroupNotFoundException e) {
             throw new ServiceLayerException("The System Admin group is not found", e);
         }
-        securityProvider.deleteGroup(groupIds);
+        groupServiceInternal.deleteGroup(groupIds);
     }
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "read_groups")
     public GroupTO getGroup(long groupId) throws ServiceLayerException {
-        return securityProvider.getGroup(groupId);
+        return groupServiceInternal.getGroup(groupId);
     }
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "read_groups")
     public List<User> getGroupMembers(long groupId, int offset, int limit, String sort) throws ServiceLayerException {
-        return securityProvider.getGroupMembers(groupId, offset, limit, sort);
+        return groupServiceInternal.getGroupMembers(groupId, offset, limit, sort);
     }
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "update_groups")
     public List<User> addGroupMembers(long groupId, List<Long> userIds, List<String> usernames)
             throws ServiceLayerException, UserNotFoundException {
-        return securityProvider.addGroupMembers(groupId, userIds, usernames);
+        return groupServiceInternal.addGroupMembers(groupId, userIds, usernames);
     }
 
     @Override
@@ -164,35 +170,17 @@ public class GroupServiceImpl implements GroupService {
                     }
                 }
             }
-            securityProvider.removeGroupMembers(groupId, userIds, usernames);
+            groupServiceInternal.removeGroupMembers(groupId, userIds, usernames);
         } finally {
             generalLockService.unlock(REMOVE_SYSTEM_ADMIN_MEMBER_LOCK);
         }
     }
 
-    @Override
-    public List<String> getSiteGroups(String siteId) throws ServiceLayerException {
-        Map<String, List<String>> roleMappingsConfig = configurationService.geRoleMappings(siteId);
 
-        return new ArrayList<>(roleMappingsConfig.keySet());
-    }
 
-    @Override
-    public GroupTO getGroupByName(String groupName) throws GroupNotFoundException, ServiceLayerException {
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put(GROUP_NAME, groupName);
-        GroupTO groupTO;
-        try {
-            groupTO = groupDAO.getGroupByName(params);
-        } catch (Exception e) {
-            throw new ServiceLayerException("Unknown database error", e);
-        }
-        if (groupTO != null) {
-            return groupTO;
-        } else {
-            throw new GroupNotFoundException();
-        }
-    }
+
+
+
 
     public GroupDAO getGroupDAO() {
         return groupDAO;

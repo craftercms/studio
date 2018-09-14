@@ -45,6 +45,7 @@ import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.security.GroupService;
 import org.craftercms.studio.api.v2.service.security.SecurityProvider;
 import org.craftercms.studio.api.v2.service.security.UserService;
+import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
 import org.craftercms.studio.model.AuthenticatedUser;
 import org.craftercms.studio.model.Site;
 import org.craftercms.studio.model.User;
@@ -65,8 +66,8 @@ public class UserServiceImpl implements UserService {
     private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 
     private UserDAO userDAO;
-    private GroupService groupService;
     private ConfigurationService configurationService;
+    private GroupServiceInternal groupServiceInternal;
     private SecurityProvider securityProvider;
     private SiteService siteService;
     private EntitlementValidator entitlementValidator;
@@ -76,7 +77,7 @@ public class UserServiceImpl implements UserService {
     @HasPermission(type = DefaultPermission.class, action = "read_users")
     public List<User> getAllUsersForSite(long orgId, String siteId, int offset, int limit, String sort)
             throws ServiceLayerException {
-        List<String> groupNames = groupService.getSiteGroups(siteId);
+        List<String> groupNames = groupServiceInternal.getSiteGroups(siteId);
         return securityProvider.getAllUsersForSite(orgId, groupNames, offset, limit, sort);
     }
 
@@ -111,7 +112,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @HasPermission(type = DefaultPermission.class, action = "read_users")
     public int getAllUsersForSiteTotal(long orgId, String siteId) throws ServiceLayerException {
-        List<String> groupNames = groupService.getSiteGroups(siteId);
+        List<String> groupNames = groupServiceInternal.getSiteGroups(siteId);
         Map<String, Object> params = new HashMap<>();
         params.put(GROUP_NAMES, groupNames);
         try {
@@ -247,15 +248,15 @@ public class UserServiceImpl implements UserService {
     @Override
     @HasPermission(type = DefaultPermission.class, action = "read_users")
     public List<String> getUserSiteRoles(long userId, String username, String site) throws ServiceLayerException {
-        List<GroupTO> groups = getUserGroups(userId, username);
+        List<Group> groups = getUserGroups(userId, username);
 
         if (CollectionUtils.isNotEmpty(groups)) {
-            Map<String, List<String>> roleMappings = configurationService.geRoleMappings(site);
+            Map<String, List<String>> roleMappings = configurationService.getSiteRoleMappingsConfig(site);
             Set<String> userRoles = new LinkedHashSet<>();
 
             if (MapUtils.isNotEmpty(roleMappings)) {
-                for (GroupTO group : groups) {
-                    String groupName = group.getGroupName();
+                for (Group group : groups) {
+                    String groupName = group.getName();
                     List<String> roles = roleMappings.get(groupName);
                     if (CollectionUtils.isNotEmpty(roles)) {
                         userRoles.addAll(roles);
@@ -278,8 +279,8 @@ public class UserServiceImpl implements UserService {
             try {
                 user = securityProvider.getUserByIdOrUsername(0, username);
             } catch (UserNotFoundException e) {
-                throw new ServiceLayerException("Current authenticated user '" + username + "' wasn't found in " +
-                                                "repository", e);
+                throw new ServiceLayerException("Current authenticated user '" + username +
+                    "' wasn't found in repository", e);
             }
 
             if (user != null) {
@@ -288,8 +289,8 @@ public class UserServiceImpl implements UserService {
 
                 return authUser;
             } else {
-                throw new ServiceLayerException("Current authenticated user '" + username + "' wasn't found in " +
-                                                "repository");
+                throw new ServiceLayerException("Current authenticated user '" + username +
+                                                "' wasn't found in repository");
             }
         } else {
             throw new AuthenticationException("User should be authenticated");
@@ -311,16 +312,6 @@ public class UserServiceImpl implements UserService {
         Authentication authentication = securityProvider.getAuthentication();
         if (authentication != null) {
             return getUserSiteRoles(-1, authentication.getUsername(), site);
-        } else {
-            throw new AuthenticationException("User should be authenticated");
-        }
-    }
-
-    @Override
-    public String getCurrentUserSsoLogoutUrl() throws AuthenticationException, ServiceLayerException {
-        Authentication authentication = securityProvider.getAuthentication();
-        if (authentication != null) {
-            return configurationService.getSsoLogoutUrl(authentication.getAuthenticationType());
         } else {
             throw new AuthenticationException("User should be authenticated");
         }

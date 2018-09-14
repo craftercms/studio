@@ -23,14 +23,18 @@ import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.lang.UrlUtils;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.GroupTO;
 import org.craftercms.studio.api.v2.dal.UserDAO;
+import org.craftercms.studio.api.v2.dal.UserTO;
 import org.craftercms.studio.api.v2.exception.ConfigurationException;
 import org.craftercms.studio.api.v2.service.security.UserPermissions;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.impl.v1.util.ConfigUtils;
+import org.craftercms.studio.model.User;
 
 import java.io.InputStream;
 import java.util.HashMap;
@@ -56,7 +60,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
     private ContentRepository contentRepository;
 
     @Override
-    public Set<String> getUserPermissions(String username, UserPermissions.Scope scope, String parameter) {
+    public Set<String> getUserPermissions(String username, UserPermissions.Scope scope, String parameter) throws ConfigurationException {
         Set<String> permissions = null;
         List<GroupTO> userGroups = getUserGroups(-1, username);
         Set<String> userGroupsNames = new HashSet<String>();
@@ -68,6 +72,31 @@ public class UserServiceInternalImpl implements UserServiceInternal {
                 permissions = getSystemScopePermissions(userGroupsNames);
         }
         return permissions;
+    }
+
+    @Override
+    public User getUserByIdOrUsername(long userId, String username) throws ServiceLayerException, UserNotFoundException {
+        Map<String, Object> params = new HashMap<>();
+        params.put(USER_ID, userId);
+        params.put(USERNAME, username);
+        UserTO userTO;
+        try {
+            userTO = userDao.getUserByIdOrUsername(params);
+        } catch (Exception e) {
+            throw new ServiceLayerException("Unknown database error", e);
+        }
+        if(userTO == null) {
+            throw new UserNotFoundException("No user found for username '" + username + "' or id '" + userId + "'");
+        }
+        User user = new User();
+        user.setId(userTO.getId());
+        user.setUsername(userTO.getUsername());
+        user.setFirstName(userTO.getFirstName());
+        user.setLastName(userTO.getLastName());
+        user.setEmail(userTO.getEmail());
+        user.setEnabled(userTO.isEnabled());
+        user.setExternallyManaged(userTO.getExternallyManaged() != 0);
+        return user;
     }
 
     private Set<String> getSystemScopePermissions(Set<String> userGroups) throws ConfigurationException {

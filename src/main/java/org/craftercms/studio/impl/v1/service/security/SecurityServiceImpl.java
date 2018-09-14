@@ -67,6 +67,7 @@ import org.craftercms.studio.api.v1.service.security.UserDetailsManager;
 import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
 import org.craftercms.studio.api.v1.to.PermissionsConfigTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
+import org.craftercms.studio.api.v2.dal.GroupTO;
 import org.craftercms.studio.api.v2.service.security.GroupService;
 import org.craftercms.studio.api.v2.service.security.SecurityProvider;
 import org.craftercms.studio.api.v2.service.security.UserService;
@@ -247,11 +248,11 @@ public class SecurityServiceImpl implements SecurityService {
 
     protected void addGlobalUserRoles(String user, Set<String> roles, PermissionsConfigTO rolesConfig) {
         try {
-            List<Group> groups = userService.getUserGroups(-1, user);
+            List<GroupTO> groups = userService.getUserGroups(-1, user);
             if (rolesConfig != null && groups != null) {
                 Map<String, List<String>> rolesMap = rolesConfig.getRoles();
-                for (Group group : groups) {
-                    String groupName = group.getName();
+                for (GroupTO group : groups) {
+                    String groupName = group.getGroupName();
                     List<String> userRoles = rolesMap.get(groupName);
                     if (roles != null && userRoles != null) {
                         roles.addAll(userRoles);
@@ -358,7 +359,7 @@ public class SecurityServiceImpl implements SecurityService {
             // TODO: We should replace this with userService.getUserSiteRoles, but that one is protected by permissions.
             // TODO: When the UserService is refactored to use UserServiceInternal, we could use that method and
             // TODO: remove this one
-            List<Group> groups = userService.getUserGroups(-1, user);
+            List<GroupTO> groups = userService.getUserGroups(-1, user);
             if (groups != null && groups.size() > 0) {
                 logger.debug("Groups for " + user + " in " + site + ": " + groups);
 
@@ -366,8 +367,8 @@ public class SecurityServiceImpl implements SecurityService {
                 Set<String> userRoles = new HashSet<String>();
                 if (rolesConfig != null) {
                     Map<String, List<String>> rolesMap = rolesConfig.getRoles();
-                    for (Group group : groups) {
-                        String groupName = group.getName();
+                    for (GroupTO group : groups) {
+                        String groupName = group.getGroupName();
                         if (StringUtils.equals(groupName, SYSTEM_ADMIN_GROUP)) {
                             Collection<List<String>> mapValues = rolesMap.values();
                             mapValues.forEach(valueList -> {
@@ -872,11 +873,11 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     private boolean isAdmin(String username) throws ServiceLayerException {
-        List<Group> userGroups = securityProvider.getUserGroups(-1, username);
+        List<GroupTO> userGroups = securityProvider.getUserGroups(-1, username);
         boolean toRet = false;
         if (CollectionUtils.isNotEmpty(userGroups)) {
-            for (Group group : userGroups) {
-                if (StringUtils.equalsIgnoreCase(group.getName(), SYSTEM_ADMIN_GROUP)) {
+            for (GroupTO group : userGroups) {
+                if (StringUtils.equalsIgnoreCase(group.getGroupName(), SYSTEM_ADMIN_GROUP)) {
                     toRet = true;
                     break;
                 }
@@ -888,7 +889,7 @@ public class SecurityServiceImpl implements SecurityService {
     @Override
     @ValidateParams
     public boolean isSiteAdmin(@ValidateStringParam(name = "username") String username, String site) {
-        List<Group> userGroups = null;
+        List<GroupTO> userGroups = null;
         try {
             userGroups = securityProvider.getUserGroups(-1, username);
         } catch (ServiceLayerException e) {
@@ -897,8 +898,8 @@ public class SecurityServiceImpl implements SecurityService {
         }
         boolean toRet = false;
         if (CollectionUtils.isNotEmpty(userGroups)) {
-            for (Group group : userGroups) {
-                if (StringUtils.equalsIgnoreCase(group.getName(),
+            for (GroupTO group : userGroups) {
+                if (StringUtils.equalsIgnoreCase(group.getGroupName(),
                         studioConfiguration.getProperty(CONFIGURATION_DEFAULT_ADMIN_GROUP))) {
                     toRet = true;
                     break;

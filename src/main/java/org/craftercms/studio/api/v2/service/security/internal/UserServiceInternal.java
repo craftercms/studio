@@ -18,11 +18,17 @@
 
 package org.craftercms.studio.api.v2.service.security.internal;
 
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v2.exception.ConfigurationException;
 import org.craftercms.studio.api.v2.service.security.UserPermissions;
+import org.craftercms.studio.model.User;
 
 import java.util.Set;
 
 public interface UserServiceInternal {
 
-    Set<String> getUserPermissions(String username, UserPermissions.Scope scope, String parameter);
+    Set<String> getUserPermissions(String username, UserPermissions.Scope scope, String parameter) throws ConfigurationException;
+
+    User getUserByIdOrUsername(long userId, String username) throws ServiceLayerException, UserNotFoundException;
 }

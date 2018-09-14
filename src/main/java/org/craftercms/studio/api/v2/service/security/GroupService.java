@@ -47,7 +47,7 @@ public interface GroupService {
      * @param orgId Organization identifier
      * @return Number of groups
      */
-    int getAllGroupsTotal(long orgId) throws ServiceLayerException;
+    int getAllGroupsTotal(long orgId) throws ServiceLayerException, OrganizationNotFoundException;
 
     /**
      * Create group
@@ -67,7 +67,7 @@ public interface GroupService {
      * @param group Group to update
      * @return the updated group
      */
-    GroupTO updateGroup(long orgId, GroupTO group) throws ServiceLayerException;
+    GroupTO updateGroup(long orgId, GroupTO group) throws ServiceLayerException, GroupNotFoundException;
 
     /**
      * Delete group(s)
@@ -113,24 +113,5 @@ public interface GroupService {
      * @param usernames List of usernames
      */
     void removeGroupMembers(long groupId, List<Long> userIds, List<String> usernames) throws ServiceLayerException, UserNotFoundException;
-
-    /*
-     TODO: All methods below here should be part of the internal service.
-     */
-
-    /**
-     * Get groups for site
-     *
-     * @param siteId Site identifier
-     * @return List of group names
-     */
-    List<String> getSiteGroups(String siteId) throws ServiceLayerException;
-
-    /**
-     * Get group by name
-     * @param groupName group name
-     * @return group object
-     */
-    GroupTO getGroupByName(String groupName) throws GroupNotFoundException, ServiceLayerException;
 
 }

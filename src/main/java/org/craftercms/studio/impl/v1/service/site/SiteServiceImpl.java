@@ -108,10 +108,12 @@ import org.craftercms.studio.api.v1.to.RepoOperationTO;
 import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
 import org.craftercms.studio.api.v1.to.SiteTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
+import org.craftercms.studio.api.v2.dal.GroupTO;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.api.v2.service.security.GroupService;
 import org.craftercms.studio.api.v2.service.security.SecurityProvider;
 import org.craftercms.studio.api.v2.service.security.UserService;
+import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
 import org.craftercms.studio.impl.v1.repository.job.RebuildRepositoryMetadata;
 import org.craftercms.studio.impl.v1.repository.job.SyncDatabaseWithRepository;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
@@ -173,7 +175,7 @@ public class SiteServiceImpl implements SiteService {
     protected RebuildRepositoryMetadata rebuildRepositoryMetadata;
     protected SyncDatabaseWithRepository syncDatabaseWithRepository;
     protected EventService eventService;
-    protected GroupService groupService;
+    protected GroupServiceInternal groupServiceInternal;
     protected UserService userService;
 
     protected StudioConfiguration studioConfiguration;
@@ -686,9 +688,11 @@ public class SiteServiceImpl implements SiteService {
         for (String group : defaultGroups) {
             String description = group + SITE_DEFAULT_GROUPS_DESCRIPTION;
             try {
-                groupService.createGroup(DEFAULT_ORGANIZATION_ID, group, description);
-            } catch (GroupAlreadyExistsException e) {
-                logger.warn("Default group: " + group + " not created. It already exists.", e);
+                if (!groupServiceInternal.groupExists(group)) {
+                    groupServiceInternal.createGroup(DEFAULT_ORGANIZATION_ID, group, description);
+                } else {
+                    logger.warn("Default group: " + group + " not created. It already exists.");
+                }
             } catch (ServiceLayerException e) {
                 logger.warn("Error creating group " + group, e);
             }
@@ -2025,12 +2029,12 @@ public class SiteServiceImpl implements SiteService {
 		this.entitlementValidator = entitlementValidator;
 	}
 
-    public GroupService getGroupService() {
-        return groupService;
+    public GroupServiceInternal getGroupServiceInternal() {
+        return groupServiceInternal;
     }
 
-    public void setGroupService(GroupService groupService) {
-        this.groupService = groupService;
+    public void setGroupServiceInternal(GroupServiceInternal groupServiceInternal) {
+        this.groupServiceInternal = groupServiceInternal;
     }
 
     public UserService getUserService() {
