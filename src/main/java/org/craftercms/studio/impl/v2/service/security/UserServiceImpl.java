@@ -42,10 +42,10 @@ import org.craftercms.studio.api.v2.dal.GroupTO;
 import org.craftercms.studio.api.v2.dal.UserDAO;
 import org.craftercms.studio.api.v2.dal.UserTO;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
-import org.craftercms.studio.api.v2.service.security.GroupService;
 import org.craftercms.studio.api.v2.service.security.SecurityProvider;
 import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
+import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.model.AuthenticatedUser;
 import org.craftercms.studio.model.Site;
 import org.craftercms.studio.model.User;
@@ -65,7 +65,7 @@ public class UserServiceImpl implements UserService {
 
     private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 
-    private UserDAO userDAO;
+    private UserServiceInternal userServiceInternal;
     private ConfigurationService configurationService;
     private GroupServiceInternal groupServiceInternal;
     private SecurityProvider securityProvider;
@@ -78,58 +78,25 @@ public class UserServiceImpl implements UserService {
     public List<User> getAllUsersForSite(long orgId, String siteId, int offset, int limit, String sort)
             throws ServiceLayerException {
         List<String> groupNames = groupServiceInternal.getSiteGroups(siteId);
-        return securityProvider.getAllUsersForSite(orgId, groupNames, offset, limit, sort);
+        return userServiceInternal.getAllUsersForSite(orgId, groupNames, offset, limit, sort);
     }
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "read_users")
     public List<User> getAllUsers(int offset, int limit, String sort) throws ServiceLayerException {
-        Map<String, Object> params = new HashMap<>();
-        params.put(OFFSET, offset);
-        params.put(LIMIT, limit);
-        params.put(SORT, sort);
-        List<UserTO> userTOs;
-        try {
-            userTOs = userDAO.getAllUsers(params);
-        } catch (Exception e) {
-            throw new ServiceLayerException("Unknown database error", e);
-        }
-        List<User> users = new ArrayList<User>();
-        userTOs.forEach(userTO -> {
-            User u = new User();
-            u.setId(userTO.getId());
-            u.setUsername(userTO.getUsername());
-            u.setFirstName(userTO.getFirstName());
-            u.setLastName(userTO.getLastName());
-            u.setEmail(userTO.getEmail());
-            u.setEnabled(userTO.isEnabled());
-            u.setExternallyManaged(userTO.getExternallyManaged() != 0);
-            users.add(u);
-        });
-        return users;
+        return userServiceInternal.getAllUsers(offset, limit, sort);
     }
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "read_users")
     public int getAllUsersForSiteTotal(long orgId, String siteId) throws ServiceLayerException {
-        List<String> groupNames = groupServiceInternal.getSiteGroups(siteId);
-        Map<String, Object> params = new HashMap<>();
-        params.put(GROUP_NAMES, groupNames);
-        try {
-            return userDAO.getAllUsersForSiteTotal(params);
-        } catch (Exception e) {
-            throw new ServiceLayerException("Unknown database error", e);
-        }
+        return userServiceInternal.getAllUsersForSiteTotal(orgId, siteId);
     }
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "read_users")
     public int getAllUsersTotal() throws ServiceLayerException {
-        try {
-            return userDAO.getAllUsersTotal();
-        } catch (Exception e) {
-            throw new ServiceLayerException("Unknown database error", e);
-        }
+        return userServiceInternal.getAllUsersTotal();
     }
 
     @Override
@@ -149,13 +116,13 @@ public class UserServiceImpl implements UserService {
             throw new ServiceLayerException("Unable to complete request due to entitlement limits. Please contact " +
                                             "your system administrator.", e);
         }
-        return securityProvider.createUser(user);
+        return userServiceInternal.createUser(user);
     }
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "update_users")
     public void updateUser(User user) throws ServiceLayerException {
-        securityProvider.updateUser(user);
+        userServiceInternal.updateUser(user);
     }
 
     @Override
@@ -171,8 +138,9 @@ public class UserServiceImpl implements UserService {
         generalLockService.lock(REMOVE_SYSTEM_ADMIN_MEMBER_LOCK);
         try {
             try {
-                GroupTO g = groupService.getGroupByName(SYSTEM_ADMIN_GROUP);
-                List<User> members = groupService.getGroupMembers(g.getId(), 0, Integer.MAX_VALUE, StringUtils.EMPTY);
+                GroupTO g = groupServiceInternal.getGroupByName(SYSTEM_ADMIN_GROUP);
+                List<User> members = groupServiceInternal.getGroupMembers(g.getId(), 0, Integer.MAX_VALUE,
+                        StringUtils.EMPTY);
                 if (CollectionUtils.isNotEmpty(members)) {
                     List<User> membersAfterRemove = new ArrayList<User>();
                     membersAfterRemove.addAll(members);
@@ -197,7 +165,7 @@ public class UserServiceImpl implements UserService {
                 throw new ServiceLayerException("The System Admin group is not found.", e);
             }
 
-            securityProvider.deleteUsers(userIds, usernames);
+            userServiceInternal.deleteUsers(userIds, usernames);
         } finally {
             generalLockService.unlock(REMOVE_SYSTEM_ADMIN_MEMBER_LOCK);
         }
@@ -207,14 +175,14 @@ public class UserServiceImpl implements UserService {
     @HasPermission(type = DefaultPermission.class, action = "read_users")
     public User getUserByIdOrUsername(long userId, String username) throws ServiceLayerException,
                                                                            UserNotFoundException {
-        return securityProvider.getUserByIdOrUsername(userId, username);
+        return userServiceInternal.getUserByIdOrUsername(userId, username);
     }
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "update_users")
     public List<User> enableUsers(List<Long> userIds, List<String> usernames, boolean enabled)
             throws ServiceLayerException, UserNotFoundException {
-        return securityProvider.enableUsers(userIds, usernames, enabled);
+        return userServiceInternal.enableUsers(userIds, usernames, enabled);
     }
 
     @Override
@@ -222,12 +190,12 @@ public class UserServiceImpl implements UserService {
     public List<Site> getUserSites(long userId, String username) throws ServiceLayerException {
         List<Site> sites = new ArrayList<>();
         Set<String> allSites = siteService.getAllAvailableSites();
-        List<GroupTO> userGroups = getUserGroups(userId, username);
+        List<GroupTO> userGroups = userServiceInternal.getUserGroups(userId, username);
         boolean isSysAdmin = isUserMemberOfGroup(username, SYSTEM_ADMIN_GROUP);
 
         // Iterate all sites. If the user has any of the site groups, it has access to the site
         for (String siteId : allSites) {
-            List<String> siteGroups = groupService.getSiteGroups(siteId);
+            List<String> siteGroups = groupServiceInternal.getSiteGroups(siteId);
             if (isSysAdmin || userGroups.stream().anyMatch(userGroup -> siteGroups.contains(userGroup.getGroupName()))) {
                 try {
                     SiteFeed siteFeed = siteService.getSite(siteId);
@@ -248,15 +216,15 @@ public class UserServiceImpl implements UserService {
     @Override
     @HasPermission(type = DefaultPermission.class, action = "read_users")
     public List<String> getUserSiteRoles(long userId, String username, String site) throws ServiceLayerException {
-        List<Group> groups = getUserGroups(userId, username);
+        List<GroupTO> groups = getUserGroups(userId, username);
 
         if (CollectionUtils.isNotEmpty(groups)) {
             Map<String, List<String>> roleMappings = configurationService.getSiteRoleMappingsConfig(site);
             Set<String> userRoles = new LinkedHashSet<>();
 
             if (MapUtils.isNotEmpty(roleMappings)) {
-                for (Group group : groups) {
-                    String groupName = group.getName();
+                for (GroupTO group : groups) {
+                    String groupName = group.getGroupName();
                     List<String> roles = roleMappings.get(groupName);
                     if (CollectionUtils.isNotEmpty(roles)) {
                         userRoles.addAll(roles);
@@ -277,7 +245,7 @@ public class UserServiceImpl implements UserService {
             String username = authentication.getUsername();
             User user;
             try {
-                user = securityProvider.getUserByIdOrUsername(0, username);
+                user = userServiceInternal.getUserByIdOrUsername(0, username);
             } catch (UserNotFoundException e) {
                 throw new ServiceLayerException("Current authenticated user '" + username +
                     "' wasn't found in repository", e);
@@ -317,38 +285,20 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    @Override
-    public List<GroupTO> getUserGroups(long userId, String username) throws ServiceLayerException {
-        return securityProvider.getUserGroups(userId, username);
+    public UserServiceInternal getUserServiceInternal() {
+        return userServiceInternal;
     }
 
-    @Override
-    public boolean isUserMemberOfGroup(String username, String groupName) throws ServiceLayerException {
-        Map<String, Object> params = new HashMap<>();
-        params.put(GROUP_NAME, groupName);
-        params.put(USERNAME, username);
-        try {
-            int result = userDAO.isUserMemberOfGroup(params);
-            return result > 0;
-        } catch (Exception e) {
-            throw new ServiceLayerException("Unknown database error", e);
-        }
+    public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
+        this.userServiceInternal = userServiceInternal;
     }
 
-    public UserDAO getUserDAO() {
-        return userDAO;
+    public GroupServiceInternal getGroupServiceInternal() {
+        return groupServiceInternal;
     }
 
-    public void setUserDAO(UserDAO userDAO) {
-        this.userDAO = userDAO;
-    }
-
-    public GroupService getGroupService() {
-        return groupService;
-    }
-
-    public void setGroupService(GroupService groupService) {
-        this.groupService = groupService;
+    public void setGroupServiceInternal(GroupServiceInternal groupService) {
+        this.groupServiceInternal = groupService;
     }
 
     public ConfigurationService getConfigurationService() {

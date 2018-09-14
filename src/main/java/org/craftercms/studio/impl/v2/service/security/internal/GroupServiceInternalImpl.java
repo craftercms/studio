@@ -225,7 +225,7 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
 
     @Override
     public List<User> addGroupMembers(long groupId, List<Long> userIds, List<String> usernames) throws ServiceLayerException, UserNotFoundException {
-        List<User> users = findUsers(userIds, usernames);
+        List<User> users = userServiceInternal.findUsers(userIds, usernames);
 
         Map<String, Object> params = new HashMap<>();
         params.put(USER_IDS, users.stream().map(User::getId).collect(Collectors.toList()));
@@ -236,20 +236,6 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
         } catch (Exception e) {
             throw new ServiceLayerException("Unknown database error", e);
         }
-    }
-
-    protected List<User> findUsers(List<Long> userIds, List<String> usernames) throws ServiceLayerException, UserNotFoundException {
-        List<User> users = new LinkedList<>();
-        for(long userId : userIds) {
-            users.add(userServiceInternal.getUserByIdOrUsername(userId, Long.toString(userId)));
-        }
-        for(String username : usernames) {
-            Optional<User> user = users.stream().filter(u -> u.getUsername().equals(username)).findFirst();
-            if(!user.isPresent()) {
-                users.add(userServiceInternal.getUserByIdOrUsername(-1, username));
-            }
-        }
-        return users;
     }
 
     @Override

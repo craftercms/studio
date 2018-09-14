@@ -70,7 +70,7 @@ import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.GroupTO;
 import org.craftercms.studio.api.v2.service.security.GroupService;
 import org.craftercms.studio.api.v2.service.security.SecurityProvider;
-import org.craftercms.studio.api.v2.service.security.UserService;
+import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.impl.v1.util.SessionTokenUtils;
 import org.craftercms.studio.impl.v2.service.security.Authentication;
 import org.craftercms.studio.model.User;
@@ -142,7 +142,7 @@ public class SecurityServiceImpl implements SecurityService {
     protected UserDetailsManager userDetailsManager;
     protected ObjectFactory<FreeMarkerConfig> freeMarkerConfig;
     protected GroupService groupService;
-    protected UserService userService;
+    protected UserServiceInternal userServiceInternal;
 
     @Override
     @ValidateParams
@@ -248,7 +248,7 @@ public class SecurityServiceImpl implements SecurityService {
 
     protected void addGlobalUserRoles(String user, Set<String> roles, PermissionsConfigTO rolesConfig) {
         try {
-            List<GroupTO> groups = userService.getUserGroups(-1, user);
+            List<GroupTO> groups = userServiceInternal.getUserGroups(-1, user);
             if (rolesConfig != null && groups != null) {
                 Map<String, List<String>> rolesMap = rolesConfig.getRoles();
                 for (GroupTO group : groups) {
@@ -359,7 +359,7 @@ public class SecurityServiceImpl implements SecurityService {
             // TODO: We should replace this with userService.getUserSiteRoles, but that one is protected by permissions.
             // TODO: When the UserService is refactored to use UserServiceInternal, we could use that method and
             // TODO: remove this one
-            List<GroupTO> groups = userService.getUserGroups(-1, user);
+            List<GroupTO> groups = userServiceInternal.getUserGroups(-1, user);
             if (groups != null && groups.size() > 0) {
                 logger.debug("Groups for " + user + " in " + site + ": " + groups);
 
@@ -1066,12 +1066,12 @@ public class SecurityServiceImpl implements SecurityService {
         this.groupService = groupService;
     }
 
-    public UserService getUserService() {
-        return userService;
+    public UserServiceInternal getUserServiceInternal() {
+        return userServiceInternal;
     }
 
-    public void setUserService(UserService userService) {
-        this.userService = userService;
+    public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
+        this.userServiceInternal = userServiceInternal;
     }
 
 }

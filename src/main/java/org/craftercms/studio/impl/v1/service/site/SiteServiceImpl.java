@@ -114,6 +114,7 @@ import org.craftercms.studio.api.v2.service.security.GroupService;
 import org.craftercms.studio.api.v2.service.security.SecurityProvider;
 import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
+import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.impl.v1.repository.job.RebuildRepositoryMetadata;
 import org.craftercms.studio.impl.v1.repository.job.SyncDatabaseWithRepository;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
@@ -176,7 +177,7 @@ public class SiteServiceImpl implements SiteService {
     protected SyncDatabaseWithRepository syncDatabaseWithRepository;
     protected EventService eventService;
     protected GroupServiceInternal groupServiceInternal;
-    protected UserService userService;
+    protected UserServiceInternal userServiceInternal;
 
     protected StudioConfiguration studioConfiguration;
 
@@ -2037,11 +2038,11 @@ public class SiteServiceImpl implements SiteService {
         this.groupServiceInternal = groupServiceInternal;
     }
 
-    public UserService getUserService() {
-        return userService;
+    public UserServiceInternal getUserServiceInternal() {
+        return userServiceInternal;
     }
 
-    public void setUserService(UserService userService) {
-        this.userService = userService;
+    public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
+        this.userServiceInternal = userServiceInternal;
     }
 }
