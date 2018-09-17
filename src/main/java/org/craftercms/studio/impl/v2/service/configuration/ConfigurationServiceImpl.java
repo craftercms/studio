@@ -92,7 +92,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     public LogoutUrl getLogoutUrl(AuthenticationType authType) throws ConfigurationException {
         if (authType == AuthenticationType.AUTH_HEADERS) {
             HierarchicalConfiguration<ImmutableNode> config = readGlobalSecurityConfigFile();
-            if (config.getBoolean(SSO_LOGOUT_ENABLED_CONFIG_KEY)) {
+            if (config.getBoolean(SSO_LOGOUT_ENABLED_CONFIG_KEY, false)) {
                 LogoutUrl logoutUrl = new LogoutUrl();
                 logoutUrl.setUrl(config.getString(SSO_LOGOUT_URL_CONFIG_KEY, getDefaultLogoutUrl()));
                 logoutUrl.setMethod(config.getString(SSO_LOGOUT_METHOD_CONFIG_KEY, getDefaultLogoutMethod()));
