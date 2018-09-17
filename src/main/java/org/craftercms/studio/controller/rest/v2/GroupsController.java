@@ -194,7 +194,8 @@ public class GroupsController {
      */
     @PostMapping(value = "/api/2/groups/{groupId}/members", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseBody addGroupMembers(@PathVariable("groupId") int groupId,
-                                        @RequestBody AddGroupMembers addGroupMembers) throws ServiceLayerException, UserNotFoundException {
+                                        @RequestBody AddGroupMembers addGroupMembers) throws ServiceLayerException,
+                                                                                             UserNotFoundException {
 
         ValidationUtils.validateAddGroupMembers(addGroupMembers);
 

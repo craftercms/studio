@@ -939,7 +939,34 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
         '500':
-          $ref: '#/components/responses/InternalServerError'   
+          $ref: '#/components/responses/InternalServerError'
+
+  /user/logout/url:
+    get:
+      tags:
+      - user
+      summary: Get the logout URL for the current authenticated user. Response entity can be null if logout is disabled
+      description:  'Required Permission: "LOGGED_IN"'
+      operationId: getCurrentUserLogoutUrl
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: object
+                    properties:
+                      response:
+                        $ref: '#/components/schemas/ApiResponse'
+                      entity:
+                        $ref: '#/components/schemas/LogoutUrl'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
 
   /ui/views/global_menu:
     get:
@@ -1095,6 +1122,15 @@ components:
         desc:
           type: string
           description: Site description
+    LogoutUrl:
+      type: object
+      properties:
+        url:
+          type: string
+          description: The actual URL
+        method:
+          type: string
+          description: The HTTP method the URL responds to
     MenuItem:
       type: object
       properties:

@@ -67,6 +67,7 @@ public interface StudioConfiguration {
 
     /** Configuration */
     String CONFIGURATION_GLOBAL_CONFIG_BASE_PATH = "studio.configuration.global.configBasePath";
+    String CONFIGURATION_GLOBAL_SECURITY_CONFIG_FILE_NAME = "studio.configuration.global.securityConfigFileName";
     String CONFIGURATION_GLOBAL_MENU_FILE_NAME = "studio.configuration.global.menuFileName";
     String CONFIGURATION_GLOBAL_ROLE_MAPPINGS_FILE_NAME = "studio.configuration.global.roleMappingFileName";
     String CONFIGURATION_GLOBAL_PERMISSION_MAPPINGS_FILE_NAME = "studio.configuration.global.permissionMappingFileName";
@@ -128,6 +129,8 @@ public interface StudioConfiguration {
     String SECURITY_FORGOT_PASSWORD_EMAIL_TEMPLATE = "studio.security.forgotPassword.email.template";
     String SECURITY_FORGOT_PASSWORD_TOKEN_TIMEOUT = "studio.security.forgotPassword.token.timeout";
     String SECURITY_RESET_PASSWORD_SERVICE_URL = "studio.security.resetPassword.serviceUrl";
+    String SECURITY_LOGOUT_URL = "studio.security.logout.url";
+    String SECURITY_LOGOUT_METHOD = "studio.security.logout.method";
 
     /** LDAP */
     String SECURITY_LDAP_SERVER_URL = "studio.security.ldap.serverUrl";

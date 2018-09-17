@@ -15,24 +15,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-package org.craftercms.studio.api.v2.service.config;
+package org.craftercms.studio.api.v2.service.security;
 
-import org.craftercms.studio.api.v2.exception.ConfigurationException;
-import org.craftercms.studio.model.AuthenticationType;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.model.LogoutUrl;
 
-import java.util.List;
-import java.util.Map;
+public interface SecurityService {
 
-/**
- * Service that helps access different Studio configuration.
- *
- * @author avasquez
- */
-public interface ConfigurationService {
-
-    Map<String, List<String>> geRoleMappings(String siteId) throws ConfigurationException;
-
-    LogoutUrl getLogoutUrl(AuthenticationType authType) throws ConfigurationException;
+    LogoutUrl getLogoutUrl(String site) throws ServiceLayerException;
 
 }

@@ -56,6 +56,7 @@ public class UiServiceInternalImpl implements UiServiceInternal {
             HierarchicalConfiguration menuConfig = getGlobalMenuConfig();
             List<MenuItem> menuItems = new ArrayList<>();
 
+            // TODO: Move this config to ConfigurationService
             List<HierarchicalConfiguration> itemsConfig = menuConfig.configurationsAt(MENU_ITEMS_CONFIG_KEY);
             if (CollectionUtils.isNotEmpty(itemsConfig)) {
                 for (HierarchicalConfiguration itemConfig : itemsConfig) {

@@ -18,18 +18,14 @@
 
 package org.craftercms.studio.impl.v2.service.security;
 
-import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
-import org.craftercms.studio.api.v1.constant.StudioXmlConstants;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v1.service.content.ContentService;
-import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.GroupTO;
 import org.craftercms.studio.api.v2.dal.GroupDAO;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
@@ -37,24 +33,12 @@ import org.craftercms.studio.api.v2.service.security.GroupService;
 import org.craftercms.studio.api.v2.service.security.SecurityProvider;
 import org.craftercms.studio.model.Group;
 import org.craftercms.studio.model.User;
-import org.dom4j.Document;
-import org.dom4j.DocumentException;
-import org.dom4j.Element;
-import org.dom4j.Node;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_SITE;
-import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.DOCUMENT_ELM_GROUPS_NODE;
-import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.DOCUMENT_ROLE_MAPPINGS;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_GLOBAL_CONFIG_BASE_PATH;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_GLOBAL_ROLE_MAPPINGS_FILE_NAME;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.GROUP_NAME;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ORG_ID;
 
@@ -131,7 +115,7 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     public List<String> getSiteGroups(String siteId) throws ServiceLayerException {
-        Map<String, List<String>> roleMappingsConfig = configurationService.getSiteRoleMappingsConfig(siteId);
+        Map<String, List<String>> roleMappingsConfig = configurationService.geRoleMappings(siteId);
 
         return new ArrayList<>(roleMappingsConfig.keySet());
     }
