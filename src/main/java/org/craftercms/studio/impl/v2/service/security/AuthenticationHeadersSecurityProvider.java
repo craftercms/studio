@@ -38,6 +38,7 @@ import org.craftercms.studio.model.AuthenticationType;
 import org.craftercms.studio.model.User;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -132,7 +133,7 @@ public class AuthenticationHeadersSecurityProvider extends DbWithLdapExtensionSe
                     userTO.setFirstName(firstName);
                     userTO.setLastName(lastName);
                     userTO.setEmail(email);
-                    //user.setGroups(new ArrayList<UserGroup>());
+                    userTO.setGroups(new ArrayList<UserGroupTO>());
 
                     logger.debug("Update user groups in database.");
                     if (StringUtils.isNoneEmpty(groups)) {
