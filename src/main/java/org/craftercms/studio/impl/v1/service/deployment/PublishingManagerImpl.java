@@ -197,29 +197,38 @@ public class PublishingManagerImpl implements PublishingManager {
             ItemMetadata itemMetadata = objectMetadataManager.getProperties(site, path);
 
             if (itemMetadata == null) {
-                throw new DeploymentException("No metadata found for " + site + ":" + path);
-            }
-
-            ContentItemTO contentItem = contentService.getContentItem(site, path);
-            if (isLive) {
-                // should consider what should be done if this does not work.
-                // Currently the method will bail and the item is stuck in processing.
-                LOGGER.debug("Environment is live, transition item to LIVE state {0}:{1}", site, path);
-
-                // check if commit id from workflow and from object state match
-                if (itemMetadata.getCommitId() != null && itemMetadata.getCommitId().equals(item.getCommitId())) {
-                    objectStateService.transition(site, contentItem, TransitionEvent.DEPLOYMENT);
+                if (contentService.contentExists(site, path)) {
+                    LOGGER.warn("Content item: '" + site + "':'" + path + "' doesn't exists in " +
+                            "the database, but does exist in git. This may cause problems " +
+                            "in the environment: '" + environment + "'");
+                } else {
+                    LOGGER.warn("Content item: '" + site + "':'" + path + "' cannot be published. " +
+                            "Content does not exist in git nor in the database. Skipping...");
+                    return null;
                 }
             } else {
+
+                ContentItemTO contentItem = contentService.getContentItem(site, path);
+                if (isLive) {
+                    // should consider what should be done if this does not work.
+                    // Currently the method will bail and the item is stuck in processing.
+                    LOGGER.debug("Environment is live, transition item to LIVE state {0}:{1}", site, path);
+
+                    // check if commit id from workflow and from object state match
+                    if (itemMetadata.getCommitId() != null && itemMetadata.getCommitId().equals(item.getCommitId())) {
+                        objectStateService.transition(site, contentItem, TransitionEvent.DEPLOYMENT);
+                    }
+                } else {
                     objectStateService.transition(site, contentItem, TransitionEvent.SAVE);
+                }
+                Map<String, Object> props = new HashMap<String, Object>();
+                props.put(ItemMetadata.PROP_SUBMITTED_BY, StringUtils.EMPTY);
+                props.put(ItemMetadata.PROP_SEND_EMAIL, 0);
+                props.put(ItemMetadata.PROP_SUBMITTED_FOR_DELETION, 0);
+                props.put(ItemMetadata.PROP_SUBMISSION_COMMENT, StringUtils.EMPTY);
+                props.put(ItemMetadata.PROP_SUBMITTED_TO_ENVIRONMENT, StringUtils.EMPTY);
+                objectMetadataManager.setObjectMetadata(site, path, props);
             }
-            Map<String, Object> props = new HashMap<String, Object>();
-            props.put(ItemMetadata.PROP_SUBMITTED_BY, StringUtils.EMPTY);
-            props.put(ItemMetadata.PROP_SEND_EMAIL, 0);
-            props.put(ItemMetadata.PROP_SUBMITTED_FOR_DELETION, 0);
-            props.put(ItemMetadata.PROP_SUBMISSION_COMMENT, StringUtils.EMPTY);
-            props.put(ItemMetadata.PROP_SUBMITTED_TO_ENVIRONMENT, StringUtils.EMPTY);
-            objectMetadataManager.setObjectMetadata(site, path, props);
         }
         return deploymentItem;
     }
@@ -308,7 +317,9 @@ public class PublishingManagerImpl implements PublishingManager {
                         missingDependenciesPaths.add(parentPath);
                         PublishRequest parentItem = createMissingItem(site, parentPath, item);
                         DeploymentItemTO parentDeploymentItem = processItem(parentItem);
-                        mandatoryDependencies.add(parentDeploymentItem);
+                        if (parentDeploymentItem != null) {
+                            mandatoryDependencies.add(parentDeploymentItem);
+                        }
                         mandatoryDependencies.addAll(
                                 processMandatoryDependencies(parentItem, pathsToDeploy, missingDependenciesPaths));
                     }
@@ -327,7 +338,9 @@ public class PublishingManagerImpl implements PublishingManager {
                             missingDependenciesPaths.add(dependentPath);
                             PublishRequest dependentItem = createMissingItem(site, dependentPath, item);
                             DeploymentItemTO dependentDeploymentItem = processItem(dependentItem);
-                            mandatoryDependencies.add(dependentDeploymentItem);
+                            if (dependentDeploymentItem != null) {
+                                mandatoryDependencies.add(dependentDeploymentItem);
+                            }
                             mandatoryDependencies.addAll(
                                     processMandatoryDependencies(dependentItem, pathsToDeploy, missingDependenciesPaths));
                         }
