@@ -46,8 +46,6 @@ studio.repo.published.commitMessage: "Publish event triggered by {username} on {
 ############################################################
 # Location where global configuration files are stored.
 studio.configuration.global.configBasePath: /configuration
-# File name where the security configuration is stored.
-studio.configuration.global.securityConfigFileName: security-config.xml
 # File name where global menu configuration is stored
 studio.configuration.global.menuFileName: global-menu-config.xml
 # File name where global configuration of user role mappings is stored.
@@ -221,10 +219,12 @@ studio.authentication.headers.email: email
 #   Example:
 #   site_author,site_xyz_developer
 studio.authentication.headers.groups: groups
-# The default logout URL
-studio.security.logout.url: /api/1/services/api/1/security/logout.json
-# The default logout HTTP method
-studio.security.logout.method: POST
+# If logout is enabled for authentication header (SSO) authentication
+studio.authentication.headers.logout.enabled: false
+# The logout URL for authentication header (SSO) authentication
+studio.authentication.headers.logout.url: /mellon/logout
+# The logout HTTP method for authentication header (SSO) authentication
+studio.authentication.headers.logout.method: GET
 
 ###############################################################
 ##               Page Navigation Order Service               ##
