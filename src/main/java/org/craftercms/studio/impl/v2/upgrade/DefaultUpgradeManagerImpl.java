@@ -7,10 +7,9 @@ import java.util.List;
 import javax.sql.DataSource;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
-import org.apache.commons.configuration2.YAMLConfiguration;
+import org.craftercms.commons.config.YamlConfiguration;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v2.exception.UpgradeException;
 import org.craftercms.studio.api.v2.upgrade.UpgradeManager;
 import org.craftercms.studio.api.v2.upgrade.UpgradePipeline;
@@ -30,8 +29,6 @@ public class DefaultUpgradeManagerImpl implements UpgradeManager, ApplicationCon
     protected String latestVersion;
 
     protected DataSource dataSource;
-    protected ContentRepository contentRepository;
-
     protected ApplicationContext appContext;
 
     @SuppressWarnings("rawtypes,unchecked")
@@ -60,7 +57,7 @@ public class DefaultUpgradeManagerImpl implements UpgradeManager, ApplicationCon
     }
 
     protected HierarchicalConfiguration loadUpgradeConfiguration() throws UpgradeException {
-        YAMLConfiguration configuration = new YAMLConfiguration();
+        YamlConfiguration configuration = new YamlConfiguration();
         try (InputStream is = configurationFile.getInputStream()) {
             configuration.read(is);
         } catch (Exception e) {
@@ -70,12 +67,11 @@ public class DefaultUpgradeManagerImpl implements UpgradeManager, ApplicationCon
     }
 
     public void upgrade(String currentVersion) throws UpgradeException {
-        DefaultUpgradeContext context = new DefaultUpgradeContext();
+        DefaultUpgradeContext context = appContext.getBean(DefaultUpgradeContext.class);
         context.setCurrentVersion(currentVersion);
         context.setTargetVersion(latestVersion);
-        context.setDataSource(dataSource);
-        context.setContentRepository(contentRepository);
-        context.setSites(new JdbcTemplate(dataSource).queryForList("select site_id from site where system = 0", String.class));
+        context.setSites(
+            new JdbcTemplate(dataSource).queryForList("select site_id from site where system = 0", String.class));
         UpgradePipeline pipeline = loadUpgradePipeline(currentVersion);
         pipeline.execute(context);
     }
@@ -115,11 +111,6 @@ public class DefaultUpgradeManagerImpl implements UpgradeManager, ApplicationCon
     @Required
     public void setDataSource(final DataSource dataSource) {
         this.dataSource = dataSource;
-    }
-
-    @Required
-    public void setContentRepository(final ContentRepository contentRepository) {
-        this.contentRepository = contentRepository;
     }
 
 }

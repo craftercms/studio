@@ -21,13 +21,15 @@ public class DefaultUpgradePipelineImpl implements UpgradePipeline {
 
     @Override
     public void execute(final UpgradeContext context) throws UpgradeException {
+        logger.info("============================================================");
         logger.info("Starting execution of upgrade pipeline");
         for(Upgrader upgrader : upgraders) {
-            logger.info("Starting execution of upgrader {0}", upgrader.getClass().getSimpleName());
+            logger.info("------- Starting execution of upgrader {0} -------", upgrader.getClass().getSimpleName());
             upgrader.execute(context);
-            logger.info("Execution of upgrader completed");
+            logger.info("------- Execution of upgrader completed -------");
         }
         logger.info("Execution of pipeline completed");
+        logger.info("============================================================");
     }
 
 }
