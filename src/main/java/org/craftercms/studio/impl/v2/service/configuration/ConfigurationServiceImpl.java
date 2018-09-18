@@ -19,7 +19,6 @@ package org.craftercms.studio.impl.v2.service.configuration;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
-import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.lang.UrlUtils;
 import org.craftercms.studio.api.v1.service.content.ContentService;
