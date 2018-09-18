@@ -519,14 +519,24 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     private List<String> getEnvironmentNames(String siteId) {
-        List<PublishingChannelTO> channelsTO = !servicesConfig.isStagingEnvironmentEnabled(siteId) ?
-                getAvailablePublishingChannelGroupsForSite(siteId) : getPublishedEnvironments(siteId);
         List<String> toRet = new ArrayList<String>();
-        if (CollectionUtils.isNotEmpty(channelsTO)) {
-            channelsTO.forEach(channel -> {
-                toRet.add(channel.getName());
-            });
+        if (servicesConfig.isStagingEnvironmentEnabled(siteId)) {
+            List<PublishingChannelTO> channelsTO = getPublishedEnvironments(siteId);
+            if (CollectionUtils.isNotEmpty(channelsTO)) {
+                channelsTO.forEach(channel -> {
+                    toRet.add(channel.getName());
+                });
+            }
+        } else {
+            List<PublishingTargetTO> publishingTargets = siteService.getPublishingTargetsForSite(siteId);
+            if (CollectionUtils.isNotEmpty(publishingTargets)) {
+                publishingTargets.forEach(target -> {
+                    toRet.add(target.getRepoBranchName());
+                });
+            }
         }
+
+
         return toRet;
     }
 
