@@ -219,11 +219,11 @@ studio.authentication.headers.email: email
 #   Example:
 #   site_author,site_xyz_developer
 studio.authentication.headers.groups: groups
-# If logout is enabled for authentication header (SSO) authentication
+# Enable/disable logout for headers authenticated users (SSO)
 studio.authentication.headers.logout.enabled: false
-# The logout URL for authentication header (SSO) authentication
+# If logout is enabled for headers authenticated users (SSO), set the URL
 studio.authentication.headers.logout.url: /mellon/logout
-# The logout HTTP method for authentication header (SSO) authentication
+# If logout is enabled for headers authenticated users (SSO), specify the HTTP method
 studio.authentication.headers.logout.method: GET
 
 ###############################################################
