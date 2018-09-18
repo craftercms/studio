@@ -165,7 +165,11 @@ package org.craftercms.studio.api.v1.constant;
      */
     String HTTP_SESSION_ATTRIBUTE_AUTHENTICATION = "studio_authentication";
 
-    String HTTP_SESSION_ATTRIBUTE_STUDIO_USER = "studio_user";
+    /**
+     * Logout constants
+     */
+    String DEFAULT_LOGOUT_URL = "/api/1/services/api/1/security/logout.json";
+    String DEFAULT_LOGOUT_METHOD = "POST";
 
     int DEFAULT_ORGANIZATION_ID = 1;
 }

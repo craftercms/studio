@@ -357,6 +357,24 @@ public class UsersController {
         return responseBody;
     }
 
+    /**
+     * Get the logout URL for the current authenticated user. Response entity can be null if logout is disabled
+     *
+     * @return Response containing logout URL for the current authenticated user
+     */
+    @GetMapping("/api/2/user/logout/url")
+    public ResponseBody getCurrentUserLogoutUrl() throws ServiceLayerException, AuthenticationException {
+        LogoutUrl url = userService.getCurrentUserLogoutUrl();
+
+        ResultOne<LogoutUrl> result = new ResultOne<>();
+        result.setResponse(ApiResponse.OK);
+        result.setEntity(url);
+
+        ResponseBody responseBody = new ResponseBody();
+        responseBody.setResult(result);
+
+        return responseBody;
+    }
 
     public UserService getUserService() {
         return userService;
