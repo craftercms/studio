@@ -1118,6 +1118,9 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     @Override
     public void publish(String site, String sandboxBranch, List<DeploymentItemTO> deploymentItems, String environment,
                         String author, String comment) throws DeploymentException {
+        if (CollectionUtils.isEmpty(deploymentItems)) {
+            return;
+        }
         Repository repo = helper.getRepository(site, GitRepositories.PUBLISHED);
         String commitId = StringUtils.EMPTY;
         String path = StringUtils.EMPTY;

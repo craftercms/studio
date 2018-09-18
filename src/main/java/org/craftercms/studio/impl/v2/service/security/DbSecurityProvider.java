@@ -363,7 +363,8 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public List<User> addGroupMembers(long groupId, List<Long> userIds, List<String> usernames) throws ServiceLayerException, UserNotFoundException {
+    public List<User> addGroupMembers(long groupId, List<Long> userIds, List<String> usernames)
+        throws ServiceLayerException, UserNotFoundException {
         List<User> users = findUsers(userIds, usernames);
 
         Map<String, Object> params = new HashMap<>();
@@ -379,23 +380,14 @@ public class DbSecurityProvider implements SecurityProvider {
 
     @Override
     public void removeGroupMembers(long groupId, List<Long> userIds, List<String> usernames)
-        throws ServiceLayerException {
-        List<Long> allUserIds = new ArrayList<Long>();
-        if (CollectionUtils.isNotEmpty(userIds)) {
-            allUserIds.addAll(userIds);
-        }
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put(USERNAMES, usernames);
+        throws ServiceLayerException, UserNotFoundException {
+        List<User> users = findUsers(userIds, usernames);
+
+        Map<String, Object> params = new HashMap<>();
+        params.put(USER_IDS, users.stream().map(User::getId).collect(Collectors.toList()));
+        params.put(GROUP_ID, groupId);
         try {
-            if (CollectionUtils.isNotEmpty(usernames)) {
-                allUserIds.addAll(groupDAO.getUserIdsForUsernames(params));
-            }
-            if (CollectionUtils.isNotEmpty(allUserIds)) {
-                params = new HashMap<String, Object>();
-                params.put(USER_IDS, allUserIds);
-                params.put(GROUP_ID, groupId);
-                groupDAO.removeGroupMembers(params);
-            }
+            groupDAO.removeGroupMembers(params);
         } catch (Exception e) {
             throw new ServiceLayerException("Unknown database error", e);
         }

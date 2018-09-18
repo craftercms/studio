@@ -1,64 +1,55 @@
 # Crafter Studio Upgrade Configuration
 
 pipeline:
-  - version: 3.0.0
-    upgraders:
-      - type: dbScriptUpgrader
-        script: crafter/studio/upgrade-3.0.0.sql
   - version: 3.0.1
     upgraders:
     - type: dbScriptUpgrader
-      script: crafter/studio/upgrade-3.0.1.sql
+      script: crafter/studio/upgrade-3.0.0.sql
   - version: 3.0.2
     upgraders:
     - type: dbScriptUpgrader
-      script: crafter/studio/upgrade-3.0.2.sql
+      script: crafter/studio/upgrade-3.0.1.sql
   - version: 3.0.2.1
     upgraders:
     - type: dbScriptUpgrader
-      script: crafter/studio/upgrade-3.0.2.1.sql
-  - version: 3.0.10
-    upgraders:
-    - type: dbScriptUpgrader
-      script: crafter/studio/upgrade-3.0.10.sql
+      script: crafter/studio/upgrade-3.0.2.sql
   - version: 3.0.11
     upgraders:
     - type: dbScriptUpgrader
-      script: crafter/studio/upgrade-3.0.11.sql
+      script: crafter/studio/upgrade-3.0.10.sql
   - version: 3.0.11.1
     upgraders:
     - type: dbScriptUpgrader
-      script: crafter/studio/upgrade-3.0.11.1.sql
+      script: crafter/studio/upgrade-3.0.11.sql
   - version: 3.0.11.2
     upgraders:
     - type: dbScriptUpgrader
-      script: crafter/studio/upgrade-3.0.11.2.sql
+      script: crafter/studio/upgrade-3.0.11.1.sql
   - version: 3.0.11.3
     upgraders:
     - type: dbScriptUpgrader
-      script: crafter/studio/upgrade-3.0.11.3.sql
-  - version: 3.0.15
-    upgraders:
-    - type: dbScriptUpgrader
-      script: crafter/studio/upgrade-3.0.15.sql
+      script: crafter/studio/upgrade-3.0.11.2.sql
   - version: 3.0.15.1
     upgraders:
     - type: dbScriptUpgrader
-      script: crafter/studio/upgrade-3.0.15.1.sql
-  - version: 3.0.17
-    upgraders:
+      script: crafter/studio/upgrade-3.0.15.sql
+  - version: 3.1.0
+    upgraders: # TODO: Add new upgraders...
     - type: dbScriptUpgrader
       script: crafter/studio/upgrade-3.0.17.sql
-      # TODO: Add new upgraders...
-  - version: 3.1.0
-    upgraders:
-    - type: dbScriptUpgrader
-      script: crafter/studio/upgrade-3.1.0.sql
   - version: 3.1.0.1
     upgraders:
     - type: dbScriptUpgrader
-      script: crafter/studio/upgrade-3.1.0.1.sql
+      script: crafter/studio/upgrade-3.1.0.sql
   - version: 3.1.0.2
     upgraders:
     - type: dbScriptUpgrader
+      script: crafter/studio/upgrade-3.1.0.1.sql
+  - version: 3.1.0.3
+    upgraders:
+    - type: dbScriptUpgrader
       script: crafter/studio/upgrade-3.1.0.2.sql
+  - version: 3.1.0.4
+    upgraders:
+    - type: dbScriptUpgrader
+      script: crafter/studio/upgrade-3.1.0.3.sql

@@ -171,8 +171,8 @@ public class MappedSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public void removeGroupMembers(long groupId, List<Long> userIds, List<String> usernames) throws
-        ServiceLayerException {
+    public void removeGroupMembers(long groupId, List<Long> userIds, List<String> usernames)
+        throws ServiceLayerException, UserNotFoundException {
         SecurityProvider provider = lookupProvider(getProviderType());
         provider.removeGroupMembers(groupId, userIds, usernames);
     }
