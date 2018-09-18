@@ -34,10 +34,11 @@ public interface WebDavService {
      * @param site the name of the site
      * @param profileId the id of the profile
      * @param path the relative path to list
+     * @param type mime type used for filtering
      * @return list of resources found
      * @throws WebDavException if there is an error connecting to the server or listing the resources
      */
-    List<WebDavItem> list(String site, String profileId, String path) throws WebDavException;
+    List<WebDavItem> list(String site, String profileId, String path, String type) throws WebDavException;
 
     /**
      * Uploads a file in the specified path.
