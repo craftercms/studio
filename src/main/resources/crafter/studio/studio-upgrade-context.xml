@@ -37,6 +37,7 @@
 
     <bean id="dbScriptUpgrader" class="org.craftercms.studio.impl.v2.upgrade.upgraders.DbScriptUpgrader"
           scope="prototype">
+        <property name="scriptFolder" value="crafter/studio/database/"/>
         <property name="integrityValidator" ref="crafter.databaseValidator"/>
     </bean>
 

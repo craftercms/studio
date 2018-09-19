@@ -16,29 +16,23 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.api.v1.exception;
+package org.craftercms.studio.api.v2.exception;
 
-public class DatabaseUpgradeUnsupportedVersionException extends Exception {
+public class UpgradeUnsupportedException extends UpgradeException {
 
-
-    private static final long serialVersionUID = 5443611715737616564L;
-
-    public DatabaseUpgradeUnsupportedVersionException() {
+    public UpgradeUnsupportedException() {
     }
 
-    public DatabaseUpgradeUnsupportedVersionException(String message) {
+    public UpgradeUnsupportedException(String message) {
         super(message);
     }
 
-    public DatabaseUpgradeUnsupportedVersionException(String message, Throwable cause) {
+    public UpgradeUnsupportedException(String message, Exception cause) {
         super(message, cause);
     }
 
-    public DatabaseUpgradeUnsupportedVersionException(Throwable cause) {
+    public UpgradeUnsupportedException(Throwable cause) {
         super(cause);
     }
 
-    public DatabaseUpgradeUnsupportedVersionException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
-    }
 }

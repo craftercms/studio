@@ -19,7 +19,8 @@ public class DbScriptUpgrader implements Upgrader {
 
     private static final Logger logger = LoggerFactory.getLogger(DbScriptUpgrader.class);
 
-    protected Resource dbScript;
+    protected String scriptFolder;
+    protected String fileName;
     protected boolean updateIntegrity;
 
     protected DbIntegrityValidator integrityValidator;
@@ -29,20 +30,26 @@ public class DbScriptUpgrader implements Upgrader {
     }
 
     @Required
+    public void setScriptFolder(final String scriptFolder) {
+        this.scriptFolder = scriptFolder;
+    }
+
+    @Required
     public void setIntegrityValidator(final DbIntegrityValidator integrityValidator) {
         this.integrityValidator = integrityValidator;
     }
 
     @Override
     public void init(final Configuration config) {
-        dbScript = new ClassPathResource(config.getString("script"));
+        fileName = config.getString("filename");
         updateIntegrity = config.getBoolean("updateIntegrity", true);
     }
 
     @Override
     public void execute(final UpgradeContext context) throws UpgradeException {
-        logger.info("Executing db script {0}", dbScript.getFilename());
-        try (Reader reader = new InputStreamReader(dbScript.getInputStream())) {
+        Resource scriptFile = new ClassPathResource(scriptFolder).createRelative(fileName);
+        logger.info("Executing db script {0}", scriptFile.getFilename());
+        try (Reader reader = new InputStreamReader(scriptFile.getInputStream())) {
             ScriptRunner scriptRunner = new ScriptRunner(context.getConnection());
             scriptRunner.setDelimiter(" ;");
             scriptRunner.setStopOnError(true);
@@ -54,7 +61,7 @@ public class DbScriptUpgrader implements Upgrader {
             }
         } catch (Exception e) {
             logger.error("Error executing db script", e);
-            throw new UpgradeException("Error executing sql script " + dbScript.getFilename(), e);
+            throw new UpgradeException("Error executing sql script " + scriptFile.getFilename(), e);
         }
     }
 

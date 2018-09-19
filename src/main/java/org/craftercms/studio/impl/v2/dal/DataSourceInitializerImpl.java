@@ -27,8 +27,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import javax.sql.DataSource;
-
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.ibatis.jdbc.RuntimeSqlException;
 import org.apache.ibatis.jdbc.ScriptRunner;
@@ -102,8 +100,9 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
 
                     if (rs.next()) {
                         logger.debug("Database already exists. Validate the integrity of the database");
-                        statement.execute(DB_QUERY_USE_CRAFTER);
-                        integrityValidator.validate(conn);
+//                        statement.execute(DB_QUERY_USE_CRAFTER);
+//                        TODO: Make this execute after all upgrades are completed
+//                        integrityValidator.validate(conn);
 
                     } else {
                         // Database does not exist

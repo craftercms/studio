@@ -19,9 +19,8 @@
 package org.craftercms.studio.api.v2.dal;
 
 import org.craftercms.commons.entitlements.exception.EntitlementException;
-import org.craftercms.studio.api.v1.exception.DatabaseUpgradeUnsupportedVersionException;
 
 public interface DataSourceInitializer {
 
-    void initDataSource() throws DatabaseUpgradeUnsupportedVersionException, EntitlementException;
+    void initDataSource() throws EntitlementException;
 }

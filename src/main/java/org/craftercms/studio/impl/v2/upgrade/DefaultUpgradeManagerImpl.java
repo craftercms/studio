@@ -11,6 +11,7 @@ import org.craftercms.commons.config.YamlConfiguration;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.exception.UpgradeException;
+import org.craftercms.studio.api.v2.exception.UpgradeUnsupportedException;
 import org.craftercms.studio.api.v2.upgrade.UpgradeManager;
 import org.craftercms.studio.api.v2.upgrade.UpgradePipeline;
 import org.craftercms.studio.api.v2.upgrade.Upgrader;
@@ -25,11 +26,21 @@ public class DefaultUpgradeManagerImpl implements UpgradeManager, ApplicationCon
 
     private static final Logger logger = LoggerFactory.getLogger(DefaultUpgradeManagerImpl.class);
 
+    public static final String VERSION_3_0_0 = "3.0.0";
+    public static final String SQL_QUERY_META = "SELECT count(*) FROM information_schema.tables WHERE table_schema = "
+        + "'crafter' AND table_name = '_meta' LIMIT 1";
+    public static final String SQL_QUERY_VERSION = "select version from _meta";
+    public static final String SQL_QUERY_GROUP = "SELECT count(*) FROM information_schema.tables WHERE table_schema = "
+        + "'crafter' AND table_name = 'cstudio_group' LIMIT 1";
+    public static final String SQL_QUERY_SITES_3_0_0 = "select site_id from cstudio_site where system = 0";
+    public static final String SQL_QUERY_SITES = "select site_id from site where system = 0";
+
     protected Resource configurationFile;
     protected String latestVersion;
 
     protected DataSource dataSource;
     protected ApplicationContext appContext;
+    protected JdbcTemplate jdbcTemplate;
 
     @SuppressWarnings("rawtypes,unchecked")
     protected UpgradePipeline loadUpgradePipeline(String currentVersion) throws UpgradeException {
@@ -70,21 +81,45 @@ public class DefaultUpgradeManagerImpl implements UpgradeManager, ApplicationCon
         DefaultUpgradeContext context = appContext.getBean(DefaultUpgradeContext.class);
         context.setCurrentVersion(currentVersion);
         context.setTargetVersion(latestVersion);
-        context.setSites(
-            new JdbcTemplate(dataSource).queryForList("select site_id from site where system = 0", String.class));
+        List<String> sites;
+        if(currentVersion.equals(VERSION_3_0_0)) {
+            sites = jdbcTemplate.queryForList(SQL_QUERY_SITES_3_0_0, String.class);
+        } else {
+            sites = jdbcTemplate.queryForList(SQL_QUERY_SITES, String.class);
+        }
+        context.setSites(sites);
         UpgradePipeline pipeline = loadUpgradePipeline(currentVersion);
         pipeline.execute(context);
     }
 
-    public String getCurrentVersion() {
-        return new JdbcTemplate(dataSource).queryForObject("select version from _meta", String.class);
+    public String getCurrentVersion() throws UpgradeUnsupportedException {
+        JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+
+        logger.debug("Check if _meta table exists.");
+        int count = jdbcTemplate.queryForObject(SQL_QUERY_META, Integer.class);
+        if(count != 0) {
+            logger.debug("_meta table exists.");
+            logger.debug("Get version from _meta table.");
+            return jdbcTemplate.queryForObject(SQL_QUERY_VERSION, String.class);
+
+        } else {
+            logger.debug("Check if group table exists.");
+            count = jdbcTemplate.queryForObject(SQL_QUERY_GROUP, Integer.class);
+            if(count != 0) {
+                logger.debug("Database version is 3.0.0");
+                return VERSION_3_0_0;
+            } else {
+                throw new UpgradeUnsupportedException(
+                    "Automated migration from 2.5.x DB is not supported yet.");
+            }
+        }
     }
 
     public void init() throws UpgradeException {
+        jdbcTemplate = new JdbcTemplate(dataSource);
         logger.info("Checking for pending upgrades");
         String currentVersion = getCurrentVersion();
         logger.info("Current version is {0}", currentVersion);
-        // TODO: If version is 2.x throw exception
         if(currentVersion.equals(latestVersion)) {
             logger.info("Already at the latest versions, no upgrades are required");
         } else {
