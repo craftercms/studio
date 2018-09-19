@@ -20,6 +20,8 @@ package org.craftercms.studio.controller.rest.v2;
 
 import org.apache.commons.beanutils.BeanComparator;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.client.utils.URIUtils;
+import org.craftercms.commons.lang.UrlUtils;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
@@ -50,6 +52,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletRequest;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -366,12 +371,25 @@ public class UsersController {
      * @return Response containing logout URL for the current authenticated user
      */
     @GetMapping("/api/2/user/logout/url")
-    public ResponseBody getCurrentUserLogoutUrl() throws ServiceLayerException, AuthenticationException {
-        LogoutUrl url = userService.getCurrentUserLogoutUrl();
+    public ResponseBody getCurrentUserLogoutUrl(HttpServletRequest request) throws ServiceLayerException,
+                                                                                   AuthenticationException {
+        LogoutUrl logoutUrl = userService.getCurrentUserLogoutUrl();
+
+        // Check if URL is absolute. If not, append context of request at the beginning
+        String url = logoutUrl.getUrl();
+        String contextPath = request.getContextPath();
+
+        try {
+            if (!URI.create(url).isAbsolute() && !url.startsWith(contextPath)) {
+                logoutUrl.setUrl(UrlUtils.concat(contextPath, url));
+            }
+        } catch (Exception e) {
+            throw new ServiceLayerException("Logout URL " + url + " is invalid", e);
+        }
 
         ResultOne<LogoutUrl> result = new ResultOne<>();
         result.setResponse(ApiResponse.OK);
-        result.setEntity(url);
+        result.setEntity(logoutUrl);
 
         ResponseBody responseBody = new ResponseBody();
         responseBody.setResult(result);
