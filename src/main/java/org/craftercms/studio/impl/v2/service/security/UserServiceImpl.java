@@ -39,7 +39,6 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.GroupTO;
-import org.craftercms.studio.api.v2.dal.UserDAO;
 import org.craftercms.studio.api.v2.dal.UserTO;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.security.SecurityProvider;
@@ -48,7 +47,6 @@ import org.craftercms.studio.api.v2.service.security.internal.GroupServiceIntern
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.model.AuthenticatedUser;
 import org.craftercms.studio.model.Site;
-import org.craftercms.studio.model.User;
 
 import java.util.*;
 
@@ -75,7 +73,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "read_users")
-    public List<User> getAllUsersForSite(long orgId, String siteId, int offset, int limit, String sort)
+    public List<UserTO> getAllUsersForSite(long orgId, String siteId, int offset, int limit, String sort)
             throws ServiceLayerException {
         List<String> groupNames = groupServiceInternal.getSiteGroups(siteId);
         return userServiceInternal.getAllUsersForSite(orgId, groupNames, offset, limit, sort);
@@ -83,7 +81,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "read_users")
-    public List<User> getAllUsers(int offset, int limit, String sort) throws ServiceLayerException {
+    public List<UserTO> getAllUsers(int offset, int limit, String sort) throws ServiceLayerException {
         return userServiceInternal.getAllUsers(offset, limit, sort);
     }
 
@@ -101,7 +99,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "create_users")
-    public User createUser(User user) throws UserAlreadyExistsException, ServiceLayerException {
+    public UserTO createUser(UserTO user) throws UserAlreadyExistsException, ServiceLayerException {
         try {
             long start = 0;
             if(logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
@@ -121,7 +119,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "update_users")
-    public void updateUser(User user) throws ServiceLayerException {
+    public void updateUser(UserTO user) throws ServiceLayerException {
         userServiceInternal.updateUser(user);
     }
 
@@ -173,14 +171,14 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "read_users")
-    public User getUserByIdOrUsername(long userId, String username) throws ServiceLayerException,
+    public UserTO getUserByIdOrUsername(long userId, String username) throws ServiceLayerException,
                                                                            UserNotFoundException {
         return userServiceInternal.getUserByIdOrUsername(userId, username);
     }
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "update_users")
-    public List<User> enableUsers(List<Long> userIds, List<String> usernames, boolean enabled)
+    public List<UserTO> enableUsers(List<Long> userIds, List<String> usernames, boolean enabled)
             throws ServiceLayerException, UserNotFoundException {
         return userServiceInternal.enableUsers(userIds, usernames, enabled);
     }
@@ -243,7 +241,7 @@ public class UserServiceImpl implements UserService {
         Authentication authentication = securityProvider.getAuthentication();
         if (authentication != null) {
             String username = authentication.getUsername();
-            User user;
+            UserTO user;
             try {
                 user = userServiceInternal.getUserByIdOrUsername(0, username);
             } catch (UserNotFoundException e) {

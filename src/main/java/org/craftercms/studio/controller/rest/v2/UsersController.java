@@ -26,6 +26,7 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v2.dal.UserTO;
 import org.craftercms.studio.api.v2.service.security.GroupService;
 import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.impl.v2.utils.PaginationUtils;
@@ -69,7 +70,7 @@ public class UsersController {
         @RequestParam(value = "limit", required = false, defaultValue = "10") int limit,
         @RequestParam(value = "sort", required = false, defaultValue = StringUtils.EMPTY) String sort)
             throws ServiceLayerException {
-        List<User> users = null;
+        List<UserTO> users = null;
         int total = 0;
         if (StringUtils.isEmpty(siteId)) {
             total = userService.getAllUsersTotal();
@@ -80,7 +81,7 @@ public class UsersController {
         }
 
         ResponseBody responseBody = new ResponseBody();
-        PaginatedResultList<User> result = new PaginatedResultList<>();
+        PaginatedResultList<UserTO> result = new PaginatedResultList<>();
         result.setTotal(total);
         result.setOffset(offset);
         result.setLimit(CollectionUtils.isEmpty(users) ? 0 : users.size());
@@ -98,11 +99,11 @@ public class UsersController {
      */
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping(value = "/api/2/users", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseBody createUser(@RequestBody User user) throws UserAlreadyExistsException, ServiceLayerException {
-        User newUser = userService.createUser(user);
+    public ResponseBody createUser(@RequestBody UserTO user) throws UserAlreadyExistsException, ServiceLayerException {
+        UserTO newUser = userService.createUser(user);
 
         ResponseBody responseBody = new ResponseBody();
-        ResultOne<User> result = new ResultOne<>();
+        ResultOne<UserTO> result = new ResultOne<>();
         result.setResponse(ApiResponse.CREATED);
         result.setEntity(newUser);
         responseBody.setResult(result);
@@ -116,11 +117,11 @@ public class UsersController {
      * @return Response object
      */
     @PatchMapping(value = "/api/2/users", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseBody updateUser(@RequestBody User user) throws ServiceLayerException {
+    public ResponseBody updateUser(@RequestBody UserTO user) throws ServiceLayerException {
         userService.updateUser(user);
 
         ResponseBody responseBody = new ResponseBody();
-        ResultOne<User> result = new ResultOne<>();
+        ResultOne<UserTO> result = new ResultOne<>();
         result.setResponse(ApiResponse.OK);
         result.setEntity(user);
         responseBody.setResult(result);
@@ -157,8 +158,8 @@ public class UsersController {
      * @return Response containing user
      */
     @GetMapping("/api/2/users/{userId}")
-    public ResponseBody getUser(@PathVariable("userId") String userId) throws ServiceLayerException,
-                                                                              UserNotFoundException {
+    public ResponseBody getUser(@PathVariable("userId") String userId)
+            throws ServiceLayerException, UserNotFoundException {
         int uId = -1;
         String username = StringUtils.EMPTY;
         if (StringUtils.isNumeric(userId)) {
@@ -166,10 +167,10 @@ public class UsersController {
         } else {
             username = userId;
         }
-        User user = userService.getUserByIdOrUsername(uId, username);
+        UserTO user = userService.getUserByIdOrUsername(uId, username);
 
         ResponseBody responseBody = new ResponseBody();
-        ResultOne<User> result = new ResultOne<>();
+        ResultOne<UserTO> result = new ResultOne<>();
         result.setResponse(ApiResponse.OK);
         result.setEntity(user);
         responseBody.setResult(result);
@@ -183,14 +184,14 @@ public class UsersController {
      * @return Response object
      */
     @PatchMapping(value = "/api/2/users/enable", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseBody enableUsers(@RequestBody EnableUsers enableUsers) throws ServiceLayerException,
-                                                                                 UserNotFoundException {
+    public ResponseBody enableUsers(@RequestBody EnableUsers enableUsers)
+            throws ServiceLayerException, UserNotFoundException {
         ValidationUtils.validateEnableUsers(enableUsers);
 
-        List<User> users = userService.enableUsers(enableUsers.getUserIds(), enableUsers.getUsernames(), true);
+        List<UserTO> users = userService.enableUsers(enableUsers.getUserIds(), enableUsers.getUsernames(), true);
 
         ResponseBody responseBody = new ResponseBody();
-        ResultList<User> result = new ResultList<>();
+        ResultList<UserTO> result = new ResultList<>();
         result.setResponse(ApiResponse.OK);
         result.setEntities(users);
         responseBody.setResult(result);
@@ -204,14 +205,14 @@ public class UsersController {
      * @return Response object
      */
     @PatchMapping(value = "/api/2/users/disable", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseBody disableUsers(@RequestBody EnableUsers enableUsers) throws ServiceLayerException,
-                                                                                  UserNotFoundException {
+    public ResponseBody disableUsers(@RequestBody EnableUsers enableUsers)
+            throws ServiceLayerException, UserNotFoundException {
         ValidationUtils.validateEnableUsers(enableUsers);
 
-        List<User> users = userService.enableUsers(enableUsers.getUserIds(), enableUsers.getUsernames(), false);
+        List<UserTO> users = userService.enableUsers(enableUsers.getUserIds(), enableUsers.getUsernames(), false);
 
         ResponseBody responseBody = new ResponseBody();
-        ResultList<User> result = new ResultList<>();
+        ResultList<UserTO> result = new ResultList<>();
         result.setResponse(ApiResponse.OK);
         result.setEntities(users);
         responseBody.setResult(result);

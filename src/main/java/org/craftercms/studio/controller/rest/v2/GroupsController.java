@@ -27,10 +27,10 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.dal.GroupTO;
+import org.craftercms.studio.api.v2.dal.UserTO;
 import org.craftercms.studio.api.v2.exception.OrganizationNotFoundException;
 import org.craftercms.studio.api.v2.service.security.GroupService;
 import org.craftercms.studio.model.rest.AddGroupMembers;
-import org.craftercms.studio.model.User;
 import org.craftercms.studio.model.rest.ApiResponse;
 import org.craftercms.studio.model.rest.PaginatedResultList;
 import org.craftercms.studio.model.rest.ResponseBody;
@@ -108,7 +108,8 @@ public class GroupsController {
     @PostMapping(value = "/api/2/groups", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseBody createGroup(@RequestBody GroupTO group) throws GroupAlreadyExistsException,
         ServiceLayerException {
-        GroupTO newGroup = groupService.createGroup(DEFAULT_ORGANIZATION_ID, group.getGroupName(), group.getGroupDescription());
+        GroupTO newGroup =
+                groupService.createGroup(DEFAULT_ORGANIZATION_ID, group.getGroupName(), group.getGroupDescription());
         ResponseBody responseBody = new ResponseBody();
         ResultOne<GroupTO> result = new ResultOne<>();
         result.setResponse(ApiResponse.CREATED);
@@ -192,10 +193,10 @@ public class GroupsController {
         @RequestParam(value = "sort", required = false, defaultValue = StringUtils.EMPTY) String sort)
         throws ServiceLayerException {
 
-        List<User> users = groupService.getGroupMembers(groupId, offset, limit, sort);
+        List<UserTO> users = groupService.getGroupMembers(groupId, offset, limit, sort);
 
         ResponseBody responseBody = new ResponseBody();
-        ResultList<User> result = new ResultList<>();
+        ResultList<UserTO> result = new ResultList<>();
         result.setResponse(ApiResponse.OK);
         result.setEntities(users);
         responseBody.setResult(result);
@@ -216,11 +217,11 @@ public class GroupsController {
 
         ValidationUtils.validateAddGroupMembers(addGroupMembers);
 
-        List<User> addedUsers = groupService.addGroupMembers(groupId, addGroupMembers.getUserIds(),
+        List<UserTO> addedUsers = groupService.addGroupMembers(groupId, addGroupMembers.getUserIds(),
             addGroupMembers.getUsernames());
 
         ResponseBody responseBody = new ResponseBody();
-        ResultList<User> result = new ResultList<>();
+        ResultList<UserTO> result = new ResultList<>();
         result.setResponse(ApiResponse.OK);
         result.setEntities(addedUsers);
         responseBody.setResult(result);

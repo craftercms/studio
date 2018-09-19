@@ -22,7 +22,7 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.GroupTO;
-import org.craftercms.studio.model.User;
+import org.craftercms.studio.api.v2.dal.UserTO;
 
 import java.util.List;
 
@@ -39,9 +39,10 @@ public interface GroupServiceInternal {
 
     GroupTO getGroup(long groupId) throws ServiceLayerException;
 
-    List<User> getGroupMembers(long groupId, int offset, int limit, String sort) throws ServiceLayerException;
+    List<UserTO> getGroupMembers(long groupId, int offset, int limit, String sort) throws ServiceLayerException;
 
-    List<User> addGroupMembers(long groupId, List<Long> userIds, List<String> usernames) throws ServiceLayerException, UserNotFoundException;
+    List<UserTO> addGroupMembers(long groupId, List<Long> userIds, List<String> usernames)
+            throws ServiceLayerException, UserNotFoundException;
 
     void removeGroupMembers(long groupId, List<Long> userIds, List<String> usernames) throws ServiceLayerException;
 

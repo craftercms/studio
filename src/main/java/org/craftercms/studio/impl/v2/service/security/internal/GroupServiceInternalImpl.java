@@ -34,7 +34,6 @@ import org.craftercms.studio.api.v2.dal.GroupTO;
 import org.craftercms.studio.api.v2.dal.UserTO;
 import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
-import org.craftercms.studio.model.User;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -46,10 +45,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
@@ -196,7 +193,7 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
     }
 
     @Override
-    public List<User> getGroupMembers(long groupId, int offset, int limit, String sort) throws ServiceLayerException {
+    public List<UserTO> getGroupMembers(long groupId, int offset, int limit, String sort) throws ServiceLayerException {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(GROUP_ID, groupId);
         params.put(OFFSET, offset);
@@ -208,27 +205,16 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
         } catch (Exception e) {
             throw new ServiceLayerException("Unknown database error", e);
         }
-        List<User> toRet = new ArrayList<User>();
-        userTOs.forEach(u -> {
-            User user = new User();
-            user.setId(u.getId());
-            user.setUsername(u.getUsername());
-            user.setFirstName(u.getFirstName());
-            user.setLastName(u.getLastName());
-            user.setEmail(u.getEmail());
-            user.setEnabled(u.isEnabled());
-            user.setExternallyManaged(u.getExternallyManaged() != 0);
-            toRet.add(user);
-        });
-        return toRet;
+        return userTOs;
     }
 
     @Override
-    public List<User> addGroupMembers(long groupId, List<Long> userIds, List<String> usernames) throws ServiceLayerException, UserNotFoundException {
-        List<User> users = userServiceInternal.findUsers(userIds, usernames);
+    public List<UserTO> addGroupMembers(long groupId, List<Long> userIds, List<String> usernames)
+            throws ServiceLayerException, UserNotFoundException {
+        List<UserTO> users = userServiceInternal.findUsers(userIds, usernames);
 
         Map<String, Object> params = new HashMap<>();
-        params.put(USER_IDS, users.stream().map(User::getId).collect(Collectors.toList()));
+        params.put(USER_IDS, users.stream().map(UserTO::getId).collect(Collectors.toList()));
         params.put(GROUP_ID, groupId);
         try {
             groupDao.addGroupMembers(params);

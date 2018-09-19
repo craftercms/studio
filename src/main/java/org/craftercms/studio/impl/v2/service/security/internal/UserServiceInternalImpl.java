@@ -37,7 +37,6 @@ import org.craftercms.studio.api.v2.service.security.UserPermissions;
 import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.impl.v1.util.ConfigUtils;
-import org.craftercms.studio.model.User;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -84,7 +83,8 @@ public class UserServiceInternalImpl implements UserServiceInternal {
     private GroupServiceInternal groupServiceInternal;
 
     @Override
-    public Set<String> getUserPermissions(String username, UserPermissions.Scope scope, String parameter) throws ServiceLayerException {
+    public Set<String> getUserPermissions(String username, UserPermissions.Scope scope, String parameter)
+            throws ServiceLayerException {
         Set<String> permissions = null;
         List<GroupTO> userGroups = getUserGroups(-1, username);
         Set<String> userGroupsNames = new HashSet<String>();
@@ -99,7 +99,8 @@ public class UserServiceInternalImpl implements UserServiceInternal {
     }
 
     @Override
-    public User getUserByIdOrUsername(long userId, String username) throws ServiceLayerException, UserNotFoundException {
+    public UserTO getUserByIdOrUsername(long userId, String username)
+            throws ServiceLayerException, UserNotFoundException {
         Map<String, Object> params = new HashMap<>();
         params.put(USER_ID, userId);
         params.put(USERNAME, username);
@@ -112,15 +113,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
         if(userTO == null) {
             throw new UserNotFoundException("No user found for username '" + username + "' or id '" + userId + "'");
         }
-        User user = new User();
-        user.setId(userTO.getId());
-        user.setUsername(userTO.getUsername());
-        user.setFirstName(userTO.getFirstName());
-        user.setLastName(userTO.getLastName());
-        user.setEmail(userTO.getEmail());
-        user.setEnabled(userTO.isEnabled());
-        user.setExternallyManaged(userTO.getExternallyManaged() != 0);
-        return user;
+        return userTO;
     }
 
     private Set<String> getSystemScopePermissions(Set<String> userGroups) throws ConfigurationException {
@@ -162,7 +155,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
     }
 
     @Override
-    public List<User> getAllUsersForSite(long orgId, List<String> groupNames, int offset, int limit, String sort)
+    public List<UserTO> getAllUsersForSite(long orgId, List<String> groupNames, int offset, int limit, String sort)
             throws ServiceLayerException {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(GROUP_NAMES, groupNames);
@@ -175,24 +168,12 @@ public class UserServiceInternalImpl implements UserServiceInternal {
         } catch (Exception e) {
             throw new ServiceLayerException("Unknown database error", e);
         }
-        List<User> users = new ArrayList<User>();
-        userTOS.forEach(userTO -> {
-            User u = new User();
-            u.setId(userTO.getId());
-            u.setUsername(userTO.getUsername());
-            u.setFirstName(userTO.getFirstName());
-            u.setLastName(userTO.getLastName());
-            u.setEmail(userTO.getEmail());
-            u.setEnabled(userTO.isEnabled());
-            u.setExternallyManaged(userTO.getExternallyManaged() != 0);
-            users.add(u);
-        });
 
-        return users;
+        return userTOS;
     }
 
     @Override
-    public List<User> getAllUsers(int offset, int limit, String sort) throws ServiceLayerException {
+    public List<UserTO> getAllUsers(int offset, int limit, String sort) throws ServiceLayerException {
         Map<String, Object> params = new HashMap<>();
         params.put(OFFSET, offset);
         params.put(LIMIT, limit);
@@ -203,19 +184,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
         } catch (Exception e) {
             throw new ServiceLayerException("Unknown database error", e);
         }
-        List<User> users = new ArrayList<User>();
-        userTOs.forEach(userTO -> {
-            User u = new User();
-            u.setId(userTO.getId());
-            u.setUsername(userTO.getUsername());
-            u.setFirstName(userTO.getFirstName());
-            u.setLastName(userTO.getLastName());
-            u.setEmail(userTO.getEmail());
-            u.setEnabled(userTO.isEnabled());
-            u.setExternallyManaged(userTO.getExternallyManaged() != 0);
-            users.add(u);
-        });
-        return users;
+        return userTOs;
     }
 
     @Override
@@ -240,7 +209,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
     }
 
     @Override
-    public User createUser(User user) throws UserAlreadyExistsException, ServiceLayerException {
+    public UserTO createUser(UserTO user) throws UserAlreadyExistsException, ServiceLayerException {
         if (userExists(user.getUsername())) {
             throw new UserAlreadyExistsException();
         }
@@ -251,7 +220,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
         params.put(FIRST_NAME, user.getFirstName());
         params.put(LAST_NAME, user.getLastName());
         params.put(EMAIL, user.getEmail());
-        params.put(EXTERNALLY_MANAGED, user.isExternallyManaged() ? 1 : 0);
+        params.put(EXTERNALLY_MANAGED, user.getExternallyManaged());
         params.put(TIMEZONE, StringUtils.EMPTY);
         params.put(LOCALE, StringUtils.EMPTY);
         params.put(ENABLED, user.isEnabled() ? 1 : 0);
@@ -279,7 +248,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
     }
 
     @Override
-    public void updateUser(User user) throws ServiceLayerException {
+    public void updateUser(UserTO user) throws ServiceLayerException {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(USER_ID, user.getId());
         params.put(FIRST_NAME, user.getFirstName());
@@ -315,11 +284,12 @@ public class UserServiceInternalImpl implements UserServiceInternal {
     }
 
     @Override
-    public List<User> enableUsers(List<Long> userIds, List<String> usernames, boolean enabled) throws ServiceLayerException, UserNotFoundException {
-        List<User> users = findUsers(userIds, usernames);
+    public List<UserTO> enableUsers(List<Long> userIds, List<String> usernames, boolean enabled) throws
+            ServiceLayerException, UserNotFoundException {
+        List<UserTO> users = findUsers(userIds, usernames);
 
         Map<String, Object> params = new HashMap<>();
-        params.put(USER_IDS, users.stream().map(User::getId).collect(Collectors.toList()));
+        params.put(USER_IDS, users.stream().map(UserTO::getId).collect(Collectors.toList()));
         params.put(ENABLED, enabled? 1: 0);
         try {
             userDao.enableUsers(params);
@@ -330,14 +300,14 @@ public class UserServiceInternalImpl implements UserServiceInternal {
     }
 
     @Override
-    public List<User> findUsers(List<Long> userIds, List<String> usernames) throws ServiceLayerException,
+    public List<UserTO> findUsers(List<Long> userIds, List<String> usernames) throws ServiceLayerException,
             UserNotFoundException {
-        List<User> users = new LinkedList<>();
+        List<UserTO> users = new LinkedList<>();
         for(long userId : userIds) {
             users.add(getUserByIdOrUsername(userId, Long.toString(userId)));
         }
         for(String username : usernames) {
-            Optional<User> user = users.stream().filter(u -> u.getUsername().equals(username)).findFirst();
+            Optional<UserTO> user = users.stream().filter(u -> u.getUsername().equals(username)).findFirst();
             if(!user.isPresent()) {
                 users.add(getUserByIdOrUsername(-1, username));
             }

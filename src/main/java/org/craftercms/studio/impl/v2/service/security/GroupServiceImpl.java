@@ -30,7 +30,7 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v2.dal.GroupTO;
-import org.craftercms.studio.api.v2.dal.GroupDAO;
+import org.craftercms.studio.api.v2.dal.UserTO;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.exception.OrganizationNotFoundException;
 import org.craftercms.studio.api.v2.service.security.GroupService;
@@ -40,8 +40,6 @@ import org.craftercms.studio.api.v2.service.security.internal.OrganizationServic
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.model.User;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -63,7 +61,8 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "read_groups")
-    public List<GroupTO> getAllGroups(long orgId, int offset, int limit, String sort) throws ServiceLayerException, OrganizationNotFoundException {
+    public List<GroupTO> getAllGroups(long orgId, int offset, int limit, String sort)
+            throws ServiceLayerException, OrganizationNotFoundException {
         // Security check
         if (organizationServiceInternal.organizationExists(orgId)) {
             return groupServiceInternal.getAllGroups(orgId, offset, limit, sort);
@@ -128,13 +127,13 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "read_groups")
-    public List<User> getGroupMembers(long groupId, int offset, int limit, String sort) throws ServiceLayerException {
+    public List<UserTO> getGroupMembers(long groupId, int offset, int limit, String sort) throws ServiceLayerException {
         return groupServiceInternal.getGroupMembers(groupId, offset, limit, sort);
     }
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "update_groups")
-    public List<User> addGroupMembers(long groupId, List<Long> userIds, List<String> usernames)
+    public List<UserTO> addGroupMembers(long groupId, List<Long> userIds, List<String> usernames)
             throws ServiceLayerException, UserNotFoundException {
         return groupServiceInternal.addGroupMembers(groupId, userIds, usernames);
     }

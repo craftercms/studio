@@ -68,12 +68,12 @@ import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
 import org.craftercms.studio.api.v1.to.PermissionsConfigTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.GroupTO;
+import org.craftercms.studio.api.v2.dal.UserTO;
 import org.craftercms.studio.api.v2.service.security.GroupService;
 import org.craftercms.studio.api.v2.service.security.SecurityProvider;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.impl.v1.util.SessionTokenUtils;
 import org.craftercms.studio.impl.v2.service.security.Authentication;
-import org.craftercms.studio.model.User;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -190,13 +190,13 @@ public class SecurityServiceImpl implements SecurityService {
     @ValidateParams
     public Map<String,Object> getUserProfile(@ValidateStringParam(name = "user") String user) throws ServiceLayerException, UserNotFoundException {
         Map<String, Object> toRet = new HashMap<String, Object>();
-        User u = securityProvider.getUserByIdOrUsername(-1, user);
+        UserTO u = securityProvider.getUserByIdOrUsername(-1, user);
         if (u != null) {
             toRet.put(KEY_USERNAME, user);
             toRet.put(KEY_FIRSTNAME, u.getFirstName());
             toRet.put(KEY_LASTNAME, u.getLastName());
             toRet.put(KEY_EMAIL, u.getEmail());
-            toRet.put(KEY_EXTERNALLY_MANAGED, u.isExternallyManaged());
+            toRet.put(KEY_EXTERNALLY_MANAGED, u.getExternallyManaged() > 0 ? true : false );
             String authenticationType = studioConfiguration.getProperty(SECURITY_TYPE);
             toRet.put(SECURITY_AUTHENTICATION_TYPE, authenticationType);
         }
@@ -669,14 +669,14 @@ public class SecurityServiceImpl implements SecurityService {
     public Map<String, Object> forgotPassword(@ValidateStringParam(name = "username") String username)
             throws ServiceLayerException, UserNotFoundException, UserExternallyManagedException {
         logger.debug("Getting user profile for " + username);
-        User user = securityProvider.getUserByIdOrUsername(-1, username);
+        UserTO user = securityProvider.getUserByIdOrUsername(-1, username);
         boolean success = false;
         String message = StringUtils.EMPTY;
         if (user == null) {
             logger.info("User profile not found for " + username);
             throw new UserNotFoundException();
         } else {
-            if (user.isExternallyManaged()) {
+            if (user.getExternallyManaged() > 0) {
                 throw new UserExternallyManagedException();
             } else {
                 if (user.getEmail() != null) {
@@ -719,12 +719,12 @@ public class SecurityServiceImpl implements SecurityService {
             StringTokenizer tokenElements = new StringTokenizer(decryptedToken, "|");
             if (tokenElements.countTokens() == 3) {
                 String username = tokenElements.nextToken();
-                User userProfile = securityProvider.getUserByIdOrUsername(-1, username);
+                UserTO userProfile = securityProvider.getUserByIdOrUsername(-1, username);
                 if (userProfile == null) {
                     logger.info("User profile not found for " + username);
                     throw new UserNotFoundException();
                 } else {
-                    if (userProfile.isExternallyManaged()) {
+                    if (userProfile.getExternallyManaged() > 0) {
                         throw new UserExternallyManagedException();
                     } else {
                         long tokenTimestamp = Long.parseLong(tokenElements.nextToken());
@@ -832,7 +832,7 @@ public class SecurityServiceImpl implements SecurityService {
             String username = getUsernameFromToken(token);
             if (StringUtils.isNotEmpty(username)) {
                 toRet.put("username", username);
-                User user = securityProvider.getUserByIdOrUsername(-1, username);
+                UserTO user = securityProvider.getUserByIdOrUsername(-1, username);
                 if (user != null ) {
                     if (user.isEnabled()) {
                         toRet.put("success", securityProvider.setUserPassword(username, newPassword));
