@@ -72,7 +72,7 @@ pipeline:
           - configuration/global-role-mappings-config.xml
       - type: xlstFileUpgrader
         source: config/studio/role-mappings-config.xml
-        template: crafter/studio/upgrade/role-mappings-config.xlst
+        template: crafter/studio/upgrade/role-mappings-config.xslt
   - version: 3.1.0.2
     upgraders:
       - type: dbScriptUpgrader

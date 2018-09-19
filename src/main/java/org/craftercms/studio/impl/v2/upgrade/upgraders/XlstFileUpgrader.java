@@ -40,6 +40,7 @@ public class XlstFileUpgrader implements Upgrader {
                 if(contentRepository.contentExists(site, source)) {
                     try(InputStream sourceIs = contentRepository.getContent(site, source)) {
                         ByteArrayOutputStream os = new ByteArrayOutputStream();
+                        transformer.setParameter("site_id", site);
                         transformer.transform(new StreamSource(sourceIs), new StreamResult(os));
                         context.writeToRepo(site, source, new ByteArrayInputStream(os.toByteArray()),
                             "Upgrade to v" + context.getTargetVersion());
