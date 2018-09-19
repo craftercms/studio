@@ -29,26 +29,22 @@ def sendError = { code, msg ->
 def site = params.site_id
 def profileId = params.profile
 def path = params.path
+def type = params.type
 
 if(!site) {
-    sendError(400, "Missing parameter 'site_id'")
+    return sendError(400, "Missing parameter 'site_id'")
 }
 
 if(!profileId) {
-    sendError(400, "Missing parameter 'profileId'")
-}
-
-if(!path) {
-    sendError(400, "Missing parameter 'path'")
+    return sendError(400, "Missing parameter 'profileId'")
 }
 
 try {
-    def items = webDavService.list(site, profileId, path)
+    def items = webDavService.list(site, profileId, path, type)
 
     return items
 
 } catch (e) {
     logger.error("Listing of path ${path} failed", e)
-
-    sendError(500, "Listing of path ${path} failed: " + e.message)
+    return sendError(500, "Listing of path ${path} failed: " + e.getMessage() as String)
 }

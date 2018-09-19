@@ -41,10 +41,7 @@ import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.security.GroupService;
 import org.craftercms.studio.api.v2.service.security.SecurityProvider;
 import org.craftercms.studio.api.v2.service.security.UserService;
-import org.craftercms.studio.model.AuthenticatedUser;
-import org.craftercms.studio.model.Group;
-import org.craftercms.studio.model.Site;
-import org.craftercms.studio.model.User;
+import org.craftercms.studio.model.*;
 
 import java.util.*;
 
@@ -204,7 +201,7 @@ public class UserServiceImpl implements UserService {
         List<Group> groups = getUserGroups(userId, username);
 
         if (CollectionUtils.isNotEmpty(groups)) {
-            Map<String, List<String>> roleMappings = configurationService.getSiteRoleMappingsConfig(site);
+            Map<String, List<String>> roleMappings = configurationService.geRoleMappings(site);
             Set<String> userRoles = new LinkedHashSet<>();
 
             if (MapUtils.isNotEmpty(roleMappings)) {
@@ -232,8 +229,8 @@ public class UserServiceImpl implements UserService {
             try {
                 user = securityProvider.getUserByIdOrUsername(0, username);
             } catch (UserNotFoundException e) {
-                throw new ServiceLayerException("Current authenticated user '" + username +
-                    "' wasn't found in repository", e);
+                throw new ServiceLayerException("Current authenticated user '" + username + "' wasn't found in " +
+                                                "repository", e);
             }
 
             if (user != null) {
@@ -242,8 +239,8 @@ public class UserServiceImpl implements UserService {
 
                 return authUser;
             } else {
-                throw new ServiceLayerException("Current authenticated user '" + username +
-                                                "' wasn't found in repository");
+                throw new ServiceLayerException("Current authenticated user '" + username + "' wasn't found in " +
+                                                "repository");
             }
         } else {
             throw new AuthenticationException("User should be authenticated");
@@ -265,6 +262,16 @@ public class UserServiceImpl implements UserService {
         Authentication authentication = securityProvider.getAuthentication();
         if (authentication != null) {
             return getUserSiteRoles(-1, authentication.getUsername(), site);
+        } else {
+            throw new AuthenticationException("User should be authenticated");
+        }
+    }
+
+    @Override
+    public LogoutUrl getCurrentUserLogoutUrl() throws AuthenticationException, ServiceLayerException {
+        Authentication authentication = securityProvider.getAuthentication();
+        if (authentication != null) {
+            return configurationService.getLogoutUrl(authentication.getAuthenticationType());
         } else {
             throw new AuthenticationException("User should be authenticated");
         }

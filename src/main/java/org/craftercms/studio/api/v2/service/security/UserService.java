@@ -22,17 +22,14 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.model.AuthenticatedUser;
-import org.craftercms.studio.model.Group;
-import org.craftercms.studio.model.Site;
-import org.craftercms.studio.model.User;
+import org.craftercms.studio.model.*;
 
 import java.util.List;
 
 public interface UserService {
 
-    List<User> getAllUsersForSite(long orgId, String site, int offset, int limit, String sort)
-        throws ServiceLayerException;
+    List<User> getAllUsersForSite(long orgId, String site, int offset, int limit,
+                                  String sort) throws ServiceLayerException;
 
     List<User> getAllUsers(int offset, int limit, String sort) throws ServiceLayerException;
 
@@ -61,6 +58,8 @@ public interface UserService {
     List<Site> getCurrentUserSites() throws AuthenticationException, ServiceLayerException;
 
     List<String> getCurrentUserSiteRoles(String site) throws AuthenticationException, ServiceLayerException;
+
+    LogoutUrl getCurrentUserLogoutUrl() throws AuthenticationException, ServiceLayerException;
 
     /*
      TODO: All methods below here should be part of the internal service.

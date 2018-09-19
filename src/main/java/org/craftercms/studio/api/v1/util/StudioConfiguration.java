@@ -152,6 +152,9 @@ public interface StudioConfiguration {
     String AUTHENTICATION_HEADERS_LAST_NAME = "studio.authentication.headers.lastName";
     String AUTHENTICATION_HEADERS_EMAIL = "studio.authentication.headers.email";
     String AUTHENTICATION_HEADERS_GROUPS = "studio.authentication.headers.groups";
+    String AUTHENTICATION_HEADERS_LOGOUT_ENABLED = "studio.authentication.headers.logout.enabled";
+    String AUTHENTICATION_HEADERS_LOGOUT_URL = "studio.authentication.headers.logout.url";
+    String AUTHENTICATION_HEADERS_LOGOUT_METHOD = "studio.authentication.headers.logout.method";
 
     /** Page Navigation Order Service */
     String PAGE_NAVIGATION_ORDER_INCREMENT = "studio.pageNavigationOrder.increment";

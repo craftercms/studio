@@ -17,11 +17,15 @@
  */
 package org.craftercms.studio.impl.v2.service.configuration;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.commons.lang.UrlUtils;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
+import org.craftercms.studio.api.v2.exception.ConfigurationException;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
+import org.craftercms.studio.model.AuthenticationType;
+import org.craftercms.studio.model.LogoutUrl;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -33,11 +37,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_SITE;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.*;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.*;
 
 public class ConfigurationServiceImpl implements ConfigurationService {
 
@@ -45,10 +47,10 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     private StudioConfiguration studioConfiguration;
 
     @Override
-    public Map<String, List<String>> getSiteRoleMappingsConfig(String siteId) throws ServiceLayerException {
+    public Map<String, List<String>> geRoleMappings(String siteId) throws ConfigurationException {
+        // TODO: Refactor this to use Apache's Commons Configuration
         Map<String, List<String>> roleMappings = new HashMap<>();
-        String siteConfigPath = getSiteConfigPath(siteId);
-        String roleMappingsConfigPath = getRoleMappingsConfigPath(siteConfigPath);
+        String roleMappingsConfigPath = getSiteRoleMappingsConfigPath(siteId);
         Document document;
 
         try {
@@ -71,20 +73,56 @@ public class ConfigurationServiceImpl implements ConfigurationService {
                 }
             }
         } catch (DocumentException e) {
-            throw new ServiceLayerException("Error while reading role mappings file for site " + siteId + " @ " +
-                                            roleMappingsConfigPath);
+            throw new ConfigurationException("Error while reading role mappings file for site " + siteId + " @ " +
+                                             roleMappingsConfigPath);
         }
 
         return roleMappings;
+    }
+
+    @Override
+    public LogoutUrl getLogoutUrl(AuthenticationType authType) throws ConfigurationException {
+        if (authType == AuthenticationType.AUTH_HEADERS) {
+            if (isAuthenticationHeadersLogoutEnabled()) {
+                LogoutUrl logoutUrl = new LogoutUrl();
+                logoutUrl.setUrl(getAuthenticationHeadersLogoutUrl());
+                logoutUrl.setMethod(getAuthenticationHeadersLogoutMethod());
+
+                return logoutUrl;
+            } else {
+                return null;
+            }
+        } else {
+            LogoutUrl logoutUrl = new LogoutUrl();
+            logoutUrl.setUrl(DEFAULT_LOGOUT_URL);
+            logoutUrl.setMethod(DEFAULT_LOGOUT_METHOD);
+
+            return logoutUrl;
+        }
+    }
+
+    private String getSiteRoleMappingsConfigPath(String siteId) {
+        return UrlUtils.concat(getSiteConfigPath(siteId), getSiteRoleMappingsConfigFileName());
     }
 
     private String getSiteConfigPath(String siteId) {
         return studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH).replaceFirst(PATTERN_SITE, siteId);
     }
 
-    private String getRoleMappingsConfigPath(String siteConfigPath) {
-        return siteConfigPath + FILE_SEPARATOR +
-               studioConfiguration.getProperty(CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME);
+    private String getSiteRoleMappingsConfigFileName() {
+        return studioConfiguration.getProperty(CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME);
+    }
+
+    private boolean isAuthenticationHeadersLogoutEnabled() {
+        return BooleanUtils.toBoolean(studioConfiguration.getProperty(AUTHENTICATION_HEADERS_LOGOUT_ENABLED));
+    }
+
+    private String getAuthenticationHeadersLogoutUrl() {
+        return studioConfiguration.getProperty(AUTHENTICATION_HEADERS_LOGOUT_URL);
+    }
+
+    private String getAuthenticationHeadersLogoutMethod() {
+        return studioConfiguration.getProperty(AUTHENTICATION_HEADERS_LOGOUT_METHOD);
     }
 
     @Required
@@ -96,6 +134,5 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
     }
-
 
 }

@@ -32,7 +32,6 @@ import org.craftercms.studio.api.v1.dal.DeploymentSyncHistory;
 import org.craftercms.studio.api.v1.dal.ItemMetadata;
 import org.craftercms.studio.api.v1.dal.PublishRequest;
 import org.craftercms.studio.api.v1.dal.PublishRequestMapper;
-import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.deployment.Deployer;
 import org.craftercms.studio.api.v1.ebus.PreviewEventContext;
 import org.craftercms.studio.api.v1.exception.CommitNotFoundException;
@@ -519,14 +518,24 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     private List<String> getEnvironmentNames(String siteId) {
-        List<PublishingChannelTO> channelsTO = !servicesConfig.isStagingEnvironmentEnabled(siteId) ?
-                getAvailablePublishingChannelGroupsForSite(siteId) : getPublishedEnvironments(siteId);
         List<String> toRet = new ArrayList<String>();
-        if (CollectionUtils.isNotEmpty(channelsTO)) {
-            channelsTO.forEach(channel -> {
-                toRet.add(channel.getName());
-            });
+        if (servicesConfig.isStagingEnvironmentEnabled(siteId)) {
+            List<PublishingChannelTO> channelsTO = getPublishedEnvironments(siteId);
+            if (CollectionUtils.isNotEmpty(channelsTO)) {
+                channelsTO.forEach(channel -> {
+                    toRet.add(channel.getName());
+                });
+            }
+        } else {
+            List<PublishingTargetTO> publishingTargets = siteService.getPublishingTargetsForSite(siteId);
+            if (CollectionUtils.isNotEmpty(publishingTargets)) {
+                publishingTargets.forEach(target -> {
+                    toRet.add(target.getRepoBranchName());
+                });
+            }
         }
+
+
         return toRet;
     }
 

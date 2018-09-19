@@ -41,11 +41,6 @@ public class UiController {
 
     private UiService uiService;
 
-    @Required
-    public void setUiService(UiService uiService) {
-        this.uiService = uiService;
-    }
-
     @GetMapping("/views/global_menu")
     public ResponseBody getGlobalMenu() throws AuthenticationException, ServiceLayerException {
         ResultList<MenuItem> result = new ResultList<>();
@@ -56,6 +51,11 @@ public class UiController {
         responseBody.setResult(result);
 
         return responseBody;
+    }
+
+    @Required
+    public void setUiService(UiService uiService) {
+        this.uiService = uiService;
     }
 
 }
