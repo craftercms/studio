@@ -869,22 +869,8 @@ paths:
                     properties:
                       response:
                         $ref: '#/components/schemas/ApiResponse'
-                      total:
-                        type: integer
-                        format: int32
-                        description: Total records in the system
-                      offset:
-                        type: integer
-                        format: int32
-                        description: Offset of first record in this response
-                      limit:
-                        type: integer
-                        format: int32
-                        description: Number of records returned in this response
-                      entities:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/Site'
+                      entity:
+                        $ref: '#/components/schemas/AuthenticatedUser'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '500':
@@ -910,6 +896,18 @@ paths:
                     properties:
                       response:
                         $ref: '#/components/schemas/ApiResponse'
+                      total:
+                        type: integer
+                        format: int32
+                        description: Total records in the system
+                      offset:
+                        type: integer
+                        format: int32
+                        description: Offset of first record in this response
+                      limit:
+                        type: integer
+                        format: int32
+                        description: Number of records returned in this response
                       entities:
                         type: array
                         items:
