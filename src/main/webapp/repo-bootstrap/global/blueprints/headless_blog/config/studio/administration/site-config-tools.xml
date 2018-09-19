@@ -186,6 +186,18 @@
                     </icon>
                 </datasource>
                 <datasource>
+                    <name>img-WebDAV-repo</name>
+                    <icon>
+                        <class>fa-square-o fa-server</class>
+                    </icon>
+                </datasource>
+                <datasource>
+                    <name>video-WebDAV-repo</name>
+                    <icon>
+                        <class>fa-square-o fa-server</class>
+                    </icon>
+                </datasource>
+                <datasource>
                     <name>WebDAV-upload</name>
                     <icon>
                         <class>fa-square-o fa-server</class>
