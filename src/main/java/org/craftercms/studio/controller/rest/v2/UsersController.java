@@ -29,6 +29,7 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.service.security.GroupService;
 import org.craftercms.studio.api.v2.service.security.UserService;
+import org.craftercms.studio.impl.v2.utils.PaginationUtils;
 import org.craftercms.studio.model.*;
 import org.craftercms.studio.model.rest.ApiResponse;
 import org.craftercms.studio.model.rest.EnableUsers;
@@ -250,11 +251,7 @@ public class UsersController {
 
 
         List<Site> allSites = userService.getUserSites(uId, username);
-        List<Site> paginatedSites = allSites.stream()
-                            .sorted(new BeanComparator<>("siteId"))
-                            .skip(offset)
-                            .limit(limit)
-                            .collect(Collectors.toList());
+        List<Site> paginatedSites = PaginationUtils.paginate(allSites, offset, limit, "siteId");
 
         PaginatedResultList<Site> result = new PaginatedResultList<>();
         result.setResponse(ApiResponse.OK);
@@ -324,12 +321,18 @@ public class UsersController {
      * @return Response containing current authenticated user sites
      */
     @GetMapping("/api/2/user/sites")
-    public ResponseBody getCurrentUserSites() throws AuthenticationException, ServiceLayerException {
-        List<Site> sites = userService.getCurrentUserSites();
+    public ResponseBody getCurrentUserSites(@RequestParam(required = false, defaultValue = "0") int offset,
+                                            @RequestParam(required = false, defaultValue = "10") int limit)
+            throws AuthenticationException, ServiceLayerException {
+        List<Site> allSites = userService.getCurrentUserSites();
+        List<Site> paginatedSites = PaginationUtils.paginate(allSites, offset, limit, "siteId");
 
-        ResultList<Site> result = new ResultList<>();
+        PaginatedResultList<Site> result = new PaginatedResultList<>();
         result.setResponse(ApiResponse.OK);
-        result.setEntities(sites);
+        result.setTotal(allSites.size());
+        result.setOffset(offset);
+        result.setLimit(limit);
+        result.setEntities(paginatedSites);
 
         ResponseBody responseBody = new ResponseBody();
         responseBody.setResult(result);
