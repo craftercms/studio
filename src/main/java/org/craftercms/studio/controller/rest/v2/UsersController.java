@@ -334,7 +334,6 @@ public class UsersController {
         result.setLimit(limit);
         result.setEntities(paginatedSites);
 
-
         ResponseBody responseBody = new ResponseBody();
         responseBody.setResult(result);
 
