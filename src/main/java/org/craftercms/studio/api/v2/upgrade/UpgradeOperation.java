@@ -18,18 +18,25 @@
 
 package org.craftercms.studio.api.v2.upgrade;
 
+import org.apache.commons.configuration2.Configuration;
 import org.craftercms.studio.api.v2.exception.UpgradeException;
 
 /**
- * Groups any number of {@link UpgradeOperation} instances.
+ * Defines the basic operations for a single upgrade.
  * @author joseross
  */
-public interface UpgradePipeline {
+public interface UpgradeOperation {
 
     /**
-     * Executes each {@link UpgradeOperation} for the given context
+     * Initializes the instance with the given configuration.
+     * @param config upgrader configuration
+     */
+    void init(Configuration config);
+
+    /**
+     * Performs the actual upgrades on the given context.
      * @param context current upgrade context
-     * @throws UpgradeException if any of the {@link UpgradeOperation}s fails
+     * @throws UpgradeException if there is any error performing the upgrade
      */
     void execute(UpgradeContext context) throws UpgradeException;
 

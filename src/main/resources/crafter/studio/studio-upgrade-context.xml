@@ -29,23 +29,22 @@
         <property name="integrityValidator" ref="crafter.databaseValidator"/>
     </bean>
 
-    <bean id="upgradeContext" class="org.craftercms.studio.impl.v2.upgrade.DefaultUpgradeContext"
-          scope="prototype">
+    <bean id="upgradeContext" scope="prototype" class="org.craftercms.studio.impl.v2.upgrade.DefaultUpgradeContext">
         <property name="dataSource" ref="dataSource"/>
         <property name="contentRepository" ref="contentRepository"/>
         <property name="studioConfiguration" ref="studioConfiguration"/>
     </bean>
 
-    <bean id="dbScriptUpgrader" class="org.craftercms.studio.impl.v2.upgrade.upgraders.DbScriptUpgrader"
-          scope="prototype">
+    <bean id="dbScriptUpgrader" scope="prototype"
+          class="org.craftercms.studio.impl.v2.upgrade.operations.DbScriptUpgradeOperation">
         <property name="scriptFolder" value="crafter/studio/database/"/>
         <property name="integrityValidator" ref="crafter.databaseValidator"/>
     </bean>
 
-    <bean id="globalRepoUpgrader" class="org.craftercms.studio.impl.v2.upgrade.upgraders.GlobalRepoUpgrader"
-          scope="prototype"/>
+    <bean id="globalRepoUpgrader" scope="prototype"
+          class="org.craftercms.studio.impl.v2.upgrade.operations.GlobalRepoUpgradeOperation"/>
 
-    <bean id="xsltFileUpgrader" class="org.craftercms.studio.impl.v2.upgrade.upgraders.XsltFileUpgrader"
-          scope="prototype"/>
+    <bean id="xsltFileUpgrader" scope="prototype"
+          class="org.craftercms.studio.impl.v2.upgrade.operations.XsltFileUpgradeOperation"/>
 
 </beans>

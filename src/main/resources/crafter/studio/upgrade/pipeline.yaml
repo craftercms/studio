@@ -2,63 +2,75 @@
 
 pipeline:
   - version: 3.0.0
-    upgraders: # Upgrade from 2.x is not supported so there are no upgraders for this version
+    operations: # Upgrade from 2.x is not supported so there are no operations for this version
+
   - version: 3.0.1
-    upgraders:
+    operations:
       - type: dbScriptUpgrader
         filename: upgrade-to-3.0.1.sql
         updateIntegrity: false # Needs to be set to false in all version previous to 3.0.17
+
   - version: 3.0.2
-    upgraders:
+    operations:
       - type: dbScriptUpgrader
         filename: upgrade-to-3.0.2.sql
         updateIntegrity: false
+
   - version: 3.0.2.1
-    upgraders:
+    operations:
       - type: dbScriptUpgrader
         filename: upgrade-to-3.0.2.1.sql
         updateIntegrity: false
+
   - version: 3.0.10
-    upgraders:
+    operations:
       - type: dbScriptUpgrader
         filename: upgrade-to-3.0.10.sql
         updateIntegrity: false
+
   - version: 3.0.11
-    upgraders:
+    operations:
       - type: dbScriptUpgrader
         filename: upgrade-to-3.0.11.sql
         updateIntegrity: false
+
   - version: 3.0.11.1
-    upgraders:
+    operations:
       - type: dbScriptUpgrader
         filename: upgrade-to-3.0.11.1.sql
         updateIntegrity: false
+
   - version: 3.0.11.2
-    upgraders:
+    operations:
       - type: dbScriptUpgrader
         filename: upgrade-to-3.0.11.2.sql
         updateIntegrity: false
+
   - version: 3.0.11.3
-    upgraders:
+    operations:
       - type: dbScriptUpgrader
         filename: upgrade-to-3.0.11.3.sql
         updateIntegrity: false
+
   - version: 3.0.15
-    upgraders:
+    operations:
     - type: dbScriptUpgrader
       filename: upgrade-to-3.0.15.sql
       updateIntegrity: false
+
   - version: 3.0.15.1
-    upgraders:
+    operations:
       - type: dbScriptUpgrader
         filename: upgrade-to-3.0.15.1.sql
         updateIntegrity: false
+
   - version: 3.0.17
-    upgraders:
+    operations:
     - type: dbScriptUpgrader
       filename: upgrade-to-3.0.17.sql
+
   - version: 3.1.0
-    upgraders:
+    operations:
       - type: dbScriptUpgrader
         filename: upgrade-to-3.1.0.sql
       - type: globalRepoUpgrader
@@ -69,22 +81,27 @@ pipeline:
       - type: xsltFileUpgrader
         source: config/studio/role-mappings-config.xml
         template: crafter/studio/upgrade/role-mappings-config-3.1.0.xslt
+
   - version: 3.1.0.1
-    upgraders:
+    operations:
       - type: dbScriptUpgrader
         filename: upgrade-to-3.1.0.1.sql
       - type: xsltFileUpgrader
         source: config/studio/role-mappings-config.xml
         template: crafter/studio/upgrade/role-mappings-config-3.1.0.1.xslt
+
   - version: 3.1.0.2
-    upgraders:
+    operations:
       - type: dbScriptUpgrader
         filename: upgrade-to-3.1.0.2.sql
+
   - version: 3.1.0.3
-    upgraders:
+    operations:
       - type: dbScriptUpgrader
         filename: upgrade-to-3.1.0.3.sql
+
   - version: 3.1.0.4
-    upgraders:
+    operations:
       - type: dbScriptUpgrader
         filename: upgrade-to-3.1.0.4.sql
+        updateIntegrity: false # Because the script only changes content

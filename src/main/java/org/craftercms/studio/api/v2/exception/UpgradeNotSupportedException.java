@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
+ * Crafter Studio Web-content authoring solution
+ * Copyright (C) 2007-2017 Crafter Software Corporation.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -13,24 +14,29 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
-package org.craftercms.studio.api.v2.upgrade;
-
-import org.craftercms.studio.api.v2.exception.UpgradeException;
+package org.craftercms.studio.api.v2.exception;
 
 /**
- * Groups any number of {@link UpgradeOperation} instances.
+ * Thrown when the current version of the system can't be upgraded automatically.
  * @author joseross
  */
-public interface UpgradePipeline {
+public class UpgradeNotSupportedException extends UpgradeException {
 
-    /**
-     * Executes each {@link UpgradeOperation} for the given context
-     * @param context current upgrade context
-     * @throws UpgradeException if any of the {@link UpgradeOperation}s fails
-     */
-    void execute(UpgradeContext context) throws UpgradeException;
+    public UpgradeNotSupportedException() {
+    }
+
+    public UpgradeNotSupportedException(String message) {
+        super(message);
+    }
+
+    public UpgradeNotSupportedException(String message, Exception cause) {
+        super(message, cause);
+    }
+
+    public UpgradeNotSupportedException(Throwable cause) {
+        super(cause);
+    }
 
 }

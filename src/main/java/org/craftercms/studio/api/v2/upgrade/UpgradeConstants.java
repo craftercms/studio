@@ -1,6 +1,5 @@
 /*
- * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2017 Crafter Software Corporation.
+ * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,25 +13,24 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 
-package org.craftercms.studio.api.v2.exception;
+package org.craftercms.studio.api.v2.upgrade;
 
-public class UpgradeUnsupportedException extends UpgradeException {
+/**
+ * General values related to the upgrade process.
+ * @author joseross
+ */
+public interface UpgradeConstants {
 
-    public UpgradeUnsupportedException() {
-    }
+    String VERSION_3_0_0 = "3.0.0";
 
-    public UpgradeUnsupportedException(String message) {
-        super(message);
-    }
+    String CONFIG_KEY_PIPELINE = "pipeline";
+    String CONFIG_KEY_VERSION = "version";
+    String CONFIG_KEY_OPERATIONS = "operations";
+    String CONFIG_KEY_TYPE = "type";
 
-    public UpgradeUnsupportedException(String message, Exception cause) {
-        super(message, cause);
-    }
-
-    public UpgradeUnsupportedException(Throwable cause) {
-        super(cause);
-    }
+    String PARAM_KEY_SITE = "site_id";
 
 }

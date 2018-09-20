@@ -1,4 +1,22 @@
-package org.craftercms.studio.impl.v2.upgrade.upgraders;
+/*
+ * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
+package org.craftercms.studio.impl.v2.upgrade.operations;
 
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -10,19 +28,41 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.exception.UpgradeException;
 import org.craftercms.studio.api.v2.upgrade.UpgradeContext;
-import org.craftercms.studio.api.v2.upgrade.Upgrader;
+import org.craftercms.studio.api.v2.upgrade.UpgradeOperation;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
-public class DbScriptUpgrader implements Upgrader {
+/**
+ * Implementation of {@link UpgradeOperation} that executes a database script.
+ * @author joseross
+ */
+public class DbScriptUpgradeOperation implements UpgradeOperation {
 
-    private static final Logger logger = LoggerFactory.getLogger(DbScriptUpgrader.class);
+    private static final Logger logger = LoggerFactory.getLogger(DbScriptUpgradeOperation.class);
 
+    public static final String CONFIG_KEY_FILENAME = "filename";
+    public static final String CONFIG_KEY_INTEGRITY = "updateIntegrity";
+    public static final String SQL_DELIMITER = " ;";
+
+    /**
+     * Path of the folder to search the script file.
+     */
     protected String scriptFolder;
+
+    /**
+     * Filename of the script.
+     */
     protected String fileName;
+
+    /**
+     * Indicates if the integrity value should be updated after executing the script.
+     */
     protected boolean updateIntegrity;
 
+    /**
+     * The database integrity validator.
+     */
     protected DbIntegrityValidator integrityValidator;
 
     public void setUpdateIntegrity(final boolean updateIntegrity) {
@@ -39,19 +79,25 @@ public class DbScriptUpgrader implements Upgrader {
         this.integrityValidator = integrityValidator;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void init(final Configuration config) {
-        fileName = config.getString("filename");
-        updateIntegrity = config.getBoolean("updateIntegrity", true);
+        fileName = config.getString(CONFIG_KEY_FILENAME);
+        updateIntegrity = config.getBoolean(CONFIG_KEY_INTEGRITY, true);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void execute(final UpgradeContext context) throws UpgradeException {
         Resource scriptFile = new ClassPathResource(scriptFolder).createRelative(fileName);
         logger.info("Executing db script {0}", scriptFile.getFilename());
         try (Reader reader = new InputStreamReader(scriptFile.getInputStream())) {
             ScriptRunner scriptRunner = new ScriptRunner(context.getConnection());
-            scriptRunner.setDelimiter(" ;");
+            scriptRunner.setDelimiter(SQL_DELIMITER);
             scriptRunner.setStopOnError(true);
             scriptRunner.setLogWriter(null);
             scriptRunner.runScript(reader);

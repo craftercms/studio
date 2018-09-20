@@ -1,3 +1,21 @@
+/*
+ * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
 package org.craftercms.studio.impl.v2.upgrade;
 
 import java.io.File;
@@ -29,25 +47,53 @@ import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.springframework.core.io.Resource;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.context.ServletContextAware;
 import org.springframework.web.context.support.ServletContextResource;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_ROOT;
 
+/**
+ * Default implementation for {@link UpgradeContext}.
+ * @author joseross
+ */
 public class DefaultUpgradeContext implements UpgradeContext, ServletContextAware {
 
     private static final Logger logger = LoggerFactory.getLogger(DefaultUpgradeContext.class);
 
+    /**
+     * Current version of the system.
+     */
     protected String currentVersion;
+
+    /**
+     * Version to which the system will be upgraded.
+     */
     protected String targetVersion;
 
+    /**
+     * List of all existing sites in the system.
+     */
     protected List<String> sites;
 
+    /**
+     * The Studio configuration.
+     */
     protected StudioConfiguration studioConfiguration;
+
+    /**
+     * The database data source.
+     */
     protected DataSource dataSource;
+
+    /**
+     * The content repository.
+     */
     protected ContentRepository contentRepository;
+
+    /**
+     * The servlet context.
+     */
     protected ServletContext servletContext;
 
     @Override
