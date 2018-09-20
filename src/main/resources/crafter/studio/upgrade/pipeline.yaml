@@ -7,7 +7,7 @@ pipeline:
     upgraders:
       - type: dbScriptUpgrader
         filename: upgrade-to-3.0.1.sql
-        updateIntegrity: false
+        updateIntegrity: false # Needs to be set to false in all version previous to 3.0.17
   - version: 3.0.2
     upgraders:
       - type: dbScriptUpgrader
@@ -26,7 +26,7 @@ pipeline:
   - version: 3.0.11
     upgraders:
       - type: dbScriptUpgrader
-        filename: upgrade-3.0.11.sql
+        filename: upgrade-to-3.0.11.sql
         updateIntegrity: false
   - version: 3.0.11.1
     upgraders:
@@ -36,52 +36,55 @@ pipeline:
   - version: 3.0.11.2
     upgraders:
       - type: dbScriptUpgrader
-        filename: upgrade-3.0.11.2.sql
+        filename: upgrade-to-3.0.11.2.sql
         updateIntegrity: false
   - version: 3.0.11.3
     upgraders:
       - type: dbScriptUpgrader
-        filename: upgrade-3.0.11.3.sql
+        filename: upgrade-to-3.0.11.3.sql
         updateIntegrity: false
   - version: 3.0.15
     upgraders:
     - type: dbScriptUpgrader
-      filename: upgrade-3.0.15.sql
+      filename: upgrade-to-3.0.15.sql
       updateIntegrity: false
   - version: 3.0.15.1
     upgraders:
       - type: dbScriptUpgrader
-        filename: upgrade-3.0.15.1.sql
+        filename: upgrade-to-3.0.15.1.sql
         updateIntegrity: false
   - version: 3.0.17
     upgraders:
     - type: dbScriptUpgrader
-      filename: upgrade-3.0.17.sql
+      filename: upgrade-to-3.0.17.sql
   - version: 3.1.0
-    upgraders: # TODO: Add new upgraders...
-      - type: dbScriptUpgrader
-        filename: upgrade-3.1.0.sql
-  - version: 3.1.0.1
     upgraders:
       - type: dbScriptUpgrader
-        filename: upgrade-3.1.0.1.sql
+        filename: upgrade-to-3.1.0.sql
       - type: globalRepoUpgrader
         files:
           - configuration/global-menu-config.xml
           - configuration/global-permission-mappings-config.xml
           - configuration/global-role-mappings-config.xml
-      - type: xlstFileUpgrader
+      - type: xsltFileUpgrader
         source: config/studio/role-mappings-config.xml
-        template: crafter/studio/upgrade/role-mappings-config.xslt
+        template: crafter/studio/upgrade/role-mappings-config-3.1.0.xslt
+  - version: 3.1.0.1
+    upgraders:
+      - type: dbScriptUpgrader
+        filename: upgrade-to-3.1.0.1.sql
+      - type: xsltFileUpgrader
+        source: config/studio/role-mappings-config.xml
+        template: crafter/studio/upgrade/role-mappings-config-3.1.0.1.xslt
   - version: 3.1.0.2
     upgraders:
       - type: dbScriptUpgrader
-        filename: upgrade-3.1.0.2.sql
+        filename: upgrade-to-3.1.0.2.sql
   - version: 3.1.0.3
     upgraders:
       - type: dbScriptUpgrader
-        filename: upgrade-3.1.0.3.sql
+        filename: upgrade-to-3.1.0.3.sql
   - version: 3.1.0.4
     upgraders:
       - type: dbScriptUpgrader
-        filename: upgrade-3.1.0.4.sql
+        filename: upgrade-to-3.1.0.4.sql

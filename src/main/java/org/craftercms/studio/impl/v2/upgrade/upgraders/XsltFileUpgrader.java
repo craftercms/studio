@@ -15,28 +15,31 @@ import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v2.exception.UpgradeException;
 import org.craftercms.studio.api.v2.upgrade.UpgradeContext;
 import org.craftercms.studio.api.v2.upgrade.Upgrader;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
-public class XlstFileUpgrader implements Upgrader {
+public class XsltFileUpgrader implements Upgrader {
 
-    private static final Logger logger = LoggerFactory.getLogger(XlstFileUpgrader.class);
+    private static final Logger logger = LoggerFactory.getLogger(XsltFileUpgrader.class);
 
     protected String source;
-    protected String template;
+    protected Resource template;
 
     @Override
     public void init(final Configuration config) {
         source = config.getString("source");
-        template = config.getString("template");
+        template = new ClassPathResource(config.getString("template"));
     }
 
     @Override
     public void execute(final UpgradeContext context) throws UpgradeException {
-        Resource templateFile = context.getServletResource(template);
         ContentRepository contentRepository = context.getContentRepository();
-        try(InputStream templateIs = templateFile.getInputStream()) {
-            Transformer transformer = TransformerFactory.newInstance().newTransformer(new StreamSource(templateIs));
+        try(InputStream templateIs = template.getInputStream()) {
+            Transformer transformer =
+                TransformerFactory.newInstance("net.sf.saxon.TransformerFactoryImpl", null)
+                    .newTransformer(new StreamSource(templateIs));
             for(String site : context.getSites()) {
+                logger.info("Applying XSLT template {0} to file {1} for site {2}", template, source, site);
                 if(contentRepository.contentExists(site, source)) {
                     try(InputStream sourceIs = contentRepository.getContent(site, source)) {
                         ByteArrayOutputStream os = new ByteArrayOutputStream();

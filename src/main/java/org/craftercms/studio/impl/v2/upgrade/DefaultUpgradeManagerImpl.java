@@ -1,6 +1,7 @@
 package org.craftercms.studio.impl.v2.upgrade;
 
 import java.io.InputStream;
+import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -8,6 +9,8 @@ import javax.sql.DataSource;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.craftercms.commons.config.YamlConfiguration;
+import org.craftercms.commons.entitlements.exception.EntitlementException;
+import org.craftercms.commons.entitlements.validator.DbIntegrityValidator;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.exception.UpgradeException;
@@ -41,6 +44,7 @@ public class DefaultUpgradeManagerImpl implements UpgradeManager, ApplicationCon
     protected DataSource dataSource;
     protected ApplicationContext appContext;
     protected JdbcTemplate jdbcTemplate;
+    protected DbIntegrityValidator integrityValidator;
 
     @SuppressWarnings("rawtypes,unchecked")
     protected UpgradePipeline loadUpgradePipeline(String currentVersion) throws UpgradeException {
@@ -115,7 +119,7 @@ public class DefaultUpgradeManagerImpl implements UpgradeManager, ApplicationCon
         }
     }
 
-    public void init() throws UpgradeException {
+    public void init() throws UpgradeException, EntitlementException {
         jdbcTemplate = new JdbcTemplate(dataSource);
         logger.info("Checking for pending upgrades");
         String currentVersion = getCurrentVersion();
@@ -125,6 +129,12 @@ public class DefaultUpgradeManagerImpl implements UpgradeManager, ApplicationCon
         } else {
             logger.info("Starting upgrade to version {0}", latestVersion);
             upgrade(currentVersion);
+        }
+        try {
+            integrityValidator.validate(dataSource.getConnection());
+        } catch (SQLException e) {
+            logger.error("Could not connect to database for integrity validation", e);
+            throw new UpgradeException("Could not connect to database for integrity validation", e);
         }
     }
 
@@ -146,6 +156,11 @@ public class DefaultUpgradeManagerImpl implements UpgradeManager, ApplicationCon
     @Required
     public void setDataSource(final DataSource dataSource) {
         this.dataSource = dataSource;
+    }
+
+    @Required
+    public void setIntegrityValidator(final DbIntegrityValidator integrityValidator) {
+        this.integrityValidator = integrityValidator;
     }
 
 }

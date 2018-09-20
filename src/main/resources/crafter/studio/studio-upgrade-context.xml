@@ -26,6 +26,7 @@
         <property name="configurationFile" value="classpath:crafter/studio/upgrade/pipeline.yaml"/>
         <property name="latestVersion" value="3.1.0.4"/>
         <property name="dataSource" ref="dataSource"/>
+        <property name="integrityValidator" ref="crafter.databaseValidator"/>
     </bean>
 
     <bean id="upgradeContext" class="org.craftercms.studio.impl.v2.upgrade.DefaultUpgradeContext"
@@ -42,6 +43,9 @@
     </bean>
 
     <bean id="globalRepoUpgrader" class="org.craftercms.studio.impl.v2.upgrade.upgraders.GlobalRepoUpgrader"
+          scope="prototype"/>
+
+    <bean id="xsltFileUpgrader" class="org.craftercms.studio.impl.v2.upgrade.upgraders.XsltFileUpgrader"
           scope="prototype"/>
 
 </beans>
