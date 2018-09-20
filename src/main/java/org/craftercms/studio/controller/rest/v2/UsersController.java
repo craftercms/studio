@@ -18,9 +18,7 @@
 
 package org.craftercms.studio.controller.rest.v2;
 
-import org.apache.commons.beanutils.BeanComparator;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.client.utils.URIUtils;
 import org.craftercms.commons.lang.UrlUtils;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
@@ -32,32 +30,21 @@ import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.service.security.GroupService;
 import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.impl.v2.utils.PaginationUtils;
-import org.craftercms.studio.model.*;
-import org.craftercms.studio.model.rest.ApiResponse;
-import org.craftercms.studio.model.rest.EnableUsers;
-import org.craftercms.studio.model.rest.PaginatedResultList;
+import org.craftercms.studio.model.AuthenticatedUser;
+import org.craftercms.studio.model.LogoutUrl;
+import org.craftercms.studio.model.Site;
+import org.craftercms.studio.model.User;
+import org.craftercms.studio.model.rest.*;
 import org.craftercms.studio.model.rest.ResponseBody;
-import org.craftercms.studio.model.rest.ResultList;
-import org.craftercms.studio.model.rest.ResultOne;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.util.CollectionUtils;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.DEFAULT_ORGANIZATION_ID;
 
