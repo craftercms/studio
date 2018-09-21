@@ -19,6 +19,7 @@ package org.craftercms.studio.impl.v2.service.configuration;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.http.RequestContext;
 import org.craftercms.commons.lang.UrlUtils;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
@@ -81,24 +82,31 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     }
 
     @Override
-    public LogoutUrl getLogoutUrl(AuthenticationType authType) throws ConfigurationException {
+    public LogoutUrl getLogoutUrl(AuthenticationType authType) {
+        LogoutUrl logoutUrl = null;
+
         if (authType == AuthenticationType.AUTH_HEADERS) {
             if (isAuthenticationHeadersLogoutEnabled()) {
-                LogoutUrl logoutUrl = new LogoutUrl();
+                logoutUrl = new LogoutUrl();
                 logoutUrl.setUrl(getAuthenticationHeadersLogoutUrl());
                 logoutUrl.setMethod(getAuthenticationHeadersLogoutMethod());
 
-                return logoutUrl;
-            } else {
-                return null;
             }
         } else {
-            LogoutUrl logoutUrl = new LogoutUrl();
+            logoutUrl = new LogoutUrl();
             logoutUrl.setUrl(DEFAULT_LOGOUT_URL);
             logoutUrl.setMethod(DEFAULT_LOGOUT_METHOD);
-
-            return logoutUrl;
         }
+
+        if (logoutUrl != null) {
+            RequestContext requestContext = RequestContext.getCurrent();
+            if (requestContext != null) {
+                String contextPath = requestContext.getRequest().getContextPath();
+                logoutUrl.setUrl(logoutUrl.getUrl().replaceFirst(PATTERN_CONTEXT_PATH, contextPath));
+            }
+        }
+
+        return logoutUrl;
     }
 
     private String getSiteRoleMappingsConfigPath(String siteId) {

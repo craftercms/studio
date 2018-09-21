@@ -19,7 +19,6 @@
 package org.craftercms.studio.controller.rest.v2;
 
 import org.apache.commons.lang3.StringUtils;
-import org.craftercms.commons.lang.UrlUtils;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
@@ -42,7 +41,6 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 
@@ -361,18 +359,6 @@ public class UsersController {
     public ResponseBody getCurrentUserLogoutUrl(HttpServletRequest request) throws ServiceLayerException,
                                                                                    AuthenticationException {
         LogoutUrl logoutUrl = userService.getCurrentUserLogoutUrl();
-
-        // Check if URL is absolute. If not, append context of request at the beginning
-        String url = logoutUrl.getUrl();
-        String contextPath = request.getContextPath();
-
-        try {
-            if (!URI.create(url).isAbsolute() && !url.startsWith(contextPath)) {
-                logoutUrl.setUrl(UrlUtils.concat(contextPath, url));
-            }
-        } catch (Exception e) {
-            throw new ServiceLayerException("Logout URL " + url + " is invalid", e);
-        }
 
         ResultOne<LogoutUrl> result = new ResultOne<>();
         result.setResponse(ApiResponse.OK);
