@@ -19,6 +19,7 @@ package org.craftercms.studio.impl.v2.service.configuration;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.http.HttpUtils;
 import org.craftercms.commons.http.RequestContext;
 import org.craftercms.commons.lang.UrlUtils;
 import org.craftercms.studio.api.v1.service.content.ContentService;
@@ -26,7 +27,6 @@ import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.exception.ConfigurationException;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.model.AuthenticationType;
-import org.craftercms.studio.model.LogoutUrl;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -82,31 +82,20 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     }
 
     @Override
-    public LogoutUrl getLogoutUrl(AuthenticationType authType) {
-        LogoutUrl logoutUrl = null;
-
-        if (authType == AuthenticationType.AUTH_HEADERS) {
-            if (isAuthenticationHeadersLogoutEnabled()) {
-                logoutUrl = new LogoutUrl();
-                logoutUrl.setUrl(getAuthenticationHeadersLogoutUrl());
-                logoutUrl.setMethod(getAuthenticationHeadersLogoutMethod());
-
-            }
-        } else {
-            logoutUrl = new LogoutUrl();
-            logoutUrl.setUrl(DEFAULT_LOGOUT_URL);
-            logoutUrl.setMethod(DEFAULT_LOGOUT_METHOD);
-        }
-
-        if (logoutUrl != null) {
+    public String getSsoLogoutUrl(AuthenticationType authType) {
+        if (authType == AuthenticationType.AUTH_HEADERS && isAuthenticationHeadersLogoutEnabled()) {
+            String logoutUrl = getAuthenticationHeadersLogoutUrl();
             RequestContext requestContext = RequestContext.getCurrent();
-            if (requestContext != null) {
-                String contextPath = requestContext.getRequest().getContextPath();
-                logoutUrl.setUrl(logoutUrl.getUrl().replaceFirst(PATTERN_CONTEXT_PATH, contextPath));
-            }
-        }
 
-        return logoutUrl;
+            if (requestContext != null) {
+                String loginUrl = HttpUtils.getFullUrl(requestContext.getRequest(), LOGIN_URL);
+                logoutUrl = logoutUrl.replaceFirst(PATTERN_LOGIN_URL, loginUrl);
+            }
+
+            return logoutUrl;
+        } else {
+            return null;
+        }
     }
 
     private String getSiteRoleMappingsConfigPath(String siteId) {
