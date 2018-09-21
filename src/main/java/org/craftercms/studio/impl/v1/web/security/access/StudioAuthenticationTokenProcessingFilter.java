@@ -19,6 +19,7 @@
 package org.craftercms.studio.impl.v1.web.security.access;
 
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.commons.http.HttpUtils;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
@@ -100,16 +101,21 @@ public class StudioAuthenticationTokenProcessingFilter extends GenericFilterBean
                     // If user not authenticated check for authentication headers
                     String usernameHeader =
                             httpRequest.getHeader(studioConfiguration.getProperty(AUTHENTICATION_HEADERS_USERNAME));
-                    try {
-                        securityService.authenticate(usernameHeader, RandomStringUtils.randomAlphanumeric(16));
-                        UserDetails userDetails = this.userDetailsManager.loadUserByUsername(usernameHeader);
-                        UsernamePasswordAuthenticationToken authentication =
-                                new UsernamePasswordAuthenticationToken(userDetails, null,
-                                        userDetails.getAuthorities());
-                        SecurityContextHolder.getContext().setAuthentication(authentication);
-                    } catch (BadCredentialsException | AuthenticationSystemException | EntitlementException
-                        | UserNotFoundException e) {
-                        crafterLogger.error("Unable to authenticate user using authentication headers.", e);
+                    if (StringUtils.isNotEmpty(usernameHeader)) {
+                        try {
+                            securityService.authenticate(usernameHeader, RandomStringUtils.randomAlphanumeric(16));
+                            UserDetails userDetails = this.userDetailsManager.loadUserByUsername(usernameHeader);
+                            UsernamePasswordAuthenticationToken authentication =
+                                    new UsernamePasswordAuthenticationToken(userDetails, null,
+                                            userDetails.getAuthorities());
+                            SecurityContextHolder.getContext().setAuthentication(authentication);
+                        } catch (BadCredentialsException | AuthenticationSystemException | EntitlementException
+                                | UserNotFoundException e) {
+                            crafterLogger.error("Unable to authenticate user using authentication headers.", e);
+                        }
+                    } else {
+                        crafterLogger.warn("Unable to authenticate user (" + usernameHeader +
+                                        ") using authentication headers." );
                     }
                 }
             }
