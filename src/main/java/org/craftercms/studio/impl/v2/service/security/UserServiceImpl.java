@@ -268,10 +268,10 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public LogoutUrl getCurrentUserLogoutUrl() throws AuthenticationException, ServiceLayerException {
+    public String getCurrentUserSsoLogoutUrl() throws AuthenticationException, ServiceLayerException {
         Authentication authentication = securityProvider.getAuthentication();
         if (authentication != null) {
-            return configurationService.getLogoutUrl(authentication.getAuthenticationType());
+            return configurationService.getSsoLogoutUrl(authentication.getAuthenticationType());
         } else {
             throw new AuthenticationException("User should be authenticated");
         }

@@ -59,7 +59,7 @@ public interface UserService {
 
     List<String> getCurrentUserSiteRoles(String site) throws AuthenticationException, ServiceLayerException;
 
-    LogoutUrl getCurrentUserLogoutUrl() throws AuthenticationException, ServiceLayerException;
+    String getCurrentUserSsoLogoutUrl() throws AuthenticationException, ServiceLayerException;
 
     /*
      TODO: All methods below here should be part of the internal service.
