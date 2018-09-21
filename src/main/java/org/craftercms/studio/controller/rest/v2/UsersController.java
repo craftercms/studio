@@ -30,7 +30,6 @@ import org.craftercms.studio.api.v2.service.security.GroupService;
 import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.impl.v2.utils.PaginationUtils;
 import org.craftercms.studio.model.AuthenticatedUser;
-import org.craftercms.studio.model.LogoutUrl;
 import org.craftercms.studio.model.Site;
 import org.craftercms.studio.model.User;
 import org.craftercms.studio.model.rest.*;
@@ -40,7 +39,6 @@ import org.springframework.http.MediaType;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.Collections;
 import java.util.List;
 
@@ -351,16 +349,17 @@ public class UsersController {
     }
 
     /**
-     * Get the logout URL for the current authenticated user. Response entity can be null if logout is disabled
+     * Get the SSO SP logout URL for the current authenticated user. The system should redirect to this logout URL
+     * <strong>AFTER</strong> local logout. Response entity can be null if user is not authenticated through SSO
+     * or if logout is disabled
      *
-     * @return Response containing logout URL for the current authenticated user
+     * @return Response containing SSO logout URL for the current authenticated user
      */
-    @GetMapping("/api/2/user/logout/url")
-    public ResponseBody getCurrentUserLogoutUrl(HttpServletRequest request) throws ServiceLayerException,
-                                                                                   AuthenticationException {
-        LogoutUrl logoutUrl = userService.getCurrentUserLogoutUrl();
+    @GetMapping("/api/2/user/logout/sso/url")
+    public ResponseBody getCurrentUserSsoLogoutUrl() throws ServiceLayerException, AuthenticationException {
+        String logoutUrl = userService.getCurrentUserSsoLogoutUrl();
 
-        ResultOne<LogoutUrl> result = new ResultOne<>();
+        ResultOne<String> result = new ResultOne<>();
         result.setResponse(ApiResponse.OK);
         result.setEntity(logoutUrl);
 

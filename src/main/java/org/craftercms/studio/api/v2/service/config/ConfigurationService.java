@@ -19,7 +19,6 @@ package org.craftercms.studio.api.v2.service.config;
 
 import org.craftercms.studio.api.v2.exception.ConfigurationException;
 import org.craftercms.studio.model.AuthenticationType;
-import org.craftercms.studio.model.LogoutUrl;
 
 import java.util.List;
 import java.util.Map;
@@ -33,6 +32,6 @@ public interface ConfigurationService {
 
     Map<String, List<String>> geRoleMappings(String siteId) throws ConfigurationException;
 
-    LogoutUrl getLogoutUrl(AuthenticationType authType) throws ConfigurationException;
+    String getSsoLogoutUrl(AuthenticationType authType) throws ConfigurationException;
 
 }

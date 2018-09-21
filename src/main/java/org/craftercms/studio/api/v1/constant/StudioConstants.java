@@ -56,7 +56,7 @@ package org.craftercms.studio.api.v1.constant;
    String PATTERN_SANDBOX = "\\$\\{sandbox\\}";
    String PATTERN_SITE = "\\{site\\}";
    String PATTERN_WEB_PROJECT = "\\$\\{webproject\\}";
-   String PATTERN_CONTEXT_PATH = "\\{contextPath\\}";
+   String PATTERN_LOGIN_URL = "\\{loginUrl\\}";
 
    /** Studio Structure Constants **/
    String DESCRIPTOR_ROOT_PATH  = "/site";
@@ -167,10 +167,9 @@ package org.craftercms.studio.api.v1.constant;
     String HTTP_SESSION_ATTRIBUTE_AUTHENTICATION = "studio_authentication";
 
     /**
-     * Logout constants
+     * Login constants
      */
-    String DEFAULT_LOGOUT_URL = "{contextPath}/api/1/services/api/1/security/logout.json";
-    String DEFAULT_LOGOUT_METHOD = "POST";
+    String LOGIN_URL = "#/login";
 
     int DEFAULT_ORGANIZATION_ID = 1;
 }

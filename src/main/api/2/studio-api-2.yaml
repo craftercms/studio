@@ -953,13 +953,16 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /user/logout/url:
+  /user/logout/sso/url:
     get:
       tags:
       - user
-      summary: Get the logout URL for the current authenticated user. Response entity can be null if logout is disabled
-      description:  'Required Permission: "LOGGED_IN"'
-      operationId: getCurrentUserLogoutUrl
+      summary: Get the SSO Service Provide logout URL for the current authenticated user.
+      description: |-
+        * Required Permission: "LOGGED_IN".
+        * The system should redirect to this logout URL `AFTER` local logout. Response entity can be null if user is
+        not authenticated through SSO or if logout is disabled
+      operationId: getCurrentUserSsoLogoutUrl
       responses:
         '200':
           description: OK
@@ -974,7 +977,7 @@ paths:
                       response:
                         $ref: '#/components/schemas/ApiResponse'
                       entity:
-                        $ref: '#/components/schemas/LogoutUrl'
+                        type: string
         '401':
           $ref: '#/components/responses/Unauthorized'
         '500':
@@ -1134,15 +1137,6 @@ components:
         desc:
           type: string
           description: Site description
-    LogoutUrl:
-      type: object
-      properties:
-        url:
-          type: string
-          description: The actual URL
-        method:
-          type: string
-          description: The HTTP method the URL responds to
     MenuItem:
       type: object
       properties:
