@@ -118,10 +118,6 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         return studioConfiguration.getProperty(AUTHENTICATION_HEADERS_LOGOUT_URL);
     }
 
-    private String getAuthenticationHeadersLogoutMethod() {
-        return studioConfiguration.getProperty(AUTHENTICATION_HEADERS_LOGOUT_METHOD);
-    }
-
     @Required
     public void setContentService(ContentService contentService) {
         this.contentService = contentService;
