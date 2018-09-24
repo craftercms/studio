@@ -88,8 +88,8 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             RequestContext requestContext = RequestContext.getCurrent();
 
             if (requestContext != null) {
-                String loginUrl = HttpUtils.getFullUrl(requestContext.getRequest(), LOGIN_URL);
-                logoutUrl = logoutUrl.replaceFirst(PATTERN_LOGIN_URL, loginUrl);
+                String baseUrl = HttpUtils.getFullUrl(requestContext.getRequest(), "");
+                logoutUrl = logoutUrl.replaceFirst(PATTERN_BASE_URL, baseUrl);
             }
 
             return logoutUrl;
