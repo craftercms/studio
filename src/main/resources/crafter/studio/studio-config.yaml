@@ -223,7 +223,7 @@ studio.authentication.headers.groups: groups
 studio.authentication.headers.logout.enabled: false
 # If logout is enabled for headers authenticated users (SSO), set the URL where SP (Service Provider) logout is provided
 # (to be called after local logout)
-studio.authentication.headers.logout.url: /mellon/logout?RedirectTo={loginUrl}
+studio.authentication.headers.logout.url: /mellon/logout?ReturnTo={loginUrl}
 
 ###############################################################
 ##               Page Navigation Order Service               ##
