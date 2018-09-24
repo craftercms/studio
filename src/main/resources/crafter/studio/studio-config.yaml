@@ -221,9 +221,10 @@ studio.authentication.headers.email: email
 studio.authentication.headers.groups: groups
 # Enable/disable logout for headers authenticated users (SSO)
 studio.authentication.headers.logout.enabled: false
-# If logout is enabled for headers authenticated users (SSO), set the URL where SP (Service Provider) logout is provided
-# (to be called after local logout)
-studio.authentication.headers.logout.url: /mellon/logout?RedirectTo={loginUrl}
+# If logout is enabled for headers authenticated users (SSO), set the endpoint of the SP or IdP logout, which should
+# be called after local logout. The {baseUrl} macro is provided so that the browser is redirected back to Studio
+# after logout (https://STUDIO_SERVER:STUDIO_PORT/studio)
+studio.authentication.headers.logout.url: /mellon/logout?ReturnTo={baseUrl}
 
 ###############################################################
 ##               Page Navigation Order Service               ##

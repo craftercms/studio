@@ -88,8 +88,8 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             RequestContext requestContext = RequestContext.getCurrent();
 
             if (requestContext != null) {
-                String loginUrl = HttpUtils.getFullUrl(requestContext.getRequest(), LOGIN_URL);
-                logoutUrl = logoutUrl.replaceFirst(PATTERN_LOGIN_URL, loginUrl);
+                String baseUrl = HttpUtils.getFullUrl(requestContext.getRequest(), "");
+                logoutUrl = logoutUrl.replaceFirst(PATTERN_BASE_URL, baseUrl);
             }
 
             return logoutUrl;
@@ -116,10 +116,6 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
     private String getAuthenticationHeadersLogoutUrl() {
         return studioConfiguration.getProperty(AUTHENTICATION_HEADERS_LOGOUT_URL);
-    }
-
-    private String getAuthenticationHeadersLogoutMethod() {
-        return studioConfiguration.getProperty(AUTHENTICATION_HEADERS_LOGOUT_METHOD);
     }
 
     @Required
