@@ -38,7 +38,6 @@ import org.craftercms.studio.api.v2.service.security.SecurityProvider;
 import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.OrganizationServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
-import org.craftercms.studio.model.User;
 
 import java.util.List;
 import java.util.Map;
@@ -107,7 +106,7 @@ public class GroupServiceImpl implements GroupService {
     @HasPermission(type = DefaultPermission.class, action = "delete_groups")
     public void deleteGroup(List<Long> groupIds) throws ServiceLayerException {
         try {
-            GroupTO g = getGroupByName(SYSTEM_ADMIN_GROUP);
+            GroupTO g = groupServiceInternal.getGroupByName(SYSTEM_ADMIN_GROUP);
             if (CollectionUtils.isNotEmpty(groupIds)) {
                 if (groupIds.contains(g.getId())) {
                     throw new ServiceLayerException("Deleting the System Admin group is not allowed.");
@@ -146,9 +145,9 @@ public class GroupServiceImpl implements GroupService {
         generalLockService.lock(REMOVE_SYSTEM_ADMIN_MEMBER_LOCK);
         try {
             if (g.getGroupName().equals(SYSTEM_ADMIN_GROUP)) {
-                List<User> members = getGroupMembers(groupId, 0, Integer.MAX_VALUE, StringUtils.EMPTY);
+                List<UserTO> members = getGroupMembers(groupId, 0, Integer.MAX_VALUE, StringUtils.EMPTY);
                 if (CollectionUtils.isNotEmpty(members)) {
-                    List<User> membersAfterRemove = new ArrayList<User>();
+                    List<UserTO> membersAfterRemove = new ArrayList<User>();
                     membersAfterRemove.addAll(members);
                     members.forEach(m -> {
                         if (CollectionUtils.isNotEmpty(userIds)) {

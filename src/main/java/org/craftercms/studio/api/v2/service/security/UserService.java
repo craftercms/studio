@@ -30,7 +30,7 @@ import java.util.List;
 
 public interface UserService {
 
-    List<User> getAllUsersForSite(long orgId, String site, int offset, int limit,
+    List<UserTO> getAllUsersForSite(long orgId, String site, int offset, int limit,
                                   String sort) throws ServiceLayerException;
 
     List<UserTO> getAllUsers(int offset, int limit, String sort) throws ServiceLayerException;
@@ -62,13 +62,4 @@ public interface UserService {
     List<String> getCurrentUserSiteRoles(String site) throws AuthenticationException, ServiceLayerException;
 
     String getCurrentUserSsoLogoutUrl() throws AuthenticationException, ServiceLayerException;
-
-    /*
-     TODO: All methods below here should be part of the internal service.
-     */
-
-    List<GroupTO> getUserGroups(long userId, String username) throws ServiceLayerException;
-
-    boolean isUserMemberOfGroup(String username, String groupName) throws ServiceLayerException;
-
 }

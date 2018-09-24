@@ -189,7 +189,7 @@ public class UserServiceImpl implements UserService {
         List<Site> sites = new ArrayList<>();
         Set<String> allSites = siteService.getAllAvailableSites();
         List<GroupTO> userGroups = userServiceInternal.getUserGroups(userId, username);
-        boolean isSysAdmin = isUserMemberOfGroup(username, SYSTEM_ADMIN_GROUP);
+        boolean isSysAdmin = userServiceInternal.isUserMemberOfGroup(username, SYSTEM_ADMIN_GROUP);
 
         // Iterate all sites. If the user has any of the site groups, it has access to the site
         for (String siteId : allSites) {
@@ -214,10 +214,10 @@ public class UserServiceImpl implements UserService {
     @Override
     @HasPermission(type = DefaultPermission.class, action = "read_users")
     public List<String> getUserSiteRoles(long userId, String username, String site) throws ServiceLayerException {
-        List<GroupTO> groups = getUserGroups(userId, username);
+        List<GroupTO> groups = userServiceInternal.getUserGroups(userId, username);
 
         if (CollectionUtils.isNotEmpty(groups)) {
-            Map<String, List<String>> roleMappings = configurationService.getSiteRoleMappingsConfig(site);
+            Map<String, List<String>> roleMappings = configurationService.geRoleMappings(site);
             Set<String> userRoles = new LinkedHashSet<>();
 
             if (MapUtils.isNotEmpty(roleMappings)) {
@@ -283,6 +283,16 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+    @Override
+    public String getCurrentUserSsoLogoutUrl() throws AuthenticationException, ServiceLayerException {
+        Authentication authentication = securityProvider.getAuthentication();
+        if (authentication != null) {
+            return configurationService.getSsoLogoutUrl(authentication.getAuthenticationType());
+        } else {
+            throw new AuthenticationException("User should be authenticated");
+        }
+    }
+
     public UserServiceInternal getUserServiceInternal() {
         return userServiceInternal;
     }
@@ -295,8 +305,8 @@ public class UserServiceImpl implements UserService {
         return groupServiceInternal;
     }
 
-    public void setGroupServiceInternal(GroupServiceInternal groupService) {
-        this.groupServiceInternal = groupService;
+    public void setGroupServiceInternal(GroupServiceInternal groupServiceInternal) {
+        this.groupServiceInternal = groupServiceInternal;
     }
 
     public ConfigurationService getConfigurationService() {
