@@ -108,13 +108,6 @@ public class LdapAuthenticationProvider extends BaseAuthenticationProvider {
     private int groupNameLdapAttributeMatchIndex;
     private String emailLdapAttribute;
 
-    private StudioConfiguration studioConfiguration;
-    private UserServiceInternal userServiceInternal;
-    private ActivityService activityService;
-
-    private UserDAO userDao;
-    private GroupDAO groupDAO;
-
     @Override
     public boolean doAuthenticate(HttpServletRequest request, HttpServletResponse response, AuthenticationChain authenticationChain) {
         String username = request.getParameter("username");
@@ -207,6 +200,9 @@ public class LdapAuthenticationProvider extends BaseAuthenticationProvider {
 
         if (userTO != null) {
             // When user authenticated against LDAP, upsert user data into studio database
+            UserServiceInternal userServiceInternal = authenticationChain.getUserServiceInternal();
+            ActivityService activityService = authenticationChain.getActivityService();
+            StudioConfiguration studioConfiguration = authenticationChain.getStudioConfiguration();
             try {
                 if (userServiceInternal.userExists(username)) {
                         userServiceInternal.updateUser(userTO);
@@ -214,7 +210,8 @@ public class LdapAuthenticationProvider extends BaseAuthenticationProvider {
                         ActivityService.ActivityType activityType = ActivityService.ActivityType.UPDATED;
                         Map<String, String> extraInfo = new HashMap<>();
                         extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
-                        activityService.postActivity(getSystemSite(), userTO.getUsername(), userTO.getUsername(),
+                        activityService.postActivity(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE),
+                                userTO.getUsername(), userTO.getUsername(),
                                 activityType, ActivityService.ActivitySource.API, extraInfo);
 
                 } else {
@@ -223,7 +220,8 @@ public class LdapAuthenticationProvider extends BaseAuthenticationProvider {
                         ActivityService.ActivityType activityType = ActivityService.ActivityType.CREATED;
                         Map<String, String> extraInfo = new HashMap<>();
                         extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
-                        activityService.postActivity(getSystemSite(), userTO.getUsername(), userTO.getUsername(),
+                        activityService.postActivity(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE),
+                                userTO.getUsername(), userTO.getUsername(),
                                 activityType, ActivityService.ActivitySource.API, extraInfo);
                     } catch (UserAlreadyExistsException e) {
                         logger.error("Error adding user " + username + " from external authentication provider",
@@ -235,10 +233,10 @@ public class LdapAuthenticationProvider extends BaseAuthenticationProvider {
             }
 
             for (UserGroupTO userGroup : userTO.getGroups()) {
-                upsertUserGroup(userGroup.getGroup().getGroupName(), userTO.getUsername());
+                upsertUserGroup(userGroup.getGroup().getGroupName(), userTO.getUsername(), authenticationChain);
             }
 
-            String token = createToken(userTO);
+            String token = createToken(userTO, authenticationChain);
 
             storeAuthentication(new Authentication(username, token, AuthenticationType.LDAP));
 
@@ -247,20 +245,6 @@ public class LdapAuthenticationProvider extends BaseAuthenticationProvider {
             logger.error("Failed to retrieve LDAP user details");
 
             return false;
-        }
-    }
-
-    protected String createToken(UserTO user) {
-        int timeout = Integer.parseInt(studioConfiguration.getProperty(SECURITY_SESSION_TIMEOUT));
-        String token = SessionTokenUtils.createToken(user.getUsername(), timeout);
-        return token;
-    }
-
-    protected void storeAuthentication(Authentication authentication) {
-        RequestContext context = RequestContext.getCurrent();
-        if(context != null) {
-            HttpSession httpSession = context.getRequest().getSession();
-            httpSession.setAttribute(HTTP_SESSION_ATTRIBUTE_AUTHENTICATION, authentication);
         }
     }
 
@@ -306,20 +290,22 @@ public class LdapAuthenticationProvider extends BaseAuthenticationProvider {
         userTO.getGroups().add(userGroup);
     }
 
-    protected boolean upsertUserGroup(String groupName, String username) {
-
+    protected boolean upsertUserGroup(String groupName, String username, AuthenticationChain authenticationChain) {
+        UserDAO userDao = authenticationChain.getUserDao();
+        GroupDAO groupDao = authenticationChain.getGroupDao();
+        ActivityService activityService = authenticationChain.getActivityService();
         try {
             Map<String, Object> params = new HashMap<>();
             params.put(ORG_ID, DEFAULT_ORGANIZATION_ID);
             params.put(GROUP_NAME, groupName);
             params.put(GROUP_DESCRIPTION, "Externally managed group - " + groupName);
-            groupDAO.createGroup(params);
+            groupDao.createGroup(params);
         } catch (Exception e) {
             logger.warn("Error creating group", e);
         }
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(GROUP_NAME, groupName);
-        GroupTO groupTO = groupDAO.getGroupByName(params);
+        GroupTO groupTO = groupDao.getGroupByName(params);
         if (groupTO != null) {
             List<String> usernames = new ArrayList<String>();
             params = new HashMap<>();
@@ -333,7 +319,7 @@ public class LdapAuthenticationProvider extends BaseAuthenticationProvider {
             params.put(USER_IDS, users);
             params.put(GROUP_ID, groupTO.getId());
             try {
-                groupDAO.addGroupMembers(params);
+                groupDao.addGroupMembers(params);
 
                 ActivityService.ActivityType activityType = ActivityService.ActivityType.ADD_USER_TO_GROUP;
                 Map<String, String> extraInfo = new HashMap<>();
@@ -345,10 +331,6 @@ public class LdapAuthenticationProvider extends BaseAuthenticationProvider {
             }
         }
         return true;
-    }
-
-    private String getSystemSite() {
-        return studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE);
     }
 
     public String getLdapUrl() {
@@ -437,45 +419,5 @@ public class LdapAuthenticationProvider extends BaseAuthenticationProvider {
 
     public void setEmailLdapAttribute(String emailLdapAttribute) {
         this.emailLdapAttribute = emailLdapAttribute;
-    }
-
-    public StudioConfiguration getStudioConfiguration() {
-        return studioConfiguration;
-    }
-
-    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
-        this.studioConfiguration = studioConfiguration;
-    }
-
-    public UserServiceInternal getUserServiceInternal() {
-        return userServiceInternal;
-    }
-
-    public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
-        this.userServiceInternal = userServiceInternal;
-    }
-
-    public ActivityService getActivityService() {
-        return activityService;
-    }
-
-    public void setActivityService(ActivityService activityService) {
-        this.activityService = activityService;
-    }
-
-    public UserDAO getUserDao() {
-        return userDao;
-    }
-
-    public void setUserDao(UserDAO userDao) {
-        this.userDao = userDao;
-    }
-
-    public GroupDAO getGroupDAO() {
-        return groupDAO;
-    }
-
-    public void setGroupDAO(GroupDAO groupDAO) {
-        this.groupDAO = groupDAO;
     }
 }

@@ -103,6 +103,9 @@ public class HeadersAuthenticationProvider extends BaseAuthenticationProvider {
                     String groups = request.getHeader(groupsHeader);
 
                     try {
+                        UserServiceInternal userServiceInternal = authenticationChain.getUserServiceInternal();
+                        ActivityService activityService = authenticationChain.getActivityService();
+                        StudioConfiguration studioConfiguration = authenticationChain.getStudioConfiguration();
                         if (userServiceInternal.userExists(usernameHeaderValue)) {
                             UserTO userTO = userServiceInternal.getUserByIdOrUsername(-1, usernameHeaderValue);
                             userTO.setFirstName(firstName);
@@ -116,7 +119,9 @@ public class HeadersAuthenticationProvider extends BaseAuthenticationProvider {
                                         ActivityService.ActivityType activityType = ActivityService.ActivityType.UPDATED;
                                         Map<String, String> extraInfo = new HashMap<String, String>();
                                         extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
-                                        activityService.postActivity(getSystemSite(), usernameHeader, usernameHeader,
+                                        activityService.postActivity(
+                                                studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE),
+                                                usernameHeader, usernameHeader,
                                                 activityType, ActivityService.ActivitySource.API, extraInfo);
 
                                 } catch (Exception e) {
@@ -142,7 +147,9 @@ public class HeadersAuthenticationProvider extends BaseAuthenticationProvider {
                                 ActivityService.ActivityType activityType = ActivityService.ActivityType.CREATED;
                                 Map<String, String> extraInfo = new HashMap<String, String>();
                                 extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
-                                activityService.postActivity(getSystemSite(), usernameHeader, usernameHeader,
+                                activityService.postActivity(
+                                        studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE),
+                                        usernameHeader, usernameHeader,
                                         activityType, ActivityService.ActivitySource.API, extraInfo);
                             } catch (UserAlreadyExistsException | ServiceLayerException e) {
                                 logger.error("Error adding user " + usernameHeaderValue + " from authentication headers", e);
@@ -180,11 +187,11 @@ public class HeadersAuthenticationProvider extends BaseAuthenticationProvider {
                             UserGroupTO ug = new UserGroupTO();
                             ug.setGroup(g);
                             userTO.getGroups().add(ug);
-                            upsertUserGroup(g.getGroupName(), usernameHeader);
+                            upsertUserGroup(g.getGroupName(), usernameHeader, authenticationChain);
                         }
                     }
 
-                    String token = createToken(userTO);
+                    String token = createToken(userTO, authenticationChain);
 
                     storeAuthentication(new Authentication(usernameHeaderValue, token, AuthenticationType.AUTH_HEADERS));
 
@@ -200,8 +207,10 @@ public class HeadersAuthenticationProvider extends BaseAuthenticationProvider {
         }
     }
 
-    protected boolean upsertUserGroup(String groupName, String username) {
-
+    protected boolean upsertUserGroup(String groupName, String username, AuthenticationChain authenticationChain) {
+        GroupDAO groupDao = authenticationChain.getGroupDao();
+        UserDAO userDao = authenticationChain.getUserDao();
+        ActivityService activityService = authenticationChain.getActivityService();
         try {
             Map<String, Object> params = new HashMap<>();
             params.put(ORG_ID, DEFAULT_ORGANIZATION_ID);
@@ -239,10 +248,6 @@ public class HeadersAuthenticationProvider extends BaseAuthenticationProvider {
             }
         }
         return true;
-    }
-
-    private String getSystemSite() {
-        return studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE);
     }
 
     public String getSecureKeyHeader() {
