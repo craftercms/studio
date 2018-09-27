@@ -151,7 +151,14 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "delete_users")
-    public void deleteUsers(List<Long> userIds, List<String> usernames) throws ServiceLayerException {
+    public void deleteUsers(List<Long> userIds, List<String> usernames) throws ServiceLayerException, AuthenticationException {
+        User currentUser = getCurrentUser();
+
+        if (CollectionUtils.containsAny(userIds, Arrays.asList(currentUser.getId())) ||
+                CollectionUtils.containsAny(usernames, Arrays.asList(currentUser.getUsername()))) {
+            throw new ServiceLayerException("Cannot delete current user");
+        }
+
         securityProvider.deleteUsers(userIds, usernames);
     }
 

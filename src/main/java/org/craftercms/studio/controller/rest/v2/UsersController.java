@@ -137,7 +137,7 @@ public class UsersController {
     @DeleteMapping("/api/2/users")
     public ResponseBody deleteUser(@RequestParam(value = "id", required = false) List<Long> userIds,
                            @RequestParam(value = "username", required = false) List<String> usernames)
-        throws ServiceLayerException {
+            throws ServiceLayerException, AuthenticationException {
         ValidationUtils.validateAnyListNonEmpty(userIds, usernames);
 
         userService.deleteUsers(userIds != null? userIds : Collections.emptyList(),
