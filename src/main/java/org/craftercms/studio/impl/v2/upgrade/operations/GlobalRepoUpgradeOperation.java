@@ -43,7 +43,7 @@ public class GlobalRepoUpgradeOperation implements UpgradeOperation {
 
     private static final Logger logger = LoggerFactory.getLogger(GlobalRepoUpgradeOperation.class);
 
-    public static final String CONFIG_KEY_FILES = "file";
+    public static final String CONFIG_KEY_FILES = "files";
 
     /**
      * List of paths to update.

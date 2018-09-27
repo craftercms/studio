@@ -79,7 +79,7 @@ pipeline:
           - configuration/global-permission-mappings-config.xml
           - configuration/global-role-mappings-config.xml
       - type: xsltFileUpgrader
-        source: config/studio/role-mappings-config.xml
+        path: config/studio/role-mappings-config.xml
         template: crafter/studio/upgrade/role-mappings-config-3.1.0.xslt
 
   - version: 3.1.0.1
@@ -87,7 +87,7 @@ pipeline:
       - type: dbScriptUpgrader
         filename: upgrade-to-3.1.0.1.sql
       - type: xsltFileUpgrader
-        source: config/studio/role-mappings-config.xml
+        path: config/studio/role-mappings-config.xml
         template: crafter/studio/upgrade/role-mappings-config-3.1.0.1.xslt
 
   - version: 3.1.0.2

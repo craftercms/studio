@@ -57,7 +57,6 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
      */
     private final static String DB_QUERY_CHECK_SCHEMA_EXISTS =
             "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = 'crafter'";
-    private final static String DB_QUERY_USE_CRAFTER = "use crafter";
     private final static String DB_QUERY_SET_ADMIN_PASSWORD =
             "UPDATE user SET password = '{password}' WHERE username = 'admin'";
 
@@ -67,7 +66,7 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
     protected DbIntegrityValidator integrityValidator;
 
     @Override
-    public void initDataSource()  throws EntitlementException {
+    public void initDataSource() {
         if (isEnabled()) {
             String configureDbScriptPath = getConfigureDBScriptPath();
             String createDbScriptPath = getCreateDBScriptPath();
@@ -100,9 +99,6 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
 
                     if (rs.next()) {
                         logger.debug("Database already exists. Validate the integrity of the database");
-//                        statement.execute(DB_QUERY_USE_CRAFTER);
-//                        TODO: Make this execute after all upgrades are completed
-//                        integrityValidator.validate(conn);
 
                     } else {
                         // Database does not exist

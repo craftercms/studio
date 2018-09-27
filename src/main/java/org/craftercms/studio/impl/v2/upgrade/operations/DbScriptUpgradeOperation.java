@@ -20,6 +20,7 @@ package org.craftercms.studio.impl.v2.upgrade.operations;
 
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.sql.SQLException;
 
 import org.apache.commons.configuration2.Configuration;
 import org.apache.ibatis.jdbc.ScriptRunner;
@@ -27,6 +28,7 @@ import org.craftercms.commons.entitlements.validator.DbIntegrityValidator;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.exception.UpgradeException;
+import org.craftercms.studio.api.v2.exception.UpgradeNotSupportedException;
 import org.craftercms.studio.api.v2.upgrade.UpgradeContext;
 import org.craftercms.studio.api.v2.upgrade.UpgradeOperation;
 import org.springframework.beans.factory.annotation.Required;
@@ -93,6 +95,14 @@ public class DbScriptUpgradeOperation implements UpgradeOperation {
      */
     @Override
     public void execute(final UpgradeContext context) throws UpgradeException {
+        try {
+            integrityValidator.validate(context.getConnection());
+        } catch (SQLException e) {
+            // for backwards compatibility
+            logger.warn("Could not validate database integrity", e);
+        } catch (Exception e) {
+            throw new UpgradeNotSupportedException("The current database version can't be upgraded");
+        }
         Resource scriptFile = new ClassPathResource(scriptFolder).createRelative(fileName);
         logger.info("Executing db script {0}", scriptFile.getFilename());
         try (Reader reader = new InputStreamReader(scriptFile.getInputStream())) {
