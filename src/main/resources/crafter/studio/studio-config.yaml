@@ -215,7 +215,7 @@ studio.authentication.headers.firstName: firstname
 studio.authentication.headers.lastName: lastname
 # Authentication header for email
 studio.authentication.headers.email: email
-# Authentication header for groups: comma separated list of sites and groups
+# Authentication header for groups: comma separated list groups
 #   Example:
 #   site_author,site_xyz_developer
 studio.authentication.headers.groups: groups

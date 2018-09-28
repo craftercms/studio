@@ -45,7 +45,6 @@ import org.craftercms.studio.model.*;
 
 import java.util.*;
 
-import static org.craftercms.studio.api.v1.constant.StudioConstants.SYSTEM_ADMIN_GROUP;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.GROUP_NAME;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.GROUP_NAMES;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LIMIT;
@@ -175,12 +174,11 @@ public class UserServiceImpl implements UserService {
         List<Site> sites = new ArrayList<>();
         Set<String> allSites = siteService.getAllAvailableSites();
         List<Group> userGroups = getUserGroups(userId, username);
-        boolean isSysAdmin = isUserMemberOfGroup(username, SYSTEM_ADMIN_GROUP);
 
         // Iterate all sites. If the user has any of the site groups, it has access to the site
         for (String siteId : allSites) {
             List<String> siteGroups = groupService.getSiteGroups(siteId);
-            if (isSysAdmin || userGroups.stream().anyMatch(userGroup -> siteGroups.contains(userGroup.getName()))) {
+            if (userGroups.stream().anyMatch(userGroup -> siteGroups.contains(userGroup.getName()))) {
                 try {
                     SiteFeed siteFeed = siteService.getSite(siteId);
                     Site site = new Site();

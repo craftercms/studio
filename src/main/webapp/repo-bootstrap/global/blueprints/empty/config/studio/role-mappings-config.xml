@@ -7,6 +7,9 @@
 
     <role-mappings>
         <groups>
+            <group name="system_admin">
+                <role>admin</role>
+            </group>
             <group name="site_admin">
                 <role>admin</role>
             </group>
@@ -34,6 +37,9 @@
 -->
 <role-mappings>
     <groups>
+        <group name="system_admin">
+            <role>admin</role>
+        </group>
         <group name="site_admin">
             <role>admin</role>
         </group>
