@@ -16,14 +16,13 @@
  *
  */
 
-package org.craftercms.studio.impl.v2.upgrade;
+package org.craftercms.studio.impl.v2.upgrade.pipeline;
 
 import java.util.List;
 
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.exception.UpgradeException;
-import org.craftercms.studio.api.v2.upgrade.UpgradeContext;
 import org.craftercms.studio.api.v2.upgrade.UpgradePipeline;
 import org.craftercms.studio.api.v2.upgrade.UpgradeOperation;
 
@@ -48,12 +47,12 @@ public class DefaultUpgradePipelineImpl implements UpgradePipeline {
      * {@inheritDoc}
      */
     @Override
-    public void execute(final UpgradeContext context) throws UpgradeException {
+    public void execute(final String site) throws UpgradeException {
         logger.info("============================================================");
         logger.info("Starting execution of upgrade pipeline");
         for(UpgradeOperation operation : operations) {
             logger.info("------- Starting execution of operation {0} -------", operation.getClass().getSimpleName());
-            operation.execute(context);
+            operation.execute(site);
             logger.info("------- Execution of operation completed -------");
         }
         logger.info("Execution of pipeline completed");

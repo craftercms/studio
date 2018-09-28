@@ -918,73 +918,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     logger.error("error creating initial commit for global configuration", err);
                 }
             } else {
-                // rsync blueprints
-                Path globalConfigPath = helper.buildRepoPath(GitRepositories.GLOBAL);
-                Path blueprintsPath = Paths.get(globalConfigPath.toAbsolutePath().toString(),
-                        studioConfiguration.getProperty(BLUE_PRINTS_PATH));
-
-                String studioManifestLocation = this.ctx.getRealPath(STUDIO_MANIFEST_LOCATION);
-                String blueprintsManifestLocation = Paths.get(blueprintsPath.toAbsolutePath().toString(),
-                        "BLUEPRINTS.MF").toAbsolutePath().toString();
-                boolean blueprintManifestExists = Files.exists(Paths.get(blueprintsManifestLocation));
-                InputStream studioManifestStream = FileUtils.openInputStream(new File(studioManifestLocation));
-                Manifest studioManifest = new Manifest(studioManifestStream);
-                VersionMonitor studioVersion = VersionMonitor.getVersion(studioManifest);
-                InputStream blueprintsManifestStream = null;
-                Manifest blueprintsManifest = null;
-                VersionMonitor blueprintsVersion = null;
-                if (blueprintManifestExists) {
-                    blueprintsManifestStream = FileUtils.openInputStream(new File(blueprintsManifestLocation));
-                    blueprintsManifest = new Manifest(blueprintsManifestStream);
-                    blueprintsVersion = VersionMonitor.getVersion(blueprintsManifest);
-                }
-
-                if (!blueprintManifestExists ||
-                        !StringUtils.equals(studioVersion.getBuild(), blueprintsVersion.getBuild()) ||
-                        (StringUtils.equals(studioVersion.getBuild(), blueprintsVersion.getBuild()) &&
-                                !StringUtils.equals(studioVersion.getBuild_date(), blueprintsVersion.getBuild_date())
-                        )) {
-                    String bootstrapBlueprintsFolderPath = this.ctx.getRealPath(FILE_SEPARATOR +
-                            BOOTSTRAP_REPO_PATH + FILE_SEPARATOR + BOOTSTRAP_REPO_GLOBAL_PATH + FILE_SEPARATOR +
-                            studioConfiguration.getProperty(BLUE_PRINTS_PATH));
-                    File bootstrapBlueprintsFolder = new File(bootstrapBlueprintsFolderPath);
-                    File[] blueprintFolders = bootstrapBlueprintsFolder.listFiles(new FileFilter() {
-                        @Override
-                        public boolean accept(File pathname) {
-                            return pathname.isDirectory();
-                        }
-                    });
-                    for (File blueprintFolder : blueprintFolders) {
-                        String blueprintName = blueprintFolder.getName();
-                        FileUtils.deleteDirectory(
-                                Paths.get(blueprintsPath.toAbsolutePath().toString(), blueprintName).toFile());
-                        TreeCopier tc = new TreeCopier(Paths.get(blueprintFolder.getAbsolutePath()),
-                                Paths.get(blueprintsPath.toAbsolutePath().toString(), blueprintName));
-                        EnumSet<FileVisitOption> opts = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
-                        Files.walkFileTree(Paths.get(blueprintFolder.getAbsolutePath()), opts, Integer.MAX_VALUE, tc);
-                    }
-
-                    FileUtils.copyFile(Paths.get(studioManifestLocation).toFile(),
-                            Paths.get(globalConfigPath.toAbsolutePath().toString(),
-                                    studioConfiguration.getProperty(BLUE_PRINTS_PATH), "BLUEPRINTS.MF").toFile());
-                }
-
-                Repository globalRepo = helper.getRepository(StringUtils.EMPTY, GitRepositories.GLOBAL);
-                try (Git git = new Git(globalRepo)) {
-
-                    Status status = git.status().call();
-
-                    if (status.hasUncommittedChanges() || !status.isClean()) {
-                        // Commit everything
-                        // TODO: Consider what to do with the commitId in the future
-                        git.add().addFilepattern(GIT_COMMIT_ALL_ITEMS).call();
-                        git.commit().setAll(true).setMessage(BLUEPRINTS_UPDATED_COMMIT).call();
-                    }
-
-                    git.close();
-                } catch (GitAPIException err) {
-                    logger.error("error creating initial commit for global configuration", err);
-                }
+                
             }
         }
 

@@ -29,9 +29,7 @@ import javax.xml.transform.stream.StreamSource;
 import org.apache.commons.configuration2.Configuration;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v2.exception.UpgradeException;
-import org.craftercms.studio.api.v2.upgrade.UpgradeContext;
 import org.craftercms.studio.api.v2.upgrade.UpgradeOperation;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
@@ -42,7 +40,7 @@ import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.PARAM_KEY_SI
  * Implementation if {@link UpgradeOperation} that updates a file using a XSLT template.
  * @author joseross
  */
-public class XsltFileUpgradeOperation implements UpgradeOperation {
+public class XsltFileUpgradeOperation extends AbstractUpgradeOperation {
 
     private static final Logger logger = LoggerFactory.getLogger(XsltFileUpgradeOperation.class);
 
@@ -74,26 +72,22 @@ public class XsltFileUpgradeOperation implements UpgradeOperation {
      * {@inheritDoc}
      */
     @Override
-    public void execute(final UpgradeContext context) throws UpgradeException {
-        ContentRepository contentRepository = context.getContentRepository();
+    public void execute(final String site) throws UpgradeException {
         try(InputStream templateIs = template.getInputStream()) {
             // Saxon is used to support XSLT 2.0
             Transformer transformer =
                 TransformerFactory.newInstance(SAXON_CLASS, null)
                     .newTransformer(new StreamSource(templateIs));
-            for(String site : context.getSites()) {
-                logger.info("Applying XSLT template {0} to file {1} for site {2}", template, path, site);
-                if(contentRepository.contentExists(site, path)) {
-                    try(InputStream sourceIs = contentRepository.getContent(site, path)) {
-                        ByteArrayOutputStream os = new ByteArrayOutputStream();
-                        transformer.setParameter(PARAM_KEY_SITE, site);
-                        transformer.transform(new StreamSource(sourceIs), new StreamResult(os));
-                        context.writeToRepo(site, path, new ByteArrayInputStream(os.toByteArray()),
-                            "Upgrade to v" + context.getTargetVersion());
-                    }
-                } else {
-                    logger.warn("Source file {0} doesn't exist in site {1}", path, site);
+            logger.info("Applying XSLT template {0} to file {1} for site {2}", template, path, site);
+            if(contentRepository.contentExists(site, path)) {
+                try(InputStream sourceIs = contentRepository.getContent(site, path)) {
+                    ByteArrayOutputStream os = new ByteArrayOutputStream();
+                    transformer.setParameter(PARAM_KEY_SITE, site);
+                    transformer.transform(new StreamSource(sourceIs), new StreamResult(os));
+                    writeToRepo(site, path, new ByteArrayInputStream(os.toByteArray()), "Site upgrade");
                 }
+            } else {
+                logger.warn("Source file {0} doesn't exist in site {1}", path, site);
             }
         } catch (Exception e) {
             throw new UpgradeException("Error processing file", e);

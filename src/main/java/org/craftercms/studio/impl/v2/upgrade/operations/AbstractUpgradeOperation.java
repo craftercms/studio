@@ -1,22 +1,4 @@
-/*
- * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- */
-
-package org.craftercms.studio.impl.v2.upgrade;
+package org.craftercms.studio.impl.v2.upgrade.operations;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -29,7 +11,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.List;
 import javax.servlet.ServletContext;
 import javax.sql.DataSource;
 
@@ -39,7 +20,7 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
-import org.craftercms.studio.api.v2.upgrade.UpgradeContext;
+import org.craftercms.studio.api.v2.upgrade.UpgradeOperation;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -47,34 +28,14 @@ import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.springframework.core.io.Resource;
-import org.springframework.web.context.ServletContextAware;
 import org.springframework.web.context.support.ServletContextResource;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_ROOT;
 
-/**
- * Default implementation for {@link UpgradeContext}.
- * @author joseross
- */
-public class DefaultUpgradeContext implements UpgradeContext, ServletContextAware {
+public abstract class AbstractUpgradeOperation implements UpgradeOperation {
 
-    private static final Logger logger = LoggerFactory.getLogger(DefaultUpgradeContext.class);
-
-    /**
-     * Current version of the system.
-     */
-    protected String currentVersion;
-
-    /**
-     * Version to which the system will be upgraded.
-     */
-    protected String targetVersion;
-
-    /**
-     * List of all existing sites in the system.
-     */
-    protected List<String> sites;
+    private static final Logger logger = LoggerFactory.getLogger(AbstractUpgradeOperation.class);
 
     /**
      * The Studio configuration.
@@ -96,28 +57,6 @@ public class DefaultUpgradeContext implements UpgradeContext, ServletContextAwar
      */
     protected ServletContext servletContext;
 
-    @Override
-    public String getCurrentVersion() {
-        return currentVersion;
-    }
-
-    public void setCurrentVersion(final String currentVersion) {
-        this.currentVersion = currentVersion;
-    }
-
-    @Override
-    public String getTargetVersion() {
-        return targetVersion;
-    }
-
-    public void setTargetVersion(final String targetVersion) {
-        this.targetVersion = targetVersion;
-    }
-
-    public void setSites(final List<String> sites) {
-        this.sites = sites;
-    }
-
     public void setStudioConfiguration(final StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
     }
@@ -126,42 +65,31 @@ public class DefaultUpgradeContext implements UpgradeContext, ServletContextAwar
         this.dataSource = dataSource;
     }
 
-    @Override
     public Connection getConnection() throws SQLException {
         return dataSource.getConnection();
     }
 
-    @Override
     public ContentRepository getContentRepository() {
         return contentRepository;
-    }
-
-    @Override
-    public List<String> getSites() {
-        return sites;
     }
 
     public void setContentRepository(final ContentRepository contentRepository) {
         this.contentRepository = contentRepository;
     }
 
-    @Override
     public String getProperty(String key) {
         return studioConfiguration.getProperty(key);
     }
 
-    @Override
-    public Resource getServletResource(final String path) {
+    protected Resource getServletResource(final String path) {
         return new ServletContextResource(servletContext, path);
     }
 
-    @Override
     public void setServletContext(final ServletContext servletContext) {
         this.servletContext = servletContext;
     }
 
-    @Override
-    public void writeToRepo(String site, String path, InputStream content, String message) {
+    protected void writeToRepo(String site, String path, InputStream content, String message) {
         try {
             Path repositoryPath = getRepositoryPath(site);
             FileRepositoryBuilder builder = new FileRepositoryBuilder();

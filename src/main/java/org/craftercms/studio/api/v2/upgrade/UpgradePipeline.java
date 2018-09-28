@@ -28,9 +28,8 @@ public interface UpgradePipeline {
 
     /**
      * Executes each {@link UpgradeOperation} for the given context
-     * @param context current upgrade context
      * @throws UpgradeException if any of the {@link UpgradeOperation}s fails
      */
-    void execute(UpgradeContext context) throws UpgradeException;
+    void execute(String site) throws UpgradeException;
 
 }

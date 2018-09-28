@@ -24,7 +24,7 @@
     <bean id="upgradeManager" class="org.craftercms.studio.impl.v2.upgrade.DefaultUpgradeManagerImpl"
           init-method="init" depends-on="databaseInitializer">
         <property name="configurationFile" value="classpath:crafter/studio/upgrade/pipeline.yaml"/>
-        <property name="latestVersion" value="3.1.0.4"/>
+        <property name="latestDbVersion" value="3.1.0.4"/>
         <property name="dataSource" ref="dataSource"/>
         <property name="integrityValidator" ref="crafter.databaseValidator"/>
     </bean>

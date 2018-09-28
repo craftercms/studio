@@ -18,30 +18,25 @@
 
 package org.craftercms.studio.impl.v2.upgrade;
 
-import java.io.InputStream;
 import java.sql.SQLException;
-import java.util.LinkedList;
 import java.util.List;
 
 import javax.sql.DataSource;
 
-import org.apache.commons.configuration2.HierarchicalConfiguration;
-import org.craftercms.commons.config.YamlConfiguration;
 import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.commons.entitlements.validator.DbIntegrityValidator;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v2.exception.UpgradeException;
 import org.craftercms.studio.api.v2.exception.UpgradeNotSupportedException;
-import org.craftercms.studio.api.v2.upgrade.UpgradeContext;
 import org.craftercms.studio.api.v2.upgrade.UpgradeManager;
 import org.craftercms.studio.api.v2.upgrade.UpgradePipeline;
-import org.craftercms.studio.api.v2.upgrade.UpgradeOperation;
+import org.craftercms.studio.api.v2.upgrade.UpgradePipelineFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.core.io.Resource;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.*;
@@ -58,82 +53,49 @@ public class DefaultUpgradeManagerImpl implements UpgradeManager, ApplicationCon
     public static final String SQL_QUERY_SITES_3_0_0 = "select site_id from cstudio_site where system = 0";
     public static final String SQL_QUERY_SITES = "select site_id from site where system = 0";
 
-    protected Resource configurationFile;
-    protected String latestVersion;
+    protected String latestDbVersion;
+    protected String latestSiteVersion;
+
+    protected UpgradePipelineFactory dbPipelineFactory;
+    protected UpgradePipelineFactory sitePipelineFactory;
 
     protected DataSource dataSource;
     protected ApplicationContext appContext;
     protected JdbcTemplate jdbcTemplate;
     protected DbIntegrityValidator integrityValidator;
+    protected ContentRepository contentRepository;
 
     /**
      * {@inheritDoc}
      */
     @Override
-    @SuppressWarnings("rawtypes,unchecked")
-    public UpgradePipeline buildUpgradePipeline(String currentVersion) throws UpgradeException {
-        List<UpgradeOperation> operations = new LinkedList<>();
-        HierarchicalConfiguration config = loadUpgradeConfiguration();
-        List<HierarchicalConfiguration> pipeline = config.configurationsAt(CONFIG_KEY_PIPELINE);
+    public void upgradeSystem(String currentDbVersion) throws UpgradeException {
+        UpgradePipeline pipeline = dbPipelineFactory.getPipeline(currentDbVersion);
+        pipeline.execute(null);
 
-        boolean versionFound = false;
-        for(HierarchicalConfiguration version : pipeline) {
-            if(!version.getString(CONFIG_KEY_VERSION).equals(currentVersion)) {
-                if(versionFound) {
-                    List<HierarchicalConfiguration> operationsConfig = version.configurationsAt(CONFIG_KEY_OPERATIONS);
-                    operationsConfig.forEach(operationConfig -> {
-                        UpgradeOperation operation =
-                            appContext.getBean(operationConfig.getString(CONFIG_KEY_TYPE), UpgradeOperation.class);
-                        operation.init(operationConfig);
-                        operations.add(operation);
-                    });
-                }
-            } else {
-                versionFound = true;
-            }
-        }
-        return new DefaultUpgradePipelineImpl(operations);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public HierarchicalConfiguration loadUpgradeConfiguration() throws UpgradeException {
-        YamlConfiguration configuration = new YamlConfiguration();
-        try (InputStream is = configurationFile.getInputStream()) {
-            configuration.read(is);
-        } catch (Exception e) {
-            throw  new UpgradeException("Error reading configuration file", e);
-        }
-        return configuration;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public UpgradeContext buildUpgradeContext(String currentVersion) {
-        DefaultUpgradeContext context = appContext.getBean(DefaultUpgradeContext.class);
-        context.setCurrentVersion(currentVersion);
-        context.setTargetVersion(latestVersion);
         List<String> sites;
-        if(currentVersion.equals(VERSION_3_0_0)) {
+        if(currentDbVersion.equals(VERSION_3_0_0)) {
             sites = jdbcTemplate.queryForList(SQL_QUERY_SITES_3_0_0, String.class);
         } else {
             sites = jdbcTemplate.queryForList(SQL_QUERY_SITES, String.class);
         }
-        context.setSites(sites);
-        return context;
+
+        for(String site : sites) {
+            upgradeSite(site);
+        }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public void upgrade(String currentVersion) throws UpgradeException {
-        UpgradePipeline pipeline = buildUpgradePipeline(currentVersion);
-        pipeline.execute(buildUpgradeContext(currentVersion));
+    public void upgradeSite(final String site) throws UpgradeException {
+        // check site version
+        String currentSiteVersion = "3.0";
+        if(contentRepository.contentExists(site, "/config/studio/studio_version.xml")) {
+            // read the version from file ...
+        }
+        // get pipeline
+        UpgradePipeline pipeline = sitePipelineFactory.getPipeline(currentSiteVersion);
+        pipeline.execute(site);
+        // update files?
     }
 
     /**
@@ -170,11 +132,11 @@ public class DefaultUpgradeManagerImpl implements UpgradeManager, ApplicationCon
         logger.info("Checking for pending upgrades");
         String currentVersion = getCurrentVersion();
         logger.info("Current version is {0}", currentVersion);
-        if(currentVersion.equals(latestVersion)) {
+        if(currentVersion.equals(latestDbVersion)) {
             logger.info("Already at the latest versions, no upgrades are required");
         } else {
-            logger.info("Starting upgrade to version {0}", latestVersion);
-            upgrade(currentVersion);
+            logger.info("Starting upgradeSystem to version {0}", latestDbVersion);
+            upgradeSystem(currentVersion);
         }
         try {
             integrityValidator.validate(dataSource.getConnection());
@@ -190,13 +152,8 @@ public class DefaultUpgradeManagerImpl implements UpgradeManager, ApplicationCon
     }
 
     @Required
-    public void setConfigurationFile(final Resource configurationFile) {
-        this.configurationFile = configurationFile;
-    }
-
-    @Required
-    public void setLatestVersion(final String latestVersion) {
-        this.latestVersion = latestVersion;
+    public void setLatestDbVersion(final String latestDbVersion) {
+        this.latestDbVersion = latestDbVersion;
     }
 
     @Required
@@ -208,5 +165,11 @@ public class DefaultUpgradeManagerImpl implements UpgradeManager, ApplicationCon
     public void setIntegrityValidator(final DbIntegrityValidator integrityValidator) {
         this.integrityValidator = integrityValidator;
     }
+
+    @Required
+    public void setContentRepository(final ContentRepository contentRepository) {
+        this.contentRepository = contentRepository;
+    }
+
 
 }

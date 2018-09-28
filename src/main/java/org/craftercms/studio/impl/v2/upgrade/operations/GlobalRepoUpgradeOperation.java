@@ -27,7 +27,6 @@ import org.craftercms.commons.lang.UrlUtils;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.exception.UpgradeException;
-import org.craftercms.studio.api.v2.upgrade.UpgradeContext;
 import org.craftercms.studio.api.v2.upgrade.UpgradeOperation;
 import org.springframework.core.io.Resource;
 
@@ -39,7 +38,7 @@ import static org.craftercms.studio.api.v1.util.StudioConfiguration.GLOBAL_REPO_
  * Implementation of {@link UpgradeOperation} that updates files on the global repository.
  * @author joseross
  */
-public class GlobalRepoUpgradeOperation implements UpgradeOperation {
+public class GlobalRepoUpgradeOperation extends AbstractUpgradeOperation {
 
     private static final Logger logger = LoggerFactory.getLogger(GlobalRepoUpgradeOperation.class);
 
@@ -62,11 +61,11 @@ public class GlobalRepoUpgradeOperation implements UpgradeOperation {
      * {@inheritDoc}
      */
     @Override
-    public void execute(final UpgradeContext context) throws UpgradeException {
-        Resource globalConfigurationBootstrap = context.getServletResource(UrlUtils.concat(
+    public void execute(final String site) throws UpgradeException {
+        Resource globalConfigurationBootstrap = getServletResource(UrlUtils.concat(
             FILE_SEPARATOR,
             BOOTSTRAP_REPO_PATH,
-            context.getProperty(GLOBAL_REPO_PATH),
+            getProperty(GLOBAL_REPO_PATH),
             FILE_SEPARATOR)
         );
 
@@ -76,7 +75,7 @@ public class GlobalRepoUpgradeOperation implements UpgradeOperation {
             logger.debug("Upgrading configuration file: {0}", file);
             try (InputStream is = globalConfigurationBootstrap.createRelative(file).getInputStream()) {
 
-                context.writeToRepo(StringUtils.EMPTY, file, is, "Global Repo Upgrade");
+                writeToRepo(StringUtils.EMPTY, file, is, "Global Repo Upgrade");
 
             } catch (IOException e) {
                 throw new UpgradeException("Upgrade for global repo failed", e);

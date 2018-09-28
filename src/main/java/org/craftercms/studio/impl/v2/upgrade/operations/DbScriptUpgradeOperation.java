@@ -20,6 +20,7 @@ package org.craftercms.studio.impl.v2.upgrade.operations;
 
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.sql.Connection;
 import java.sql.SQLException;
 
 import org.apache.commons.configuration2.Configuration;
@@ -29,7 +30,6 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.exception.UpgradeException;
 import org.craftercms.studio.api.v2.exception.UpgradeNotSupportedException;
-import org.craftercms.studio.api.v2.upgrade.UpgradeContext;
 import org.craftercms.studio.api.v2.upgrade.UpgradeOperation;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.core.io.ClassPathResource;
@@ -39,7 +39,7 @@ import org.springframework.core.io.Resource;
  * Implementation of {@link UpgradeOperation} that executes a database script.
  * @author joseross
  */
-public class DbScriptUpgradeOperation implements UpgradeOperation {
+public class DbScriptUpgradeOperation extends AbstractUpgradeOperation {
 
     private static final Logger logger = LoggerFactory.getLogger(DbScriptUpgradeOperation.class);
 
@@ -94,9 +94,9 @@ public class DbScriptUpgradeOperation implements UpgradeOperation {
      * {@inheritDoc}
      */
     @Override
-    public void execute(final UpgradeContext context) throws UpgradeException {
+    public void execute(final String site) throws UpgradeException {
         try {
-            integrityValidator.validate(context.getConnection());
+            integrityValidator.validate(getConnection());
         } catch (SQLException e) {
             // for backwards compatibility
             logger.warn("Could not validate database integrity", e);
@@ -106,14 +106,15 @@ public class DbScriptUpgradeOperation implements UpgradeOperation {
         Resource scriptFile = new ClassPathResource(scriptFolder).createRelative(fileName);
         logger.info("Executing db script {0}", scriptFile.getFilename());
         try (Reader reader = new InputStreamReader(scriptFile.getInputStream())) {
-            ScriptRunner scriptRunner = new ScriptRunner(context.getConnection());
+            Connection connection = getConnection();
+            ScriptRunner scriptRunner = new ScriptRunner(connection);
             scriptRunner.setDelimiter(SQL_DELIMITER);
             scriptRunner.setStopOnError(true);
             scriptRunner.setLogWriter(null);
             scriptRunner.runScript(reader);
-            context.getConnection().commit();
+            connection.commit();
             if(updateIntegrity) {
-                integrityValidator.store(context.getConnection());
+                integrityValidator.store(connection);
             }
         } catch (Exception e) {
             logger.error("Error executing db script", e);

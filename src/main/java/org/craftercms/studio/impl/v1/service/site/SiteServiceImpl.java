@@ -112,6 +112,7 @@ import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.api.v2.service.security.GroupService;
 import org.craftercms.studio.api.v2.service.security.SecurityProvider;
 import org.craftercms.studio.api.v2.service.security.UserService;
+import org.craftercms.studio.api.v2.upgrade.UpgradeManager;
 import org.craftercms.studio.impl.v1.repository.job.RebuildRepositoryMetadata;
 import org.craftercms.studio.impl.v1.repository.job.SyncDatabaseWithRepository;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
@@ -176,6 +177,7 @@ public class SiteServiceImpl implements SiteService {
     protected EventService eventService;
     protected GroupService groupService;
     protected UserService userService;
+    protected UpgradeManager upgradeManager;
 
     protected StudioConfiguration studioConfiguration;
 
@@ -744,6 +746,8 @@ public class SiteServiceImpl implements SiteService {
                 logger.debug("Clone from remote repository create option selected");
                 createSiteCloneRemote(siteId, sandboxBranch, description, remoteName, remoteUrl, remoteBranch, singleBranch,
                         authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey);
+
+                upgradeManager.upgradeSite(siteId);
                 break;
 
             case REMOTE_REPOSITORY_CREATE_OPTION_PUSH:
@@ -2071,4 +2075,9 @@ public class SiteServiceImpl implements SiteService {
     public void setUserService(UserService userService) {
         this.userService = userService;
     }
+
+	public void setUpgradeManager(final UpgradeManager upgradeManager) {
+		this.upgradeManager = upgradeManager;
+	}
+
 }

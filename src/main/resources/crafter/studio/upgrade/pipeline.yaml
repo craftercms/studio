@@ -1,107 +1,114 @@
 # Crafter Studio Upgrade Configuration
 
-pipeline:
+pipelines:
+
+  # Pipeline to upgrade system components (database, global repo, ...)
+  system:
+    - version: 3.0.0
+      operations: # Upgrade from 2.x is not supported so there are no operations for this version
+
+    - version: 3.0.1
+      operations:
+        - type: dbScriptUpgrader
+          filename: upgrade-to-3.0.1.sql
+          updateIntegrity: false # Needs to be set to false in all version previous to 3.0.17
+
+    - version: 3.0.2
+      operations:
+        - type: dbScriptUpgrader
+          filename: upgrade-to-3.0.2.sql
+          updateIntegrity: false
+
+    - version: 3.0.2.1
+      operations:
+        - type: dbScriptUpgrader
+          filename: upgrade-to-3.0.2.1.sql
+          updateIntegrity: false
+
+    - version: 3.0.10
+      operations:
+        - type: dbScriptUpgrader
+          filename: upgrade-to-3.0.10.sql
+          updateIntegrity: false
+
+    - version: 3.0.11
+      operations:
+        - type: dbScriptUpgrader
+          filename: upgrade-to-3.0.11.sql
+          updateIntegrity: false
+
+    - version: 3.0.11.1
+      operations:
+        - type: dbScriptUpgrader
+          filename: upgrade-to-3.0.11.1.sql
+          updateIntegrity: false
+
+    - version: 3.0.11.2
+      operations:
+        - type: dbScriptUpgrader
+          filename: upgrade-to-3.0.11.2.sql
+          updateIntegrity: false
+
+    - version: 3.0.11.3
+      operations:
+        - type: dbScriptUpgrader
+          filename: upgrade-to-3.0.11.3.sql
+          updateIntegrity: false
+
+    - version: 3.0.15
+      operations:
+      - type: dbScriptUpgrader
+        filename: upgrade-to-3.0.15.sql
+        updateIntegrity: false
+
+    - version: 3.0.15.1
+      operations:
+        - type: dbScriptUpgrader
+          filename: upgrade-to-3.0.15.1.sql
+          updateIntegrity: false
+
+    - version: 3.0.17
+      operations:
+      - type: dbScriptUpgrader
+        filename: upgrade-to-3.0.17.sql
+
+    - version: 3.1.0
+      operations:
+        - type: dbScriptUpgrader
+          filename: upgrade-to-3.1.0.sql
+        - type: globalRepoUpgrader
+          files:
+            - configuration/global-menu-config.xml
+            - configuration/global-permission-mappings-config.xml
+            - configuration/global-role-mappings-config.xml
+
+    - version: 3.1.0.1
+      operations:
+        - type: dbScriptUpgrader
+          filename: upgrade-to-3.1.0.1.sql
+
+    - version: 3.1.0.2
+      operations:
+        - type: dbScriptUpgrader
+          filename: upgrade-to-3.1.0.2.sql
+
+    - version: 3.1.0.3
+      operations:
+        - type: dbScriptUpgrader
+          filename: upgrade-to-3.1.0.3.sql
+
+    - version: 3.1.0.4
+      operations:
+        - type: dbScriptUpgrader
+          filename: upgrade-to-3.1.0.4.sql
+          updateIntegrity: false # Because the script only changes content
+
+  # Pipeline to upgrade site repositories
+  site:
   - version: 3.0.0
-    operations: # Upgrade from 2.x is not supported so there are no operations for this version
-
-  - version: 3.0.1
-    operations:
-      - type: dbScriptUpgrader
-        filename: upgrade-to-3.0.1.sql
-        updateIntegrity: false # Needs to be set to false in all version previous to 3.0.17
-
-  - version: 3.0.2
-    operations:
-      - type: dbScriptUpgrader
-        filename: upgrade-to-3.0.2.sql
-        updateIntegrity: false
-
-  - version: 3.0.2.1
-    operations:
-      - type: dbScriptUpgrader
-        filename: upgrade-to-3.0.2.1.sql
-        updateIntegrity: false
-
-  - version: 3.0.10
-    operations:
-      - type: dbScriptUpgrader
-        filename: upgrade-to-3.0.10.sql
-        updateIntegrity: false
-
-  - version: 3.0.11
-    operations:
-      - type: dbScriptUpgrader
-        filename: upgrade-to-3.0.11.sql
-        updateIntegrity: false
-
-  - version: 3.0.11.1
-    operations:
-      - type: dbScriptUpgrader
-        filename: upgrade-to-3.0.11.1.sql
-        updateIntegrity: false
-
-  - version: 3.0.11.2
-    operations:
-      - type: dbScriptUpgrader
-        filename: upgrade-to-3.0.11.2.sql
-        updateIntegrity: false
-
-  - version: 3.0.11.3
-    operations:
-      - type: dbScriptUpgrader
-        filename: upgrade-to-3.0.11.3.sql
-        updateIntegrity: false
-
-  - version: 3.0.15
-    operations:
-    - type: dbScriptUpgrader
-      filename: upgrade-to-3.0.15.sql
-      updateIntegrity: false
-
-  - version: 3.0.15.1
-    operations:
-      - type: dbScriptUpgrader
-        filename: upgrade-to-3.0.15.1.sql
-        updateIntegrity: false
-
-  - version: 3.0.17
-    operations:
-    - type: dbScriptUpgrader
-      filename: upgrade-to-3.0.17.sql
-
+      operations: # Upgrade from 2.x is not supported so there are no operations for this version
   - version: 3.1.0
     operations:
-      - type: dbScriptUpgrader
-        filename: upgrade-to-3.1.0.sql
-      - type: globalRepoUpgrader
-        files:
-          - configuration/global-menu-config.xml
-          - configuration/global-permission-mappings-config.xml
-          - configuration/global-role-mappings-config.xml
-      - type: xsltFileUpgrader
-        path: config/studio/role-mappings-config.xml
-        template: crafter/studio/upgrade/role-mappings-config-3.1.0.xslt
-
-  - version: 3.1.0.1
-    operations:
-      - type: dbScriptUpgrader
-        filename: upgrade-to-3.1.0.1.sql
-      - type: xsltFileUpgrader
-        path: config/studio/role-mappings-config.xml
-        template: crafter/studio/upgrade/role-mappings-config-3.1.0.1.xslt
-
-  - version: 3.1.0.2
-    operations:
-      - type: dbScriptUpgrader
-        filename: upgrade-to-3.1.0.2.sql
-
-  - version: 3.1.0.3
-    operations:
-      - type: dbScriptUpgrader
-        filename: upgrade-to-3.1.0.3.sql
-
-  - version: 3.1.0.4
-    operations:
-      - type: dbScriptUpgrader
-        filename: upgrade-to-3.1.0.4.sql
-        updateIntegrity: false # Because the script only changes content
+    - type: xsltFileUpgrader
+      path: config/studio/role-mappings-config.xml
+      template: crafter/studio/upgrade/role-mappings-config-3.1.0.xslt

@@ -21,7 +21,7 @@
     <!-- update the group name attribute -->
     <xsl:template match="@name">
         <xsl:attribute name="name">
-            <xsl:value-of select="concat($site_id, '_', .)"/>
+            <xsl:value-of select="lower-case(concat($site_id, '_', .))"/>
         </xsl:attribute>
     </xsl:template>
 

@@ -18,7 +18,6 @@
 
 package org.craftercms.studio.api.v2.upgrade;
 
-import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.craftercms.studio.api.v2.exception.UpgradeException;
 import org.craftercms.studio.api.v2.exception.UpgradeNotSupportedException;
 
@@ -29,34 +28,13 @@ import org.craftercms.studio.api.v2.exception.UpgradeNotSupportedException;
 public interface UpgradeManager {
 
     /**
-     * Provides a {@link UpgradePipeline} instance with all upgrades needed for the given version.
-     * @param currentVersion current version of the system
-     * @return the upgrade pipeline
-     * @throws UpgradeException if there is an error configuring the pipeline
-     */
-    UpgradePipeline buildUpgradePipeline(String currentVersion) throws UpgradeException;
-
-    /**
-     * Reads the configuration file that defines the upgrade pipeline.
-     * @return the configuration object
-     * @throws UpgradeException if there is an error reading the configuration file
-     */
-    HierarchicalConfiguration loadUpgradeConfiguration() throws UpgradeException;
-
-
-    /**
-     * Provides an {@link UpgradeContext} instance for the given version.
-     * @param currentVersion current version of the system
-     * @return the upgrade context object
-     */
-    UpgradeContext buildUpgradeContext(String currentVersion);
-
-    /**
      * Executes all required upgrades for the given version.
      * @param currentVersion current version of the system
      * @throws UpgradeException if any of the upgrades fails
      */
-    void upgrade(String currentVersion) throws UpgradeException;
+    void upgradeSystem(String currentVersion) throws UpgradeException;
+
+    void upgradeSite(String site) throws UpgradeException;
 
     /**
      * Provides the current version of the system.

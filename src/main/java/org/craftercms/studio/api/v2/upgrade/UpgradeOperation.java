@@ -34,10 +34,9 @@ public interface UpgradeOperation {
     void init(Configuration config);
 
     /**
-     * Performs the actual upgrades on the given context.
-     * @param context current upgrade context
+     * Performs a single upgrade operation.
      * @throws UpgradeException if there is any error performing the upgrade
      */
-    void execute(UpgradeContext context) throws UpgradeException;
+    void execute(String site) throws UpgradeException;
 
 }
