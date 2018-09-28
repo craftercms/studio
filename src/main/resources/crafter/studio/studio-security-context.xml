@@ -181,4 +181,6 @@
         </property>
     </bean>
 
+    <!-- Authentication chain -->
+    <bean id="crafter.studioAuthenticationChain" class="org.craftercms.studio.impl.v2.service.security.AuthenticationChainImpl"
 </beans>

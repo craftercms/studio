@@ -227,6 +227,8 @@ studio.authentication.headers.logout.enabled: false
 # be called after local logout. The {baseUrl} macro is provided so that the browser is redirected back to Studio
 # after logout (https://STUDIO_SERVER:STUDIO_PORT/studio)
 studio.authentication.headers.logout.url: /mellon/logout?ReturnTo={baseUrl}
+# Studio authentication chain configuration location
+studio.authentication.chain.configLocation: crafter/studio/authentication-chain-config.yaml
 
 ###############################################################
 ##               Page Navigation Order Service               ##

@@ -25,24 +25,45 @@ import org.craftercms.studio.api.v2.dal.UserDAO;
 import org.craftercms.studio.api.v2.service.security.AuthenticationChain;
 import org.craftercms.studio.api.v2.service.security.AuthenticationProvider;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+import org.yaml.snakeyaml.Yaml;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+
+import static org.craftercms.engine.targeting.impl.TargetedContentStoreAdapter.logger;
 
 public class AuthenticationChainImpl implements AuthenticationChain {
 
     private List<AuthenticationProvider> authentitcationChain;
 
+    private String chainConfigLocation;
     private UserServiceInternal userServiceInternal;
     private ActivityService activityService;
     private StudioConfiguration studioConfiguration;
     private UserDAO userDao;
     private GroupDAO groupDao;
 
-    public AuthenticationChainImpl(List<AuthenticationProvider> authentitcationChain) {
-        this.authentitcationChain = authentitcationChain;
+    public void init() {
+        Resource resource = new ClassPathResource(chainConfigLocation);
+        try (InputStream in = resource.getInputStream()) {
+            Yaml yaml = new Yaml();
+            Iterable iterable = yaml.loadAll(in);
+            Iterator<AuthenticationProvider> iterator = iterable.iterator();
+            authentitcationChain = new ArrayList<AuthenticationProvider>();
+            while (iterator.hasNext()) {
+                authentitcationChain.add(iterator.next());
+            }
+            logger.debug("Loaded authentication chain configuration from location: " + authentitcationChain);
+        } catch (IOException e) {
+            logger.error("Failed to load authentication chain configuration from: " + authentitcationChain);
+        }
     }
 
     @Override
@@ -94,5 +115,13 @@ public class AuthenticationChainImpl implements AuthenticationChain {
 
     public void setGroupDao(GroupDAO groupDao) {
         this.groupDao = groupDao;
+    }
+
+    public String getChainConfigLocation() {
+        return chainConfigLocation;
+    }
+
+    public void setChainConfigLocation(String chainConfigLocation) {
+        this.chainConfigLocation = chainConfigLocation;
     }
 }
