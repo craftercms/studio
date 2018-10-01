@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="2.0">
 
-    <xsl:output omit-xml-declaration="no"/>
-
     <!-- define parameter -->
     <xsl:param name="site_id" />
 
@@ -21,7 +19,14 @@
     <!-- update the group name attribute -->
     <xsl:template match="@name">
         <xsl:attribute name="name">
-            <xsl:value-of select="lower-case(concat($site_id, '_', .))"/>
+            <xsl:choose>
+                <xsl:when test="contains(., $site_id)">
+                    <xsl:value-of select="lower-case(.)"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:value-of select="lower-case(concat($site_id, '_', .))"/>
+                </xsl:otherwise>
+            </xsl:choose>
         </xsl:attribute>
     </xsl:template>
 

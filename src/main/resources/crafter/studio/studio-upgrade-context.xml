@@ -27,7 +27,7 @@
         <property name="latestSiteVersion" value="3.1.0"/>
         <property name="managedFiles">
             <list>
-                <value>role-mappings</value>
+                <value>/config/studio/role-mappings-config.xml</value>
             </list>
         </property>
         <property name="dataSource" ref="dataSource"/>
