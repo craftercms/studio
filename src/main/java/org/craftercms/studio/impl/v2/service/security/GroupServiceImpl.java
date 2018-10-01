@@ -94,11 +94,11 @@ public class GroupServiceImpl implements GroupService {
             Group g = getGroupByName(SYSTEM_ADMIN_GROUP);
             if (CollectionUtils.isNotEmpty(groupIds)) {
                 if (groupIds.contains(g.getId())) {
-                    throw new ServiceLayerException("Deleting System Admin group is not allowed.");
+                    throw new ServiceLayerException("Deleting the System Admin group is not allowed.");
                 }
             }
         } catch (GroupNotFoundException e) {
-            throw new ServiceLayerException("Unexpected error. System Admin group not found", e);
+            throw new ServiceLayerException("The System Admin group is not found", e);
         }
         securityProvider.deleteGroup(groupIds);
     }
@@ -147,7 +147,8 @@ public class GroupServiceImpl implements GroupService {
                         }
                     });
                     if (CollectionUtils.isEmpty(membersAfterRemove)) {
-                        throw new ServiceLayerException("Removing all users from System Admin group is not allowed");
+                        throw new ServiceLayerException("Removing all members of the System Admin group is not allowed." +
+                                " We must have at least one system administrator.");
                     }
                 }
             }

@@ -185,11 +185,12 @@ public class UserServiceImpl implements UserService {
                         }
                     });
                     if (CollectionUtils.isEmpty(membersAfterRemove)) {
-                        throw new ServiceLayerException("Removing all users from System Admin group is not allowed");
+                        throw new ServiceLayerException("Removing all members of the System Admin group is not allowed." +
+                                " We must have at least one system administrator.");
                     }
                 }
             } catch (GroupNotFoundException e) {
-                throw new ServiceLayerException("Unexpected error. System Admin group not found", e);
+                throw new ServiceLayerException("The System Admin group is not found.", e);
             }
 
             securityProvider.deleteUsers(userIds, usernames);
