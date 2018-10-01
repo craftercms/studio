@@ -41,7 +41,7 @@ public interface UserService {
 
     void updateUser(User user) throws ServiceLayerException;
 
-    void deleteUsers(List<Long> userIds, List<String> usernames) throws ServiceLayerException;
+    void deleteUsers(List<Long> userIds, List<String> usernames) throws ServiceLayerException, AuthenticationException;
 
     User getUserByIdOrUsername(long userId, String username) throws ServiceLayerException, UserNotFoundException;
 
