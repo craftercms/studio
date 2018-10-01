@@ -5,7 +5,8 @@ pipelines:
   # Pipeline to upgrade system components (database, global repo, ...)
   system:
     - version: 3.0.0
-      operations: # Upgrade from 2.x is not supported so there are no operations for this version
+      # Upgrade from 2.x is not supported so there are no operations for this version
+      operations:
 
     - version: 3.0.1
       operations:
@@ -106,9 +107,31 @@ pipelines:
   # Pipeline to upgrade site repositories
   site:
   - version: 3.0.0
-      operations: # Upgrade from 2.x is not supported so there are no operations for this version
+    # Upgrade from 2.x is not supported so there are no operations for this version
+    operations:
+
   - version: 3.1.0
     operations:
-    - type: xsltFileUpgrader
-      path: config/studio/role-mappings-config.xml
-      template: crafter/studio/upgrade/role-mappings-config-3.1.0.xslt
+    - type: versionFileUpgrader
+      path: config/studio/studio_version.xml
+      template: crafter/studio/upgrade/update-version.xslt
+      defaultFile: crafter/studio/upgrade/studio_version.xml
+
+# Managed Configuration Files
+configurations:
+
+   role-mappings:
+    - version: 3.0.0
+      # Initial version, assumed if the file doesn't contain a version tag
+      operations:
+
+    - version: 3.1.0
+      operations:
+        - type: xsltFileUpgrader
+          path: &role-mappings-config /config/studio/role-mappings-config.xml
+          template: crafter/studio/upgrade/role-mappings-config-3.1.0.xslt
+        - type: xsltFileUpgrader
+          path: *role-mappings-config
+          template: crafter/studio/upgrade/update-version.xslt
+
+

@@ -14,6 +14,7 @@ import java.sql.SQLException;
 import javax.servlet.ServletContext;
 import javax.sql.DataSource;
 
+import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -36,6 +37,8 @@ import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryC
 public abstract class AbstractUpgradeOperation implements UpgradeOperation {
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractUpgradeOperation.class);
+
+    protected String version;
 
     /**
      * The Studio configuration.
@@ -87,6 +90,11 @@ public abstract class AbstractUpgradeOperation implements UpgradeOperation {
 
     public void setServletContext(final ServletContext servletContext) {
         this.servletContext = servletContext;
+    }
+
+    @Override
+    public void init(final String version, final Configuration config) {
+        this.version = version;
     }
 
     protected void writeToRepo(String site, String path, InputStream content, String message) {

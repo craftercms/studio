@@ -48,6 +48,10 @@ public class DefaultUpgradePipelineImpl implements UpgradePipeline {
      */
     @Override
     public void execute(final String site) throws UpgradeException {
+        if(operations == null || operations.isEmpty()) {
+            logger.info("No pending upgrade operations");
+            return;
+        }
         logger.info("============================================================");
         logger.info("Starting execution of upgrade pipeline");
         for(UpgradeOperation operation : operations) {

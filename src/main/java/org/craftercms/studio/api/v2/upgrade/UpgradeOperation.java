@@ -31,7 +31,7 @@ public interface UpgradeOperation {
      * Initializes the instance with the given configuration.
      * @param config upgrader configuration
      */
-    void init(Configuration config);
+    void init(String version, Configuration config);
 
     /**
      * Performs a single upgrade operation.

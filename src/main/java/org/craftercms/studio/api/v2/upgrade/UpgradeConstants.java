@@ -32,5 +32,6 @@ public interface UpgradeConstants {
     String CONFIG_KEY_TYPE = "type";
 
     String PARAM_KEY_SITE = "site_id";
+    String PARAM_KEY_VERSION = "version";
 
 }

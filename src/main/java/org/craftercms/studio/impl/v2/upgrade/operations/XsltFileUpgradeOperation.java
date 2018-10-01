@@ -35,6 +35,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
 import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.PARAM_KEY_SITE;
+import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.PARAM_KEY_VERSION;
 
 /**
  * Implementation if {@link UpgradeOperation} that updates a file using a XSLT template.
@@ -63,7 +64,8 @@ public class XsltFileUpgradeOperation extends AbstractUpgradeOperation {
      * {@inheritDoc}
      */
     @Override
-    public void init(final Configuration config) {
+    public void init(final String version, final Configuration config) {
+        super.init(version, config);
         path = config.getString(CONFIG_KEY_PATH);
         template = new ClassPathResource(config.getString(CONFIG_KEY_TEMPLATE));
     }
@@ -83,6 +85,7 @@ public class XsltFileUpgradeOperation extends AbstractUpgradeOperation {
                 try(InputStream sourceIs = contentRepository.getContent(site, path)) {
                     ByteArrayOutputStream os = new ByteArrayOutputStream();
                     transformer.setParameter(PARAM_KEY_SITE, site);
+                    transformer.setParameter(PARAM_KEY_VERSION, version);
                     transformer.transform(new StreamSource(sourceIs), new StreamResult(os));
                     writeToRepo(site, path, new ByteArrayInputStream(os.toByteArray()), "Site upgrade");
                 }

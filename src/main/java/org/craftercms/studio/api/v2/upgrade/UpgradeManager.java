@@ -28,19 +28,11 @@ import org.craftercms.studio.api.v2.exception.UpgradeNotSupportedException;
 public interface UpgradeManager {
 
     /**
-     * Executes all required upgrades for the given version.
-     * @param currentVersion current version of the system
+     * Executes all required upgrades.
      * @throws UpgradeException if any of the upgrades fails
      */
-    void upgradeSystem(String currentVersion) throws UpgradeException;
+    void upgradeSystem() throws UpgradeException;
 
     void upgradeSite(String site) throws UpgradeException;
-
-    /**
-     * Provides the current version of the system.
-     * @return the version number
-     * @throws UpgradeNotSupportedException if the current version of the system is not suitable for upgrading
-     */
-    String getCurrentVersion() throws UpgradeNotSupportedException;
 
 }

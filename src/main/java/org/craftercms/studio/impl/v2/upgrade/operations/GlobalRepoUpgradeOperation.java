@@ -53,7 +53,8 @@ public class GlobalRepoUpgradeOperation extends AbstractUpgradeOperation {
      * {@inheritDoc}
      */
     @Override
-    public void init(final Configuration config) {
+    public void init(final String version, final Configuration config) {
+        super.init(version, config);
         files = (String[]) config.getArray(String.class, CONFIG_KEY_FILES);
     }
 

@@ -10,6 +10,7 @@ import org.craftercms.studio.api.v2.exception.UpgradeException;
 import org.craftercms.studio.api.v2.upgrade.UpgradeOperation;
 import org.craftercms.studio.api.v2.upgrade.UpgradePipeline;
 import org.craftercms.studio.api.v2.upgrade.UpgradePipelineFactory;
+import org.craftercms.studio.api.v2.upgrade.VersionProvider;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.context.ApplicationContext;
@@ -19,16 +20,28 @@ import org.springframework.core.io.Resource;
 import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.CONFIG_KEY_OPERATIONS;
 import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.CONFIG_KEY_TYPE;
 import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.CONFIG_KEY_VERSION;
-import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.CONFIG_PREFIX_PIPELINE;
 
 public class DefaultUpgradePipelineFactoryImpl implements UpgradePipelineFactory, ApplicationContextAware {
 
     protected Resource configurationFile;
     protected ApplicationContext appContext;
 
+    protected String pipelinePrefix;
     protected String pipelineName;
 
+    public DefaultUpgradePipelineFactoryImpl() {
+        //Default constructor
+    }
+
+    public DefaultUpgradePipelineFactoryImpl(final String pipelineName) {
+        this.pipelineName = pipelineName;
+    }
+
     @Required
+    public void setPipelinePrefix(final String pipelinePrefix) {
+        this.pipelinePrefix = pipelinePrefix;
+    }
+
     public void setPipelineName(final String pipelineName) {
         this.pipelineName = pipelineName;
     }
@@ -54,20 +67,22 @@ public class DefaultUpgradePipelineFactoryImpl implements UpgradePipelineFactory
 
     @Override
     @SuppressWarnings("unchecked")
-    public UpgradePipeline getPipeline(final String currentVersion) throws UpgradeException {
+    public UpgradePipeline getPipeline(VersionProvider versionProvider) throws UpgradeException {
+        String currentVersion = versionProvider.getCurrentVersion();
         List<UpgradeOperation> operations = new LinkedList<>();
         HierarchicalConfiguration config = loadUpgradeConfiguration();
-        List<HierarchicalConfiguration> pipeline = config.configurationsAt(CONFIG_PREFIX_PIPELINE + pipelineName);
+        List<HierarchicalConfiguration> pipeline = config.configurationsAt(pipelinePrefix + "." + pipelineName);
 
         boolean versionFound = false;
-        for(HierarchicalConfiguration version : pipeline) {
-            if(!version.getString(CONFIG_KEY_VERSION).equals(currentVersion)) {
+        for(HierarchicalConfiguration release : pipeline) {
+            String version = release.getString(CONFIG_KEY_VERSION);
+            if(!version.equals(currentVersion)) {
                 if(versionFound) {
-                    List<HierarchicalConfiguration> operationsConfig = version.configurationsAt(CONFIG_KEY_OPERATIONS);
+                    List<HierarchicalConfiguration> operationsConfig = release.configurationsAt(CONFIG_KEY_OPERATIONS);
                     operationsConfig.forEach(operationConfig -> {
                         UpgradeOperation operation =
                             appContext.getBean(operationConfig.getString(CONFIG_KEY_TYPE), UpgradeOperation.class);
-                        operation.init(operationConfig);
+                        operation.init(version, operationConfig);
                         operations.add(operation);
                     });
                 }

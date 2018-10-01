@@ -29,10 +29,10 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v2.exception.UpgradeException;
-import org.craftercms.studio.api.v2.exception.UpgradeNotSupportedException;
 import org.craftercms.studio.api.v2.upgrade.UpgradeManager;
 import org.craftercms.studio.api.v2.upgrade.UpgradePipeline;
 import org.craftercms.studio.api.v2.upgrade.UpgradePipelineFactory;
+import org.craftercms.studio.api.v2.upgrade.VersionProvider;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.context.ApplicationContext;
@@ -45,19 +45,16 @@ public class DefaultUpgradeManagerImpl implements UpgradeManager, ApplicationCon
 
     private static final Logger logger = LoggerFactory.getLogger(DefaultUpgradeManagerImpl.class);
 
-    public static final String SQL_QUERY_META = "SELECT count(*) FROM information_schema.tables WHERE table_schema = "
-        + "'crafter' AND table_name = '_meta' LIMIT 1";
-    public static final String SQL_QUERY_VERSION = "select version from _meta";
-    public static final String SQL_QUERY_GROUP = "SELECT count(*) FROM information_schema.tables WHERE table_schema = "
-        + "'crafter' AND table_name = 'cstudio_group' LIMIT 1";
     public static final String SQL_QUERY_SITES_3_0_0 = "select site_id from cstudio_site where system = 0";
     public static final String SQL_QUERY_SITES = "select site_id from site where system = 0";
 
     protected String latestDbVersion;
     protected String latestSiteVersion;
 
+    protected List<String> managedFiles;
+
+    protected VersionProvider dbVersionProvider;
     protected UpgradePipelineFactory dbPipelineFactory;
-    protected UpgradePipelineFactory sitePipelineFactory;
 
     protected DataSource dataSource;
     protected ApplicationContext appContext;
@@ -69,8 +66,9 @@ public class DefaultUpgradeManagerImpl implements UpgradeManager, ApplicationCon
      * {@inheritDoc}
      */
     @Override
-    public void upgradeSystem(String currentDbVersion) throws UpgradeException {
-        UpgradePipeline pipeline = dbPipelineFactory.getPipeline(currentDbVersion);
+    public void upgradeSystem() throws UpgradeException {
+        String currentDbVersion = dbVersionProvider.getCurrentVersion();
+        UpgradePipeline pipeline = dbPipelineFactory.getPipeline(dbVersionProvider);
         pipeline.execute(null);
 
         List<String> sites;
@@ -87,39 +85,20 @@ public class DefaultUpgradeManagerImpl implements UpgradeManager, ApplicationCon
 
     @Override
     public void upgradeSite(final String site) throws UpgradeException {
-        // check site version
-        String currentSiteVersion = "3.0";
-        if(contentRepository.contentExists(site, "/config/studio/studio_version.xml")) {
-            // read the version from file ...
-        }
-        // get pipeline
-        UpgradePipeline pipeline = sitePipelineFactory.getPipeline(currentSiteVersion);
+        logger.info("Starting update for site {0}", site);
+        VersionProvider versionProvider = (VersionProvider) appContext.getBean("fileVersionProvider", site,
+            "/config/studio/studio_version.xml");
+        UpgradePipelineFactory pipelineFactory = (UpgradePipelineFactory) appContext.getBean("sitePipelineFactory");
+        UpgradePipeline pipeline = pipelineFactory.getPipeline(versionProvider);
         pipeline.execute(site);
-        // update files?
-    }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String getCurrentVersion() throws UpgradeNotSupportedException {
-        logger.debug("Check if _meta table exists.");
-        int count = jdbcTemplate.queryForObject(SQL_QUERY_META, Integer.class);
-        if(count != 0) {
-            logger.debug("_meta table exists.");
-            logger.debug("Get version from _meta table.");
-            return jdbcTemplate.queryForObject(SQL_QUERY_VERSION, String.class);
-
-        } else {
-            logger.debug("Check if group table exists.");
-            count = jdbcTemplate.queryForObject(SQL_QUERY_GROUP, Integer.class);
-            if(count != 0) {
-                logger.debug("Database version is 3.0.0");
-                return VERSION_3_0_0;
-            } else {
-                throw new UpgradeNotSupportedException("Automated migration from 2.5.x DB is not supported yet.");
-            }
+        for(String configFile : managedFiles) {
+            versionProvider = (VersionProvider) appContext.getBean("fileVersionProvider", site, configFile);
+            pipelineFactory = (UpgradePipelineFactory) appContext.getBean("filePipelineFactory", configFile);
+            pipeline = pipelineFactory.getPipeline(versionProvider);
+            pipeline.execute(site);
         }
+
     }
 
     /**
@@ -130,13 +109,13 @@ public class DefaultUpgradeManagerImpl implements UpgradeManager, ApplicationCon
     public void init() throws UpgradeException, EntitlementException {
         jdbcTemplate = new JdbcTemplate(dataSource);
         logger.info("Checking for pending upgrades");
-        String currentVersion = getCurrentVersion();
+        String currentVersion = dbVersionProvider.getCurrentVersion();
         logger.info("Current version is {0}", currentVersion);
         if(currentVersion.equals(latestDbVersion)) {
             logger.info("Already at the latest versions, no upgrades are required");
         } else {
             logger.info("Starting upgradeSystem to version {0}", latestDbVersion);
-            upgradeSystem(currentVersion);
+            upgradeSystem();
         }
         try {
             integrityValidator.validate(dataSource.getConnection());
@@ -157,6 +136,11 @@ public class DefaultUpgradeManagerImpl implements UpgradeManager, ApplicationCon
     }
 
     @Required
+    public void setLatestSiteVersion(final String latestSiteVersion) {
+        this.latestSiteVersion = latestSiteVersion;
+    }
+
+    @Required
     public void setDataSource(final DataSource dataSource) {
         this.dataSource = dataSource;
     }
@@ -171,5 +155,19 @@ public class DefaultUpgradeManagerImpl implements UpgradeManager, ApplicationCon
         this.contentRepository = contentRepository;
     }
 
+    @Required
+    public void setDbPipelineFactory(final UpgradePipelineFactory dbPipelineFactory) {
+        this.dbPipelineFactory = dbPipelineFactory;
+    }
+
+    @Required
+    public void setManagedFiles(final List<String> managedFiles) {
+        this.managedFiles = managedFiles;
+    }
+
+    @Required
+    public void setDbVersionProvider(final VersionProvider dbVersionProvider) {
+        this.dbVersionProvider = dbVersionProvider;
+    }
 
 }

@@ -85,7 +85,8 @@ public class DbScriptUpgradeOperation extends AbstractUpgradeOperation {
      * {@inheritDoc}
      */
     @Override
-    public void init(final Configuration config) {
+    public void init(final String version, final Configuration config) {
+        super.init(version, config);
         fileName = config.getString(CONFIG_KEY_FILENAME);
         updateIntegrity = config.getBoolean(CONFIG_KEY_INTEGRITY, true);
     }
