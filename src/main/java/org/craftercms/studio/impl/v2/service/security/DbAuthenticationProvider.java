@@ -39,11 +39,14 @@ public class DbAuthenticationProvider extends BaseAuthenticationProvider {
 
     private final static Logger logger = LoggerFactory.getLogger(DbAuthenticationProvider.class);
 
+    private String name;
+
+    public DbAuthenticationProvider() {
+    }
+
     @Override
     public boolean doAuthenticate(HttpServletRequest request, HttpServletResponse response,
-                                  AuthenticationChain authenticationChain) {
-        String username = request.getParameter("username");
-        String password = request.getParameter("password");
+                                  AuthenticationChain authenticationChain, String username, String password) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(USER_ID, -1);
         params.put(USERNAME, username);
@@ -61,6 +64,14 @@ public class DbAuthenticationProvider extends BaseAuthenticationProvider {
 
             return true;
         }
-        return authenticationChain.doAuthenticate(request, response);
+        return false;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 }

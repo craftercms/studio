@@ -25,5 +25,7 @@ public interface AuthenticationProvider {
 
     boolean doAuthenticate(HttpServletRequest request,
                            HttpServletResponse response,
-                           AuthenticationChain authenticationChain);
+                           AuthenticationChain authenticationChain,
+                           String username,
+                           String password);
 }

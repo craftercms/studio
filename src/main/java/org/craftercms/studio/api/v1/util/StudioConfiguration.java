@@ -94,6 +94,8 @@ public interface StudioConfiguration {
             "studio.configuration.site.dependencyResolver.configBasePath";
     String CONFIGURATION_DEPENDENCY_ITEM_SPECIFIC_PATTERNS = "studio.configuration.dependency.itemSpecificPatterns";
 
+    String CONFIGURATION_AUTHENTICATION_CHAIN_CONFIG_LOCATION = "studio.authentication.chain.configLocation";
+
     /** Import Service */
     String IMPORT_ASSIGNEE = "studio.import.assignee";
     String IMPORT_XML_CHAIN_NAME = "studio.import.xmlChainName";

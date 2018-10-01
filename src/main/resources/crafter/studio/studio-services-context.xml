@@ -234,6 +234,7 @@
         <property name="activityService" ref="cstudioActivityService" />
         <property name="groupService" ref="groupService" />
         <property name="userServiceInternal" ref="userServiceInternal"/>
+        <property name="authenticationChain" ref="crafter.studioAuthenticationChain" />
     </bean>
 
     <bean id="cstudioContentTypeService" class="org.craftercms.studio.impl.v1.service.content.ContentTypeServiceImpl" >

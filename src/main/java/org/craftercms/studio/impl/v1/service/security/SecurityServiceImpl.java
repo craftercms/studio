@@ -69,6 +69,7 @@ import org.craftercms.studio.api.v1.to.PermissionsConfigTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.GroupTO;
 import org.craftercms.studio.api.v2.dal.UserTO;
+import org.craftercms.studio.api.v2.service.security.AuthenticationChain;
 import org.craftercms.studio.api.v2.service.security.GroupService;
 import org.craftercms.studio.api.v2.service.security.SecurityProvider;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
@@ -93,6 +94,7 @@ import javax.crypto.spec.SecretKeySpec;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_EMAIL;
@@ -143,16 +145,19 @@ public class SecurityServiceImpl implements SecurityService {
     protected ObjectFactory<FreeMarkerConfig> freeMarkerConfig;
     protected GroupService groupService;
     protected UserServiceInternal userServiceInternal;
+    protected AuthenticationChain authenticationChain;
 
     @Override
     @ValidateParams
     public String authenticate(@ValidateStringParam(name = "username") String username,
                                @ValidateStringParam(name = "password") String password) throws BadCredentialsException, AuthenticationSystemException, EntitlementException, UserNotFoundException {
-        String toRet = securityProvider.authenticate(username, password);
-        if (StringUtils.isNotEmpty(toRet)) {
-            RequestContext requestContext = RequestContext.getCurrent();
-            HttpServletRequest httpServletRequest = requestContext.getRequest();
-            String ipAddress = httpServletRequest.getRemoteAddr();
+        //String toRet = securityProvider.authenticate(username, password);
+        RequestContext requestContext = RequestContext.getCurrent();
+        HttpServletRequest request = requestContext.getRequest();
+        HttpServletResponse response = requestContext.getResponse();
+        boolean authenticated = authenticationChain.doAuthenticate(request, response, username, password);
+        if (authenticated) {
+            String ipAddress = request.getRemoteAddr();
 
             ActivityService.ActivityType activityType = ActivityService.ActivityType.LOGIN;
             Map<String, String> extraInfo = new HashMap<String, String>();
@@ -162,7 +167,7 @@ public class SecurityServiceImpl implements SecurityService {
 
             logger.info("User " + username + " logged in from IP: " + ipAddress);
         }
-        return toRet;
+        return getCurrentToken();
     }
 
     @Override
@@ -1074,4 +1079,11 @@ public class SecurityServiceImpl implements SecurityService {
         this.userServiceInternal = userServiceInternal;
     }
 
+    public AuthenticationChain getAuthenticationChain() {
+        return authenticationChain;
+    }
+
+    public void setAuthenticationChain(AuthenticationChain authenticationChain) {
+        this.authenticationChain = authenticationChain;
+    }
 }

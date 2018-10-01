@@ -87,7 +87,8 @@ public class HeadersAuthenticationProvider extends BaseAuthenticationProvider {
 
 
     @Override
-    public boolean doAuthenticate(HttpServletRequest request, HttpServletResponse response, AuthenticationChain authenticationChain) {
+    public boolean doAuthenticate(HttpServletRequest request, HttpServletResponse response,
+                                  AuthenticationChain authenticationChain, String username, String password) {
         if (enabled) {
             logger.debug("Authenticating user using authentication headers.");
 
@@ -136,7 +137,7 @@ public class HeadersAuthenticationProvider extends BaseAuthenticationProvider {
                             logger.debug("User does not exist in studio db. Adding user " + usernameHeader);
                             try {
                                 UserTO user = new UserTO();
-                                user.setUsername(usernameHeader);
+                                user.setUsername(usernameHeaderValue);
                                 user.setPassword(UUID.randomUUID().toString());
                                 user.setFirstName(firstName);
                                 user.setLastName(firstName);
@@ -149,7 +150,7 @@ public class HeadersAuthenticationProvider extends BaseAuthenticationProvider {
                                 extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
                                 activityService.postActivity(
                                         studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE),
-                                        usernameHeader, usernameHeader,
+                                        usernameHeaderValue, usernameHeaderValue,
                                         activityType, ActivityService.ActivitySource.API, extraInfo);
                             } catch (UserAlreadyExistsException | ServiceLayerException e) {
                                 logger.error("Error adding user " + usernameHeaderValue + " from authentication headers", e);
@@ -170,7 +171,7 @@ public class HeadersAuthenticationProvider extends BaseAuthenticationProvider {
                     }
 
                     UserTO userTO = new UserTO();
-                    userTO.setUsername(usernameHeader);
+                    userTO.setUsername(usernameHeaderValue);
                     userTO.setFirstName(firstName);
                     userTO.setLastName(lastName);
                     userTO.setEmail(email);
@@ -187,7 +188,7 @@ public class HeadersAuthenticationProvider extends BaseAuthenticationProvider {
                             UserGroupTO ug = new UserGroupTO();
                             ug.setGroup(g);
                             userTO.getGroups().add(ug);
-                            upsertUserGroup(g.getGroupName(), usernameHeader, authenticationChain);
+                            upsertUserGroup(g.getGroupName(), usernameHeaderValue, authenticationChain);
                         }
                     }
 

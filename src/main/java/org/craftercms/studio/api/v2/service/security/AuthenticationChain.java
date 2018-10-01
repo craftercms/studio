@@ -29,7 +29,7 @@ import javax.servlet.http.HttpServletResponse;
 
 public interface AuthenticationChain {
 
-    boolean doAuthenticate(HttpServletRequest request, HttpServletResponse response);
+    boolean doAuthenticate(HttpServletRequest request, HttpServletResponse response, String username, String password);
 
     UserServiceInternal getUserServiceInternal();
 

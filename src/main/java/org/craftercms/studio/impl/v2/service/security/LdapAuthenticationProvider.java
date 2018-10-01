@@ -109,9 +109,8 @@ public class LdapAuthenticationProvider extends BaseAuthenticationProvider {
     private String emailLdapAttribute;
 
     @Override
-    public boolean doAuthenticate(HttpServletRequest request, HttpServletResponse response, AuthenticationChain authenticationChain) {
-        String username = request.getParameter("username");
-        String password = request.getParameter("password");
+    public boolean doAuthenticate(HttpServletRequest request, HttpServletResponse response,
+                                  AuthenticationChain authenticationChain, String username, String password) {
 
         LdapContextSource lcs = new LdapContextSource();
         lcs.setUrl(ldapUrl);

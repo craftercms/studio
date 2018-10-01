@@ -23,3 +23,4 @@ groupNameLdapAttributeRegex: .*
 groupNameLdapAttributeMatchIndex: 0
 ---
 !!org.craftercms.studio.impl.v2.service.security.DbAuthenticationProvider
+name: DbAuthenticationProvider

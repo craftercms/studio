@@ -43,7 +43,6 @@ public class AuthenticationChainImpl implements AuthenticationChain {
 
     private List<AuthenticationProvider> authentitcationChain;
 
-    private String chainConfigLocation;
     private UserServiceInternal userServiceInternal;
     private ActivityService activityService;
     private StudioConfiguration studioConfiguration;
@@ -51,7 +50,8 @@ public class AuthenticationChainImpl implements AuthenticationChain {
     private GroupDAO groupDao;
 
     public void init() {
-        Resource resource = new ClassPathResource(chainConfigLocation);
+        Resource resource = new ClassPathResource(studioConfiguration.getProperty(
+                StudioConfiguration.CONFIGURATION_AUTHENTICATION_CHAIN_CONFIG_LOCATION));
         try (InputStream in = resource.getInputStream()) {
             Yaml yaml = new Yaml();
             Iterable iterable = yaml.loadAll(in);
@@ -67,12 +67,14 @@ public class AuthenticationChainImpl implements AuthenticationChain {
     }
 
     @Override
-    public boolean doAuthenticate(HttpServletRequest request, HttpServletResponse response) {
+    public boolean doAuthenticate(HttpServletRequest request, HttpServletResponse response, String username,
+                                  String password) {
         boolean authenticated = false;
         Iterator<AuthenticationProvider> iterator = authentitcationChain.iterator();
-        while (iterator.hasNext() || !authenticated) {
+        while (iterator.hasNext()) {
             AuthenticationProvider authProvider = iterator.next();
-            authenticated = authProvider.doAuthenticate(request, response, this);
+            authenticated = authProvider.doAuthenticate(request, response, this, username, password);
+            if (authenticated) break;
         }
         return authenticated;
     }
@@ -115,13 +117,5 @@ public class AuthenticationChainImpl implements AuthenticationChain {
 
     public void setGroupDao(GroupDAO groupDao) {
         this.groupDao = groupDao;
-    }
-
-    public String getChainConfigLocation() {
-        return chainConfigLocation;
-    }
-
-    public void setChainConfigLocation(String chainConfigLocation) {
-        this.chainConfigLocation = chainConfigLocation;
     }
 }
