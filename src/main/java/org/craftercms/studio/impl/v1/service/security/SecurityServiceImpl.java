@@ -29,6 +29,7 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -368,9 +369,17 @@ public class SecurityServiceImpl implements SecurityService {
                     Map<String, List<String>> rolesMap = rolesConfig.getRoles();
                     for (Group group : groups) {
                         String groupName = group.getName();
-                        List<String> roles = rolesMap.get(groupName);
-                        if (roles != null) {
-                            userRoles.addAll(roles);
+                        if (StringUtils.equals(groupName, SYSTEM_ADMIN_GROUP)) {
+                            Collection<List<String>> mapValues = rolesMap.values();
+                            mapValues.forEach(valueList -> {
+                                userRoles.addAll(valueList);
+                            });
+                            break;
+                        } else {
+                            List<String> roles = rolesMap.get(groupName);
+                            if (roles != null) {
+                                userRoles.addAll(roles);
+                            }
                         }
                     }
                 }
