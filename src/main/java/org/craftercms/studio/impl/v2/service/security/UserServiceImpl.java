@@ -20,6 +20,7 @@ package org.craftercms.studio.impl.v2.service.security;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.commons.entitlements.model.EntitlementType;
 import org.craftercms.commons.entitlements.model.Module;
@@ -30,10 +31,12 @@ import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
+import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.UserDAO;
 import org.craftercms.studio.api.v2.dal.UserTO;
@@ -45,6 +48,7 @@ import org.craftercms.studio.model.*;
 
 import java.util.*;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOVE_SYSTEM_ADMIN_MEMBER_LOCK;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SYSTEM_ADMIN_GROUP;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.GROUP_NAME;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.GROUP_NAMES;
@@ -63,6 +67,7 @@ public class UserServiceImpl implements UserService {
     private SecurityProvider securityProvider;
     private SiteService siteService;
     private EntitlementValidator entitlementValidator;
+    private GeneralLockService generalLockService;
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "read_users")
@@ -156,10 +161,41 @@ public class UserServiceImpl implements UserService {
 
         if (CollectionUtils.containsAny(userIds, Arrays.asList(currentUser.getId())) ||
                 CollectionUtils.containsAny(usernames, Arrays.asList(currentUser.getUsername()))) {
-            throw new ServiceLayerException("Cannot delete current user");
+            throw new ServiceLayerException("Cannot delete self.");
         }
 
-        securityProvider.deleteUsers(userIds, usernames);
+        generalLockService.lock(REMOVE_SYSTEM_ADMIN_MEMBER_LOCK);
+        try {
+            try {
+                Group g = groupService.getGroupByName(SYSTEM_ADMIN_GROUP);
+                List<User> members = groupService.getGroupMembers(g.getId(), 0, Integer.MAX_VALUE, StringUtils.EMPTY);
+                if (CollectionUtils.isNotEmpty(members)) {
+                    List<User> membersAfterRemove = new ArrayList<User>();
+                    membersAfterRemove.addAll(members);
+                    members.forEach(m -> {
+                        if (CollectionUtils.isNotEmpty(userIds)) {
+                            if (userIds.contains(m.getId())) {
+                                membersAfterRemove.remove(m);
+                            }
+                        }
+                        if (CollectionUtils.isNotEmpty(usernames)) {
+                            if (usernames.contains(m.getUsername())) {
+                                membersAfterRemove.remove(m);
+                            }
+                        }
+                    });
+                    if (CollectionUtils.isEmpty(membersAfterRemove)) {
+                        throw new ServiceLayerException("Removing all users from System Admin group is not allowed");
+                    }
+                }
+            } catch (GroupNotFoundException e) {
+                throw new ServiceLayerException("Unexpected error. System Admin group not found", e);
+            }
+
+            securityProvider.deleteUsers(userIds, usernames);
+        } finally {
+            generalLockService.unlock(REMOVE_SYSTEM_ADMIN_MEMBER_LOCK);
+        }
     }
 
     @Override
@@ -348,4 +384,11 @@ public class UserServiceImpl implements UserService {
         this.entitlementValidator = entitlementValidator;
     }
 
+    public GeneralLockService getGeneralLockService() {
+        return generalLockService;
+    }
+
+    public void setGeneralLockService(GeneralLockService generalLockService) {
+        this.generalLockService = generalLockService;
+    }
 }

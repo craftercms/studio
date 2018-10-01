@@ -307,6 +307,7 @@
         <property name="groupDAO" ref="groupDAO"/>
         <property name="configurationService" ref="configurationService" />
         <property name="securityProvider" ref="securityProvider" />
+        <property name="generalLockService" ref="cstudioGeneralLockService" />
     </bean>
 
     <bean id="userService" class="org.craftercms.studio.impl.v2.service.security.UserServiceImpl">
@@ -316,6 +317,7 @@
         <property name="securityProvider" ref="securityProvider" />
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="entitlementValidator" ref="crafter.entitlementValidator"/>
+        <property name="generalLockService" ref="cstudioGeneralLockService" />
     </bean>
 
     <bean id="uiServiceInternal" class="org.craftercms.studio.impl.v2.service.ui.internal.UiServiceInternalImpl">
