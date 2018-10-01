@@ -511,16 +511,6 @@ public class SiteServiceImpl implements SiteService {
                 // Add default groups
                 addDefaultGroupsForNewSite(siteId);
 
-                // Add creator to admin group
-                String creator = securityService.getCurrentUser();
-                String adminGroup = studioConfiguration.getProperty(CONFIGURATION_DEFAULT_ADMIN_GROUP);
-                if (!userService.isUserMemberOfGroup(creator, adminGroup)) {
-                    List<String> userList = new ArrayList<String>();
-                    userList.add(securityService.getCurrentUser());
-                    Group group = groupService.getGroupByName(adminGroup);
-                    groupService.addGroupMembers(group.getId(), Collections.EMPTY_LIST, userList);
-                }
-
                 reloadSiteConfiguration(siteId);
 	        } catch(Exception e) {
 	            // TODO: SJ: We need better exception handling here
@@ -917,16 +907,6 @@ public class SiteServiceImpl implements SiteService {
                 logger.debug("Adding default groups for site " + siteId);
                 addDefaultGroupsForNewSite(siteId);
 
-                // Add creator to admin group
-                String creator = securityService.getCurrentUser();
-                String adminGroup = studioConfiguration.getProperty(CONFIGURATION_DEFAULT_ADMIN_GROUP);
-                if (!userService.isUserMemberOfGroup(creator, adminGroup)) {
-                    List<String> userList = new ArrayList<String>();
-                    userList.add(securityService.getCurrentUser());
-                    Group group = groupService.getGroupByName(adminGroup);
-                    groupService.addGroupMembers(group.getId(), new ArrayList<Long>(), userList);
-                }
-
                 logger.debug("Loading configuration for site " + siteId);
                 reloadSiteConfiguration(siteId);
             } catch(Exception e) {
@@ -1127,16 +1107,6 @@ public class SiteServiceImpl implements SiteService {
                 // Add default groups
                 logger.debug("Adding default groups for site " + siteId);
                 addDefaultGroupsForNewSite(siteId);
-
-                // Add creator to admin group
-                String creator = securityService.getCurrentUser();
-                String adminGroup = studioConfiguration.getProperty(CONFIGURATION_DEFAULT_ADMIN_GROUP);
-                if (!userService.isUserMemberOfGroup(creator, adminGroup)) {
-                    List<String> userList = new ArrayList<String>();
-                    userList.add(securityService.getCurrentUser());
-                    Group group = groupService.getGroupByName(adminGroup);
-                    groupService.addGroupMembers(group.getId(), new ArrayList<Long>(), userList);
-                }
 
                 logger.debug("Loading configuration for site " + siteId);
                 reloadSiteConfiguration(siteId);

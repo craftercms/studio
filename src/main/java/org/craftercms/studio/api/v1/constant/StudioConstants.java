@@ -56,7 +56,7 @@ package org.craftercms.studio.api.v1.constant;
    String PATTERN_SANDBOX = "\\$\\{sandbox\\}";
    String PATTERN_SITE = "\\{site\\}";
    String PATTERN_WEB_PROJECT = "\\$\\{webproject\\}";
-   String PATTERN_LOGIN_URL = "\\{loginUrl\\}";
+   String PATTERN_BASE_URL = "\\{baseUrl\\}";
 
    /** Studio Structure Constants **/
    String DESCRIPTOR_ROOT_PATH  = "/site";
@@ -166,10 +166,7 @@ package org.craftercms.studio.api.v1.constant;
      */
     String HTTP_SESSION_ATTRIBUTE_AUTHENTICATION = "studio_authentication";
 
-    /**
-     * Login constants
-     */
-    String LOGIN_URL = "#/login";
-
     int DEFAULT_ORGANIZATION_ID = 1;
+
+    String REMOVE_SYSTEM_ADMIN_MEMBER_LOCK = "remove_system_admin_member_lock";
 }

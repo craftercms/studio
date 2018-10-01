@@ -18,6 +18,8 @@
 
 package org.craftercms.studio.impl.v2.service.security;
 
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
@@ -26,6 +28,7 @@ import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v2.dal.GroupTO;
 import org.craftercms.studio.api.v2.dal.GroupDAO;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
@@ -39,6 +42,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOVE_SYSTEM_ADMIN_MEMBER_LOCK;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SYSTEM_ADMIN_GROUP;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.GROUP_NAME;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ORG_ID;
 
@@ -49,6 +54,7 @@ public class GroupServiceImpl implements GroupService {
     private GroupDAO groupDAO;
     private ConfigurationService configurationService;
     private SecurityProvider securityProvider;
+    private GeneralLockService generalLockService;
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "read_groups")
@@ -84,6 +90,16 @@ public class GroupServiceImpl implements GroupService {
     @Override
     @HasPermission(type = DefaultPermission.class, action = "delete_groups")
     public void deleteGroup(List<Long> groupIds) throws ServiceLayerException {
+        try {
+            Group g = getGroupByName(SYSTEM_ADMIN_GROUP);
+            if (CollectionUtils.isNotEmpty(groupIds)) {
+                if (groupIds.contains(g.getId())) {
+                    throw new ServiceLayerException("Deleting the System Admin group is not allowed.");
+                }
+            }
+        } catch (GroupNotFoundException e) {
+            throw new ServiceLayerException("The System Admin group is not found", e);
+        }
         securityProvider.deleteGroup(groupIds);
     }
 
@@ -109,8 +125,37 @@ public class GroupServiceImpl implements GroupService {
     @Override
     @HasPermission(type = DefaultPermission.class, action = "update_groups")
     public void removeGroupMembers(long groupId, List<Long> userIds, List<String> usernames)
-        throws ServiceLayerException, UserNotFoundException {
-        securityProvider.removeGroupMembers(groupId, userIds, usernames);
+            throws ServiceLayerException, UserNotFoundException {
+        Group g = getGroup(groupId);
+        generalLockService.lock(REMOVE_SYSTEM_ADMIN_MEMBER_LOCK);
+        try {
+            if (g.getName().equals(SYSTEM_ADMIN_GROUP)) {
+                List<User> members = getGroupMembers(groupId, 0, Integer.MAX_VALUE, StringUtils.EMPTY);
+                if (CollectionUtils.isNotEmpty(members)) {
+                    List<User> membersAfterRemove = new ArrayList<User>();
+                    membersAfterRemove.addAll(members);
+                    members.forEach(m -> {
+                        if (CollectionUtils.isNotEmpty(userIds)) {
+                            if (userIds.contains(m.getId())) {
+                                membersAfterRemove.remove(m);
+                            }
+                        }
+                        if (CollectionUtils.isNotEmpty(usernames)) {
+                            if (usernames.contains(m.getUsername())) {
+                                membersAfterRemove.remove(m);
+                            }
+                        }
+                    });
+                    if (CollectionUtils.isEmpty(membersAfterRemove)) {
+                        throw new ServiceLayerException("Removing all members of the System Admin group is not allowed." +
+                                " We must have at least one system administrator.");
+                    }
+                }
+            }
+            securityProvider.removeGroupMembers(groupId, userIds, usernames);
+        } finally {
+            generalLockService.unlock(REMOVE_SYSTEM_ADMIN_MEMBER_LOCK);
+        }
     }
 
     @Override
@@ -163,5 +208,13 @@ public class GroupServiceImpl implements GroupService {
 
     public void setSecurityProvider(SecurityProvider securityProvider) {
         this.securityProvider = securityProvider;
+    }
+
+    public GeneralLockService getGeneralLockService() {
+        return generalLockService;
+    }
+
+    public void setGeneralLockService(GeneralLockService generalLockService) {
+        this.generalLockService = generalLockService;
     }
 }
