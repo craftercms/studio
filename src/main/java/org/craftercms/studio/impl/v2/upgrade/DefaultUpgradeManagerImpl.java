@@ -18,11 +18,14 @@
 
 package org.craftercms.studio.impl.v2.upgrade;
 
+import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.List;
 
 import javax.sql.DataSource;
 
+import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.craftercms.commons.config.YamlConfiguration;
 import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.commons.entitlements.validator.DbIntegrityValidator;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -37,6 +40,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.core.io.Resource;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.*;
@@ -48,13 +52,27 @@ public class DefaultUpgradeManagerImpl implements UpgradeManager, ApplicationCon
     public static final String SQL_QUERY_SITES_3_0_0 = "select site_id from cstudio_site where system = 0";
     public static final String SQL_QUERY_SITES = "select site_id from site where system = 0";
 
+    public static final String CONFIG_PIPELINE_SUFFIX = ".pipeline";
+
+    /**
+     * The latest db version.
+     */
     protected String latestDbVersion;
+
+    /**
+     * The latest site version.
+     */
     protected String latestSiteVersion;
 
-    protected List<String> managedFiles;
+    /**
+     * The git path of the version file.
+     */
+    protected String siteVersionFilePath;
 
     protected VersionProvider dbVersionProvider;
     protected UpgradePipelineFactory dbPipelineFactory;
+
+    protected Resource configurationFile;
 
     protected DataSource dataSource;
     protected ApplicationContext appContext;
@@ -83,18 +101,27 @@ public class DefaultUpgradeManagerImpl implements UpgradeManager, ApplicationCon
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
+    @SuppressWarnings("unchecked")
     public void upgradeSite(final String site) throws UpgradeException {
         logger.info("Starting update for site {0}", site);
-        VersionProvider versionProvider = (VersionProvider) appContext.getBean("fileVersionProvider", site,
-            "/config/studio/studio_version.xml");
+        VersionProvider versionProvider =
+            (VersionProvider) appContext.getBean("fileVersionProvider", site, siteVersionFilePath);
         UpgradePipelineFactory pipelineFactory = (UpgradePipelineFactory) appContext.getBean("sitePipelineFactory");
         UpgradePipeline pipeline = pipelineFactory.getPipeline(versionProvider);
         pipeline.execute(site);
 
-        for(String configFile : managedFiles) {
-            versionProvider = (VersionProvider) appContext.getBean("fileVersionProvider", site, configFile);
-            pipelineFactory = (UpgradePipelineFactory) appContext.getBean("filePipelineFactory", configFile);
+        HierarchicalConfiguration config = loadUpgradeConfiguration();
+        List<HierarchicalConfiguration> managedFiles = config.childConfigurationsAt("configurations");
+
+        for(HierarchicalConfiguration configFile : managedFiles) {
+            versionProvider = (VersionProvider) appContext.getBean("fileVersionProvider", site,
+                configFile.getString(CONFIG_KEY_PATH));
+            pipelineFactory = (UpgradePipelineFactory) appContext.getBean("filePipelineFactory",
+                configFile.getRootElementName() + CONFIG_PIPELINE_SUFFIX);
             pipeline = pipelineFactory.getPipeline(versionProvider);
             pipeline.execute(site);
         }
@@ -117,12 +144,23 @@ public class DefaultUpgradeManagerImpl implements UpgradeManager, ApplicationCon
             logger.info("Starting upgradeSystem to version {0}", latestDbVersion);
             upgradeSystem();
         }
+        upgradeSystem();
         try {
             integrityValidator.validate(dataSource.getConnection());
         } catch (SQLException e) {
             logger.error("Could not connect to database for integrity validation", e);
             throw new UpgradeException("Could not connect to database for integrity validation", e);
         }
+    }
+
+    protected HierarchicalConfiguration loadUpgradeConfiguration() throws UpgradeException {
+        YamlConfiguration configuration = new YamlConfiguration();
+        try (InputStream is = configurationFile.getInputStream()) {
+            configuration.read(is);
+        } catch (Exception e) {
+            throw  new UpgradeException("Error reading configuration file", e);
+        }
+        return configuration;
     }
 
     @Override
@@ -161,13 +199,18 @@ public class DefaultUpgradeManagerImpl implements UpgradeManager, ApplicationCon
     }
 
     @Required
-    public void setManagedFiles(final List<String> managedFiles) {
-        this.managedFiles = managedFiles;
+    public void setDbVersionProvider(final VersionProvider dbVersionProvider) {
+        this.dbVersionProvider = dbVersionProvider;
     }
 
     @Required
-    public void setDbVersionProvider(final VersionProvider dbVersionProvider) {
-        this.dbVersionProvider = dbVersionProvider;
+    public void setConfigurationFile(final Resource configurationFile) {
+        this.configurationFile = configurationFile;
+    }
+
+    @Required
+    public void setSiteVersionFilePath(final String siteVersionFilePath) {
+        this.siteVersionFilePath = siteVersionFilePath;
     }
 
 }

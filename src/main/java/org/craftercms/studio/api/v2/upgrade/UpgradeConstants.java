@@ -26,10 +26,10 @@ public interface UpgradeConstants {
 
     String VERSION_3_0_0 = "3.0.0";
 
-    String CONFIG_PREFIX_PIPELINE = "pipelines.";
     String CONFIG_KEY_VERSION = "version";
     String CONFIG_KEY_OPERATIONS = "operations";
     String CONFIG_KEY_TYPE = "type";
+    String CONFIG_KEY_PATH = "path";
 
     String PARAM_KEY_SITE = "site_id";
     String PARAM_KEY_VERSION = "version";

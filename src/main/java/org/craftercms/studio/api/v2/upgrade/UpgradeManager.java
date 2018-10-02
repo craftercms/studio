@@ -19,7 +19,6 @@
 package org.craftercms.studio.api.v2.upgrade;
 
 import org.craftercms.studio.api.v2.exception.UpgradeException;
-import org.craftercms.studio.api.v2.exception.UpgradeNotSupportedException;
 
 /**
  * Manages the current version and applies the required upgrades.
@@ -28,11 +27,16 @@ import org.craftercms.studio.api.v2.exception.UpgradeNotSupportedException;
 public interface UpgradeManager {
 
     /**
-     * Executes all required upgrades.
+     * Executes all required upgrades for the system.
      * @throws UpgradeException if any of the upgrades fails
      */
     void upgradeSystem() throws UpgradeException;
 
+    /**
+     * Executes all required upgrades for the given site.
+     * @param site name of the site
+     * @throws UpgradeException if any of the upgrades fails
+     */
     void upgradeSite(String site) throws UpgradeException;
 
 }

@@ -120,16 +120,18 @@ pipelines:
 # Managed Configuration Files
 configurations:
 
-  '/config/studio/role-mappings-config.xml':
-    - version: 3.0.0
-      # Initial version, assumed if the file doesn't contain a version tag
-      operations:
+  role-mappings-config:
+    path: &role-mappings-config '/config/studio/role-mappings-config.xml'
+    pipeline:
+      - version: 3.0.0
+        # Initial version, assumed if the file doesn't contain a version tag
+        operations:
 
-    - version: 3.1.0
-      operations:
-        - type: xsltFileUpgrader
-          path: /config/studio/role-mappings-config.xml
-          template: crafter/studio/upgrade/role-mappings-config-3.1.0.xslt
-        - type: xsltFileUpgrader
-          path: /config/studio/role-mappings-config.xml
-          template: crafter/studio/upgrade/update-version.xslt
+      - version: 3.1.0
+        operations:
+          - type: xsltFileUpgrader
+            path: *role-mappings-config
+            template: crafter/studio/upgrade/role-mappings-config-3.1.0.xslt
+          - type: xsltFileUpgrader
+            path: *role-mappings-config
+            template: crafter/studio/upgrade/update-version.xslt

@@ -29,12 +29,14 @@ public interface UpgradeOperation {
 
     /**
      * Initializes the instance with the given configuration.
-     * @param config upgrader configuration
+     * @param version the target version
+     * @param config operation configuration
      */
     void init(String version, Configuration config);
 
     /**
      * Performs a single upgrade operation.
+     * @param site the name of the site
      * @throws UpgradeException if there is any error performing the upgrade
      */
     void execute(String site) throws UpgradeException;

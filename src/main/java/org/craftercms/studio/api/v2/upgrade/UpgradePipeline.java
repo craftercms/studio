@@ -27,7 +27,8 @@ import org.craftercms.studio.api.v2.exception.UpgradeException;
 public interface UpgradePipeline {
 
     /**
-     * Executes each {@link UpgradeOperation} for the given context
+     * Executes each {@link UpgradeOperation} for the given site
+     * @param site the name of the site
      * @throws UpgradeException if any of the {@link UpgradeOperation}s fails
      */
     void execute(String site) throws UpgradeException;

@@ -403,3 +403,30 @@ studio.db.socket: /tmp/MariaDB4j.33306.sock
 ##########################################################
 # The global Tinify API key used for image processing (empty by default)
 studio.configuration.asset.processing.tinify.apiKey:
+
+##########################################################
+##             Upgrade Configuration                    ##
+##########################################################
+studio:
+  upgrade:
+    # Latest db version
+    dbVersion: 3.1.0.4
+    # Latest site version
+    siteVersion: 3.1.0
+    # Path for the site version file
+    versionFile: /config/studio/studio_version.xml
+    # XPath for querying the version
+    versionXPath: '/*[1]/version/text()'
+    # Pipelines configuration file
+    configurationFile: classpath:crafter/studio/upgrade/pipelines.yaml
+    pipeline:
+      # Common prefix for the pipelines
+      prefix: pipelines
+      # Name for the system pipeline
+      system: system
+      # Name for the site pipeline
+      site: site
+      # Prefix for the configuration file pipeline
+      configurations: configurations
+    # Folder to look for database scripts
+    scriptFolder: /crafter/database

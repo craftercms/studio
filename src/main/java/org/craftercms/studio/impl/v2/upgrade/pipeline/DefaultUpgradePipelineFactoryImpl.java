@@ -1,3 +1,21 @@
+/*
+ * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
 package org.craftercms.studio.impl.v2.upgrade.pipeline;
 
 import java.io.InputStream;
@@ -21,12 +39,30 @@ import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.CONFIG_KEY_O
 import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.CONFIG_KEY_TYPE;
 import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.CONFIG_KEY_VERSION;
 
+/**
+ * Default implementation of {@link UpgradePipelineFactory}.
+ * @author joseross
+ */
 public class DefaultUpgradePipelineFactoryImpl implements UpgradePipelineFactory, ApplicationContextAware {
 
+    /**
+     * Path of the configuration file.
+     */
     protected Resource configurationFile;
+
+    /**
+     * The application context.
+     */
     protected ApplicationContext appContext;
 
+    /**
+     * Prefix used in the configuration file.
+     */
     protected String pipelinePrefix;
+
+    /**
+     * Name used in the configuration file.
+     */
     protected String pipelineName;
 
     public DefaultUpgradePipelineFactoryImpl() {
@@ -55,7 +91,7 @@ public class DefaultUpgradePipelineFactoryImpl implements UpgradePipelineFactory
         appContext = applicationContext;
     }
 
-    public HierarchicalConfiguration loadUpgradeConfiguration() throws UpgradeException {
+    protected HierarchicalConfiguration loadUpgradeConfiguration() throws UpgradeException {
         YamlConfiguration configuration = new YamlConfiguration();
         try (InputStream is = configurationFile.getInputStream()) {
             configuration.read(is);
@@ -65,6 +101,9 @@ public class DefaultUpgradePipelineFactoryImpl implements UpgradePipelineFactory
         return configuration;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @SuppressWarnings("unchecked")
     public UpgradePipeline getPipeline(VersionProvider versionProvider) throws UpgradeException {
