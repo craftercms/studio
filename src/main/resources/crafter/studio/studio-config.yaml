@@ -407,26 +407,26 @@ studio.configuration.asset.processing.tinify.apiKey:
 ##########################################################
 ##             Upgrade Configuration                    ##
 ##########################################################
-studio:
-  upgrade:
-    # Latest db version
-    dbVersion: 3.1.0.4
-    # Latest site version
-    siteVersion: 3.1.0
-    # Path for the site version file
-    versionFile: /config/studio/studio_version.xml
-    # XPath for querying the version
-    versionXPath: '/*[1]/version/text()'
-    # Pipelines configuration file
-    configurationFile: classpath:crafter/studio/upgrade/pipelines.yaml
-    pipeline:
-      # Common prefix for the pipelines
-      prefix: pipelines
-      # Name for the system pipeline
-      system: system
-      # Name for the site pipeline
-      site: site
-      # Prefix for the configuration file pipeline
-      configurations: configurations
-    # Folder to look for database scripts
-    scriptFolder: /crafter/database
+
+# Latest db version
+studio.upgrade.dbVersion: 3.1.0.4
+# Latest site version
+studio.upgrade.siteVersion: 3.1.0
+# Path for the site version file
+studio.upgrade.versionFile: /config/studio/studio_version.xml
+# XPath for querying the version
+studio.upgrade.versionXPath: '/*[1]/version/text()'
+# Pipelines configuration file
+studio.upgrade.configurationFile: classpath:crafter/studio/upgrade/pipelines.yaml
+# Common prefix for the pipelines
+studio.upgrade.pipeline.prefix: pipelines
+# Name for the system pipeline
+studio.upgrade.pipeline.system: system
+# Name for the site pipeline
+studio.upgrade.pipeline.site: site
+# Name for the blueprint pipeline
+studio.upgrade.pipeline.blueprint: blueprint
+# Prefix for the configuration file pipeline
+studio.upgrade.pipeline.configurations: configurations
+# Folder to look for database scripts
+studio.upgrade.scriptFolder: /crafter/database

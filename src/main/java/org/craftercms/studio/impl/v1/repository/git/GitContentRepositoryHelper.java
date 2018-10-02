@@ -126,7 +126,7 @@ public class GitContentRepositoryHelper {
     protected SecurityProvider securityProvider;
     protected ServicesConfig servicesConfig;
 
-    GitContentRepositoryHelper(StudioConfiguration studioConfiguration, SecurityProvider securityProvider,
+    public GitContentRepositoryHelper(StudioConfiguration studioConfiguration, SecurityProvider securityProvider,
                                ServicesConfig servicesConfig) {
         this.studioConfiguration = studioConfiguration;
         this.securityProvider = securityProvider;

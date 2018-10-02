@@ -72,6 +72,8 @@ public class DefaultUpgradeManagerImpl implements UpgradeManager, ApplicationCon
     protected VersionProvider dbVersionProvider;
     protected UpgradePipelineFactory dbPipelineFactory;
 
+    protected UpgradePipelineFactory bpPipelineFactory;
+
     protected Resource configurationFile;
 
     protected DataSource dataSource;
@@ -87,7 +89,7 @@ public class DefaultUpgradeManagerImpl implements UpgradeManager, ApplicationCon
     public void upgradeSystem() throws UpgradeException {
         String currentDbVersion = dbVersionProvider.getCurrentVersion();
         UpgradePipeline pipeline = dbPipelineFactory.getPipeline(dbVersionProvider);
-        pipeline.execute(null);
+        pipeline.execute();
 
         List<String> sites;
         if(currentDbVersion.equals(VERSION_3_0_0)) {
@@ -129,11 +131,23 @@ public class DefaultUpgradeManagerImpl implements UpgradeManager, ApplicationCon
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void upgradeBlueprints() throws UpgradeException {
+        // The version is fixed for now so bp are always updates, in the future this should be replaced with a proper
+        // version provider
+        UpgradePipeline pipeline = bpPipelineFactory.getPipeline(() -> VERSION_3_0_0);
+        pipeline.execute();
+    }
+
+    /**
      * Obtains the current version and starts the upgrade process.
      * @throws UpgradeException if there is any error in the upgrade process
      * @throws EntitlementException if there is any validation error after the upgrade process
      */
     public void init() throws UpgradeException, EntitlementException {
+        upgradeBlueprints();
         jdbcTemplate = new JdbcTemplate(dataSource);
         logger.info("Checking for pending upgrades");
         String currentVersion = dbVersionProvider.getCurrentVersion();
@@ -144,7 +158,6 @@ public class DefaultUpgradeManagerImpl implements UpgradeManager, ApplicationCon
             logger.info("Starting upgradeSystem to version {0}", latestDbVersion);
             upgradeSystem();
         }
-        upgradeSystem();
         try {
             integrityValidator.validate(dataSource.getConnection());
         } catch (SQLException e) {
@@ -213,4 +226,8 @@ public class DefaultUpgradeManagerImpl implements UpgradeManager, ApplicationCon
         this.siteVersionFilePath = siteVersionFilePath;
     }
 
+    public void setBpPipelineFactory(final UpgradePipelineFactory bpPipelineFactory) {
+        this.bpPipelineFactory = bpPipelineFactory;
+    }
+    
 }

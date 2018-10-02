@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.apache.commons.configuration2.Configuration;
-import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.lang.UrlUtils;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -76,7 +75,7 @@ public class GlobalRepoUpgradeOperation extends AbstractUpgradeOperation {
             logger.debug("Upgrading configuration file: {0}", file);
             try (InputStream is = globalConfigurationBootstrap.createRelative(file).getInputStream()) {
 
-                writeToRepo(StringUtils.EMPTY, file, is, "Global Repo Upgrade");
+                writeToRepo(site, file, is, "Global Repo Upgrade");
 
             } catch (IOException e) {
                 throw new UpgradeException("Upgrade for global repo failed", e);

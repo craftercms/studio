@@ -35,11 +35,17 @@ public class DefaultUpgradePipelineImpl implements UpgradePipeline {
     private static final Logger logger = LoggerFactory.getLogger(DefaultUpgradePipelineImpl.class);
 
     /**
+     * Name of the pipeline.
+     */
+    protected String name;
+
+    /**
      * List of all upgrade operations to be executed.
      */
     protected List<UpgradeOperation> operations;
 
-    public DefaultUpgradePipelineImpl(final List<UpgradeOperation> operations) {
+    public DefaultUpgradePipelineImpl(final String name, final List<UpgradeOperation> operations) {
+        this.name = name;
         this.operations = operations;
     }
 
@@ -49,17 +55,17 @@ public class DefaultUpgradePipelineImpl implements UpgradePipeline {
     @Override
     public void execute(final String site) throws UpgradeException {
         if(operations == null || operations.isEmpty()) {
-            logger.info("No pending upgrade operations");
+            logger.info("Upgrade pipeline {0} is empty", name);
             return;
         }
         logger.info("============================================================");
-        logger.info("Starting execution of upgrade pipeline");
+        logger.info("Starting execution of upgrade pipeline: {0}", name);
         for(UpgradeOperation operation : operations) {
             logger.info("------- Starting execution of operation {0} -------", operation.getClass().getSimpleName());
             operation.execute(site);
             logger.info("------- Execution of operation completed -------");
         }
-        logger.info("Execution of pipeline completed");
+        logger.info("Execution of pipeline {0} completed", name);
         logger.info("============================================================");
     }
 

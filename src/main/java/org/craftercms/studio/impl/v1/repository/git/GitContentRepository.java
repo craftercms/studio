@@ -19,7 +19,6 @@
 package org.craftercms.studio.impl.v1.repository.git;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
@@ -45,7 +44,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
-import java.util.jar.Manifest;
 import javax.servlet.ServletContext;
 
 import com.jcraft.jsch.JSch;
@@ -59,7 +57,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.commons.crypto.impl.PbkAesTextEncryptor;
-import org.craftercms.commons.monitoring.VersionMonitor;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.constant.RepoOperation;
 import org.craftercms.studio.api.v1.dal.DeploymentSyncHistory;
@@ -160,7 +157,6 @@ import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_SANDBOX
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_SANDBOX_WRITE_COMMIT_MESSAGE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_KEY;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_SALT;
-import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.BLUEPRINTS_UPDATED_COMMIT;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.EMPTY_FILE;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_COMMIT_ALL_ITEMS;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
@@ -917,8 +913,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 } catch (GitAPIException err) {
                     logger.error("error creating initial commit for global configuration", err);
                 }
-            } else {
-                
             }
         }
 

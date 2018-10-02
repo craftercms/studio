@@ -129,7 +129,7 @@ public class DefaultUpgradePipelineFactoryImpl implements UpgradePipelineFactory
                 versionFound = true;
             }
         }
-        return new DefaultUpgradePipelineImpl(operations);
+        return new DefaultUpgradePipelineImpl(pipelineName, operations);
     }
 
 }

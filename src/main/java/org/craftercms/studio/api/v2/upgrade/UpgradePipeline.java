@@ -18,6 +18,7 @@
 
 package org.craftercms.studio.api.v2.upgrade;
 
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v2.exception.UpgradeException;
 
 /**
@@ -27,10 +28,18 @@ import org.craftercms.studio.api.v2.exception.UpgradeException;
 public interface UpgradePipeline {
 
     /**
-     * Executes each {@link UpgradeOperation} for the given site
+     * Executes each {@link UpgradeOperation} for the given site.
      * @param site the name of the site
      * @throws UpgradeException if any of the {@link UpgradeOperation}s fails
      */
     void execute(String site) throws UpgradeException;
+
+    /**
+     * Executes each {@link UpgradeOperation} for the global repository.
+     * @throws UpgradeException if any of the operations fails
+     */
+    default void execute() throws UpgradeException {
+        execute(StringUtils.EMPTY);
+    }
 
 }

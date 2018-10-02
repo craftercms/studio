@@ -20,7 +20,8 @@
     <xsl:template match="@name">
         <xsl:attribute name="name">
             <xsl:choose>
-                <xsl:when test="contains(., $site_id)">
+                <!-- if the name already has the site_id or it is a predefined group -->
+                <xsl:when test="contains(., $site_id) or contains(., 'site_')">
                     <xsl:value-of select="lower-case(.)"/>
                 </xsl:when>
                 <xsl:otherwise>

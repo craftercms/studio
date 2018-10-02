@@ -39,4 +39,10 @@ public interface UpgradeManager {
      */
     void upgradeSite(String site) throws UpgradeException;
 
+    /**
+     * Executes all required upgrades for the blueprints.
+     * @throws UpgradeException if any of the upgrades fails
+     */
+    void upgradeBlueprints() throws UpgradeException;
+
 }

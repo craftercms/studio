@@ -45,7 +45,7 @@ public class TreeCopier  implements FileVisitor<Path> {
     private final Path source;
     private final Path target;
 
-    TreeCopier(Path source, Path target) {
+    public TreeCopier(Path source, Path target) {
         this.source = source;
         this.target = target;
     }

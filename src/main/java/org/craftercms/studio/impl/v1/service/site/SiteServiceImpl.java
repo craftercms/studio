@@ -465,6 +465,8 @@ public class SiteServiceImpl implements SiteService {
 	 		try {
 			    success = createSiteFromBlueprintGit(blueprintName, siteName, siteId, sandboxBranch, desc);
 
+			    upgradeManager.upgradeSite(siteId);
+
 			    String lastCommitId = contentRepository.getRepoLastCommitId(siteId);
 
 			    // Set object states
@@ -736,8 +738,7 @@ public class SiteServiceImpl implements SiteService {
                 logger.debug("Clone from remote repository create option selected");
                 createSiteCloneRemote(siteId, sandboxBranch, description, remoteName, remoteUrl, remoteBranch, singleBranch,
                         authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey);
-
-                upgradeManager.upgradeSite(siteId);
+				upgradeManager.upgradeSite(siteId);
                 break;
 
             case REMOTE_REPOSITORY_CREATE_OPTION_PUSH:
@@ -745,6 +746,7 @@ public class SiteServiceImpl implements SiteService {
                 createSitePushToRemote(siteId, sandboxBranch, description, blueprintName, remoteName, remoteUrl,
                         remoteBranch, authenticationType, remoteUsername, remotePassword, remoteToken,
                         remotePrivateKey);
+				upgradeManager.upgradeSite(siteId);
                 break;
 
             default:

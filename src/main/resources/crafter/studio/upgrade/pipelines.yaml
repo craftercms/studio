@@ -106,16 +106,27 @@ pipelines:
 
   # Pipeline to upgrade site repositories
   site:
-  - version: 3.0.0
-    # Upgrade from 2.x is not supported so there are no operations for this version
-    operations:
+    - version: 3.0.0
+      # Upgrade from 2.x is not supported so there are no operations for this version
+      operations:
 
-  - version: 3.1.0
-    operations:
-    - type: versionFileUpgrader
-      path: config/studio/studio_version.xml
-      template: crafter/studio/upgrade/update-version.xslt
-      defaultFile: crafter/studio/upgrade/studio_version.xml
+    - version: 3.1.0
+      operations:
+      - type: versionFileUpgrader
+        path: config/studio/studio_version.xml
+        template: crafter/studio/upgrade/update-version.xslt
+        defaultFile: crafter/studio/upgrade/studio_version.xml
+
+  # Pipeline to upgrade blueprints
+  blueprint:
+    - version: 3.0.0
+      # Upgrade from 2.x is not supported so there are no operations for this version
+      operations:
+
+    - version: 3.1.0
+      operations:
+        # This just overrides the blueprints in the repo, in the future this should be replaced with proper operations
+        - type: blueprintsUpgrader
 
 # Managed Configuration Files
 configurations:
@@ -123,8 +134,8 @@ configurations:
   role-mappings-config:
     path: &role-mappings-config '/config/studio/role-mappings-config.xml'
     pipeline:
+      # Initial version, assumed if the file doesn't contain a version tag
       - version: 3.0.0
-        # Initial version, assumed if the file doesn't contain a version tag
         operations:
 
       - version: 3.1.0
