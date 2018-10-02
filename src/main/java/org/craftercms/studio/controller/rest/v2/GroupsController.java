@@ -74,28 +74,20 @@ public class GroupsController {
             @RequestParam(value = "offset", required = false, defaultValue = "0") int offset,
             @RequestParam(value = "limit", required = false, defaultValue = "10") int limit,
             @RequestParam(value = "sort", required = false, defaultValue = StringUtils.EMPTY) String sort
-            ) throws ServiceLayerException {
+            ) throws ServiceLayerException, OrganizationNotFoundException {
         int total = 0;
-        try {
-            total = groupService.getAllGroupsTotal(DEFAULT_ORGANIZATION_ID);
-            List<GroupTO> groups = groupService.getAllGroups(DEFAULT_ORGANIZATION_ID, offset, limit, sort);
+        total = groupService.getAllGroupsTotal(DEFAULT_ORGANIZATION_ID);
+        List<GroupTO> groups = groupService.getAllGroups(DEFAULT_ORGANIZATION_ID, offset, limit, sort);
 
-            ResponseBody responseBody = new ResponseBody();
-            PaginatedResultList<GroupTO> result = new PaginatedResultList<>();
-            result.setTotal(total);
-            result.setOffset(offset);
-            result.setLimit(CollectionUtils.isEmpty(groups) ? 0 : groups.size());
-            result.setResponse(ApiResponse.OK);
-            result.setEntities(groups);
-            responseBody.setResult(result);
-            return responseBody;
-        } catch (OrganizationNotFoundException e) {
-            ResponseBody responseBody = new ResponseBody();
-            Result result = new Result();
-            result.setResponse(ApiResponse.ORG_NOT_FOUND);
-            responseBody.setResult(result);
-            return responseBody;
-        }
+        ResponseBody responseBody = new ResponseBody();
+        PaginatedResultList<GroupTO> result = new PaginatedResultList<>();
+        result.setTotal(total);
+        result.setOffset(offset);
+        result.setLimit(CollectionUtils.isEmpty(groups) ? 0 : groups.size());
+        result.setResponse(ApiResponse.OK);
+        result.setEntities(groups);
+        responseBody.setResult(result);
+        return responseBody;
     }
 
     /**
@@ -125,19 +117,14 @@ public class GroupsController {
      * @return Response object
      */
     @PatchMapping(value = "/api/2/groups", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseBody updateGroup(@RequestBody GroupTO group) throws ServiceLayerException {
+    public ResponseBody updateGroup(@RequestBody GroupTO group) throws ServiceLayerException, GroupNotFoundException {
         ResponseBody responseBody = new ResponseBody();
-        try {
-            GroupTO updatedGroup = groupService.updateGroup(DEFAULT_ORGANIZATION_ID, group);
+        GroupTO updatedGroup = groupService.updateGroup(DEFAULT_ORGANIZATION_ID, group);
 
-            ResultOne<GroupTO> result = new ResultOne<>();
-            result.setResponse(ApiResponse.OK);
-            result.setEntity(updatedGroup);
-            responseBody.setResult(result);
-        } catch (GroupNotFoundException e) {
-            Result result = new Result();
-            result.setResponse(ApiResponse.GROUP_NOT_FOUND);
-        }
+        ResultOne<GroupTO> result = new ResultOne<>();
+        result.setResponse(ApiResponse.OK);
+        result.setEntity(updatedGroup);
+        responseBody.setResult(result);
         return responseBody;
     }
 
