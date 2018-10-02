@@ -18,6 +18,8 @@
 
 package org.craftercms.studio.api.v2.dal;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -30,19 +32,35 @@ public class UserTO implements UserDetails {
 
     private static final long serialVersionUID = 968000561389890945L;
 
+    @JsonProperty("id")
     private long id;
+    @JsonIgnore
     private ZonedDateTime recordLastUpdated;
+    @JsonProperty("username")
     private String username;
+    @JsonProperty("password")
     private String password;
+    @JsonProperty("firstName")
     private String firstName;
+    @JsonProperty("lastName")
     private String lastName;
+    @JsonIgnore
     private int externallyManaged;
+    @JsonIgnore
     private String timezone;
+    @JsonIgnore
     private String locale;
+    @JsonProperty("email")
     private String email;
+    @JsonIgnore
     private int active;
 
-    private List<UserGroupTO> groups;
+    @JsonProperty("externallyManaged")
+    private boolean extManaged;
+    @JsonProperty("enabled")
+    private boolean enabled;
+
+    private List<UserGroupTO> groups = new ArrayList<UserGroupTO>();
 
     @Override
     public boolean isAccountNonExpired() {
@@ -127,6 +145,7 @@ public class UserTO implements UserDetails {
 
     public void setExternallyManaged(int externallyManaged) {
         this.externallyManaged = externallyManaged;
+        this.extManaged = externallyManaged != 0;
     }
 
     public String getTimezone() {
@@ -159,6 +178,7 @@ public class UserTO implements UserDetails {
 
     public void setActive(int active) {
         this.active = active;
+        this.enabled = active != 0;
     }
 
     public List<UserGroupTO> getGroups() {

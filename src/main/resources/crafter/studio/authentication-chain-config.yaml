@@ -1,0 +1,26 @@
+---
+!!org.craftercms.studio.impl.v2.service.security.HeadersAuthenticationProvider
+secureKeyHeader: secure_key
+secureKeyHeaderValue: secure
+usernameHeader: username
+firstNameHeader: firstname
+lastNameHeader: lastname
+emailHeader: email
+groupsHeader: groups
+enabled: true
+---
+!!org.craftercms.studio.impl.v2.service.security.LdapAuthenticationProvider
+ldapUrl: ldap://localhost:389
+ldapUsername: cn=Manager,dc=my-domain,dc=com
+ldapPassword: secret
+ldapBaseContext: dc=my-domain,dc=com
+usernameLdapAttribute: uid
+firstNameLdapAttribute: cn
+lastNameLdapAttribute: sn
+emailLdapAttribute: mail
+groupNameLdapAttribute: crafterGroup
+groupNameLdapAttributeRegex: .*
+groupNameLdapAttributeMatchIndex: 0
+---
+!!org.craftercms.studio.impl.v2.service.security.DbAuthenticationProvider
+name: DbAuthenticationProvider

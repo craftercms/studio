@@ -115,8 +115,8 @@
         <property name="eventService" ref="studioEventService"/>
         <property name="previewDeployer" ref="previewDeployer"/>
         <property name="entitlementValidator" ref="crafter.entitlementValidator"/>
-        <property name="groupService" ref="groupService" />
-        <property name="userService" ref="userService"/>
+        <property name="groupServiceInternal" ref="groupServiceInternal" />
+        <property name="userServiceInternal" ref="userServiceInternal"/>
         <property name="upgradeManager" ref="upgradeManager"/>
     </bean>
 
@@ -235,7 +235,8 @@
         <property name="freeMarkerConfig" ref="crafter.freeMarkerConfigFactory"/>
         <property name="activityService" ref="cstudioActivityService" />
         <property name="groupService" ref="groupService" />
-        <property name="userService" ref="userService"/>
+        <property name="userServiceInternal" ref="userServiceInternal"/>
+        <property name="authenticationChain" ref="crafter.studioAuthenticationChain" />
     </bean>
 
     <bean id="cstudioContentTypeService" class="org.craftercms.studio.impl.v1.service.content.ContentTypeServiceImpl" >
@@ -306,20 +307,42 @@
     </bean>
 
     <bean id="groupService" class="org.craftercms.studio.impl.v2.service.security.GroupServiceImpl">
-        <property name="groupDAO" ref="groupDAO"/>
         <property name="configurationService" ref="configurationService" />
         <property name="securityProvider" ref="securityProvider" />
         <property name="generalLockService" ref="cstudioGeneralLockService" />
+        <property name="groupServiceInternal" ref="groupServiceInternal" />
+        <property name="userServiceInternal" ref="userServiceInternal" />
+        <property name="organizationServiceInternal" ref="organizationServiceInternal" />
+    </bean>
+
+    <bean id="groupServiceInternal"
+          class="org.craftercms.studio.impl.v2.service.security.internal.GroupServiceInternalImpl">
+        <property name="userServiceInternal" ref="userServiceInternal" />
+        <property name="studioConfiguration" ref="studioConfiguration" />
+        <property name="contentRepository" ref="contentRepository" />
+        <property name="groupDao" ref="groupDAO" />
     </bean>
 
     <bean id="userService" class="org.craftercms.studio.impl.v2.service.security.UserServiceImpl">
-        <property name="userDAO" ref="userDAO" />
-        <property name="groupService" ref="groupService" />
+        <property name="userServiceInternal" ref="userServiceInternal" />
+        <property name="groupServiceInternal" ref="groupServiceInternal" />
         <property name="configurationService" ref="configurationService" />
         <property name="securityProvider" ref="securityProvider" />
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="entitlementValidator" ref="crafter.entitlementValidator"/>
         <property name="generalLockService" ref="cstudioGeneralLockService" />
+    </bean>
+
+    <bean id="userServiceInternal"
+          class="org.craftercms.studio.impl.v2.service.security.internal.UserServiceInternalImpl">
+        <property name="studioConfiguration" ref="studioConfiguration" />
+        <property name="groupServiceInternal" ref="groupServiceInternal" />
+        <property name="userDao" ref="userDAO" />
+    </bean>
+
+    <bean id="organizationServiceInternal"
+          class="org.craftercms.studio.impl.v2.service.security.internal.OrganizationServiceInternalImpl">
+
     </bean>
 
     <bean id="uiServiceInternal" class="org.craftercms.studio.impl.v2.service.ui.internal.UiServiceInternalImpl">
