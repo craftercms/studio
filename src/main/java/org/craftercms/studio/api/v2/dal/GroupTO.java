@@ -18,6 +18,8 @@
 
 package org.craftercms.studio.api.v2.dal;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.springframework.security.core.GrantedAuthority;
 
 import java.io.Serializable;
@@ -27,10 +29,15 @@ public class GroupTO implements Serializable, GrantedAuthority {
 
     private static final long serialVersionUID = 4723035066512137838L;
 
+    @JsonProperty("id")
     private long id;
+    @JsonIgnore
     private ZonedDateTime recordLastUpdated;
+    @JsonIgnore
     private OrganizationTO organization;
+    @JsonProperty("name")
     private String groupName;
+    @JsonProperty("desc")
     private String groupDescription;
 
     @Override

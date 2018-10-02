@@ -70,6 +70,7 @@ public interface StudioConfiguration {
     String CONFIGURATION_GLOBAL_MENU_FILE_NAME = "studio.configuration.global.menuFileName";
     String CONFIGURATION_GLOBAL_ROLE_MAPPINGS_FILE_NAME = "studio.configuration.global.roleMappingFileName";
     String CONFIGURATION_GLOBAL_PERMISSION_MAPPINGS_FILE_NAME = "studio.configuration.global.permissionMappingFileName";
+    String CONFIGURATION_SYSTEM_PERMISSIONS_FILE_NAME = "studio.configuration.system.permissionMappingFileName";
     String CONFIGURATION_GLOBAL_UI_RESOURCE_OVERRIDE_PATH = "studio.configuration.global.ui.resource.override.path";
     String CONFIGURATION_GLOBAL_SYSTEM_SITE = "studio.configuration.global.systemSite";
     String CONFIGURATION_SITE_CONFIG_BASE_PATH = "studio.configuration.site.configBasePath";
@@ -92,6 +93,8 @@ public interface StudioConfiguration {
     String CONFIGURATION_SITE_DEPENDENCY_RESOLVER_CONFIG_BASE_PATH =
             "studio.configuration.site.dependencyResolver.configBasePath";
     String CONFIGURATION_DEPENDENCY_ITEM_SPECIFIC_PATTERNS = "studio.configuration.dependency.itemSpecificPatterns";
+
+    String CONFIGURATION_AUTHENTICATION_CHAIN_CONFIG_LOCATION = "studio.authentication.chain.configLocation";
 
     /** Import Service */
     String IMPORT_ASSIGNEE = "studio.import.assignee";

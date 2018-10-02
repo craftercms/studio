@@ -36,7 +36,6 @@ import org.craftercms.studio.api.v2.dal.GroupTO;
 import org.craftercms.studio.api.v2.dal.UserGroupTO;
 import org.craftercms.studio.api.v2.dal.UserTO;
 import org.craftercms.studio.model.AuthenticationType;
-import org.craftercms.studio.model.User;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.ldap.AuthenticationException;
 import org.springframework.ldap.CommunicationException;
@@ -79,7 +78,8 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
     protected SiteFeedMapper siteFeedMapper;
 
     @Override
-    public String authenticate(String username, String password) throws BadCredentialsException, AuthenticationSystemException, EntitlementException, UserNotFoundException {
+    public String authenticate(String username, String password)
+            throws BadCredentialsException, AuthenticationSystemException, EntitlementException, UserNotFoundException {
 
         // Mapper for user data if user is successfully authenticated
         AuthenticatedLdapEntryContextMapper<UserTO> mapper = new AuthenticatedLdapEntryContextMapper<UserTO>() {
@@ -187,18 +187,11 @@ public class DbWithLdapExtensionSecurityProvider extends DbSecurityProvider {
                     }
                 } else {
                     try {
-                        User user = new User();
-                        user.setUsername(userTO.getUsername());
-                        user.setPassword(userTO.getPassword());
-                        user.setEmail(userTO.getEmail());
-                        user.setFirstName(userTO.getFirstName());
-                        user.setLastName(userTO.getLastName());
-                        user.setExternallyManaged(true);
-                        createUser(user);
+                        createUser(userTO);
                         ActivityService.ActivityType activityType = ActivityService.ActivityType.CREATED;
                         Map<String, String> extraInfo = new HashMap<>();
                         extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
-                        activityService.postActivity(getSystemSite(), user.getUsername(), user.getUsername(),
+                        activityService.postActivity(getSystemSite(), userTO.getUsername(), userTO.getUsername(),
                             activityType, ActivityService.ActivitySource.API, extraInfo);
                     } catch (UserAlreadyExistsException e) {
                         logger.error("Error adding user " + username + " from external authentication provider",

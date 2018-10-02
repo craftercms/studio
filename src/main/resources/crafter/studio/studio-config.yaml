@@ -52,6 +52,8 @@ studio.configuration.global.menuFileName: global-menu-config.xml
 studio.configuration.global.roleMappingFileName: global-role-mappings-config.xml
 # File name where global configuration of user permissions mappings is stored.
 studio.configuration.global.permissionMappingFileName: global-permission-mappings-config.xml
+# File name where configuration for system scope of user permissions mappings is stored.
+studio.configuration.system.permissionMappingFileName: system-permission-mappings-config.xml
 # UI Resource override path
 studio.configuration.global.ui.resource.override.path: crafter/studio/ui
 # Studio system site name
@@ -225,6 +227,8 @@ studio.authentication.headers.logout.enabled: false
 # be called after local logout. The {baseUrl} macro is provided so that the browser is redirected back to Studio
 # after logout (https://STUDIO_SERVER:STUDIO_PORT/studio)
 studio.authentication.headers.logout.url: /mellon/logout?ReturnTo={baseUrl}
+# Studio authentication chain configuration location
+studio.authentication.chain.configLocation: crafter/studio/authentication-chain-config.yaml
 
 ###############################################################
 ##               Page Navigation Order Service               ##
