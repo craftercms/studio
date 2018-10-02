@@ -39,13 +39,11 @@ import org.craftercms.studio.api.v2.service.security.internal.GroupServiceIntern
 import org.craftercms.studio.api.v2.service.security.internal.OrganizationServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOVE_SYSTEM_ADMIN_MEMBER_LOCK;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SYSTEM_ADMIN_GROUP;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.GROUP_NAME;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ORG_ID;
 
 public class GroupServiceImpl implements GroupService {
 
@@ -147,7 +145,7 @@ public class GroupServiceImpl implements GroupService {
             if (g.getGroupName().equals(SYSTEM_ADMIN_GROUP)) {
                 List<UserTO> members = getGroupMembers(groupId, 0, Integer.MAX_VALUE, StringUtils.EMPTY);
                 if (CollectionUtils.isNotEmpty(members)) {
-                    List<UserTO> membersAfterRemove = new ArrayList<User>();
+                    List<UserTO> membersAfterRemove = new ArrayList<UserTO>();
                     membersAfterRemove.addAll(members);
                     members.forEach(m -> {
                         if (CollectionUtils.isNotEmpty(userIds)) {

@@ -52,12 +52,6 @@ import java.util.*;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOVE_SYSTEM_ADMIN_MEMBER_LOCK;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SYSTEM_ADMIN_GROUP;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.GROUP_NAME;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.GROUP_NAMES;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LIMIT;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.OFFSET;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SORT;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USERNAME;
 
 public class UserServiceImpl implements UserService {
 
@@ -126,7 +120,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @HasPermission(type = DefaultPermission.class, action = "delete_users")
     public void deleteUsers(List<Long> userIds, List<String> usernames) throws ServiceLayerException, AuthenticationException {
-        User currentUser = getCurrentUser();
+        UserTO currentUser = getCurrentUser();
 
         if (CollectionUtils.containsAny(userIds, Arrays.asList(currentUser.getId())) ||
                 CollectionUtils.containsAny(usernames, Arrays.asList(currentUser.getUsername()))) {
@@ -137,10 +131,10 @@ public class UserServiceImpl implements UserService {
         try {
             try {
                 GroupTO g = groupServiceInternal.getGroupByName(SYSTEM_ADMIN_GROUP);
-                List<User> members = groupServiceInternal.getGroupMembers(g.getId(), 0, Integer.MAX_VALUE,
+                List<UserTO> members = groupServiceInternal.getGroupMembers(g.getId(), 0, Integer.MAX_VALUE,
                         StringUtils.EMPTY);
                 if (CollectionUtils.isNotEmpty(members)) {
-                    List<User> membersAfterRemove = new ArrayList<User>();
+                    List<UserTO> membersAfterRemove = new ArrayList<UserTO>();
                     membersAfterRemove.addAll(members);
                     members.forEach(m -> {
                         if (CollectionUtils.isNotEmpty(userIds)) {
