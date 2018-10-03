@@ -38,8 +38,8 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
+import org.craftercms.studio.api.v2.dal.UserTO;
 import org.craftercms.studio.api.v2.service.security.SecurityProvider;
-import org.craftercms.studio.model.User;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.Status;
@@ -782,7 +782,7 @@ public class GitContentRepositoryHelper {
      * @return author user as a PersonIdent
      */
     public PersonIdent getAuthorIdent(String author) throws ServiceLayerException, UserNotFoundException {
-        User user = securityProvider.getUserByIdOrUsername(-1, author);
+        UserTO user = securityProvider.getUserByIdOrUsername(-1, author);
         PersonIdent currentUserIdent =
                 new PersonIdent(user.getFirstName() + " " + user.getLastName(), user.getEmail());
 

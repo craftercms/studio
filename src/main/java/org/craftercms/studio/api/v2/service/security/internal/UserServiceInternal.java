@@ -16,50 +16,49 @@
  *
  */
 
-package org.craftercms.studio.api.v2.service.security;
+package org.craftercms.studio.api.v2.service.security.internal;
 
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v2.dal.GroupTO;
 import org.craftercms.studio.api.v2.dal.UserTO;
-import org.craftercms.studio.model.AuthenticatedUser;
-import org.craftercms.studio.model.Site;
+import org.craftercms.studio.api.v2.service.security.UserPermissions;
 
 import java.util.List;
+import java.util.Set;
 
-public interface UserService {
+public interface UserServiceInternal {
 
-    List<UserTO> getAllUsersForSite(long orgId, String site, int offset, int limit,
-                                  String sort) throws ServiceLayerException;
+    Set<String> getUserPermissions(String username, UserPermissions.Scope scope, String parameter)
+            throws ServiceLayerException;
+
+    UserTO getUserByIdOrUsername(long userId, String username) throws ServiceLayerException, UserNotFoundException;
+
+    List<UserTO> getAllUsersForSite(long orgId, List<String> groupNames, int offset, int limit, String sort)
+            throws ServiceLayerException;
 
     List<UserTO> getAllUsers(int offset, int limit, String sort) throws ServiceLayerException;
 
-    int getAllUsersForSiteTotal(long orgId, String site) throws ServiceLayerException;
+    int getAllUsersForSiteTotal(long orgId, String siteId) throws ServiceLayerException;
 
     int getAllUsersTotal() throws ServiceLayerException;
 
     UserTO createUser(UserTO user) throws UserAlreadyExistsException, ServiceLayerException;
 
+    boolean userExists(String username) throws ServiceLayerException;
+
     void updateUser(UserTO user) throws ServiceLayerException;
 
-    void deleteUsers(List<Long> userIds, List<String> usernames) throws ServiceLayerException, AuthenticationException;
-
-    UserTO getUserByIdOrUsername(long userId, String username) throws ServiceLayerException, UserNotFoundException;
+    void deleteUsers(List<Long> userIds, List<String> usernames) throws ServiceLayerException;
 
     List<UserTO> enableUsers(List<Long> userIds, List<String> usernames, boolean enabled)
             throws ServiceLayerException, UserNotFoundException;
 
-    List<Site> getUserSites(long userId, String username) throws ServiceLayerException, UserNotFoundException;
-
-    List<String> getUserSiteRoles(long userId, String username, String site)
+    List<UserTO> findUsers(List<Long> userIds, List<String> usernames)
             throws ServiceLayerException, UserNotFoundException;
 
-    AuthenticatedUser getCurrentUser() throws AuthenticationException, ServiceLayerException;
+    List<GroupTO> getUserGroups(long userId, String username) throws ServiceLayerException;
 
-    List<Site> getCurrentUserSites() throws AuthenticationException, ServiceLayerException;
-
-    List<String> getCurrentUserSiteRoles(String site) throws AuthenticationException, ServiceLayerException;
-
-    String getCurrentUserSsoLogoutUrl() throws AuthenticationException, ServiceLayerException;
+    boolean isUserMemberOfGroup(String username, String groupName) throws ServiceLayerException;
 }

@@ -35,7 +35,6 @@ import org.craftercms.studio.api.v2.dal.GroupTO;
 import org.craftercms.studio.api.v2.dal.UserGroupTO;
 import org.craftercms.studio.api.v2.dal.UserTO;
 import org.craftercms.studio.model.AuthenticationType;
-import org.craftercms.studio.model.User;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
@@ -57,7 +56,8 @@ public class AuthenticationHeadersSecurityProvider extends DbWithLdapExtensionSe
     private final static Logger logger = LoggerFactory.getLogger(AuthenticationHeadersSecurityProvider.class);
 
     @Override
-    public String authenticate(String username, String password) throws BadCredentialsException, AuthenticationSystemException, EntitlementException, UserNotFoundException {
+    public String authenticate(String username, String password)
+            throws BadCredentialsException, AuthenticationSystemException, EntitlementException, UserNotFoundException {
         if (isAuthenticationHeadersEnabled()) {
             logger.debug("Authenticating user using authentication headers.");
 
@@ -102,14 +102,14 @@ public class AuthenticationHeadersSecurityProvider extends DbWithLdapExtensionSe
                         } else {
                             logger.debug("User does not exist in studio db. Adding user " + usernameHeader);
                             try {
-                                User user = new User();
+                                UserTO user = new UserTO();
                                 user.setUsername(usernameHeader);
                                 user.setPassword(UUID.randomUUID().toString());
                                 user.setFirstName(firstName);
                                 user.setLastName(firstName);
                                 user.setEmail(email);
-                                user.setExternallyManaged(true);
-                                user.setEnabled(true);
+                                user.setExternallyManaged(1);
+                                user.setActive(1);
                                 createUser(user);
                                 ActivityService.ActivityType activityType = ActivityService.ActivityType.CREATED;
                                 Map<String, String> extraInfo = new HashMap<String, String>();

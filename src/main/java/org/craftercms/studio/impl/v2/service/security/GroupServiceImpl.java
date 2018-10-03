@@ -18,6 +18,8 @@
 
 package org.craftercms.studio.impl.v2.service.security;
 
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
@@ -26,127 +28,171 @@ import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v2.dal.GroupTO;
-import org.craftercms.studio.api.v2.dal.GroupDAO;
+import org.craftercms.studio.api.v2.dal.UserTO;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
+import org.craftercms.studio.api.v2.exception.OrganizationNotFoundException;
 import org.craftercms.studio.api.v2.service.security.GroupService;
 import org.craftercms.studio.api.v2.service.security.SecurityProvider;
-import org.craftercms.studio.model.Group;
-import org.craftercms.studio.model.User;
+import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
+import org.craftercms.studio.api.v2.service.security.internal.OrganizationServiceInternal;
+import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.GROUP_NAME;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ORG_ID;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOVE_SYSTEM_ADMIN_MEMBER_LOCK;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SYSTEM_ADMIN_GROUP;
 
 public class GroupServiceImpl implements GroupService {
 
     private static final Logger logger = LoggerFactory.getLogger(GroupServiceImpl.class);
 
-    private GroupDAO groupDAO;
     private ConfigurationService configurationService;
     private SecurityProvider securityProvider;
+    private GroupServiceInternal groupServiceInternal;
+    private OrganizationServiceInternal organizationServiceInternal;
+    private UserServiceInternal userServiceInternal;
+    private GeneralLockService generalLockService;
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "read_groups")
-    public List<Group> getAllGroups(long orgId, int offset, int limit, String sort) throws ServiceLayerException {
-        return securityProvider.getAllGroups(orgId, offset, limit, sort);
+    public List<GroupTO> getAllGroups(long orgId, int offset, int limit, String sort)
+            throws ServiceLayerException, OrganizationNotFoundException {
+        // Security check
+        if (organizationServiceInternal.organizationExists(orgId)) {
+            return groupServiceInternal.getAllGroups(orgId, offset, limit, sort);
+        } else {
+            throw new OrganizationNotFoundException();
+        }
     }
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "read_groups")
-    public int getAllGroupsTotal(long orgId) throws ServiceLayerException {
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put(ORG_ID, orgId);
-        try {
-            return groupDAO.getAllGroupsForOrganizationTotal(params);
-        } catch (Exception e) {
-            throw new ServiceLayerException("Unknown database error", e);
+    public int getAllGroupsTotal(long orgId) throws ServiceLayerException, OrganizationNotFoundException {
+        if (organizationServiceInternal.organizationExists(orgId)) {
+            return groupServiceInternal.getAllGroupsTotal(orgId);
+        } else {
+            throw new OrganizationNotFoundException();
         }
     }
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "create_groups")
-    public Group createGroup(long orgId, String groupName, String groupDescription) throws GroupAlreadyExistsException,
+    public GroupTO createGroup(long orgId, String groupName, String groupDescription) throws
+            GroupAlreadyExistsException,
         ServiceLayerException {
-        return securityProvider.createGroup(orgId, groupName, groupDescription);
-    }
-
-    @Override
-    @HasPermission(type = DefaultPermission.class, action = "update_groups")
-    public Group updateGroup(long orgId, Group group) throws ServiceLayerException {
-        return securityProvider.updateGroup(orgId, group);
-    }
-
-    @Override
-    @HasPermission(type = DefaultPermission.class, action = "delete_groups")
-    public void deleteGroup(List<Long> groupIds) throws ServiceLayerException {
-        securityProvider.deleteGroup(groupIds);
-    }
-
-    @Override
-    @HasPermission(type = DefaultPermission.class, action = "read_groups")
-    public Group getGroup(long groupId) throws ServiceLayerException {
-        return securityProvider.getGroup(groupId);
-    }
-
-    @Override
-    @HasPermission(type = DefaultPermission.class, action = "read_groups")
-    public List<User> getGroupMembers(long groupId, int offset, int limit, String sort) throws ServiceLayerException {
-        return securityProvider.getGroupMembers(groupId, offset, limit, sort);
-    }
-
-    @Override
-    @HasPermission(type = DefaultPermission.class, action = "update_groups")
-    public List<User> addGroupMembers(long groupId, List<Long> userIds, List<String> usernames)
-            throws ServiceLayerException, UserNotFoundException {
-        return securityProvider.addGroupMembers(groupId, userIds, usernames);
-    }
-
-    @Override
-    @HasPermission(type = DefaultPermission.class, action = "update_groups")
-    public void removeGroupMembers(long groupId, List<Long> userIds, List<String> usernames)
-        throws ServiceLayerException, UserNotFoundException {
-        securityProvider.removeGroupMembers(groupId, userIds, usernames);
-    }
-
-    @Override
-    public List<String> getSiteGroups(String siteId) throws ServiceLayerException {
-        Map<String, List<String>> roleMappingsConfig = configurationService.geRoleMappings(siteId);
-
-        return new ArrayList<>(roleMappingsConfig.keySet());
-    }
-
-    @Override
-    public Group getGroupByName(String groupName) throws GroupNotFoundException, ServiceLayerException {
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put(GROUP_NAME, groupName);
-        GroupTO groupTO;
-        try {
-            groupTO = groupDAO.getGroupByName(params);
-        } catch (Exception e) {
-            throw new ServiceLayerException("Unknown database error", e);
+        if (!groupServiceInternal.groupExists(groupName)) {
+            return groupServiceInternal.createGroup(orgId, groupName, groupDescription);
+        } else {
+            throw new GroupAlreadyExistsException();
         }
-        if (groupTO != null) {
-            Group g = new Group();
-            g.setId(groupTO.getId());
-            g.setName(groupTO.getGroupName());
-            g.setDesc(groupTO.getGroupDescription());
-            return g;
+    }
+
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = "update_groups")
+    public GroupTO updateGroup(long orgId, GroupTO group) throws ServiceLayerException, GroupNotFoundException {
+        if (groupServiceInternal.groupExists(group.getGroupName())) {
+            return groupServiceInternal.updateGroup(orgId, group);
         } else {
             throw new GroupNotFoundException();
         }
     }
 
-    public GroupDAO getGroupDAO() {
-        return groupDAO;
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = "delete_groups")
+    public void deleteGroup(List<Long> groupIds) throws ServiceLayerException {
+        try {
+            GroupTO g = groupServiceInternal.getGroupByName(SYSTEM_ADMIN_GROUP);
+            if (CollectionUtils.isNotEmpty(groupIds)) {
+                if (groupIds.contains(g.getId())) {
+                    throw new ServiceLayerException("Deleting the System Admin group is not allowed.");
+                }
+            }
+        } catch (GroupNotFoundException e) {
+            throw new ServiceLayerException("The System Admin group is not found", e);
+        }
+        groupServiceInternal.deleteGroup(groupIds);
     }
 
-    public void setGroupDAO(GroupDAO groupDAO) {
-        this.groupDAO = groupDAO;
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = "read_groups")
+    public GroupTO getGroup(long groupId) throws ServiceLayerException {
+        return groupServiceInternal.getGroup(groupId);
+    }
+
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = "read_groups")
+    public List<UserTO> getGroupMembers(long groupId, int offset, int limit, String sort) throws ServiceLayerException {
+        return groupServiceInternal.getGroupMembers(groupId, offset, limit, sort);
+    }
+
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = "update_groups")
+    public List<UserTO> addGroupMembers(long groupId, List<Long> userIds, List<String> usernames)
+            throws ServiceLayerException, UserNotFoundException {
+        return groupServiceInternal.addGroupMembers(groupId, userIds, usernames);
+    }
+
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = "update_groups")
+    public void removeGroupMembers(long groupId, List<Long> userIds, List<String> usernames)
+            throws ServiceLayerException, UserNotFoundException {
+        GroupTO g = getGroup(groupId);
+        generalLockService.lock(REMOVE_SYSTEM_ADMIN_MEMBER_LOCK);
+        try {
+            if (g.getGroupName().equals(SYSTEM_ADMIN_GROUP)) {
+                List<UserTO> members = getGroupMembers(groupId, 0, Integer.MAX_VALUE, StringUtils.EMPTY);
+                if (CollectionUtils.isNotEmpty(members)) {
+                    List<UserTO> membersAfterRemove = new ArrayList<UserTO>();
+                    membersAfterRemove.addAll(members);
+                    members.forEach(m -> {
+                        if (CollectionUtils.isNotEmpty(userIds)) {
+                            if (userIds.contains(m.getId())) {
+                                membersAfterRemove.remove(m);
+                            }
+                        }
+                        if (CollectionUtils.isNotEmpty(usernames)) {
+                            if (usernames.contains(m.getUsername())) {
+                                membersAfterRemove.remove(m);
+                            }
+                        }
+                    });
+                    if (CollectionUtils.isEmpty(membersAfterRemove)) {
+                        throw new ServiceLayerException("Removing all members of the System Admin group is not allowed." +
+                                " We must have at least one system administrator.");
+                    }
+                }
+            }
+            groupServiceInternal.removeGroupMembers(groupId, userIds, usernames);
+        } finally {
+            generalLockService.unlock(REMOVE_SYSTEM_ADMIN_MEMBER_LOCK);
+        }
+    }
+
+    public GroupServiceInternal getGroupServiceInternal() {
+        return groupServiceInternal;
+    }
+
+    public void setGroupServiceInternal(GroupServiceInternal groupServiceInternal) {
+        this.groupServiceInternal = groupServiceInternal;
+    }
+
+    public OrganizationServiceInternal getOrganizationServiceInternal() {
+        return organizationServiceInternal;
+    }
+
+    public void setOrganizationServiceInternal(OrganizationServiceInternal organizationServiceInternal) {
+        this.organizationServiceInternal = organizationServiceInternal;
+    }
+
+    public UserServiceInternal getUserServiceInternal() {
+        return userServiceInternal;
+    }
+
+    public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
+        this.userServiceInternal = userServiceInternal;
     }
 
     public ConfigurationService getConfigurationService() {
@@ -163,5 +209,13 @@ public class GroupServiceImpl implements GroupService {
 
     public void setSecurityProvider(SecurityProvider securityProvider) {
         this.securityProvider = securityProvider;
+    }
+
+    public GeneralLockService getGeneralLockService() {
+        return generalLockService;
+    }
+
+    public void setGeneralLockService(GeneralLockService generalLockService) {
+        this.generalLockService = generalLockService;
     }
 }

@@ -23,11 +23,13 @@ import org.craftercms.commons.security.exception.ActionDeniedException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
+import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
+import org.craftercms.studio.api.v2.exception.OrganizationNotFoundException;
 import org.craftercms.studio.model.rest.ApiResponse;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.Result;
@@ -95,6 +97,22 @@ public class ExceptionHandlers {
         ApiResponse response = new ApiResponse(ApiResponse.INTERNAL_SYSTEM_FAILURE);
         response.setMessage(response.getMessage() + ": "+ e.getMessage());
 
+        return handleExceptionInternal(request, e, response);
+    }
+
+    @ExceptionHandler(OrganizationNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ResponseBody handleOrganizetionNotFoundException(HttpServletRequest request,
+                                                            OrganizationNotFoundException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.ORG_NOT_FOUND);
+        response.setMessage(response.getMessage() + ": " + e.getMessage());
+        return handleExceptionInternal(request, e, response);
+    }
+
+    @ExceptionHandler(GroupNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ResponseBody handleGroupNotFoundException(HttpServletRequest request, GroupNotFoundException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.GROUP_NOT_FOUND);
         return handleExceptionInternal(request, e, response);
     }
 

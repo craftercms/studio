@@ -28,9 +28,9 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
+import org.craftercms.studio.api.v2.dal.GroupTO;
 import org.craftercms.studio.api.v2.dal.UserTO;
 import org.craftercms.studio.api.v2.service.security.SecurityProvider;
-import org.craftercms.studio.model.Group;
 import org.springframework.security.access.AccessDecisionVoter;
 
 import java.util.Collection;
@@ -111,9 +111,9 @@ public abstract class StudioAbstractAccessDecisionVoter implements AccessDecisio
 
             boolean toRet = sites.containsKey(siteId);
             if (toRet) {
-                List<Group> userGroups = securityProvider.getUserGroups(sites.get(siteId), currentUser.getUsername());
-                for (Group g : userGroups) {
-                    if (g.getName().equals(studioConfiguration.getProperty(CONFIGURATION_DEFAULT_ADMIN_GROUP))) {
+                List<GroupTO> userGroups = securityProvider.getUserGroups(sites.get(siteId), currentUser.getUsername());
+                for (GroupTO g : userGroups) {
+                    if (g.getGroupName().equals(studioConfiguration.getProperty(CONFIGURATION_DEFAULT_ADMIN_GROUP))) {
                         toRet = true;
                         break;
                     }
@@ -135,7 +135,7 @@ public abstract class StudioAbstractAccessDecisionVoter implements AccessDecisio
     }
 
     protected boolean isAdmin(UserTO user) {
-        List<Group> userGroups = null;
+        List<GroupTO> userGroups = null;
         try {
             userGroups = securityProvider.getUserGroups(-1, user.getUsername());
         } catch (ServiceLayerException e) {
@@ -144,8 +144,8 @@ public abstract class StudioAbstractAccessDecisionVoter implements AccessDecisio
         }
         boolean toRet = false;
         if (CollectionUtils.isNotEmpty(userGroups)) {
-            for (Group group : userGroups) {
-                if (StringUtils.equalsIgnoreCase(group.getName(), SYSTEM_ADMIN_GROUP)) {
+            for (GroupTO group : userGroups) {
+                if (StringUtils.equalsIgnoreCase(group.getGroupName(), SYSTEM_ADMIN_GROUP)) {
                     toRet = true;
                     break;
                 }

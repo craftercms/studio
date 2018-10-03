@@ -167,4 +167,6 @@ package org.craftercms.studio.api.v1.constant;
     String HTTP_SESSION_ATTRIBUTE_AUTHENTICATION = "studio_authentication";
 
     int DEFAULT_ORGANIZATION_ID = 1;
+
+    String REMOVE_SYSTEM_ADMIN_MEMBER_LOCK = "remove_system_admin_member_lock";
 }
