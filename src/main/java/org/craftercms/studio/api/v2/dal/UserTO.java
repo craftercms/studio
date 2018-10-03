@@ -82,6 +82,11 @@ public class UserTO implements UserDetails {
         return active != 0;
     }
 
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+        this.active = enabled ? 1 : 0;
+    }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         List<GroupTO> toRet = new ArrayList<GroupTO>();
