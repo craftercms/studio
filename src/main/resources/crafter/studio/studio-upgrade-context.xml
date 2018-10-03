@@ -23,36 +23,43 @@
 
     <bean id="upgradeManager" class="org.craftercms.studio.impl.v2.upgrade.DefaultUpgradeManagerImpl"
           init-method="init" depends-on="databaseInitializer">
-        <property name="latestDbVersion"
-                  value="#{studioConfiguration.getProperty('studio.upgrade.dbVersion')}"/>
-        <property name="latestSiteVersion" value="#{studioConfiguration.getProperty('studio.upgrade.siteVersion')}"/>
         <property name="siteVersionFilePath" value="#{studioConfiguration.getProperty('studio.upgrade.versionFile')}"/>
         <property name="dataSource" ref="dataSource"/>
         <property name="integrityValidator" ref="crafter.databaseValidator"/>
         <property name="contentRepository" ref="contentRepository"/>
+        <property name="studioConfiguration" ref="studioConfiguration"/>
+        <property name="securityProvider" ref="securityProvider"/>
+        <property name="servicesConfig" ref="cstudioServicesConfig"/>
+
+        <property name="siteSandboxBranch" value="#{studioConfiguration.getProperty('studio.repo.siteSandboxBranch')}"/>
+        <property name="siteUpgradeBranch"
+                  value="#{studioConfiguration.getProperty('studio.upgrade.branchName')}"/>
+        <property name="commitMessage" value="#{studioConfiguration.getProperty('studio.upgrade.commitMessage')}"/>
         <property name="configurationFile"
                   value="#{studioConfiguration.getProperty('studio.upgrade.configurationFile')}"/>
 
         <property name="dbVersionProvider" ref="dbVersionProvider"/>
         <property name="dbPipelineFactory">
-            <bean class="org.craftercms.studio.impl.v2.upgrade.pipeline.DefaultUpgradePipelineFactoryImpl">
+            <bean class="org.craftercms.studio.impl.v2.upgrade.pipeline.DefaultUpgradePipelineFactoryImpl"
+                  parent="pipelineFactory">
                 <property name="pipelineName"
                           value="#{studioConfiguration.getProperty('studio.upgrade.pipeline.system')}"/>
-                <property name="pipelinePrefix" value="#{studioConfiguration.getProperty('studio.upgrade.pipeline.prefix')}"/>
-                <property name="configurationFile"
-                          value="#{studioConfiguration.getProperty('studio.upgrade.configurationFile')}"/>
             </bean>
         </property>
 
         <property name="bpPipelineFactory">
-            <bean class="org.craftercms.studio.impl.v2.upgrade.pipeline.DefaultUpgradePipelineFactoryImpl">
+            <bean class="org.craftercms.studio.impl.v2.upgrade.pipeline.DefaultUpgradePipelineFactoryImpl"
+                  parent="pipelineFactory">
                 <property name="pipelineName"
                           value="#{studioConfiguration.getProperty('studio.upgrade.pipeline.blueprint')}"/>
-                <property name="pipelinePrefix" value="#{studioConfiguration.getProperty('studio.upgrade.pipeline.prefix')}"/>
-                <property name="configurationFile"
-                          value="#{studioConfiguration.getProperty('studio.upgrade.configurationFile')}"/>
             </bean>
         </property>
+    </bean>
+
+    <bean id="pipelineFactory" abstract="true">
+        <property name="pipelinePrefix" value="#{studioConfiguration.getProperty('studio.upgrade.pipeline.prefix')}"/>
+        <property name="configurationFile"
+                  value="#{studioConfiguration.getProperty('studio.upgrade.configurationFile')}"/>
     </bean>
 
     <bean id="dbVersionProvider" class="org.craftercms.studio.impl.v2.upgrade.providers.DbVersionProvider">
@@ -65,20 +72,15 @@
         <property name="contentRepository" ref="contentRepository"/>
     </bean>
 
-    <bean id="sitePipelineFactory" scope="prototype"
+    <bean id="sitePipelineFactory" scope="prototype" parent="pipelineFactory"
           class="org.craftercms.studio.impl.v2.upgrade.pipeline.DefaultUpgradePipelineFactoryImpl">
         <property name="pipelineName" value="#{studioConfiguration.getProperty('studio.upgrade.pipeline.site')}"/>
-        <property name="pipelinePrefix" value="#{studioConfiguration.getProperty('studio.upgrade.pipeline.prefix')}"/>
-        <property name="configurationFile"
-                  value="#{studioConfiguration.getProperty('studio.upgrade.configurationFile')}"/>
     </bean>
 
-    <bean id="filePipelineFactory" scope="prototype"
+    <bean id="filePipelineFactory" scope="prototype" parent="pipelineFactory"
           class="org.craftercms.studio.impl.v2.upgrade.pipeline.DefaultUpgradePipelineFactoryImpl">
         <property name="pipelinePrefix"
                   value="#{studioConfiguration.getProperty('studio.upgrade.pipeline.configurations')}"/>
-        <property name="configurationFile"
-                  value="#{studioConfiguration.getProperty('studio.upgrade.configurationFile')}"/>
     </bean>
 
     <bean id="upgradeOperation" class="org.craftercms.studio.impl.v2.upgrade.operations.AbstractUpgradeOperation"

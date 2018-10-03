@@ -42,4 +42,10 @@ public interface UpgradePipeline {
         execute(StringUtils.EMPTY);
     }
 
+    /**
+     * Indicates if the pipeline doesn't contain any operations.
+     * @return true if there are no operations
+     */
+    boolean isEmpty();
+
 }

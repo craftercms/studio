@@ -24,12 +24,15 @@ package org.craftercms.studio.api.v2.upgrade;
  */
 public interface UpgradeConstants {
 
+    String VERSION_1_0 = "1.0";
     String VERSION_3_0_0 = "3.0.0";
 
-    String CONFIG_KEY_VERSION = "version";
+    String CONFIG_KEY_SOURCE_VERSION = "sourceVersion";
+    String CONFIG_KEY_TARGET_VERSION = "targetVersion";
     String CONFIG_KEY_OPERATIONS = "operations";
     String CONFIG_KEY_TYPE = "type";
     String CONFIG_KEY_PATH = "path";
+    String CONFIG_KEY_CONFIGURATIONS = "configurations";
 
     String PARAM_KEY_SITE = "site_id";
     String PARAM_KEY_VERSION = "version";

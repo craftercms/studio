@@ -54,8 +54,8 @@ public class DefaultUpgradePipelineImpl implements UpgradePipeline {
      */
     @Override
     public void execute(final String site) throws UpgradeException {
-        if(operations == null || operations.isEmpty()) {
-            logger.info("Upgrade pipeline {0} is empty", name);
+        if(isEmpty()) {
+            logger.info("No pending upgrades for pipeline {0}", name);
             return;
         }
         logger.info("============================================================");
@@ -67,6 +67,15 @@ public class DefaultUpgradePipelineImpl implements UpgradePipeline {
         }
         logger.info("Execution of pipeline {0} completed", name);
         logger.info("============================================================");
+    }
+
+    /**
+     * {@inheritDoc}
+     * @return
+     */
+    @Override
+    public boolean isEmpty() {
+        return operations == null || operations.isEmpty();
     }
 
 }

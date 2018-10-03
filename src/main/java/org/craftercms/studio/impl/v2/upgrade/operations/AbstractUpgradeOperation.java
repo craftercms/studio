@@ -47,6 +47,7 @@ import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.springframework.core.io.Resource;
+import org.springframework.web.context.ServletContextAware;
 import org.springframework.web.context.support.ServletContextResource;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
@@ -56,14 +57,16 @@ import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryC
  * Provides access to system components for all upgrade operations.
  * @author joseross
  */
-public abstract class AbstractUpgradeOperation implements UpgradeOperation {
+public abstract class AbstractUpgradeOperation implements UpgradeOperation, ServletContextAware {
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractUpgradeOperation.class);
 
     /**
      * The target version.
      */
-    protected String version;
+    protected String sourceVersion;
+
+    protected String targetVersion;
 
     /**
      * The Studio configuration.
@@ -118,8 +121,9 @@ public abstract class AbstractUpgradeOperation implements UpgradeOperation {
     }
 
     @Override
-    public void init(final String version, final Configuration config) {
-        this.version = version;
+    public void init(final String sourceVersion, final String targetVersion, final Configuration config) {
+        this.sourceVersion = sourceVersion;
+        this.targetVersion = targetVersion;
     }
 
     protected void writeToRepo(String site, String path, InputStream content, String message) {

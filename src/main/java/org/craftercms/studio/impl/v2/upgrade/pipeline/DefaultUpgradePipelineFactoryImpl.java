@@ -36,8 +36,9 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.io.Resource;
 
 import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.CONFIG_KEY_OPERATIONS;
+import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.CONFIG_KEY_SOURCE_VERSION;
+import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.CONFIG_KEY_TARGET_VERSION;
 import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.CONFIG_KEY_TYPE;
-import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.CONFIG_KEY_VERSION;
 
 /**
  * Default implementation of {@link UpgradePipelineFactory}.
@@ -112,21 +113,19 @@ public class DefaultUpgradePipelineFactoryImpl implements UpgradePipelineFactory
         HierarchicalConfiguration config = loadUpgradeConfiguration();
         List<HierarchicalConfiguration> pipeline = config.configurationsAt(pipelinePrefix + "." + pipelineName);
 
-        boolean versionFound = false;
+        String nextVersion = currentVersion;
         for(HierarchicalConfiguration release : pipeline) {
-            String version = release.getString(CONFIG_KEY_VERSION);
-            if(!version.equals(currentVersion)) {
-                if(versionFound) {
-                    List<HierarchicalConfiguration> operationsConfig = release.configurationsAt(CONFIG_KEY_OPERATIONS);
-                    operationsConfig.forEach(operationConfig -> {
-                        UpgradeOperation operation =
-                            appContext.getBean(operationConfig.getString(CONFIG_KEY_TYPE), UpgradeOperation.class);
-                        operation.init(version, operationConfig);
-                        operations.add(operation);
-                    });
+            String sourceVersion = release.getString(CONFIG_KEY_SOURCE_VERSION);
+            String targetVersion = release.getString(CONFIG_KEY_TARGET_VERSION);
+            if(sourceVersion.equals(nextVersion)) {
+                List<HierarchicalConfiguration> operationsConfig = release.configurationsAt(CONFIG_KEY_OPERATIONS);
+                for(HierarchicalConfiguration operationConfig : operationsConfig) {
+                    UpgradeOperation operation =
+                        appContext.getBean(operationConfig.getString(CONFIG_KEY_TYPE), UpgradeOperation.class);
+                    operation.init(sourceVersion, targetVersion, operationConfig);
+                    operations.add(operation);
                 }
-            } else {
-                versionFound = true;
+                nextVersion = targetVersion;
             }
         }
         return new DefaultUpgradePipelineImpl(pipelineName, operations);

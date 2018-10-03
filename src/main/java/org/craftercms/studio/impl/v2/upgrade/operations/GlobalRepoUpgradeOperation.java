@@ -52,8 +52,8 @@ public class GlobalRepoUpgradeOperation extends AbstractUpgradeOperation {
      * {@inheritDoc}
      */
     @Override
-    public void init(final String version, final Configuration config) {
-        super.init(version, config);
+    public void init(final String sourceVersion, final String targetVersion, final Configuration config) {
+        super.init(sourceVersion, targetVersion, config);
         files = (String[]) config.getArray(String.class, CONFIG_KEY_FILES);
     }
 
@@ -75,7 +75,7 @@ public class GlobalRepoUpgradeOperation extends AbstractUpgradeOperation {
             logger.debug("Upgrading configuration file: {0}", file);
             try (InputStream is = globalConfigurationBootstrap.createRelative(file).getInputStream()) {
 
-                writeToRepo(site, file, is, "Global Repo Upgrade");
+                writeToRepo(site, file, is, "Global Repo Upgrade v" + sourceVersion + " to v" + targetVersion);
 
             } catch (IOException e) {
                 throw new UpgradeException("Upgrade for global repo failed", e);

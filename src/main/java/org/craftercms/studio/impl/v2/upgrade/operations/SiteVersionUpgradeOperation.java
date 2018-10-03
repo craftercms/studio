@@ -42,8 +42,8 @@ public class SiteVersionUpgradeOperation extends XsltFileUpgradeOperation {
      * {@inheritDoc}
      */
     @Override
-    public void init(final String version, final Configuration config) {
-        super.init(version, config);
+    public void init(final String sourceVersion, final String targetVersion, final Configuration config) {
+        super.init(sourceVersion, targetVersion, config);
         defaultFile = new ClassPathResource(config.getString("defaultFile"));
     }
 
@@ -52,15 +52,14 @@ public class SiteVersionUpgradeOperation extends XsltFileUpgradeOperation {
      */
     @Override
     public void execute(final String site) throws UpgradeException {
-        if(contentRepository.contentExists(site, path)) {
-            super.execute(site);
-        } else {
+        if(!contentRepository.contentExists(site, path)) {
             try(InputStream is = defaultFile.getInputStream()) {
-                writeToRepo(site, path, is, "Added version file for future upgrades");
+                writeToRepo(site, path, is, "Added file to track site version");
             } catch (IOException e) {
                 throw new UpgradeException("Error adding version file to site " + site, e);
             }
         }
+        super.execute(site);
     }
 
 }
