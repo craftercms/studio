@@ -28,4 +28,8 @@ public interface AuthenticationProvider {
                            AuthenticationChain authenticationChain,
                            String username,
                            String password);
+
+    boolean isEnabled();
+
+    void setEnabled(boolean enabled);
 }
