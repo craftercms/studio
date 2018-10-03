@@ -19,7 +19,7 @@
 import groovy.json.JsonException
 import groovy.json.JsonSlurper
 import org.craftercms.studio.api.v1.exception.security.BadCredentialsException
-
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException
 import scripts.api.SecurityServices
 
 def result = [:]
@@ -45,7 +45,7 @@ try {
             response.setStatus(500)
             result.message = "Internal server error"
         }
-    } catch (BadCredentialsException e) {
+    } catch (BadCredentialsException | UserNotFoundException e) {
         response.setStatus(401)
         result.message = "Unauthorized"
     } catch (Exception e) {
