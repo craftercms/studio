@@ -34,10 +34,13 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import static org.craftercms.engine.targeting.impl.TargetedContentStoreAdapter.logger;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_AUTHENTICATION_CHAIN_CONFIG;
 
 public class AuthenticationChainImpl implements AuthenticationChain {
 
@@ -50,20 +53,16 @@ public class AuthenticationChainImpl implements AuthenticationChain {
     private GroupDAO groupDao;
 
     public void init() {
-        Resource resource = new ClassPathResource(studioConfiguration.getProperty(
-                StudioConfiguration.CONFIGURATION_AUTHENTICATION_CHAIN_CONFIG_LOCATION));
-        try (InputStream in = resource.getInputStream()) {
-            Yaml yaml = new Yaml();
-            Iterable iterable = yaml.loadAll(in);
-            Iterator<AuthenticationProvider> iterator = iterable.iterator();
-            authentitcationChain = new ArrayList<AuthenticationProvider>();
-            while (iterator.hasNext()) {
-                authentitcationChain.add(iterator.next());
+        List<Map<String, Object>> chainConfig = new ArrayList<Map<String, Object>>();
+        chainConfig = studioConfiguration.getProperty(CONFIGURATION_AUTHENTICATION_CHAIN_CONFIG,
+                chainConfig.getClass());
+        authentitcationChain = new ArrayList<AuthenticationProvider>();
+        chainConfig.forEach(providerConfig -> {
+            AuthenticationProvider provider = AuthenticationProviderFactory.getAuthenticationProvider(providerConfig);
+            if (provider != null) {
+                authentitcationChain.add(provider);
             }
-            logger.debug("Loaded authentication chain configuration from location: " + authentitcationChain);
-        } catch (IOException e) {
-            logger.error("Failed to load authentication chain configuration from: " + authentitcationChain);
-        }
+        });
     }
 
     @Override
@@ -73,8 +72,10 @@ public class AuthenticationChainImpl implements AuthenticationChain {
         Iterator<AuthenticationProvider> iterator = authentitcationChain.iterator();
         while (iterator.hasNext()) {
             AuthenticationProvider authProvider = iterator.next();
-            authenticated = authProvider.doAuthenticate(request, response, this, username, password);
-            if (authenticated) break;
+            if (authProvider.isEnabled()) {
+                authenticated = authProvider.doAuthenticate(request, response, this, username, password);
+                if (authenticated) break;
+            }
         }
         return authenticated;
     }
