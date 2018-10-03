@@ -31,9 +31,11 @@ import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_SES
 
 public abstract class BaseAuthenticationProvider implements AuthenticationProvider {
 
+    private boolean enabled;
+
     protected String createToken(UserTO user, AuthenticationChain authenticationChain) {
         StudioConfiguration studioConfiguration = authenticationChain.getStudioConfiguration();
-        int timeout = Integer.parseInt(studioConfiguration.getProperty(SECURITY_SESSION_TIMEOUT));
+        int timeout = studioConfiguration.getProperty(SECURITY_SESSION_TIMEOUT, Integer.class);
         String token = SessionTokenUtils.createToken(user.getUsername(), timeout);
         return token;
     }
@@ -44,5 +46,15 @@ public abstract class BaseAuthenticationProvider implements AuthenticationProvid
             HttpSession httpSession = context.getRequest().getSession();
             httpSession.setAttribute(HTTP_SESSION_ATTRIBUTE_AUTHENTICATION, authentication);
         }
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
     }
 }

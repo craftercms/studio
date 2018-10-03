@@ -35,7 +35,7 @@ public class StudioConfigurationImpl implements StudioConfiguration {
 
     private final static Logger logger = LoggerFactory.getLogger(StudioConfigurationImpl.class);
 
-    private Map<String, String> properties = new HashMap<String, String>();
+    private Map<String, Object> properties = new HashMap<String, Object>();
 
     public void init() {
         loadConfig();
@@ -76,18 +76,23 @@ public class StudioConfigurationImpl implements StudioConfiguration {
 
         // Merge the base properties and additional properties
         for (Map.Entry<String, Object> entry: baseProperties.entrySet()) {
-            properties.put(entry.getKey(), String.valueOf(entry.getValue()));
+            properties.put(entry.getKey(), entry.getValue());
         }
         if (overrideProperties != null) {
             for (Map.Entry<String, Object> entry : overrideProperties.entrySet()) {
-                properties.put(entry.getKey(), String.valueOf(entry.getValue()));
+                properties.put(entry.getKey(), entry.getValue());
             }
         }
     }
 
     @Override
     public String getProperty(String key) {
-        return properties.get(key);
+        return String.valueOf(getProperty(key, Object.class));
+    }
+
+    @Override
+    public <T> T getProperty(String key, Class<T> clazz) {
+        return clazz.cast(properties.get(key));
     }
 
     public String getConfigLocation() { return configLocation; }

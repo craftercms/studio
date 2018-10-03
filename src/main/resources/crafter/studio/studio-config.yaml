@@ -227,9 +227,45 @@ studio.authentication.headers.logout.enabled: false
 # be called after local logout. The {baseUrl} macro is provided so that the browser is redirected back to Studio
 # after logout (https://STUDIO_SERVER:STUDIO_PORT/studio)
 studio.authentication.headers.logout.url: /mellon/logout?ReturnTo={baseUrl}
-# Studio authentication chain configuration location
-studio.authentication.chain.configLocation: crafter/studio/authentication-chain-config.yaml
-
+# Studio authentication chain configuration
+studio.authentication.chain:
+  - provider: HEADERS
+    enabled: true
+    secureKeyHeader: secure_key
+    secureKeyHeaderValue: secure
+    usernameHeader: username
+    firstNameHeader: firstname
+    lastNameHeader: lastname
+    emailHeader: email
+    groupsHeader: groups
+  - provider: LDAP
+    enabled: true
+    ldapUrl: ldap://localhost:389
+    ldapUsername: cn=Manager,dc=my-domain,dc=com
+    ldapPassword: secret
+    ldapBaseContext: dc=my-domain,dc=com
+    usernameLdapAttribute: uid
+    firstNameLdapAttribute: cn
+    lastNameLdapAttribute: sn
+    emailLdapAttribute: mail
+    groupNameLdapAttribute: crafterGroup
+    groupNameLdapAttributeRegex: .*
+    groupNameLdapAttributeMatchIndex: 0
+  - provider: LDAP
+    enabled: false
+    ldapUrl: ldap://localhost:389
+    ldapUsername: cn=Manager,dc=my-domain,dc=com
+    ldapPassword: secret
+    ldapBaseContext: dc=my-domain,dc=com
+    usernameLdapAttribute: uid
+    firstNameLdapAttribute: cn
+    lastNameLdapAttribute: sn
+    emailLdapAttribute: mail
+    groupNameLdapAttribute: crafterGroup
+    groupNameLdapAttributeRegex: .*
+    groupNameLdapAttributeMatchIndex: 0
+  - provider: DB
+    enabled: true
 ###############################################################
 ##               Page Navigation Order Service               ##
 ###############################################################

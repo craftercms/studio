@@ -94,7 +94,7 @@ public interface StudioConfiguration {
             "studio.configuration.site.dependencyResolver.configBasePath";
     String CONFIGURATION_DEPENDENCY_ITEM_SPECIFIC_PATTERNS = "studio.configuration.dependency.itemSpecificPatterns";
 
-    String CONFIGURATION_AUTHENTICATION_CHAIN_CONFIG_LOCATION = "studio.authentication.chain.configLocation";
+    String CONFIGURATION_AUTHENTICATION_CHAIN_CONFIG = "studio.authentication.chain";
 
     /** Import Service */
     String IMPORT_ASSIGNEE = "studio.import.assignee";
@@ -228,4 +228,6 @@ public interface StudioConfiguration {
     void loadConfig();
 
     String getProperty(String key);
+
+    <T> T getProperty(String key, Class<T> clazz);
 }
