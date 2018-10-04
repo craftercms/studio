@@ -16,11 +16,21 @@
  *
  */
 
-package org.craftercms.studio.api.v2.dal;
+package org.craftercms.studio.api.v2.upgrade;
 
-import org.craftercms.commons.entitlements.exception.EntitlementException;
+import org.craftercms.studio.api.v2.exception.UpgradeException;
 
-public interface DataSourceInitializer {
+/**
+ * Provides the current version of a specific component.
+ * @author joseross
+ */
+public interface VersionProvider {
 
-    void initDataSource() throws EntitlementException;
+    /**
+     * Returns the current version.
+     * @return version number
+     * @throws UpgradeException if there is any error getting the current version
+     */
+    String getCurrentVersion() throws UpgradeException;
+
 }

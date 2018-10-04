@@ -22,6 +22,7 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
     <import resource="classpath:crafter/studio/database-context.xml"/>
+    <import resource="classpath:crafter/studio/studio-upgrade-context.xml"/>
 
 
       <!-- ////////////////////////////////////// -->
@@ -116,6 +117,7 @@
         <property name="entitlementValidator" ref="crafter.entitlementValidator"/>
         <property name="groupServiceInternal" ref="groupServiceInternal" />
         <property name="userServiceInternal" ref="userServiceInternal"/>
+        <property name="upgradeManager" ref="upgradeManager"/>
     </bean>
 
     <bean id="cstudioImportService" class="org.craftercms.studio.impl.v1.service.content.ImportServiceImpl">

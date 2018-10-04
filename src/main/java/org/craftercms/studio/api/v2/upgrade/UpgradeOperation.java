@@ -18,23 +18,28 @@
 
 package org.craftercms.studio.api.v2.upgrade;
 
+import org.apache.commons.configuration2.Configuration;
+import org.craftercms.studio.api.v2.exception.UpgradeException;
+
 /**
- * General values related to the upgrade process.
+ * Defines the basic operations for a single upgrade.
  * @author joseross
  */
-public interface UpgradeConstants {
+public interface UpgradeOperation {
 
-    String VERSION_1_0 = "1.0";
-    String VERSION_3_0_0 = "3.0.0";
+    /**
+     * Initializes the instance with the given configuration.
+     * @param sourceVersion the starting version
+     * @param targetVersion the target version
+     * @param config operation configuration
+     */
+    void init(String sourceVersion, String targetVersion, Configuration config);
 
-    String CONFIG_KEY_CURRENT_VERSION = "currentVersion";
-    String CONFIG_KEY_NEXT_VERSION = "nextVersion";
-    String CONFIG_KEY_OPERATIONS = "operations";
-    String CONFIG_KEY_TYPE = "type";
-    String CONFIG_KEY_PATH = "path";
-    String CONFIG_KEY_CONFIGURATIONS = "configurations";
-
-    String PARAM_KEY_SITE = "site_id";
-    String PARAM_KEY_VERSION = "version";
+    /**
+     * Performs a single upgrade operation.
+     * @param site the name of the site
+     * @throws UpgradeException if there is any error performing the upgrade
+     */
+    void execute(String site) throws UpgradeException;
 
 }

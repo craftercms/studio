@@ -16,29 +16,27 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.api.v1.exception;
+package org.craftercms.studio.api.v2.exception;
 
-public class DatabaseUpgradeUnsupportedVersionException extends Exception {
+/**
+ * Thrown when the current version of the system can't be upgraded automatically.
+ * @author joseross
+ */
+public class UpgradeNotSupportedException extends UpgradeException {
 
-
-    private static final long serialVersionUID = 5443611715737616564L;
-
-    public DatabaseUpgradeUnsupportedVersionException() {
+    public UpgradeNotSupportedException() {
     }
 
-    public DatabaseUpgradeUnsupportedVersionException(String message) {
+    public UpgradeNotSupportedException(String message) {
         super(message);
     }
 
-    public DatabaseUpgradeUnsupportedVersionException(String message, Throwable cause) {
+    public UpgradeNotSupportedException(String message, Exception cause) {
         super(message, cause);
     }
 
-    public DatabaseUpgradeUnsupportedVersionException(Throwable cause) {
+    public UpgradeNotSupportedException(Throwable cause) {
         super(cause);
     }
 
-    public DatabaseUpgradeUnsupportedVersionException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
-    }
 }

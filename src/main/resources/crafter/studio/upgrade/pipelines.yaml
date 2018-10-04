@@ -1,0 +1,152 @@
+# Crafter Studio Upgrade Configuration
+
+pipelines:
+
+  # Pipeline to upgrade system components (database, global repo, ...)
+  system:
+    - currentVersion: 3.0.0
+      nextVersion: 3.0.1
+      operations:
+        - type: dbScriptUpgrader
+          filename: upgrade-3.0.0-to-3.0.1.sql
+          updateIntegrity: false # Needs to be set to false in all version previous to 3.0.17
+
+    - currentVersion: 3.0.1
+      nextVersion: 3.0.2
+      operations:
+        - type: dbScriptUpgrader
+          filename: upgrade-3.0.1-to-3.0.2.sql
+          updateIntegrity: false
+
+    - currentVersion: 3.0.2
+      nextVersion: 3.0.2.1
+      operations:
+        - type: dbScriptUpgrader
+          filename: upgrade-3.0.2-to-3.0.2.1.sql
+          updateIntegrity: false
+
+    - currentVersion: 3.0.2.1
+      nextVersion: 3.0.10
+      operations:
+        - type: dbScriptUpgrader
+          filename: upgrade-3.0.2.1-to-3.0.10.sql
+          updateIntegrity: false
+
+    - currentVersion: 3.0.10
+      nextVersion: 3.0.11
+      operations:
+        - type: dbScriptUpgrader
+          filename: upgrade-3.0.10-to-3.0.11.sql
+          updateIntegrity: false
+
+    - currentVersion: 3.0.11
+      nextVersion: 3.0.11.1
+      operations:
+        - type: dbScriptUpgrader
+          filename: upgrade-3.0.11-to-3.0.11.1.sql
+          updateIntegrity: false
+
+    - currentVersion: 3.0.11.1
+      nextVersion: 3.0.11.2
+      operations:
+        - type: dbScriptUpgrader
+          filename: upgrade-3.0.11.1-to-3.0.11.2.sql
+          updateIntegrity: false
+
+    - currentVersion: 3.0.11.2
+      nextVersion: 3.0.11.3
+      operations:
+        - type: dbScriptUpgrader
+          filename: upgrade-3.0.11.2-to-3.0.11.3.sql
+          updateIntegrity: false
+
+    - currentVersion: 3.0.11.3
+      nextVersion: 3.0.15
+      operations:
+      - type: dbScriptUpgrader
+        filename: upgrade-3.0.11.3-to-3.0.15.sql
+        updateIntegrity: false
+
+    - currentVersion: 3.0.15
+      nextVersion: 3.0.15.1
+      operations:
+        - type: dbScriptUpgrader
+          filename: upgrade-3.0.15-to-3.0.15.1.sql
+          updateIntegrity: false
+
+    - currentVersion: 3.0.15.1
+      nextVersion: 3.1.0
+      operations:
+      - type: dbScriptUpgrader
+        filename: upgrade-3.0.15.1-to-3.1.0.sql
+
+    - currentVersion: 3.0.17
+      nextVersion: 3.1.0
+      operations:
+      - type: dbScriptUpgrader
+        filename: upgrade-3.0.17-to-3.1.0.sql
+
+    - currentVersion: 3.1.0
+      nextVersion: 3.1.0.1
+      operations:
+        - type: dbScriptUpgrader
+          filename: upgrade-3.1.0-to-3.1.0.1.sql
+        - type: globalRepoUpgrader
+          files:
+            - configuration/global-menu-config.xml
+            - configuration/global-permission-mappings-config.xml
+            - configuration/global-role-mappings-config.xml
+
+    - currentVersion: 3.1.0.1
+      nextVersion: 3.1.0.2
+      operations:
+        - type: dbScriptUpgrader
+          filename: upgrade-3.1.0.1-to-3.1.0.2.sql
+
+    - currentVersion: 3.1.0.2
+      nextVersion: 3.1.0.3
+      operations:
+        - type: dbScriptUpgrader
+          filename: upgrade-3.1.0.2-to-3.1.0.3.sql
+
+    - currentVersion: 3.1.0.3
+      nextVersion: 3.1.0.4
+      operations:
+        - type: dbScriptUpgrader
+          filename: upgrade-3.1.0.3-to-3.1.0.4.sql
+          updateIntegrity: false # Because the script only changes content
+
+  # Pipeline to upgrade site repositories
+  site:
+    - currentVersion: 3.0.0
+      nextVersion: 3.1.0
+      operations:
+      - type: versionFileUpgrader
+        path: config/studio/studio_version.xml
+        template: crafter/studio/upgrade/update-version.xslt
+        defaultFile: crafter/studio/upgrade/studio_version.xml
+
+  # Pipeline to upgrade blueprints
+  blueprint:
+    - currentVersion: 3.0.0
+      nextVersion: 3.1.0
+      operations:
+        # This just overrides the blueprints in the repo, in the future this should be replaced with proper operations
+        - type: blueprintsUpgrader
+
+# Managed Configuration Files
+configurations:
+
+  role-mappings-config:
+    path: &role-mappings-config '/config/studio/role-mappings-config.xml'
+    pipeline:
+      # Initial version, assumed if the file doesn't contain a version tag
+      - currentVersion: 1.0
+        nextVersion: 1.1
+        operations:
+          - type: xsltFileUpgrader
+            path: *role-mappings-config
+            template: crafter/studio/upgrade/role-mappings-config-1.1.xslt
+          - type: xsltFileUpgrader
+            path: *role-mappings-config
+            template: crafter/studio/upgrade/update-version.xslt

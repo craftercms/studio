@@ -16,7 +16,7 @@
  *
  */
 
-package org.craftercms.studio.impl.v2.dal;
+package org.craftercms.studio.impl.v2.upgrade.operations;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -27,30 +27,111 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.Connection;
+import java.sql.SQLException;
+import javax.servlet.ServletContext;
+import javax.sql.DataSource;
 
+import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
+import org.craftercms.studio.api.v2.upgrade.UpgradeOperation;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
+import org.springframework.core.io.Resource;
+import org.springframework.web.context.ServletContextAware;
+import org.springframework.web.context.support.ServletContextResource;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_ROOT;
 
-public abstract class RepositoryUtils {
+/**
+ * Provides access to system components for all upgrade operations.
+ * @author joseross
+ */
+public abstract class AbstractUpgradeOperation implements UpgradeOperation, ServletContextAware {
 
-    private static final Logger logger = LoggerFactory.getLogger(RepositoryUtils.class);
+    private static final Logger logger = LoggerFactory.getLogger(AbstractUpgradeOperation.class);
 
-    public static void writeToRepo(StudioConfiguration studioConfiguration, String site, String path,
-                                   InputStream content, String message) {
+    /**
+     * The current version.
+     */
+    protected String currentVersion;
+
+    /**
+     * The next version.
+     */
+    protected String nextVersion;
+
+    /**
+     * The Studio configuration.
+     */
+    protected StudioConfiguration studioConfiguration;
+
+    /**
+     * The database data source.
+     */
+    protected DataSource dataSource;
+
+    /**
+     * The content repository.
+     */
+    protected ContentRepository contentRepository;
+
+    /**
+     * The servlet context.
+     */
+    protected ServletContext servletContext;
+
+    public void setStudioConfiguration(final StudioConfiguration studioConfiguration) {
+        this.studioConfiguration = studioConfiguration;
+    }
+
+    public void setDataSource(final DataSource dataSource) {
+        this.dataSource = dataSource;
+    }
+
+    public Connection getConnection() throws SQLException {
+        return dataSource.getConnection();
+    }
+
+    public ContentRepository getContentRepository() {
+        return contentRepository;
+    }
+
+    public void setContentRepository(final ContentRepository contentRepository) {
+        this.contentRepository = contentRepository;
+    }
+
+    public String getProperty(String key) {
+        return studioConfiguration.getProperty(key);
+    }
+
+    protected Resource getServletResource(final String path) {
+        return new ServletContextResource(servletContext, path);
+    }
+
+    public void setServletContext(final ServletContext servletContext) {
+        this.servletContext = servletContext;
+    }
+
+    @Override
+    public void init(final String sourceVersion, final String targetVersion, final Configuration config) {
+        this.currentVersion = sourceVersion;
+        this.nextVersion = targetVersion;
+    }
+
+    protected void writeToRepo(String site, String path, InputStream content, String message) {
         try {
-            Path repositoryPath = getRepositoryPath(studioConfiguration, site);
+            Path repositoryPath = getRepositoryPath(site);
             FileRepositoryBuilder builder = new FileRepositoryBuilder();
             Repository repo = builder
                 .setGitDir(repositoryPath.toFile())
@@ -107,8 +188,6 @@ public abstract class RepositoryUtils {
                     commit = git.commit().setOnly(gitPath).setMessage(message).call();
                     commit.getName();
                 }
-
-                git.close();
             } catch (GitAPIException e) {
                 logger.error("error adding file to git: site: " + site + " path: " + path, e);
             }
@@ -134,7 +213,7 @@ public abstract class RepositoryUtils {
         return toRet;
     }
 
-    private static Path getRepositoryPath(StudioConfiguration studioConfiguration, String site) {
+    private Path getRepositoryPath(String site) {
         if(StringUtils.isEmpty(site)) {
             return Paths.get(
                 studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),

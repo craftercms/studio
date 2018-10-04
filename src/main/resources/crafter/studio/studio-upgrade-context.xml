@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  ~
+  -->
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="upgradeManager" class="org.craftercms.studio.impl.v2.upgrade.DefaultUpgradeManagerImpl"
+          init-method="init" depends-on="databaseInitializer">
+        <property name="siteVersionFilePath" value="#{studioConfiguration.getProperty('studio.upgrade.versionFile')}"/>
+        <property name="dataSource" ref="dataSource"/>
+        <property name="integrityValidator" ref="crafter.databaseValidator"/>
+        <property name="contentRepository" ref="contentRepository"/>
+
+        <property name="configurationFile"
+                  value="#{studioConfiguration.getProperty('studio.upgrade.configurationFile')}"/>
+
+        <property name="dbVersionProvider" ref="dbVersionProvider"/>
+        <property name="dbPipelineFactory">
+            <bean class="org.craftercms.studio.impl.v2.upgrade.pipeline.DefaultUpgradePipelineFactoryImpl"
+                  parent="pipelineFactory">
+                <property name="pipelineName"
+                          value="#{studioConfiguration.getProperty('studio.upgrade.pipeline.system')}"/>
+            </bean>
+        </property>
+
+        <property name="bpPipelineFactory">
+            <bean class="org.craftercms.studio.impl.v2.upgrade.pipeline.DefaultUpgradePipelineFactoryImpl"
+                  parent="pipelineFactory">
+                <property name="pipelineName"
+                          value="#{studioConfiguration.getProperty('studio.upgrade.pipeline.blueprint')}"/>
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="defaultPipeline" scope="prototype"
+          class="org.craftercms.studio.impl.v2.upgrade.pipeline.DefaultUpgradePipelineImpl"/>
+
+    <bean id="repoPipeline" scope="prototype"
+          class="org.craftercms.studio.impl.v2.upgrade.pipeline.SiteRepositoryUpgradePipelineImpl">
+        <property name="studioConfiguration" ref="studioConfiguration"/>
+        <property name="securityProvider" ref="securityProvider"/>
+        <property name="servicesConfig" ref="cstudioServicesConfig"/>
+
+        <property name="siteSandboxBranch" value="#{studioConfiguration.getProperty('studio.repo.siteSandboxBranch')}"/>
+        <property name="siteUpgradeBranch"
+                  value="#{studioConfiguration.getProperty('studio.upgrade.branchName')}"/>
+        <property name="commitMessage" value="#{studioConfiguration.getProperty('studio.upgrade.commitMessage')}"/>
+    </bean>
+
+    <bean id="pipelineFactory" abstract="true">
+        <property name="pipelinePrototype" value="defaultPipeline"/>
+        <property name="pipelinePrefix" value="#{studioConfiguration.getProperty('studio.upgrade.pipeline.prefix')}"/>
+        <property name="configurationFile"
+                  value="#{studioConfiguration.getProperty('studio.upgrade.configurationFile')}"/>
+    </bean>
+
+    <bean id="dbVersionProvider" class="org.craftercms.studio.impl.v2.upgrade.providers.DbVersionProvider">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+    <bean id="fileVersionProvider" scope="prototype"
+          class="org.craftercms.studio.impl.v2.upgrade.providers.XmlFileVersionProvider">
+        <property name="xpath" value="#{studioConfiguration.getProperty('studio.upgrade.versionXPath')}"/>
+        <property name="contentRepository" ref="contentRepository"/>
+    </bean>
+
+    <bean id="sitePipelineFactory" scope="prototype" parent="pipelineFactory"
+          class="org.craftercms.studio.impl.v2.upgrade.pipeline.DefaultUpgradePipelineFactoryImpl">
+        <property name="pipelinePrototype" value="repoPipeline"/>
+        <property name="pipelineName" value="#{studioConfiguration.getProperty('studio.upgrade.pipeline.site')}"/>
+    </bean>
+
+    <bean id="filePipelineFactory" scope="prototype" parent="pipelineFactory"
+          class="org.craftercms.studio.impl.v2.upgrade.pipeline.DefaultUpgradePipelineFactoryImpl">
+        <property name="pipelinePrototype" value="repoPipeline"/>
+        <property name="pipelinePrefix"
+                  value="#{studioConfiguration.getProperty('studio.upgrade.pipeline.configurations')}"/>
+    </bean>
+
+    <bean id="upgradeOperation" class="org.craftercms.studio.impl.v2.upgrade.operations.AbstractUpgradeOperation"
+          abstract="true">
+        <property name="dataSource" ref="dataSource"/>
+        <property name="contentRepository" ref="contentRepository"/>
+        <property name="studioConfiguration" ref="studioConfiguration"/>
+    </bean>
+
+    <bean id="dbScriptUpgrader" scope="prototype" parent="upgradeOperation"
+          class="org.craftercms.studio.impl.v2.upgrade.operations.DbScriptUpgradeOperation">
+        <property name="scriptFolder" value="#{studioConfiguration.getProperty('studio.upgrade.scriptFolder')}"/>
+        <property name="integrityValidator" ref="crafter.databaseValidator"/>
+    </bean>
+
+    <bean id="globalRepoUpgrader" scope="prototype" parent="upgradeOperation"
+          class="org.craftercms.studio.impl.v2.upgrade.operations.GlobalRepoUpgradeOperation"/>
+
+    <bean id="blueprintsUpgrader" scope="prototype" parent="upgradeOperation"
+          class="org.craftercms.studio.impl.v2.upgrade.operations.BlueprintsUpgradeOperation">
+        <property name="securityProvider" ref="securityProvider"/>
+        <property name="servicesConfig" ref="cstudioServicesConfig"/>
+    </bean>
+
+    <bean id="xsltFileUpgrader" scope="prototype" parent="upgradeOperation"
+          class="org.craftercms.studio.impl.v2.upgrade.operations.XsltFileUpgradeOperation"/>
+
+    <bean id="versionFileUpgrader" scope="prototype" parent="upgradeOperation"
+          class="org.craftercms.studio.impl.v2.upgrade.operations.SiteVersionUpgradeOperation"/>
+
+</beans>

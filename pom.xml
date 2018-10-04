@@ -40,6 +40,7 @@
         <jackson.version>2.9.6</jackson.version>
         <bouncycastle.version>1.60</bouncycastle.version>
         <sardine.version>5.8</sardine.version>
+        <saxon.version>9.8.0-14</saxon.version>
     </properties>
 
     <licenses>
@@ -456,6 +457,13 @@
             <groupId>com.github.lookfirst</groupId>
             <artifactId>sardine</artifactId>
             <version>${sardine.version}</version>
+        </dependency>
+
+        <!-- Saxon (to support XSLT 2.0) -->
+        <dependency>
+            <groupId>net.sf.saxon</groupId>
+            <artifactId>Saxon-HE</artifactId>
+            <version>${saxon.version}</version>
         </dependency>
 
         <!-- BouncyCastle Provider -->

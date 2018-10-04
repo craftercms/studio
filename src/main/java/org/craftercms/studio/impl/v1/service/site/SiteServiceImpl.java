@@ -111,6 +111,7 @@ import org.craftercms.studio.api.v2.service.security.SecurityProvider;
 import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
+import org.craftercms.studio.api.v2.upgrade.UpgradeManager;
 import org.craftercms.studio.impl.v1.repository.job.RebuildRepositoryMetadata;
 import org.craftercms.studio.impl.v1.repository.job.SyncDatabaseWithRepository;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
@@ -174,6 +175,7 @@ public class SiteServiceImpl implements SiteService {
     protected EventService eventService;
     protected GroupServiceInternal groupServiceInternal;
     protected UserServiceInternal userServiceInternal;
+		protected UpgradeManager upgradeManager;
 
     protected StudioConfiguration studioConfiguration;
 
@@ -461,6 +463,8 @@ public class SiteServiceImpl implements SiteService {
 	 		try {
 			    success = createSiteFromBlueprintGit(blueprintName, siteName, siteId, sandboxBranch, desc);
 
+			    upgradeManager.upgradeSite(siteId);
+
 			    String lastCommitId = contentRepository.getRepoLastCommitId(siteId);
 
 			    // Set object states
@@ -734,6 +738,7 @@ public class SiteServiceImpl implements SiteService {
                 logger.debug("Clone from remote repository create option selected");
                 createSiteCloneRemote(siteId, sandboxBranch, description, remoteName, remoteUrl, remoteBranch, singleBranch,
                         authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey);
+				upgradeManager.upgradeSite(siteId);
                 break;
 
             case REMOTE_REPOSITORY_CREATE_OPTION_PUSH:
@@ -741,6 +746,7 @@ public class SiteServiceImpl implements SiteService {
                 createSitePushToRemote(siteId, sandboxBranch, description, blueprintName, remoteName, remoteUrl,
                         remoteBranch, authenticationType, remoteUsername, remotePassword, remoteToken,
                         remotePrivateKey);
+				upgradeManager.upgradeSite(siteId);
                 break;
 
             default:
@@ -2041,4 +2047,9 @@ public class SiteServiceImpl implements SiteService {
     public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
         this.userServiceInternal = userServiceInternal;
     }
+
+	public void setUpgradeManager(final UpgradeManager upgradeManager) {
+		this.upgradeManager = upgradeManager;
+	}
+
 }

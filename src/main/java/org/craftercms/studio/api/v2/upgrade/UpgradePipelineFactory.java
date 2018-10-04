@@ -16,11 +16,22 @@
  *
  */
 
-package org.craftercms.studio.api.v2.dal;
+package org.craftercms.studio.api.v2.upgrade;
 
-import org.craftercms.commons.entitlements.exception.EntitlementException;
+import org.craftercms.studio.api.v2.exception.UpgradeException;
 
-public interface DataSourceInitializer {
+/**
+ * Builds an {@link UpgradePipeline} with all the required operations.
+ * @author joseross
+ */
+public interface UpgradePipelineFactory {
 
-    void initDataSource() throws EntitlementException;
+    /**
+     * Retrieves the needed upgrade operations based on the given version.
+     * @param versionProvider
+     * @return the upgrade pipeline
+     * @throws UpgradeException if there is any error retrieving the operations
+     */
+    UpgradePipeline getPipeline(VersionProvider versionProvider) throws UpgradeException;
+
 }
