@@ -123,6 +123,12 @@
             <samplePath>/studio/administration/samples/sample-engine-application-context.xml</samplePath>
         </file>
         <file>
+            <path>/engine/urlrewrite.xml</path>
+            <title>Engine URL Rewrite Configuration (XML Style)</title>
+            <description>Engine URL Rewrite Configuration (XML Style)</description>
+            <samplePath>/studio/administration/samples/sample-urlrewrite.xml</samplePath>
+        </file>
+        <file>
             <path>/studio/dependency/resolver-config.xml</path>
             <title>Dependency Resolver Configuration</title>
             <description>Dependency Resolver Configuration</description>
