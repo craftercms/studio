@@ -70,14 +70,10 @@ public class HeadersAuthenticationProvider extends BaseAuthenticationProvider {
     private String emailHeader;
     private String groupsHeader;
 
-    private boolean enabled;
-
-
-
     @Override
     public boolean doAuthenticate(HttpServletRequest request, HttpServletResponse response,
                                   AuthenticationChain authenticationChain, String username, String password) {
-        if (enabled) {
+        if (isEnabled()) {
             logger.debug("Authenticating user using authentication headers.");
 
             RequestContext requestContext = RequestContext.getCurrent();
@@ -187,11 +183,10 @@ public class HeadersAuthenticationProvider extends BaseAuthenticationProvider {
                     return true;
                 }
             }
-            logger.debug("Unable to authenticate user using authentication headers. " +
-                    "Switching to other security provider(s).");
+            logger.debug("Unable to authenticate user using authentication headers.");
             return false;
         } else {
-            logger.debug("Authentication using headers disabled. Switching to other security provider(s).");
+            logger.debug("Authentication using headers disabled.");
             return false;
         }
     }
@@ -293,13 +288,5 @@ public class HeadersAuthenticationProvider extends BaseAuthenticationProvider {
 
     public void setGroupsHeader(String groupsHeader) {
         this.groupsHeader = groupsHeader;
-    }
-
-    public boolean isEnabled() {
-        return enabled;
-    }
-
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
     }
 }
