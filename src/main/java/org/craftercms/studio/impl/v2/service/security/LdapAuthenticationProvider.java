@@ -22,7 +22,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationSystemException;
+import org.craftercms.studio.api.v1.exception.security.BadCredentialsException;
 import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.activity.ActivityService;
@@ -37,6 +40,7 @@ import org.craftercms.studio.api.v2.service.security.BaseAuthenticationProvider;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.model.AuthenticationType;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.ldap.AuthenticationException;
 import org.springframework.ldap.CommunicationException;
 import org.springframework.ldap.core.AuthenticatedLdapEntryContextMapper;
 import org.springframework.ldap.core.DirContextOperations;
@@ -91,7 +95,7 @@ public class LdapAuthenticationProvider extends BaseAuthenticationProvider {
 
     @Override
     public boolean doAuthenticate(HttpServletRequest request, HttpServletResponse response,
-                                  AuthenticationChain authenticationChain, String username, String password) {
+                                  AuthenticationChain authenticationChain, String username, String password) throws UserNotFoundException, AuthenticationSystemException, BadCredentialsException {
 
         LdapContextSource lcs = new LdapContextSource();
         lcs.setUrl(ldapUrl);
@@ -161,15 +165,19 @@ public class LdapAuthenticationProvider extends BaseAuthenticationProvider {
         } catch (EmptyResultDataAccessException e) {
             logger.info("User " + username + " not found with external security provider.");
             // When user not found try to authenticate against studio database
-            return false;
+            throw new UserNotFoundException("User " + username + " not found with external security provider.");
         } catch (CommunicationException e) {
             logger.info("Failed to connect with external security provider.");
             // When user not found try to authenticate against studio database
-            return false;
+            throw new AuthenticationSystemException("Failed to connect with external security provider.", e);
+        }  catch (AuthenticationException e) {
+            logger.error("Authentication failed with the LDAP system", e);
+
+            throw new BadCredentialsException();
         } catch (Exception e) {
             logger.error("Authentication failed with the LDAP system", e);
 
-            return false;
+            throw new AuthenticationSystemException("Authentication failed with the LDAP system", e);
         }
 
         if (userTO != null) {
@@ -200,10 +208,13 @@ public class LdapAuthenticationProvider extends BaseAuthenticationProvider {
                     } catch (UserAlreadyExistsException e) {
                         logger.error("Error adding user " + username + " from external authentication provider",
                                 e);
+                        throw new AuthenticationSystemException("Error adding user " + username +
+                                " from external authentication provider", e);
                     }
                 }
             } catch (ServiceLayerException e) {
                 logger.error("Unknown service error", e);
+                throw  new AuthenticationSystemException("Unknown service error" , e);
             }
 
             for (UserGroupTO userGroup : userTO.getGroups()) {
@@ -217,8 +228,7 @@ public class LdapAuthenticationProvider extends BaseAuthenticationProvider {
             return true;
         } else {
             logger.error("Failed to retrieve LDAP user details");
-
-            return false;
+            throw new AuthenticationSystemException("Failed to retrieve LDAP user details");
         }
     }
 

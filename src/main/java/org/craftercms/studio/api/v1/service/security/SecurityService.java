@@ -18,10 +18,7 @@
 
 package org.craftercms.studio.api.v1.service.security;
 
-import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.security.AuthenticationSystemException;
-import org.craftercms.studio.api.v1.exception.security.BadCredentialsException;
 import org.craftercms.studio.api.v1.exception.security.PasswordDoesNotMatchException;
 import org.craftercms.studio.api.v1.exception.security.UserExternallyManagedException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
@@ -44,7 +41,7 @@ public interface SecurityService {
 	 * @param username
 	 * @param password
 	 */
-	String authenticate(String username, String password) throws BadCredentialsException, AuthenticationSystemException, EntitlementException, UserNotFoundException;
+	String authenticate(String username, String password) throws Exception;
 
 	/**
 	 * Returns the username of the current user OR NULL if no user is authenticated
