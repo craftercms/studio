@@ -318,8 +318,7 @@
     <bean id="groupServiceInternal"
           class="org.craftercms.studio.impl.v2.service.security.internal.GroupServiceInternalImpl">
         <property name="userServiceInternal" ref="userServiceInternal" />
-        <property name="studioConfiguration" ref="studioConfiguration" />
-        <property name="contentRepository" ref="contentRepository" />
+        <property name="configurationService" ref="configurationService"/>
         <property name="groupDao" ref="groupDAO" />
     </bean>
 
@@ -335,7 +334,6 @@
 
     <bean id="userServiceInternal"
           class="org.craftercms.studio.impl.v2.service.security.internal.UserServiceInternalImpl">
-        <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="groupServiceInternal" ref="groupServiceInternal" />
         <property name="userDao" ref="userDAO" />
     </bean>

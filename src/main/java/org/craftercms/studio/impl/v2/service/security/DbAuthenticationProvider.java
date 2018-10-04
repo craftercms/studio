@@ -22,7 +22,7 @@ import org.craftercms.commons.crypto.CryptoUtils;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.dal.UserDAO;
-import org.craftercms.studio.api.v2.dal.UserTO;
+import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.service.security.AuthenticationChain;
 import org.craftercms.studio.api.v2.service.security.BaseAuthenticationProvider;
 import org.craftercms.studio.model.AuthenticationType;
@@ -48,7 +48,7 @@ public class DbAuthenticationProvider extends BaseAuthenticationProvider {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(USER_ID, -1);
         params.put(USERNAME, username);
-        UserTO user = null;
+        User user = null;
         UserDAO userDao = authenticationChain.getUserDao();
         try {
             user = userDao.getUserByIdOrUsername(params);

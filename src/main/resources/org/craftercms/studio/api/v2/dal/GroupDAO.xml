@@ -22,7 +22,7 @@
 
 <mapper namespace="org.craftercms.studio.api.v2.dal.GroupDAO">
 
-    <resultMap id="UserMap" type="org.craftercms.studio.api.v2.dal.UserTO">
+    <resultMap id="UserMap" type="org.craftercms.studio.api.v2.dal.User">
         <id property="id" column="id"/>
         <result property="recordLastUpdated" column="record_last_updated"/>
         <result property="username" column="username"/>
@@ -35,9 +35,9 @@
         <result property="email" column="email"/>
         <result property="active" column="enabled"/>
 
-        <collection property="groups" ofType="org.craftercms.studio.api.v2.dal.UserGroupTO">
+        <collection property="groups" ofType="org.craftercms.studio.api.v2.dal.UserGroup">
             <result property="recordLastUpdated" column="record_last_updated"/>
-            <association property="group" javaType="org.craftercms.studio.api.v2.dal.GroupTO">
+            <association property="group" javaType="org.craftercms.studio.api.v2.dal.Group">
                 <id property="id" column="id"/>
                 <result property="groupName" column="group_name"/>
             </association>
@@ -45,7 +45,7 @@
 
     </resultMap>
 
-    <resultMap id="GroupMap" type="org.craftercms.studio.api.v2.dal.GroupTO">
+    <resultMap id="GroupMap" type="org.craftercms.studio.api.v2.dal.Group">
         <id property="id" column="id"/>
         <result property="recordLastUpdated" column="record_last_updated"/>
         <result property="groupName" column="group_name"/>
@@ -166,12 +166,11 @@
     </delete>
 
     <select id="groupExists" resultType="Integer" parameterType="java.util.Map">
-            SELECT COUNT (1)
-            FROM `group`
-            WHERE group_name = #{groupName}
+        SELECT COUNT (1) FROM `group` WHERE id = #{groupId} OR group_name = #{groupName}
     </select>
 
     <select id="getGroupByName" parameterType="java.util.Map" resultMap="GroupMap">
-        SELECT * FROM `group` WHERE group_name = #{groupName} LIMIT 0, 1
+        SELECT * FROM `group` WHERE group_name = #{groupName}
     </select>
+
 </mapper>

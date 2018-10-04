@@ -28,8 +28,8 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
-import org.craftercms.studio.api.v2.dal.GroupTO;
-import org.craftercms.studio.api.v2.dal.UserTO;
+import org.craftercms.studio.api.v2.dal.Group;
+import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.service.security.SecurityProvider;
 import org.springframework.security.access.AccessDecisionVoter;
 
@@ -52,7 +52,7 @@ public abstract class StudioAbstractAccessDecisionVoter implements AccessDecisio
     protected StudioConfiguration studioConfiguration;
     protected SiteService siteService;
 
-    protected boolean isSiteMember(UserTO currentUser, String userParam) {
+    protected boolean isSiteMember(User currentUser, String userParam) {
         try {
             int total1 = siteService.getSitesPerUserTotal(userParam);
             List<SiteFeed> sitesFeed1 = siteService.getSitesPerUser(userParam, 0, total1);
@@ -79,7 +79,7 @@ public abstract class StudioAbstractAccessDecisionVoter implements AccessDecisio
         }
     }
 
-    protected boolean isSiteMember(String siteId, UserTO currentUser) {
+    protected boolean isSiteMember(String siteId, User currentUser) {
         try {
             int total = siteService.getSitesPerUserTotal(currentUser.getUsername());
             List<SiteFeed> sitesFeed = siteService.getSitesPerUser(currentUser.getUsername(), 0, total);
@@ -99,7 +99,7 @@ public abstract class StudioAbstractAccessDecisionVoter implements AccessDecisio
         }
     }
 
-    protected boolean isSiteAdmin(String siteId, UserTO currentUser) {
+    protected boolean isSiteAdmin(String siteId, User currentUser) {
         try {
             int total = siteService.getSitesPerUserTotal(currentUser.getUsername());
             List<SiteFeed> sitesFeed = siteService.getSitesPerUser(currentUser.getUsername(), 0, total);
@@ -111,8 +111,8 @@ public abstract class StudioAbstractAccessDecisionVoter implements AccessDecisio
 
             boolean toRet = sites.containsKey(siteId);
             if (toRet) {
-                List<GroupTO> userGroups = securityProvider.getUserGroups(sites.get(siteId), currentUser.getUsername());
-                for (GroupTO g : userGroups) {
+                List<Group> userGroups = securityProvider.getUserGroups(sites.get(siteId), currentUser.getUsername());
+                for (Group g : userGroups) {
                     if (g.getGroupName().equals(studioConfiguration.getProperty(CONFIGURATION_DEFAULT_ADMIN_GROUP))) {
                         toRet = true;
                         break;
@@ -130,12 +130,12 @@ public abstract class StudioAbstractAccessDecisionVoter implements AccessDecisio
         }
     }
 
-    protected boolean isSelf(UserTO currentUser, String userParam) {
+    protected boolean isSelf(User currentUser, String userParam) {
         return StringUtils.equals(userParam, currentUser.getUsername());
     }
 
-    protected boolean isAdmin(UserTO user) {
-        List<GroupTO> userGroups = null;
+    protected boolean isAdmin(User user) {
+        List<Group> userGroups = null;
         try {
             userGroups = securityProvider.getUserGroups(-1, user.getUsername());
         } catch (ServiceLayerException e) {
@@ -144,7 +144,7 @@ public abstract class StudioAbstractAccessDecisionVoter implements AccessDecisio
         }
         boolean toRet = false;
         if (CollectionUtils.isNotEmpty(userGroups)) {
-            for (GroupTO group : userGroups) {
+            for (Group group : userGroups) {
                 if (StringUtils.equalsIgnoreCase(group.getGroupName(), SYSTEM_ADMIN_GROUP)) {
                     toRet = true;
                     break;

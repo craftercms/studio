@@ -74,6 +74,7 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepository
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotBareException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -689,9 +690,13 @@ public class SiteServiceImpl implements SiteService {
         for (String group : defaultGroups) {
             String description = group + SITE_DEFAULT_GROUPS_DESCRIPTION;
             try {
-                if (!groupServiceInternal.groupExists(group)) {
-                    groupServiceInternal.createGroup(DEFAULT_ORGANIZATION_ID, group, description);
-                } else {
+                if (!groupServiceInternal.groupExists(-1, group)) {
+					try {
+						groupServiceInternal.createGroup(DEFAULT_ORGANIZATION_ID, group, description);
+					} catch (GroupAlreadyExistsException e) {
+						throw new IllegalStateException(e);
+					}
+				} else {
                     logger.warn("Default group: " + group + " not created. It already exists.");
                 }
             } catch (ServiceLayerException e) {

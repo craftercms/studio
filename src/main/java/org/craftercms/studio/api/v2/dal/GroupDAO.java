@@ -29,7 +29,7 @@ public interface GroupDAO {
      * @param params SQL query paramters
      * @return List of groups
      */
-    List<GroupTO> getAllGroupsForOrganization(Map params);
+    List<Group> getAllGroupsForOrganization(Map params);
 
     /**
      * Get all groups for given organization
@@ -77,7 +77,7 @@ public interface GroupDAO {
      * @param params SQL query parameters
      * @return Group or null if not found
      */
-    GroupTO getGroup(Map params);
+    Group getGroup(Map params);
 
     /**
      * Get group by group name
@@ -85,7 +85,7 @@ public interface GroupDAO {
      * @param params SQL query parameters
      * @return Group or null if not found
      */
-    GroupTO getGroupByName(Map params);
+    Group getGroupByName(Map params);
 
     /**
      * Get group members
@@ -93,7 +93,7 @@ public interface GroupDAO {
      * @param params SQL query parameters
      * @return List of users, group members
      */
-    List<UserTO> getGroupMembers(Map params);
+    List<User> getGroupMembers(Map params);
 
     /**
      * Add users to the group

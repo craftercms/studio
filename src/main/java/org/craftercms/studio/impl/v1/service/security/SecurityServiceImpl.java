@@ -67,8 +67,8 @@ import org.craftercms.studio.api.v1.service.security.UserDetailsManager;
 import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
 import org.craftercms.studio.api.v1.to.PermissionsConfigTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
-import org.craftercms.studio.api.v2.dal.GroupTO;
-import org.craftercms.studio.api.v2.dal.UserTO;
+import org.craftercms.studio.api.v2.dal.Group;
+import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.service.security.AuthenticationChain;
 import org.craftercms.studio.api.v2.service.security.GroupService;
 import org.craftercms.studio.api.v2.service.security.SecurityProvider;
@@ -195,7 +195,7 @@ public class SecurityServiceImpl implements SecurityService {
     @ValidateParams
     public Map<String,Object> getUserProfile(@ValidateStringParam(name = "user") String user) throws ServiceLayerException, UserNotFoundException {
         Map<String, Object> toRet = new HashMap<String, Object>();
-        UserTO u = securityProvider.getUserByIdOrUsername(-1, user);
+        User u = securityProvider.getUserByIdOrUsername(-1, user);
         if (u != null) {
             toRet.put(KEY_USERNAME, user);
             toRet.put(KEY_FIRSTNAME, u.getFirstName());
@@ -253,10 +253,10 @@ public class SecurityServiceImpl implements SecurityService {
 
     protected void addGlobalUserRoles(String user, Set<String> roles, PermissionsConfigTO rolesConfig) {
         try {
-            List<GroupTO> groups = userServiceInternal.getUserGroups(-1, user);
+            List<Group> groups = userServiceInternal.getUserGroups(-1, user);
             if (rolesConfig != null && groups != null) {
                 Map<String, List<String>> rolesMap = rolesConfig.getRoles();
-                for (GroupTO group : groups) {
+                for (Group group : groups) {
                     String groupName = group.getGroupName();
                     List<String> userRoles = rolesMap.get(groupName);
                     if (roles != null && userRoles != null) {
@@ -264,7 +264,7 @@ public class SecurityServiceImpl implements SecurityService {
                     }
                 }
             }
-        } catch (ServiceLayerException e) {
+        } catch (ServiceLayerException | UserNotFoundException e) {
             logger.error("Unable to retrieve user groups for user {0}", user);
         }
     }
@@ -364,7 +364,7 @@ public class SecurityServiceImpl implements SecurityService {
             // TODO: We should replace this with userService.getUserSiteRoles, but that one is protected by permissions.
             // TODO: When the UserService is refactored to use UserServiceInternal, we could use that method and
             // TODO: remove this one
-            List<GroupTO> groups = userServiceInternal.getUserGroups(-1, user);
+            List<Group> groups = userServiceInternal.getUserGroups(-1, user);
             if (groups != null && groups.size() > 0) {
                 logger.debug("Groups for " + user + " in " + site + ": " + groups);
 
@@ -372,7 +372,7 @@ public class SecurityServiceImpl implements SecurityService {
                 Set<String> userRoles = new HashSet<String>();
                 if (rolesConfig != null) {
                     Map<String, List<String>> rolesMap = rolesConfig.getRoles();
-                    for (GroupTO group : groups) {
+                    for (Group group : groups) {
                         String groupName = group.getGroupName();
                         if (StringUtils.equals(groupName, SYSTEM_ADMIN_GROUP)) {
                             Collection<List<String>> mapValues = rolesMap.values();
@@ -392,11 +392,11 @@ public class SecurityServiceImpl implements SecurityService {
             } else {
                 logger.debug("No groups found for " + user + " in " + site);
             }
-        } catch (ServiceLayerException e) {
+        } catch (ServiceLayerException | UserNotFoundException e) {
             logger.error("Error while getting groups for user {0}", e);
         }
 
-        return new HashSet<String>(0);
+        return new HashSet<>(0);
     }
 
     /**
@@ -674,7 +674,7 @@ public class SecurityServiceImpl implements SecurityService {
     public Map<String, Object> forgotPassword(@ValidateStringParam(name = "username") String username)
             throws ServiceLayerException, UserNotFoundException, UserExternallyManagedException {
         logger.debug("Getting user profile for " + username);
-        UserTO user = securityProvider.getUserByIdOrUsername(-1, username);
+        User user = securityProvider.getUserByIdOrUsername(-1, username);
         boolean success = false;
         String message = StringUtils.EMPTY;
         if (user == null) {
@@ -724,7 +724,7 @@ public class SecurityServiceImpl implements SecurityService {
             StringTokenizer tokenElements = new StringTokenizer(decryptedToken, "|");
             if (tokenElements.countTokens() == 3) {
                 String username = tokenElements.nextToken();
-                UserTO userProfile = securityProvider.getUserByIdOrUsername(-1, username);
+                User userProfile = securityProvider.getUserByIdOrUsername(-1, username);
                 if (userProfile == null) {
                     logger.info("User profile not found for " + username);
                     throw new UserNotFoundException();
@@ -837,7 +837,7 @@ public class SecurityServiceImpl implements SecurityService {
             String username = getUsernameFromToken(token);
             if (StringUtils.isNotEmpty(username)) {
                 toRet.put("username", username);
-                UserTO user = securityProvider.getUserByIdOrUsername(-1, username);
+                User user = securityProvider.getUserByIdOrUsername(-1, username);
                 if (user != null ) {
                     if (user.isEnabled()) {
                         toRet.put("success", securityProvider.setUserPassword(username, newPassword));
@@ -878,10 +878,10 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     private boolean isAdmin(String username) throws ServiceLayerException {
-        List<GroupTO> userGroups = securityProvider.getUserGroups(-1, username);
+        List<Group> userGroups = securityProvider.getUserGroups(-1, username);
         boolean toRet = false;
         if (CollectionUtils.isNotEmpty(userGroups)) {
-            for (GroupTO group : userGroups) {
+            for (Group group : userGroups) {
                 if (StringUtils.equalsIgnoreCase(group.getGroupName(), SYSTEM_ADMIN_GROUP)) {
                     toRet = true;
                     break;
@@ -894,7 +894,7 @@ public class SecurityServiceImpl implements SecurityService {
     @Override
     @ValidateParams
     public boolean isSiteAdmin(@ValidateStringParam(name = "username") String username, String site) {
-        List<GroupTO> userGroups = null;
+        List<Group> userGroups = null;
         try {
             userGroups = securityProvider.getUserGroups(-1, username);
         } catch (ServiceLayerException e) {
@@ -903,7 +903,7 @@ public class SecurityServiceImpl implements SecurityService {
         }
         boolean toRet = false;
         if (CollectionUtils.isNotEmpty(userGroups)) {
-            for (GroupTO group : userGroups) {
+            for (Group group : userGroups) {
                 if (StringUtils.equalsIgnoreCase(group.getGroupName(),
                         studioConfiguration.getProperty(CONFIGURATION_DEFAULT_ADMIN_GROUP))) {
                     toRet = true;

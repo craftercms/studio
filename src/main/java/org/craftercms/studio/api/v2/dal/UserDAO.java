@@ -29,7 +29,7 @@ public interface UserDAO {
      * @param params SQL query parameters
      * @return List of users
      */
-    List<UserTO> getAllUsersForSite(Map params);
+    List<User> getAllUsersForSite(Map params);
 
     /**
      * Get all users
@@ -37,7 +37,7 @@ public interface UserDAO {
      * @param params SQL query parameters
      * @return List of users
      */
-    List<UserTO> getAllUsers(Map params);
+    List<User> getAllUsers(Map params);
 
     /**
      * Create user
@@ -77,7 +77,7 @@ public interface UserDAO {
      * @param params SQL query parameters
      * @return
      */
-    UserTO getUserByIdOrUsername(Map params);
+    User getUserByIdOrUsername(Map params);
 
     /**
      * Enable/disable users
@@ -93,7 +93,7 @@ public interface UserDAO {
      * @param params SQL query parameters
      * @return List of groups
      */
-    List<GroupTO> getUserGroups(Map params);
+    List<Group> getUserGroups(Map params);
 
     /**
      * Get total number of users

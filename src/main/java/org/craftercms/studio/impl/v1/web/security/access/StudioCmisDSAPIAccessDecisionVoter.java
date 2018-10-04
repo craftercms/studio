@@ -20,7 +20,7 @@ package org.craftercms.studio.impl.v1.web.security.access;
 
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v2.dal.UserTO;
+import org.craftercms.studio.api.v2.dal.User;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.FilterInvocation;
@@ -49,9 +49,9 @@ public class StudioCmisDSAPIAccessDecisionVoter extends StudioAbstractAccessDeci
             HttpServletRequest  request = filterInvocation.getRequest();
             requestUri = request.getRequestURI().replace(request.getContextPath(), "");
             String siteParam = request.getParameter("site_id");
-            UserTO currentUser = null;
+            User currentUser = null;
             try {
-                currentUser = (UserTO) authentication.getPrincipal();
+                currentUser = (User) authentication.getPrincipal();
             } catch (ClassCastException e) {
                 // anonymous user
                 if (!authentication.getPrincipal().toString().equals("anonymousUser")) {

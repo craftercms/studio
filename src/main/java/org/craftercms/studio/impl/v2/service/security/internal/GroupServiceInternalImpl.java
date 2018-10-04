@@ -20,9 +20,9 @@ package org.craftercms.studio.impl.v2.service.security.internal;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.craftercms.studio.api.v1.constant.StudioXmlConstants;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -30,31 +30,22 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.GroupDAO;
-import org.craftercms.studio.api.v2.dal.GroupTO;
-import org.craftercms.studio.api.v2.dal.UserTO;
+import org.craftercms.studio.api.v2.dal.Group;
+import org.craftercms.studio.api.v2.dal.User;
+import org.craftercms.studio.api.v2.exception.ConfigurationException;
+import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
-import org.dom4j.Element;
-import org.dom4j.Node;
 import org.dom4j.io.SAXReader;
 import org.xml.sax.SAXException;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_SITE;
-import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.DOCUMENT_ELM_GROUPS_NODE;
-import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.DOCUMENT_ROLE_MAPPINGS;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.GROUP_DESCRIPTION;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.GROUP_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.GROUP_IDS;
@@ -69,48 +60,83 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USER_IDS;
 
 public class GroupServiceInternalImpl implements GroupServiceInternal {
 
-    private static final Logger logger = LoggerFactory.getLogger(GroupServiceInternalImpl.class);
-
     private GroupDAO groupDao;
     private UserServiceInternal userServiceInternal;
-    private StudioConfiguration studioConfiguration;
-    private ContentRepository contentRepository;
+    private ConfigurationService configurationService;
 
     @Override
-    public List<GroupTO> getAllGroups(long orgId, int offset, int limit, String sort) throws ServiceLayerException {
+    public Group getGroup(long groupId) throws GroupNotFoundException, ServiceLayerException {
+        Map<String, Object> params = new HashMap<>();
+        params.put(GROUP_ID, groupId);
+
+        Group group;
+        try {
+            group = groupDao.getGroup(params);
+        } catch (Exception e) {
+            throw new ServiceLayerException("Unknown database error", e);
+        }
+
+        if (group != null) {
+            return group;
+        } else {
+            throw new GroupNotFoundException("No group found for id '" + groupId + "'");
+        }
+    }
+
+    @Override
+    public Group getGroupByName(String groupName) throws GroupNotFoundException, ServiceLayerException {
+        Map<String, Object> params = new HashMap<>();
+        params.put(GROUP_NAME, groupName);
+
+        Group group;
+        try {
+            group = groupDao.getGroupByName(params);
+        } catch (Exception e) {
+            throw new ServiceLayerException("Unknown database error", e);
+        }
+
+        if (group != null) {
+            return group;
+        } else {
+            throw new GroupNotFoundException("No group found for name '" + groupName + "'");
+        }
+    }
+
+    @Override
+    public boolean groupExists(long groupId, String groupName) throws ServiceLayerException {
+        Map<String, Object> params = new HashMap<>();
+        params.put(GROUP_ID, groupId);
+        params.put(GROUP_NAME, groupName);
+
+        try {
+            Integer result = groupDao.groupExists(params);
+            return (result > 0);
+        } catch (Exception e) {
+            throw new ServiceLayerException("Unknown database error", e);
+        }
+    }
+
+    @Override
+    public List<Group> getAllGroups(long orgId, int offset, int limit, String sort) throws ServiceLayerException {
         // Prepare parameters
-        Map<String, Object> params = new HashMap<String, Object>();
+        Map<String, Object> params = new HashMap<>();
         params.put(ORG_ID, orgId);
         params.put(OFFSET, offset);
         params.put(LIMIT, limit);
         params.put(SORT, sort);
-        List<GroupTO> groups;
 
-        if (logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
-            logger.debug("Get all groups from DB using query ID: getAllGroupsForOrganization");
-            logger.debug("Parameters:");
-            logger.debug("\t " + ORG_ID + " = " + orgId);
-            logger.debug("\t " + OFFSET + " = " + offset);
-            logger.debug("\t " + LIMIT + " = " + limit);
-            logger.debug("\t " + SORT + " = " + sort);
-        }
         try {
-            groups = groupDao.getAllGroupsForOrganization(params);
+            return groupDao.getAllGroupsForOrganization(params);
         } catch (Exception e) {
             throw new ServiceLayerException("Unknown database error", e);
         }
-        return groups;
     }
 
     @Override
     public int getAllGroupsTotal(long orgId) throws ServiceLayerException {
-        Map<String, Object> params = new HashMap<String, Object>();
+        Map<String, Object> params = new HashMap<>();
         params.put(ORG_ID, orgId);
-        if (logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
-            logger.debug("Get all groups from DB using query ID: getAllGroupsForOrganization");
-            logger.debug("Parameters:");
-            logger.debug("\t " + ORG_ID + " = " + orgId);
-        }
+
         try {
             return groupDao.getAllGroupsForOrganizationTotal(params);
         } catch (Exception e) {
@@ -119,22 +145,21 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
     }
 
     @Override
-    public GroupTO createGroup(long orgId, String groupName, String groupDescription) throws ServiceLayerException {
+    public Group createGroup(long orgId, String groupName, String groupDescription) throws GroupAlreadyExistsException,
+                                                                                           ServiceLayerException {
+        if (groupExists(-1, groupName)) {
+            throw new GroupAlreadyExistsException("Group '" + groupName + "' already exists");
+        }
+
         Map<String, Object> params = new HashMap<>();
         params.put(ORG_ID, orgId);
         params.put(GROUP_NAME, groupName);
         params.put(GROUP_DESCRIPTION, groupDescription);
-        if (logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
-            logger.debug("Get all groups from DB using query ID: createGroup");
-            logger.debug("Parameters:");
-            logger.debug("\t " + ORG_ID + " = " + orgId);
-            logger.debug("\t " + GROUP_NAME + " = " + groupName);
-            logger.debug("\t " + GROUP_DESCRIPTION + " = " + groupDescription);
-        }
+
         try {
             groupDao.createGroup(params);
 
-            GroupTO group = new GroupTO();
+            Group group = new Group();
             group.setId((Long) params.get(ID));
             group.setGroupName(groupName);
             group.setGroupDescription(groupDescription);
@@ -146,22 +171,20 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
     }
 
     @Override
-    public GroupTO updateGroup(long orgId, GroupTO group) throws ServiceLayerException {
+    public Group updateGroup(long orgId, Group group) throws GroupNotFoundException, ServiceLayerException {
+        if (!groupExists(group.getId(), StringUtils.EMPTY)) {
+            throw new GroupNotFoundException("No group found for id '" + group.getId() + "'");
+        }
+
         Map<String, Object> params = new HashMap<>();
         params.put(ID, group.getId());
         params.put(ORG_ID, orgId);
         params.put(GROUP_NAME, group.getGroupName());
         params.put(GROUP_DESCRIPTION, group.getGroupDescription());
-        if (logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
-            logger.debug("Get all groups from DB using query ID: createGroup");
-            logger.debug("Parameters:");
-            logger.debug("\t " + ID + " = " + group.getId());
-            logger.debug("\t " + ORG_ID + " = " + orgId);
-            logger.debug("\t " + GROUP_NAME + " = " + group.getGroupName());
-            logger.debug("\t " + GROUP_DESCRIPTION + " = " + group.getGroupDescription());
-        }
+
         try {
             groupDao.updateGroup(params);
+
             return group;
         } catch (Exception e) {
             throw new ServiceLayerException("Unknown database error", e);
@@ -169,9 +192,16 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
     }
 
     @Override
-    public void deleteGroup(List<Long> groupIds) throws ServiceLayerException {
-        Map<String, Object> params = new HashMap<String, Object>();
+    public void deleteGroup(List<Long> groupIds) throws GroupNotFoundException, ServiceLayerException {
+        for (Long groupId : groupIds) {
+            if (groupExists(groupId, StringUtils.EMPTY)) {
+                throw new GroupNotFoundException("No group found for id '" + groupId + "'");
+            }
+        }
+
+        Map<String, Object> params = new HashMap<>();
         params.put(GROUP_IDS, groupIds);
+
         try {
             groupDao.deleteGroups(params);
         } catch (Exception e) {
@@ -180,44 +210,42 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
     }
 
     @Override
-    public GroupTO getGroup(long groupId) throws ServiceLayerException {
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put(GROUP_ID, groupId);
-        GroupTO gDAL;
-        try {
-            gDAL = groupDao.getGroup(params);
-        } catch (Exception e) {
-            throw new ServiceLayerException("Unknown database error", e);
+    public List<User> getGroupMembers(long groupId, int offset, int limit, String sort) throws GroupNotFoundException,
+                                                                                               ServiceLayerException {
+        if (!groupExists(groupId, StringUtils.EMPTY)) {
+            throw new GroupNotFoundException("No group found for id '" + groupId+ "'");
         }
-        return gDAL;
-    }
 
-    @Override
-    public List<UserTO> getGroupMembers(long groupId, int offset, int limit, String sort) throws ServiceLayerException {
-        Map<String, Object> params = new HashMap<String, Object>();
+        Map<String, Object> params = new HashMap<>();
         params.put(GROUP_ID, groupId);
         params.put(OFFSET, offset);
         params.put(LIMIT, limit);
         params.put(SORT, sort);
-        List<UserTO> userTOs;
+
         try {
-            userTOs = groupDao.getGroupMembers(params);
+            return groupDao.getGroupMembers(params);
         } catch (Exception e) {
             throw new ServiceLayerException("Unknown database error", e);
         }
-        return userTOs;
     }
 
     @Override
-    public List<UserTO> addGroupMembers(long groupId, List<Long> userIds, List<String> usernames)
-            throws ServiceLayerException, UserNotFoundException {
-        List<UserTO> users = userServiceInternal.findUsers(userIds, usernames);
+    public List<User> addGroupMembers(long groupId, List<Long> userIds,
+                                      List<String> usernames) throws GroupNotFoundException, UserNotFoundException,
+                                                                     ServiceLayerException {
+        if (!groupExists(groupId, StringUtils.EMPTY)) {
+            throw new GroupNotFoundException("No group found for id '" + groupId+ "'");
+        }
+
+        List<User> users = userServiceInternal.getUsersByIdOrUsername(userIds, usernames);
 
         Map<String, Object> params = new HashMap<>();
-        params.put(USER_IDS, users.stream().map(UserTO::getId).collect(Collectors.toList()));
+        params.put(USER_IDS, users.stream().map(User::getId).collect(Collectors.toList()));
         params.put(GROUP_ID, groupId);
+
         try {
             groupDao.addGroupMembers(params);
+
             return users;
         } catch (Exception e) {
             throw new ServiceLayerException("Unknown database error", e);
@@ -225,134 +253,39 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
     }
 
     @Override
-    public void removeGroupMembers(long groupId, List<Long> userIds, List<String> usernames) throws ServiceLayerException {
-        List<Long> allUserIds = new ArrayList<Long>();
-        if (CollectionUtils.isNotEmpty(userIds)) {
-            allUserIds.addAll(userIds);
+    public void removeGroupMembers(long groupId, List<Long> userIds,
+                                   List<String> usernames) throws GroupNotFoundException, UserNotFoundException,
+                                                                  ServiceLayerException {
+        if (!groupExists(groupId, StringUtils.EMPTY)) {
+            throw new GroupNotFoundException("No group found for id '" + groupId+ "'");
         }
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put(USERNAMES, usernames);
+
+        List<User> users = userServiceInternal.getUsersByIdOrUsername(userIds, usernames);
+
+        Map<String, Object> params = new HashMap<>();
+        params.put(USER_IDS, users.stream().map(User::getId).collect(Collectors.toList()));
+        params.put(GROUP_ID, groupId);
+
         try {
-            if (CollectionUtils.isNotEmpty(usernames)) {
-                allUserIds.addAll(groupDao.getUserIdsForUsernames(params));
-            }
-            if (CollectionUtils.isNotEmpty(allUserIds)) {
-                params = new HashMap<String, Object>();
-                params.put(USER_IDS, allUserIds);
-                params.put(GROUP_ID, groupId);
-                groupDao.removeGroupMembers(params);
-            }
+            groupDao.removeGroupMembers(params);
         } catch (Exception e) {
             throw new ServiceLayerException("Unknown database error", e);
         }
     }
 
     @Override
-    public List<String> getSiteGroups(String siteId) {
-        Map<String, List<String>> groupRoleMapping = loadGroupMappings(siteId);
-        List<String> toRet = new ArrayList<String>();
-        toRet.addAll(groupRoleMapping.keySet());
-        return toRet;
-    }
-
-    private Map<String, List<String>> loadGroupMappings(String siteId) {
-        Map<String, List<String>> groupRoleMap = new HashMap<String, List<String>>();
-        String siteConfigPath =
-                studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH)
-                        .replaceFirst(PATTERN_SITE, siteId);
-        String siteGroupRoleMappingConfigPath =
-                siteConfigPath + FILE_SEPARATOR +
-                        studioConfiguration.getProperty(CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME);
-        Document document = null;
+    public List<String> getSiteGroups(String siteId) throws ServiceLayerException {
+        Map<String, List<String>> groupRoleMapping;
         try {
-            document = getContentAsDocument(siteId, siteGroupRoleMappingConfigPath);
-            Element root = document.getRootElement();
-            if (root.getName().equals(DOCUMENT_ROLE_MAPPINGS)) {
-                List<Node> groupNodes = root.selectNodes(DOCUMENT_ELM_GROUPS_NODE);
-                for (Node node : groupNodes) {
-                    String name = node.valueOf(StudioXmlConstants.DOCUMENT_ATTR_PERMISSIONS_NAME);
-                    if (!StringUtils.isEmpty(name)) {
-                        List<Node> roleNodes = node.selectNodes(StudioXmlConstants.DOCUMENT_ELM_PERMISSION_ROLE);
-                        List<String> roles = new ArrayList<String>();
-                        for (Node roleNode : roleNodes) {
-                            roles.add(roleNode.getText());
-                        }
-                        groupRoleMap.put(name, roles);
-                    }
-                }
-            }
-        } catch (DocumentException e) {
-            logger.error("Error while reading group role mappings file for site " + siteId + " - "
-                    + siteGroupRoleMappingConfigPath);
-        }
-        return groupRoleMap;
-    }
-
-    protected Document getContentAsDocument(String site, String path) throws DocumentException {
-
-        // TODO: SJ: Refactor in 4.x as this already exists in Crafter Core (which is part of the new Studio)
-        Document retDocument = null;
-        InputStream is = null;
-            try {
-            is = contentRepository.getContent(site, path);
-        } catch (ContentNotFoundException e) {
-            logger.debug("Content not found for path {0}", e, path);
+            groupRoleMapping = configurationService.geRoleMappings(siteId);
+        } catch (ConfigurationException e) {
+            throw new ServiceLayerException("Unable to get role mappings config for site '" + siteId + "'", e);
         }
 
-            if(is != null) {
-            try {
-                SAXReader saxReader = new SAXReader();
-                try {
-                    saxReader.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
-                    saxReader.setFeature("http://xml.org/sax/features/external-general-entities", false);
-                    saxReader.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
-                }catch (SAXException ex){
-                    logger.error("Unable to turn off external entity loading, This could be a security risk.", ex);
-                }
-                retDocument = saxReader.read(is);
-            }
-            finally {
-                try {
-                    if (is != null) {
-                        is.close();
-                    }
-                }
-                catch (IOException err) {
-                    logger.debug("Error closing stream for path {0}", err, path);
-                }
-            }
-        }
+        List<String> groups = new ArrayList<>();
+        groups.addAll(groupRoleMapping.keySet());
 
-            return retDocument;
-    }
-
-    @Override
-    public GroupTO getGroupByName(String groupName) throws GroupNotFoundException, ServiceLayerException {
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put(GROUP_NAME, groupName);
-        GroupTO groupTO;
-        try {
-            groupTO = groupDao.getGroupByName(params);
-        } catch (Exception e) {
-            throw new ServiceLayerException("Unknown database error", e);
-        }
-        if (groupTO != null) {
-            return groupTO;
-        } else {
-            throw new GroupNotFoundException();
-        }
-    }
-
-    @Override
-    public boolean groupExists(String groupName) throws ServiceLayerException {
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put(GROUP_NAME, groupName);
-        try {
-            Integer result = groupDao.groupExists(params);
-            return (result > 0);
-        } catch (Exception e) {
-            throw new ServiceLayerException("Unknown database error", e);
-        }
+        return groups;
     }
 
     public GroupDAO getGroupDao() {
@@ -371,19 +304,12 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
         this.userServiceInternal = userServiceInternal;
     }
 
-    public StudioConfiguration getStudioConfiguration() {
-        return studioConfiguration;
+    public ConfigurationService getConfigurationService() {
+        return configurationService;
     }
 
-    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
-        this.studioConfiguration = studioConfiguration;
+    public void setConfigurationService(ConfigurationService configurationService) {
+        this.configurationService = configurationService;
     }
 
-    public ContentRepository getContentRepository() {
-        return contentRepository;
-    }
-
-    public void setContentRepository(ContentRepository contentRepository) {
-        this.contentRepository = contentRepository;
-    }
 }

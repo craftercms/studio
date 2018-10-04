@@ -26,15 +26,14 @@ import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v2.dal.GroupTO;
-import org.craftercms.studio.api.v2.dal.UserTO;
+import org.craftercms.studio.api.v2.dal.Group;
+import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.exception.OrganizationNotFoundException;
 import org.craftercms.studio.api.v2.service.security.GroupService;
 import org.craftercms.studio.model.rest.AddGroupMembers;
 import org.craftercms.studio.model.rest.ApiResponse;
 import org.craftercms.studio.model.rest.PaginatedResultList;
 import org.craftercms.studio.model.rest.ResponseBody;
-import org.craftercms.studio.model.rest.Result;
 import org.craftercms.studio.model.rest.ResultList;
 import org.craftercms.studio.model.rest.ResultOne;
 import org.springframework.http.HttpStatus;
@@ -77,10 +76,10 @@ public class GroupsController {
             ) throws ServiceLayerException, OrganizationNotFoundException {
         int total = 0;
         total = groupService.getAllGroupsTotal(DEFAULT_ORGANIZATION_ID);
-        List<GroupTO> groups = groupService.getAllGroups(DEFAULT_ORGANIZATION_ID, offset, limit, sort);
+        List<Group> groups = groupService.getAllGroups(DEFAULT_ORGANIZATION_ID, offset, limit, sort);
 
         ResponseBody responseBody = new ResponseBody();
-        PaginatedResultList<GroupTO> result = new PaginatedResultList<>();
+        PaginatedResultList<Group> result = new PaginatedResultList<>();
         result.setTotal(total);
         result.setOffset(offset);
         result.setLimit(CollectionUtils.isEmpty(groups) ? 0 : groups.size());
@@ -98,12 +97,12 @@ public class GroupsController {
      */
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping(value = "/api/2/groups", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseBody createGroup(@RequestBody GroupTO group) throws GroupAlreadyExistsException,
-        ServiceLayerException {
-        GroupTO newGroup =
+    public ResponseBody createGroup(@RequestBody Group group) throws GroupAlreadyExistsException,
+                                                                     ServiceLayerException {
+        Group newGroup =
                 groupService.createGroup(DEFAULT_ORGANIZATION_ID, group.getGroupName(), group.getGroupDescription());
         ResponseBody responseBody = new ResponseBody();
-        ResultOne<GroupTO> result = new ResultOne<>();
+        ResultOne<Group> result = new ResultOne<>();
         result.setResponse(ApiResponse.CREATED);
         result.setEntity(newGroup);
         responseBody.setResult(result);
@@ -117,11 +116,11 @@ public class GroupsController {
      * @return Response object
      */
     @PatchMapping(value = "/api/2/groups", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseBody updateGroup(@RequestBody GroupTO group) throws ServiceLayerException, GroupNotFoundException {
+    public ResponseBody updateGroup(@RequestBody Group group) throws ServiceLayerException, GroupNotFoundException {
         ResponseBody responseBody = new ResponseBody();
-        GroupTO updatedGroup = groupService.updateGroup(DEFAULT_ORGANIZATION_ID, group);
+        Group updatedGroup = groupService.updateGroup(DEFAULT_ORGANIZATION_ID, group);
 
-        ResultOne<GroupTO> result = new ResultOne<>();
+        ResultOne<Group> result = new ResultOne<>();
         result.setResponse(ApiResponse.OK);
         result.setEntity(updatedGroup);
         responseBody.setResult(result);
@@ -135,7 +134,8 @@ public class GroupsController {
      * @return Response object
      */
     @DeleteMapping("/api/2/groups")
-    public ResponseBody deleteGroup(@RequestParam("id") List<Long> groupIds) throws ServiceLayerException {
+    public ResponseBody deleteGroup(@RequestParam("id") List<Long> groupIds) throws ServiceLayerException,
+                                                                                    GroupNotFoundException {
         groupService.deleteGroup(groupIds);
 
         ResponseBody responseBody = new ResponseBody();
@@ -152,11 +152,12 @@ public class GroupsController {
      * @return Response containing requested group
      */
     @GetMapping("/api/2/groups/{groupId}")
-    public ResponseBody getGroup(@PathVariable("groupId") int groupId) throws ServiceLayerException {
-        GroupTO group = groupService.getGroup(groupId);
+    public ResponseBody getGroup(@PathVariable("groupId") int groupId) throws ServiceLayerException,
+                                                                              GroupNotFoundException {
+        Group group = groupService.getGroup(groupId);
 
         ResponseBody responseBody = new ResponseBody();
-        ResultOne<GroupTO> result = new ResultOne<>();
+        ResultOne<Group> result = new ResultOne<>();
         result.setResponse(ApiResponse.OK);
         result.setEntity(group);
         responseBody.setResult(result);
@@ -178,12 +179,12 @@ public class GroupsController {
         @RequestParam(value = "offset", required = false, defaultValue = "0") int offset,
         @RequestParam(value = "limit", required = false, defaultValue = "10") int limit,
         @RequestParam(value = "sort", required = false, defaultValue = StringUtils.EMPTY) String sort)
-        throws ServiceLayerException {
+            throws ServiceLayerException, GroupNotFoundException {
 
-        List<UserTO> users = groupService.getGroupMembers(groupId, offset, limit, sort);
+        List<User> users = groupService.getGroupMembers(groupId, offset, limit, sort);
 
         ResponseBody responseBody = new ResponseBody();
-        ResultList<UserTO> result = new ResultList<>();
+        ResultList<User> result = new ResultList<>();
         result.setResponse(ApiResponse.OK);
         result.setEntities(users);
         responseBody.setResult(result);
@@ -200,15 +201,16 @@ public class GroupsController {
     @PostMapping(value = "/api/2/groups/{groupId}/members", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseBody addGroupMembers(@PathVariable("groupId") int groupId,
                                         @RequestBody AddGroupMembers addGroupMembers) throws ServiceLayerException,
-                                                                                             UserNotFoundException {
+                                                                                             UserNotFoundException,
+                                                                                             GroupNotFoundException {
 
         ValidationUtils.validateAddGroupMembers(addGroupMembers);
 
-        List<UserTO> addedUsers = groupService.addGroupMembers(groupId, addGroupMembers.getUserIds(),
-            addGroupMembers.getUsernames());
+        List<User> addedUsers = groupService.addGroupMembers(groupId, addGroupMembers.getUserIds(),
+                                                             addGroupMembers.getUsernames());
 
         ResponseBody responseBody = new ResponseBody();
-        ResultList<UserTO> result = new ResultList<>();
+        ResultList<User> result = new ResultList<>();
         result.setResponse(ApiResponse.OK);
         result.setEntities(addedUsers);
         responseBody.setResult(result);
@@ -227,7 +229,7 @@ public class GroupsController {
     public ResponseBody removeGroupMembers(@PathVariable("groupId") int groupId,
                                    @RequestParam(value = "userId", required = false) List<Long> userIds,
                                    @RequestParam(value = "username", required = false) List<String> usernames)
-        throws ServiceLayerException, UserNotFoundException {
+            throws ServiceLayerException, UserNotFoundException, GroupNotFoundException {
 
         ValidationUtils.validateAnyListNonEmpty(userIds, usernames);
 

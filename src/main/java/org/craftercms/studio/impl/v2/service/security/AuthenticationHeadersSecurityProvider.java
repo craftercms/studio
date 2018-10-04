@@ -31,9 +31,9 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.activity.ActivityService;
-import org.craftercms.studio.api.v2.dal.GroupTO;
-import org.craftercms.studio.api.v2.dal.UserGroupTO;
-import org.craftercms.studio.api.v2.dal.UserTO;
+import org.craftercms.studio.api.v2.dal.Group;
+import org.craftercms.studio.api.v2.dal.UserGroup;
+import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.model.AuthenticationType;
 
 import javax.servlet.http.HttpServletRequest;
@@ -102,7 +102,7 @@ public class AuthenticationHeadersSecurityProvider extends DbWithLdapExtensionSe
                         } else {
                             logger.debug("User does not exist in studio db. Adding user " + usernameHeader);
                             try {
-                                UserTO user = new UserTO();
+                                User user = new User();
                                 user.setUsername(usernameHeader);
                                 user.setPassword(UUID.randomUUID().toString());
                                 user.setFirstName(firstName);
@@ -128,29 +128,29 @@ public class AuthenticationHeadersSecurityProvider extends DbWithLdapExtensionSe
                         throw  new AuthenticationSystemException("Unknown service error" , e);
                     }
 
-                    UserTO userTO = new UserTO();
-                    userTO.setUsername(usernameHeader);
-                    userTO.setFirstName(firstName);
-                    userTO.setLastName(lastName);
-                    userTO.setEmail(email);
-                    userTO.setGroups(new ArrayList<UserGroupTO>());
+                    User user = new User();
+                    user.setUsername(usernameHeader);
+                    user.setFirstName(firstName);
+                    user.setLastName(lastName);
+                    user.setEmail(email);
+                    user.setGroups(new ArrayList<UserGroup>());
 
                     logger.debug("Update user groups in database.");
                     if (StringUtils.isNoneEmpty(groups)) {
                         String[] groupsArray = groups.split(",");
                             for (int i = 0; i < groupsArray.length; i++) {
-                                GroupTO g = new GroupTO();
+                                Group g = new Group();
                                 g.setGroupName(StringUtils.trim(groupsArray[i]));
                                 g.setGroupDescription("Externally managed group");
                                 g.setOrganization(null);
-                                UserGroupTO ug = new UserGroupTO();
+                                UserGroup ug = new UserGroup();
                                 ug.setGroup(g);
-                                userTO.getGroups().add(ug);
+                                user.getGroups().add(ug);
                                 upsertUserGroup(g.getGroupName(), usernameHeader);
                             }
                     }
 
-                    String token = createToken(userTO);
+                    String token = createToken(user);
 
                     storeAuthentication(new Authentication(username, token, AuthenticationType.AUTH_HEADERS));
 

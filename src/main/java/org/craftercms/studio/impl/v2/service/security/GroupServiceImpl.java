@@ -29,8 +29,8 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
-import org.craftercms.studio.api.v2.dal.GroupTO;
-import org.craftercms.studio.api.v2.dal.UserTO;
+import org.craftercms.studio.api.v2.dal.Group;
+import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.exception.OrganizationNotFoundException;
 import org.craftercms.studio.api.v2.service.security.GroupService;
@@ -47,8 +47,6 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.SYSTEM_ADMIN
 
 public class GroupServiceImpl implements GroupService {
 
-    private static final Logger logger = LoggerFactory.getLogger(GroupServiceImpl.class);
-
     private ConfigurationService configurationService;
     private SecurityProvider securityProvider;
     private GroupServiceInternal groupServiceInternal;
@@ -58,7 +56,7 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "read_groups")
-    public List<GroupTO> getAllGroups(long orgId, int offset, int limit, String sort)
+    public List<Group> getAllGroups(long orgId, int offset, int limit, String sort)
             throws ServiceLayerException, OrganizationNotFoundException {
         // Security check
         if (organizationServiceInternal.organizationExists(orgId)) {
@@ -80,72 +78,69 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "create_groups")
-    public GroupTO createGroup(long orgId, String groupName, String groupDescription) throws
-            GroupAlreadyExistsException,
-        ServiceLayerException {
-        if (!groupServiceInternal.groupExists(groupName)) {
-            return groupServiceInternal.createGroup(orgId, groupName, groupDescription);
-        } else {
-            throw new GroupAlreadyExistsException();
-        }
+    public Group createGroup(long orgId, String groupName,
+                             String groupDescription) throws GroupAlreadyExistsException, ServiceLayerException {
+        return groupServiceInternal.createGroup(orgId, groupName, groupDescription);
     }
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "update_groups")
-    public GroupTO updateGroup(long orgId, GroupTO group) throws ServiceLayerException, GroupNotFoundException {
-        if (groupServiceInternal.groupExists(group.getGroupName())) {
-            return groupServiceInternal.updateGroup(orgId, group);
-        } else {
-            throw new GroupNotFoundException();
-        }
+    public Group updateGroup(long orgId, Group group) throws ServiceLayerException, GroupNotFoundException {
+        return groupServiceInternal.updateGroup(orgId, group);
     }
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "delete_groups")
-    public void deleteGroup(List<Long> groupIds) throws ServiceLayerException {
+    public void deleteGroup(List<Long> groupIds) throws ServiceLayerException, GroupNotFoundException {
+        Group sysAdminGroup;
         try {
-            GroupTO g = groupServiceInternal.getGroupByName(SYSTEM_ADMIN_GROUP);
-            if (CollectionUtils.isNotEmpty(groupIds)) {
-                if (groupIds.contains(g.getId())) {
-                    throw new ServiceLayerException("Deleting the System Admin group is not allowed.");
-                }
-            }
+            sysAdminGroup = groupServiceInternal.getGroupByName(SYSTEM_ADMIN_GROUP);
         } catch (GroupNotFoundException e) {
             throw new ServiceLayerException("The System Admin group is not found", e);
         }
+
+        if (CollectionUtils.isNotEmpty(groupIds)) {
+            if (groupIds.contains(sysAdminGroup.getId())) {
+                throw new ServiceLayerException("Deleting the System Admin group is not allowed.");
+            }
+        }
+
         groupServiceInternal.deleteGroup(groupIds);
     }
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "read_groups")
-    public GroupTO getGroup(long groupId) throws ServiceLayerException {
+    public Group getGroup(long groupId) throws ServiceLayerException, GroupNotFoundException {
         return groupServiceInternal.getGroup(groupId);
     }
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "read_groups")
-    public List<UserTO> getGroupMembers(long groupId, int offset, int limit, String sort) throws ServiceLayerException {
+    public List<User> getGroupMembers(long groupId, int offset, int limit, String sort) throws ServiceLayerException,
+                                                                                               GroupNotFoundException {
         return groupServiceInternal.getGroupMembers(groupId, offset, limit, sort);
     }
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "update_groups")
-    public List<UserTO> addGroupMembers(long groupId, List<Long> userIds, List<String> usernames)
-            throws ServiceLayerException, UserNotFoundException {
+    public List<User> addGroupMembers(long groupId, List<Long> userIds,
+                                      List<String> usernames) throws ServiceLayerException, UserNotFoundException,
+                                                                     GroupNotFoundException {
         return groupServiceInternal.addGroupMembers(groupId, userIds, usernames);
     }
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "update_groups")
-    public void removeGroupMembers(long groupId, List<Long> userIds, List<String> usernames)
-            throws ServiceLayerException, UserNotFoundException {
-        GroupTO g = getGroup(groupId);
+    public void removeGroupMembers(long groupId, List<Long> userIds,
+                                   List<String> usernames) throws ServiceLayerException, UserNotFoundException,
+                                                                  GroupNotFoundException {
+        Group group = getGroup(groupId);
         generalLockService.lock(REMOVE_SYSTEM_ADMIN_MEMBER_LOCK);
         try {
-            if (g.getGroupName().equals(SYSTEM_ADMIN_GROUP)) {
-                List<UserTO> members = getGroupMembers(groupId, 0, Integer.MAX_VALUE, StringUtils.EMPTY);
+            if (group.getGroupName().equals(SYSTEM_ADMIN_GROUP)) {
+                List<User> members = getGroupMembers(groupId, 0, Integer.MAX_VALUE, StringUtils.EMPTY);
                 if (CollectionUtils.isNotEmpty(members)) {
-                    List<UserTO> membersAfterRemove = new ArrayList<UserTO>();
+                    List<User> membersAfterRemove = new ArrayList<User>();
                     membersAfterRemove.addAll(members);
                     members.forEach(m -> {
                         if (CollectionUtils.isNotEmpty(userIds)) {
