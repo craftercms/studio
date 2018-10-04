@@ -67,7 +67,7 @@ public class SiteRepositoryUpgradePipelineImpl extends DefaultUpgradePipelineImp
 
     protected void createTemporaryBranch(String site, Git git) throws GitAPIException {
         List<Ref> branches = git.branchList().call();
-        if(branches.stream().anyMatch(b -> b.getName().equals(siteUpgradeBranch))) {
+        if(branches.stream().anyMatch(b -> b.getName().contains(siteUpgradeBranch))) {
             logger.debug("Temporary branch already exists, changes will be discarded");
             deleteTemporaryBranch(git);
         }

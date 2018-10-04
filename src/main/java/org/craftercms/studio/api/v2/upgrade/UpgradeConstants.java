@@ -24,7 +24,6 @@ package org.craftercms.studio.api.v2.upgrade;
  */
 public interface UpgradeConstants {
 
-    String VERSION_1_0 = "1.0";
     String VERSION_3_0_0 = "3.0.0";
 
     String CONFIG_KEY_CURRENT_VERSION = "currentVersion";

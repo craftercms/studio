@@ -418,8 +418,16 @@ studio.upgrade.branchName: site-upgrade
 studio.upgrade.commitMessage: Successful site upgrade
 # Path for the site version file
 studio.upgrade.versionFile: /config/studio/studio_version.xml
+# Path for the site version template
+studio.upgrade.versionTemplate: classpath:crafter/studio/upgrade/update-version.xslt
+# Path for the site version default file
+studio.upgrade.versionDefault: classpath:crafter/studio/upgrade/studio_version.xml
 # XPath for querying the version
 studio.upgrade.versionXPath: '/*[1]/version/text()'
+# Default version for sites when there is none
+studio.upgrade.defaultVersion.site: 3.0.0
+# Default version for files when there is none
+studio.upgrade.defaultVersion.file: 1.0
 # Pipelines configuration file
 studio.upgrade.configurationFile: classpath:crafter/studio/upgrade/pipelines.yaml
 # Common prefix for the pipelines
