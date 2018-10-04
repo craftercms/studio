@@ -194,7 +194,7 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
     @Override
     public void deleteGroup(List<Long> groupIds) throws GroupNotFoundException, ServiceLayerException {
         for (Long groupId : groupIds) {
-            if (groupExists(groupId, StringUtils.EMPTY)) {
+            if (!groupExists(groupId, StringUtils.EMPTY)) {
                 throw new GroupNotFoundException("No group found for id '" + groupId + "'");
             }
         }
