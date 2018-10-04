@@ -39,8 +39,6 @@ public class DbAuthenticationProvider extends BaseAuthenticationProvider {
 
     private final static Logger logger = LoggerFactory.getLogger(DbAuthenticationProvider.class);
 
-    private boolean enabled;
-
     public DbAuthenticationProvider() {
     }
 

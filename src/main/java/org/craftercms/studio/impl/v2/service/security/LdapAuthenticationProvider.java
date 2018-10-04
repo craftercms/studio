@@ -37,7 +37,6 @@ import org.craftercms.studio.api.v2.service.security.BaseAuthenticationProvider;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.model.AuthenticationType;
 import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.ldap.AuthenticationException;
 import org.springframework.ldap.CommunicationException;
 import org.springframework.ldap.core.AuthenticatedLdapEntryContextMapper;
 import org.springframework.ldap.core.DirContextOperations;
@@ -160,18 +159,12 @@ public class LdapAuthenticationProvider extends BaseAuthenticationProvider {
         try {
             userTO = ldapTemplate.authenticate(ldapQuery, password, mapper);
         } catch (EmptyResultDataAccessException e) {
-            logger.info("User " + username +
-                    " not found with external security provider. Trying to authenticate against studio database");
+            logger.info("User " + username + " not found with external security provider.");
             // When user not found try to authenticate against studio database
             return false;
         } catch (CommunicationException e) {
-            logger.info("Failed to connect with external security provider. " +
-                    "Trying to authenticate against studio database");
+            logger.info("Failed to connect with external security provider.");
             // When user not found try to authenticate against studio database
-            return false;
-        } catch (AuthenticationException e) {
-            logger.error("Authentication failed with the LDAP system", e);
-
             return false;
         } catch (Exception e) {
             logger.error("Authentication failed with the LDAP system", e);
