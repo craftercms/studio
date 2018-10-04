@@ -28,7 +28,6 @@ import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.exception.UpgradeException;
 import org.craftercms.studio.api.v2.service.security.SecurityProvider;
-import org.craftercms.studio.api.v2.upgrade.UpgradeOperation;
 import org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryHelper;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;

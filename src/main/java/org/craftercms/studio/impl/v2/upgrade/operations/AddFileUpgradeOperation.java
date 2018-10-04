@@ -50,6 +50,9 @@ public class AddFileUpgradeOperation extends AbstractUpgradeOperation {
      */
     protected Resource file;
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void init(final String sourceVersion, final String targetVersion, final Configuration config) {
         super.init(sourceVersion, targetVersion, config);
@@ -57,6 +60,9 @@ public class AddFileUpgradeOperation extends AbstractUpgradeOperation {
         file = new ClassPathResource(config.getString(CONFIG_KEY_FILE));
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void execute(final String site) throws UpgradeException {
         try(InputStream is = file.getInputStream()) {
