@@ -18,6 +18,7 @@
 
 package org.craftercms.studio.impl.v2.service.security;
 
+import org.craftercms.studio.api.v1.exception.security.AuthenticationSystemException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.activity.ActivityService;
@@ -64,15 +65,22 @@ public class AuthenticationChainImpl implements AuthenticationChain {
 
     @Override
     public boolean doAuthenticate(HttpServletRequest request, HttpServletResponse response, String username,
-                                  String password) {
+                                  String password) throws Exception {
         boolean authenticated = false;
         Iterator<AuthenticationProvider> iterator = authentitcationChain.iterator();
+        Exception lastError = null;
         while (iterator.hasNext()) {
             AuthenticationProvider authProvider = iterator.next();
             if (authProvider.isEnabled()) {
                 authenticated = authProvider.doAuthenticate(request, response, this, username, password);
                 if (authenticated) break;
             }
+        }
+        if (!authenticated) {
+            if (lastError == null) {
+                lastError = new AuthenticationSystemException("Unknown service error");
+            }
+            throw lastError;
         }
         return authenticated;
     }

@@ -42,7 +42,6 @@ import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.commons.http.RequestContext;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
@@ -51,8 +50,6 @@ import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.StudioXmlConstants;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.security.AuthenticationSystemException;
-import org.craftercms.studio.api.v1.exception.security.BadCredentialsException;
 import org.craftercms.studio.api.v1.exception.security.PasswordDoesNotMatchException;
 import org.craftercms.studio.api.v1.exception.security.UserExternallyManagedException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
@@ -150,7 +147,7 @@ public class SecurityServiceImpl implements SecurityService {
     @Override
     @ValidateParams
     public String authenticate(@ValidateStringParam(name = "username") String username,
-                               @ValidateStringParam(name = "password") String password) throws BadCredentialsException, AuthenticationSystemException, EntitlementException, UserNotFoundException {
+                               @ValidateStringParam(name = "password") String password) throws Exception {
         //String toRet = securityProvider.authenticate(username, password);
         RequestContext requestContext = RequestContext.getCurrent();
         HttpServletRequest request = requestContext.getRequest();

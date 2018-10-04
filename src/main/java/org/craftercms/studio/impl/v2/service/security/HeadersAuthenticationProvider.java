@@ -72,7 +72,7 @@ public class HeadersAuthenticationProvider extends BaseAuthenticationProvider {
 
     @Override
     public boolean doAuthenticate(HttpServletRequest request, HttpServletResponse response,
-                                  AuthenticationChain authenticationChain, String username, String password) {
+                                  AuthenticationChain authenticationChain, String username, String password) throws AuthenticationSystemException, UserNotFoundException {
         if (isEnabled()) {
             logger.debug("Authenticating user using authentication headers.");
 
@@ -145,13 +145,7 @@ public class HeadersAuthenticationProvider extends BaseAuthenticationProvider {
                         }
                     } catch (ServiceLayerException e) {
                         logger.error("Unknown service error", e);
-                        return false;
-                    } catch (UserNotFoundException e) {
-                        logger.error("User not found", e);
-                        return false;
-                    } catch (AuthenticationSystemException e) {
-                        logger.error("Authentication error", e);
-                        return false;
+                        throw  new AuthenticationSystemException("Unknown service error" , e);
                     }
 
                     UserTO userTO = new UserTO();

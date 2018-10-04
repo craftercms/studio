@@ -19,6 +19,8 @@
 package org.craftercms.studio.impl.v2.service.security;
 
 import org.craftercms.commons.crypto.CryptoUtils;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationSystemException;
+import org.craftercms.studio.api.v1.exception.security.BadCredentialsException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.dal.UserDAO;
@@ -44,7 +46,7 @@ public class DbAuthenticationProvider extends BaseAuthenticationProvider {
 
     @Override
     public boolean doAuthenticate(HttpServletRequest request, HttpServletResponse response,
-                                  AuthenticationChain authenticationChain, String username, String password) {
+                                  AuthenticationChain authenticationChain, String username, String password) throws AuthenticationSystemException, BadCredentialsException {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(USER_ID, -1);
         params.put(USERNAME, username);
@@ -53,7 +55,8 @@ public class DbAuthenticationProvider extends BaseAuthenticationProvider {
         try {
             user = userDao.getUserByIdOrUsername(params);
         } catch (Exception e) {
-            logger.error("Unknown database errot", e);
+            logger.error("Unknown database error", e);
+            throw new AuthenticationSystemException("Unknown database error", e);
         }
         if (user != null && user.isEnabled() && CryptoUtils.matchPassword(user.getPassword(), password)) {
             String token = createToken(user, authenticationChain);
@@ -61,7 +64,8 @@ public class DbAuthenticationProvider extends BaseAuthenticationProvider {
             storeAuthentication(new Authentication(username, token, AuthenticationType.DB));
 
             return true;
+        } else {
+            throw new BadCredentialsException();
         }
-        return false;
     }
 }
