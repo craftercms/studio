@@ -18,6 +18,8 @@
 
 package org.craftercms.studio.impl.v2.service.security;
 
+import org.craftercms.studio.api.v1.log.Logger;
+import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.activity.ActivityService;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.GroupDAO;
@@ -25,24 +27,19 @@ import org.craftercms.studio.api.v2.dal.UserDAO;
 import org.craftercms.studio.api.v2.service.security.AuthenticationChain;
 import org.craftercms.studio.api.v2.service.security.AuthenticationProvider;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
-import org.yaml.snakeyaml.Yaml;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import static org.craftercms.engine.targeting.impl.TargetedContentStoreAdapter.logger;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_AUTHENTICATION_CHAIN_CONFIG;
 
 public class AuthenticationChainImpl implements AuthenticationChain {
+
+    private final static Logger logger = LoggerFactory.getLogger(AuthenticationChainImpl.class);
 
     private List<AuthenticationProvider> authentitcationChain;
 
@@ -59,7 +56,7 @@ public class AuthenticationChainImpl implements AuthenticationChain {
         authentitcationChain = new ArrayList<AuthenticationProvider>();
         chainConfig.forEach(providerConfig -> {
             AuthenticationProvider provider = AuthenticationProviderFactory.getAuthenticationProvider(providerConfig);
-            if (provider != null) {
+            if (provider != null && provider.isEnabled()) {
                 authentitcationChain.add(provider);
             }
         });
