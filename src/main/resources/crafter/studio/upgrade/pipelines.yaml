@@ -4,90 +4,90 @@ pipelines:
 
   # Pipeline to upgrade system components (database, global repo, ...)
   system:
-    - sourceVersion: 3.0.0
-      targetVersion: 3.0.1
+    - currentVersion: 3.0.0
+      nextVersion: 3.0.1
       operations:
         - type: dbScriptUpgrader
           filename: upgrade-3.0.0-to-3.0.1.sql
           updateIntegrity: false # Needs to be set to false in all version previous to 3.0.17
 
-    - sourceVersion: 3.0.1
-      targetVersion: 3.0.2
+    - currentVersion: 3.0.1
+      nextVersion: 3.0.2
       operations:
         - type: dbScriptUpgrader
           filename: upgrade-3.0.1-to-3.0.2.sql
           updateIntegrity: false
 
-    - sourceVersion: 3.0.2
-      targetVersion: 3.0.2.1
+    - currentVersion: 3.0.2
+      nextVersion: 3.0.2.1
       operations:
         - type: dbScriptUpgrader
           filename: upgrade-3.0.2-to-3.0.2.1.sql
           updateIntegrity: false
 
-    - sourceVersion: 3.0.2.1
-      targetVersion: 3.0.10
+    - currentVersion: 3.0.2.1
+      nextVersion: 3.0.10
       operations:
         - type: dbScriptUpgrader
           filename: upgrade-3.0.2.1-to-3.0.10.sql
           updateIntegrity: false
 
-    - sourceVersion: 3.0.10
-      targetVersion: 3.0.11
+    - currentVersion: 3.0.10
+      nextVersion: 3.0.11
       operations:
         - type: dbScriptUpgrader
           filename: upgrade-3.0.10-to-3.0.11.sql
           updateIntegrity: false
 
-    - sourceVersion: 3.0.11
-      targetVersion: 3.0.11.1
+    - currentVersion: 3.0.11
+      nextVersion: 3.0.11.1
       operations:
         - type: dbScriptUpgrader
           filename: upgrade-3.0.11-to-3.0.11.1.sql
           updateIntegrity: false
 
-    - sourceVersion: 3.0.11.1
-      targetVersion: 3.0.11.2
+    - currentVersion: 3.0.11.1
+      nextVersion: 3.0.11.2
       operations:
         - type: dbScriptUpgrader
           filename: upgrade-3.0.11.1-to-3.0.11.2.sql
           updateIntegrity: false
 
-    - sourceVersion: 3.0.11.2
-      targetVersion: 3.0.11.3
+    - currentVersion: 3.0.11.2
+      nextVersion: 3.0.11.3
       operations:
         - type: dbScriptUpgrader
           filename: upgrade-3.0.11.2-to-3.0.11.3.sql
           updateIntegrity: false
 
-    - sourceVersion: 3.0.11.3
-      targetVersion: 3.0.15
+    - currentVersion: 3.0.11.3
+      nextVersion: 3.0.15
       operations:
       - type: dbScriptUpgrader
         filename: upgrade-3.0.11.3-to-3.0.15.sql
         updateIntegrity: false
 
-    - sourceVersion: 3.0.15
-      targetVersion: 3.0.15.1
+    - currentVersion: 3.0.15
+      nextVersion: 3.0.15.1
       operations:
         - type: dbScriptUpgrader
           filename: upgrade-3.0.15-to-3.0.15.1.sql
           updateIntegrity: false
 
-    - sourceVersion: 3.0.15.1
-      targetVersion: 3.1.0
+    - currentVersion: 3.0.15.1
+      nextVersion: 3.1.0
       operations:
       - type: dbScriptUpgrader
         filename: upgrade-3.0.15.1-to-3.1.0.sql
 
-    - sourceVersion: 3.0.17
-      targetVersion: 3.1.0
+    - currentVersion: 3.0.17
+      nextVersion: 3.1.0
       operations:
       - type: dbScriptUpgrader
         filename: upgrade-3.0.17-to-3.1.0.sql
 
-    - sourceVersion: 3.1.0
-      targetVersion: 3.1.0.1
+    - currentVersion: 3.1.0
+      nextVersion: 3.1.0.1
       operations:
         - type: dbScriptUpgrader
           filename: upgrade-3.1.0-to-3.1.0.1.sql
@@ -97,20 +97,20 @@ pipelines:
             - configuration/global-permission-mappings-config.xml
             - configuration/global-role-mappings-config.xml
 
-    - sourceVersion: 3.1.0.1
-      targetVersion: 3.1.0.2
+    - currentVersion: 3.1.0.1
+      nextVersion: 3.1.0.2
       operations:
         - type: dbScriptUpgrader
           filename: upgrade-3.1.0.1-to-3.1.0.2.sql
 
-    - sourceVersion: 3.1.0.2
-      targetVersion: 3.1.0.3
+    - currentVersion: 3.1.0.2
+      nextVersion: 3.1.0.3
       operations:
         - type: dbScriptUpgrader
           filename: upgrade-3.1.0.2-to-3.1.0.3.sql
 
-    - sourceVersion: 3.1.0.3
-      targetVersion: 3.1.0.4
+    - currentVersion: 3.1.0.3
+      nextVersion: 3.1.0.4
       operations:
         - type: dbScriptUpgrader
           filename: upgrade-3.1.0.3-to-3.1.0.4.sql
@@ -118,8 +118,8 @@ pipelines:
 
   # Pipeline to upgrade site repositories
   site:
-    - sourceVersion: 3.0.0
-      targetVersion: 3.1.0
+    - currentVersion: 3.0.0
+      nextVersion: 3.1.0
       operations:
       - type: versionFileUpgrader
         path: config/studio/studio_version.xml
@@ -128,8 +128,8 @@ pipelines:
 
   # Pipeline to upgrade blueprints
   blueprint:
-    - sourceVersion: 3.0.0
-      targetVersion: 3.1.0
+    - currentVersion: 3.0.0
+      nextVersion: 3.1.0
       operations:
         # This just overrides the blueprints in the repo, in the future this should be replaced with proper operations
         - type: blueprintsUpgrader
@@ -141,8 +141,8 @@ configurations:
     path: &role-mappings-config '/config/studio/role-mappings-config.xml'
     pipeline:
       # Initial version, assumed if the file doesn't contain a version tag
-      - sourceVersion: 1.0
-        targetVersion: 1.1
+      - currentVersion: 1.0
+        nextVersion: 1.1
         operations:
           - type: xsltFileUpgrader
             path: *role-mappings-config

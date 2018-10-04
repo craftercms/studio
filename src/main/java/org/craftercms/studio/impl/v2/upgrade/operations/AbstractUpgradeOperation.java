@@ -62,11 +62,14 @@ public abstract class AbstractUpgradeOperation implements UpgradeOperation, Serv
     private static final Logger logger = LoggerFactory.getLogger(AbstractUpgradeOperation.class);
 
     /**
-     * The target version.
+     * The current version.
      */
-    protected String sourceVersion;
+    protected String currentVersion;
 
-    protected String targetVersion;
+    /**
+     * The next version.
+     */
+    protected String nextVersion;
 
     /**
      * The Studio configuration.
@@ -122,8 +125,8 @@ public abstract class AbstractUpgradeOperation implements UpgradeOperation, Serv
 
     @Override
     public void init(final String sourceVersion, final String targetVersion, final Configuration config) {
-        this.sourceVersion = sourceVersion;
-        this.targetVersion = targetVersion;
+        this.currentVersion = sourceVersion;
+        this.nextVersion = targetVersion;
     }
 
     protected void writeToRepo(String site, String path, InputStream content, String message) {

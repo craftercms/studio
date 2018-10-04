@@ -27,14 +27,7 @@
         <property name="dataSource" ref="dataSource"/>
         <property name="integrityValidator" ref="crafter.databaseValidator"/>
         <property name="contentRepository" ref="contentRepository"/>
-        <property name="studioConfiguration" ref="studioConfiguration"/>
-        <property name="securityProvider" ref="securityProvider"/>
-        <property name="servicesConfig" ref="cstudioServicesConfig"/>
 
-        <property name="siteSandboxBranch" value="#{studioConfiguration.getProperty('studio.repo.siteSandboxBranch')}"/>
-        <property name="siteUpgradeBranch"
-                  value="#{studioConfiguration.getProperty('studio.upgrade.branchName')}"/>
-        <property name="commitMessage" value="#{studioConfiguration.getProperty('studio.upgrade.commitMessage')}"/>
         <property name="configurationFile"
                   value="#{studioConfiguration.getProperty('studio.upgrade.configurationFile')}"/>
 
@@ -56,7 +49,23 @@
         </property>
     </bean>
 
+    <bean id="defaultPipeline" scope="prototype"
+          class="org.craftercms.studio.impl.v2.upgrade.pipeline.DefaultUpgradePipelineImpl"/>
+
+    <bean id="repoPipeline" scope="prototype"
+          class="org.craftercms.studio.impl.v2.upgrade.pipeline.SiteRepositoryUpgradePipelineImpl">
+        <property name="studioConfiguration" ref="studioConfiguration"/>
+        <property name="securityProvider" ref="securityProvider"/>
+        <property name="servicesConfig" ref="cstudioServicesConfig"/>
+
+        <property name="siteSandboxBranch" value="#{studioConfiguration.getProperty('studio.repo.siteSandboxBranch')}"/>
+        <property name="siteUpgradeBranch"
+                  value="#{studioConfiguration.getProperty('studio.upgrade.branchName')}"/>
+        <property name="commitMessage" value="#{studioConfiguration.getProperty('studio.upgrade.commitMessage')}"/>
+    </bean>
+
     <bean id="pipelineFactory" abstract="true">
+        <property name="pipelinePrototype" value="defaultPipeline"/>
         <property name="pipelinePrefix" value="#{studioConfiguration.getProperty('studio.upgrade.pipeline.prefix')}"/>
         <property name="configurationFile"
                   value="#{studioConfiguration.getProperty('studio.upgrade.configurationFile')}"/>
@@ -74,11 +83,13 @@
 
     <bean id="sitePipelineFactory" scope="prototype" parent="pipelineFactory"
           class="org.craftercms.studio.impl.v2.upgrade.pipeline.DefaultUpgradePipelineFactoryImpl">
+        <property name="pipelinePrototype" value="repoPipeline"/>
         <property name="pipelineName" value="#{studioConfiguration.getProperty('studio.upgrade.pipeline.site')}"/>
     </bean>
 
     <bean id="filePipelineFactory" scope="prototype" parent="pipelineFactory"
           class="org.craftercms.studio.impl.v2.upgrade.pipeline.DefaultUpgradePipelineFactoryImpl">
+        <property name="pipelinePrototype" value="repoPipeline"/>
         <property name="pipelinePrefix"
                   value="#{studioConfiguration.getProperty('studio.upgrade.pipeline.configurations')}"/>
     </bean>

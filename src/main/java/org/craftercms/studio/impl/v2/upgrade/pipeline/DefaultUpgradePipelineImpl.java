@@ -44,8 +44,11 @@ public class DefaultUpgradePipelineImpl implements UpgradePipeline {
      */
     protected List<UpgradeOperation> operations;
 
-    public DefaultUpgradePipelineImpl(final String name, final List<UpgradeOperation> operations) {
+    public void setName(final String name) {
         this.name = name;
+    }
+
+    public void setOperations(final List<UpgradeOperation> operations) {
         this.operations = operations;
     }
 
@@ -55,7 +58,6 @@ public class DefaultUpgradePipelineImpl implements UpgradePipeline {
     @Override
     public void execute(final String site) throws UpgradeException {
         if(isEmpty()) {
-            logger.info("No pending upgrades for pipeline {0}", name);
             return;
         }
         logger.info("============================================================");

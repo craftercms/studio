@@ -85,10 +85,10 @@ public class XsltFileUpgradeOperation extends AbstractUpgradeOperation {
                 try(InputStream sourceIs = contentRepository.getContent(site, path)) {
                     ByteArrayOutputStream os = new ByteArrayOutputStream();
                     transformer.setParameter(PARAM_KEY_SITE, site);
-                    transformer.setParameter(PARAM_KEY_VERSION, targetVersion);
+                    transformer.setParameter(PARAM_KEY_VERSION, nextVersion);
                     transformer.transform(new StreamSource(sourceIs), new StreamResult(os));
                     writeToRepo(site, path, new ByteArrayInputStream(os.toByteArray()),
-                        "Upgrade from v" + sourceVersion + " to v" + targetVersion);
+                        "Upgrade from v" + currentVersion + " to v" + nextVersion);
                 }
             } else {
                 logger.warn("Source file {0} doesn't exist in site {1}", path, site);

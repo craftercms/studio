@@ -18,33 +18,23 @@
 
 package org.craftercms.studio.impl.v2.upgrade;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.List;
-
 import javax.sql.DataSource;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.craftercms.commons.config.YamlConfiguration;
 import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.commons.entitlements.validator.DbIntegrityValidator;
-import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
-import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
-import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.exception.UpgradeException;
-import org.craftercms.studio.api.v2.service.security.SecurityProvider;
 import org.craftercms.studio.api.v2.upgrade.UpgradeManager;
 import org.craftercms.studio.api.v2.upgrade.UpgradePipeline;
 import org.craftercms.studio.api.v2.upgrade.UpgradePipelineFactory;
 import org.craftercms.studio.api.v2.upgrade.VersionProvider;
-import org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryHelper;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.lib.Repository;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.context.ApplicationContext;
@@ -52,7 +42,9 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.io.Resource;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.*;
+import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.CONFIG_KEY_CONFIGURATIONS;
+import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.CONFIG_KEY_PATH;
+import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.VERSION_3_0_0;
 
 /**
  * Default implementation for {@link UpgradeManager}.
@@ -72,21 +64,6 @@ public class DefaultUpgradeManagerImpl implements UpgradeManager, ApplicationCon
      */
     protected String siteVersionFilePath;
 
-    /**
-     * The name of the sandbox branch.
-     */
-    protected String siteSandboxBranch;
-
-    /**
-     * The name of the temporary branch used for upgrades.
-     */
-    protected String siteUpgradeBranch;
-
-    /**
-     * Message for the merge commit after upgrading.
-     */
-    protected String commitMessage;
-
     protected VersionProvider dbVersionProvider;
     protected UpgradePipelineFactory dbPipelineFactory;
 
@@ -98,20 +75,75 @@ public class DefaultUpgradeManagerImpl implements UpgradeManager, ApplicationCon
     protected ApplicationContext appContext;
     protected DbIntegrityValidator integrityValidator;
     protected ContentRepository contentRepository;
-    protected StudioConfiguration studioConfiguration;
-    protected SecurityProvider securityProvider;
-    protected ServicesConfig servicesConfig;
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public void upgradeSystem() throws UpgradeException {
-        logger.info("Starting upgrade for the system");
+    public void upgradeDatabaseAndConfiguration() throws UpgradeException {
+        logger.info("Checking upgrades for the database and configuration");
 
-        String currentDbVersion = dbVersionProvider.getCurrentVersion();
         UpgradePipeline pipeline = dbPipelineFactory.getPipeline(dbVersionProvider);
         pipeline.execute();
+
+    }
+
+    protected VersionProvider getVersionProvider(String name, Object... args) {
+        return (VersionProvider) appContext.getBean(name, args);
+    }
+
+    protected UpgradePipeline getPipeline(VersionProvider versionProvider, String factoryName, Object... args)
+        throws UpgradeException {
+        UpgradePipelineFactory pipelineFactory =
+            (UpgradePipelineFactory) appContext.getBean(factoryName, args);
+        return pipelineFactory.getPipeline(versionProvider);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @SuppressWarnings("unchecked")
+    public void upgradeSite(final String site) throws UpgradeException {
+        logger.info("Checking upgrades for site {0}", site);
+
+        VersionProvider versionProvider = getVersionProvider("fileVersionProvider", site, siteVersionFilePath);
+        UpgradePipeline pipeline = getPipeline(versionProvider, "sitePipelineFactory");
+
+        pipeline.execute(site);
+
+        upgradeSiteConfiguration(site);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @SuppressWarnings("unchecked")
+    public void upgradeSiteConfiguration(final String site) throws UpgradeException {
+        logger.info("Checking upgrades for configuration in site {0}", site);
+
+        HierarchicalConfiguration config = loadUpgradeConfiguration();
+        List<HierarchicalConfiguration> managedFiles = config.childConfigurationsAt(CONFIG_KEY_CONFIGURATIONS);
+
+        for (HierarchicalConfiguration configFile : managedFiles) {
+            String path = configFile.getString(CONFIG_KEY_PATH);
+            logger.info("Checking upgrades for file {0}", path);
+
+            VersionProvider versionProvider = getVersionProvider("fileVersionProvider", site, path);
+            UpgradePipeline pipeline = getPipeline(versionProvider, "filePipelineFactory",
+                configFile.getRootElementName() + CONFIG_PIPELINE_SUFFIX);
+
+            pipeline.execute(site);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void upgradeExistingSites() throws UpgradeException {
+        String currentDbVersion = dbVersionProvider.getCurrentVersion();
 
         List<String> sites;
         JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
@@ -130,73 +162,8 @@ public class DefaultUpgradeManagerImpl implements UpgradeManager, ApplicationCon
      * {@inheritDoc}
      */
     @Override
-    @SuppressWarnings("unchecked")
-    public void upgradeSite(final String site) throws UpgradeException {
-        logger.info("Starting upgrade for site {0}", site);
-        GitContentRepositoryHelper helper = new GitContentRepositoryHelper(studioConfiguration, securityProvider,
-            servicesConfig);
-        Repository repository = helper.getRepository(site, GitRepositories.SANDBOX);
-        Git git = new Git(repository);
-        try {
-            boolean doMerge;
-            logger.debug("Creating temporary branch {0} for site {1}", siteUpgradeBranch, site);
-            git.branchCreate().setName(siteUpgradeBranch).call();
-            logger.debug("Checking out temporary branch");
-            git.checkout().setName(siteUpgradeBranch).call();
-
-            VersionProvider versionProvider =
-                (VersionProvider)appContext.getBean("fileVersionProvider", site, siteVersionFilePath);
-            UpgradePipelineFactory pipelineFactory =
-                (UpgradePipelineFactory)appContext.getBean("sitePipelineFactory");
-            UpgradePipeline pipeline = pipelineFactory.getPipeline(versionProvider);
-            doMerge = !pipeline.isEmpty();
-            pipeline.execute(site);
-
-            HierarchicalConfiguration config = loadUpgradeConfiguration();
-            List<HierarchicalConfiguration> managedFiles = config.childConfigurationsAt(CONFIG_KEY_CONFIGURATIONS);
-
-            for (HierarchicalConfiguration configFile : managedFiles) {
-                versionProvider = (VersionProvider) appContext.getBean("fileVersionProvider", site,
-                    configFile.getString(CONFIG_KEY_PATH));
-                pipelineFactory = (UpgradePipelineFactory) appContext.getBean("filePipelineFactory",
-                    configFile.getRootElementName() + CONFIG_PIPELINE_SUFFIX);
-                pipeline = pipelineFactory.getPipeline(versionProvider);
-                doMerge = doMerge || !pipeline.isEmpty();
-                pipeline.execute(site);
-            }
-
-            logger.debug("Checking out sandbox branch");
-            git.checkout().setName(siteSandboxBranch).call();
-            if(doMerge) {
-                logger.debug("Merging changes from upgrade branch");
-                git.merge()
-                    .include(repository.findRef(siteUpgradeBranch))
-                    .setMessage(commitMessage)
-                    .setCommit(true)
-                    .call();
-            }
-            logger.debug("Removing temporary branch");
-            git.branchDelete().setBranchNames(siteUpgradeBranch).call();
-        } catch (GitAPIException | IOException e) {
-            try {
-                logger.debug("Checking out sandbox branch");
-                git.checkout().setName(siteSandboxBranch).call();
-            } catch (GitAPIException er) {
-                logger.error("Error cleaning up repo for site " + site, e);
-            }
-
-            logger.error("Error branching or merging upgrade branch for site " + site, e);
-            throw new UpgradeException("Error branching or merging upgrade branch for site " + site, e);
-        }
-
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public void upgradeBlueprints() throws UpgradeException {
-        logger.info("Starting upgrade for the blueprints");
+        logger.info("Checking upgrades for the blueprints");
 
         // The version is fixed for now so bp are always updates, in the future this should be replaced with a proper
         // version provider
@@ -212,7 +179,8 @@ public class DefaultUpgradeManagerImpl implements UpgradeManager, ApplicationCon
     public void init() throws UpgradeException, EntitlementException {
 
         upgradeBlueprints();
-        upgradeSystem();
+        upgradeDatabaseAndConfiguration();
+        upgradeExistingSites();
 
         try {
             integrityValidator.validate(dataSource.getConnection());
@@ -273,38 +241,8 @@ public class DefaultUpgradeManagerImpl implements UpgradeManager, ApplicationCon
     }
 
     @Required
-    public void setSiteSandboxBranch(final String siteSandboxBranch) {
-        this.siteSandboxBranch = siteSandboxBranch;
-    }
-
-    @Required
-    public void setSiteUpgradeBranch(final String siteUpgradeBranch) {
-        this.siteUpgradeBranch = siteUpgradeBranch;
-    }
-
-    @Required
-    public void setCommitMessage(final String commitMessage) {
-        this.commitMessage = commitMessage;
-    }
-
-    @Required
     public void setBpPipelineFactory(final UpgradePipelineFactory bpPipelineFactory) {
         this.bpPipelineFactory = bpPipelineFactory;
-    }
-
-    @Required
-    public void setStudioConfiguration(final StudioConfiguration studioConfiguration) {
-        this.studioConfiguration = studioConfiguration;
-    }
-
-    @Required
-    public void setSecurityProvider(final SecurityProvider securityProvider) {
-        this.securityProvider = securityProvider;
-    }
-
-    @Required
-    public void setServicesConfig(final ServicesConfig servicesConfig) {
-        this.servicesConfig = servicesConfig;
     }
 
 }

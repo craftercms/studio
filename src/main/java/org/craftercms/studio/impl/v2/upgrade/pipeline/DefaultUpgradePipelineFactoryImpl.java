@@ -36,8 +36,8 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.io.Resource;
 
 import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.CONFIG_KEY_OPERATIONS;
-import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.CONFIG_KEY_SOURCE_VERSION;
-import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.CONFIG_KEY_TARGET_VERSION;
+import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.CONFIG_KEY_CURRENT_VERSION;
+import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.CONFIG_KEY_NEXT_VERSION;
 import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.CONFIG_KEY_TYPE;
 
 /**
@@ -66,6 +66,11 @@ public class DefaultUpgradePipelineFactoryImpl implements UpgradePipelineFactory
      */
     protected String pipelineName;
 
+    /**
+     * Name of the pipeline to instantiate.
+     */
+    protected String pipelinePrototype;
+
     public DefaultUpgradePipelineFactoryImpl() {
         //Default constructor
     }
@@ -88,6 +93,11 @@ public class DefaultUpgradePipelineFactoryImpl implements UpgradePipelineFactory
         this.configurationFile = configurationFile;
     }
 
+    @Required
+    public void setPipelinePrototype(final String pipelinePrototype) {
+        this.pipelinePrototype = pipelinePrototype;
+    }
+
     public void setApplicationContext(final ApplicationContext applicationContext) throws BeansException {
         appContext = applicationContext;
     }
@@ -100,6 +110,13 @@ public class DefaultUpgradePipelineFactoryImpl implements UpgradePipelineFactory
             throw  new UpgradeException("Error reading configuration file", e);
         }
         return configuration;
+    }
+
+    protected UpgradePipeline createPipeline(String name, List<UpgradeOperation> operations) {
+        DefaultUpgradePipelineImpl pipeline = appContext.getBean(pipelinePrototype, DefaultUpgradePipelineImpl.class);
+        pipeline.setName(name);
+        pipeline.setOperations(operations);
+        return pipeline;
     }
 
     /**
@@ -115,8 +132,8 @@ public class DefaultUpgradePipelineFactoryImpl implements UpgradePipelineFactory
 
         String nextVersion = currentVersion;
         for(HierarchicalConfiguration release : pipeline) {
-            String sourceVersion = release.getString(CONFIG_KEY_SOURCE_VERSION);
-            String targetVersion = release.getString(CONFIG_KEY_TARGET_VERSION);
+            String sourceVersion = release.getString(CONFIG_KEY_CURRENT_VERSION);
+            String targetVersion = release.getString(CONFIG_KEY_NEXT_VERSION);
             if(sourceVersion.equals(nextVersion)) {
                 List<HierarchicalConfiguration> operationsConfig = release.configurationsAt(CONFIG_KEY_OPERATIONS);
                 for(HierarchicalConfiguration operationConfig : operationsConfig) {
@@ -128,7 +145,7 @@ public class DefaultUpgradePipelineFactoryImpl implements UpgradePipelineFactory
                 nextVersion = targetVersion;
             }
         }
-        return new DefaultUpgradePipelineImpl(pipelineName, operations);
+        return createPipeline(pipelineName, operations);
     }
 
 }

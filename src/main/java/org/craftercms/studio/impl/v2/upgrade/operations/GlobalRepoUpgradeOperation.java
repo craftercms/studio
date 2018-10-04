@@ -75,7 +75,7 @@ public class GlobalRepoUpgradeOperation extends AbstractUpgradeOperation {
             logger.debug("Upgrading configuration file: {0}", file);
             try (InputStream is = globalConfigurationBootstrap.createRelative(file).getInputStream()) {
 
-                writeToRepo(site, file, is, "Global Repo Upgrade v" + sourceVersion + " to v" + targetVersion);
+                writeToRepo(site, file, is, "Global Repo Upgrade v" + currentVersion + " to v" + nextVersion);
 
             } catch (IOException e) {
                 throw new UpgradeException("Upgrade for global repo failed", e);

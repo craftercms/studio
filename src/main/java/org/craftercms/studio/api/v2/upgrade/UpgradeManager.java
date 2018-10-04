@@ -30,7 +30,7 @@ public interface UpgradeManager {
      * Executes all required upgrades for the system.
      * @throws UpgradeException if any of the upgrades fails
      */
-    void upgradeSystem() throws UpgradeException;
+    void upgradeDatabaseAndConfiguration() throws UpgradeException;
 
     /**
      * Executes all required upgrades for the given site.
@@ -38,6 +38,19 @@ public interface UpgradeManager {
      * @throws UpgradeException if any of the upgrades fails
      */
     void upgradeSite(String site) throws UpgradeException;
+
+    /**
+     * Executes the upgrades for all managed configurations in the given site.
+     * @param site name of the site
+     * @throws UpgradeException if any of the upgrades fails
+     */
+    void upgradeSiteConfiguration(String site) throws UpgradeException;
+
+    /**
+     * Executes the upgrades for all existing sites.
+     * @throws UpgradeException if any of the upgrades fails
+     */
+    void upgradeExistingSites() throws UpgradeException;
 
     /**
      * Executes all required upgrades for the blueprints.
