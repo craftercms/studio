@@ -19,36 +19,44 @@
 package org.craftercms.studio.api.v2.service.security.internal;
 
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v2.dal.GroupTO;
-import org.craftercms.studio.api.v2.dal.UserTO;
+import org.craftercms.studio.api.v2.dal.Group;
+import org.craftercms.studio.api.v2.dal.User;
 
 import java.util.List;
 
 public interface GroupServiceInternal {
-    List<GroupTO> getAllGroups(long orgId, int offset, int limit, String sort) throws ServiceLayerException;
+
+    Group getGroup(long groupId) throws GroupNotFoundException, ServiceLayerException;
+
+    Group getGroupByName(String groupName) throws GroupNotFoundException, ServiceLayerException;
+
+    List<Group> getAllGroups(long orgId, int offset, int limit, String sort) throws ServiceLayerException;
 
     int getAllGroupsTotal(long orgId) throws ServiceLayerException;
 
-    GroupTO createGroup(long orgId, String groupName, String groupDescription) throws ServiceLayerException;
+    Group createGroup(long orgId, String groupName,
+                      String groupDescription) throws GroupAlreadyExistsException, ServiceLayerException;
 
-    GroupTO updateGroup(long orgId, GroupTO group) throws ServiceLayerException;
+    Group updateGroup(long orgId, Group group) throws GroupNotFoundException, ServiceLayerException;
 
-    void deleteGroup(List<Long> groupIds) throws ServiceLayerException;
+    void deleteGroup(List<Long> groupIds) throws GroupNotFoundException, ServiceLayerException;
 
-    GroupTO getGroup(long groupId) throws ServiceLayerException;
+    boolean groupExists(long groupId, String groupName) throws ServiceLayerException;
 
-    List<UserTO> getGroupMembers(long groupId, int offset, int limit, String sort) throws ServiceLayerException;
+    List<User> getGroupMembers(long groupId, int offset, int limit,
+                               String sort) throws GroupNotFoundException, ServiceLayerException;
 
-    List<UserTO> addGroupMembers(long groupId, List<Long> userIds, List<String> usernames)
-            throws ServiceLayerException, UserNotFoundException;
+    List<User> addGroupMembers(long groupId, List<Long> userIds,
+                               List<String> usernames) throws GroupNotFoundException, UserNotFoundException,
+                                                              ServiceLayerException;
 
-    void removeGroupMembers(long groupId, List<Long> userIds, List<String> usernames) throws ServiceLayerException;
+    void removeGroupMembers(long groupId, List<Long> userIds,
+                            List<String> usernames) throws GroupNotFoundException, UserNotFoundException,
+                                                           ServiceLayerException;
 
-    List<String> getSiteGroups(String siteId);
+    List<String> getSiteGroups(String siteId) throws ServiceLayerException;
 
-    GroupTO getGroupByName(String groupName) throws GroupNotFoundException, ServiceLayerException;
-
-    boolean groupExists(String groupName) throws ServiceLayerException;
 }

@@ -20,7 +20,7 @@ package org.craftercms.studio.impl.v1.service.security;
 
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.service.security.UserDetailsManager;
-import org.craftercms.studio.api.v2.dal.UserTO;
+import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.dal.UserDAO;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -40,7 +40,7 @@ public class UserDetailsManagerImpl implements UserDetailsManager {
         params.put(USER_ID, -1);
         params.put(USERNAME, username);
         try {
-            UserTO user = userDAO.getUserByIdOrUsername(params);
+            User user = userDAO.getUserByIdOrUsername(params);
             return user;
         } catch (Exception e) {
             throw new ServiceLayerException("Unknown database error", e);

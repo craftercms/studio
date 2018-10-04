@@ -38,8 +38,8 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.api.v2.dal.GroupTO;
-import org.craftercms.studio.api.v2.dal.UserTO;
+import org.craftercms.studio.api.v2.dal.Group;
+import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.security.SecurityProvider;
 import org.craftercms.studio.api.v2.service.security.UserService;
@@ -67,7 +67,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "read_users")
-    public List<UserTO> getAllUsersForSite(long orgId, String siteId, int offset, int limit, String sort)
+    public List<User> getAllUsersForSite(long orgId, String siteId, int offset, int limit, String sort)
             throws ServiceLayerException {
         List<String> groupNames = groupServiceInternal.getSiteGroups(siteId);
         return userServiceInternal.getAllUsersForSite(orgId, groupNames, offset, limit, sort);
@@ -75,7 +75,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "read_users")
-    public List<UserTO> getAllUsers(int offset, int limit, String sort) throws ServiceLayerException {
+    public List<User> getAllUsers(int offset, int limit, String sort) throws ServiceLayerException {
         return userServiceInternal.getAllUsers(offset, limit, sort);
     }
 
@@ -93,7 +93,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "create_users")
-    public UserTO createUser(UserTO user) throws UserAlreadyExistsException, ServiceLayerException {
+    public User createUser(User user) throws UserAlreadyExistsException, ServiceLayerException {
         try {
             long start = 0;
             if(logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
@@ -113,14 +113,16 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "update_users")
-    public void updateUser(UserTO user) throws ServiceLayerException {
+    public void updateUser(User user) throws ServiceLayerException, UserNotFoundException {
         userServiceInternal.updateUser(user);
     }
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "delete_users")
-    public void deleteUsers(List<Long> userIds, List<String> usernames) throws ServiceLayerException, AuthenticationException {
-        UserTO currentUser = getCurrentUser();
+    public void deleteUsers(List<Long> userIds,
+                            List<String> usernames) throws ServiceLayerException, AuthenticationException,
+                                                           UserNotFoundException {
+        User currentUser = getCurrentUser();
 
         if (CollectionUtils.containsAny(userIds, Arrays.asList(currentUser.getId())) ||
                 CollectionUtils.containsAny(usernames, Arrays.asList(currentUser.getUsername()))) {
@@ -130,11 +132,11 @@ public class UserServiceImpl implements UserService {
         generalLockService.lock(REMOVE_SYSTEM_ADMIN_MEMBER_LOCK);
         try {
             try {
-                GroupTO g = groupServiceInternal.getGroupByName(SYSTEM_ADMIN_GROUP);
-                List<UserTO> members = groupServiceInternal.getGroupMembers(g.getId(), 0, Integer.MAX_VALUE,
-                        StringUtils.EMPTY);
+                Group g = groupServiceInternal.getGroupByName(SYSTEM_ADMIN_GROUP);
+                List<User> members = groupServiceInternal.getGroupMembers(g.getId(), 0, Integer.MAX_VALUE,
+                                                                          StringUtils.EMPTY);
                 if (CollectionUtils.isNotEmpty(members)) {
-                    List<UserTO> membersAfterRemove = new ArrayList<UserTO>();
+                    List<User> membersAfterRemove = new ArrayList<User>();
                     membersAfterRemove.addAll(members);
                     members.forEach(m -> {
                         if (CollectionUtils.isNotEmpty(userIds)) {
@@ -165,24 +167,24 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "read_users")
-    public UserTO getUserByIdOrUsername(long userId, String username) throws ServiceLayerException,
+    public User getUserByIdOrUsername(long userId, String username) throws ServiceLayerException,
                                                                            UserNotFoundException {
         return userServiceInternal.getUserByIdOrUsername(userId, username);
     }
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "update_users")
-    public List<UserTO> enableUsers(List<Long> userIds, List<String> usernames, boolean enabled)
-            throws ServiceLayerException, UserNotFoundException {
+    public List<User> enableUsers(List<Long> userIds, List<String> usernames,
+                                  boolean enabled) throws ServiceLayerException, UserNotFoundException {
         return userServiceInternal.enableUsers(userIds, usernames, enabled);
     }
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "read_users")
-    public List<Site> getUserSites(long userId, String username) throws ServiceLayerException {
+    public List<Site> getUserSites(long userId, String username) throws ServiceLayerException, UserNotFoundException {
         List<Site> sites = new ArrayList<>();
         Set<String> allSites = siteService.getAllAvailableSites();
-        List<GroupTO> userGroups = userServiceInternal.getUserGroups(userId, username);
+        List<Group> userGroups = userServiceInternal.getUserGroups(userId, username);
         boolean isSysAdmin = userServiceInternal.isUserMemberOfGroup(username, SYSTEM_ADMIN_GROUP);
 
         // Iterate all sites. If the user has any of the site groups, it has access to the site
@@ -207,15 +209,16 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "read_users")
-    public List<String> getUserSiteRoles(long userId, String username, String site) throws ServiceLayerException {
-        List<GroupTO> groups = userServiceInternal.getUserGroups(userId, username);
+    public List<String> getUserSiteRoles(long userId, String username, String site) throws ServiceLayerException,
+                                                                                           UserNotFoundException {
+        List<Group> groups = userServiceInternal.getUserGroups(userId, username);
 
         if (CollectionUtils.isNotEmpty(groups)) {
             Map<String, List<String>> roleMappings = configurationService.geRoleMappings(site);
             Set<String> userRoles = new LinkedHashSet<>();
 
             if (MapUtils.isNotEmpty(roleMappings)) {
-                for (GroupTO group : groups) {
+                for (Group group : groups) {
                     String groupName = group.getGroupName();
                     List<String> roles = roleMappings.get(groupName);
                     if (CollectionUtils.isNotEmpty(roles)) {
@@ -235,7 +238,7 @@ public class UserServiceImpl implements UserService {
         Authentication authentication = securityProvider.getAuthentication();
         if (authentication != null) {
             String username = authentication.getUsername();
-            UserTO user;
+            User user;
             try {
                 user = userServiceInternal.getUserByIdOrUsername(0, username);
             } catch (UserNotFoundException e) {
@@ -261,7 +264,12 @@ public class UserServiceImpl implements UserService {
     public List<Site> getCurrentUserSites() throws AuthenticationException, ServiceLayerException {
         Authentication authentication = securityProvider.getAuthentication();
         if (authentication != null) {
-            return getUserSites(-1, authentication.getUsername());
+            try {
+                return getUserSites(-1, authentication.getUsername());
+            } catch (UserNotFoundException e) {
+                // Shouldn't happen
+                throw new IllegalStateException(e);
+            }
         } else {
             throw new AuthenticationException("User should be authenticated");
         }
@@ -271,7 +279,12 @@ public class UserServiceImpl implements UserService {
     public List<String> getCurrentUserSiteRoles(String site) throws AuthenticationException, ServiceLayerException {
         Authentication authentication = securityProvider.getAuthentication();
         if (authentication != null) {
-            return getUserSiteRoles(-1, authentication.getUsername(), site);
+            try {
+                return getUserSiteRoles(-1, authentication.getUsername(), site);
+            } catch (UserNotFoundException e) {
+                // Shouldn't happen
+                throw new IllegalStateException(e);
+            }
         } else {
             throw new AuthenticationException("User should be authenticated");
         }

@@ -17,19 +17,19 @@
  */
 package org.craftercms.studio.model;
 
-import org.craftercms.studio.api.v2.dal.UserTO;
+import org.craftercms.studio.api.v2.dal.User;
 
 /**
- Represents a {@link UserTO} that has been authenticated.
+ Represents a {@link User} that has been authenticated.
  *
  * @author avasquez
  */
-public class AuthenticatedUser extends UserTO {
+public class AuthenticatedUser extends User {
 
     private static final long serialVersionUID = -4678834461080865934L;
     private AuthenticationType authenticationType;
 
-    public AuthenticatedUser(UserTO user) {
+    public AuthenticatedUser(User user) {
         setId(user.getId());
         setUsername(user.getUsername());
         setPassword(user.getPassword());

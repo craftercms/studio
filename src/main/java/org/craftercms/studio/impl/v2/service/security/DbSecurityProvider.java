@@ -34,9 +34,9 @@ import org.craftercms.studio.api.v1.exception.security.UserExternallyManagedExce
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.job.CronJobContext;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
-import org.craftercms.studio.api.v2.dal.GroupTO;
+import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.GroupDAO;
-import org.craftercms.studio.api.v2.dal.UserTO;
+import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.dal.UserDAO;
 import org.craftercms.studio.model.AuthenticationType;
 import org.craftercms.studio.api.v2.service.security.SecurityProvider;
@@ -83,26 +83,26 @@ public class DbSecurityProvider implements SecurityProvider {
     protected StudioConfiguration studioConfiguration;
 
     @Override
-    public List<UserTO> getAllUsersForSite(long orgId, List<String> groupNames, int offset, int limit, String sort)
+    public List<User> getAllUsersForSite(long orgId, List<String> groupNames, int offset, int limit, String sort)
         throws ServiceLayerException {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(GROUP_NAMES, groupNames);
         params.put(OFFSET, offset);
         params.put(LIMIT, limit);
         params.put(SORT, StringUtils.EMPTY);
-        List<UserTO> userTOS;
+        List<User> users;
         try {
-            userTOS = userDAO.getAllUsersForSite(params);
+            users = userDAO.getAllUsersForSite(params);
         } catch (Exception e) {
             throw new ServiceLayerException("Unknown database error", e);
         }
 
 
-        return userTOS;
+        return users;
     }
 
     @Override
-    public UserTO createUser(UserTO user) throws UserAlreadyExistsException, ServiceLayerException {
+    public User createUser(User user) throws UserAlreadyExistsException, ServiceLayerException {
         if (userExists(user.getUsername())) {
             throw new UserAlreadyExistsException();
         }
@@ -129,7 +129,7 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public void updateUser(UserTO user) throws ServiceLayerException {
+    public void updateUser(User user) throws ServiceLayerException {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(USER_ID, user.getId());
         params.put(FIRST_NAME, user.getFirstName());
@@ -165,30 +165,30 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public UserTO getUserByIdOrUsername(long userId, String username)
+    public User getUserByIdOrUsername(long userId, String username)
             throws ServiceLayerException, UserNotFoundException {
         Map<String, Object> params = new HashMap<>();
         params.put(USER_ID, userId);
         params.put(USERNAME, username);
-        UserTO userTO;
+        User user;
         try {
-            userTO = userDAO.getUserByIdOrUsername(params);
+            user = userDAO.getUserByIdOrUsername(params);
         } catch (Exception e) {
             throw new ServiceLayerException("Unknown database error", e);
         }
-        if(userTO == null) {
+        if(user == null) {
             throw new UserNotFoundException("No user found for username '" + username + "' or id '" + userId + "'");
         }
-        return userTO;
+        return user;
     }
 
     @Override
-    public List<UserTO> enableUsers(List<Long> userIds, List<String> usernames, boolean enabled)
+    public List<User> enableUsers(List<Long> userIds, List<String> usernames, boolean enabled)
             throws ServiceLayerException, UserNotFoundException {
-        List<UserTO> users = findUsers(userIds, usernames);
+        List<User> users = findUsers(userIds, usernames);
 
         Map<String, Object> params = new HashMap<>();
-        params.put(USER_IDS, users.stream().map(UserTO::getId).collect(Collectors.toList()));
+        params.put(USER_IDS, users.stream().map(User::getId).collect(Collectors.toList()));
         params.put(ENABLED, enabled? 1: 0);
         try {
             userDAO.enableUsers(params);
@@ -199,11 +199,11 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public List<GroupTO> getUserGroups(long userId, String username) throws ServiceLayerException {
+    public List<Group> getUserGroups(long userId, String username) throws ServiceLayerException {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(USER_ID, userId);
         params.put(USERNAME, username);
-        List<GroupTO> gDAOs;
+        List<Group> gDAOs;
         try {
             gDAOs = userDAO.getUserGroups(params);
         } catch (Exception e) {
@@ -213,14 +213,14 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public List<GroupTO> getAllGroups(long orgId, int offset, int limit, String sort) throws ServiceLayerException {
+    public List<Group> getAllGroups(long orgId, int offset, int limit, String sort) throws ServiceLayerException {
         // Prepare parameters
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(ORG_ID, orgId);
         params.put(OFFSET, offset);
         params.put(LIMIT, limit);
         params.put(SORT, sort);
-        List<GroupTO> groups;
+        List<Group> groups;
         try {
             groups = groupDAO.getAllGroupsForOrganization(params);
         } catch (Exception e) {
@@ -231,7 +231,7 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public GroupTO createGroup(long orgId, String groupName, String groupDescription)
+    public Group createGroup(long orgId, String groupName, String groupDescription)
             throws GroupAlreadyExistsException, ServiceLayerException {
         if (groupExists(groupName)) {
             throw new GroupAlreadyExistsException();
@@ -244,7 +244,7 @@ public class DbSecurityProvider implements SecurityProvider {
         try {
             groupDAO.createGroup(params);
 
-            GroupTO group = new GroupTO();
+            Group group = new Group();
             group.setId((Long) params.get(ID));
             group.setGroupName(groupName);
             group.setGroupDescription(groupDescription);
@@ -256,7 +256,7 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public GroupTO updateGroup(long orgId, GroupTO group) throws ServiceLayerException {
+    public Group updateGroup(long orgId, Group group) throws ServiceLayerException {
         Map<String, Object> params = new HashMap<>();
         params.put(ID, group.getId());
         params.put(ORG_ID, orgId);
@@ -282,10 +282,10 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public GroupTO getGroup(long groupId) throws ServiceLayerException {
+    public Group getGroup(long groupId) throws ServiceLayerException {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(GROUP_ID, groupId);
-        GroupTO gDAL;
+        Group gDAL;
         try {
             gDAL = groupDAO.getGroup(params);
         } catch (Exception e) {
@@ -295,29 +295,29 @@ public class DbSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public List<UserTO> getGroupMembers(long groupId, int offset, int limit, String sort) throws ServiceLayerException {
+    public List<User> getGroupMembers(long groupId, int offset, int limit, String sort) throws ServiceLayerException {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(GROUP_ID, groupId);
         params.put(OFFSET, offset);
         params.put(LIMIT, limit);
         params.put(SORT, sort);
-        List<UserTO> userTOs;
+        List<User> users;
         try {
-            userTOs = groupDAO.getGroupMembers(params);
+            users = groupDAO.getGroupMembers(params);
         } catch (Exception e) {
             throw new ServiceLayerException("Unknown database error", e);
         }
 
-        return userTOs;
+        return users;
     }
 
     @Override
-    public List<UserTO> addGroupMembers(long groupId, List<Long> userIds, List<String> usernames)
+    public List<User> addGroupMembers(long groupId, List<Long> userIds, List<String> usernames)
         throws ServiceLayerException, UserNotFoundException {
-        List<UserTO> users = findUsers(userIds, usernames);
+        List<User> users = findUsers(userIds, usernames);
 
         Map<String, Object> params = new HashMap<>();
-        params.put(USER_IDS, users.stream().map(UserTO::getId).collect(Collectors.toList()));
+        params.put(USER_IDS, users.stream().map(User::getId).collect(Collectors.toList()));
         params.put(GROUP_ID, groupId);
         try {
             groupDAO.addGroupMembers(params);
@@ -330,10 +330,10 @@ public class DbSecurityProvider implements SecurityProvider {
     @Override
     public void removeGroupMembers(long groupId, List<Long> userIds, List<String> usernames)
         throws ServiceLayerException, UserNotFoundException {
-        List<UserTO> users = findUsers(userIds, usernames);
+        List<User> users = findUsers(userIds, usernames);
 
         Map<String, Object> params = new HashMap<>();
-        params.put(USER_IDS, users.stream().map(UserTO::getId).collect(Collectors.toList()));
+        params.put(USER_IDS, users.stream().map(User::getId).collect(Collectors.toList()));
         params.put(GROUP_ID, groupId);
         try {
             groupDAO.removeGroupMembers(params);
@@ -384,7 +384,7 @@ public class DbSecurityProvider implements SecurityProvider {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(USER_ID, -1);
         params.put(USERNAME, username);
-        UserTO user;
+        User user;
         try {
             user = userDAO.getUserByIdOrUsername(params);
         } catch (Exception e) {
@@ -401,7 +401,7 @@ public class DbSecurityProvider implements SecurityProvider {
         }
     }
 
-    protected String createToken(UserTO user) {
+    protected String createToken(User user) {
         int timeout = Integer.parseInt(studioConfiguration.getProperty(SECURITY_SESSION_TIMEOUT));
         String token = SessionTokenUtils.createToken(user.getUsername(), timeout);
         return token;
@@ -499,7 +499,7 @@ public class DbSecurityProvider implements SecurityProvider {
         params.put(USER_ID, -1);
         params.put(USERNAME, username);
         try {
-            UserTO user = userDAO.getUserByIdOrUsername(params);
+            User user = userDAO.getUserByIdOrUsername(params);
             if (user.getExternallyManaged() > 0) {
                 throw new UserExternallyManagedException();
             } else {
@@ -529,7 +529,7 @@ public class DbSecurityProvider implements SecurityProvider {
             params.put(USER_ID, -1);
             params.put(USERNAME, username);
             try {
-                UserTO user = userDAO.getUserByIdOrUsername(params);
+                User user = userDAO.getUserByIdOrUsername(params);
                 if (user.getExternallyManaged() > 0) {
                     throw new UserExternallyManagedException();
                 } else {
@@ -570,14 +570,14 @@ public class DbSecurityProvider implements SecurityProvider {
         }
     }
 
-    protected List<UserTO> findUsers(List<Long> userIds, List<String> usernames)
+    protected List<User> findUsers(List<Long> userIds, List<String> usernames)
             throws ServiceLayerException, UserNotFoundException {
-        List<UserTO> users = new LinkedList<>();
+        List<User> users = new LinkedList<>();
         for(long userId : userIds) {
             users.add(getUserByIdOrUsername(userId, Long.toString(userId)));
         }
         for(String username : usernames) {
-            Optional<UserTO> user = users.stream().filter(u -> u.getUsername().equals(username)).findFirst();
+            Optional<User> user = users.stream().filter(u -> u.getUsername().equals(username)).findFirst();
             if(!user.isPresent()) {
                 users.add(getUserByIdOrUsername(-1, username));
             }

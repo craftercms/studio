@@ -30,8 +30,8 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
-import org.craftercms.studio.api.v2.dal.GroupTO;
-import org.craftercms.studio.api.v2.dal.UserTO;
+import org.craftercms.studio.api.v2.dal.Group;
+import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.service.security.SecurityProvider;
 
 import java.util.HashMap;
@@ -92,13 +92,13 @@ public class MappedSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public UserTO createUser(UserTO user) throws UserAlreadyExistsException, ServiceLayerException {
+    public User createUser(User user) throws UserAlreadyExistsException, ServiceLayerException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.createUser(user);
     }
 
     @Override
-    public void updateUser(UserTO user) throws ServiceLayerException {
+    public void updateUser(User user) throws ServiceLayerException {
         SecurityProvider provider = lookupProvider(getProviderType());
         provider.updateUser(user);
     }
@@ -110,33 +110,33 @@ public class MappedSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public UserTO getUserByIdOrUsername(long userId, String username) throws ServiceLayerException,
-            UserNotFoundException {
+    public User getUserByIdOrUsername(long userId, String username) throws ServiceLayerException,
+                                                                           UserNotFoundException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.getUserByIdOrUsername(userId, username);
     }
 
     @Override
-    public List<UserTO> enableUsers(List<Long> userIds, List<String> usernames, boolean enabled) throws
+    public List<User> enableUsers(List<Long> userIds, List<String> usernames, boolean enabled) throws
             ServiceLayerException, UserNotFoundException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.enableUsers(userIds, usernames, enabled);
     }
 
     @Override
-    public List<GroupTO> getUserGroups(long userId, String username) throws ServiceLayerException {
+    public List<Group> getUserGroups(long userId, String username) throws ServiceLayerException {
         SecurityProvider provider =  lookupProvider(getProviderType());
         return provider.getUserGroups(userId, username);
     }
 
     @Override
-    public List<GroupTO> getAllGroups(long orgId, int offset, int limit, String sort) throws ServiceLayerException {
+    public List<Group> getAllGroups(long orgId, int offset, int limit, String sort) throws ServiceLayerException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.getAllGroups(orgId, offset, limit, sort);
     }
 
     @Override
-    public GroupTO createGroup(long orgId, String groupName, String groupDescription) throws
+    public Group createGroup(long orgId, String groupName, String groupDescription) throws
             GroupAlreadyExistsException,
         ServiceLayerException {
         SecurityProvider provider = lookupProvider(getProviderType());
@@ -144,7 +144,7 @@ public class MappedSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public GroupTO updateGroup(long orgId, GroupTO group) throws ServiceLayerException {
+    public Group updateGroup(long orgId, Group group) throws ServiceLayerException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.updateGroup(orgId, group);
     }
@@ -156,19 +156,19 @@ public class MappedSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public GroupTO getGroup(long groupId) throws ServiceLayerException {
+    public Group getGroup(long groupId) throws ServiceLayerException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.getGroup(groupId);
     }
 
     @Override
-    public List<UserTO> getGroupMembers(long groupId, int offset, int limit, String sort) throws ServiceLayerException {
+    public List<User> getGroupMembers(long groupId, int offset, int limit, String sort) throws ServiceLayerException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.getGroupMembers(groupId, offset, limit, sort);
     }
 
     @Override
-    public List<UserTO> addGroupMembers(long groupId, List<Long> userIds, List<String> usernames) throws
+    public List<User> addGroupMembers(long groupId, List<Long> userIds, List<String> usernames) throws
             ServiceLayerException, UserNotFoundException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.addGroupMembers(groupId, userIds, usernames);
@@ -182,7 +182,7 @@ public class MappedSecurityProvider implements SecurityProvider {
     }
 
     @Override
-    public List<UserTO> getAllUsersForSite(long orgId, List<String> groupNames, int offset, int limit, String sort)
+    public List<User> getAllUsersForSite(long orgId, List<String> groupNames, int offset, int limit, String sort)
         throws ServiceLayerException {
         SecurityProvider provider = lookupProvider(getProviderType());
         return provider.getAllUsersForSite(orgId, groupNames, offset, limit, sort);
