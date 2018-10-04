@@ -874,45 +874,43 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
                 studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
 
-        if (Boolean.parseBoolean(studioConfiguration.getProperty(BOOTSTRAP_REPO))) {
-            if (helper.createGlobalRepo()) {
-                // Copy the global config defaults to the global site
-                // Build a path to the bootstrap repo (the repo that ships with Studio)
-                String bootstrapFolderPath = this.ctx.getRealPath(FILE_SEPARATOR + BOOTSTRAP_REPO_PATH +
-                        FILE_SEPARATOR + BOOTSTRAP_REPO_GLOBAL_PATH);
-                Path source = java.nio.file.FileSystems.getDefault().getPath(bootstrapFolderPath);
+        if (Boolean.parseBoolean(studioConfiguration.getProperty(BOOTSTRAP_REPO)) && helper.createGlobalRepo()) {
+            // Copy the global config defaults to the global site
+            // Build a path to the bootstrap repo (the repo that ships with Studio)
+            String bootstrapFolderPath = this.ctx.getRealPath(FILE_SEPARATOR + BOOTSTRAP_REPO_PATH +
+                    FILE_SEPARATOR + BOOTSTRAP_REPO_GLOBAL_PATH);
+            Path source = java.nio.file.FileSystems.getDefault().getPath(bootstrapFolderPath);
 
-                logger.info("Bootstrapping with baseline @ " + source.toFile().toString());
+            logger.info("Bootstrapping with baseline @ " + source.toFile().toString());
 
-                // Copy the bootstrap repo to the global repo
-                Path globalConfigPath = helper.buildRepoPath(GitRepositories.GLOBAL);
-                TreeCopier tc = new TreeCopier(source,
-                        globalConfigPath);
-                EnumSet<FileVisitOption> opts = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
-                Files.walkFileTree(source, opts, Integer.MAX_VALUE, tc);
+            // Copy the bootstrap repo to the global repo
+            Path globalConfigPath = helper.buildRepoPath(GitRepositories.GLOBAL);
+            TreeCopier tc = new TreeCopier(source,
+                    globalConfigPath);
+            EnumSet<FileVisitOption> opts = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
+            Files.walkFileTree(source, opts, Integer.MAX_VALUE, tc);
 
-                String studioManifestLocation = this.ctx.getRealPath(STUDIO_MANIFEST_LOCATION);
-                if (Files.exists(Paths.get(studioManifestLocation))) {
-                    FileUtils.copyFile(Paths.get(studioManifestLocation).toFile(),
-                            Paths.get(globalConfigPath.toAbsolutePath().toString(),
-                                    studioConfiguration.getProperty(BLUE_PRINTS_PATH), "BLUEPRINTS.MF").toFile());
+            String studioManifestLocation = this.ctx.getRealPath(STUDIO_MANIFEST_LOCATION);
+            if (Files.exists(Paths.get(studioManifestLocation))) {
+                FileUtils.copyFile(Paths.get(studioManifestLocation).toFile(),
+                        Paths.get(globalConfigPath.toAbsolutePath().toString(),
+                                studioConfiguration.getProperty(BLUE_PRINTS_PATH), "BLUEPRINTS.MF").toFile());
+            }
+            Repository globalConfigRepo = helper.getRepository(StringUtils.EMPTY, GitRepositories.GLOBAL);
+            try (Git git = new Git(globalConfigRepo)) {
+
+                Status status = git.status().call();
+
+                if (status.hasUncommittedChanges() || !status.isClean()) {
+                    // Commit everything
+                    // TODO: Consider what to do with the commitId in the future
+                    git.add().addFilepattern(GIT_COMMIT_ALL_ITEMS).call();
+                    git.commit().setMessage(INITIAL_COMMIT).call();
                 }
-                Repository globalConfigRepo = helper.getRepository(StringUtils.EMPTY, GitRepositories.GLOBAL);
-                try (Git git = new Git(globalConfigRepo)) {
 
-                    Status status = git.status().call();
-
-                    if (status.hasUncommittedChanges() || !status.isClean()) {
-                        // Commit everything
-                        // TODO: Consider what to do with the commitId in the future
-                        git.add().addFilepattern(GIT_COMMIT_ALL_ITEMS).call();
-                        git.commit().setMessage(INITIAL_COMMIT).call();
-                    }
-
-                    git.close();
-                } catch (GitAPIException err) {
-                    logger.error("error creating initial commit for global configuration", err);
-                }
+                git.close();
+            } catch (GitAPIException err) {
+                logger.error("error creating initial commit for global configuration", err);
             }
         }
 

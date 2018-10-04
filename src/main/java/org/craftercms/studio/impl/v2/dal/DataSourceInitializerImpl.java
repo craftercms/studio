@@ -31,7 +31,6 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.ibatis.jdbc.RuntimeSqlException;
 import org.apache.ibatis.jdbc.ScriptRunner;
 import org.craftercms.commons.crypto.CryptoUtils;
-import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.commons.entitlements.validator.DbIntegrityValidator;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -45,7 +44,6 @@ import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_INITIALIZ
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_INITIALIZER_RANDOM_ADMIN_PASSWORD_CHARS;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_INITIALIZER_RANDOM_ADMIN_PASSWORD_ENABLED;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_INITIALIZER_RANDOM_ADMIN_PASSWORD_LENGTH;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_INITIALIZER_UPGRADE_DB_SCRIPT_LOCATION;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_INITIALIZER_URL;
 
 public class DataSourceInitializerImpl implements DataSourceInitializer {
@@ -155,10 +153,6 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
 
     private String getCreateDBScriptPath() {
         return studioConfiguration.getProperty(DB_INITIALIZER_CREATE_DB_SCRIPT_LOCATION);
-    }
-
-    private String getUpgradeDBScriptPath() {
-        return studioConfiguration.getProperty(DB_INITIALIZER_UPGRADE_DB_SCRIPT_LOCATION);
     }
 
     private boolean isRandomAdminPasswordEnabled() {
