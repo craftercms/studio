@@ -107,7 +107,7 @@ public class DefaultUpgradeManagerImpl implements UpgradeManager, ApplicationCon
     public void upgradeSite(final String site) throws UpgradeException {
         logger.info("Checking upgrades for site {0}", site);
 
-        VersionProvider versionProvider = getVersionProvider("fileVersionProvider", site, siteVersionFilePath);
+        VersionProvider versionProvider = getVersionProvider("siteVersionProvider", site, siteVersionFilePath);
         UpgradePipeline pipeline = getPipeline(versionProvider, "sitePipelineFactory");
 
         pipeline.execute(site);

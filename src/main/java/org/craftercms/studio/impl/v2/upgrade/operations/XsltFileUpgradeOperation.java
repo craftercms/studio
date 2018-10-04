@@ -27,6 +27,7 @@ import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
 import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.exception.UpgradeException;
@@ -60,14 +61,26 @@ public class XsltFileUpgradeOperation extends AbstractUpgradeOperation {
      */
     protected Resource template;
 
+    public void setPath(final String path) {
+        this.path = path;
+    }
+
+    public void setTemplate(final Resource template) {
+        this.template = template;
+    }
+
     /**
      * {@inheritDoc}
      */
     @Override
     public void init(final String sourceVersion, final String targetVersion, final Configuration config) {
         super.init(sourceVersion, targetVersion, config);
-        path = config.getString(CONFIG_KEY_PATH);
-        template = new ClassPathResource(config.getString(CONFIG_KEY_TEMPLATE));
+        if(StringUtils.isEmpty(path)) {
+            path = config.getString(CONFIG_KEY_PATH);
+        }
+        if(template == null) {
+            template = new ClassPathResource(config.getString(CONFIG_KEY_TEMPLATE));
+        }
     }
 
     /**

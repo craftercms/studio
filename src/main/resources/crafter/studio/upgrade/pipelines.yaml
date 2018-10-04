@@ -121,10 +121,7 @@ pipelines:
     - currentVersion: 3.0.0
       nextVersion: 3.1.0
       operations:
-      - type: versionFileUpgrader
-        path: config/studio/studio_version.xml
-        template: crafter/studio/upgrade/update-version.xslt
-        defaultFile: crafter/studio/upgrade/studio_version.xml
+        - type: versionFileUpgrader
 
   # Pipeline to upgrade blueprints
   blueprint:

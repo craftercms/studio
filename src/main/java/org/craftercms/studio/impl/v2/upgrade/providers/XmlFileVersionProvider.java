@@ -34,8 +34,6 @@ import org.craftercms.studio.api.v2.upgrade.VersionProvider;
 import org.springframework.beans.factory.annotation.Required;
 import org.w3c.dom.Document;
 
-import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.VERSION_1_0;
-
 /**
  * Implementation of {@inheritDoc} for XML files.
  * @author joseross
@@ -56,6 +54,11 @@ public class XmlFileVersionProvider implements VersionProvider {
      * XPath expression to extract the version.
      */
     protected String xpath;
+
+    /**
+     * Version returned if none is found.
+     */
+    protected String defaultVersion;
 
     protected ContentRepository contentRepository;
 
@@ -82,12 +85,17 @@ public class XmlFileVersionProvider implements VersionProvider {
         this.xpath = xpath;
     }
 
+    @Required
+    public void setDefaultVersion(final String defaultVersion) {
+        this.defaultVersion = defaultVersion;
+    }
+
     /**
      * {@inheritDoc}
      */
     @Override
     public String getCurrentVersion() throws UpgradeException {
-        String currentVersion = VERSION_1_0;
+        String currentVersion = defaultVersion;
         if(!contentRepository.contentExists(site, "/config/studio")) {
             throw new UpgradeNotSupportedException("Site '"+ site +"' from 2.5.x can't be automatically upgraded");
         } else if(contentRepository.contentExists(site, path)) {

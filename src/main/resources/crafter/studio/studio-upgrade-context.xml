@@ -75,10 +75,22 @@
         <property name="dataSource" ref="dataSource"/>
     </bean>
 
-    <bean id="fileVersionProvider" scope="prototype"
-          class="org.craftercms.studio.impl.v2.upgrade.providers.XmlFileVersionProvider">
+    <bean id="xmlVersionProvider" abstract="true">
+        <property name="path" value="#{studioConfiguration.getProperty('studio.upgrade.versionFile')}"/>
         <property name="xpath" value="#{studioConfiguration.getProperty('studio.upgrade.versionXPath')}"/>
         <property name="contentRepository" ref="contentRepository"/>
+    </bean>
+
+    <bean id="siteVersionProvider" scope="prototype" parent="xmlVersionProvider"
+          class="org.craftercms.studio.impl.v2.upgrade.providers.XmlFileVersionProvider">
+        <property name="defaultVersion"
+                  value="#{studioConfiguration.getProperty('studio.upgrade.defaultVersion.site')}"/>
+    </bean>
+
+    <bean id="fileVersionProvider" scope="prototype" parent="xmlVersionProvider"
+          class="org.craftercms.studio.impl.v2.upgrade.providers.XmlFileVersionProvider">
+        <property name="defaultVersion"
+                  value="#{studioConfiguration.getProperty('studio.upgrade.defaultVersion.file')}"/>
     </bean>
 
     <bean id="sitePipelineFactory" scope="prototype" parent="pipelineFactory"
@@ -120,6 +132,13 @@
           class="org.craftercms.studio.impl.v2.upgrade.operations.XsltFileUpgradeOperation"/>
 
     <bean id="versionFileUpgrader" scope="prototype" parent="upgradeOperation"
-          class="org.craftercms.studio.impl.v2.upgrade.operations.SiteVersionUpgradeOperation"/>
+          class="org.craftercms.studio.impl.v2.upgrade.operations.SiteVersionUpgradeOperation">
+        <property name="path" value="#{studioConfiguration.getProperty('studio.upgrade.versionFile')}"/>
+        <property name="template" value="#{studioConfiguration.getProperty('studio.upgrade.versionTemplate')}"/>
+        <property name="defaultFile" value="#{studioConfiguration.getProperty('studio.upgrade.versionDefault')}"/>
+    </bean>
+
+    <bean id="addFileUpgrader" scope="prototype" parent="upgradeOperation"
+          class="org.craftercms.studio.impl.v2.upgrade.operations.AddFileUpgradeOperation"/>
 
 </beans>

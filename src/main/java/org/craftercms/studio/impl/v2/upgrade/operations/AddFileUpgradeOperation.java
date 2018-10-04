@@ -22,24 +22,33 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.apache.commons.configuration2.Configuration;
+import org.craftercms.studio.api.v1.log.Logger;
+import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.exception.UpgradeException;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
 /**
- * Implementation of {@link org.craftercms.studio.api.v2.upgrade.UpgradeOperation} that updates or adds the version
- * file for the given site.
+ * Implementation of {@link org.craftercms.studio.api.v2.upgrade.UpgradeOperation} that adds a new file to
+ * a repository.
  * @author joseross
  */
-public class SiteVersionUpgradeOperation extends XsltFileUpgradeOperation {
+public class AddFileUpgradeOperation extends AbstractUpgradeOperation {
+
+    private static final Logger logger = LoggerFactory.getLogger(AddFileUpgradeOperation.class);
+
+    public static final String CONFIG_KEY_PATH = "path";
+    public static final String CONFIG_KEY_FILE = "file";
 
     /**
-     * Path of the default file.
+     * The path to write the file.
      */
-    protected Resource defaultFile;
+    protected String path;
 
-    public void setDefaultFile(final Resource defaultFile) {
-        this.defaultFile = defaultFile;
-    }
+    /**
+     * The file to copy from the classpath.
+     */
+    protected Resource file;
 
     /**
      * {@inheritDoc}
@@ -47,6 +56,8 @@ public class SiteVersionUpgradeOperation extends XsltFileUpgradeOperation {
     @Override
     public void init(final String sourceVersion, final String targetVersion, final Configuration config) {
         super.init(sourceVersion, targetVersion, config);
+        path = config.getString(CONFIG_KEY_PATH);
+        file = new ClassPathResource(config.getString(CONFIG_KEY_FILE));
     }
 
     /**
@@ -54,14 +65,15 @@ public class SiteVersionUpgradeOperation extends XsltFileUpgradeOperation {
      */
     @Override
     public void execute(final String site) throws UpgradeException {
-        if(!contentRepository.contentExists(site, path)) {
-            try(InputStream is = defaultFile.getInputStream()) {
-                writeToRepo(site, path, is, "Added file to track site version");
-            } catch (IOException e) {
-                throw new UpgradeException("Error adding version file to site " + site, e);
+        try(InputStream is = file.getInputStream()) {
+            if(contentRepository.contentExists(site, path)) {
+                logger.info("File {0} already exist in site {1}, it will not be changed", path, site);
+            } else {
+                writeToRepo(site, path, is, "Added new file for v" + nextVersion);
             }
+        } catch (IOException e) {
+            throw new UpgradeException("Error upgrading file " + path + " for site " + site, e);
         }
-        super.execute(site);
     }
 
 }

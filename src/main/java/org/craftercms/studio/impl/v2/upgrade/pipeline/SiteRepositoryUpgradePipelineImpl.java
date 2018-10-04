@@ -28,7 +28,6 @@ import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.exception.UpgradeException;
 import org.craftercms.studio.api.v2.service.security.SecurityProvider;
-import org.craftercms.studio.api.v2.upgrade.UpgradeOperation;
 import org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryHelper;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -67,7 +66,7 @@ public class SiteRepositoryUpgradePipelineImpl extends DefaultUpgradePipelineImp
 
     protected void createTemporaryBranch(String site, Git git) throws GitAPIException {
         List<Ref> branches = git.branchList().call();
-        if(branches.stream().anyMatch(b -> b.getName().equals(siteUpgradeBranch))) {
+        if(branches.stream().anyMatch(b -> b.getName().contains(siteUpgradeBranch))) {
             logger.debug("Temporary branch already exists, changes will be discarded");
             deleteTemporaryBranch(git);
         }
