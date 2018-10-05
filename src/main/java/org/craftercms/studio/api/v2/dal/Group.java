@@ -30,7 +30,7 @@ public class Group implements Serializable, GrantedAuthority {
     private static final long serialVersionUID = 4723035066512137838L;
 
     @JsonProperty("id")
-    private long id;
+    private long id = -1;
     @JsonIgnore
     private ZonedDateTime recordLastUpdated;
     @JsonIgnore

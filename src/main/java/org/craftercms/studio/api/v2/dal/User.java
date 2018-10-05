@@ -33,7 +33,7 @@ public class User implements UserDetails {
     private static final long serialVersionUID = 968000561389890945L;
 
     @JsonProperty("id")
-    private long id;
+    private long id = -1;
     @JsonIgnore
     private ZonedDateTime recordLastUpdated;
     @JsonProperty("username")
@@ -94,11 +94,11 @@ public class User implements UserDetails {
         return toRet;
     }
 
-    public long getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

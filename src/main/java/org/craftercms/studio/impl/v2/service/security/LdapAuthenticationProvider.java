@@ -95,7 +95,8 @@ public class LdapAuthenticationProvider extends BaseAuthenticationProvider {
 
     @Override
     public boolean doAuthenticate(HttpServletRequest request, HttpServletResponse response,
-                                  AuthenticationChain authenticationChain, String username, String password) throws UserNotFoundException, AuthenticationSystemException, BadCredentialsException {
+                                  AuthenticationChain authenticationChain, String username, String password)
+            throws AuthenticationSystemException, BadCredentialsException {
 
         LdapContextSource lcs = new LdapContextSource();
         lcs.setUrl(ldapUrl);
@@ -107,53 +108,50 @@ public class LdapAuthenticationProvider extends BaseAuthenticationProvider {
         LdapTemplate ldapTemplate = new LdapTemplate(lcs);
 
         // Mapper for user data if user is successfully authenticated
-        AuthenticatedLdapEntryContextMapper<User> mapper = new AuthenticatedLdapEntryContextMapper<User>() {
-            @Override
-            public User mapWithContext(DirContext dirContext, LdapEntryIdentification ldapEntryIdentification) {
-                try {
-                    // User entry - extract attributes
-                    DirContextOperations dirContextOperations =
-                            (DirContextOperations) dirContext.lookup(ldapEntryIdentification.getRelativeName());
-                    Attributes attributes = dirContextOperations.getAttributes();
-                    Attribute emailAttrib = attributes.get(emailLdapAttribute);
-                    Attribute firstNameAttrib = attributes.get(firstNameLdapAttribute);
-                    Attribute lastNameAttrib = attributes.get(lastNameLdapAttribute);
-                    Attribute groupNameAttrib = attributes.get(groupNameLdapAttribute);
+        AuthenticatedLdapEntryContextMapper<User> mapper = (dirContext, ldapEntryIdentification) -> {
+            try {
+                // User entry - extract attributes
+                DirContextOperations dirContextOperations =
+                        (DirContextOperations) dirContext.lookup(ldapEntryIdentification.getRelativeName());
+                Attributes attributes = dirContextOperations.getAttributes();
+                Attribute emailAttrib = attributes.get(emailLdapAttribute);
+                Attribute firstNameAttrib = attributes.get(firstNameLdapAttribute);
+                Attribute lastNameAttrib = attributes.get(lastNameLdapAttribute);
+                Attribute groupNameAttrib = attributes.get(groupNameLdapAttribute);
 
 
-                    User user = new User();
-                    user.setActive(1);
-                    user.setUsername(username);
-                    user.setPassword(UUID.randomUUID().toString());
+                User user = new User();
+                user.setActive(1);
+                user.setUsername(username);
+                user.setPassword(UUID.randomUUID().toString());
 
-                    if (emailAttrib != null && emailAttrib.get() != null) {
-                        user.setEmail(emailAttrib.get().toString());
-                    } else {
-                        logger.error("No LDAP attribute " + emailLdapAttribute + " found for username " + username +
-                                     ". User will not be imported into DB.");
-                        return null;
-                    }
-                    if (firstNameAttrib != null && firstNameAttrib.get() != null) {
-                        user.setFirstName(firstNameAttrib.get().toString());
-                    } else {
-                        logger.warn("No LDAP attribute " + firstNameLdapAttribute + " found for username " + username);
-                    }
-                    if (lastNameAttrib != null && lastNameAttrib.get() != null) {
-                        user.setLastName(lastNameAttrib.get().toString());
-                    } else {
-                        logger.warn("No LDAP attribute " + lastNameLdapAttribute + " found for username " + username);
-                    }
-
-
-                    extractGroupsFromAttribute(user, groupNameLdapAttribute, groupNameAttrib);
-
-
-                    return user;
-                } catch (NamingException e) {
-                    logger.error("Error getting details from LDAP for username " + username, e);
-
+                if (emailAttrib != null && emailAttrib.get() != null) {
+                    user.setEmail(emailAttrib.get().toString());
+                } else {
+                    logger.error("No LDAP attribute " + emailLdapAttribute + " found for username " + username +
+                                 ". User will not be imported into DB.");
                     return null;
                 }
+                if (firstNameAttrib != null && firstNameAttrib.get() != null) {
+                    user.setFirstName(firstNameAttrib.get().toString());
+                } else {
+                    logger.warn("No LDAP attribute " + firstNameLdapAttribute + " found for username " + username);
+                }
+                if (lastNameAttrib != null && lastNameAttrib.get() != null) {
+                    user.setLastName(lastNameAttrib.get().toString());
+                } else {
+                    logger.warn("No LDAP attribute " + lastNameLdapAttribute + " found for username " + username);
+                }
+
+
+                extractGroupsFromAttribute(user, groupNameLdapAttribute, groupNameAttrib);
+
+
+                return user;
+            } catch (NamingException e) {
+                logger.error("Error getting details from LDAP for username " + username, e);
+
+                return null;
             }
         };
 
@@ -164,20 +162,20 @@ public class LdapAuthenticationProvider extends BaseAuthenticationProvider {
             user = ldapTemplate.authenticate(ldapQuery, password, mapper);
         } catch (EmptyResultDataAccessException e) {
             logger.info("User " + username + " not found with external security provider.");
-            // When user not found try to authenticate against studio database
-            throw new UserNotFoundException("User " + username + " not found with external security provider.");
+
+            return false;
         } catch (CommunicationException e) {
-            logger.info("Failed to connect with external security provider.");
-            // When user not found try to authenticate against studio database
-            throw new AuthenticationSystemException("Failed to connect with external security provider.", e);
+            logger.info("Failed to connect with external security provider", e);
+
+            return false;
         }  catch (AuthenticationException e) {
-            logger.error("Authentication failed with the LDAP system", e);
+            logger.error("Authentication failed with the LDAP system (bad credentials)", e);
 
             throw new BadCredentialsException();
         } catch (Exception e) {
-            logger.error("Authentication failed with the LDAP system", e);
+            logger.error("Unexpected exception when authenticating with the LDAP system", e);
 
-            throw new AuthenticationSystemException("Authentication failed with the LDAP system", e);
+            return false;
         }
 
         if (user != null) {
@@ -219,6 +217,7 @@ public class LdapAuthenticationProvider extends BaseAuthenticationProvider {
                 }
             } catch (ServiceLayerException e) {
                 logger.error("Unknown service error", e);
+
                 throw  new AuthenticationSystemException("Unknown service error" , e);
             }
 
@@ -227,12 +226,12 @@ public class LdapAuthenticationProvider extends BaseAuthenticationProvider {
             }
 
             String token = createToken(user, authenticationChain);
-
             storeAuthentication(new Authentication(username, token, AuthenticationType.LDAP));
 
             return true;
         } else {
             logger.error("Failed to retrieve LDAP user details");
+
             throw new AuthenticationSystemException("Failed to retrieve LDAP user details");
         }
     }
