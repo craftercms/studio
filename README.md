@@ -22,8 +22,20 @@ In the current version of the upgrade system any change made to the blueprints i
 
 When there is a change in the database (structure or conent) there are two requirements:
 
-1. Update the create [script](https://github.com/craftercms/studio/blob/develop/src/main/resources/crafter/studio/database/createDDL.sql)
-2. Add an upgrade script in the [database folder](https://github.com/craftercms/studio/tree/develop/src/main/resources/crafter/studio/database)
+1. Update the [SQL create script](https://github.com/craftercms/studio/blob/develop/src/main/resources/crafter/studio/database/createDDL.sql)
+2. Add an SQL upgrade script in the [database folder](https://github.com/craftercms/studio/tree/develop/src/main/resources/crafter/studio/database)
+
+The upgrade script can perform any change in the database such as adding/changing or deleting tables and columns. **Keep in mind this changes will be done on existing systems with real data**.
+
+A simple SQL upgrade script could look like this:
+
+```sql
+CREATE TABLE IF NOT EXISTS new_feature_table (...) ;
+
+ALTER TABLE `existing_table` DROP COLUMN IF EXISTS `unused_column` ;
+
+UPDATE _meta SET version = '3.1.0.5' ;
+```
 
 After completing the upgrade script a new version needs to be added to the upgrade pipeline:
 
