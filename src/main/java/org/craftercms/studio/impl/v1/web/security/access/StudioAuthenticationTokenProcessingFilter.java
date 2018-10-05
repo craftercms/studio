@@ -109,8 +109,7 @@ public class StudioAuthenticationTokenProcessingFilter extends GenericFilterBean
                                     new UsernamePasswordAuthenticationToken(userDetails, null,
                                             userDetails.getAuthorities());
                             SecurityContextHolder.getContext().setAuthentication(authentication);
-                        } catch (BadCredentialsException | AuthenticationSystemException | EntitlementException
-                                | UserNotFoundException e) {
+                        } catch (Exception e) {
                             crafterLogger.error("Unable to authenticate user using authentication headers.", e);
                         }
                     } else {
