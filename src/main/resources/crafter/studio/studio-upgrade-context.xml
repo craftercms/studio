@@ -76,13 +76,13 @@
     </bean>
 
     <bean id="xmlVersionProvider" abstract="true">
-        <property name="path" value="#{studioConfiguration.getProperty('studio.upgrade.versionFile')}"/>
         <property name="xpath" value="#{studioConfiguration.getProperty('studio.upgrade.versionXPath')}"/>
         <property name="contentRepository" ref="contentRepository"/>
     </bean>
 
     <bean id="siteVersionProvider" scope="prototype" parent="xmlVersionProvider"
           class="org.craftercms.studio.impl.v2.upgrade.providers.XmlFileVersionProvider">
+        <property name="path" value="#{studioConfiguration.getProperty('studio.upgrade.versionFile')}"/>
         <property name="defaultVersion"
                   value="#{studioConfiguration.getProperty('studio.upgrade.defaultVersion.site')}"/>
     </bean>
