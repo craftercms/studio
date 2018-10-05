@@ -18,6 +18,10 @@
 
 package org.craftercms.studio.api.v2.service.security;
 
+import org.craftercms.studio.api.v1.exception.security.AuthenticationSystemException;
+import org.craftercms.studio.api.v1.exception.security.BadCredentialsException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -27,7 +31,7 @@ public interface AuthenticationProvider {
                            HttpServletResponse response,
                            AuthenticationChain authenticationChain,
                            String username,
-                           String password);
+                           String password) throws AuthenticationSystemException, BadCredentialsException, UserNotFoundException;
 
     boolean isEnabled();
 
