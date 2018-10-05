@@ -203,7 +203,6 @@ public class UserServiceInternalImpl implements UserServiceInternal {
 
         Map<String, Object> params = new HashMap<>();
         params.put(USER_ID, currentUser.getId());
-        params.put(USERNAME, user.getUsername());
         params.put(FIRST_NAME, user.getFirstName());
         params.put(LAST_NAME, user.getLastName());
         params.put(EMAIL, user.getEmail());
