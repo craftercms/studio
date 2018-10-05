@@ -958,6 +958,8 @@ public class SiteServiceImpl implements SiteService {
             try {
                 logger.debug("Creating site " + siteId + " from blueprint " + blueprintName);
                 success = createSiteFromBlueprintGit(blueprintName, siteId, siteId, sandboxBranch, description);
+
+                upgradeManager.upgradeSite(siteId);
             } catch (Exception e) {
                 // TODO: SJ: We need better exception handling here
                 success = false;
@@ -1024,7 +1026,6 @@ public class SiteServiceImpl implements SiteService {
             }
 
             try {
-                upgradeManager.upgradeSite(siteId);
 
                 // insert database records
                 logger.debug("Adding site record to database for site " + siteId);
