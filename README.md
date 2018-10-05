@@ -1,14 +1,14 @@
 Crafter Studio
 ==============
 
-Crafter Studio is the authoring environment for Crafter CMS. For more information, please read the [docs.](http://docs.craftercms.org/en/latest/developers/projects/studio/index.html)
+Crafter Studio is the authoring environment for Crafter CMS. For more information, please read the [docs.](http://docs.craftercms.org/en/3.1/developers/projects/studio/index.html)
 
 We welcome community contributions, please read [CONTRIBUTING.md](https://github.com/craftercms/studio/blob/master/CONTRIBUTING.md) for guidelines.
 
 
 ## Using the Upgrade System
 
-When a significant change is made in the way that Studio works the PR should include the required upgrades to make sure that sites created in previous versions will continue to work. The upgrade system provides four diferent pipelines.
+When a change is made to Crafter Studio's configuration or database, the PR that makes that change should include the required upgrades to make sure that sites created in previous versions will get upgraded automatically to work according with the changes introduced. The upgrade system provides four diferent pipelines to help with this.
 
 All pipelines are configured in the same [file](https://github.com/craftercms/studio/blob/develop/src/main/resources/crafter/studio/upgrade/pipelines.yaml).
 
@@ -20,7 +20,7 @@ In the current version of the upgrade system any change made to the blueprints i
 
 ### Database & Configuration
 
-When there is a change in the database (structure or conent) there are two requirements:
+When there is a change in the database (structure or content) there are two requirements:
 
 1. Update the [SQL create script](https://github.com/craftercms/studio/blob/develop/src/main/resources/crafter/studio/database/createDDL.sql)
 2. Add an SQL upgrade script in the [database folder](https://github.com/craftercms/studio/tree/develop/src/main/resources/crafter/studio/database)
