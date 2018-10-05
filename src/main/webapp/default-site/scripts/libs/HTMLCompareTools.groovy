@@ -21,6 +21,9 @@ import org.apache.commons.lang3.StringEscapeUtils
 
 
 class HTMLCompareTools {
+
+	static DEFAULT_FACTORY_CLASS = "com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl"
+
 	static CONTENT_XML_TO_HTML_XSL =
 			"<xsl:stylesheet version=\"1.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\" xmlns:fo=\"http://www.w3.org/1999/XSL/Format\">"+
 					"<xsl:template match=\"/\">" +
@@ -47,7 +50,7 @@ class HTMLCompareTools {
 
 	static String xmlToHtml(InputStream xml) {
 		try {
-			SAXTransformerFactory tf = TransformerFactory.newInstance()
+			SAXTransformerFactory tf = TransformerFactory.newInstance(DEFAULT_FACTORY_CLASS, null)
 			tf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
 			StreamSource xslSource = new StreamSource(IOUtils.toInputStream(HTMLCompareTools.CONTENT_XML_TO_HTML_XSL))
 			Transformer transformer = tf.newTransformer(xslSource)
@@ -95,7 +98,7 @@ class HTMLCompareTools {
 
 	static String diff(InputStream html1, InputStream html2) {
 		try {
-			SAXTransformerFactory tf =  TransformerFactory.newInstance();
+			SAXTransformerFactory tf =  TransformerFactory.newInstance(DEFAULT_FACTORY_CLASS, null);
 			tf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
 			TransformerHandler result = tf.newTransformerHandler()
 			StringWriter resultWriter = new StringWriter()
