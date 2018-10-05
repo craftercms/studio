@@ -28,7 +28,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-public class UserTO implements UserDetails {
+public class User implements UserDetails {
 
     private static final long serialVersionUID = 968000561389890945L;
 
@@ -60,7 +60,7 @@ public class UserTO implements UserDetails {
     @JsonProperty("enabled")
     private boolean enabled;
 
-    private List<UserGroupTO> groups = new ArrayList<UserGroupTO>();
+    private List<UserGroup> groups = new ArrayList<UserGroup>();
 
     @Override
     public boolean isAccountNonExpired() {
@@ -89,7 +89,7 @@ public class UserTO implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        List<GroupTO> toRet = new ArrayList<GroupTO>();
+        List<Group> toRet = new ArrayList<Group>();
         groups.forEach((g) -> toRet.add(g.getGroup()));
         return toRet;
     }
@@ -186,11 +186,11 @@ public class UserTO implements UserDetails {
         this.enabled = active != 0;
     }
 
-    public List<UserGroupTO> getGroups() {
+    public List<UserGroup> getGroups() {
         return groups;
     }
 
-    public void setGroups(List<UserGroupTO> groups) {
+    public void setGroups(List<UserGroup> groups) {
         this.groups = groups;
     }
 }

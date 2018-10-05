@@ -30,7 +30,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v2.dal.UserTO;
+import org.craftercms.studio.api.v2.dal.User;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.core.Authentication;
@@ -94,9 +94,9 @@ public class StudioUserAPIAccessDecisionVoter extends StudioAbstractAccessDecisi
                     logger.debug("Failed to extract username from POST request");
                 }
             }
-            UserTO currentUser = null;
+            User currentUser = null;
             try {
-                currentUser = (UserTO) authentication.getPrincipal();
+                currentUser = (User) authentication.getPrincipal();
             } catch (ClassCastException e) {
                 // anonymous user
                 if (!authentication.getPrincipal().toString().equals("anonymousUser")) {

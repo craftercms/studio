@@ -20,7 +20,7 @@ package org.craftercms.studio.api.v2.service.security;
 
 import org.craftercms.commons.http.RequestContext;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
-import org.craftercms.studio.api.v2.dal.UserTO;
+import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.impl.v1.util.SessionTokenUtils;
 import org.craftercms.studio.impl.v2.service.security.Authentication;
 
@@ -33,7 +33,7 @@ public abstract class BaseAuthenticationProvider implements AuthenticationProvid
 
     private boolean enabled;
 
-    protected String createToken(UserTO user, AuthenticationChain authenticationChain) {
+    protected String createToken(User user, AuthenticationChain authenticationChain) {
         StudioConfiguration studioConfiguration = authenticationChain.getStudioConfiguration();
         int timeout = studioConfiguration.getProperty(SECURITY_SESSION_TIMEOUT, Integer.class);
         String token = SessionTokenUtils.createToken(user.getUsername(), timeout);

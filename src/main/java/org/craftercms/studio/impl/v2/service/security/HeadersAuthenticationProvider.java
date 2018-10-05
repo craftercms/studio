@@ -31,10 +31,10 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.activity.ActivityService;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.GroupDAO;
-import org.craftercms.studio.api.v2.dal.GroupTO;
+import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.UserDAO;
-import org.craftercms.studio.api.v2.dal.UserGroupTO;
-import org.craftercms.studio.api.v2.dal.UserTO;
+import org.craftercms.studio.api.v2.dal.UserGroup;
+import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.service.security.AuthenticationChain;
 import org.craftercms.studio.api.v2.service.security.BaseAuthenticationProvider;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
@@ -91,15 +91,15 @@ public class HeadersAuthenticationProvider extends BaseAuthenticationProvider {
                         UserServiceInternal userServiceInternal = authenticationChain.getUserServiceInternal();
                         ActivityService activityService = authenticationChain.getActivityService();
                         StudioConfiguration studioConfiguration = authenticationChain.getStudioConfiguration();
-                        if (userServiceInternal.userExists(usernameHeaderValue)) {
-                            UserTO userTO = userServiceInternal.getUserByIdOrUsername(-1, usernameHeaderValue);
-                            userTO.setFirstName(firstName);
-                            userTO.setLastName(lastName);
-                            userTO.setEmail(email);
+                        if (userServiceInternal.userExists(-1, usernameHeaderValue)) {
+                            User user = userServiceInternal.getUserByIdOrUsername(-1, usernameHeaderValue);
+                            user.setFirstName(firstName);
+                            user.setLastName(lastName);
+                            user.setEmail(email);
                             if (StringUtils.isNoneEmpty(firstName, lastName, email)) {
                                 logger.debug("If user already exists in studio DB, update details.");
                                 try {
-                                    userServiceInternal.updateUser(userTO);
+                                    userServiceInternal.updateUser(user);
 
                                         ActivityService.ActivityType activityType = ActivityService.ActivityType.UPDATED;
                                         Map<String, String> extraInfo = new HashMap<String, String>();
@@ -120,7 +120,7 @@ public class HeadersAuthenticationProvider extends BaseAuthenticationProvider {
                         } else {
                             logger.debug("User does not exist in studio db. Adding user " + usernameHeader);
                             try {
-                                UserTO user = new UserTO();
+                                User user = new User();
                                 user.setUsername(usernameHeaderValue);
                                 user.setPassword(UUID.randomUUID().toString());
                                 user.setFirstName(firstName);
@@ -154,29 +154,29 @@ public class HeadersAuthenticationProvider extends BaseAuthenticationProvider {
                         return false;
                     }
 
-                    UserTO userTO = new UserTO();
-                    userTO.setUsername(usernameHeaderValue);
-                    userTO.setFirstName(firstName);
-                    userTO.setLastName(lastName);
-                    userTO.setEmail(email);
-                    userTO.setGroups(new ArrayList<UserGroupTO>());
+                    User user = new User();
+                    user.setUsername(usernameHeaderValue);
+                    user.setFirstName(firstName);
+                    user.setLastName(lastName);
+                    user.setEmail(email);
+                    user.setGroups(new ArrayList<UserGroup>());
 
                     logger.debug("Update user groups in database.");
                     if (StringUtils.isNoneEmpty(groups)) {
                         String[] groupsArray = groups.split(",");
                         for (int i = 0; i < groupsArray.length; i++) {
-                            GroupTO g = new GroupTO();
+                            Group g = new Group();
                             g.setGroupName(StringUtils.trim(groupsArray[i]));
                             g.setGroupDescription("Externally managed group");
                             g.setOrganization(null);
-                            UserGroupTO ug = new UserGroupTO();
+                            UserGroup ug = new UserGroup();
                             ug.setGroup(g);
-                            userTO.getGroups().add(ug);
+                            user.getGroups().add(ug);
                             upsertUserGroup(g.getGroupName(), usernameHeaderValue, authenticationChain);
                         }
                     }
 
-                    String token = createToken(userTO, authenticationChain);
+                    String token = createToken(user, authenticationChain);
 
                     storeAuthentication(new Authentication(usernameHeaderValue, token, AuthenticationType.AUTH_HEADERS));
 
@@ -206,19 +206,19 @@ public class HeadersAuthenticationProvider extends BaseAuthenticationProvider {
         }
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(GROUP_NAME, groupName);
-        GroupTO groupTO = groupDao.getGroupByName(params);
-        if (groupTO != null) {
+        Group group = groupDao.getGroupByName(params);
+        if (group != null) {
             List<String> usernames = new ArrayList<String>();
             params = new HashMap<>();
             params.put(USER_ID, -1);
             params.put(USERNAME, username);
-            UserTO userTO = userDao.getUserByIdOrUsername(params);
+            User user = userDao.getUserByIdOrUsername(params);
             List<Long> users = new ArrayList<Long>();
-            users.add(userTO.getId());
+            users.add(user.getId());
 
             params = new HashMap<>();
             params.put(USER_IDS, users);
-            params.put(GROUP_ID, groupTO.getId());
+            params.put(GROUP_ID, group.getId());
             try {
                 groupDao.addGroupMembers(params);
 

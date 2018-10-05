@@ -27,11 +27,11 @@ import java.util.Map;
 
 public interface SecurityDAO {
 
-    UserTO getUser(String username);
+    User getUser(String username);
 
-    List<GroupTO> getUserGroups(String username);
+    List<Group> getUserGroups(String username);
 
-    List<GroupTO> getUserGroupsPerSite(Map params);
+    List<Group> getUserGroupsPerSite(Map params);
 
     void createUser(Map params);
 
@@ -69,7 +69,7 @@ public interface SecurityDAO {
 
     List<GroupPerSiteResult> getGroupsPerSiteData(Map params);
 
-    List<UserTO> getUsersPerGroup(Map params);
+    List<User> getUsersPerGroup(Map params);
 
     int getUsersPerGroupTotal(Map params);
 
@@ -83,7 +83,7 @@ public interface SecurityDAO {
 
     void deleteGroup(Map params);
 
-    GroupTO getGroupObject(Map params);
+    Group getGroupObject(Map params);
 
     void addUserToGroup(Map params);
 

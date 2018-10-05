@@ -16,28 +16,31 @@
  *
  */
 
-package org.craftercms.studio.api.v2.service.security;
+package org.craftercms.studio.api.v2.dal;
 
-import java.util.List;
+import java.io.Serializable;
+import java.time.ZonedDateTime;
 
-public class SystemScopePermission {
+public class UserGroup implements Serializable {
 
-    private String role;
-    List<String> allowedPermissions;
+    private static final long serialVersionUID = -1030917735504714929L;
 
-    public String getRole() {
-        return role;
+    private Group group;
+    private ZonedDateTime recordLastUpdated;
+
+    public Group getGroup() {
+        return group;
     }
 
-    public void setRole(String role) {
-        this.role = role;
+    public void setGroup(Group group) {
+        this.group = group;
     }
 
-    public List<String> getAllowedPermissions() {
-        return allowedPermissions;
+    public ZonedDateTime getRecordLastUpdated() {
+        return recordLastUpdated;
     }
 
-    public void setAllowedPermissions(List<String> allowedPermissions) {
-        this.allowedPermissions = allowedPermissions;
+    public void setRecordLastUpdated(ZonedDateTime recordLastUpdated) {
+        this.recordLastUpdated = recordLastUpdated;
     }
 }

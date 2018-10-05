@@ -22,7 +22,7 @@
 
 <mapper namespace="org.craftercms.studio.api.v2.dal.UserDAO">
 
-    <resultMap id="UserMap" type="org.craftercms.studio.api.v2.dal.UserTO">
+    <resultMap id="UserMap" type="org.craftercms.studio.api.v2.dal.User">
         <id property="id" column="id"/>
         <result property="recordLastUpdated" column="record_last_updated"/>
         <result property="username" column="username"/>
@@ -35,16 +35,16 @@
         <result property="email" column="email"/>
         <result property="active" column="enabled"/>
 
-        <collection property="groups" ofType="org.craftercms.studio.api.v2.dal.UserGroupTO">
+        <collection property="groups" ofType="org.craftercms.studio.api.v2.dal.UserGroup">
             <result property="recordLastUpdated" column="record_last_updated"/>
-            <association property="group" javaType="org.craftercms.studio.api.v2.dal.GroupTO">
+            <association property="group" javaType="org.craftercms.studio.api.v2.dal.Group">
                 <id property="id" column="id"/>
                 <result property="groupName" column="group_name"/>
             </association>
         </collection>
     </resultMap>
 
-    <resultMap id="GroupMap" type="org.craftercms.studio.api.v2.dal.GroupTO">
+    <resultMap id="GroupMap" type="org.craftercms.studio.api.v2.dal.Group">
         <id property="id" column="id"/>
         <result property="recordLastUpdated" column="record_last_updated"/>
         <result property="groupName" column="group_name"/>
@@ -151,8 +151,8 @@
 
     <select id="userExists" resultType="Integer" parameterType="java.util.Map">
             SELECT COUNT (1)
-            FROM `user` cu
-            WHERE cu.username = #{username}
+            FROM `user`
+            WHERE id = #{userId} OR username = #{username}
     </select>
 
     <select id="isUserMemberOfGroup" resultType="Integer" parameterType="java.util.Map">
