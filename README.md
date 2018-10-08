@@ -48,7 +48,7 @@ pipelines:
         operations:
           - type: dbScriptUpgrader
             filename: upgrade-3.1.0.4-to-3.1.0.5.sql
-		...
+    ...
 ```
 
 **Note: Every SQL script in the system pipeline must update the version in the `_meta` table.**
@@ -71,7 +71,7 @@ When there is a change in the structure of sites like adding, renaming, moving o
 pipelines:
   site:
     ...
-    - currentVersion 3.1.0
+    - currentVersion: 3.1.0
       nextVersion: 3.1.0.1
       operations:
         - type: addFileUpgrader
@@ -115,5 +115,6 @@ configurations:
             template: crafter/studio/upgrade/update-version.xslt
       ...
 ```
+In the example a YAML alias is used to avoid repeating the path of the file, the syntax is `&[label] [value]` and then it can be referenced in any place using `*[label]`.
 
 **Note: Every version in the site pipeline must include the `xsltFileUpgrader` operation with the `update-version.xslt` template.**
