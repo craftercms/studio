@@ -44,7 +44,8 @@
         <security:intercept-url pattern="/api/**" access="isAuthenticated()" />
     </security:http>
 
-    <bean id="studioAuthenticationTokenProcessingFilter" class="org.craftercms.studio.impl.v1.web.security.access.StudioAuthenticationTokenProcessingFilter">
+    <bean id="studioAuthenticationTokenProcessingFilter"
+          class="org.craftercms.studio.impl.v1.web.security.access.StudioAuthenticationTokenProcessingFilter" init-method="init">
         <property name="securityService" ref="cstudioSecurityService"/>
         <property name="userDetailsManager" ref="studioUserDetailsManager"/>
         <property name="studioConfiguration" ref="studioConfiguration" />
