@@ -195,12 +195,13 @@ public class UserServiceInternalImpl implements UserServiceInternal {
 
     @Override
     public void updateUser(User user) throws UserNotFoundException, ServiceLayerException {
-        if (!userExists(user.getId(), StringUtils.EMPTY)) {
-            throw new UserNotFoundException("No user found for id '" + user.getId() + "'");
-        }
+        long userId = user.getId();
+        String username = user.getUsername() != null ? user.getUsername() : StringUtils.EMPTY;
+
+        User oldUser = getUserByIdOrUsername(userId, username);
 
         Map<String, Object> params = new HashMap<>();
-        params.put(USER_ID, user.getId());
+        params.put(USER_ID, oldUser.getId());
         params.put(FIRST_NAME, user.getFirstName());
         params.put(LAST_NAME, user.getLastName());
         params.put(EMAIL, user.getEmail());
