@@ -482,7 +482,7 @@ public class SiteServiceImpl implements SiteService {
 
                 reloadSiteConfiguration(siteId);
 
-                syncDatabaseWithRepo(siteId, null);
+                syncDatabaseWithRepo(siteId, null, false);
 
                 // initial deployment
                 List<PublishingTargetTO> publishingTargets = getPublishingTargetsForSite(siteId);
@@ -864,7 +864,7 @@ public class SiteServiceImpl implements SiteService {
                 logger.debug("Loading configuration for site " + siteId);
                 reloadSiteConfiguration(siteId);
 
-                syncDatabaseWithRepo(siteId, null);
+                syncDatabaseWithRepo(siteId, null, false);
 
                 // initial deployment
                 logger.debug("Executing initial deployement for site " + siteId);
@@ -1047,7 +1047,7 @@ public class SiteServiceImpl implements SiteService {
                 logger.debug("Loading configuration for site " + siteId);
                 reloadSiteConfiguration(siteId);
 
-                syncDatabaseWithRepo(siteId, null);
+                syncDatabaseWithRepo(siteId, null, false);
 
                 // initial deployment
                 logger.debug("Executing initial deployement for site " + siteId);
@@ -1330,6 +1330,14 @@ public class SiteServiceImpl implements SiteService {
     @ValidateParams
     public boolean syncDatabaseWithRepo(@ValidateStringParam(name = "site") String site,
                                         @ValidateStringParam(name = "fromCommitId") String fromCommitId) {
+        return syncDatabaseWithRepo(site, fromCommitId, true);
+    }
+
+    @Override
+    @ValidateParams
+    public boolean syncDatabaseWithRepo(@ValidateStringParam(name = "site") String site,
+                                        @ValidateStringParam(name = "fromCommitId") String fromCommitId,
+                                        boolean generateAuditLog) {
 		boolean toReturn = true;
         List<RepoOperationTO> repoOperations = contentRepository.getOperations(site, fromCommitId, contentRepository
 		    .getRepoLastCommitId(site));
@@ -1412,10 +1420,12 @@ public class SiteServiceImpl implements SiteService {
                         if (repoOperation.getPath().endsWith(DmConstants.XML_PATTERN)) {
                             activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
                         }
-                        logger.debug("Insert audit log for site: " + site + " path: " + repoOperation.getPath());
-                        activityService.postActivity(site, repoOperation.getAuthor(), repoOperation.getPath(),
-                                ActivityService.ActivityType.CREATED, ActivityService.ActivitySource.REPOSITORY,
-                                activityInfo);
+                        if (generateAuditLog) {
+                            logger.debug("Insert audit log for site: " + site + " path: " + repoOperation.getPath());
+                            activityService.postActivity(site, repoOperation.getAuthor(), repoOperation.getPath(),
+                                    ActivityService.ActivityType.CREATED, ActivityService.ActivitySource.REPOSITORY,
+                                    activityInfo);
+                        }
                         break;
 
                     case UPDATE:
@@ -1441,10 +1451,12 @@ public class SiteServiceImpl implements SiteService {
                         if (repoOperation.getPath().endsWith(DmConstants.XML_PATTERN)) {
                             activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
                         }
-                        logger.debug("Insert audit log for site: " + site + " path: " + repoOperation.getPath());
-                        activityService.postActivity(site, repoOperation.getAuthor(), repoOperation.getPath(),
-                                ActivityService.ActivityType.UPDATED, ActivityService.ActivitySource.REPOSITORY,
-                                activityInfo);
+                        if (generateAuditLog) {
+                            logger.debug("Insert audit log for site: " + site + " path: " + repoOperation.getPath());
+                            activityService.postActivity(site, repoOperation.getAuthor(), repoOperation.getPath(),
+                                    ActivityService.ActivityType.UPDATED, ActivityService.ActivitySource.REPOSITORY,
+                                    activityInfo);
+                        }
                         break;
 
                     case DELETE:
@@ -1463,10 +1475,12 @@ public class SiteServiceImpl implements SiteService {
                         if (repoOperation.getPath().endsWith(DmConstants.XML_PATTERN)) {
                             activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
                         }
-                        logger.debug("Insert audit log for site: " + site + " path: " + repoOperation.getPath());
-                        activityService.postActivity(site, repoOperation.getAuthor(), repoOperation.getPath(),
-                                ActivityService.ActivityType.DELETED, ActivityService.ActivitySource.REPOSITORY,
-                                activityInfo);
+                        if (generateAuditLog) {
+                            logger.debug("Insert audit log for site: " + site + " path: " + repoOperation.getPath());
+                            activityService.postActivity(site, repoOperation.getAuthor(), repoOperation.getPath(),
+                                    ActivityService.ActivityType.DELETED, ActivityService.ActivitySource.REPOSITORY,
+                                    activityInfo);
+                        }
                         break;
 
                     case MOVE:
@@ -1538,11 +1552,13 @@ public class SiteServiceImpl implements SiteService {
                         if (repoOperation.getMoveToPath().endsWith(DmConstants.XML_PATTERN)) {
                             activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
                         }
-                        logger.debug("Insert audit log for site: " + site + " path: " +
-                                repoOperation.getMoveToPath());
-                        activityService.postActivity(site, repoOperation.getAuthor(), repoOperation.getMoveToPath(),
-                                ActivityService.ActivityType.UPDATED, ActivityService.ActivitySource.REPOSITORY,
-                                activityInfo);
+                        if (generateAuditLog) {
+                            logger.debug("Insert audit log for site: " + site + " path: " +
+                                    repoOperation.getMoveToPath());
+                            activityService.postActivity(site, repoOperation.getAuthor(), repoOperation.getMoveToPath(),
+                                    ActivityService.ActivityType.UPDATED, ActivityService.ActivitySource.REPOSITORY,
+                                    activityInfo);
+                        }
                         break;
 
                     default:

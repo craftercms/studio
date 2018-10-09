@@ -147,6 +147,17 @@ public interface SiteService {
 	 */
 	boolean syncDatabaseWithRepo(String siteId, String fromCommitId);
 
+    /**
+     * Synchronize our internal database with the underlying repository. This is required when a user bypasses the UI
+     * and manipulates the underlying repository directly.
+     *
+     * @param siteId site to sync
+     * @param fromCommitId commit ID to start at and sync up until current commit
+     * @param generateAuditLog if true add operations to audit log
+     * @return true if successful, false otherwise
+     */
+    boolean syncDatabaseWithRepo(String siteId, String fromCommitId, boolean generateAuditLog);
+
    	/**
    	 * get a list of available blueprints
    	 */
