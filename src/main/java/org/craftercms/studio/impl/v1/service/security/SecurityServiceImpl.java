@@ -32,6 +32,7 @@ import java.util.Base64;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -41,6 +42,7 @@ import java.util.concurrent.TimeUnit;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.http.RequestContext;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
@@ -66,6 +68,7 @@ import org.craftercms.studio.api.v1.to.PermissionsConfigTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.User;
+import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.security.AuthenticationChain;
 import org.craftercms.studio.api.v2.service.security.GroupService;
 import org.craftercms.studio.api.v2.service.security.SecurityProvider;
@@ -99,10 +102,10 @@ import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_EXTERN
 import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_FIRSTNAME;
 import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_LASTNAME;
 import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_USERNAME;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.ADMIN_ROLE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SECURITY_AUTHENTICATION_TYPE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SYSTEM_ADMIN_GROUP;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_DEFAULT_ADMIN_GROUP;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_GLOBAL_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_GLOBAL_PERMISSION_MAPPINGS_FILE_NAME;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_GLOBAL_ROLE_MAPPINGS_FILE_NAME;
@@ -143,6 +146,7 @@ public class SecurityServiceImpl implements SecurityService {
     protected GroupService groupService;
     protected UserServiceInternal userServiceInternal;
     protected AuthenticationChain authenticationChain;
+    protected ConfigurationService configurationService;
 
     @Override
     @ValidateParams
@@ -891,22 +895,28 @@ public class SecurityServiceImpl implements SecurityService {
     @Override
     @ValidateParams
     public boolean isSiteAdmin(@ValidateStringParam(name = "username") String username, String site) {
-        List<Group> userGroups = null;
-        try {
-            userGroups = securityProvider.getUserGroups(-1, username);
-        } catch (ServiceLayerException e) {
-            logger.warn("Error getting user memberships", e);
-            return false;
-        }
+
         boolean toRet = false;
-        if (CollectionUtils.isNotEmpty(userGroups)) {
-            for (Group group : userGroups) {
-                if (StringUtils.equalsIgnoreCase(group.getGroupName(),
-                        studioConfiguration.getProperty(CONFIGURATION_DEFAULT_ADMIN_GROUP))) {
-                    toRet = true;
-                    break;
+        try {
+            if (userServiceInternal.isUserMemberOfGroup(username, SYSTEM_ADMIN_GROUP)) return true;
+
+            List<Group> groups = userServiceInternal.getUserGroups(-1, username);
+
+            if (CollectionUtils.isNotEmpty(groups)) {
+                Map<String, List<String>> roleMappings = configurationService.geRoleMappings(site);
+                Set<String> userRoles = new LinkedHashSet<>();
+
+                if (MapUtils.isNotEmpty(roleMappings)) {
+                    for (Group group : groups) {
+                        String groupName = group.getGroupName();
+                        List<String> roles = roleMappings.get(groupName);
+                        if (roles.contains(ADMIN_ROLE)) toRet = true;
+                    }
                 }
             }
+
+        } catch (ServiceLayerException | UserNotFoundException e) {
+            logger.warn("Error getting user memberships", e);
         }
         return toRet;
     }
@@ -1082,5 +1092,13 @@ public class SecurityServiceImpl implements SecurityService {
 
     public void setAuthenticationChain(AuthenticationChain authenticationChain) {
         this.authenticationChain = authenticationChain;
+    }
+
+    public ConfigurationService getConfigurationService() {
+        return configurationService;
+    }
+
+    public void setConfigurationService(ConfigurationService configurationService) {
+        this.configurationService = configurationService;
     }
 }
