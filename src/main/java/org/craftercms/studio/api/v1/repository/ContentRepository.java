@@ -477,4 +477,11 @@ public interface ContentRepository {
      * @param siteId site identifier
      */
     void reloadRepository(String siteId);
+
+    /**
+     * Performs a cleanup all repositories for the given site
+     * @param siteId site identifier
+     */
+    void cleanupRepositories(String siteId);
+
 }
