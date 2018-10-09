@@ -898,7 +898,9 @@ public class SecurityServiceImpl implements SecurityService {
 
         boolean toRet = false;
         try {
-            if (userServiceInternal.isUserMemberOfGroup(username, SYSTEM_ADMIN_GROUP)) return true;
+            if (userServiceInternal.isUserMemberOfGroup(username, SYSTEM_ADMIN_GROUP)) {
+                return true;
+            }
 
             List<Group> groups = userServiceInternal.getUserGroups(-1, username);
 
@@ -910,7 +912,9 @@ public class SecurityServiceImpl implements SecurityService {
                     for (Group group : groups) {
                         String groupName = group.getGroupName();
                         List<String> roles = roleMappings.get(groupName);
-                        if (roles.contains(ADMIN_ROLE)) toRet = true;
+                        if (roles.contains(ADMIN_ROLE)) {
+                            toRet = true;
+                        }
                     }
                 }
             }
