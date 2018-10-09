@@ -339,6 +339,11 @@
         <property name="servicesConfig" ref="cstudioServicesConfig" />
     </bean>
 
+    <bean id="studioRepositoryCleanupJob" class="org.craftercms.studio.impl.v1.repository.job.RepositoryCleanupJob">
+        <property name="siteService" ref="cstudioSiteServiceSimple"/>
+        <property name="contentRepository" ref="contentRepository"/>
+    </bean>
+
     <!-- scheduled actions -->
     <bean id="cstudioDeployContentToEnvironmentJobsScheduled" class="org.springframework.scheduling.quartz.SimpleTriggerFactoryBean" >
         <property name="jobDetail">
@@ -352,10 +357,22 @@
         <property name="startDelay" value="2000" />
     </bean>
 
+    <bean id="studioRepositoryCleanupJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail">
+            <bean class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean" >
+                <property name="targetObject" ref="studioRepositoryCleanupJob"/>
+                <property name="targetMethod" value="cleanupAllRepositories"/>
+                <property name="concurrent" value="false"/>
+            </bean>
+        </property>
+        <property name="cronExpression" value="#{studioConfiguration.getProperty('studio.repo.cleanup.cron')}"/>
+    </bean>
+
     <bean id="studioSchedulerFactoryBean" name="studioSchedulerFactoryBean" class="org.craftercms.studio.impl.v1.util.spring.context.StudioSchedulerFactoryBean" destroy-method="destroy">
         <property name="triggers">
             <list>
                 <ref bean="cstudioDeployContentToEnvironmentJobsScheduled" />
+                <ref bean="studioRepositoryCleanupJobTrigger"/>
             </list>
         </property>
         <property name="waitForJobsToCompleteOnShutdown" value="false" />

@@ -2336,6 +2336,25 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         helper.getRepository(siteId, SANDBOX);
     }
 
+    protected void cleanup(String siteId, GitRepositories repository) {
+        Repository sandbox = helper.getRepository(siteId, repository);
+        try (Git git = new Git(sandbox)) {
+            git.gc().call();
+        } catch (Exception e) {
+            logger.warn("Error cleaning up repository for site " + siteId, e);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void cleanupRepositories(final String siteId) {
+        logger.info("Cleaning up repositories for site {0}", siteId);
+        cleanup(siteId, SANDBOX);
+        cleanup(siteId, PUBLISHED);
+    }
+
     public void setServletContext(ServletContext ctx) {
         this.ctx = ctx;
     }
