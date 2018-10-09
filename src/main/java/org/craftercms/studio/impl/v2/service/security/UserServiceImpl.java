@@ -185,7 +185,7 @@ public class UserServiceImpl implements UserService {
         List<Site> sites = new ArrayList<>();
         Set<String> allSites = siteService.getAllAvailableSites();
         List<Group> userGroups = userServiceInternal.getUserGroups(userId, username);
-        boolean isSysAdmin = userServiceInternal.isUserMemberOfGroup(username, SYSTEM_ADMIN_GROUP);
+        boolean isSysAdmin = userGroups.stream().anyMatch(group -> group.getGroupName().equals(SYSTEM_ADMIN_GROUP));
 
         // Iterate all sites. If the user has any of the site groups, it has access to the site
         for (String siteId : allSites) {
