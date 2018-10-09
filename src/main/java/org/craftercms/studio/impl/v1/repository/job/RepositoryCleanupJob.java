@@ -18,6 +18,7 @@
 
 package org.craftercms.studio.impl.v1.repository.job;
 
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
@@ -39,6 +40,8 @@ public class RepositoryCleanupJob {
      * Performs a cleanup for all repositories on all existing sites.
      */
     public void cleanupAllRepositories() {
+        logger.info("Starting cleanup for global repo");
+        contentRepository.cleanupRepositories(StringUtils.EMPTY);
         logger.info("Starting cleanup for all sites");
         siteService.getAllAvailableSites().forEach(contentRepository::cleanupRepositories);
     }

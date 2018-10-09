@@ -143,8 +143,7 @@ import org.eclipse.jgit.util.FS;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.web.context.ServletContextAware;
 
-import static org.craftercms.studio.api.v1.constant.GitRepositories.PUBLISHED;
-import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
+import static org.craftercms.studio.api.v1.constant.GitRepositories.*;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.BOOTSTRAP_REPO_GLOBAL_PATH;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.BOOTSTRAP_REPO_PATH;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
@@ -2276,9 +2275,14 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
      */
     @Override
     public void cleanupRepositories(final String siteId) {
-        logger.info("Cleaning up repositories for site {0}", siteId);
-        cleanup(siteId, SANDBOX);
-        cleanup(siteId, PUBLISHED);
+        if(StringUtils.isEmpty(siteId)) {
+            logger.info("Cleaning up global repository");
+            cleanup(siteId, GLOBAL);
+        } else {
+            logger.info("Cleaning up repositories for site {0}", siteId);
+            cleanup(siteId, SANDBOX);
+            cleanup(siteId, PUBLISHED);
+        }
     }
 
     public void setServletContext(ServletContext ctx) {
