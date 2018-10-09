@@ -146,8 +146,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.web.context.ServletContextAware;
 
-import static org.craftercms.studio.api.v1.constant.GitRepositories.PUBLISHED;
-import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
+import static org.craftercms.studio.api.v1.constant.GitRepositories.*;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.BOOTSTRAP_REPO_GLOBAL_PATH;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.BOOTSTRAP_REPO_PATH;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
@@ -2334,6 +2333,30 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     public void reloadRepository(String siteId) {
         helper.sandboxes.remove(siteId);
         helper.getRepository(siteId, SANDBOX);
+    }
+
+    protected void cleanup(String siteId, GitRepositories repository) {
+        Repository sandbox = helper.getRepository(siteId, repository);
+        try (Git git = new Git(sandbox)) {
+            git.gc().call();
+        } catch (Exception e) {
+            logger.warn("Error cleaning up repository for site " + siteId, e);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void cleanupRepositories(final String siteId) {
+        if(StringUtils.isEmpty(siteId)) {
+            logger.info("Cleaning up global repository");
+            cleanup(siteId, GLOBAL);
+        } else {
+            logger.info("Cleaning up repositories for site {0}", siteId);
+            cleanup(siteId, SANDBOX);
+            cleanup(siteId, PUBLISHED);
+        }
     }
 
     public void setServletContext(ServletContext ctx) {
