@@ -906,7 +906,6 @@ public class SecurityServiceImpl implements SecurityService {
 
             if (CollectionUtils.isNotEmpty(groups)) {
                 Map<String, List<String>> roleMappings = configurationService.geRoleMappings(site);
-                Set<String> userRoles = new LinkedHashSet<>();
 
                 if (MapUtils.isNotEmpty(roleMappings)) {
                     for (Group group : groups) {
