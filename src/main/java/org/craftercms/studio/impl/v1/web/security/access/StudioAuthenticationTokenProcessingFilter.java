@@ -48,7 +48,13 @@ import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static org.craftercms.studio.api.v1.service.security.SecurityService.STUDIO_SESSION_TOKEN_ATRIBUTE;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.*;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.AUTHENTICATION_CHAIN_PROVIDER_ENABLED;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.AUTHENTICATION_CHAIN_PROVIDER_TYPE;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.AUTHENTICATION_CHAIN_PROVIDER_TYPE_HEADERS;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.AUTHENTICATION_HEADERS_USERNAME;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_AUTHENTICATION_CHAIN_CONFIG;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_IGNORE_RENEW_TOKEN_URLS;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_SESSION_TIMEOUT;
 
 public class StudioAuthenticationTokenProcessingFilter extends GenericFilterBean {
 
@@ -70,7 +76,9 @@ public class StudioAuthenticationTokenProcessingFilter extends GenericFilterBean
         authenticationHeadersEnabled =
                 chainConfig.stream().anyMatch(providerConfig ->
                         providerConfig.get(AUTHENTICATION_CHAIN_PROVIDER_TYPE).toString().toUpperCase()
-                                .equals(AUTHENTICATION_CHAIN_PROVIDER_TYPE_HEADERS));
+                                .equals(AUTHENTICATION_CHAIN_PROVIDER_TYPE_HEADERS) &&
+                                Boolean.parseBoolean(
+                                        providerConfig.get(AUTHENTICATION_CHAIN_PROVIDER_ENABLED).toString()));
     }
 
     @Override
@@ -83,6 +91,7 @@ public class StudioAuthenticationTokenProcessingFilter extends GenericFilterBean
         try {
             String userName = securityService.getCurrentUser();
             String authToken = securityService.getCurrentToken();
+
 
             if (userName != null) {
                 UserDetails userDetails = this.userDetailsManager.loadUserByUsername(userName);
@@ -106,8 +115,7 @@ public class StudioAuthenticationTokenProcessingFilter extends GenericFilterBean
                     httpSession.removeAttribute(STUDIO_SESSION_TOKEN_ATRIBUTE);
                     httpSession.invalidate();
                 }
-            } else {
-                if (isAuthenticationHeadersEnabled()) {
+            } else { if (isAuthenticationHeadersEnabled()) {
                     // If user not authenticated check for authentication headers
                     String usernameHeader =
                             httpRequest.getHeader(studioConfiguration.getProperty(AUTHENTICATION_HEADERS_USERNAME));
