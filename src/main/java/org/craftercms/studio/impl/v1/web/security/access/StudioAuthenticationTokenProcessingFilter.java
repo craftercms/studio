@@ -130,9 +130,6 @@ public class StudioAuthenticationTokenProcessingFilter extends GenericFilterBean
                         } catch (Exception e) {
                             crafterLogger.error("Unable to authenticate user using authentication headers.", e);
                         }
-                    } else {
-                        crafterLogger.warn("Unable to authenticate user (" + usernameHeader +
-                                        ") using authentication headers." );
                     }
                 }
             }
