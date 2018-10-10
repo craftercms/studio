@@ -18,39 +18,55 @@
 
 package org.craftercms.studio.api.v1.aws.s3;
 
-import org.craftercms.studio.api.v1.aws.AwsProfile;
-
 /**
- * Holds the information to connect to AWS S3.
- *
+ * Holds the data for an S3 item.
  * @author joseross
  */
-public class S3Profile extends AwsProfile {
+public class S3Item {
 
     /**
-     * Name of the bucket.
+     * Name of the item.
      */
-    protected String bucketName;
+    protected String name;
 
     /**
-     * The full URL of the distribution domain to use.
+     * URL of the item.
      */
-    protected String distributionDomain;
+    protected String url;
 
-    public String getBucketName() {
-        return bucketName;
+    /**
+     * Indicates if the item is a folder.
+     */
+    protected boolean folder;
+
+    public S3Item(final String name, final String url, final boolean folder) {
+        this.name = name;
+        this.url = url;
+        this.folder = folder;
     }
 
-    public void setBucketName(final String bucketName) {
-        this.bucketName = bucketName;
+    public String getName() {
+        return name;
     }
 
-    public String getDistributionDomain() {
-        return distributionDomain;
+    public void setName(final String name) {
+        this.name = name;
     }
 
-    public void setDistributionDomain(final String distributionDomain) {
-        this.distributionDomain = distributionDomain;
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(final String url) {
+        this.url = url;
+    }
+
+    public boolean isFolder() {
+        return folder;
+    }
+
+    public void setFolder(final boolean folder) {
+        this.folder = folder;
     }
 
 }

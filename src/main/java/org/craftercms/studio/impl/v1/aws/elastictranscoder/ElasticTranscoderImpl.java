@@ -1,6 +1,5 @@
 package org.craftercms.studio.impl.v1.aws.elastictranscoder;
 
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.services.elastictranscoder.AmazonElasticTranscoder;
 import com.amazonaws.services.elastictranscoder.AmazonElasticTranscoderClientBuilder;
 import com.amazonaws.services.elastictranscoder.model.CreateJobOutput;
@@ -101,14 +100,14 @@ public class ElasticTranscoderImpl implements ElasticTranscoder {
 
     protected AmazonS3 getS3Client(TranscoderProfile profile) {
         return AmazonS3ClientBuilder.standard()
-            .withCredentials(new AWSStaticCredentialsProvider(profile.getCredentials()))
+            .withCredentials(profile.getCredentialsProvider())
             .withRegion(profile.getRegion())
             .build();
     }
 
     protected AmazonElasticTranscoder getTranscoderClient(TranscoderProfile profile) {
         return AmazonElasticTranscoderClientBuilder.standard()
-            .withCredentials(new AWSStaticCredentialsProvider(profile.getCredentials()))
+            .withCredentials(profile.getCredentialsProvider())
             .withRegion(profile.getRegion())
             .build();
     }
