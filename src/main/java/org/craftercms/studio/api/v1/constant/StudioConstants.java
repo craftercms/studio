@@ -121,6 +121,7 @@ package org.craftercms.studio.api.v1.constant;
      */
     String FILE_SEPARATOR = "/";
     String SYSTEM_ADMIN_GROUP = "system_admin";
+    String ADMIN_ROLE = "admin";
 
     /**
      * Remote repository create option
