@@ -16,7 +16,7 @@
  *
  */
 
-package org.craftercms.studio.api.v1.aws.s3;
+package org.craftercms.studio.model.aws.s3;
 
 /**
  * Holds the data for an S3 item.

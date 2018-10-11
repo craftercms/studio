@@ -20,7 +20,6 @@ package org.craftercms.studio.controller.rest.v2.aws;
 
 import java.io.IOException;
 import java.io.InputStream;
-
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.fileupload.FileItemIterator;
@@ -30,10 +29,10 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.fileupload.util.Streams;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.craftercms.studio.api.v1.aws.s3.S3Item;
 import org.craftercms.studio.api.v1.exception.AwsException;
-import org.craftercms.studio.api.v1.service.aws.S3Service;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
+import org.craftercms.studio.api.v2.service.aws.s3.AwsS3Service;
+import org.craftercms.studio.model.aws.s3.S3Item;
 import org.craftercms.studio.model.rest.ApiResponse;
 import org.craftercms.studio.model.rest.ResultList;
 import org.craftercms.studio.model.rest.ResultOne;
@@ -44,7 +43,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import static org.craftercms.studio.api.v1.aws.AwsConstants.*;
+import static org.craftercms.studio.api.v1.aws.AwsConstants.PARAM_PATH;
+import static org.craftercms.studio.api.v1.aws.AwsConstants.PARAM_PROFILE;
+import static org.craftercms.studio.api.v1.aws.AwsConstants.PARAM_SITE;
+import static org.craftercms.studio.api.v1.aws.AwsConstants.PARAM_TYPE;
 
 /**
  * Rest controller for AWS S3 service.
@@ -52,10 +54,10 @@ import static org.craftercms.studio.api.v1.aws.AwsConstants.*;
  */
 @RestController
 @RequestMapping("/api/2/aws/s3")
-public class S3Controller {
+public class AwsS3Controller {
 
     @Autowired
-    protected S3Service s3Service;
+    protected AwsS3Service s3Service;
 
     /**
      * List items in an S3 bucket.
