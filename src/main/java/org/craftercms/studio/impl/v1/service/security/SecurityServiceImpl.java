@@ -131,7 +131,7 @@ public class SecurityServiceImpl implements SecurityService {
         HttpServletRequest httpServletRequest = requestContext.getRequest();
         String ipAddress = httpServletRequest.getRemoteAddr();
         try {
-            securityProvider.authenticate(username, password);
+            toRet = securityProvider.authenticate(username, password);
         } catch (BadCredentialsException | AuthenticationSystemException | EntitlementException e) {
             ActivityService.ActivityType activityType = ActivityService.ActivityType.LOGIN_FAILED;
             Map<String, String> extraInfo = new HashMap<String, String>();
