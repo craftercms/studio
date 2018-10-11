@@ -32,7 +32,6 @@ import java.util.Base64;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -152,22 +151,10 @@ public class SecurityServiceImpl implements SecurityService {
     @ValidateParams
     public String authenticate(@ValidateStringParam(name = "username") String username,
                                @ValidateStringParam(name = "password") String password) throws Exception {
-        //String toRet = securityProvider.authenticate(username, password);
         RequestContext requestContext = RequestContext.getCurrent();
         HttpServletRequest request = requestContext.getRequest();
         HttpServletResponse response = requestContext.getResponse();
-        boolean authenticated = authenticationChain.doAuthenticate(request, response, username, password);
-        if (authenticated) {
-            String ipAddress = request.getRemoteAddr();
-
-            ActivityService.ActivityType activityType = ActivityService.ActivityType.LOGIN;
-            Map<String, String> extraInfo = new HashMap<String, String>();
-            extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
-            activityService.postActivity(getSystemSite(), username, ipAddress, activityType,
-                    ActivityService.ActivitySource.API, extraInfo);
-
-            logger.info("User " + username + " logged in from IP: " + ipAddress);
-        }
+        authenticationChain.doAuthenticate(request, response, username, password);
         return getCurrentToken();
     }
 

@@ -44,7 +44,6 @@ import org.springframework.ldap.AuthenticationException;
 import org.springframework.ldap.CommunicationException;
 import org.springframework.ldap.core.AuthenticatedLdapEntryContextMapper;
 import org.springframework.ldap.core.DirContextOperations;
-import org.springframework.ldap.core.LdapEntryIdentification;
 import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.ldap.core.support.DefaultDirObjectFactory;
 import org.springframework.ldap.core.support.LdapContextSource;
@@ -54,7 +53,6 @@ import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
 import javax.naming.directory.Attributes;
-import javax.naming.directory.DirContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
@@ -128,7 +126,7 @@ public class LdapAuthenticationProvider extends BaseAuthenticationProvider {
                 if (emailAttrib != null && emailAttrib.get() != null) {
                     user.setEmail(emailAttrib.get().toString());
                 } else {
-                    logger.error("No LDAP attribute " + emailLdapAttribute + " found for username " + username +
+                    logger.warn("No LDAP attribute " + emailLdapAttribute + " found for username " + username +
                                  ". User will not be imported into DB.");
                     return null;
                 }
@@ -149,7 +147,7 @@ public class LdapAuthenticationProvider extends BaseAuthenticationProvider {
 
                 return user;
             } catch (NamingException e) {
-                logger.error("Error getting details from LDAP for username " + username, e);
+                logger.debug("Error getting details from LDAP for username " + username, e);
 
                 return null;
             }
@@ -161,19 +159,19 @@ public class LdapAuthenticationProvider extends BaseAuthenticationProvider {
         try {
             user = ldapTemplate.authenticate(ldapQuery, password, mapper);
         } catch (EmptyResultDataAccessException e) {
-            logger.info("User " + username + " not found with external security provider.");
+            logger.debug("User " + username + " not found with external security provider.");
 
             return false;
         } catch (CommunicationException e) {
-            logger.info("Failed to connect with external security provider", e);
+            logger.debug("Failed to connect with external security provider", e);
 
             return false;
         }  catch (AuthenticationException e) {
-            logger.error("Authentication failed with the LDAP system (bad credentials)", e);
+            logger.debug("Authentication failed with the LDAP system (bad credentials)", e);
 
             throw new BadCredentialsException();
         } catch (Exception e) {
-            logger.error("Unexpected exception when authenticating with the LDAP system", e);
+            logger.debug("Unexpected exception when authenticating with the LDAP system", e);
 
             return false;
         }
@@ -209,14 +207,14 @@ public class LdapAuthenticationProvider extends BaseAuthenticationProvider {
                                                      user.getUsername(), user.getUsername(),
                                                      activityType, ActivityService.ActivitySource.API, extraInfo);
                     } catch (UserAlreadyExistsException e) {
-                        logger.error("Error adding user " + username + " from external authentication provider",
+                        logger.debug("Error adding user " + username + " from external authentication provider",
                                      e);
                         throw new AuthenticationSystemException("Error adding user " + username +
                                 " from external authentication provider", e);
                     }
                 }
             } catch (ServiceLayerException e) {
-                logger.error("Unknown service error", e);
+                logger.debug("Unknown service error", e);
 
                 throw  new AuthenticationSystemException("Unknown service error" , e);
             }
@@ -230,7 +228,7 @@ public class LdapAuthenticationProvider extends BaseAuthenticationProvider {
 
             return true;
         } else {
-            logger.error("Failed to retrieve LDAP user details");
+            logger.debug("Failed to retrieve LDAP user details");
 
             throw new AuthenticationSystemException("Failed to retrieve LDAP user details");
         }
@@ -314,7 +312,7 @@ public class LdapAuthenticationProvider extends BaseAuthenticationProvider {
                 activityService.postActivity("", "LDAP", username + " > " + groupName, activityType,
                                              ActivityService.ActivitySource.API, extraInfo);
             } catch (Exception e) {
-                logger.error("Unknown database error", e);
+                logger.debug("Unknown database error", e);
             }
         }
         return true;
