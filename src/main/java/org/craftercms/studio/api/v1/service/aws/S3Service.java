@@ -54,7 +54,7 @@ public interface S3Service {
      * @return the uploaded item
      * @throws AwsException if there is any error connection to S3
      */
-    S3Item upload(String siteId, String profileId, String filename, InputStream content) throws AwsException;
+    S3Item uploadItem(String siteId, String profileId, String filename, InputStream content) throws AwsException;
 
     /**
      * Lists items in an S3 bucket.
@@ -65,6 +65,6 @@ public interface S3Service {
      * @return the list of items
      * @throws AwsException if there is any error connection to S3
      */
-    List<S3Item> list(String siteId, String profileId, String path, String type) throws AwsException;
+    List<S3Item> listItems(String siteId, String profileId, String path, String type) throws AwsException;
 
 }

@@ -67,7 +67,7 @@ public class S3Controller {
      * @throws AwsException if there is any error connecting to S3
      */
     @GetMapping("/list")
-    public ResultList<S3Item> list(
+    public ResultList<S3Item> listItems(
         @RequestParam(PARAM_SITE) String siteId,
         @RequestParam(PARAM_PROFILE) String profileId,
         @RequestParam(value = PARAM_PATH, required = false, defaultValue = StringUtils.EMPTY) String path,
@@ -75,7 +75,7 @@ public class S3Controller {
         throws AwsException {
 
         ResultList<S3Item> result = new ResultList<>();
-        result.setEntities(s3Service.list(siteId, profileId, path, type));
+        result.setEntities(s3Service.listItems(siteId, profileId, path, type));
         result.setResponse(ApiResponse.OK);
 
         return result;
@@ -90,7 +90,7 @@ public class S3Controller {
      * @throws AwsException if there is any error connecting to S3
      */
     @PostMapping("/upload")
-    public ResultOne<S3Item> upload(HttpServletRequest request) throws IOException, InvalidParametersException,
+    public ResultOne<S3Item> uploadItem(HttpServletRequest request) throws IOException, InvalidParametersException,
         AwsException {
         if(ServletFileUpload.isMultipartContent(request)) {
             ResultOne<S3Item> result = new ResultOne<>();
@@ -117,7 +117,7 @@ public class S3Controller {
                             if (StringUtils.isNotEmpty(filename)) {
                                 filename = FilenameUtils.getName(filename);
                             }
-                            result.setEntity(s3Service.upload(siteId, profileId, filename, stream));
+                            result.setEntity(s3Service.uploadItem(siteId, profileId, filename, stream));
                             result.setResponse(ApiResponse.OK);
                         }
                     }

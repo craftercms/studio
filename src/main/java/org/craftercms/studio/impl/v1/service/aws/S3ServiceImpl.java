@@ -92,10 +92,10 @@ public class S3ServiceImpl extends AbstractAwsService<S3Profile> implements S3Se
      * {@inheritDoc}
      */
     @Override
-    public S3Item upload(@ValidateStringParam(name = "siteId") final String siteId,
-                         @ValidateStringParam(name = "profileId") final String profileId,
-                         @ValidateStringParam(name = "filename") final String filename,
-                         final InputStream content) throws AwsException {
+    public S3Item uploadItem(@ValidateStringParam(name = "siteId") final String siteId,
+                             @ValidateStringParam(name = "profileId") final String profileId,
+                             @ValidateStringParam(name = "filename") final String filename,
+                             final InputStream content) throws AwsException {
         S3Profile profile = getProfile(siteId, profileId);
         AmazonS3 s3Client = getS3Client(profile);
         String inputBucket = profile.getBucketName();
@@ -109,10 +109,10 @@ public class S3ServiceImpl extends AbstractAwsService<S3Profile> implements S3Se
      * {@inheritDoc}
      */
     @Override
-    public List<S3Item> list(@ValidateStringParam(name = "siteId") final String siteId,
-                             @ValidateStringParam(name = "profileId") final String profileId,
-                             @ValidateStringParam(name = "path") final String path,
-                             @ValidateStringParam(name = "type") final String type) throws AwsException {
+    public List<S3Item> listItems(@ValidateStringParam(name = "siteId") final String siteId,
+                                  @ValidateStringParam(name = "profileId") final String profileId,
+                                  @ValidateStringParam(name = "path") final String path,
+                                  @ValidateStringParam(name = "type") final String type) throws AwsException {
         S3Profile profile = getProfile(siteId, profileId);
         AmazonS3 client = getS3Client(profile);
         List<S3Item> items = new LinkedList<>();
