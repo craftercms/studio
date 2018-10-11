@@ -37,9 +37,10 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
+import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.User;
-import org.craftercms.studio.api.v2.service.security.SecurityProvider;
+import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.Status;
@@ -123,14 +124,16 @@ public class GitContentRepositoryHelper {
     protected Repository globalRepo = null;
 
     protected StudioConfiguration studioConfiguration;
-    protected SecurityProvider securityProvider;
     protected ServicesConfig servicesConfig;
+    protected UserServiceInternal userServiceInternal;
+    protected SecurityService securityService;
 
-    public GitContentRepositoryHelper(StudioConfiguration studioConfiguration, SecurityProvider securityProvider,
-                               ServicesConfig servicesConfig) {
+    public GitContentRepositoryHelper(StudioConfiguration studioConfiguration, ServicesConfig servicesConfig,
+                                      UserServiceInternal userServiceInternal, SecurityService securityService) {
         this.studioConfiguration = studioConfiguration;
-        this.securityProvider = securityProvider;
         this.servicesConfig = servicesConfig;
+        this.userServiceInternal = userServiceInternal;
+        this.securityService = securityService;
     }
 
     /**
@@ -771,7 +774,7 @@ public class GitContentRepositoryHelper {
      * @return current user as a PersonIdent
      */
     public PersonIdent getCurrentUserIdent() throws ServiceLayerException, UserNotFoundException {
-        String userName = securityProvider.getCurrentUser();
+        String userName = securityService.getCurrentUser();
         return getAuthorIdent(userName);
     }
 
@@ -782,7 +785,7 @@ public class GitContentRepositoryHelper {
      * @return author user as a PersonIdent
      */
     public PersonIdent getAuthorIdent(String author) throws ServiceLayerException, UserNotFoundException {
-        User user = securityProvider.getUserByIdOrUsername(-1, author);
+        User user = userServiceInternal.getUserByIdOrUsername(-1, author);
         PersonIdent currentUserIdent =
                 new PersonIdent(user.getFirstName() + " " + user.getLastName(), user.getEmail());
 

@@ -53,7 +53,6 @@
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager" />
         <property name="securityService" ref="cstudioSecurityService" />
         <property name="dmPageNavigationOrderService" ref="cstudioPageNavOrderService"/>
-        <property name="securityProvider" ref="securityProvider"/>
         <property name="activityService" ref="cstudioActivityService"/>
         <property name="dmContentLifeCycleService" ref="cstudioContentLifeCycleService"/>
         <property name="eventService" ref="studioEventService"/>
@@ -105,7 +104,6 @@
         <property name="dmPageNavigationOrderService" ref="cstudioPageNavOrderService"/>
         <property name="notificationService" ref="cstudioNotificationService"/>
         <property name="contentTypeService" ref="cstudioContentTypeService"/>
-        <property name="securityProvider" ref="securityProvider" />
         <property name="importService" ref="cstudioImportService"/>
         <property name="generalLockService" ref="cstudioGeneralLockService"/>
         <property name="rebuildRepositoryMetadata" ref="studioRebuildRepositoryMetadata"/>
@@ -226,7 +224,6 @@
     <bean id="cstudioSecurityService" class="org.craftercms.studio.impl.v1.service.security.SecurityServiceImpl">
         <property name="contentService" ref="cstudioContentService"/>
         <property name="contentTypeService" ref="cstudioContentTypeService"/>
-        <property name="securityProvider" ref="securityProvider"/>
         <property name="generalLockService" ref="cstudioGeneralLockService" />
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="emailService" ref="mailSender"/>
@@ -309,7 +306,6 @@
 
     <bean id="groupService" class="org.craftercms.studio.impl.v2.service.security.GroupServiceImpl">
         <property name="configurationService" ref="configurationService" />
-        <property name="securityProvider" ref="securityProvider" />
         <property name="generalLockService" ref="cstudioGeneralLockService" />
         <property name="groupServiceInternal" ref="groupServiceInternal" />
         <property name="userServiceInternal" ref="userServiceInternal" />
@@ -327,10 +323,10 @@
         <property name="userServiceInternal" ref="userServiceInternal" />
         <property name="groupServiceInternal" ref="groupServiceInternal" />
         <property name="configurationService" ref="configurationService" />
-        <property name="securityProvider" ref="securityProvider" />
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="entitlementValidator" ref="crafter.entitlementValidator"/>
         <property name="generalLockService" ref="cstudioGeneralLockService" />
+        <property name="securityService" ref="cstudioSecurityService" />
     </bean>
 
     <bean id="userServiceInternal"
@@ -484,10 +480,11 @@
     <bean id="contentRepository"
           class="org.craftercms.studio.impl.v1.repository.git.GitContentRepository" init-method="bootstrap">
         <property name="studioConfiguration" ref="studioConfiguration"/>
-        <property name="securityProvider" ref="securityProvider"/>
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
         <property name="remoteRepositoryMapper" ref="remoteRepositoryMapper" />
         <property name="gitLogMapper" ref="gitLogMapper" />
+        <property name="userServiceInternal" ref="userServiceInternal" />
+        <property name="securityService" ref="cstudioSecurityService" />
     </bean>
 
     <!-- ////////////////////////////////////// -->
@@ -722,7 +719,6 @@
         <property name="contentRepository" ref="contentRepository"/>
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
-        <property name="securityProvider" ref="securityProvider" />
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="deploymentHistoryProvider" ref="contentRepository" />
         <property name="dependencyService" ref="studioDependencyService" />
@@ -885,8 +881,8 @@
     <!-- ////////////////////////////////////// -->
     <bean id="crafter.entitlementsProvider" class="org.craftercms.studio.impl.v1.entitlement.StudioEntitlementUsageProvider">
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
-        <property name="securityProvider" ref="securityProvider"/>
         <property name="siteService" ref="cstudioSiteServiceSimple"/>
+        <property name="userServiceInternal" ref="userServiceInternal" />
     </bean>
 
     <import resource="classpath:crafter/studio/studio-security-context.xml"/>

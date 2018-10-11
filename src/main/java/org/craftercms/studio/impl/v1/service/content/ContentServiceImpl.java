@@ -86,7 +86,6 @@ import org.craftercms.studio.api.v1.to.ResultTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.api.v1.util.DebugUtils;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
-import org.craftercms.studio.api.v2.service.security.SecurityProvider;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentItemOrderComparator;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
@@ -140,7 +139,6 @@ public class ContentServiceImpl implements ContentService {
     protected ObjectMetadataManager objectMetadataManager;
     protected SecurityService securityService;
     protected DmPageNavigationOrderService dmPageNavigationOrderService;
-    protected SecurityProvider securityProvider;
     protected ActivityService activityService;
     protected DmContentLifeCycleService dmContentLifeCycleService;
     protected EventService eventService;
@@ -2451,7 +2449,7 @@ public class ContentServiceImpl implements ContentService {
         boolean toRet = _contentRepository.pushToRemote(siteId, remoteName, remoteBranch);
 
         ActivityService.ActivityType activityType = ActivityService.ActivityType.PUSH_TO_REMOTE;
-        String user = securityProvider.getCurrentUser();
+        String user = securityService.getCurrentUser();
         Map<String, String> extraInfo = new HashMap<String, String>();
         extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_SITE);
         activityService.postActivity(siteId, user, remoteName + "/" + remoteBranch , activityType,
@@ -2469,7 +2467,7 @@ public class ContentServiceImpl implements ContentService {
         boolean toRet = _contentRepository.pullFromRemote(siteId, remoteName, remoteBranch);
 
         ActivityService.ActivityType activityType = ActivityService.ActivityType.PULL_FROM_REMOTE;
-        String user = securityProvider.getCurrentUser();
+        String user = securityService.getCurrentUser();
         Map<String, String> extraInfo = new HashMap<String, String>();
         extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_SITE);
         activityService.postActivity(siteId, user, remoteName + "/" + remoteBranch , activityType,
@@ -2541,13 +2539,6 @@ public class ContentServiceImpl implements ContentService {
         this.dmPageNavigationOrderService = dmPageNavigationOrderService;
     }
 
-    public SecurityProvider getSecurityProvider() {
-        return securityProvider;
-    }
-    public void setSecurityProvider(SecurityProvider securityProvider) {
-        this.securityProvider = securityProvider;
-    }
-
     public ActivityService getActivityService() {
         return activityService;
     }
@@ -2607,5 +2598,4 @@ public class ContentServiceImpl implements ContentService {
     public void setEntitlementValidator(final EntitlementValidator entitlementValidator) {
         this.entitlementValidator = entitlementValidator;
     }
-
 }

@@ -30,7 +30,7 @@ import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.User;
-import org.craftercms.studio.api.v2.service.security.SecurityProvider;
+import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.springframework.security.access.AccessDecisionVoter;
 
 import java.util.Collection;
@@ -47,10 +47,10 @@ public abstract class StudioAbstractAccessDecisionVoter implements AccessDecisio
 
     private final static Logger logger = LoggerFactory.getLogger(StudioAbstractAccessDecisionVoter.class);
 
-    protected SecurityProvider securityProvider;
     protected SecurityService securityService;
     protected StudioConfiguration studioConfiguration;
     protected SiteService siteService;
+    protected UserServiceInternal userServiceInternal;
 
     protected boolean isSiteMember(User currentUser, String userParam) {
         try {
@@ -111,7 +111,7 @@ public abstract class StudioAbstractAccessDecisionVoter implements AccessDecisio
 
             boolean toRet = sites.containsKey(siteId);
             if (toRet) {
-                List<Group> userGroups = securityProvider.getUserGroups(sites.get(siteId), currentUser.getUsername());
+                List<Group> userGroups = userServiceInternal.getUserGroups(sites.get(siteId), currentUser.getUsername());
                 for (Group g : userGroups) {
                     if (g.getGroupName().equals(studioConfiguration.getProperty(CONFIGURATION_DEFAULT_ADMIN_GROUP))) {
                         toRet = true;
@@ -137,8 +137,8 @@ public abstract class StudioAbstractAccessDecisionVoter implements AccessDecisio
     protected boolean isAdmin(User user) {
         List<Group> userGroups = null;
         try {
-            userGroups = securityProvider.getUserGroups(-1, user.getUsername());
-        } catch (ServiceLayerException e) {
+            userGroups = userServiceInternal.getUserGroups(-1, user.getUsername());
+        } catch (ServiceLayerException | UserNotFoundException e) {
             logger.error("Error getting user memberships", e);
             return false;
         }
@@ -152,14 +152,6 @@ public abstract class StudioAbstractAccessDecisionVoter implements AccessDecisio
             }
         }
         return toRet;
-    }
-
-    public SecurityProvider getSecurityProvider() {
-        return securityProvider;
-    }
-
-    public void setSecurityProvider(SecurityProvider securityProvider) {
-        this.securityProvider = securityProvider;
     }
 
     public StudioConfiguration getStudioConfiguration() {
@@ -184,5 +176,13 @@ public abstract class StudioAbstractAccessDecisionVoter implements AccessDecisio
 
     public void setSecurityService(SecurityService securityService) {
         this.securityService = securityService;
+    }
+
+    public UserServiceInternal getUserServiceInternal() {
+        return userServiceInternal;
+    }
+
+    public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
+        this.userServiceInternal = userServiceInternal;
     }
 }
