@@ -42,6 +42,7 @@ public interface ActivityService {
 		ADD_USER_TO_GROUP,
 		REMOVE_USER_FROM_GROUP,
 		LOGIN,
+        LOGIN_FAILED,
 		LOGOUT,
 		CREATE_SITE,
 		DELETE_SITE,
