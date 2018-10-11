@@ -125,12 +125,25 @@ public class SecurityServiceImpl implements SecurityService {
     public String authenticate(@ValidateStringParam(name = "username") String username,
                                @ValidateStringParam(name = "password") String password) throws
         BadCredentialsException, AuthenticationSystemException, EntitlementException {
-        String toRet = securityProvider.authenticate(username, password);
-        if (StringUtils.isNotEmpty(toRet)) {
-            RequestContext requestContext = RequestContext.getCurrent();
-            HttpServletRequest httpServletRequest = requestContext.getRequest();
-            String ipAddress = httpServletRequest.getRemoteAddr();
 
+        String toRet = StringUtils.EMPTY;
+        RequestContext requestContext = RequestContext.getCurrent();
+        HttpServletRequest httpServletRequest = requestContext.getRequest();
+        String ipAddress = httpServletRequest.getRemoteAddr();
+        try {
+            toRet = securityProvider.authenticate(username, password);
+        } catch (BadCredentialsException | AuthenticationSystemException | EntitlementException e) {
+            ActivityService.ActivityType activityType = ActivityService.ActivityType.LOGIN_FAILED;
+            Map<String, String> extraInfo = new HashMap<String, String>();
+            extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
+            activityService.postActivity(getSystemSite(), username, ipAddress, activityType,
+                    ActivityService.ActivitySource.API, extraInfo);
+
+            logger.info("Failed to authenticate user " + username + " logging in from IP: " + ipAddress);
+
+            throw e;
+        }
+        if (StringUtils.isNotEmpty(toRet)) {
             ActivityService.ActivityType activityType = ActivityService.ActivityType.LOGIN;
             Map<String, String> extraInfo = new HashMap<String, String>();
             extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
@@ -138,6 +151,14 @@ public class SecurityServiceImpl implements SecurityService {
                     ActivityService.ActivitySource.API, extraInfo);
 
             logger.info("User " + username + " logged in from IP: " + ipAddress);
+        } else {
+            ActivityService.ActivityType activityType = ActivityService.ActivityType.LOGIN_FAILED;
+            Map<String, String> extraInfo = new HashMap<String, String>();
+            extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
+            activityService.postActivity(getSystemSite(), username, ipAddress, activityType,
+                    ActivityService.ActivitySource.API, extraInfo);
+
+            logger.info("Failed to authenticate user " + username + " logging in from IP: " + ipAddress);
         }
         return toRet;
     }
