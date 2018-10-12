@@ -416,6 +416,14 @@
 
     <!-- continue refactoring -->
     <!-- Jobs -->
+
+    <bean id="studioPublisherTaskExecutor"
+          class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor">
+        <property name="corePoolSize" value="10" />
+        <property name="maxPoolSize" value="20" />
+        <property name="threadNamePrefix" value="Studio_Publisher_Thread_Pool" />
+    </bean>
+
     <bean id="cstudioDeployContentToEnvironmentJobs" class="org.craftercms.studio.impl.v1.service.deployment.job.DeployContentToEnvironmentStore">
         <property name="publishingManager" ref="cstudioPublishingManager" />
         <property name="contentRepository" ref="contentRepository" />
@@ -426,6 +434,7 @@
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="activityService" ref="cstudioActivityService" />
         <property name="servicesConfig" ref="cstudioServicesConfig" />
+        <property name="taskExecutor" ref="studioPublisherTaskExecutor" />
     </bean>
 
     <bean id="studioRepositoryCleanupJob" class="org.craftercms.studio.impl.v1.repository.job.RepositoryCleanupJob">
