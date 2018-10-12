@@ -24,9 +24,14 @@ package org.craftercms.studio.api.v1.webdav;
 public class WebDavProfile {
 
     /**
-     * The base url of the server.
+     * The base url of the webdav server.
      */
     protected String baseUrl;
+
+    /**
+     * The base url to generate asset urls.
+     */
+    protected String deliveryBaseUrl;
 
     /**
      * The username used to connect to the server.
@@ -44,6 +49,14 @@ public class WebDavProfile {
 
     public void setBaseUrl(final String baseUrl) {
         this.baseUrl = baseUrl;
+    }
+
+    public String getDeliveryBaseUrl() {
+        return deliveryBaseUrl;
+    }
+
+    public void setDeliveryBaseUrl(final String deliveryBaseUrl) {
+        this.deliveryBaseUrl = deliveryBaseUrl;
     }
 
     public String getUsername() {
