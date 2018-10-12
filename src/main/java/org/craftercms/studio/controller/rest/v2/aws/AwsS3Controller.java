@@ -113,6 +113,8 @@ public class AwsS3Controller {
                                 case PARAM_PROFILE:
                                     profileId = Streams.asString(stream);
                                     break;
+                                default:
+                                    // Unknown parameter, just skip it...
                             }
                         } else {
                             String filename = item.getName();
