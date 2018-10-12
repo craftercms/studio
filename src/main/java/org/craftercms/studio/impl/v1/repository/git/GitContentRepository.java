@@ -80,13 +80,14 @@ import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentHistoryProvider;
+import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
 import org.craftercms.studio.api.v1.to.RepoOperationTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
-import org.craftercms.studio.api.v2.service.security.SecurityProvider;
+import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.CheckoutCommand;
 import org.eclipse.jgit.api.CreateBranchCommand;
@@ -172,11 +173,12 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     private static final String STUDIO_MANIFEST_LOCATION = "/META-INF/MANIFEST.MF";
 
     protected ServletContext ctx;
-    protected SecurityProvider securityProvider;
     protected StudioConfiguration studioConfiguration;
     protected ServicesConfig servicesConfig;
     protected GitLogMapper gitLogMapper;
     protected RemoteRepositoryMapper remoteRepositoryMapper;
+    protected UserServiceInternal userServiceInternal;
+    protected SecurityService securityService;
 
     @Override
     public boolean contentExists(String site, String path) {
@@ -268,7 +270,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 if (repo != null) {
                     if (helper.writeFile(repo, site, path, content)) {
                         PersonIdent user = helper.getCurrentUserIdent();
-                        String username = securityProvider.getCurrentUser();
+                        String username = securityService.getCurrentUser();
                         String comment = studioConfiguration.getProperty(REPO_SANDBOX_WRITE_COMMIT_MESSAGE)
                             .replace(REPO_COMMIT_MESSAGE_USERNAME_VAR, username)
                             .replace(REPO_COMMIT_MESSAGE_PATH_VAR, path);
@@ -868,7 +870,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
      */
     public void bootstrap() throws Exception {
         // Initialize the helper
-        helper = new GitContentRepositoryHelper(studioConfiguration, securityProvider, servicesConfig);
+        helper = new GitContentRepositoryHelper(studioConfiguration, servicesConfig, userServiceInternal,
+                securityService);
 
         encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
                 studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
@@ -2289,14 +2292,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         this.ctx = ctx;
     }
 
-    public SecurityProvider getSecurityProvider() {
-        return securityProvider;
-    }
-
-    public void setSecurityProvider(final SecurityProvider securityProvider) {
-        this.securityProvider = securityProvider;
-    }
-
     public void setStudioConfiguration(final StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
     }
@@ -2323,5 +2318,21 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
     public void setRemoteRepositoryMapper(RemoteRepositoryMapper remoteRepositoryMapper) {
         this.remoteRepositoryMapper = remoteRepositoryMapper;
+    }
+
+    public UserServiceInternal getUserServiceInternal() {
+        return userServiceInternal;
+    }
+
+    public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
+        this.userServiceInternal = userServiceInternal;
+    }
+
+    public SecurityService getSecurityService() {
+        return securityService;
+    }
+
+    public void setSecurityService(SecurityService securityService) {
+        this.securityService = securityService;
     }
 }

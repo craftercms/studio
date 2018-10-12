@@ -25,9 +25,10 @@ import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
+import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.exception.UpgradeException;
-import org.craftercms.studio.api.v2.service.security.SecurityProvider;
+import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryHelper;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -60,8 +61,9 @@ public class SiteRepositoryUpgradePipelineImpl extends DefaultUpgradePipelineImp
     protected String commitMessage;
 
     protected StudioConfiguration studioConfiguration;
-    protected SecurityProvider securityProvider;
     protected ServicesConfig servicesConfig;
+    protected SecurityService securityService;
+    protected UserServiceInternal userServiceInternal;
 
 
     protected void createTemporaryBranch(String site, Git git) throws GitAPIException {
@@ -98,8 +100,8 @@ public class SiteRepositoryUpgradePipelineImpl extends DefaultUpgradePipelineImp
      */
     @Override
     public void execute(final String site) throws UpgradeException {
-        GitContentRepositoryHelper helper = new GitContentRepositoryHelper(studioConfiguration, securityProvider,
-            servicesConfig);
+        GitContentRepositoryHelper helper = new GitContentRepositoryHelper(studioConfiguration, servicesConfig,
+                userServiceInternal, securityService);
         Repository repository = helper.getRepository(site, GitRepositories.SANDBOX);
         Git git = new Git(repository);
         try {
@@ -148,13 +150,23 @@ public class SiteRepositoryUpgradePipelineImpl extends DefaultUpgradePipelineImp
     }
 
     @Required
-    public void setSecurityProvider(final SecurityProvider securityProvider) {
-        this.securityProvider = securityProvider;
-    }
-
-    @Required
     public void setServicesConfig(final ServicesConfig servicesConfig) {
         this.servicesConfig = servicesConfig;
     }
 
+    public SecurityService getSecurityService() {
+        return securityService;
+    }
+
+    public void setSecurityService(SecurityService securityService) {
+        this.securityService = securityService;
+    }
+
+    public UserServiceInternal getUserServiceInternal() {
+        return userServiceInternal;
+    }
+
+    public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
+        this.userServiceInternal = userServiceInternal;
+    }
 }

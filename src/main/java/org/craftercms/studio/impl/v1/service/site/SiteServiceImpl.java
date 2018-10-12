@@ -108,7 +108,6 @@ import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
 import org.craftercms.studio.api.v1.to.SiteTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
-import org.craftercms.studio.api.v2.service.security.SecurityProvider;
 import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.upgrade.UpgradeManager;
@@ -166,7 +165,6 @@ public class SiteServiceImpl implements SiteService {
     protected ObjectMetadataManager objectMetadataManager;
     protected DmPageNavigationOrderService dmPageNavigationOrderService;
     protected ContentTypeService contentTypeService;
-    protected SecurityProvider securityProvider;
     protected ImportService importService;
     protected NotificationService notificationService;
     protected GeneralLockService generalLockService;
@@ -490,7 +488,7 @@ public class SiteServiceImpl implements SiteService {
                     for (PublishingTargetTO target : publishingTargets) {
                         if (StringUtils.isNotEmpty(target.getRepoBranchName())) {
                             contentRepository.initialPublish(siteId, sandboxBranch, target.getRepoBranchName(),
-                                    securityProvider.getCurrentUser(), "Create site.");
+                                    securityService.getCurrentUser(), "Create site.");
                         }
                     }
                 }
@@ -542,7 +540,7 @@ public class SiteServiceImpl implements SiteService {
 
     private void insertCreateSiteAuditLog(String siteId) {
         ActivityService.ActivityType activityType = ActivityService.ActivityType.CREATE_SITE;
-        String user = securityProvider.getCurrentUser();
+        String user = securityService.getCurrentUser();
         Map<String, String> extraInfo = new HashMap<String, String>();
         extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_SITE);
         activityService.postActivity(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE), user,
@@ -873,7 +871,7 @@ public class SiteServiceImpl implements SiteService {
                     for (PublishingTargetTO target : publishingTargets) {
                         if (StringUtils.isNotEmpty(target.getRepoBranchName())) {
                             contentRepository.initialPublish(siteId, sandboxBranch, target.getRepoBranchName(),
-                                    securityProvider.getCurrentUser(), "Create site.");
+                                    securityService.getCurrentUser(), "Create site.");
                         }
                     }
                 }
@@ -1056,7 +1054,7 @@ public class SiteServiceImpl implements SiteService {
                     for (PublishingTargetTO target : publishingTargets) {
                         if (StringUtils.isNotEmpty(target.getRepoBranchName())) {
                             contentRepository.initialPublish(siteId, sandboxBranch, target.getRepoBranchName(),
-                                    securityProvider.getCurrentUser(), "Create site.");
+                                    securityService.getCurrentUser(), "Create site.");
                         }
                     }
                 }
@@ -1173,7 +1171,7 @@ public class SiteServiceImpl implements SiteService {
 
     private void insertDeleteSiteAuditLog(String siteId) {
         ActivityService.ActivityType activityType = ActivityService.ActivityType.DELETE_SITE;
-        String user = securityProvider.getCurrentUser();
+        String user = securityService.getCurrentUser();
         Map<String, String> extraInfo = new HashMap<String, String>();
         extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_SITE);
         activityService.postActivity(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE), user,
@@ -1779,7 +1777,7 @@ public class SiteServiceImpl implements SiteService {
 
     private void insertAddRemoteAuditLog(String siteId, String remoteName) {
         ActivityService.ActivityType activityType = ActivityService.ActivityType.ADD_REMOTE;
-        String user = securityProvider.getCurrentUser();
+        String user = securityService.getCurrentUser();
         Map<String, String> extraInfo = new HashMap<String, String>();
         extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_REMOTE_REPOSITORY);
         activityService.postActivity(siteId, user,
@@ -1798,7 +1796,7 @@ public class SiteServiceImpl implements SiteService {
 
     private void insertRemoveRemoteAuditLog(String siteId, String remoteName) {
         ActivityService.ActivityType activityType = ActivityService.ActivityType.REMOVE_REMOTE;
-        String user = securityProvider.getCurrentUser();
+        String user = securityService.getCurrentUser();
         Map<String, String> extraInfo = new HashMap<String, String>();
         extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_REMOTE_REPOSITORY);
         activityService.postActivity(siteId, user,
@@ -1929,13 +1927,6 @@ public class SiteServiceImpl implements SiteService {
 	}
     public void setContentTypeService(ContentTypeService contentTypeService) {
 	    this.contentTypeService = contentTypeService;
-	}
-
-    public SecurityProvider getSecurityProvider() {
-	    return securityProvider;
-	}
-    public void setSecurityProvider(SecurityProvider securityProvider) {
-	    this.securityProvider = securityProvider;
 	}
 
     public ImportService getImportService() {
