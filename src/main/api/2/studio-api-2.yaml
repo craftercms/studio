@@ -1012,6 +1012,110 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /aws/s3/list:
+    get:
+      tags:
+        - aws
+      summary: Get a list of items from an S3 bucket
+      operationId: listItems
+      description: 'Required Permission: "LOGGED_IN"'
+      parameters:
+      - name: siteId
+        in: query
+        description: The site ID
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: profileId
+        in: query
+        description: The profile ID
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: path
+        in: query
+        description: The path of the directory to list (defaults to the root)
+        required: false
+        schema:
+          type: string
+      - name: type
+        in: query
+        description: The type of items to list (defaults to all types)
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: object
+                    properties:
+                      response:
+                        $ref: '#/components/schemas/ApiResponse'
+                      entities:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/S3Item'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /aws/s3/upload:
+    post:
+      tags:
+      - aws
+      summary: Upload a file to an S3 bucket
+      operationId: uploadItem
+      description: 'Required Permission: "LOGGED_IN"'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  type: string
+                  description: The site ID
+                profileId:
+                  type: string
+                  description: The profile ID
+                filename:
+                  type: string
+                  description: The name of the file (will be used as the item key in S3)
+                file:
+                  type: string
+                  format: binary
+                  description: The content of the file to upload
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: object
+                    properties:
+                      response:
+                        $ref: '#/components/schemas/ApiResponse'
+                      entity:
+                        $ref: '#/components/schemas/S3Item'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+
 components:
   schemas:
     ApiResponse:
@@ -1149,6 +1253,18 @@ components:
         icon:
           type: string
           description: 'Menu item icon as a Font Awesome id, example: fa-smile'
+    S3Item:
+      type: object
+      properties:
+        name:
+          type: string
+          description: 'Name of the item'
+        url:
+          type: string
+          description: 'URL of the item'
+        folder:
+          type: boolean
+          description: 'Indicates if the item is a folder'
   responses:
     NotFound:
       description: Resource not found

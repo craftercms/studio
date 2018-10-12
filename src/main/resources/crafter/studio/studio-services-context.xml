@@ -770,6 +770,12 @@
         <property name="profileReader" ref="studioS3ProfileReader"/>
     </bean>
 
+    <!-- v2 Service -->
+    <bean id="awsS3Service" class="org.craftercms.studio.impl.v2.service.aws.s3.AwsS3ServiceImpl">
+        <property name="profileManager" ref="studioAwsProfileManager"/>
+        <property name="profileReader" ref="studioS3ProfileReader"/>
+    </bean>
+
     <bean id="studioMediaConvertProfileReader"
           class="org.craftercms.studio.impl.v1.aws.mediaconvert.XmlMediaConvertProfileReader"/>
 
