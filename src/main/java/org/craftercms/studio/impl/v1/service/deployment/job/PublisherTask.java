@@ -34,6 +34,7 @@ import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.PublishingManager;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
+import org.craftercms.studio.api.v1.to.PublishingTargetTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 
@@ -61,8 +62,6 @@ public class PublisherTask implements Runnable {
     private static final Logger logger = LoggerFactory.getLogger(PublisherTask.class);
 
     private String site;
-    private List<PublishRequest> itemsToDeploy;
-    private String environment;
     private StudioConfiguration studioConfiguration;
     private SiteService siteService;
     private PublishingManager publishingManager;
@@ -72,8 +71,6 @@ public class PublisherTask implements Runnable {
     private NotificationService notificationService;
 
     public PublisherTask(String site,
-                         List<PublishRequest> itemsToDeploy,
-                         String environment,
                          StudioConfiguration studioConfiguration,
                          SiteService siteService,
                          PublishingManager publishingManager,
@@ -82,8 +79,6 @@ public class PublisherTask implements Runnable {
                          ActivityService activityService,
                          NotificationService notificationService) {
         this.site = site;
-        this.itemsToDeploy = itemsToDeploy;
-        this.environment = environment;
         this.studioConfiguration = studioConfiguration;
         this.siteService = siteService;
         this.publishingManager = publishingManager;
@@ -95,6 +90,84 @@ public class PublisherTask implements Runnable {
 
     @Override
     public void run() {
+        logger.debug("Running Publisher Task for site " + site);
+        try {
+            try {
+                syncRepository(site);
+            } catch (Exception e) {
+                logger.error("Failed to sync database from repository for site " + site, e);
+                siteService.enablePublishing(site, false);
+            }
+            if (siteService.isPublishingEnabled(site)) {
+                if (!publishingManager.isPublishingBlocked(site)) {
+                    String statusMessage = StringUtils.EMPTY;
+                    try {
+                        Set<String> environments = getAllPublishingEnvironments(site);
+                        for (String environment : environments) {
+                            logger.debug("Processing content ready for deployment for site \"{0}\"", site);
+                            List<PublishRequest> itemsToDeploy =
+                                    publishingManager.getItemsReadyForDeployment(site, environment);
+
+                            if (itemsToDeploy != null && itemsToDeploy.size() > 0) {
+                                logger.info("Starting publishing on environment " + environment + " for site " + site);
+                                logger.debug("Site \"{0}\" has {1} items ready for deployment",
+                                        site, itemsToDeploy.size());
+
+                                doPublishing(itemsToDeploy, environment);
+                            }
+                        }
+                    } catch (Exception err) {
+                        logger.error("Error while executing deployment to environment store for site: "
+                                + site, err);
+                        notificationService.notifyDeploymentError(site, err);
+                        logger.info("Continue executing deployment for other sites.");
+                    }
+                } else {
+                    logger.info("Publishing is blocked for site " + site);
+                }
+            } else {
+                logger.info("Publishing is disabled for site " + site);
+            }
+        } catch (Exception err) {
+            logger.error("Error while executing deployment to environment store", err);
+            notificationService.notifyDeploymentError("UNKNOWN", err);
+        }
+    }
+
+    private void syncRepository(String site) throws SiteNotFoundException {
+        logger.debug("Getting last verified commit for site: " + site);
+        SiteFeed siteFeed = siteService.getSite(site);
+        String lastProcessedCommit = siteFeed.getLastVerifiedGitlogCommitId();
+        if (StringUtils.isNotEmpty(lastProcessedCommit)) {
+            logger.debug("Syncing database with repository for site " + site + " from last processed commit "
+                    + lastProcessedCommit);
+            siteService.syncDatabaseWithRepo(site, lastProcessedCommit);
+        } else {
+            logger.debug("Syncing database with repository for site " + site + " from initial commit");
+            siteService.syncDatabaseWithRepo(site, contentRepository.getRepoFirstCommitId(site));
+        }
+    }
+
+    private Set<String> getAllPublishingEnvironments(String site) {
+        Set<String> environments = new HashSet<String>();
+        if (servicesConfig.isStagingEnvironmentEnabled(site)) {
+            environments.add(servicesConfig.getLiveEnvironment(site));
+            environments.add(servicesConfig.getStagingEnvironment(site));
+        } else {
+            List<PublishingTargetTO> publishingTargets = siteService.getPublishingTargetsForSite(site);
+
+            if (publishingTargets != null && publishingTargets.size() > 0) {
+                for (PublishingTargetTO target : publishingTargets) {
+                    if (StringUtils.isNotEmpty(target.getRepoBranchName())) {
+                        environments.add(target.getRepoBranchName());
+                    }
+                }
+            }
+        }
+        return environments;
+    }
+
+    private void doPublishing(List<PublishRequest> itemsToDeploy, String environment) {
         try {
             String statusMessage = StringUtils.EMPTY;
             String author = itemsToDeploy.get(0).getUser();
