@@ -8,7 +8,6 @@ import org.craftercms.studio.api.v1.aws.s3.S3Profile;
 import org.craftercms.studio.api.v1.exception.AwsException;
 import org.craftercms.studio.api.v1.service.aws.AbstractAwsService;
 import org.craftercms.studio.api.v1.service.aws.S3Service;
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 
@@ -16,7 +15,9 @@ import com.amazonaws.services.s3.AmazonS3ClientBuilder;
  * Default implementation of {@link S3Service}.
  *
  * @author joseross
+ * @deprecated This service has been replaced with {@link org.craftercms.studio.impl.v2.service.aws.s3.AwsS3ServiceImpl}
  */
+@Deprecated
 public class S3ServiceImpl extends AbstractAwsService<S3Profile> implements S3Service {
 
     protected int partSize;
@@ -31,7 +32,7 @@ public class S3ServiceImpl extends AbstractAwsService<S3Profile> implements S3Se
 
     protected AmazonS3 getS3Client(S3Profile profile) {
         return AmazonS3ClientBuilder.standard()
-            .withCredentials(new AWSStaticCredentialsProvider(profile.getCredentials()))
+            .withCredentials(profile.getCredentialsProvider())
             .withRegion(profile.getRegion())
             .build();
     }

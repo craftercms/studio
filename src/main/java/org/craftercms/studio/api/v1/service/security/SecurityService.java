@@ -53,7 +53,7 @@ public interface SecurityService {
     /**
      * Returns the {@link Authentication} for the current user or null if not user is authenticated.
      */
-    Authentication getCurrentAuthentication();
+    Authentication getAuthentication();
 
     Set<String> getUserRoles(String site, String user);
 

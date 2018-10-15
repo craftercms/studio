@@ -26,7 +26,6 @@ import org.craftercms.studio.api.v1.aws.mediaconvert.MediaConvertJob;
 import org.craftercms.studio.api.v1.aws.mediaconvert.MediaConvertProfile;
 import org.craftercms.studio.api.v1.exception.AwsException;
 import org.craftercms.studio.impl.v1.service.aws.AwsUtils;
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.mediaconvert.AWSMediaConvert;
 import com.amazonaws.services.mediaconvert.AWSMediaConvertClientBuilder;
@@ -61,7 +60,7 @@ public class MediaConvertImpl implements MediaConvert {
      */
     protected AmazonS3 getS3Client(MediaConvertProfile profile) {
         return AmazonS3ClientBuilder.standard()
-                .withCredentials(new AWSStaticCredentialsProvider(profile.getCredentials()))
+                .withCredentials(profile.getCredentialsProvider())
                 .withRegion(profile.getRegion())
                 .build();
     }
@@ -73,7 +72,7 @@ public class MediaConvertImpl implements MediaConvert {
      */
     protected AWSMediaConvert getMediaConvertClient(MediaConvertProfile profile) {
         return AWSMediaConvertClientBuilder.standard()
-                .withCredentials(new AWSStaticCredentialsProvider(profile.getCredentials()))
+                .withCredentials(profile.getCredentialsProvider())
                 .withEndpointConfiguration(
                     new AwsClientBuilder.EndpointConfiguration(profile.getEndpoint(), profile.getRegion()))
                 .build();

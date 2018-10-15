@@ -29,7 +29,7 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
 import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.api.v2.service.security.SecurityProvider;
+import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 
 import static org.craftercms.commons.entitlements.model.Module.STUDIO;
 
@@ -48,25 +48,26 @@ public class StudioEntitlementUsageProvider implements EntitlementUsageProvider 
     protected ObjectMetadataManager objectMetadataManager;
 
     /**
-     * Current instance of {@link SecurityProvider}.
-     */
-    protected SecurityProvider securityProvider;
-
-    /**
      * Current instance of {@link SiteService}.
      */
     protected SiteService siteService;
+
+    protected UserServiceInternal userServiceInternal;
 
     public void setObjectMetadataManager(final ObjectMetadataManager objectMetadataManager) {
         this.objectMetadataManager = objectMetadataManager;
     }
 
-    public void setSecurityProvider(final SecurityProvider securityProvider) {
-        this.securityProvider = securityProvider;
-    }
-
     public void setSiteService(final SiteService siteService) {
         this.siteService = siteService;
+    }
+
+    public UserServiceInternal getUserServiceInternal() {
+        return userServiceInternal;
+    }
+
+    public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
+        this.userServiceInternal = userServiceInternal;
     }
 
     /**
@@ -89,7 +90,7 @@ public class StudioEntitlementUsageProvider implements EntitlementUsageProvider 
         Entitlement users = new Entitlement();
         users.setType(EntitlementType.USER);
         try {
-            users.setValue(securityProvider.getAllUsersTotal());
+            users.setValue(userServiceInternal.getAllUsersTotal());
         } catch (ServiceLayerException e) {
             logger.warn("Error getting total users", e);
             users.setValue(0);

@@ -19,7 +19,9 @@
 package org.craftercms.studio.api.v2.service.security.internal;
 
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.security.PasswordDoesNotMatchException;
 import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
+import org.craftercms.studio.api.v1.exception.security.UserExternallyManagedException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.User;
@@ -57,4 +59,9 @@ public interface UserServiceInternal {
 
     boolean isUserMemberOfGroup(String username, String groupName) throws UserNotFoundException, ServiceLayerException;
 
+    boolean changePassword(String username, String current, String newPassword)
+            throws PasswordDoesNotMatchException, UserExternallyManagedException, ServiceLayerException;
+
+    boolean setUserPassword(String username, String newPassword) throws UserNotFoundException,
+            UserExternallyManagedException, ServiceLayerException;
 }

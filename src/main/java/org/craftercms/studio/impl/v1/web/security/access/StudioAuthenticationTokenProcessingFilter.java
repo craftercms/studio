@@ -27,7 +27,6 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.security.UserDetailsManager;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
-import org.craftercms.studio.api.v2.service.security.SecurityProvider;
 import org.craftercms.studio.impl.v1.util.SessionTokenUtils;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -65,7 +64,6 @@ public class StudioAuthenticationTokenProcessingFilter extends GenericFilterBean
     private UserDetailsManager userDetailsManager;
     private SecurityService securityService;
     private StudioConfiguration studioConfiguration;
-    private SecurityProvider securityProvider;
 
     private boolean authenticationHeadersEnabled = false;
 
@@ -180,13 +178,5 @@ public class StudioAuthenticationTokenProcessingFilter extends GenericFilterBean
 
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
-    }
-
-    public SecurityProvider getSecurityProvider() {
-        return securityProvider;
-    }
-
-    public void setSecurityProvider(SecurityProvider securityProvider) {
-        this.securityProvider = securityProvider;
     }
 }

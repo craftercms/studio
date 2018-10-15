@@ -18,39 +18,15 @@
 
 package org.craftercms.studio.api.v1.aws;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
-
 /**
- * Holds the basic information required by all services.
- *
+ * Common values used in all AWS services.
  * @author joseross
  */
-public abstract class AwsProfile {
+public interface AwsConstants {
 
-    /**
-     * Provides the credentials to authenticate in AWS services.
-     */
-    private AWSCredentialsProvider credentialsProvider;
-
-    /**
-     * Region to use in AWS services.
-     */
-    private String region;
-
-    public AWSCredentialsProvider getCredentialsProvider() {
-        return credentialsProvider;
-    }
-
-    public void setCredentialsProvider(final AWSCredentialsProvider credentialsProvider) {
-        this.credentialsProvider = credentialsProvider;
-    }
-
-    public String getRegion() {
-        return region;
-    }
-
-    public void setRegion(String region) {
-        this.region = region;
-    }
+    String PARAM_SITE = "site_id";
+    String PARAM_PROFILE = "profile_id";
+    String PARAM_PATH = "path";
+    String PARAM_TYPE = "type";
 
 }

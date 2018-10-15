@@ -52,7 +52,6 @@ import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
-import org.craftercms.studio.api.v2.service.security.SecurityProvider;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
@@ -74,7 +73,6 @@ public class PublishingManagerImpl implements PublishingManager {
     protected ContentRepository contentRepository;
     protected ObjectMetadataManager objectMetadataManager;
     protected ServicesConfig servicesConfig;
-    protected SecurityProvider securityProvider;
     protected StudioConfiguration studioConfiguration;
     protected DependencyService dependencyService;
     protected DeploymentHistoryProvider deploymentHistoryProvider;
@@ -475,14 +473,6 @@ public class PublishingManagerImpl implements PublishingManager {
 
     public void setServicesConfig(ServicesConfig servicesConfig) {
         this.servicesConfig = servicesConfig;
-    }
-
-    public SecurityProvider getSecurityProvider() {
-        return securityProvider;
-    }
-
-    public void setSecurityProvider(SecurityProvider securityProvider) {
-        this.securityProvider = securityProvider;
     }
 
     public StudioConfiguration getStudioConfiguration() {

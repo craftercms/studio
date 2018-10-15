@@ -26,15 +26,12 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.exception.OrganizationNotFoundException;
 import org.craftercms.studio.api.v2.service.security.GroupService;
-import org.craftercms.studio.api.v2.service.security.SecurityProvider;
 import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.OrganizationServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
@@ -48,7 +45,6 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.SYSTEM_ADMIN
 public class GroupServiceImpl implements GroupService {
 
     private ConfigurationService configurationService;
-    private SecurityProvider securityProvider;
     private GroupServiceInternal groupServiceInternal;
     private OrganizationServiceInternal organizationServiceInternal;
     private UserServiceInternal userServiceInternal;
@@ -196,14 +192,6 @@ public class GroupServiceImpl implements GroupService {
 
     public void setConfigurationService(ConfigurationService configurationService) {
         this.configurationService = configurationService;
-    }
-
-    public SecurityProvider getSecurityProvider() {
-        return securityProvider;
-    }
-
-    public void setSecurityProvider(SecurityProvider securityProvider) {
-        this.securityProvider = securityProvider;
     }
 
     public GeneralLockService getGeneralLockService() {
