@@ -140,7 +140,7 @@ public class WebDavServiceImpl implements WebDavService {
                 .skip(1) // to avoid repeating the folder being listed
                 .filter(r -> r.isDirectory() || filterType.includes(MimeType.valueOf(r.getContentType())))
                 .map(r ->
-                    new WebDavItem(r.getDisplayName(), getUrl(r, baseDomain, deliveryUrl, basePath), r.isDirectory()))
+                    new WebDavItem(getName(r), getUrl(r, baseDomain, deliveryUrl, basePath), r.isDirectory()))
                 .collect(Collectors.toList());
         } catch (Exception e) {
             throw new WebDavException("Error listing resources", e);
@@ -154,6 +154,18 @@ public class WebDavServiceImpl implements WebDavService {
             return baseUrl + relativePath;
         } else {
             return (StringUtils.isNotEmpty(deliveryUrl)? deliveryUrl : baseUrl) + relativePath;
+        }
+    }
+
+    protected String getName(DavResource resource) {
+        if(StringUtils.isNotEmpty(resource.getDisplayName())) {
+            return resource.getDisplayName();
+        } else {
+            String path = resource.getPath();
+            if(resource.isDirectory()) {
+                path = StringUtils.removeEnd(path, "/");
+            }
+            return StringUtils.substringAfterLast(path, "/");
         }
     }
 
