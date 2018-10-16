@@ -198,6 +198,18 @@
                     </icon>
                 </datasource>
                 <datasource>
+                    <name>img-WebDAV-upload</name>
+                    <icon>
+                        <class>fa-square-o fa-server</class>
+                    </icon>
+                </datasource>
+                <datasource>
+                    <name>video-WebDAV-upload</name>
+                    <icon>
+                        <class>fa-square-o fa-server</class>
+                    </icon>
+                </datasource>
+                <datasource>
                     <name>video-desktop-upload</name>
                     <icon>
                         <class>fa-video-camera</class>
