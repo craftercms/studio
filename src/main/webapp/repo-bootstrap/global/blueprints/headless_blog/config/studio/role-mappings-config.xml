@@ -33,7 +33,7 @@
 
 -->
 <role-mappings>
-    <version>1.1</version>
+    <version>2</version>
     <groups>
         <group name="site_admin">
             <role>admin</role>
