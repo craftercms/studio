@@ -18,7 +18,9 @@
 package org.craftercms.studio.impl.v1.service.webdav;
 
 import java.io.InputStream;
+import java.net.URL;
 import java.nio.charset.Charset;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -26,7 +28,7 @@ import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.exception.WebDavException;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -41,6 +43,7 @@ import org.springframework.web.util.UriUtils;
 import com.github.sardine.DavResource;
 import com.github.sardine.Sardine;
 import com.github.sardine.SardineFactory;
+import com.github.sardine.impl.SardineException;
 
 import static com.github.sardine.util.SardineUtil.DEFAULT_NAMESPACE_PREFIX;
 import static com.github.sardine.util.SardineUtil.DEFAULT_NAMESPACE_URI;
@@ -99,7 +102,7 @@ public class WebDavServiceImpl implements WebDavService {
         throws
         WebDavException {
         WebDavProfile profile = profileReader.getProfile(site, profileId);
-        String finalPath = profile.getBaseUrl();
+        String listPath = profile.getBaseUrl();
         MimeType filterType;
         Sardine sardine = SardineFactory.begin(profile.getUsername(), profile.getPassword());
         try {
@@ -112,22 +115,57 @@ public class WebDavServiceImpl implements WebDavService {
             if(StringUtils.isNotEmpty(path)) {
                 String[] tokens = path.split("\\/");
                 for(String token : tokens) {
-                    finalPath += "/" + UriUtils.encode(token, charset.name());
+                    if(StringUtils.isNotEmpty(token)) {
+                        listPath += "/" + UriUtils.encode(token, charset.name());
+                    }
                 }
             }
-            if(!finalPath.endsWith("/")) {
-                finalPath += "/";
-            }
+            listPath = StringUtils.appendIfMissing(listPath, "/");
 
-            logger.debug("Listing resources at {0}", finalPath);
-            List<DavResource> resources = sardine.propfind(finalPath, 1, properties);
+            try {
+                if (!sardine.exists(listPath)) {
+                    logger.debug("Folder {0} doesn't exist", listPath);
+                    return Collections.emptyList();
+                }
+            } catch (SardineException e) {
+                logger.debug("Folder exists, continue listing...");
+            }
+            String basePath = new URL(profile.getBaseUrl()).getPath();
+            String baseDomain = profile.getBaseUrl();
+            String deliveryUrl = profile.getDeliveryBaseUrl();
+            logger.debug("Listing resources at {0}", listPath);
+            List<DavResource> resources = sardine.propfind(listPath, 1, properties);
             logger.debug("Found {0} resources", resources.size());
             return resources.stream()
+                .skip(1) // to avoid repeating the folder being listed
                 .filter(r -> r.isDirectory() || filterType.includes(MimeType.valueOf(r.getContentType())))
-                .map(r -> new WebDavItem(r.getDisplayName(), profile.getBaseUrl() + r.getPath(), r.isDirectory()))
+                .map(r ->
+                    new WebDavItem(getName(r), getUrl(r, baseDomain, deliveryUrl, basePath), r.isDirectory()))
                 .collect(Collectors.toList());
         } catch (Exception e) {
             throw new WebDavException("Error listing resources", e);
+        }
+    }
+
+    
+    protected String getUrl(DavResource resource, String baseUrl, String deliveryUrl, String basePath) {
+        String relativePath = StringUtils.removeFirst(resource.getPath(), basePath);
+        if(resource.isDirectory()) {
+            return baseUrl + relativePath;
+        } else {
+            return (StringUtils.isNotEmpty(deliveryUrl)? deliveryUrl : baseUrl) + relativePath;
+        }
+    }
+
+    protected String getName(DavResource resource) {
+        if(StringUtils.isNotEmpty(resource.getDisplayName())) {
+            return resource.getDisplayName();
+        } else {
+            String path = resource.getPath();
+            if(resource.isDirectory()) {
+                path = StringUtils.removeEnd(path, "/");
+            }
+            return StringUtils.substringAfterLast(path, "/");
         }
     }
 
@@ -160,6 +198,9 @@ public class WebDavServiceImpl implements WebDavService {
             }
             sardine.put(fileUrl, content);
             logger.debug("Upload complete");
+            if(StringUtils.isNotEmpty(profile.getDeliveryBaseUrl())) {
+                fileUrl = StringUtils.replaceFirst(fileUrl, profile.getBaseUrl(), profile.getDeliveryBaseUrl());
+            }
             return fileUrl;
         } catch (Exception e ) {
             throw new WebDavException("Error uploading file", e);

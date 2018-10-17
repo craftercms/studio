@@ -40,6 +40,7 @@ public class WebDavProfileReaderImpl implements WebDavProfileReader {
     private static final String CONFIG_KEY_PROFILE = "profile";
     private static final String CONFIG_KEY_ID = "id";
     private static final String CONFIG_KEY_BASE_URL = "baseUrl";
+    private static final String CONFIG_KEY_DELIVERY_URL = "deliveryBaseUrl";
     private static final String CONFIG_KEY_USERNAME = "username";
     private static final String CONFIG_KEY_PASSWORD = "password";
 
@@ -103,6 +104,9 @@ public class WebDavProfileReaderImpl implements WebDavProfileReader {
 
         WebDavProfile profile = new WebDavProfile();
         profile.setBaseUrl(profileConfig.getString(CONFIG_KEY_BASE_URL));
+        if(profileConfig.containsKey(CONFIG_KEY_DELIVERY_URL)) {
+            profile.setDeliveryBaseUrl(profileConfig.getString(CONFIG_KEY_DELIVERY_URL));
+        }
         profile.setUsername(profileConfig.getString(CONFIG_KEY_USERNAME));
         profile.setPassword(profileConfig.getString(CONFIG_KEY_PASSWORD));
 

@@ -108,8 +108,6 @@ import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
 import org.craftercms.studio.api.v1.to.SiteTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
-import org.craftercms.studio.api.v2.service.security.SecurityProvider;
-import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.upgrade.UpgradeManager;
@@ -167,7 +165,6 @@ public class SiteServiceImpl implements SiteService {
     protected ObjectMetadataManager objectMetadataManager;
     protected DmPageNavigationOrderService dmPageNavigationOrderService;
     protected ContentTypeService contentTypeService;
-    protected SecurityProvider securityProvider;
     protected ImportService importService;
     protected NotificationService notificationService;
     protected GeneralLockService generalLockService;
@@ -466,40 +463,11 @@ public class SiteServiceImpl implements SiteService {
 
 			    upgradeManager.upgradeSite(siteId);
 
-			    String lastCommitId = contentRepository.getRepoLastCommitId(siteId);
-
-			    // Set object states
-			    createObjectStatesforNewSite(siteId);
-
-			    // set object metadata
-                createObjectMetadataforNewSite(siteId, lastCommitId);
-
-			    // Extract dependencies
-			    extractDependenciesForNewSite(siteId);
-
-			    // Extract metadata ?
-
-			    // permissions
-			    // environment overrides
-
-			    // initial deployment
-                List<PublishingTargetTO> publishingTargets = getPublishingTargetsForSite(siteId);
-                if (publishingTargets != null && publishingTargets.size() > 0) {
-                    for (PublishingTargetTO target : publishingTargets) {
-                        if (StringUtils.isNotEmpty(target.getRepoBranchName())) {
-                            contentRepository.initialPublish(siteId, sandboxBranch, target.getRepoBranchName(),
-                                    securityProvider.getCurrentUser(), "Create site.");
-                        }
-                    }
-                }
-                objectStateService.setStateForSiteContent(siteId, State.EXISTING_UNEDITED_UNLOCKED);
-
 			    // insert database records
 			    SiteFeed siteFeed = new SiteFeed();
 			    siteFeed.setName(siteName);
 			    siteFeed.setSiteId(siteId);
 			    siteFeed.setDescription(desc);
-			    siteFeed.setLastCommitId(lastCommitId);
 			    siteFeed.setPublishingStatusMessage(
 			            studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT));
 			    siteFeed.setSandboxBranch(sandboxBranch);
@@ -507,12 +475,25 @@ public class SiteServiceImpl implements SiteService {
 
                 insertCreateSiteAuditLog(siteId);
 
-			    contentRepository.insertGitLog(siteId, lastCommitId, 1);
-
                 // Add default groups
                 addDefaultGroupsForNewSite(siteId);
 
                 reloadSiteConfiguration(siteId);
+
+                syncDatabaseWithRepo(siteId, null, false);
+
+                // initial deployment
+                List<PublishingTargetTO> publishingTargets = getPublishingTargetsForSite(siteId);
+                if (publishingTargets != null && publishingTargets.size() > 0) {
+                    for (PublishingTargetTO target : publishingTargets) {
+                        if (StringUtils.isNotEmpty(target.getRepoBranchName())) {
+                            contentRepository.initialPublish(siteId, sandboxBranch, target.getRepoBranchName(),
+                                    securityService.getCurrentUser(), "Create site.");
+                        }
+                    }
+                }
+                objectStateService.setStateForSiteContent(siteId, State.EXISTING_UNEDITED_UNLOCKED);
+
 	        } catch(Exception e) {
 	            // TODO: SJ: We need better exception handling here
 	            success = false;
@@ -559,7 +540,7 @@ public class SiteServiceImpl implements SiteService {
 
     private void insertCreateSiteAuditLog(String siteId) {
         ActivityService.ActivityType activityType = ActivityService.ActivityType.CREATE_SITE;
-        String user = securityProvider.getCurrentUser();
+        String user = securityService.getCurrentUser();
         Map<String, String> extraInfo = new HashMap<String, String>();
         extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_SITE);
         activityService.postActivity(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE), user,
@@ -743,7 +724,6 @@ public class SiteServiceImpl implements SiteService {
                 logger.debug("Clone from remote repository create option selected");
                 createSiteCloneRemote(siteId, sandboxBranch, description, remoteName, remoteUrl, remoteBranch, singleBranch,
                         authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey);
-				upgradeManager.upgradeSite(siteId);
                 break;
 
             case REMOTE_REPOSITORY_CREATE_OPTION_PUSH:
@@ -751,7 +731,6 @@ public class SiteServiceImpl implements SiteService {
                 createSitePushToRemote(siteId, sandboxBranch, description, blueprintName, remoteName, remoteUrl,
                         remoteBranch, authenticationType, remoteUsername, remotePassword, remoteToken,
                         remotePrivateKey);
-				upgradeManager.upgradeSite(siteId);
                 break;
 
             default:
@@ -861,40 +840,7 @@ public class SiteServiceImpl implements SiteService {
 
         if (success) {
             try {
-                String lastCommitId = contentRepository.getRepoLastCommitId(siteId);
-
-                // Set object states
-                logger.debug("Adding item states to database for site " + siteId);
-                createObjectStatesforNewSite(siteId);
-
-                // set object metadata
-                logger.debug("Adding item metadata to database for site " + siteId);
-                createObjectMetadataforNewSite(siteId, lastCommitId);
-
-                // Extract dependencies
-                logger.debug("Adding item dependencies to database for site " + siteId);
-                extractDependenciesForNewSite(siteId);
-
-                // Extract metadata ?
-
-                // permissions
-                // environment overrides
-
-                // initial deployment
-                logger.debug("Executing initial deployement for site " + siteId);
-                List<PublishingTargetTO> publishingTargets = getPublishingTargetsForSite(siteId);
-                if (publishingTargets != null && publishingTargets.size() > 0) {
-                    for (PublishingTargetTO target : publishingTargets) {
-                        if (StringUtils.isNotEmpty(target.getRepoBranchName())) {
-                            contentRepository.initialPublish(siteId, sandboxBranch, target.getRepoBranchName(),
-                                    securityProvider.getCurrentUser(), "Create site.");
-                        }
-                    }
-                }
-                objectStateService.setStateForSiteContent(siteId, State.EXISTING_UNEDITED_UNLOCKED);
-
-                logger.debug("Adding git log to database for site " + siteId);
-                contentRepository.insertFullGitLog(siteId, 1);
+                upgradeManager.upgradeSite(siteId);
 
                 // insert database records
                 logger.debug("Adding site record to database for site " + siteId);
@@ -902,7 +848,6 @@ public class SiteServiceImpl implements SiteService {
                 siteFeed.setName(siteId);
                 siteFeed.setSiteId(siteId);
                 siteFeed.setDescription(description);
-                siteFeed.setLastCommitId(lastCommitId);
                 siteFeed.setPublishingStatusMessage(
                         studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT));
                 siteFeed.setSandboxBranch(sandboxBranch);
@@ -916,6 +861,21 @@ public class SiteServiceImpl implements SiteService {
 
                 logger.debug("Loading configuration for site " + siteId);
                 reloadSiteConfiguration(siteId);
+
+                syncDatabaseWithRepo(siteId, null, false);
+
+                // initial deployment
+                logger.debug("Executing initial deployement for site " + siteId);
+                List<PublishingTargetTO> publishingTargets = getPublishingTargetsForSite(siteId);
+                if (publishingTargets != null && publishingTargets.size() > 0) {
+                    for (PublishingTargetTO target : publishingTargets) {
+                        if (StringUtils.isNotEmpty(target.getRepoBranchName())) {
+                            contentRepository.initialPublish(siteId, sandboxBranch, target.getRepoBranchName(),
+                                    securityService.getCurrentUser(), "Create site.");
+                        }
+                    }
+                }
+                objectStateService.setStateForSiteContent(siteId, State.EXISTING_UNEDITED_UNLOCKED);
             } catch(Exception e) {
                 // TODO: SJ: We need better exception handling here
                 success = false;
@@ -996,6 +956,8 @@ public class SiteServiceImpl implements SiteService {
             try {
                 logger.debug("Creating site " + siteId + " from blueprint " + blueprintName);
                 success = createSiteFromBlueprintGit(blueprintName, siteId, siteId, sandboxBranch, description);
+
+                upgradeManager.upgradeSite(siteId);
             } catch (Exception e) {
                 // TODO: SJ: We need better exception handling here
                 success = false;
@@ -1062,24 +1024,28 @@ public class SiteServiceImpl implements SiteService {
             }
 
             try {
-                String lastCommitId = contentRepository.getRepoLastCommitId(siteId);
 
-                // Set object states
-                logger.debug("Adding item states to database for site " + siteId);
-                createObjectStatesforNewSite(siteId);
+                // insert database records
+                logger.debug("Adding site record to database for site " + siteId);
+                SiteFeed siteFeed = new SiteFeed();
+                siteFeed.setName(siteId);
+                siteFeed.setSiteId(siteId);
+                siteFeed.setDescription(description);
+                siteFeed.setPublishingStatusMessage(
+                        studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT));
+                siteFeed.setSandboxBranch(sandboxBranch);
+                siteFeedMapper.createSite(siteFeed);
 
-                // set object metadata
-                logger.debug("Adding item metadata to database for site " + siteId);
-                createObjectMetadataforNewSite(siteId, lastCommitId);
+                insertCreateSiteAuditLog(siteId);
 
-                // Extract dependencies
-                logger.debug("Adding item dependencies to database for site " + siteId);
-                extractDependenciesForNewSite(siteId);
+                // Add default groups
+                logger.debug("Adding default groups for site " + siteId);
+                addDefaultGroupsForNewSite(siteId);
 
-                // Extract metadata ?
+                logger.debug("Loading configuration for site " + siteId);
+                reloadSiteConfiguration(siteId);
 
-                // permissions
-                // environment overrides
+                syncDatabaseWithRepo(siteId, null, false);
 
                 // initial deployment
                 logger.debug("Executing initial deployement for site " + siteId);
@@ -1088,35 +1054,13 @@ public class SiteServiceImpl implements SiteService {
                     for (PublishingTargetTO target : publishingTargets) {
                         if (StringUtils.isNotEmpty(target.getRepoBranchName())) {
                             contentRepository.initialPublish(siteId, sandboxBranch, target.getRepoBranchName(),
-                                    securityProvider.getCurrentUser(), "Create site.");
+                                    securityService.getCurrentUser(), "Create site.");
                         }
                     }
                 }
                 objectStateService.setStateForSiteContent(siteId, State.EXISTING_UNEDITED_UNLOCKED);
 
-                // insert database records
-                logger.debug("Adding site record to database for site " + siteId);
-                SiteFeed siteFeed = new SiteFeed();
-                siteFeed.setName(siteId);
-                siteFeed.setSiteId(siteId);
-                siteFeed.setDescription(description);
-                siteFeed.setLastCommitId(lastCommitId);
-                siteFeed.setPublishingStatusMessage(
-                        studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT));
-                siteFeed.setSandboxBranch(sandboxBranch);
-                siteFeedMapper.createSite(siteFeed);
 
-                insertCreateSiteAuditLog(siteId);
-
-                logger.debug("Adding git log to database for site " + siteId);
-                contentRepository.insertGitLog(siteId, lastCommitId, 1);
-
-                // Add default groups
-                logger.debug("Adding default groups for site " + siteId);
-                addDefaultGroupsForNewSite(siteId);
-
-                logger.debug("Loading configuration for site " + siteId);
-                reloadSiteConfiguration(siteId);
             } catch(Exception e) {
                 // TODO: SJ: We need better exception handling here
                 success = false;
@@ -1227,7 +1171,7 @@ public class SiteServiceImpl implements SiteService {
 
     private void insertDeleteSiteAuditLog(String siteId) {
         ActivityService.ActivityType activityType = ActivityService.ActivityType.DELETE_SITE;
-        String user = securityProvider.getCurrentUser();
+        String user = securityService.getCurrentUser();
         Map<String, String> extraInfo = new HashMap<String, String>();
         extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_SITE);
         activityService.postActivity(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE), user,
@@ -1384,6 +1328,14 @@ public class SiteServiceImpl implements SiteService {
     @ValidateParams
     public boolean syncDatabaseWithRepo(@ValidateStringParam(name = "site") String site,
                                         @ValidateStringParam(name = "fromCommitId") String fromCommitId) {
+        return syncDatabaseWithRepo(site, fromCommitId, true);
+    }
+
+    @Override
+    @ValidateParams
+    public boolean syncDatabaseWithRepo(@ValidateStringParam(name = "site") String site,
+                                        @ValidateStringParam(name = "fromCommitId") String fromCommitId,
+                                        boolean generateAuditLog) {
 		boolean toReturn = true;
         List<RepoOperationTO> repoOperations = contentRepository.getOperations(site, fromCommitId, contentRepository
 		    .getRepoLastCommitId(site));
@@ -1466,10 +1418,12 @@ public class SiteServiceImpl implements SiteService {
                         if (repoOperation.getPath().endsWith(DmConstants.XML_PATTERN)) {
                             activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
                         }
-                        logger.debug("Insert audit log for site: " + site + " path: " + repoOperation.getPath());
-                        activityService.postActivity(site, repoOperation.getAuthor(), repoOperation.getPath(),
-                                ActivityService.ActivityType.CREATED, ActivityService.ActivitySource.REPOSITORY,
-                                activityInfo);
+                        if (generateAuditLog) {
+                            logger.debug("Insert audit log for site: " + site + " path: " + repoOperation.getPath());
+                            activityService.postActivity(site, repoOperation.getAuthor(), repoOperation.getPath(),
+                                    ActivityService.ActivityType.CREATED, ActivityService.ActivitySource.REPOSITORY,
+                                    activityInfo);
+                        }
                         break;
 
                     case UPDATE:
@@ -1495,10 +1449,12 @@ public class SiteServiceImpl implements SiteService {
                         if (repoOperation.getPath().endsWith(DmConstants.XML_PATTERN)) {
                             activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
                         }
-                        logger.debug("Insert audit log for site: " + site + " path: " + repoOperation.getPath());
-                        activityService.postActivity(site, repoOperation.getAuthor(), repoOperation.getPath(),
-                                ActivityService.ActivityType.UPDATED, ActivityService.ActivitySource.REPOSITORY,
-                                activityInfo);
+                        if (generateAuditLog) {
+                            logger.debug("Insert audit log for site: " + site + " path: " + repoOperation.getPath());
+                            activityService.postActivity(site, repoOperation.getAuthor(), repoOperation.getPath(),
+                                    ActivityService.ActivityType.UPDATED, ActivityService.ActivitySource.REPOSITORY,
+                                    activityInfo);
+                        }
                         break;
 
                     case DELETE:
@@ -1517,10 +1473,12 @@ public class SiteServiceImpl implements SiteService {
                         if (repoOperation.getPath().endsWith(DmConstants.XML_PATTERN)) {
                             activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
                         }
-                        logger.debug("Insert audit log for site: " + site + " path: " + repoOperation.getPath());
-                        activityService.postActivity(site, repoOperation.getAuthor(), repoOperation.getPath(),
-                                ActivityService.ActivityType.DELETED, ActivityService.ActivitySource.REPOSITORY,
-                                activityInfo);
+                        if (generateAuditLog) {
+                            logger.debug("Insert audit log for site: " + site + " path: " + repoOperation.getPath());
+                            activityService.postActivity(site, repoOperation.getAuthor(), repoOperation.getPath(),
+                                    ActivityService.ActivityType.DELETED, ActivityService.ActivitySource.REPOSITORY,
+                                    activityInfo);
+                        }
                         break;
 
                     case MOVE:
@@ -1592,11 +1550,13 @@ public class SiteServiceImpl implements SiteService {
                         if (repoOperation.getMoveToPath().endsWith(DmConstants.XML_PATTERN)) {
                             activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
                         }
-                        logger.debug("Insert audit log for site: " + site + " path: " +
-                                repoOperation.getMoveToPath());
-                        activityService.postActivity(site, repoOperation.getAuthor(), repoOperation.getMoveToPath(),
-                                ActivityService.ActivityType.UPDATED, ActivityService.ActivitySource.REPOSITORY,
-                                activityInfo);
+                        if (generateAuditLog) {
+                            logger.debug("Insert audit log for site: " + site + " path: " +
+                                    repoOperation.getMoveToPath());
+                            activityService.postActivity(site, repoOperation.getAuthor(), repoOperation.getMoveToPath(),
+                                    ActivityService.ActivityType.UPDATED, ActivityService.ActivitySource.REPOSITORY,
+                                    activityInfo);
+                        }
                         break;
 
                     default:
@@ -1817,7 +1777,7 @@ public class SiteServiceImpl implements SiteService {
 
     private void insertAddRemoteAuditLog(String siteId, String remoteName) {
         ActivityService.ActivityType activityType = ActivityService.ActivityType.ADD_REMOTE;
-        String user = securityProvider.getCurrentUser();
+        String user = securityService.getCurrentUser();
         Map<String, String> extraInfo = new HashMap<String, String>();
         extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_REMOTE_REPOSITORY);
         activityService.postActivity(siteId, user,
@@ -1836,7 +1796,7 @@ public class SiteServiceImpl implements SiteService {
 
     private void insertRemoveRemoteAuditLog(String siteId, String remoteName) {
         ActivityService.ActivityType activityType = ActivityService.ActivityType.REMOVE_REMOTE;
-        String user = securityProvider.getCurrentUser();
+        String user = securityService.getCurrentUser();
         Map<String, String> extraInfo = new HashMap<String, String>();
         extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_REMOTE_REPOSITORY);
         activityService.postActivity(siteId, user,
@@ -1967,13 +1927,6 @@ public class SiteServiceImpl implements SiteService {
 	}
     public void setContentTypeService(ContentTypeService contentTypeService) {
 	    this.contentTypeService = contentTypeService;
-	}
-
-    public SecurityProvider getSecurityProvider() {
-	    return securityProvider;
-	}
-    public void setSecurityProvider(SecurityProvider securityProvider) {
-	    this.securityProvider = securityProvider;
 	}
 
     public ImportService getImportService() {

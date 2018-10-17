@@ -1,18 +1,41 @@
+/*
+ * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
 package org.craftercms.studio.api.v1.aws.s3;
 
 import org.craftercms.studio.api.v1.aws.AwsProfile;
 
 /**
- * Holds the information to request an AWS S3 Upload.
+ * Holds the information to connect to AWS S3.
  *
  * @author joseross
  */
 public class S3Profile extends AwsProfile {
 
     /**
-     * Name of the bucket where the upload will be made.
+     * Name of the bucket.
      */
     protected String bucketName;
+
+    /**
+     * The full URL of the distribution domain to use.
+     */
+    protected String distributionDomain;
 
     public String getBucketName() {
         return bucketName;
@@ -20,6 +43,14 @@ public class S3Profile extends AwsProfile {
 
     public void setBucketName(final String bucketName) {
         this.bucketName = bucketName;
+    }
+
+    public String getDistributionDomain() {
+        return distributionDomain;
+    }
+
+    public void setDistributionDomain(final String distributionDomain) {
+        this.distributionDomain = distributionDomain;
     }
 
 }

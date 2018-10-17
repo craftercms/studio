@@ -20,18 +20,13 @@ package org.craftercms.studio.impl.v1.web.security.access;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.commons.http.HttpUtils;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.security.AuthenticationSystemException;
-import org.craftercms.studio.api.v1.exception.security.BadCredentialsException;
-import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.security.UserDetailsManager;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
-import org.craftercms.studio.api.v2.service.security.SecurityProvider;
 import org.craftercms.studio.impl.v1.util.SessionTokenUtils;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -45,12 +40,20 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static org.craftercms.studio.api.v1.service.security.SecurityService.STUDIO_SESSION_TOKEN_ATRIBUTE;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.*;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.AUTHENTICATION_CHAIN_PROVIDER_ENABLED;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.AUTHENTICATION_CHAIN_PROVIDER_TYPE;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.AUTHENTICATION_CHAIN_PROVIDER_TYPE_HEADERS;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.AUTHENTICATION_HEADERS_USERNAME;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_AUTHENTICATION_CHAIN_CONFIG;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_IGNORE_RENEW_TOKEN_URLS;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_SESSION_TIMEOUT;
 
 public class StudioAuthenticationTokenProcessingFilter extends GenericFilterBean {
 
@@ -61,7 +64,20 @@ public class StudioAuthenticationTokenProcessingFilter extends GenericFilterBean
     private UserDetailsManager userDetailsManager;
     private SecurityService securityService;
     private StudioConfiguration studioConfiguration;
-    private SecurityProvider securityProvider;
+
+    private boolean authenticationHeadersEnabled = false;
+
+    public void init() {
+        List<Map<String, Object>> chainConfig = new ArrayList<Map<String, Object>>();
+        chainConfig = studioConfiguration.getProperty(CONFIGURATION_AUTHENTICATION_CHAIN_CONFIG,
+                chainConfig.getClass());
+        authenticationHeadersEnabled =
+                chainConfig.stream().anyMatch(providerConfig ->
+                        providerConfig.get(AUTHENTICATION_CHAIN_PROVIDER_TYPE).toString().toUpperCase()
+                                .equals(AUTHENTICATION_CHAIN_PROVIDER_TYPE_HEADERS) &&
+                                Boolean.parseBoolean(
+                                        providerConfig.get(AUTHENTICATION_CHAIN_PROVIDER_ENABLED).toString()));
+    }
 
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain)
@@ -73,6 +89,7 @@ public class StudioAuthenticationTokenProcessingFilter extends GenericFilterBean
         try {
             String userName = securityService.getCurrentUser();
             String authToken = securityService.getCurrentToken();
+
 
             if (userName != null) {
                 UserDetails userDetails = this.userDetailsManager.loadUserByUsername(userName);
@@ -96,8 +113,7 @@ public class StudioAuthenticationTokenProcessingFilter extends GenericFilterBean
                     httpSession.removeAttribute(STUDIO_SESSION_TOKEN_ATRIBUTE);
                     httpSession.invalidate();
                 }
-            } else {
-                if (isAuthenticationHeadersEnabled()) {
+            } else { if (isAuthenticationHeadersEnabled()) {
                     // If user not authenticated check for authentication headers
                     String usernameHeader =
                             httpRequest.getHeader(studioConfiguration.getProperty(AUTHENTICATION_HEADERS_USERNAME));
@@ -112,9 +128,6 @@ public class StudioAuthenticationTokenProcessingFilter extends GenericFilterBean
                         } catch (Exception e) {
                             crafterLogger.error("Unable to authenticate user using authentication headers.", e);
                         }
-                    } else {
-                        crafterLogger.warn("Unable to authenticate user (" + usernameHeader +
-                                        ") using authentication headers." );
                     }
                 }
             }
@@ -140,8 +153,7 @@ public class StudioAuthenticationTokenProcessingFilter extends GenericFilterBean
     }
 
     public boolean isAuthenticationHeadersEnabled() {
-        String enabledString = studioConfiguration.getProperty(AUTHENTICATION_HEADERS_ENABLED);
-        return Boolean.parseBoolean(enabledString);
+        return authenticationHeadersEnabled;
     }
 
     public UserDetailsManager getUserDetailsManager() {
@@ -166,13 +178,5 @@ public class StudioAuthenticationTokenProcessingFilter extends GenericFilterBean
 
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
-    }
-
-    public SecurityProvider getSecurityProvider() {
-        return securityProvider;
-    }
-
-    public void setSecurityProvider(SecurityProvider securityProvider) {
-        this.securityProvider = securityProvider;
     }
 }

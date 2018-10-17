@@ -41,6 +41,7 @@ import java.util.concurrent.TimeUnit;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.http.RequestContext;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
@@ -49,10 +50,12 @@ import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.StudioXmlConstants;
+import org.craftercms.studio.api.v1.ebus.RepositoryEventContext;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.PasswordDoesNotMatchException;
 import org.craftercms.studio.api.v1.exception.security.UserExternallyManagedException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v1.job.CronJobContext;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
@@ -66,9 +69,9 @@ import org.craftercms.studio.api.v1.to.PermissionsConfigTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.User;
+import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.security.AuthenticationChain;
 import org.craftercms.studio.api.v2.service.security.GroupService;
-import org.craftercms.studio.api.v2.service.security.SecurityProvider;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.impl.v1.util.SessionTokenUtils;
 import org.craftercms.studio.impl.v2.service.security.Authentication;
@@ -99,10 +102,11 @@ import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_EXTERN
 import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_FIRSTNAME;
 import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_LASTNAME;
 import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_USERNAME;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.ADMIN_ROLE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.HTTP_SESSION_ATTRIBUTE_AUTHENTICATION;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SECURITY_AUTHENTICATION_TYPE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SYSTEM_ADMIN_GROUP;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_DEFAULT_ADMIN_GROUP;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_GLOBAL_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_GLOBAL_PERMISSION_MAPPINGS_FILE_NAME;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_GLOBAL_ROLE_MAPPINGS_FILE_NAME;
@@ -130,7 +134,6 @@ public class SecurityServiceImpl implements SecurityService {
 
     private static final Logger logger = LoggerFactory.getLogger(SecurityServiceImpl.class);
 
-    protected SecurityProvider securityProvider;
     protected ContentTypeService contentTypeService;
     protected ActivityService activityService;
     protected ContentService contentService;
@@ -143,56 +146,86 @@ public class SecurityServiceImpl implements SecurityService {
     protected GroupService groupService;
     protected UserServiceInternal userServiceInternal;
     protected AuthenticationChain authenticationChain;
+    protected ConfigurationService configurationService;
 
     @Override
     @ValidateParams
     public String authenticate(@ValidateStringParam(name = "username") String username,
                                @ValidateStringParam(name = "password") String password) throws Exception {
-        //String toRet = securityProvider.authenticate(username, password);
         RequestContext requestContext = RequestContext.getCurrent();
         HttpServletRequest request = requestContext.getRequest();
         HttpServletResponse response = requestContext.getResponse();
-        boolean authenticated = authenticationChain.doAuthenticate(request, response, username, password);
-        if (authenticated) {
-            String ipAddress = request.getRemoteAddr();
-
-            ActivityService.ActivityType activityType = ActivityService.ActivityType.LOGIN;
-            Map<String, String> extraInfo = new HashMap<String, String>();
-            extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
-            activityService.postActivity(getSystemSite(), username, ipAddress, activityType,
-                    ActivityService.ActivitySource.API, extraInfo);
-
-            logger.info("User " + username + " logged in from IP: " + ipAddress);
-        }
+        authenticationChain.doAuthenticate(request, response, username, password);
         return getCurrentToken();
     }
 
     @Override
     @ValidateParams
-    public boolean validateTicket(@ValidateStringParam(name = "token") String token) {
-        return securityProvider.validateTicket(token);
+    public boolean validateTicket(@ValidateStringParam(name = "ticket") String ticket) {
+        if (ticket == null) {
+            ticket = getCurrentToken();
+        }
+        boolean valid = false;
+        if (StringUtils.isNotEmpty(ticket)) valid = true;
+        return valid;
     }
 
     @Override
     public String getCurrentUser() {
-        return securityProvider.getCurrentUser();
+        String username = null;
+        RequestContext context = RequestContext.getCurrent();
+
+        if(context != null) {
+            HttpSession httpSession = context.getRequest().getSession();
+            Authentication auth = (Authentication) httpSession.getAttribute(HTTP_SESSION_ATTRIBUTE_AUTHENTICATION);
+
+            if (auth != null) {
+                username = auth.getUsername();
+            }
+        } else {
+            CronJobContext cronJobContext = CronJobContext.getCurrent();
+
+            if (cronJobContext != null) {
+                username = cronJobContext.getCurrentUser();
+            } else {
+                RepositoryEventContext repositoryEventContext = RepositoryEventContext.getCurrent();
+                if (repositoryEventContext != null) {
+                    username = repositoryEventContext.getCurrentUser();
+                }
+            }
+        }
+
+        return username;
     }
 
     @Override
     public String getCurrentToken() {
-        return securityProvider.getCurrentToken();
-    }
+        String ticket = null;
+        RequestContext context = RequestContext.getCurrent();
 
-    @Override
-    public Authentication getCurrentAuthentication() {
-        return securityProvider.getAuthentication();
+        if (context != null) {
+            HttpSession httpSession = context.getRequest().getSession();
+            Authentication auth = (Authentication) httpSession.getAttribute(HTTP_SESSION_ATTRIBUTE_AUTHENTICATION);
+
+            if (auth != null) {
+                ticket = auth.getToken();
+            }
+        } else {
+            ticket = getJobOrEventTicket();
+        }
+
+        if (ticket == null) {
+            ticket = "NOTICKET";
+        }
+
+        return ticket;
     }
 
     @Override
     @ValidateParams
     public Map<String,Object> getUserProfile(@ValidateStringParam(name = "user") String user) throws ServiceLayerException, UserNotFoundException {
         Map<String, Object> toRet = new HashMap<String, Object>();
-        User u = securityProvider.getUserByIdOrUsername(-1, user);
+        User u = userServiceInternal.getUserByIdOrUsername(-1, user);
         if (u != null) {
             toRet.put(KEY_USERNAME, user);
             toRet.put(KEY_FIRSTNAME, u.getFirstName());
@@ -638,7 +671,7 @@ public class SecurityServiceImpl implements SecurityService {
     @Override
     public boolean logout() {
         String username = getCurrentUser();
-        boolean toRet = securityProvider.logout();
+        deleteAuthentication();
         RequestContext context = RequestContext.getCurrent();
         if (context != null) {
             HttpServletRequest httpServletRequest = context.getRequest();
@@ -656,13 +689,21 @@ public class SecurityServiceImpl implements SecurityService {
 
             logger.info("User " + username + " logged out from IP: " + ipAddress);
         }
-        return toRet;
+        return true;
+    }
+
+    protected void deleteAuthentication() {
+        RequestContext context = RequestContext.getCurrent();
+        if(context != null) {
+            HttpSession httpSession = context.getRequest().getSession();
+            httpSession.removeAttribute(HTTP_SESSION_ATTRIBUTE_AUTHENTICATION);
+        }
     }
 
 
     @Override
     public int getAllUsersTotal() throws ServiceLayerException {
-        return securityProvider.getAllUsersTotal();
+        return userServiceInternal.getAllUsersTotal();
     }
 
 
@@ -671,7 +712,7 @@ public class SecurityServiceImpl implements SecurityService {
     public Map<String, Object> forgotPassword(@ValidateStringParam(name = "username") String username)
             throws ServiceLayerException, UserNotFoundException, UserExternallyManagedException {
         logger.debug("Getting user profile for " + username);
-        User user = securityProvider.getUserByIdOrUsername(-1, username);
+        User user = userServiceInternal.getUserByIdOrUsername(-1, username);
         boolean success = false;
         String message = StringUtils.EMPTY;
         if (user == null) {
@@ -721,7 +762,7 @@ public class SecurityServiceImpl implements SecurityService {
             StringTokenizer tokenElements = new StringTokenizer(decryptedToken, "|");
             if (tokenElements.countTokens() == 3) {
                 String username = tokenElements.nextToken();
-                User userProfile = securityProvider.getUserByIdOrUsername(-1, username);
+                User userProfile = userServiceInternal.getUserByIdOrUsername(-1, username);
                 if (userProfile == null) {
                     logger.info("User profile not found for " + username);
                     throw new UserNotFoundException();
@@ -819,7 +860,7 @@ public class SecurityServiceImpl implements SecurityService {
                                   @ValidateStringParam(name = "current") String current,
                                   @ValidateStringParam(name = "newPassword") String newPassword)
         throws PasswordDoesNotMatchException, UserExternallyManagedException, ServiceLayerException {
-        return securityProvider.changePassword(username, current, newPassword);
+        return userServiceInternal.changePassword(username, current, newPassword);
     }
 
     @Override
@@ -834,10 +875,10 @@ public class SecurityServiceImpl implements SecurityService {
             String username = getUsernameFromToken(token);
             if (StringUtils.isNotEmpty(username)) {
                 toRet.put("username", username);
-                User user = securityProvider.getUserByIdOrUsername(-1, username);
+                User user = userServiceInternal.getUserByIdOrUsername(-1, username);
                 if (user != null ) {
                     if (user.isEnabled()) {
-                        toRet.put("success", securityProvider.setUserPassword(username, newPassword));
+                        toRet.put("success", userServiceInternal.setUserPassword(username, newPassword));
                     }
                 } else {
                     throw new UserNotFoundException("User not found");
@@ -868,14 +909,14 @@ public class SecurityServiceImpl implements SecurityService {
         throws UserNotFoundException, UserExternallyManagedException, ServiceLayerException {
         String currentUser = getCurrentUser();
         if (isAdmin(currentUser)) {
-            return securityProvider.setUserPassword(username, newPassword);
+            return userServiceInternal.setUserPassword(username, newPassword);
         } else {
             return false;
         }
     }
 
-    private boolean isAdmin(String username) throws ServiceLayerException {
-        List<Group> userGroups = securityProvider.getUserGroups(-1, username);
+    private boolean isAdmin(String username) throws ServiceLayerException, UserNotFoundException {
+        List<Group> userGroups = userServiceInternal.getUserGroups(-1, username);
         boolean toRet = false;
         if (CollectionUtils.isNotEmpty(userGroups)) {
             for (Group group : userGroups) {
@@ -891,22 +932,31 @@ public class SecurityServiceImpl implements SecurityService {
     @Override
     @ValidateParams
     public boolean isSiteAdmin(@ValidateStringParam(name = "username") String username, String site) {
-        List<Group> userGroups = null;
-        try {
-            userGroups = securityProvider.getUserGroups(-1, username);
-        } catch (ServiceLayerException e) {
-            logger.warn("Error getting user memberships", e);
-            return false;
-        }
+
         boolean toRet = false;
-        if (CollectionUtils.isNotEmpty(userGroups)) {
-            for (Group group : userGroups) {
-                if (StringUtils.equalsIgnoreCase(group.getGroupName(),
-                        studioConfiguration.getProperty(CONFIGURATION_DEFAULT_ADMIN_GROUP))) {
-                    toRet = true;
-                    break;
+        try {
+            if (userServiceInternal.isUserMemberOfGroup(username, SYSTEM_ADMIN_GROUP)) {
+                return true;
+            }
+
+            List<Group> groups = userServiceInternal.getUserGroups(-1, username);
+
+            if (CollectionUtils.isNotEmpty(groups)) {
+                Map<String, List<String>> roleMappings = configurationService.geRoleMappings(site);
+
+                if (MapUtils.isNotEmpty(roleMappings)) {
+                    for (Group group : groups) {
+                        String groupName = group.getGroupName();
+                        List<String> roles = roleMappings.get(groupName);
+                        if (roles.contains(ADMIN_ROLE)) {
+                            toRet = true;
+                        }
+                    }
                 }
             }
+
+        } catch (ServiceLayerException | UserNotFoundException e) {
+            logger.warn("Error getting user memberships", e);
         }
         return toRet;
     }
@@ -914,14 +964,14 @@ public class SecurityServiceImpl implements SecurityService {
     @Override
     @ValidateParams
     public boolean userExists(@ValidateStringParam(name = "username") String username) throws ServiceLayerException {
-        return securityProvider.userExists(username);
+        return userServiceInternal.userExists(-1, username);
     }
 
     @Override
     public boolean validateSession(HttpServletRequest request) throws ServiceLayerException {
         HttpSession httpSession = request.getSession();
         String authToken = (String)httpSession.getAttribute(STUDIO_SESSION_TOKEN_ATRIBUTE);
-        String userName = securityProvider.getCurrentUser();
+        String userName = getCurrentUser();
 
         if (userName != null) {
 
@@ -936,6 +986,36 @@ public class SecurityServiceImpl implements SecurityService {
         httpSession.removeAttribute(STUDIO_SESSION_TOKEN_ATRIBUTE);
         httpSession.invalidate();
         return false;
+    }
+
+    @Override
+    public Authentication getAuthentication() {
+        Authentication auth = null;
+        RequestContext context = RequestContext.getCurrent();
+
+        if (context != null) {
+            HttpSession httpSession = context.getRequest().getSession();
+            auth = (Authentication) httpSession.getAttribute(HTTP_SESSION_ATTRIBUTE_AUTHENTICATION);
+        }
+
+        return auth;
+    }
+
+
+    protected String getJobOrEventTicket() {
+        String ticket = null;
+        CronJobContext cronJobContext = CronJobContext.getCurrent();
+
+        if (cronJobContext != null) {
+            ticket = cronJobContext.getAuthenticationToken();
+        } else {
+            RepositoryEventContext repositoryEventContext = RepositoryEventContext.getCurrent();
+            if (repositoryEventContext != null) {
+                ticket = repositoryEventContext.getAuthenticationToken();
+            }
+        }
+
+        return ticket;
     }
 
     public String getConfigPath() {
@@ -978,14 +1058,6 @@ public class SecurityServiceImpl implements SecurityService {
 
     public String getSystemSite() {
         return studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE);
-    }
-
-    public SecurityProvider getSecurityProvider() {
-        return securityProvider;
-    }
-
-    public void setSecurityProvider(SecurityProvider securityProvider) {
-        this.securityProvider = securityProvider;
     }
 
     public ContentTypeService getContentTypeService() {
@@ -1082,5 +1154,13 @@ public class SecurityServiceImpl implements SecurityService {
 
     public void setAuthenticationChain(AuthenticationChain authenticationChain) {
         this.authenticationChain = authenticationChain;
+    }
+
+    public ConfigurationService getConfigurationService() {
+        return configurationService;
+    }
+
+    public void setConfigurationService(ConfigurationService configurationService) {
+        this.configurationService = configurationService;
     }
 }

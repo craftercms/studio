@@ -55,7 +55,7 @@ public class DbAuthenticationProvider extends BaseAuthenticationProvider {
         try {
             user = userDao.getUserByIdOrUsername(params);
         } catch (Exception e) {
-            logger.error("Unknown database error", e);
+            logger.debug("Unknown database error", e);
             throw new AuthenticationSystemException("Unknown database error", e);
         }
         if (user != null && user.isEnabled() && CryptoUtils.matchPassword(user.getPassword(), password)) {

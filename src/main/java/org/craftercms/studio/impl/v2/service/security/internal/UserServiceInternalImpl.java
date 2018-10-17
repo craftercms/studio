@@ -21,7 +21,9 @@ package org.craftercms.studio.impl.v2.service.security.internal;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoUtils;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.security.PasswordDoesNotMatchException;
 import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
+import org.craftercms.studio.api.v1.exception.security.UserExternallyManagedException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.UserDAO;
@@ -195,12 +197,13 @@ public class UserServiceInternalImpl implements UserServiceInternal {
 
     @Override
     public void updateUser(User user) throws UserNotFoundException, ServiceLayerException {
-        if (!userExists(user.getId(), StringUtils.EMPTY)) {
-            throw new UserNotFoundException("No user found for id '" + user.getId() + "'");
-        }
+        long userId = user.getId();
+        String username = user.getUsername() != null ? user.getUsername() : StringUtils.EMPTY;
+
+        User oldUser = getUserByIdOrUsername(userId, username);
 
         Map<String, Object> params = new HashMap<>();
-        params.put(USER_ID, user.getId());
+        params.put(USER_ID, oldUser.getId());
         params.put(FIRST_NAME, user.getFirstName());
         params.put(LAST_NAME, user.getLastName());
         params.put(EMAIL, user.getEmail());
@@ -280,6 +283,60 @@ public class UserServiceInternalImpl implements UserServiceInternal {
             return result > 0;
         } catch (Exception e) {
             throw new ServiceLayerException("Unknown database error", e);
+        }
+    }
+
+    @Override
+    public boolean changePassword(String username, String current, String newPassword)
+            throws PasswordDoesNotMatchException, UserExternallyManagedException, ServiceLayerException {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put(USER_ID, -1);
+        params.put(USERNAME, username);
+        try {
+            User user = userDao.getUserByIdOrUsername(params);
+            if (user.getExternallyManaged() > 0) {
+                throw new UserExternallyManagedException();
+            } else {
+                if (CryptoUtils.matchPassword(user.getPassword(), current)) {
+                    String hashedPassword = CryptoUtils.hashPassword(newPassword);
+                    params = new HashMap<String, Object>();
+                    params.put(USERNAME, username);
+                    params.put(PASSWORD, hashedPassword);
+                    userDao.setUserPassword(params);
+                    return true;
+                } else {
+                    throw new PasswordDoesNotMatchException();
+                }
+            }
+        } catch (RuntimeException e) {
+            throw new ServiceLayerException("Unknown database error", e);
+        }
+    }
+
+    @Override
+    public boolean setUserPassword(String username, String newPassword) throws UserNotFoundException,
+            UserExternallyManagedException, ServiceLayerException {
+        if (!userExists(-1, username)) {
+            throw new UserNotFoundException();
+        } else {
+            Map<String, Object> params = new HashMap<String, Object>();
+            params.put(USER_ID, -1);
+            params.put(USERNAME, username);
+            try {
+                User user = userDao.getUserByIdOrUsername(params);
+                if (user.getExternallyManaged() > 0) {
+                    throw new UserExternallyManagedException();
+                } else {
+                    String hashedPassword = CryptoUtils.hashPassword(newPassword);
+                    params = new HashMap<String, Object>();
+                    params.put(USERNAME, username);
+                    params.put(PASSWORD, hashedPassword);
+                    userDao.setUserPassword(params);
+                    return true;
+                }
+            } catch (Exception e) {
+                throw new ServiceLayerException("Unknown database error", e);
+            }
         }
     }
 

@@ -1,0 +1,24 @@
+# Crafter Studio Upgrade Configuration
+
+pipelines:
+
+  # Pipeline to upgrade system components (database, global repo, ...)
+  system:
+    - currentVersion: TEST
+      nextVersion: TEST
+      operations:
+
+  # Pipeline to upgrade site repositories
+  site:
+    - currentVersion: TEST
+      nextVersion: TEST
+      operations:
+
+  # Pipeline to upgrade blueprints
+  blueprint:
+    - currentVersion: TEST
+      nextVersion: TEST
+      operations:
+
+# Managed Configuration Files
+configurations:

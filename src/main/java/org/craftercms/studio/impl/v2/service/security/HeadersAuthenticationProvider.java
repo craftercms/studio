@@ -72,7 +72,8 @@ public class HeadersAuthenticationProvider extends BaseAuthenticationProvider {
 
     @Override
     public boolean doAuthenticate(HttpServletRequest request, HttpServletResponse response,
-                                  AuthenticationChain authenticationChain, String username, String password) throws AuthenticationSystemException, UserNotFoundException {
+                                  AuthenticationChain authenticationChain, String username, String password)
+            throws AuthenticationSystemException, UserNotFoundException {
         if (isEnabled()) {
             logger.debug("Authenticating user using authentication headers.");
 
@@ -101,20 +102,21 @@ public class HeadersAuthenticationProvider extends BaseAuthenticationProvider {
                                 try {
                                     userServiceInternal.updateUser(user);
 
-                                        ActivityService.ActivityType activityType = ActivityService.ActivityType.UPDATED;
-                                        Map<String, String> extraInfo = new HashMap<String, String>();
-                                        extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
-                                        activityService.postActivity(
-                                                studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE),
-                                                usernameHeader, usernameHeader,
-                                                activityType, ActivityService.ActivitySource.API, extraInfo);
+                                    ActivityService.ActivityType activityType = ActivityService.ActivityType.UPDATED;
+                                    Map<String, String> extraInfo = new HashMap<String, String>();
+                                    extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
+                                    activityService.postActivity(
+                                            studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE),
+                                            usernameHeader, usernameHeader,
+                                            activityType, ActivityService.ActivitySource.API, extraInfo);
 
                                 } catch (Exception e) {
-                                    logger.error("Error updating user " + usernameHeaderValue +
-                                            " with data from authentication headers", e);
+                                    logger.debug("Error updating user " + usernameHeaderValue +
+                                                 " with data from authentication headers", e);
 
-                                    throw new AuthenticationSystemException("Error updating user " + usernameHeaderValue +
-                                            " with data from external authentication provider", e);
+                                    throw new AuthenticationSystemException(
+                                            "Error updating user " + usernameHeaderValue + " with data from " +
+                                            "external authentication provider", e);
                                 }
                             }
                         } else {
@@ -137,14 +139,16 @@ public class HeadersAuthenticationProvider extends BaseAuthenticationProvider {
                                         usernameHeaderValue, usernameHeaderValue,
                                         activityType, ActivityService.ActivitySource.API, extraInfo);
                             } catch (UserAlreadyExistsException | ServiceLayerException e) {
-                                logger.error("Error adding user " + usernameHeaderValue + " from authentication headers", e);
+                                logger.debug("Error adding user " + usernameHeaderValue + " from authentication " +
+                                             "headers", e);
 
-                                throw new AuthenticationSystemException("Error adding user " + usernameHeaderValue +
-                                        " from external authentication provider", e);
+                                throw new AuthenticationSystemException(
+                                        "Error adding user " + usernameHeaderValue + " from external " +
+                                        "authentication provider", e);
                             }
                         }
                     } catch (ServiceLayerException e) {
-                        logger.error("Unknown service error", e);
+                        logger.debug("Unknown service error", e);
                         throw  new AuthenticationSystemException("Unknown service error" , e);
                     }
 
@@ -171,16 +175,18 @@ public class HeadersAuthenticationProvider extends BaseAuthenticationProvider {
                     }
 
                     String token = createToken(user, authenticationChain);
-
                     storeAuthentication(new Authentication(usernameHeaderValue, token, AuthenticationType.AUTH_HEADERS));
 
                     return true;
                 }
             }
-            logger.debug("Unable to authenticate user using authentication headers.");
+
+            logger.debug("Unable to authenticate user using authentication headers");
+
             return false;
         } else {
-            logger.debug("Authentication using headers disabled.");
+            logger.debug("Authentication using headers disabled");
+
             return false;
         }
     }
@@ -189,6 +195,7 @@ public class HeadersAuthenticationProvider extends BaseAuthenticationProvider {
         GroupDAO groupDao = authenticationChain.getGroupDao();
         UserDAO userDao = authenticationChain.getUserDao();
         ActivityService activityService = authenticationChain.getActivityService();
+
         try {
             Map<String, Object> params = new HashMap<>();
             params.put(ORG_ID, DEFAULT_ORGANIZATION_ID);
@@ -196,8 +203,9 @@ public class HeadersAuthenticationProvider extends BaseAuthenticationProvider {
             params.put(GROUP_DESCRIPTION, "Externally managed group - " + groupName);
             groupDao.createGroup(params);
         } catch (Exception e) {
-            logger.warn("Error creating group", e);
+            logger.debug("Error creating group", e);
         }
+
         Map<String, Object> params = new HashMap<String, Object>();
         params.put(GROUP_NAME, groupName);
         Group group = groupDao.getGroupByName(params);
@@ -213,6 +221,7 @@ public class HeadersAuthenticationProvider extends BaseAuthenticationProvider {
             params = new HashMap<>();
             params.put(USER_IDS, users);
             params.put(GROUP_ID, group.getId());
+
             try {
                 groupDao.addGroupMembers(params);
 
@@ -222,7 +231,7 @@ public class HeadersAuthenticationProvider extends BaseAuthenticationProvider {
                 activityService.postActivity("", "LDAP", username + " > " + groupName , activityType,
                         ActivityService.ActivitySource.API, extraInfo);
             } catch (Exception e) {
-                logger.error("Unknown database error", e);
+                logger.debug("Unknown database error", e);
             }
         }
         return true;

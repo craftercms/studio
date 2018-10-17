@@ -1,3 +1,21 @@
+/*
+ * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
 package org.craftercms.studio.impl.v2.upgrade.operations;
 
 import java.io.File;
@@ -18,8 +36,9 @@ import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
+import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v2.exception.UpgradeException;
-import org.craftercms.studio.api.v2.service.security.SecurityProvider;
+import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryHelper;
 import org.craftercms.studio.impl.v1.repository.git.TreeCopier;
 import org.eclipse.jgit.api.Git;
@@ -43,8 +62,9 @@ public class BlueprintsUpgradeOperation extends AbstractUpgradeOperation impleme
     private static final String STUDIO_MANIFEST_LOCATION = "/META-INF/MANIFEST.MF";
 
     protected ServletContext servletContext;
-    protected SecurityProvider securityProvider;
     protected ServicesConfig servicesConfig;
+    protected SecurityService securityService;
+    protected UserServiceInternal userServiceInternal;
 
     @Override
     public void setServletContext(final ServletContext servletContext) {
@@ -52,20 +72,31 @@ public class BlueprintsUpgradeOperation extends AbstractUpgradeOperation impleme
     }
 
     @Required
-    public void setSecurityProvider(final SecurityProvider securityProvider) {
-        this.securityProvider = securityProvider;
-    }
-
-    @Required
     public void setServicesConfig(final ServicesConfig servicesConfig) {
         this.servicesConfig = servicesConfig;
+    }
+
+    public SecurityService getSecurityService() {
+        return securityService;
+    }
+
+    public void setSecurityService(SecurityService securityService) {
+        this.securityService = securityService;
+    }
+
+    public UserServiceInternal getUserServiceInternal() {
+        return userServiceInternal;
+    }
+
+    public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
+        this.userServiceInternal = userServiceInternal;
     }
 
     @Override
     public void execute(final String site) throws UpgradeException {
         try {
             GitContentRepositoryHelper helper =
-                new GitContentRepositoryHelper(studioConfiguration, securityProvider, servicesConfig);
+                new GitContentRepositoryHelper(studioConfiguration, servicesConfig, userServiceInternal, securityService);
             Path globalConfigPath = helper.buildRepoPath(GitRepositories.GLOBAL);
             Path blueprintsPath = Paths.get(globalConfigPath.toAbsolutePath().toString(),
                 studioConfiguration.getProperty(BLUE_PRINTS_PATH));

@@ -37,11 +37,11 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
+import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
-import org.craftercms.studio.api.v2.service.security.SecurityProvider;
 import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
@@ -60,10 +60,10 @@ public class UserServiceImpl implements UserService {
     private UserServiceInternal userServiceInternal;
     private ConfigurationService configurationService;
     private GroupServiceInternal groupServiceInternal;
-    private SecurityProvider securityProvider;
     private SiteService siteService;
     private EntitlementValidator entitlementValidator;
     private GeneralLockService generalLockService;
+    private SecurityService securityService;
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "read_users")
@@ -185,7 +185,7 @@ public class UserServiceImpl implements UserService {
         List<Site> sites = new ArrayList<>();
         Set<String> allSites = siteService.getAllAvailableSites();
         List<Group> userGroups = userServiceInternal.getUserGroups(userId, username);
-        boolean isSysAdmin = userServiceInternal.isUserMemberOfGroup(username, SYSTEM_ADMIN_GROUP);
+        boolean isSysAdmin = userGroups.stream().anyMatch(group -> group.getGroupName().equals(SYSTEM_ADMIN_GROUP));
 
         // Iterate all sites. If the user has any of the site groups, it has access to the site
         for (String siteId : allSites) {
@@ -235,7 +235,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public AuthenticatedUser getCurrentUser() throws AuthenticationException, ServiceLayerException {
-        Authentication authentication = securityProvider.getAuthentication();
+        Authentication authentication = securityService.getAuthentication();
         if (authentication != null) {
             String username = authentication.getUsername();
             User user;
@@ -262,7 +262,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<Site> getCurrentUserSites() throws AuthenticationException, ServiceLayerException {
-        Authentication authentication = securityProvider.getAuthentication();
+        Authentication authentication = securityService.getAuthentication();
         if (authentication != null) {
             try {
                 return getUserSites(-1, authentication.getUsername());
@@ -277,7 +277,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<String> getCurrentUserSiteRoles(String site) throws AuthenticationException, ServiceLayerException {
-        Authentication authentication = securityProvider.getAuthentication();
+        Authentication authentication = securityService.getAuthentication();
         if (authentication != null) {
             try {
                 return getUserSiteRoles(-1, authentication.getUsername(), site);
@@ -292,7 +292,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public String getCurrentUserSsoLogoutUrl() throws AuthenticationException, ServiceLayerException {
-        Authentication authentication = securityProvider.getAuthentication();
+        Authentication authentication = securityService.getAuthentication();
         if (authentication != null) {
             return configurationService.getSsoLogoutUrl(authentication.getAuthenticationType());
         } else {
@@ -324,14 +324,6 @@ public class UserServiceImpl implements UserService {
         this.configurationService = configurationService;
     }
 
-    public SecurityProvider getSecurityProvider() {
-        return securityProvider;
-    }
-
-    public void setSecurityProvider(SecurityProvider securityProvider) {
-        this.securityProvider = securityProvider;
-    }
-
     public SiteService getSiteService() {
         return siteService;
     }
@@ -350,5 +342,13 @@ public class UserServiceImpl implements UserService {
 
     public void setGeneralLockService(GeneralLockService generalLockService) {
         this.generalLockService = generalLockService;
+    }
+
+    public SecurityService getSecurityService() {
+        return securityService;
+    }
+
+    public void setSecurityService(SecurityService securityService) {
+        this.securityService = securityService;
     }
 }

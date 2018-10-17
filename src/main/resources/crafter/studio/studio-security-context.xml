@@ -44,11 +44,11 @@
         <security:intercept-url pattern="/api/**" access="isAuthenticated()" />
     </security:http>
 
-    <bean id="studioAuthenticationTokenProcessingFilter" class="org.craftercms.studio.impl.v1.web.security.access.StudioAuthenticationTokenProcessingFilter">
+    <bean id="studioAuthenticationTokenProcessingFilter"
+          class="org.craftercms.studio.impl.v1.web.security.access.StudioAuthenticationTokenProcessingFilter" init-method="init">
         <property name="securityService" ref="cstudioSecurityService"/>
         <property name="userDetailsManager" ref="studioUserDetailsManager"/>
         <property name="studioConfiguration" ref="studioConfiguration" />
-        <property name="securityProvider" ref="securityProvider" />
     </bean>
 
     <security:authentication-manager id="studioAuthenticationManager">
@@ -73,61 +73,6 @@
 
     <ldap:ldap-template id="ldapTemplate" context-source-ref="ldapContextSource" />
 
-    <bean id="securityProvider" class="org.craftercms.studio.impl.v2.service.security.MappedSecurityProvider">
-        <property name="studioConfiguration" ref="studioConfiguration" />
-    </bean>
-
-    <bean id="cstudioSecurityProviderRegistration"
-          abstract="true"
-          class="org.craftercms.studio.impl.v2.service.security.MappedSecurityProviderRegistration"
-          init-method="registerProvider">
-        <property name="mappedSecurityProvider" ref="securityProvider"/>
-    </bean>
-
-    <bean id="cstudioLdapSecurityProvider"
-          class="org.craftercms.studio.impl.v2.service.security.DbWithLdapExtensionSecurityProvider">
-        <property name="studioConfiguration" ref="studioConfiguration" />
-        <property name="ldapTemplate" ref="ldapTemplate" />
-        <property name="activityService" ref="cstudioActivityService" />
-        <property name="userDAO" ref="userDAO" />
-        <property name="groupDAO" ref="groupDAO" />
-        <property name="siteFeedMapper" ref="siteFeedMapper" />
-    </bean>
-
-    <bean id="cstudioLdapSecurityProviderRegistration"
-          parent="cstudioSecurityProviderRegistration">
-        <property name="securityProvider" ref="cstudioLdapSecurityProvider"/>
-        <property name="providerType" value="ldap"/>
-    </bean>
-
-    <bean id="studioAuthenticationHeadersProvider"
-          class="org.craftercms.studio.impl.v2.service.security.AuthenticationHeadersSecurityProvider">
-        <property name="activityService" ref="cstudioActivityService"/>
-        <property name="ldapTemplate" ref="ldapTemplate"/>
-        <property name="studioConfiguration" ref="studioConfiguration" />
-        <property name="userDAO" ref="userDAO"/>
-        <property name="groupDAO" ref="groupDAO" />
-        <property name="siteFeedMapper" ref="siteFeedMapper" />
-    </bean>
-
-    <bean id="cstudioAuthenticationHeadersSecurityProviderRegistration"
-          parent="cstudioSecurityProviderRegistration">
-        <property name="securityProvider" ref="studioAuthenticationHeadersProvider"/>
-        <property name="providerType" value="headers"/>
-    </bean>
-
-    <bean id="cstudioDbSecurityProvider" class="org.craftercms.studio.impl.v2.service.security.DbSecurityProvider">
-        <property name="userDAO" ref="userDAO" />
-        <property name="groupDAO" ref="groupDAO" />
-        <property name="studioConfiguration" ref="studioConfiguration" />
-    </bean>
-
-    <bean id="cstudioDbSecurityProviderRegistration"
-          parent="cstudioSecurityProviderRegistration">
-        <property name="securityProvider" ref="cstudioDbSecurityProvider"/>
-        <property name="providerType" value="db"/>
-    </bean>
-
     <bean id="studioAccessDecisionManager" class="org.craftercms.studio.impl.v1.web.security.access.StudioAccessDecisionManager" >
         <constructor-arg name="decisionVoters">
             <list>
@@ -142,10 +87,10 @@
     </bean>
 
     <bean id="studioAbstractAccessDecisionVoter" class="org.craftercms.studio.impl.v1.web.security.access.StudioAbstractAccessDecisionVoter" abstract="true">
-        <property name="securityProvider" ref="securityProvider"/>
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="securityService" ref="cstudioSecurityService" />
+        <property name="userServiceInternal" ref="userServiceInternal" />
     </bean>
 
     <bean id="studioAccessDeniedHandler" class="org.craftercms.studio.impl.v1.web.security.access.StudioAccessDeniedHandler"/>

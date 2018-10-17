@@ -55,8 +55,9 @@
     <bean id="repoPipeline" scope="prototype"
           class="org.craftercms.studio.impl.v2.upgrade.pipeline.SiteRepositoryUpgradePipelineImpl">
         <property name="studioConfiguration" ref="studioConfiguration"/>
-        <property name="securityProvider" ref="securityProvider"/>
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
+        <property name="securityService" ref="cstudioSecurityService" />
+        <property name="userServiceInternal" ref="userServiceInternal" />
 
         <property name="siteSandboxBranch" value="#{studioConfiguration.getProperty('studio.repo.siteSandboxBranch')}"/>
         <property name="siteUpgradeBranch"
@@ -124,8 +125,9 @@
 
     <bean id="blueprintsUpgrader" scope="prototype" parent="upgradeOperation"
           class="org.craftercms.studio.impl.v2.upgrade.operations.BlueprintsUpgradeOperation">
-        <property name="securityProvider" ref="securityProvider"/>
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
+        <property name="securityService" ref="cstudioSecurityService" />
+        <property name="userServiceInternal" ref="userServiceInternal" />
     </bean>
 
     <bean id="xsltFileUpgrader" scope="prototype" parent="upgradeOperation"

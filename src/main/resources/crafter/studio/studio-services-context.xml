@@ -53,7 +53,6 @@
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager" />
         <property name="securityService" ref="cstudioSecurityService" />
         <property name="dmPageNavigationOrderService" ref="cstudioPageNavOrderService"/>
-        <property name="securityProvider" ref="securityProvider"/>
         <property name="activityService" ref="cstudioActivityService"/>
         <property name="dmContentLifeCycleService" ref="cstudioContentLifeCycleService"/>
         <property name="eventService" ref="studioEventService"/>
@@ -105,7 +104,6 @@
         <property name="dmPageNavigationOrderService" ref="cstudioPageNavOrderService"/>
         <property name="notificationService" ref="cstudioNotificationService"/>
         <property name="contentTypeService" ref="cstudioContentTypeService"/>
-        <property name="securityProvider" ref="securityProvider" />
         <property name="importService" ref="cstudioImportService"/>
         <property name="generalLockService" ref="cstudioGeneralLockService"/>
         <property name="rebuildRepositoryMetadata" ref="studioRebuildRepositoryMetadata"/>
@@ -226,7 +224,6 @@
     <bean id="cstudioSecurityService" class="org.craftercms.studio.impl.v1.service.security.SecurityServiceImpl">
         <property name="contentService" ref="cstudioContentService"/>
         <property name="contentTypeService" ref="cstudioContentTypeService"/>
-        <property name="securityProvider" ref="securityProvider"/>
         <property name="generalLockService" ref="cstudioGeneralLockService" />
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="emailService" ref="mailSender"/>
@@ -235,8 +232,9 @@
         <property name="freeMarkerConfig" ref="crafter.freeMarkerConfigFactory"/>
         <property name="activityService" ref="cstudioActivityService" />
         <property name="groupService" ref="groupService" />
-        <property name="userServiceInternal" ref="userServiceInternal"/>
+        <property name="userServiceInternal" ref="userServiceInternal" />
         <property name="authenticationChain" ref="crafter.studioAuthenticationChain" />
+        <property name="configurationService" ref="configurationService" />
     </bean>
 
     <bean id="cstudioContentTypeService" class="org.craftercms.studio.impl.v1.service.content.ContentTypeServiceImpl" >
@@ -308,7 +306,6 @@
 
     <bean id="groupService" class="org.craftercms.studio.impl.v2.service.security.GroupServiceImpl">
         <property name="configurationService" ref="configurationService" />
-        <property name="securityProvider" ref="securityProvider" />
         <property name="generalLockService" ref="cstudioGeneralLockService" />
         <property name="groupServiceInternal" ref="groupServiceInternal" />
         <property name="userServiceInternal" ref="userServiceInternal" />
@@ -326,10 +323,10 @@
         <property name="userServiceInternal" ref="userServiceInternal" />
         <property name="groupServiceInternal" ref="groupServiceInternal" />
         <property name="configurationService" ref="configurationService" />
-        <property name="securityProvider" ref="securityProvider" />
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="entitlementValidator" ref="crafter.entitlementValidator"/>
         <property name="generalLockService" ref="cstudioGeneralLockService" />
+        <property name="securityService" ref="cstudioSecurityService" />
     </bean>
 
     <bean id="userServiceInternal"
@@ -427,6 +424,11 @@
         <property name="servicesConfig" ref="cstudioServicesConfig" />
     </bean>
 
+    <bean id="studioRepositoryCleanupJob" class="org.craftercms.studio.impl.v1.repository.job.RepositoryCleanupJob">
+        <property name="siteService" ref="cstudioSiteServiceSimple"/>
+        <property name="contentRepository" ref="contentRepository"/>
+    </bean>
+
     <!-- scheduled actions -->
     <bean id="cstudioDeployContentToEnvironmentJobsScheduled" class="org.springframework.scheduling.quartz.SimpleTriggerFactoryBean" >
         <property name="jobDetail">
@@ -440,10 +442,22 @@
         <property name="startDelay" value="2000" />
     </bean>
 
+    <bean id="studioRepositoryCleanupJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail">
+            <bean class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean" >
+                <property name="targetObject" ref="studioRepositoryCleanupJob"/>
+                <property name="targetMethod" value="cleanupAllRepositories"/>
+                <property name="concurrent" value="false"/>
+            </bean>
+        </property>
+        <property name="cronExpression" value="#{studioConfiguration.getProperty('studio.repo.cleanup.cron')}"/>
+    </bean>
+
     <bean id="studioSchedulerFactoryBean" name="studioSchedulerFactoryBean" class="org.craftercms.studio.impl.v1.util.spring.context.StudioSchedulerFactoryBean" destroy-method="destroy">
         <property name="triggers">
             <list>
                 <ref bean="cstudioDeployContentToEnvironmentJobsScheduled" />
+                <ref bean="studioRepositoryCleanupJobTrigger"/>
             </list>
         </property>
         <property name="waitForJobsToCompleteOnShutdown" value="false" />
@@ -466,10 +480,11 @@
     <bean id="contentRepository"
           class="org.craftercms.studio.impl.v1.repository.git.GitContentRepository" init-method="bootstrap">
         <property name="studioConfiguration" ref="studioConfiguration"/>
-        <property name="securityProvider" ref="securityProvider"/>
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
         <property name="remoteRepositoryMapper" ref="remoteRepositoryMapper" />
         <property name="gitLogMapper" ref="gitLogMapper" />
+        <property name="userServiceInternal" ref="userServiceInternal" />
+        <property name="securityService" ref="cstudioSecurityService" />
     </bean>
 
     <!-- ////////////////////////////////////// -->
@@ -704,7 +719,6 @@
         <property name="contentRepository" ref="contentRepository"/>
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
-        <property name="securityProvider" ref="securityProvider" />
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="deploymentHistoryProvider" ref="contentRepository" />
         <property name="dependencyService" ref="studioDependencyService" />
@@ -748,6 +762,12 @@
     <bean id="studioS3ProfileReader" class="org.craftercms.studio.impl.v1.aws.s3.XmlS3ProfileReader"/>
 
     <bean id="studioS3Service" class="org.craftercms.studio.impl.v1.service.aws.S3ServiceImpl">
+        <property name="profileManager" ref="studioAwsProfileManager"/>
+        <property name="profileReader" ref="studioS3ProfileReader"/>
+    </bean>
+
+    <!-- v2 Service -->
+    <bean id="awsS3Service" class="org.craftercms.studio.impl.v2.service.aws.s3.AwsS3ServiceImpl">
         <property name="profileManager" ref="studioAwsProfileManager"/>
         <property name="profileReader" ref="studioS3ProfileReader"/>
     </bean>
@@ -867,8 +887,8 @@
     <!-- ////////////////////////////////////// -->
     <bean id="crafter.entitlementsProvider" class="org.craftercms.studio.impl.v1.entitlement.StudioEntitlementUsageProvider">
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager"/>
-        <property name="securityProvider" ref="securityProvider"/>
         <property name="siteService" ref="cstudioSiteServiceSimple"/>
+        <property name="userServiceInternal" ref="userServiceInternal" />
     </bean>
 
     <import resource="classpath:crafter/studio/studio-security-context.xml"/>

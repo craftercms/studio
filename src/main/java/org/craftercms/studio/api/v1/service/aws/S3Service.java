@@ -9,7 +9,9 @@ import org.craftercms.studio.api.v1.exception.AwsException;
  * Service that provides access to AWS S3 to upload files.
  *
  * @author joseross
+ * @deprecated This service has been replaced with {@link org.craftercms.studio.api.v2.service.aws.s3.AwsS3Service}
  */
+@Deprecated
 public interface S3Service {
 
     /**
