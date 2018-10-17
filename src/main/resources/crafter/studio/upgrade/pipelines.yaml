@@ -123,7 +123,15 @@ pipelines:
       operations:
         - type: addFileUpgrader
           path: /config/studio/administration/samples/sample-urlrewrite.xml
-          file: crafter/studio/upgrade/3.1.0/sample-urlrewrite.xml
+          file: crafter/studio/upgrade/3.1.0.1/sample-urlrewrite.xml
+        - type: versionFileUpgrader
+
+    - currentVersion: 3.1.0.1
+      nextVersion: 3.1.0.2
+      operations:
+        - type: addFileUpgrader
+          path: /config/studio/administration/samples/sample-webdav.xml
+          file: crafter/studio/upgrade/3.1.0.2/sample-webdav.xml
         - type: versionFileUpgrader
 
     # For older sites just add the version file (those will require a manual upgrade)
@@ -152,7 +160,7 @@ configurations:
         operations:
           - type: xsltFileUpgrader
             path: *role-mappings-config
-            template: crafter/studio/upgrade/role-mappings-config-1.1.xslt
+            template: crafter/studio/upgrade/3.1.0/role-mappings-config-2.xslt
           - type: xsltFileUpgrader
             path: *role-mappings-config
             template: crafter/studio/upgrade/update-version.xslt
@@ -164,9 +172,18 @@ configurations:
       - currentVersion: 1
         nextVersion: 2
         operations:
-        - type: xsltFileUpgrader
-          path: *config-list
-          template: crafter/studio/upgrade/config-list-1.1.xslt
-        - type: xsltFileUpgrader
-          path: *config-list
-          template: crafter/studio/upgrade/update-version.xslt
+          - type: xsltFileUpgrader
+            path: *config-list
+            template: crafter/studio/upgrade/3.1.0.1/config-list-2.xslt
+          - type: xsltFileUpgrader
+            path: *config-list
+            template: crafter/studio/upgrade/update-version.xslt
+      - currentVersion: 2
+        nextVersion: 3
+        operations:
+          - type: xsltFileUpgrader
+            path: *config-list
+            template: crafter/studio/upgrade/3.1.0.2/config-list-3.xslt
+          - type: xsltFileUpgrader
+            path: *config-list
+            template: crafter/studio/upgrade/update-version.xslt
