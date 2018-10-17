@@ -118,12 +118,18 @@ pipelines:
 
   # Pipeline to upgrade site repositories
   site:
-    - currentVersion: 3.0.0
-      nextVersion: 3.1.0
+    - currentVersion: 3.1.0
+      nextVersion: 3.1.0.1
       operations:
         - type: addFileUpgrader
           path: /config/studio/administration/samples/sample-urlrewrite.xml
           file: crafter/studio/upgrade/3.1.0/sample-urlrewrite.xml
+        - type: versionFileUpgrader
+
+    # For older sites just add the version file (those will require a manual upgrade)
+    - currentVersion: 3.0.x
+      nextVersion: 3.0.x
+      operations:
         - type: versionFileUpgrader
 
   # Pipeline to upgrade blueprints
@@ -141,8 +147,8 @@ configurations:
     path: &role-mappings-config '/config/studio/role-mappings-config.xml'
     pipeline:
       # Initial version, assumed if the file doesn't contain a version tag
-      - currentVersion: 1.0
-        nextVersion: 1.1
+      - currentVersion: 1
+        nextVersion: 2
         operations:
           - type: xsltFileUpgrader
             path: *role-mappings-config
@@ -155,8 +161,8 @@ configurations:
     path: &config-list '/config/studio/administration/config-list.xml'
     pipeline:
       # Initial version, assumed if the file doesn't contain a version tag
-      - currentVersion: 1.0
-        nextVersion: 1.1
+      - currentVersion: 1
+        nextVersion: 2
         operations:
         - type: xsltFileUpgrader
           path: *config-list
