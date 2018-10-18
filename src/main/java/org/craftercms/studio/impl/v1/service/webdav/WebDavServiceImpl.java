@@ -180,22 +180,32 @@ public class WebDavServiceImpl implements WebDavService {
                          final InputStream content)
         throws WebDavException {
         WebDavProfile profile = profileReader.getProfile(site, profileId);
-        String uploadUrl = profile.getBaseUrl();
+        String uploadUrl = StringUtils.removeEnd(profile.getBaseUrl(), "/");
         try {
+            Sardine sardine = SardineFactory.begin(profile.getUsername(), profile.getPassword());
+
             if(StringUtils.isNotEmpty(path)) {
-                uploadUrl +=  path.startsWith("/")? path : "/" + path;
+                String[] folders = StringUtils.split(path, "/");
+
+                for(String folder : folders) {
+                    uploadUrl += "/" + folder;
+
+                    try {
+                        logger.debug("Trying to create folder {0}", uploadUrl);
+                        sardine.createDirectory(uploadUrl);
+                        logger.debug("Folder created");
+                    } catch (Exception e) {
+                        logger.debug("Folder already exists");
+                    }
+                }
             }
-            String fileUrl = uploadUrl + "/" + UriUtils.encode(filename, charset.name());
+
+            uploadUrl =  StringUtils.appendIfMissing(uploadUrl, "/");
+            String fileUrl = uploadUrl + UriUtils.encode(filename, charset.name());
 
             logger.debug("Starting upload of file {0}", filename);
             logger.debug("Uploading file to {0}", fileUrl);
-            Sardine sardine = SardineFactory.begin(profile.getUsername(), profile.getPassword());
-            try {
-                logger.debug("Creating upload folder {0}", uploadUrl);
-                sardine.createDirectory(uploadUrl);
-            } catch (Exception e) {
-                logger.debug("Upload folder already exists");
-            }
+
             sardine.put(fileUrl, content);
             logger.debug("Upload complete");
             if(StringUtils.isNotEmpty(profile.getDeliveryBaseUrl())) {
