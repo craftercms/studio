@@ -102,7 +102,7 @@ public class WebDavServiceImpl implements WebDavService {
         throws
         WebDavException {
         WebDavProfile profile = profileReader.getProfile(site, profileId);
-        String listPath = profile.getBaseUrl();
+        String listPath = StringUtils.appendIfMissing(profile.getBaseUrl(),"/");
         MimeType filterType;
         Sardine sardine = SardineFactory.begin(profile.getUsername(), profile.getPassword());
         try {
@@ -113,22 +113,17 @@ public class WebDavServiceImpl implements WebDavService {
             }
 
             if(StringUtils.isNotEmpty(path)) {
-                String[] tokens = path.split("\\/");
+                String[] tokens = StringUtils.split(path, "/");
                 for(String token : tokens) {
                     if(StringUtils.isNotEmpty(token)) {
-                        listPath += "/" + UriUtils.encode(token, charset.name());
+                        listPath += StringUtils.appendIfMissing(UriUtils.encode(token, charset.name()), "/");
                     }
                 }
             }
-            listPath = StringUtils.appendIfMissing(listPath, "/");
 
-            try {
-                if (!sardine.exists(listPath)) {
-                    logger.debug("Folder {0} doesn't exist", listPath);
-                    return Collections.emptyList();
-                }
-            } catch (SardineException e) {
-                logger.debug("Folder exists, continue listing...");
+            if (!sardine.exists(listPath)) {
+                logger.debug("Folder {0} doesn't exist", listPath);
+                return Collections.emptyList();
             }
             String basePath = new URL(profile.getBaseUrl()).getPath();
             String baseDomain = profile.getBaseUrl();
@@ -180,7 +175,7 @@ public class WebDavServiceImpl implements WebDavService {
                          final InputStream content)
         throws WebDavException {
         WebDavProfile profile = profileReader.getProfile(site, profileId);
-        String uploadUrl = StringUtils.removeEnd(profile.getBaseUrl(), "/");
+        String uploadUrl = StringUtils.appendIfMissing(profile.getBaseUrl(), "/");
         try {
             Sardine sardine = SardineFactory.begin(profile.getUsername(), profile.getPassword());
 
@@ -188,13 +183,14 @@ public class WebDavServiceImpl implements WebDavService {
                 String[] folders = StringUtils.split(path, "/");
 
                 for(String folder : folders) {
-                    uploadUrl += "/" + folder;
+                    uploadUrl += StringUtils.appendIfMissing(folder, "/");
 
-                    try {
-                        logger.debug("Trying to create folder {0}", uploadUrl);
+                    logger.debug("Checking folder {0}", uploadUrl);
+                    if(!sardine.exists(uploadUrl)) {
+                        logger.debug("Creating folder");
                         sardine.createDirectory(uploadUrl);
                         logger.debug("Folder created");
-                    } catch (Exception e) {
+                    } else {
                         logger.debug("Folder already exists");
                     }
                 }
