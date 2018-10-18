@@ -187,3 +187,16 @@ configurations:
           - type: xsltFileUpgrader
             path: *config-list
             template: crafter/studio/upgrade/update-version.xslt
+
+  site-config-tools:
+    path: &site-config-tools '/config/studio/administration/site-config-tools.xml'
+    pipeline:
+      - currentVersion: 1
+        nextVersion: 2
+        operations:
+          - type: xsltFileUpgrader
+            path: *site-config-tools
+            template: crafter/studio/upgrade/3.1.0.2/site-config-tools-2.xslt
+          - type: xsltFileUpgrader
+            path: *site-config-tools
+            template: crafter/studio/upgrade/update-version.xslt
