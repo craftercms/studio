@@ -19,6 +19,7 @@
     - samplePath: the path to a sample file to help the user update the file
 -->
 <config>
+    <version>3</version>
     <files>
         <file>
             <path>/studio/site-config.xml</path>

@@ -97,8 +97,10 @@ public class XmlFileVersionProvider implements VersionProvider {
     public String getCurrentVersion() throws UpgradeException {
         String currentVersion = defaultVersion;
         if(!contentRepository.contentExists(site, "/config/studio")) {
-            throw new UpgradeNotSupportedException("Site '"+ site +"' from 2.5.x can't be automatically upgraded");
-        } else if(contentRepository.contentExists(site, path)) {
+            throw new UpgradeNotSupportedException("Site '" + site + "' from 2.5.x can't be automatically upgraded");
+        } else if(!contentRepository.contentExists(site, path)) {
+            throw new UpgradeNotSupportedException("Site '" + site + "' from 3.0.x can't be automatically upgraded");
+        } else {
             try(InputStream is = contentRepository.getContent(site, path)) {
                 DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
                 DocumentBuilder builder = builderFactory.newDocumentBuilder();
