@@ -100,7 +100,6 @@ public class PublisherTask implements Runnable {
             }
             if (siteService.isPublishingEnabled(site)) {
                 if (!publishingManager.isPublishingBlocked(site)) {
-                    String statusMessage = StringUtils.EMPTY;
                     try {
                         Set<String> environments = getAllPublishingEnvironments(site);
                         for (String environment : environments) {
