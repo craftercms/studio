@@ -102,7 +102,7 @@ public class WebDavServiceImpl implements WebDavService {
         throws
         WebDavException {
         WebDavProfile profile = profileReader.getProfile(site, profileId);
-        String listPath = profile.getBaseUrl();
+        String listPath = StringUtils.appendIfMissing(profile.getBaseUrl(),"/");
         MimeType filterType;
         Sardine sardine = SardineFactory.begin(profile.getUsername(), profile.getPassword());
         try {
@@ -113,34 +113,54 @@ public class WebDavServiceImpl implements WebDavService {
             }
 
             if(StringUtils.isNotEmpty(path)) {
-                String[] tokens = path.split("\\/");
+                String[] tokens = StringUtils.split(path, "/");
                 for(String token : tokens) {
                     if(StringUtils.isNotEmpty(token)) {
-                        listPath += "/" + UriUtils.encode(token, charset.name());
+                        listPath += StringUtils.appendIfMissing(UriUtils.encode(token, charset.name()), "/");
                     }
                 }
             }
-            listPath = StringUtils.appendIfMissing(listPath, "/");
 
-            try {
-                if (!sardine.exists(listPath)) {
-                    logger.debug("Folder {0} doesn't exist", listPath);
-                    return Collections.emptyList();
-                }
-            } catch (SardineException e) {
-                logger.debug("Folder exists, continue listing...");
+            if (!sardine.exists(listPath)) {
+                logger.debug("Folder {0} doesn't exist", listPath);
+                return Collections.emptyList();
             }
-            String finalPath = listPath;
-            String baseDomain = StringUtils.removeEnd(profile.getBaseUrl(), new URL(profile.getBaseUrl()).getPath());
+            String basePath = new URL(profile.getBaseUrl()).getPath();
+            String baseDomain = profile.getBaseUrl();
+            String deliveryUrl = profile.getDeliveryBaseUrl();
             logger.debug("Listing resources at {0}", listPath);
             List<DavResource> resources = sardine.propfind(listPath, 1, properties);
-            logger.debug("Found {0} resources", resources.size());
+            logger.debug("Found {0} resources at {0}", resources.size(), listPath);
             return resources.stream()
+                .skip(1) // to avoid repeating the folder being listed
                 .filter(r -> r.isDirectory() || filterType.includes(MimeType.valueOf(r.getContentType())))
-                .map(r -> new WebDavItem(r.getDisplayName(), baseDomain + r.getPath(), r.isDirectory()))
+                .map(r ->
+                    new WebDavItem(getName(r), getUrl(r, baseDomain, deliveryUrl, basePath), r.isDirectory()))
                 .collect(Collectors.toList());
         } catch (Exception e) {
             throw new WebDavException("Error listing resources", e);
+        }
+    }
+
+    
+    protected String getUrl(DavResource resource, String baseUrl, String deliveryUrl, String basePath) {
+        String relativePath = StringUtils.removeFirst(resource.getPath(), basePath);
+        if(resource.isDirectory()) {
+            return baseUrl + relativePath;
+        } else {
+            return (StringUtils.isNotEmpty(deliveryUrl)? deliveryUrl : baseUrl) + relativePath;
+        }
+    }
+
+    protected String getName(DavResource resource) {
+        if(StringUtils.isNotEmpty(resource.getDisplayName())) {
+            return resource.getDisplayName();
+        } else {
+            String path = resource.getPath();
+            if(resource.isDirectory()) {
+                path = StringUtils.removeEnd(path, "/");
+            }
+            return StringUtils.substringAfterLast(path, "/");
         }
     }
 
@@ -155,24 +175,38 @@ public class WebDavServiceImpl implements WebDavService {
                          final InputStream content)
         throws WebDavException {
         WebDavProfile profile = profileReader.getProfile(site, profileId);
-        String uploadUrl = profile.getBaseUrl();
+        String uploadUrl = StringUtils.appendIfMissing(profile.getBaseUrl(), "/");
         try {
+            Sardine sardine = SardineFactory.begin(profile.getUsername(), profile.getPassword());
+
             if(StringUtils.isNotEmpty(path)) {
-                uploadUrl +=  path.startsWith("/")? path : "/" + path;
+                String[] folders = StringUtils.split(path, "/");
+
+                for(String folder : folders) {
+                    uploadUrl += StringUtils.appendIfMissing(folder, "/");
+
+                    logger.debug("Checking folder {0}", uploadUrl);
+                    if(!sardine.exists(uploadUrl)) {
+                        logger.debug("Creating folder {0}", uploadUrl);
+                        sardine.createDirectory(uploadUrl);
+                        logger.debug("Folder {0} created", uploadUrl);
+                    } else {
+                        logger.debug("Folder {0} already exists", uploadUrl);
+                    }
+                }
             }
-            String fileUrl = uploadUrl + "/" + UriUtils.encode(filename, charset.name());
+
+            uploadUrl =  StringUtils.appendIfMissing(uploadUrl, "/");
+            String fileUrl = uploadUrl + UriUtils.encode(filename, charset.name());
 
             logger.debug("Starting upload of file {0}", filename);
             logger.debug("Uploading file to {0}", fileUrl);
-            Sardine sardine = SardineFactory.begin(profile.getUsername(), profile.getPassword());
-            try {
-                logger.debug("Creating upload folder {0}", uploadUrl);
-                sardine.createDirectory(uploadUrl);
-            } catch (Exception e) {
-                logger.debug("Upload folder already exists");
-            }
+
             sardine.put(fileUrl, content);
-            logger.debug("Upload complete");
+            logger.debug("Upload complete for file {0}", fileUrl);
+            if(StringUtils.isNotEmpty(profile.getDeliveryBaseUrl())) {
+                fileUrl = StringUtils.replaceFirst(fileUrl, profile.getBaseUrl(), profile.getDeliveryBaseUrl());
+            }
             return fileUrl;
         } catch (Exception e ) {
             throw new WebDavException("Error uploading file", e);
