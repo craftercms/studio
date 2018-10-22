@@ -19,4 +19,68 @@
 package org.craftercms.studio.api.v2.dal;
 
 public class Cluster {
+
+    String remoteName;
+    String remoteUsername;
+    String remotePassword;
+    String remoteToken;
+    String remotePrivateKey;
+    String remoteUrl;
+    String authenticationType;
+
+    public String getRemoteName() {
+        return remoteName;
+    }
+
+    public void setRemoteName(String remoteName) {
+        this.remoteName = remoteName;
+    }
+
+    public String getRemoteUsername() {
+        return remoteUsername;
+    }
+
+    public void setRemoteUsername(String remoteUsername) {
+        this.remoteUsername = remoteUsername;
+    }
+
+    public String getRemotePassword() {
+        return remotePassword;
+    }
+
+    public void setRemotePassword(String remotePassword) {
+        this.remotePassword = remotePassword;
+    }
+
+    public String getRemoteToken() {
+        return remoteToken;
+    }
+
+    public void setRemoteToken(String remoteToken) {
+        this.remoteToken = remoteToken;
+    }
+
+    public String getRemotePrivateKey() {
+        return remotePrivateKey;
+    }
+
+    public void setRemotePrivateKey(String remotePrivateKey) {
+        this.remotePrivateKey = remotePrivateKey;
+    }
+
+    public String getRemoteUrl() {
+        return remoteUrl;
+    }
+
+    public void setRemoteUrl(String remoteUrl) {
+        this.remoteUrl = remoteUrl;
+    }
+
+    public String getAuthenticationType() {
+        return authenticationType;
+    }
+
+    public void setAuthenticationType(String authenticationType) {
+        this.authenticationType = authenticationType;
+    }
 }

@@ -18,44 +18,270 @@
 
 package org.craftercms.studio.impl.v2.service.cluster;
 
-import org.craftercms.studio.api.v1.dal.SiteFeed;
-import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
+import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.JSchException;
+import com.jcraft.jsch.Session;
+import org.apache.commons.lang3.StringUtils;
+import org.craftercms.studio.api.v1.constant.GitRepositories;
+import org.craftercms.studio.api.v1.dal.RemoteRepository;
+import org.craftercms.studio.api.v1.deployment.PreviewDeployer;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
+import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
+import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v1.repository.ContentRepository;
+import org.craftercms.studio.api.v1.service.search.SearchService;
+import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.Cluster;
 import org.craftercms.studio.api.v2.service.cluster.StudioNodeSyncTask;
+import org.eclipse.jgit.api.CloneCommand;
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.PullCommand;
+import org.eclipse.jgit.api.TransportConfigCallback;
+import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.InvalidRemoteException;
+import org.eclipse.jgit.api.errors.TransportException;
+import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.merge.MergeStrategy;
+import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
+import org.eclipse.jgit.transport.JschConfigSessionFactory;
+import org.eclipse.jgit.transport.OpenSshConfig;
+import org.eclipse.jgit.transport.SshSessionFactory;
+import org.eclipse.jgit.transport.SshTransport;
+import org.eclipse.jgit.transport.Transport;
+import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
+import org.eclipse.jgit.util.FS;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
+import java.util.Properties;
+import java.util.UUID;
+
+import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
 
 public class StudioNodeSyncTaskImpl implements StudioNodeSyncTask {
 
     private static final Logger logger = LoggerFactory.getLogger(StudioNodeSyncTaskImpl.class);
 
-    protected String site;
+    protected String siteId;
     protected List<Cluster> clusterNodes;
-    protected ContentRepository contentRepository;
+    protected SearchService searchService;
+    protected PreviewDeployer previewDeployer;
+    protected StudioConfiguration studioConfiguration;
 
     @Override
     public void execute() {
+        boolean success = false;
         boolean siteCheck = checkIfSiteRepoExists();
         if (!siteCheck) {
-            createSolrIndex();
-            createSiteFromRemote();
-            create
+            try {
+                searchService.createIndex(siteId);
+            } catch (ServiceLayerException e) {
+                logger.error("Error creating search index on cluster node for site " + siteId + "." +
+                                " Is the Search running and configured correctly in Studio?", e);
+            }
+
+            try {
+                success = previewDeployer.createTarget(siteId);
+            } catch (Exception e) {
+                success = false;
+                logger.error("Error while creating site: " + siteId +
+                        ". Is the Preview Deployer running and configured correctly in Studio?", e);
+            }
+            if (!success) {
+                // Rollback search index creation
+                try {
+                    searchService.deleteIndex(siteId);
+                } catch (ServiceLayerException e) {
+                    logger.error("Error while rolling back/deleting site: " + siteId + ". This means the site search " +
+                            "index (core) is still present, but the site is not successfully created.", e);
+                }
+            }
+            try {
+                createSiteFromRemote();
+            } catch (InvalidRemoteRepositoryException | InvalidRemoteRepositoryCredentialsException | RemoteRepositoryNotFoundException | ServiceLayerException e) {
+                e.printStackTrace();
+            }
+
+            addRemotes();
         }
+
+        updateContent();
+    }
+
+    private boolean createSiteFromRemote()
+            throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
+            RemoteRepositoryNotFoundException, ServiceLayerException {
+
+        Cluster remoteNode = clusterNodes.get(0);
+        boolean toRet = true;
+        // prepare a new folder for the cloned repository
+        Path siteSandboxPath = buildRepoPath(SANDBOX);
+        File localPath = siteSandboxPath.toFile();
+        localPath.delete();
+        logger.debug("Add user credentials if provided");
+        // then clone
+        logger.debug("Cloning from " + remoteNode.getRemoteUrl() + " to " + localPath);
+        CloneCommand cloneCommand = Git.cloneRepository();
+        Git cloneResult = null;
+
+        try {
+            final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(),".tmp");
+            switch (remoteNode.getAuthenticationType()) {
+                case RemoteRepository.AuthenticationType.NONE:
+                    logger.debug("No authentication");
+                    break;
+                case RemoteRepository.AuthenticationType.BASIC:
+                    logger.debug("Basic authentication");
+                    cloneCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(
+                            remoteNode.getRemoteUsername(),
+                            remoteNode.getRemotePassword()));
+                    break;
+                case RemoteRepository.AuthenticationType.TOKEN:
+                    logger.debug("Token based authentication");
+                    cloneCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(
+                            remoteNode.getRemoteToken(),
+                            StringUtils.EMPTY));
+                    break;
+                case RemoteRepository.AuthenticationType.PRIVATE_KEY:
+                    logger.debug("Private key authentication");
+                    tempKey.toFile().deleteOnExit();
+                    cloneCommand.setTransportConfigCallback(new TransportConfigCallback() {
+                        @Override
+                        public void configure(Transport transport) {
+                            SshTransport sshTransport = (SshTransport)transport;
+                            sshTransport.setSshSessionFactory(
+                                    getSshSessionFactory(remoteNode.getRemotePrivateKey(), tempKey));
+                        }
+                    });
+
+                    break;
+                default:
+                    throw new ServiceLayerException("Unsupported authentication type " + remoteNode.getAuthenticationType());
+            }
+            cloneResult = cloneCommand
+                    .setURI(remoteNode.getRemoteUrl())
+                    .setDirectory(localPath)
+                    .setRemote(remoteNode.getRemoteName())
+                    .setCloneAllBranches(true)
+                    .call();
+            Files.deleteIfExists(tempKey);
+
+        } catch (InvalidRemoteException e) {
+            logger.error("Invalid remote repository: " + remoteNode.getRemoteName() + " (" + remoteNode.getRemoteUrl() + ")", e);
+            throw new InvalidRemoteRepositoryException("Invalid remote repository: " + remoteNode.getRemoteName() + " (" +
+                    remoteNode.getRemoteUrl() + ")");
+        } catch (TransportException e) {
+            if (StringUtils.endsWithIgnoreCase(e.getMessage(), "not authorized")) {
+                logger.error("Bad credentials or read only repository: " + remoteNode.getRemoteName() + " (" + remoteNode.getRemoteUrl() + ")",
+                        e);
+                throw new InvalidRemoteRepositoryCredentialsException("Bad credentials or read only repository: " +
+                        remoteNode.getRemoteName() + " (" + remoteNode.getRemoteUrl() + ") for username " + remoteNode.getRemoteUsername(), e);
+            } else {
+                logger.error("Remote repository not found: " + remoteNode.getRemoteName() + " (" + remoteNode.getRemoteUrl() + ")",
+                        e);
+                throw new RemoteRepositoryNotFoundException("Remote repository not found: " + remoteNode.getRemoteName() + " (" +
+                        remoteNode.getRemoteUrl() + ")");
+            }
+        } catch (GitAPIException | IOException e) {
+            logger.error("Error while creating repository for site with path" + siteSandboxPath.toString(), e);
+            toRet = false;
+        } finally {
+            if (cloneResult != null) {
+                cloneResult.close();
+            }
+        }
+        return toRet;
+    }
+
+    private Path buildRepoPath(GitRepositories repoType) {
+        Path path;
+        switch (repoType) {
+            case SANDBOX:
+                path = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
+                        studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH), siteId,
+                        studioConfiguration.getProperty(StudioConfiguration.SANDBOX_PATH));
+                break;
+            case PUBLISHED:
+                path = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
+                        studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH), siteId,
+                        studioConfiguration.getProperty(StudioConfiguration.PUBLISHED_PATH));
+                break;
+            default:
+                path = null;
+        }
+
+        return path;
+    }
+
+    private void addRemotes() {
+
+    }
+
+    private void updateContent() throws IOException {
+        Cluster remoteNode = clusterNodes.get(0);
+        boolean toRet = true;
+        // prepare a new folder for the cloned repository
+        Path siteSandboxPath = buildRepoPath(SANDBOX);
+        logger.debug("Add user credentials if provided");
+        // then clone
+        logger.debug("Cloning from " + remoteNode.getRemoteUrl() + " to " + siteSandboxPath.toString());
+        FileRepositoryBuilder builder = new FileRepositoryBuilder();
+        Repository repo = builder
+                .setGitDir(siteSandboxPath.toFile())
+                .readEnvironment()
+                .findGitDir()
+                .build();
+        try (Git git = new Git(repo)) {
+            PullCommand pullCommand = git.pull();
+            pullCommand.setRemote(remoteNode.getRemoteName());
+            pullCommand.setStrategy(MergeStrategy.THEIRS);
+        }
+
+    }
+
+    private SshSessionFactory getSshSessionFactory(String remotePrivateKey, final Path tempKey) {
+        try {
+
+            Files.write(tempKey, remotePrivateKey.getBytes());
+            SshSessionFactory sshSessionFactory = new JschConfigSessionFactory() {
+                @Override
+                protected void configure(OpenSshConfig.Host hc, Session session) {
+                    Properties config = new Properties();
+                    config.put("StrictHostKeyChecking", "no");
+                    session.setConfig(config);
+                }
+
+                @Override
+                protected JSch createDefaultJSch(FS fs) throws JSchException {
+                    JSch defaultJSch = super.createDefaultJSch(fs);
+                    defaultJSch.addIdentity(tempKey.toAbsolutePath().toString());
+                    return defaultJSch;
+                }
+            };
+            return sshSessionFactory;
+        } catch (IOException e) {
+            logger.error("Failed to create private key for SSH connection.", e);
+        }
+        return null;
     }
 
     private boolean checkIfSiteRepoExists() {
         return false;
     }
 
-    public String getSite() {
-        return site;
+
+    public String getSiteId() {
+        return siteId;
     }
 
-    public void setSite(String site) {
-        this.site = site;
+    public void setSiteId(String siteId) {
+        this.siteId = siteId;
     }
 
     public List<Cluster> getClusterNodes() {
@@ -66,11 +292,27 @@ public class StudioNodeSyncTaskImpl implements StudioNodeSyncTask {
         this.clusterNodes = clusterNodes;
     }
 
-    public ContentRepository getContentRepository() {
-        return contentRepository;
+    public SearchService getSearchService() {
+        return searchService;
     }
 
-    public void setContentRepository(ContentRepository contentRepository) {
-        this.contentRepository = contentRepository;
+    public void setSearchService(SearchService searchService) {
+        this.searchService = searchService;
+    }
+
+    public PreviewDeployer getPreviewDeployer() {
+        return previewDeployer;
+    }
+
+    public void setPreviewDeployer(PreviewDeployer previewDeployer) {
+        this.previewDeployer = previewDeployer;
+    }
+
+    public StudioConfiguration getStudioConfiguration() {
+        return studioConfiguration;
+    }
+
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+        this.studioConfiguration = studioConfiguration;
     }
 }
