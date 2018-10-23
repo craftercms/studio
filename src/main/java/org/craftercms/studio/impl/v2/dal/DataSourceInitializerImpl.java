@@ -26,8 +26,12 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.jdbc.RuntimeSqlException;
 import org.apache.ibatis.jdbc.ScriptRunner;
 import org.craftercms.commons.crypto.CryptoUtils;
@@ -40,6 +44,7 @@ import org.craftercms.studio.api.v2.dal.DataSourceInitializer;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_DRIVER;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_INITIALIZER_CONFIGURE_DB_SCRIPT_LOCATION;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_INITIALIZER_CREATE_DB_SCRIPT_LOCATION;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_INITIALIZER_CREATE_SCHEMA_SCRIPT_LOCATION;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_INITIALIZER_ENABLED;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_INITIALIZER_RANDOM_ADMIN_PASSWORD_CHARS;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_INITIALIZER_RANDOM_ADMIN_PASSWORD_ENABLED;
@@ -53,10 +58,32 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
     /**
      * Database queries
      */
+    private final static String DB_QUERY_CHECK_CONFIG =
+            "select @@GLOBAL.innodb_large_prefix, @@GLOBAL.innodb_file_format, @@GLOBAL.innodb_file_format_max, " +
+                    "@@GLOBAL.innodb_file_per_table";
     private final static String DB_QUERY_CHECK_SCHEMA_EXISTS =
             "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = 'crafter'";
+    private final static String DB_QUERY_CHECK_TABLES = "SHOW TABLES FROM crafter";
     private final static String DB_QUERY_SET_ADMIN_PASSWORD =
             "UPDATE user SET password = '{password}' WHERE username = 'admin'";
+
+    private final static List<String> tables = Arrays.asList(new String[] {
+            "_meta",
+            "audit",
+            "dependency",
+            "gitlog",
+            "organization_user",
+            "group_user",
+            "group",
+            "user",
+            "organization",
+            "item_metadata",
+            "item_state",
+            "navigation_order_sequence",
+            "publish_request",
+            "remote_repository",
+            "site"
+    });
 
     protected String delimiter;
     protected StudioConfiguration studioConfiguration;
@@ -67,7 +94,6 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
     public void initDataSource() {
         if (isEnabled()) {
             String configureDbScriptPath = getConfigureDBScriptPath();
-            String createDbScriptPath = getCreateDBScriptPath();
 
             try {
                 Class.forName(studioConfiguration.getProperty(DB_DRIVER));
@@ -77,18 +103,35 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
 
             try(Connection conn = DriverManager.getConnection(studioConfiguration.getProperty(DB_INITIALIZER_URL))) {
                 // Configure DB
+                boolean dbConfigured = false;
+                try (Statement statement = conn.createStatement();
+                    ResultSet rs = statement.executeQuery(DB_QUERY_CHECK_CONFIG)) {
+                    if (rs.next()) {
+                        int largePrefix = rs.getInt(1);
+                        String fileFormat = rs.getString(2);
+                        String fileFormatMax = rs.getString(3);
+                        int filePerTable = rs.getInt(4);
+                        dbConfigured =
+                                (largePrefix == 1) && StringUtils.equalsIgnoreCase("BARRACUDA", fileFormat) &&
+                                        StringUtils.equalsIgnoreCase("BARRACUDA", fileFormatMax) && (filePerTable == 1);
+                    }
+                }
+
                 logger.info("Configure database from script " + configureDbScriptPath);
                 ScriptRunner sr = new ScriptRunner(conn);
-
-                sr.setDelimiter(delimiter);
-                sr.setStopOnError(true);
-                sr.setLogWriter(null);
-                InputStream is = getClass().getClassLoader().getResourceAsStream(configureDbScriptPath);
-                Reader reader = new InputStreamReader(is);
-                try {
-                    sr.runScript(reader);
-                } catch (RuntimeSqlException e) {
-                    logger.error("Error while running configure DB script", e);
+                InputStream is = null;
+                Reader reader = null;
+                if (!dbConfigured) {
+                    sr.setDelimiter(delimiter);
+                    sr.setStopOnError(true);
+                    sr.setLogWriter(null);
+                    is = getClass().getClassLoader().getResourceAsStream(configureDbScriptPath);
+                    reader = new InputStreamReader(is);
+                    try {
+                        sr.runScript(reader);
+                    } catch (RuntimeSqlException e) {
+                        logger.error("Error while running configure DB script", e);
+                    }
                 }
 
                 logger.debug("Check if database schema already exists");
@@ -97,34 +140,19 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
 
                     if (rs.next()) {
                         logger.debug("Database already exists. Validate the integrity of the database");
-
+                        try (ResultSet rs2 = statement.executeQuery(DB_QUERY_CHECK_TABLES)) {
+                            List<String> tableNames = new ArrayList<String>();
+                            while (rs2.next()) {
+                                tableNames.add(rs2.getString(1));
+                            }
+                            if (!tableNames.containsAll(tables)) {
+                                createDatabaseTables(conn, sr, is, reader, statement);
+                            }
+                        }
                     } else {
                         // Database does not exist
-                        logger.info("Database does not exists.");
-                        logger.info("Creating database from script " + createDbScriptPath);
-                        sr = new ScriptRunner(conn);
-
-                        sr.setDelimiter(delimiter);
-                        sr.setStopOnError(true);
-                        sr.setLogWriter(null);
-                        is = getClass().getClassLoader().getResourceAsStream(createDbScriptPath);
-                        reader = new InputStreamReader(is);
-                        try {
-                            sr.runScript(reader);
-
-                            if (isRandomAdminPasswordEnabled()) {
-                                String randomPassword = generateRandomPassword();
-                                String hashedPassword = CryptoUtils.hashPassword(randomPassword);
-                                String update = DB_QUERY_SET_ADMIN_PASSWORD.replace("{password}", hashedPassword);
-                                statement.executeUpdate(update);
-                                conn.commit();
-                                logger.info("*** Admin Account Password: \"" + randomPassword + "\" ***");
-                            }
-
-                            integrityValidator.store(conn);
-                        } catch (RuntimeSqlException e) {
-                            logger.error("Error while running create DB script", e);
-                        }
+                        createSchema(conn, sr, is, reader);
+                        createDatabaseTables(conn, sr, is, reader, statement);
                     }
                 } catch (SQLException e) {
                     logger.error("Error while initializing database", e);
@@ -132,6 +160,55 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
             } catch (SQLException e) {
                 logger.error("Error while getting connection to DB", e);
             }
+        }
+    }
+
+    private void createDatabaseTables(Connection conn, ScriptRunner sr, InputStream is, Reader reader, Statement statement) throws SQLException {
+        String createDbScriptPath = getCreateDBScriptPath();
+        // Database does not exist
+        logger.info("Database does not exists.");
+        logger.info("Creating database from script " + createDbScriptPath);
+        sr = new ScriptRunner(conn);
+
+        sr.setDelimiter(delimiter);
+        sr.setStopOnError(true);
+        sr.setLogWriter(null);
+        is = getClass().getClassLoader().getResourceAsStream(createDbScriptPath);
+        reader = new InputStreamReader(is);
+        try {
+            sr.runScript(reader);
+
+            if (isRandomAdminPasswordEnabled()) {
+                String randomPassword = generateRandomPassword();
+                String hashedPassword = CryptoUtils.hashPassword(randomPassword);
+                String update = DB_QUERY_SET_ADMIN_PASSWORD.replace("{password}", hashedPassword);
+                statement.executeUpdate(update);
+                conn.commit();
+                logger.info("*** Admin Account Password: \"" + randomPassword + "\" ***");
+            }
+
+            integrityValidator.store(conn);
+        } catch (RuntimeSqlException e) {
+            logger.error("Error while running create DB script", e);
+        }
+    }
+
+    private void createSchema(Connection conn, ScriptRunner sr, InputStream is, Reader reader)  {
+        String createSchemaScriptPath = getCreateSchemaScriptPath();
+        // Database does not exist
+        logger.info("Database does not exists.");
+        logger.info("Creating database from script " + createSchemaScriptPath);
+        sr = new ScriptRunner(conn);
+
+        sr.setDelimiter(delimiter);
+        sr.setStopOnError(true);
+        sr.setLogWriter(null);
+        is = getClass().getClassLoader().getResourceAsStream(createSchemaScriptPath);
+        reader = new InputStreamReader(is);
+        try {
+            sr.runScript(reader);
+        } catch (RuntimeSqlException e) {
+            logger.error("Error while running create DB script", e);
         }
     }
 
@@ -153,6 +230,10 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
 
     private String getCreateDBScriptPath() {
         return studioConfiguration.getProperty(DB_INITIALIZER_CREATE_DB_SCRIPT_LOCATION);
+    }
+
+    private String getCreateSchemaScriptPath() {
+        return studioConfiguration.getProperty(DB_INITIALIZER_CREATE_SCHEMA_SCRIPT_LOCATION);
     }
 
     private boolean isRandomAdminPasswordEnabled() {

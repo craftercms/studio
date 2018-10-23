@@ -427,6 +427,8 @@ studio.db.initializer.enabled: true
 studio.db.initializer.url: jdbc:mariadb://127.0.0.1:33306?user=root&password=
 # Configure database SQL script location
 studio.db.initializer.configureDbscriptLocation: crafter/studio/database/configureDB.sql
+# Create schema SQL script location
+studio.db.initializer.createSchemaScriptLocation: crafter/studio/database/createSchema.sql
 # Create database SQL script location
 studio.db.initializer.createDbscriptLocation: crafter/studio/database/createDDL.sql
 # Upgrade database SQL script location
