@@ -494,3 +494,13 @@ studio.upgrade.pipeline.blueprint: blueprint
 studio.upgrade.pipeline.configurations: configurations
 # Folder to look for database scripts
 studio.upgrade.scriptFolder: crafter/studio/database/
+
+################################################################
+##                   Publishing Thread Pool                   ##
+################################################################
+# Thread name prefix
+studio.publishing.threadPool.namePrefix: Studio_Publisher_Thread_Pool
+# Thread pool size
+studio.publishing.threadPool.corePoolSize: 10
+# Thread pool max size
+studio.publishing.threadPool.maxPoolSize: 20

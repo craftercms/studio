@@ -253,6 +253,11 @@ public interface StudioConfiguration {
     String AUTHENTICATION_CHAIN_PROVIDER_EMAIL_HEADER = "emailHeader";
     String AUTHENTICATION_CHAIN_PROVIDER_GROUPS_HEADER = "groupsHeader";
 
+    /** Publishing Thread Pool **/
+    String PUBLISHING_THREAD_POOL_NAME_PREFIX = "studio.publishing.threadPool.namePrefix";
+    String PUBLISHING_THREAD_POOL_CORE_POOL_SIZE = "studio.publishing.threadPool.corePoolSize";
+    String PUBLISHING_THREAD_POOL_MAX_POOL_SIZE = "studio.publishing.threadPool.maxPoolSize";
+
     void loadConfig();
 
     String getProperty(String key);
