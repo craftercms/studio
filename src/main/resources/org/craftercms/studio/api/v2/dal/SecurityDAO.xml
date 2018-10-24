@@ -50,11 +50,11 @@
         <result property="recordLastUpdated" column="record_last_updated"/>
         <result property="groupName" column="group_name"/>
         <result property="groupDescription" column="group_description"/>
-        <association property="organization" column="org_id" javaType="org.craftercms.studio.api.v2.dal.OrganizationTO"
+        <association property="organization" column="org_id" javaType="org.craftercms.studio.api.v2.dal.Organization"
                      select="selectOrganizationById"/>
     </resultMap>
 
-    <resultMap id="OrganizationMap" type="org.craftercms.studio.api.v2.dal.OrganizationTO">
+    <resultMap id="OrganizationMap" type="org.craftercms.studio.api.v2.dal.Organization">
         <id property="id" column="id"/>
         <result property="recordLastUpdated" column="record_last_updated"/>
         <result property="name" column="org_name"/>

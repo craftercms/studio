@@ -165,10 +165,10 @@ public class UserServiceInternalImpl implements UserServiceInternal {
         params.put(FIRST_NAME, user.getFirstName());
         params.put(LAST_NAME, user.getLastName());
         params.put(EMAIL, user.getEmail());
-        params.put(EXTERNALLY_MANAGED, user.getExternallyManaged());
+        params.put(EXTERNALLY_MANAGED, user.getExternallyManagedAsInt());
         params.put(TIMEZONE, StringUtils.EMPTY);
         params.put(LOCALE, StringUtils.EMPTY);
-        params.put(ENABLED, user.isEnabled() ? 1 : 0);
+        params.put(ENABLED, user.getEnabledAsInt());
 
         try {
             userDao.createUser(params);
@@ -294,12 +294,12 @@ public class UserServiceInternalImpl implements UserServiceInternal {
         params.put(USERNAME, username);
         try {
             User user = userDao.getUserByIdOrUsername(params);
-            if (user.getExternallyManaged() > 0) {
+            if (user.isExternallyManaged()) {
                 throw new UserExternallyManagedException();
             } else {
                 if (CryptoUtils.matchPassword(user.getPassword(), current)) {
                     String hashedPassword = CryptoUtils.hashPassword(newPassword);
-                    params = new HashMap<String, Object>();
+                    params = new HashMap<>();
                     params.put(USERNAME, username);
                     params.put(PASSWORD, hashedPassword);
                     userDao.setUserPassword(params);
@@ -324,7 +324,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
             params.put(USERNAME, username);
             try {
                 User user = userDao.getUserByIdOrUsername(params);
-                if (user.getExternallyManaged() > 0) {
+                if (user.isExternallyManaged()) {
                     throw new UserExternallyManagedException();
                 } else {
                     String hashedPassword = CryptoUtils.hashPassword(newPassword);
