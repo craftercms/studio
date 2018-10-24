@@ -67,24 +67,6 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
     private final static String DB_QUERY_SET_ADMIN_PASSWORD =
             "UPDATE user SET password = '{password}' WHERE username = 'admin'";
 
-    private final static List<String> tables = Arrays.asList(new String[] {
-            "_meta",
-            "audit",
-            "dependency",
-            "gitlog",
-            "organization_user",
-            "group_user",
-            "group",
-            "user",
-            "organization",
-            "item_metadata",
-            "item_state",
-            "navigation_order_sequence",
-            "publish_request",
-            "remote_repository",
-            "site"
-    });
-
     protected String delimiter;
     protected StudioConfiguration studioConfiguration;
 
@@ -103,6 +85,7 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
 
             try(Connection conn = DriverManager.getConnection(studioConfiguration.getProperty(DB_INITIALIZER_URL))) {
                 // Configure DB
+                logger.debug("Check if database is already configured properly");
                 boolean dbConfigured = false;
                 try (Statement statement = conn.createStatement();
                     ResultSet rs = statement.executeQuery(DB_QUERY_CHECK_CONFIG)) {
@@ -117,11 +100,11 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
                     }
                 }
 
-                logger.info("Configure database from script " + configureDbScriptPath);
                 ScriptRunner sr = new ScriptRunner(conn);
                 InputStream is = null;
                 Reader reader = null;
                 if (!dbConfigured) {
+                    logger.info("Configure database from script " + configureDbScriptPath);
                     sr.setDelimiter(delimiter);
                     sr.setStopOnError(true);
                     sr.setLogWriter(null);
@@ -139,14 +122,16 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
                     ResultSet rs = statement.executeQuery(DB_QUERY_CHECK_SCHEMA_EXISTS)) {
 
                     if (rs.next()) {
-                        logger.debug("Database already exists. Validate the integrity of the database");
+                        logger.debug("Database schema exists. Check if it is empty.");
                         try (ResultSet rs2 = statement.executeQuery(DB_QUERY_CHECK_TABLES)) {
                             List<String> tableNames = new ArrayList<String>();
                             while (rs2.next()) {
                                 tableNames.add(rs2.getString(1));
                             }
-                            if (!tableNames.containsAll(tables)) {
+                            if (tableNames.size() == 0) {
                                 createDatabaseTables(conn, sr, is, reader, statement);
+                            } else {
+                                logger.debug("Database already exists. Validate the integrity of the database");
                             }
                         }
                     } else {
@@ -166,8 +151,8 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
     private void createDatabaseTables(Connection conn, ScriptRunner sr, InputStream is, Reader reader, Statement statement) throws SQLException {
         String createDbScriptPath = getCreateDBScriptPath();
         // Database does not exist
-        logger.info("Database does not exists.");
-        logger.info("Creating database from script " + createDbScriptPath);
+        logger.info("Database tables do not exist.");
+        logger.info("Creating database tables from script " + createDbScriptPath);
         sr = new ScriptRunner(conn);
 
         sr.setDelimiter(delimiter);
@@ -196,8 +181,8 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
     private void createSchema(Connection conn, ScriptRunner sr, InputStream is, Reader reader)  {
         String createSchemaScriptPath = getCreateSchemaScriptPath();
         // Database does not exist
-        logger.info("Database does not exists.");
-        logger.info("Creating database from script " + createSchemaScriptPath);
+        logger.info("Database schema does not exists.");
+        logger.info("Creating database schema from script " + createSchemaScriptPath);
         sr = new ScriptRunner(conn);
 
         sr.setDelimiter(delimiter);
