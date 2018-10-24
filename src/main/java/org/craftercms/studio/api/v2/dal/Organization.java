@@ -21,7 +21,7 @@ package org.craftercms.studio.api.v2.dal;
 import java.io.Serializable;
 import java.time.ZonedDateTime;
 
-public class OrganizationTO implements Serializable {
+public class Organization implements Serializable {
 
     private static final long serialVersionUID = 411039684759551781L;
 

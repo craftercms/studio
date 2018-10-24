@@ -17,6 +17,7 @@
  */
 package org.craftercms.studio.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.craftercms.studio.api.v2.dal.User;
 
 /**
@@ -27,6 +28,8 @@ import org.craftercms.studio.api.v2.dal.User;
 public class AuthenticatedUser extends User {
 
     private static final long serialVersionUID = -4678834461080865934L;
+
+    @JsonProperty("authenticationType")
     private AuthenticationType authenticationType;
 
     public AuthenticatedUser(User user) {
@@ -36,9 +39,8 @@ public class AuthenticatedUser extends User {
         setEmail(user.getEmail());
         setFirstName(user.getFirstName());
         setLastName(user.getLastName());
-        setActive(user.getActive());
-        setExternallyManaged(user.getExternallyManaged());
-
+        setEnabled(user.isEnabled());
+        setExternallyManaged(user.isExternallyManaged());
         setTimezone(user.getTimezone());
         setLocale(user.getLocale());
         setRecordLastUpdated(getRecordLastUpdated());

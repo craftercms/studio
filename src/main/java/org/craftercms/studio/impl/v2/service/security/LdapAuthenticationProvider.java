@@ -119,7 +119,7 @@ public class LdapAuthenticationProvider extends BaseAuthenticationProvider {
 
 
                 User user = new User();
-                user.setActive(1);
+                user.setEnabled(true);
                 user.setUsername(username);
                 user.setPassword(UUID.randomUUID().toString());
 

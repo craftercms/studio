@@ -231,7 +231,7 @@ public class SecurityServiceImpl implements SecurityService {
             toRet.put(KEY_FIRSTNAME, u.getFirstName());
             toRet.put(KEY_LASTNAME, u.getLastName());
             toRet.put(KEY_EMAIL, u.getEmail());
-            toRet.put(KEY_EXTERNALLY_MANAGED, u.getExternallyManaged() > 0 ? true : false );
+            toRet.put(KEY_EXTERNALLY_MANAGED, u.isExternallyManaged());
             String authenticationType = studioConfiguration.getProperty(SECURITY_TYPE);
             toRet.put(SECURITY_AUTHENTICATION_TYPE, authenticationType);
         }
@@ -719,7 +719,7 @@ public class SecurityServiceImpl implements SecurityService {
             logger.info("User profile not found for " + username);
             throw new UserNotFoundException();
         } else {
-            if (user.getExternallyManaged() > 0) {
+            if (user.isExternallyManaged()) {
                 throw new UserExternallyManagedException();
             } else {
                 if (user.getEmail() != null) {
@@ -767,7 +767,7 @@ public class SecurityServiceImpl implements SecurityService {
                     logger.info("User profile not found for " + username);
                     throw new UserNotFoundException();
                 } else {
-                    if (userProfile.getExternallyManaged() > 0) {
+                    if (userProfile.isExternallyManaged()) {
                         throw new UserExternallyManagedException();
                     } else {
                         long tokenTimestamp = Long.parseLong(tokenElements.nextToken());
