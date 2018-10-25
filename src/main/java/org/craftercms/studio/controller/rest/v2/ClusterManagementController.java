@@ -40,12 +40,12 @@ public class ClusterManagementController {
     }
 
     @PostMapping("/api/2/cluster")
-    public ResponseBody addClusterMembers(@RequestBody List<ClusterMember> members) throws ServiceLayerException {
+    public ResponseBody addClusterMembers(@RequestBody ClusterMember member) throws ServiceLayerException {
         throw new ServiceLayerException("Not implemented");
     }
 
     @PatchMapping("/api/2/cluster")
-    public ResponseBody updateClusterMembers(@RequestBody List<ClusterMember> members) throws ServiceLayerException {
+    public ResponseBody updateClusterMembers(@RequestBody ClusterMember member) throws ServiceLayerException {
         throw new ServiceLayerException("Not implemented");
     }
 
