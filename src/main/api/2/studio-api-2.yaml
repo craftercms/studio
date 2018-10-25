@@ -1134,15 +1134,12 @@ paths:
               schema:
                 type: object
                 properties:
-                  result:
-                    type: object
-                    properties:
-                      response:
-                        $ref: '#/components/schemas/ApiResponse'
-                      entities:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/ClusterMember'
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  clusterMembers:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ClusterMember'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -1154,21 +1151,16 @@ paths:
     post:
       tags:
         - cluster
-      summary: Add member(s) to the cluster
+      summary: Add a member to the cluster
       description: 'Required Permission: "CREATE_CLUSTER"'
-      operationId: addClusterMembers
+      operationId: addClusterMember
       requestBody:
-        description: List of cluster members to add
+        description: The cluster member to add
         required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                clusterMembers:
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/ClusterMember'
+              $ref: '#/components/schemas/ClusterMember'
       responses:
         '200':
           description: OK
@@ -1177,41 +1169,31 @@ paths:
               schema:
                 type: object
                 properties:
-                  result:
-                    type: object
-                    properties:
-                      response:
-                        $ref: '#/components/schemas/ApiResponse'
-                      entities:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/ClusterMember'
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  clusterMember:
+                    $ref: '#/components/schemas/ClusterMember'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
     patch:
       tags:
         - cluster
-      summary: Update (upsert) cluster members
+      summary: Update a cluster member
       description: 'Required Permission: "UPDATE_CLUSTER"'
-      operationId: updateClusterMembers
+      operationId: updateClusterMember
       requestBody:
-        description: Cluster members to update (upsert)
+        description: Update a cluster member
         required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                clusterMembers:
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/ClusterMember'
+              $ref: '#/components/schemas/ClusterMember'
       responses:
         '200':
           description: OK
@@ -1220,21 +1202,14 @@ paths:
               schema:
                 type: object
                 properties:
-                  result:
-                    type: object
-                    properties:
-                      response:
-                        $ref: '#/components/schemas/ApiResponse'
-                      entities:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/ClusterMember'
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  clusterMember:
+                    $ref: '#/components/schemas/ClusterMember'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
     delete:
