@@ -27,7 +27,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.lang3.RandomStringUtils;
@@ -129,15 +128,15 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
                                 tableNames.add(rs2.getString(1));
                             }
                             if (tableNames.size() == 0) {
-                                createDatabaseTables(conn, sr, is, reader, statement);
+                                createDatabaseTables(conn, statement);
                             } else {
                                 logger.debug("Database already exists. Validate the integrity of the database");
                             }
                         }
                     } else {
                         // Database does not exist
-                        createSchema(conn, sr, is, reader);
-                        createDatabaseTables(conn, sr, is, reader, statement);
+                        createSchema(conn);
+                        createDatabaseTables(conn, statement);
                     }
                 } catch (SQLException e) {
                     logger.error("Error while initializing database", e);
@@ -148,18 +147,18 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
         }
     }
 
-    private void createDatabaseTables(Connection conn, ScriptRunner sr, InputStream is, Reader reader, Statement statement) throws SQLException {
+    private void createDatabaseTables(Connection conn, Statement statement) throws SQLException {
         String createDbScriptPath = getCreateDBScriptPath();
         // Database does not exist
         logger.info("Database tables do not exist.");
         logger.info("Creating database tables from script " + createDbScriptPath);
-        sr = new ScriptRunner(conn);
+        ScriptRunner sr = new ScriptRunner(conn);
 
         sr.setDelimiter(delimiter);
         sr.setStopOnError(true);
         sr.setLogWriter(null);
-        is = getClass().getClassLoader().getResourceAsStream(createDbScriptPath);
-        reader = new InputStreamReader(is);
+        InputStream is = getClass().getClassLoader().getResourceAsStream(createDbScriptPath);
+        Reader reader = new InputStreamReader(is);
         try {
             sr.runScript(reader);
 
@@ -178,18 +177,18 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
         }
     }
 
-    private void createSchema(Connection conn, ScriptRunner sr, InputStream is, Reader reader)  {
+    private void createSchema(Connection conn)  {
         String createSchemaScriptPath = getCreateSchemaScriptPath();
         // Database does not exist
         logger.info("Database schema does not exists.");
         logger.info("Creating database schema from script " + createSchemaScriptPath);
-        sr = new ScriptRunner(conn);
+        ScriptRunner sr = new ScriptRunner(conn);
 
         sr.setDelimiter(delimiter);
         sr.setStopOnError(true);
         sr.setLogWriter(null);
-        is = getClass().getClassLoader().getResourceAsStream(createSchemaScriptPath);
-        reader = new InputStreamReader(is);
+        InputStream is = getClass().getClassLoader().getResourceAsStream(createSchemaScriptPath);
+        Reader reader = new InputStreamReader(is);
         try {
             sr.runScript(reader);
         } catch (RuntimeSqlException e) {
