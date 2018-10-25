@@ -128,8 +128,8 @@ public class HeadersAuthenticationProvider extends BaseAuthenticationProvider {
                                 user.setFirstName(firstName);
                                 user.setLastName(firstName);
                                 user.setEmail(email);
-                                user.setExternallyManaged(1);
-                                user.setActive(1);
+                                user.setExternallyManaged(true);
+                                user.setEnabled(true);
                                 userServiceInternal.createUser(user);
                                 ActivityService.ActivityType activityType = ActivityService.ActivityType.CREATED;
                                 Map<String, String> extraInfo = new HashMap<String, String>();

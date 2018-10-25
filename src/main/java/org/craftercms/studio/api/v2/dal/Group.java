@@ -29,59 +29,66 @@ public class Group implements Serializable, GrantedAuthority {
 
     private static final long serialVersionUID = 4723035066512137838L;
 
-    @JsonProperty("id")
     private long id = -1;
-    @JsonIgnore
     private ZonedDateTime recordLastUpdated;
-    @JsonIgnore
-    private OrganizationTO organization;
-    @JsonProperty("name")
+    private Organization organization;
     private String groupName;
-    @JsonProperty("desc")
     private String groupDescription;
 
     @Override
+    @JsonIgnore
     public String getAuthority() {
         return groupName;
     }
 
+    @JsonProperty("id")
     public long getId() {
         return id;
     }
 
+    @JsonProperty("id")
     public void setId(long id) {
         this.id = id;
     }
 
+    @JsonIgnore
     public ZonedDateTime getRecordLastUpdated() {
         return recordLastUpdated;
     }
 
+    @JsonIgnore
     public void setRecordLastUpdated(ZonedDateTime recordLastUpdated) {
         this.recordLastUpdated = recordLastUpdated;
     }
 
-    public OrganizationTO getOrganization() {
+    @JsonIgnore
+    public Organization getOrganization() {
         return organization;
     }
 
-    public void setOrganization(OrganizationTO organizationTO) {
+    @JsonIgnore
+    public void setOrganization(Organization organization) {
         this.organization = organization;
     }
 
+    @JsonProperty("name")
     public String getGroupName() {
         return groupName;
     }
 
+    @JsonProperty("name")
     public void setGroupName(String groupName) {
         this.groupName = groupName;
     }
 
+    @JsonProperty("desc")
     public String getGroupDescription() {
         return groupDescription;
     }
 
+    @JsonProperty("desc")
     public void setGroupDescription(String groupDescription) {
         this.groupDescription = groupDescription;
     }
+
 }

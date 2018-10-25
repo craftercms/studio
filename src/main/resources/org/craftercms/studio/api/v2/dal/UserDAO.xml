@@ -29,11 +29,11 @@
         <result property="password" column="password"/>
         <result property="firstName" column="first_name"/>
         <result property="lastName" column="last_name"/>
-        <result property="externallyManaged" column="externally_managed"/>
+        <result property="externallyManagedAsInt" column="externally_managed"/>
         <result property="timezone" column="timezone"/>
         <result property="locale" column="locale"/>
         <result property="email" column="email"/>
-        <result property="active" column="enabled"/>
+        <result property="enabledAsInt" column="enabled"/>
 
         <collection property="groups" ofType="org.craftercms.studio.api.v2.dal.UserGroup">
             <result property="recordLastUpdated" column="record_last_updated"/>

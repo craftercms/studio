@@ -27,170 +27,190 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class User implements UserDetails {
 
     private static final long serialVersionUID = 968000561389890945L;
 
-    @JsonProperty("id")
     private long id = -1;
-    @JsonIgnore
     private ZonedDateTime recordLastUpdated;
-    @JsonProperty("username")
     private String username;
-    @JsonProperty("password")
     private String password;
-    @JsonProperty("firstName")
     private String firstName;
-    @JsonProperty("lastName")
     private String lastName;
-    @JsonIgnore
-    private int externallyManaged;
-    @JsonIgnore
+    private boolean externallyManaged;
     private String timezone;
-    @JsonIgnore
     private String locale;
-    @JsonProperty("email")
     private String email;
-    @JsonIgnore
-    private int active;
-
-    @JsonProperty("externallyManaged")
-    private boolean extManaged;
-    @JsonProperty("enabled")
     private boolean enabled;
-
-    private List<UserGroup> groups = new ArrayList<UserGroup>();
+    private List<UserGroup> groups = new ArrayList<>();
 
     @Override
+    @JsonIgnore
     public boolean isAccountNonExpired() {
         return true;
     }
 
     @Override
+    @JsonIgnore
     public boolean isAccountNonLocked() {
         return true;
     }
 
     @Override
+    @JsonIgnore
     public boolean isCredentialsNonExpired() {
         return true;
     }
 
     @Override
+    @JsonProperty("enabled")
     public boolean isEnabled() {
-        return active != 0;
+        return enabled;
     }
 
+    @JsonProperty("enabled")
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
-        this.active = enabled ? 1 : 0;
+    }
+
+    @JsonIgnore
+    public int getEnabledAsInt() {
+        return enabled ? 1 : 0;
+    }
+
+    @JsonIgnore
+    public void setEnabledAsInt(int enabled) {
+        this.enabled = enabled > 0;
     }
 
     @Override
+    @JsonIgnore
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        List<Group> toRet = new ArrayList<Group>();
-        groups.forEach((g) -> toRet.add(g.getGroup()));
-        return toRet;
+        return groups.stream().map(UserGroup::getGroup).collect(Collectors.toList());
     }
 
+    @JsonProperty("id")
     public long getId() {
         return id;
     }
 
+    @JsonProperty("id")
     public void setId(long id) {
         this.id = id;
     }
 
+    @JsonIgnore
     public ZonedDateTime getRecordLastUpdated() {
         return recordLastUpdated;
     }
 
+    @JsonIgnore
     public void setRecordLastUpdated(ZonedDateTime recordLastUpdated) {
         this.recordLastUpdated = recordLastUpdated;
     }
 
     @Override
+    @JsonProperty("username")
     public String getUsername() {
         return username;
     }
 
+    @JsonProperty("username")
     public void setUsername(String username) {
         this.username = username;
     }
 
     @Override
+    @JsonIgnore
     public String getPassword() {
         return password;
     }
 
+    @JsonProperty("password")
     public void setPassword(String password) {
         this.password = password;
     }
 
+    @JsonProperty("firstName")
     public String getFirstName() {
         return firstName;
     }
 
+    @JsonProperty("firstName")
     public void setFirstName(String firstName) {
         this.firstName = firstName;
     }
 
+    @JsonProperty("lastName")
     public String getLastName() {
         return lastName;
     }
 
+    @JsonProperty("lastName")
     public void setLastName(String lastName) {
         this.lastName = lastName;
     }
 
-    public int getExternallyManaged() {
+    @JsonProperty("externallyManaged")
+    public boolean isExternallyManaged() {
         return externallyManaged;
     }
 
-    public void setExternallyManaged(int externallyManaged) {
+    @JsonProperty("externallyManaged")
+    public void setExternallyManaged(boolean externallyManaged) {
         this.externallyManaged = externallyManaged;
-        this.extManaged = externallyManaged != 0;
     }
 
+    @JsonIgnore
+    public int getExternallyManagedAsInt() {
+        return externallyManaged ? 1 : 0;
+    }
+
+    @JsonIgnore
+    public void setExternallyManagedAsInt(int externallyManaged) {
+        this.externallyManaged = externallyManaged > 0;
+    }
+
+    @JsonIgnore
     public String getTimezone() {
         return timezone;
     }
 
+    @JsonIgnore
     public void setTimezone(String timezone) {
         this.timezone = timezone;
     }
 
+    @JsonIgnore
     public String getLocale() {
         return locale;
     }
 
+    @JsonIgnore
     public void setLocale(String locale) {
         this.locale = locale;
     }
 
+    @JsonProperty("email")
     public String getEmail() {
         return email;
     }
 
+    @JsonProperty("email")
     public void setEmail(String email) {
         this.email = email;
     }
 
-    public int getActive() {
-        return active;
-    }
-
-    public void setActive(int active) {
-        this.active = active;
-        this.enabled = active != 0;
-    }
-
+    @JsonIgnore
     public List<UserGroup> getGroups() {
         return groups;
     }
 
+    @JsonIgnore
     public void setGroups(List<UserGroup> groups) {
         this.groups = groups;
     }
+
 }
