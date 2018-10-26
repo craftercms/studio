@@ -96,6 +96,8 @@ public interface GroupService {
      */
     List<User> getGroupMembers(long groupId, int offset, int limit, String sort) throws ServiceLayerException, GroupNotFoundException;
 
+    int getGroupMembersTotal(long groupId) throws ServiceLayerException, GroupNotFoundException;
+
     /**
      * Add users to the group
      *

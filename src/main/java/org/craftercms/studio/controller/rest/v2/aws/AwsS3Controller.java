@@ -77,7 +77,7 @@ public class AwsS3Controller {
         throws AwsException {
 
         ResultList<S3Item> result = new ResultList<>();
-        result.setEntities(s3Service.listItems(siteId, profileId, path, type));
+        result.setEntities("items", s3Service.listItems(siteId, profileId, path, type));
         result.setResponse(ApiResponse.OK);
 
         return result;
@@ -121,7 +121,7 @@ public class AwsS3Controller {
                             if (StringUtils.isNotEmpty(filename)) {
                                 filename = FilenameUtils.getName(filename);
                             }
-                            result.setEntity(s3Service.uploadItem(siteId, profileId, filename, stream));
+                            result.setEntity("item", s3Service.uploadItem(siteId, profileId, filename, stream));
                             result.setResponse(ApiResponse.OK);
                         }
                     }

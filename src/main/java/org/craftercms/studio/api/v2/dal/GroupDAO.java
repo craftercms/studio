@@ -95,6 +95,8 @@ public interface GroupDAO {
      */
     List<User> getGroupMembers(Map params);
 
+    Integer getGroupMembersTotal(Map params);
+
     /**
      * Add users to the group
      *

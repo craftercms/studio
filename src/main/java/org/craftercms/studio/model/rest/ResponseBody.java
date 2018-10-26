@@ -18,6 +18,8 @@
 
 package org.craftercms.studio.model.rest;
 
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
+
 /**
  * Contains the response body of an API operation.
  *
@@ -26,6 +28,7 @@ package org.craftercms.studio.model.rest;
  */
 public class ResponseBody {
 
+    @JsonUnwrapped
     protected Result result;
 
     /**

@@ -118,6 +118,12 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
+    @HasPermission(type = DefaultPermission.class, action = "read_groups")
+    public int getGroupMembersTotal(final long groupId) throws ServiceLayerException, GroupNotFoundException {
+        return groupServiceInternal.getGroupMembersTotal(groupId);
+    }
+
+    @Override
     @HasPermission(type = DefaultPermission.class, action = "update_groups")
     public List<User> addGroupMembers(long groupId, List<Long> userIds,
                                       List<String> usernames) throws ServiceLayerException, UserNotFoundException,

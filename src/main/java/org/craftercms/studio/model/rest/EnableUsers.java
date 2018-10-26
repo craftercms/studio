@@ -24,7 +24,7 @@ import java.util.List;
 public class EnableUsers {
 
     private List<String> usernames = Collections.emptyList();
-    private List<Long> userIds = Collections.emptyList();
+    private List<Long> ids = Collections.emptyList();
 
     public List<String> getUsernames() {
         return usernames;
@@ -34,11 +34,11 @@ public class EnableUsers {
         this.usernames = usernames;
     }
 
-    public List<Long> getUserIds() {
-        return userIds;
+    public List<Long> getIds() {
+        return ids;
     }
 
-    public void setUserIds(List<Long> userIds) {
-        this.userIds = userIds;
+    public void setIds(List<Long> ids) {
+        this.ids = ids;
     }
 }

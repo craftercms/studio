@@ -34,6 +34,11 @@ public abstract class QueryParameterNames {
     // Organization ID
     public static final String ORG_ID = "orgId";
 
+    /* Sites */
+    public static final String SITE_ID = "siteId";
+
+    public static final String SITE = "site";
+
     /* Groups */
 
     // Group ID
