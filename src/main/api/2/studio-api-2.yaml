@@ -21,8 +21,6 @@ tags:
     description: Group management operations
   - name: users
     description: User management operations
-  - name: user
-    description: Current authenticated user operations
   - name: ui
     description: UI support operations
   - name: aws
@@ -69,27 +67,24 @@ paths:
               schema:
                 type: object
                 properties:
-                  result:
-                    type: object
-                    properties:
-                      response:
-                        $ref: '#/components/schemas/ApiResponse'
-                      total:
-                        type: integer
-                        format: int32
-                        description: Total records in the system
-                      offset:
-                        type: integer
-                        format: int32
-                        description: Offset of first record in this response
-                      limit:
-                        type: integer
-                        format: int32
-                        description: Number of records returned in this response
-                      entities:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/Group'
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  total:
+                    type: integer
+                    format: int32
+                    description: Total records in the system
+                  offset:
+                    type: integer
+                    format: int32
+                    description: Offset of first record in this response
+                  limit:
+                    type: integer
+                    format: int32
+                    description: Number of records returned in this response
+                  groups:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Group'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -117,13 +112,10 @@ paths:
               schema:
                 type: object
                 properties:
-                  result:
-                    type: object
-                    properties:
-                      response:
-                        $ref: '#/components/schemas/ApiResponse'
-                      entity:
-                        $ref: '#/components/schemas/Group'
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  group:
+                    $ref: '#/components/schemas/Group'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -153,13 +145,10 @@ paths:
               schema:
                 type: object
                 properties:
-                  result:
-                    type: object
-                    properties:
-                      response:
-                        $ref: '#/components/schemas/ApiResponse'
-                      entity:
-                        $ref: '#/components/schemas/Group'
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  group:
+                    $ref: '#/components/schemas/Group'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -177,7 +166,7 @@ paths:
       parameters:
         - name: id
           in: query
-          description: The group ID(s)
+          description: The group ID(s). Can be repeated for multiple deletes (id=1&id=2&id=3)
           required: true
           schema:
             type: array
@@ -191,11 +180,8 @@ paths:
               schema:
                 type: object
                 properties:
-                  result:
-                    type: object
-                    properties:
-                      response:
-                        $ref: '#/components/schemas/ApiResponse'
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -207,7 +193,7 @@ paths:
     get:
       tags:
         - groups
-      summary: Get group by groupId
+      summary: Get group by ID
       description: 'Required Permission: "READ_GROUPS"'
       operationId: getGroup
       parameters:
@@ -226,13 +212,10 @@ paths:
               schema:
                 type: object
                 properties:
-                  result:
-                    type: object
-                    properties:
-                      response:
-                        $ref: '#/components/schemas/ApiResponse'
-                      entity:
-                        $ref: '#/components/schemas/Group'
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  group:
+                    $ref: '#/components/schemas/Group'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -287,27 +270,24 @@ paths:
               schema:
                 type: object
                 properties:
-                  result:
-                    type: object
-                    properties:
-                      response:
-                        $ref: '#/components/schemas/ApiResponse'
-                      total:
-                        type: integer
-                        format: int32
-                        description: Total records in the system
-                      offset:
-                        type: integer
-                        format: int32
-                        description: Offset of first record in this response
-                      limit:
-                        type: integer
-                        format: int32
-                        description: Number of records returned in this response
-                      entities:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/User'
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  total:
+                    type: integer
+                    format: int32
+                    description: Total records in the system
+                  offset:
+                    type: integer
+                    format: int32
+                    description: Offset of first record in this response
+                  limit:
+                    type: integer
+                    format: int32
+                    description: Number of records returned in this response
+                  users:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -319,7 +299,7 @@ paths:
     post:
       tags:
         - groups
-      summary: Add member(s) to the specified group
+      summary: Add member(s) to the specified group.
       description: 'Required Permission: "UPDATE_GROUPS"'
       operationId: addGroupMembers
       parameters:
@@ -331,14 +311,14 @@ paths:
             type: integer
             format: int64
       requestBody:
-        description: List of userIds/usernames to add
+        description: List of user IDs and/or usernames to add.
         required: true
         content:
           application/json:
             schema:
               type: object
               properties:
-                userIds:
+                ids:
                   type: array
                   items:
                     type: string
@@ -354,15 +334,12 @@ paths:
               schema:
                 type: object
                 properties:
-                  result:
-                    type: object
-                    properties:
-                      response:
-                        $ref: '#/components/schemas/ApiResponse'
-                      entities:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/User'
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  users:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -374,7 +351,8 @@ paths:
     delete:
       tags:
         - groups
-      summary: Remove member(s) from the specified group
+      summary: |-
+        Remove member(s) from the specified group.
       description: 'Required Permission: "DELETE_GROUPS"'
       operationId: removeGroupMembers
       parameters:
@@ -387,7 +365,7 @@ paths:
             format: int64
         - name: userId
           in: query
-          description: The userId(s) to remove
+          description: The user ID(s) to remove. Can be repeated for multiple deletes (userId=1&userId=2&userId=3)
           required: false
           schema:
             type: array
@@ -395,7 +373,7 @@ paths:
               type: string
         - name: username
           in: query
-          description: The username(s) to remove
+          description: The username(s) to remove. Can be repeated for multiple deletes (username=john&username=mark)
           required: false
           schema:
             type: array
@@ -409,11 +387,8 @@ paths:
               schema:
                 type: object
                 properties:
-                  result:
-                    type: object
-                    properties:
-                      response:
-                        $ref: '#/components/schemas/ApiResponse'
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -467,27 +442,24 @@ paths:
               schema:
                 type: object
                 properties:
-                  result:
-                    type: object
-                    properties:
-                      response:
-                        $ref: '#/components/schemas/ApiResponse'
-                      total:
-                        type: integer
-                        format: int32
-                        description: Total records in the system
-                      offset:
-                        type: integer
-                        format: int32
-                        description: Offset of first record in this response
-                      limit:
-                        type: integer
-                        format: int32
-                        description: Number of records returned in this response
-                      entities:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/User'
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  total:
+                    type: integer
+                    format: int32
+                    description: Total records in the system
+                  offset:
+                    type: integer
+                    format: int32
+                    description: Offset of first record in this response
+                  limit:
+                    type: integer
+                    format: int32
+                    description: Number of records returned in this response
+                  users:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -515,13 +487,10 @@ paths:
               schema:
                 type: object
                 properties:
-                  result:
-                    type: object
-                    properties:
-                      response:
-                        $ref: '#/components/schemas/ApiResponse'
-                      entity:
-                        $ref: '#/components/schemas/User'
+                    response:
+                      $ref: '#/components/schemas/ApiResponse'
+                    users:
+                      $ref: '#/components/schemas/User'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -537,7 +506,7 @@ paths:
       description: 'Required Permission: "UPDATE_USERS"'
       operationId: updateUser
       requestBody:
-        description: User entity to update
+        description: User entity to update. The `password` and `externallyManaged` fields will be ignored if sent.
         required: true
         content:
           application/json:
@@ -551,13 +520,10 @@ paths:
               schema:
                 type: object
                 properties:
-                  result:
-                    type: object
-                    properties:
-                      response:
-                        $ref: '#/components/schemas/ApiResponse'
-                      entity:
-                        $ref: '#/components/schemas/User'
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  user:
+                    $ref: '#/components/schemas/User'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -575,7 +541,7 @@ paths:
       parameters:
         - name: id
           in: query
-          description: The user ID(s)
+          description: The user ID(s). Can be repeated for multiple deletes (id=1&id=2&id=3)
           required: false
           schema:
             type: array
@@ -583,7 +549,7 @@ paths:
               type: string
         - name: username
           in: query
-          description: The username(s)
+          description: The username(s). Can be repeated for multiple deletes (username=john&username=mark)
           required: false
           schema:
             type: array
@@ -597,11 +563,8 @@ paths:
               schema:
                 type: object
                 properties:
-                  result:
-                    type: object
-                    properties:
-                      response:
-                        $ref: '#/components/schemas/ApiResponse'
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -613,7 +576,7 @@ paths:
     get:
       tags:
         - users
-      summary: Get user by userId or username
+      summary: Get user by user ID or username
       description: 'Required Permission: "READ_USERS"'
       operationId: getUser
       parameters:
@@ -631,13 +594,10 @@ paths:
               schema:
                 type: object
                 properties:
-                  result:
-                    type: object
-                    properties:
-                      response:
-                        $ref: '#/components/schemas/ApiResponse'
-                      entity:
-                        $ref: '#/components/schemas/Group'
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  user:
+                    $ref: '#/components/schemas/User'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -655,14 +615,14 @@ paths:
       description: 'Required Permission: "UPDATE_USERS"'
       operationId: enableUser
       requestBody:
-        description: List of userIds/usernames to enable
+        description: List of user IDs and/or usernames to enable
         required: true
         content:
           application/json:
             schema:
               type: object
               properties:
-                userIds:
+                ids:
                   type: array
                   items:
                     type: string
@@ -678,15 +638,12 @@ paths:
               schema:
                 type: object
                 properties:
-                  result:
-                    type: object
-                    properties:
-                      response:
-                        $ref: '#/components/schemas/ApiResponse'
-                      entities:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/User'
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  users:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -702,14 +659,14 @@ paths:
       description: 'Required Permission: "UPDATE_USERS"'
       operationId: disableUser
       requestBody:
-        description: List of userIds/usernames to enable
+        description: List of user IDs and/or usernames to disable
         required: true
         content:
           application/json:
             schema:
               type: object
               properties:
-                userIds:
+                ids:
                   type: array
                   items:
                     type: string
@@ -725,15 +682,12 @@ paths:
               schema:
                 type: object
                 properties:
-                  result:
-                    type: object
-                    properties:
-                      response:
-                        $ref: '#/components/schemas/ApiResponse'
-                      entities:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/User'
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  users:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -777,27 +731,24 @@ paths:
               schema:
                 type: object
                 properties:
-                  result:
-                    type: object
-                    properties:
-                      response:
-                        $ref: '#/components/schemas/ApiResponse'
-                      total:
-                        type: integer
-                        format: int32
-                        description: Total records in the system
-                      offset:
-                        type: integer
-                        format: int32
-                        description: Offset of first record in this response
-                      limit:
-                        type: integer
-                        format: int32
-                        description: Number of records returned in this response
-                      entities:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/Site'
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  total:
+                    type: integer
+                    format: int32
+                    description: Total records in the system
+                  offset:
+                    type: integer
+                    format: int32
+                    description: Offset of first record in this response
+                  limit:
+                    type: integer
+                    format: int32
+                    description: Number of records returned in this response
+                  sites:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Site'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -835,15 +786,12 @@ paths:
               schema:
                 type: object
                 properties:
-                  result:
-                    type: object
-                    properties:
-                      response:
-                        $ref: '#/components/schemas/ApiResponse'
-                      entities:
-                        type: array
-                        items:
-                          type: string
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  roles:
+                    type: array
+                    items:
+                      type: string
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -853,10 +801,10 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'          
 
-  /user:
+  /users/me:
     get:
       tags:
-      - user
+        - users
       summary: Get current authenticated user
       description: 'Required Permission: "LOGGED_IN"'
       operationId: getCurrentUser
@@ -868,22 +816,19 @@ paths:
               schema:
                 type: object
                 properties:
-                  result:
-                    type: object
-                    properties:
-                      response:
-                        $ref: '#/components/schemas/ApiResponse'
-                      entity:
-                        $ref: '#/components/schemas/AuthenticatedUser'
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  authenticatedUser:
+                    $ref: '#/components/schemas/AuthenticatedUser'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '500':
           $ref: '#/components/responses/InternalServerError'
           
-  /user/sites:
+  /users/me/sites:
     get:
       tags:
-        - user
+        - users
       summary: Get all the sites the current authenticated user has access to
       description:  'Required Permission: "LOGGED_IN"'
       operationId: getCurrentUserSites
@@ -895,36 +840,33 @@ paths:
               schema:
                 type: object
                 properties:
-                  result:
-                    type: object
-                    properties:
-                      response:
-                        $ref: '#/components/schemas/ApiResponse'
-                      total:
-                        type: integer
-                        format: int32
-                        description: Total records in the system
-                      offset:
-                        type: integer
-                        format: int32
-                        description: Offset of first record in this response
-                      limit:
-                        type: integer
-                        format: int32
-                        description: Number of records returned in this response
-                      entities:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/Site'
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  total:
+                    type: integer
+                    format: int32
+                    description: Total records in the system
+                  offset:
+                    type: integer
+                    format: int32
+                    description: Offset of first record in this response
+                  limit:
+                    type: integer
+                    format: int32
+                    description: Number of records returned in this response
+                  sites:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Site'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /user/sites/{site}/roles:
+  /users/me/sites/{site}/roles:
     get:
       tags:
-        - user
+        - users
       summary: Get the site roles for the current authenticated user
       description: 'Required Permission: "LOGGED_IN"'
       operationId: getCurrentUserSiteRoles
@@ -943,24 +885,21 @@ paths:
               schema:
                 type: object
                 properties:
-                  result:
-                    type: object
-                    properties:
-                      response:
-                        $ref: '#/components/schemas/ApiResponse'
-                      entities:
-                        type: array
-                        items:
-                          type: string
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  roles:
+                    type: array
+                    items:
+                      type: string
         '401':
           $ref: '#/components/responses/Unauthorized'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /user/logout/sso/url:
+  /users/me/logout/sso/url:
     get:
       tags:
-      - user
+        - users
       summary: Get the SSO Service Provide logout URL for the current authenticated user.
       description: |-
         * Required Permission: "LOGGED_IN".
@@ -975,13 +914,10 @@ paths:
               schema:
                 type: object
                 properties:
-                  result:
-                    type: object
-                    properties:
-                      response:
-                        $ref: '#/components/schemas/ApiResponse'
-                      entity:
-                        type: string
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  logoutUrl:
+                    type: string
         '401':
           $ref: '#/components/responses/Unauthorized'
         '500':
@@ -1002,15 +938,12 @@ paths:
               schema:
                 type: object
                 properties:
-                  result:
-                    type: object
-                    properties:
-                      response:
-                        $ref: '#/components/schemas/ApiResponse'
-                      entities:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/MenuItem'
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  menuItems:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MenuItem'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '500':
@@ -1058,15 +991,12 @@ paths:
               schema:
                 type: object
                 properties:
-                  result:
-                    type: object
-                    properties:
-                      response:
-                        $ref: '#/components/schemas/ApiResponse'
-                      entities:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/S3Item'
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/S3Item'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '500':
@@ -1075,7 +1005,7 @@ paths:
   /aws/s3/upload:
     post:
       tags:
-      - aws
+        - aws
       summary: Upload a file to an S3 bucket
       operationId: uploadItem
       description: 'Required Permission: "LOGGED_IN"'
@@ -1107,13 +1037,10 @@ paths:
               schema:
                 type: object
                 properties:
-                  result:
-                    type: object
-                    properties:
-                      response:
-                        $ref: '#/components/schemas/ApiResponse'
-                      entity:
-                        $ref: '#/components/schemas/S3Item'
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  item:
+                    $ref: '#/components/schemas/S3Item'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '500':
@@ -1220,8 +1147,8 @@ paths:
       operationId: removeClusterMembers
       parameters:
         - name: id
-          in: path
-          description: The cluster member ID
+          in: query
+          description: The cluster member ID(s)
           required: true
           schema:
             type: integer
@@ -1430,11 +1357,8 @@ components:
           schema:
             type: object
             properties:
-              result:
-                type: object
-                properties:
-                  response:
-                    $ref: '#/components/schemas/ApiResponse'
+              response:
+                $ref: '#/components/schemas/ApiResponse'
     Conflict:
       description: Resource already exists
       content:
@@ -1442,11 +1366,8 @@ components:
           schema:
             type: object
             properties:
-              result:
-                type: object
-                properties:
-                  response:
-                    $ref: '#/components/schemas/ApiResponse'
+              response:
+                $ref: '#/components/schemas/ApiResponse'
     BadRequest:
       description: Invalid request
       content:
@@ -1466,11 +1387,8 @@ components:
           schema:
             type: object
             properties:
-              result:
-                type: object
-                properties:
-                  response:
-                    $ref: '#/components/schemas/ApiResponse'
+              response:
+                $ref: '#/components/schemas/ApiResponse'
     InternalServerError:
       description: Internal system failure
       content:
@@ -1478,11 +1396,8 @@ components:
           schema:
             type: object
             properties:
-              result:
-                type: object
-                properties:
-                  response:
-                    $ref: '#/components/schemas/ApiResponse'
+              response:
+                $ref: '#/components/schemas/ApiResponse'
   securitySchemes: {}
   links: {}
   callbacks: {}
