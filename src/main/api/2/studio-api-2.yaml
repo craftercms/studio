@@ -299,7 +299,7 @@ paths:
     post:
       tags:
         - groups
-      summary: Add member(s) to the specified group.
+      summary: Add member(s) to the specified group
       description: 'Required Permission: "UPDATE_GROUPS"'
       operationId: addGroupMembers
       parameters:
@@ -311,7 +311,7 @@ paths:
             type: integer
             format: int64
       requestBody:
-        description: List of user IDs and/or usernames to add.
+        description: List of user IDs and/or usernames to add
         required: true
         content:
           application/json:
@@ -352,7 +352,7 @@ paths:
       tags:
         - groups
       summary: |-
-        Remove member(s) from the specified group.
+        Remove member(s) from the specified group
       description: 'Required Permission: "DELETE_GROUPS"'
       operationId: removeGroupMembers
       parameters:
@@ -900,9 +900,9 @@ paths:
     get:
       tags:
         - users
-      summary: Get the SSO Service Provide logout URL for the current authenticated user.
+      summary: Get the SSO Service Provide logout URL for the current authenticated user
       description: |-
-        * Required Permission: "LOGGED_IN".
+        * Required Permission: "LOGGED_IN"
         * The system should redirect to this logout URL `AFTER` local logout. Response entity can be null if user is
         not authenticated through SSO or if logout is disabled
       operationId: getCurrentUserSsoLogoutUrl
@@ -1148,7 +1148,7 @@ paths:
       parameters:
         - name: id
           in: query
-          description: The cluster member ID(s)
+          description: The cluster member ID(s). Can be repeated for multiple deletes (id=1&id=2&id=3)
           required: true
           schema:
             type: integer
