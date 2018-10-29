@@ -1,6 +1,10 @@
 package org.craftercms.studio.controller.rest.v2;
 
-public interface Constants {
+/**
+ * Keys used for the results in the Rest API.
+ * @author joseross
+ */
+public interface ResultConstants {
 
     String RESULT_KEY_GROUP = "group";
     String RESULT_KEY_GROUPS = "groups";

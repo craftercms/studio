@@ -47,7 +47,7 @@ import static org.craftercms.studio.api.v1.aws.AwsConstants.PARAM_PATH;
 import static org.craftercms.studio.api.v1.aws.AwsConstants.PARAM_PROFILE;
 import static org.craftercms.studio.api.v1.aws.AwsConstants.PARAM_SITE;
 import static org.craftercms.studio.api.v1.aws.AwsConstants.PARAM_TYPE;
-import static org.craftercms.studio.controller.rest.v2.Constants.*;
+import static org.craftercms.studio.controller.rest.v2.ResultConstants.*;
 
 /**
  * Rest controller for AWS S3 service.

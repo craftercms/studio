@@ -30,7 +30,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import static org.craftercms.studio.controller.rest.v2.Constants.RESULT_KEY_MENU_ITEMS;
+import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_MENU_ITEMS;
 
 /**
  * Controller that provides the UI elements the current user has access to.

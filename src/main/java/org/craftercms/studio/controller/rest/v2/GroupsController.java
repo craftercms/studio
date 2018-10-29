@@ -54,7 +54,7 @@ import java.util.List;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.DEFAULT_ORGANIZATION_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.*;
-import static org.craftercms.studio.controller.rest.v2.Constants.*;
+import static org.craftercms.studio.controller.rest.v2.ResultConstants.*;
 
 @RestController
 public class GroupsController {
