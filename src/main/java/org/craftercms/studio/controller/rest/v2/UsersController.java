@@ -163,8 +163,8 @@ public class UsersController {
      * @param userId User identifier
      * @return Response containing user
      */
-    @GetMapping("/api/2/users/{userId}")
-    public ResponseBody getUser(@PathVariable(USER_ID) String userId)
+    @GetMapping("/api/2/users/{id}")
+    public ResponseBody getUser(@PathVariable(ID) String userId)
             throws ServiceLayerException, UserNotFoundException {
         int uId = -1;
         String username = StringUtils.EMPTY;
@@ -231,7 +231,7 @@ public class UsersController {
      * @param userId User identifier
      * @return Response containing list of sites
      */
-    @GetMapping("/api/2/users/{userId}/sites")
+    @GetMapping("/api/2/users/{id}/sites")
     public ResponseBody getUserSites(@PathVariable(ID) String userId,
                                      @RequestParam(required = false, defaultValue = "0") int offset,
                                      @RequestParam(required = false, defaultValue = "10") int limit)
@@ -268,8 +268,8 @@ public class UsersController {
      * @param site The site ID
      * @return Response containing list of roles
      */
-    @GetMapping("/api/2/users/{userId}/sites/{site}/roles")
-    public ResponseBody getUserSiteRoles(@PathVariable(ID) String userId, @PathVariable("site") String site)
+    @GetMapping("/api/2/users/{id}/sites/{site}/roles")
+    public ResponseBody getUserSiteRoles(@PathVariable(ID) String userId, @PathVariable(SITE) String site)
             throws ServiceLayerException, UserNotFoundException {
         int uId = -1;
         String username = StringUtils.EMPTY ;
@@ -340,7 +340,7 @@ public class UsersController {
      *
      * @return Response containing current authenticated user roles
      */
-    @GetMapping("/api/2/user/sites/{site}/roles")
+    @GetMapping("/api/2/users/me/sites/{site}/roles")
     public ResponseBody getCurrentUserSiteRoles(@PathVariable(SITE) String site) throws AuthenticationException,
                                                                                           ServiceLayerException {
         List<String> roles = userService.getCurrentUserSiteRoles(site);
