@@ -24,8 +24,8 @@ package org.craftercms.studio.api.v1.aws;
  */
 public interface AwsConstants {
 
-    String PARAM_SITE = "site_id";
-    String PARAM_PROFILE = "profile_id";
+    String PARAM_SITE = "siteId";
+    String PARAM_PROFILE = "profileId";
     String PARAM_PATH = "path";
     String PARAM_TYPE = "type";
 

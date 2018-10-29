@@ -14,6 +14,7 @@ public interface Constants {
 
     String RESULT_KEY_ROLES = "roles";
 
-    String RESULT_KEY_ITEM - "item";
+    String RESULT_KEY_ITEM = "item";
+    String RESULT_KEY_ITEMS = "items";
     String RESULT_KEY_MENU_ITEMS = "menuItems";
 }

@@ -47,6 +47,7 @@ import static org.craftercms.studio.api.v1.aws.AwsConstants.PARAM_PATH;
 import static org.craftercms.studio.api.v1.aws.AwsConstants.PARAM_PROFILE;
 import static org.craftercms.studio.api.v1.aws.AwsConstants.PARAM_SITE;
 import static org.craftercms.studio.api.v1.aws.AwsConstants.PARAM_TYPE;
+import static org.craftercms.studio.controller.rest.v2.Constants.*;
 
 /**
  * Rest controller for AWS S3 service.
@@ -77,7 +78,7 @@ public class AwsS3Controller {
         throws AwsException {
 
         ResultList<S3Item> result = new ResultList<>();
-        result.setEntities("items", s3Service.listItems(siteId, profileId, path, type));
+        result.setEntities(RESULT_KEY_ITEMS, s3Service.listItems(siteId, profileId, path, type));
         result.setResponse(ApiResponse.OK);
 
         return result;
@@ -121,7 +122,8 @@ public class AwsS3Controller {
                             if (StringUtils.isNotEmpty(filename)) {
                                 filename = FilenameUtils.getName(filename);
                             }
-                            result.setEntity("item", s3Service.uploadItem(siteId, profileId, filename, stream));
+                            result.setEntity(RESULT_KEY_ITEM,
+                                s3Service.uploadItem(siteId, profileId, filename, stream));
                             result.setResponse(ApiResponse.OK);
                         }
                     }
