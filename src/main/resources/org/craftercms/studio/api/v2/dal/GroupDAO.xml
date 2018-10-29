@@ -143,6 +143,11 @@
         LIMIT #{offset}, #{limit}
     </select>
 
+    <select id="getGroupMembersTotal" parameterType="java.util.Map" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM `user` u INNER JOIN `group_user` gu ON u.id = gu.user_id
+        WHERE gu.group_id = #{groupId}
+    </select>
+
     <insert id="addGroupMembers" parameterType="java.util.Map" >
         INSERT IGNORE INTO `group_user` (user_id, group_id) VALUES
         <foreach collection="userIds" item="userId" index="index" separator="," >

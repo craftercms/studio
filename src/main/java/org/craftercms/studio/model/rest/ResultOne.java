@@ -18,6 +18,13 @@
 
 package org.craftercms.studio.model.rest;
 
+import java.util.Collections;
+import java.util.Map;
+
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonAnySetter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 /**
  * A {@link Result} where the actual result is a single entity.
  *
@@ -28,19 +35,22 @@ package org.craftercms.studio.model.rest;
  */
 public class ResultOne<T> extends Result {
 
-    protected T entity;
+    @JsonIgnore
+    protected Map<String, T> entity;
 
     /**
      * Returns the result entity.
      */
-    public T getEntity() {
+    @JsonAnyGetter
+    public Map<String, T> getEntity() {
         return entity;
     }
 
     /**
      * Sets the result entity.
      */
-    public void setEntity(T entity) {
-        this.entity = entity;
+    @JsonAnySetter
+    public void setEntity(String name, T entity) {
+        this.entity = Collections.singletonMap(name, entity);
     }
 }

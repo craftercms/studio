@@ -34,6 +34,7 @@ import org.craftercms.studio.model.rest.AddGroupMembers;
 import org.craftercms.studio.model.rest.ApiResponse;
 import org.craftercms.studio.model.rest.PaginatedResultList;
 import org.craftercms.studio.model.rest.ResponseBody;
+import org.craftercms.studio.model.rest.Result;
 import org.craftercms.studio.model.rest.ResultList;
 import org.craftercms.studio.model.rest.ResultOne;
 import org.springframework.http.HttpStatus;
@@ -52,6 +53,8 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.DEFAULT_ORGANIZATION_ID;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.*;
+import static org.craftercms.studio.controller.rest.v2.ResultConstants.*;
 
 @RestController
 public class GroupsController {
@@ -70,9 +73,9 @@ public class GroupsController {
      */
     @GetMapping("/api/2/groups")
     public ResponseBody getAllGroups(
-            @RequestParam(value = "offset", required = false, defaultValue = "0") int offset,
-            @RequestParam(value = "limit", required = false, defaultValue = "10") int limit,
-            @RequestParam(value = "sort", required = false, defaultValue = StringUtils.EMPTY) String sort
+            @RequestParam(value = OFFSET, required = false, defaultValue = "0") int offset,
+            @RequestParam(value = LIMIT, required = false, defaultValue = "10") int limit,
+            @RequestParam(value = SORT, required = false, defaultValue = StringUtils.EMPTY) String sort
             ) throws ServiceLayerException, OrganizationNotFoundException {
         int total = 0;
         total = groupService.getAllGroupsTotal(DEFAULT_ORGANIZATION_ID);
@@ -84,7 +87,7 @@ public class GroupsController {
         result.setOffset(offset);
         result.setLimit(CollectionUtils.isEmpty(groups) ? 0 : groups.size());
         result.setResponse(ApiResponse.OK);
-        result.setEntities(groups);
+        result.setEntities(RESULT_KEY_GROUPS, groups);
         responseBody.setResult(result);
         return responseBody;
     }
@@ -104,7 +107,7 @@ public class GroupsController {
         ResponseBody responseBody = new ResponseBody();
         ResultOne<Group> result = new ResultOne<>();
         result.setResponse(ApiResponse.CREATED);
-        result.setEntity(newGroup);
+        result.setEntity(RESULT_KEY_GROUP, newGroup);
         responseBody.setResult(result);
         return responseBody;
     }
@@ -122,7 +125,7 @@ public class GroupsController {
 
         ResultOne<Group> result = new ResultOne<>();
         result.setResponse(ApiResponse.OK);
-        result.setEntity(updatedGroup);
+        result.setEntity(RESULT_KEY_GROUP, updatedGroup);
         responseBody.setResult(result);
         return responseBody;
     }
@@ -134,12 +137,12 @@ public class GroupsController {
      * @return Response object
      */
     @DeleteMapping("/api/2/groups")
-    public ResponseBody deleteGroup(@RequestParam("id") List<Long> groupIds) throws ServiceLayerException,
+    public ResponseBody deleteGroup(@RequestParam(ID) List<Long> groupIds) throws ServiceLayerException,
                                                                                     GroupNotFoundException {
         groupService.deleteGroup(groupIds);
 
         ResponseBody responseBody = new ResponseBody();
-        ResultOne result = new ResultOne();
+        Result result = new Result();
         result.setResponse(ApiResponse.DELETED);
         responseBody.setResult(result);
         return responseBody;
@@ -152,14 +155,14 @@ public class GroupsController {
      * @return Response containing requested group
      */
     @GetMapping("/api/2/groups/{groupId}")
-    public ResponseBody getGroup(@PathVariable("groupId") int groupId) throws ServiceLayerException,
+    public ResponseBody getGroup(@PathVariable(GROUP_ID) int groupId) throws ServiceLayerException,
                                                                               GroupNotFoundException {
         Group group = groupService.getGroup(groupId);
 
         ResponseBody responseBody = new ResponseBody();
         ResultOne<Group> result = new ResultOne<>();
         result.setResponse(ApiResponse.OK);
-        result.setEntity(group);
+        result.setEntity(RESULT_KEY_GROUP, group);
         responseBody.setResult(result);
         return responseBody;
     }
@@ -175,18 +178,22 @@ public class GroupsController {
      */
     @GetMapping("/api/2/groups/{groupId}/members")
     public ResponseBody getGroupMembers(
-        @PathVariable("groupId") int groupId,
-        @RequestParam(value = "offset", required = false, defaultValue = "0") int offset,
-        @RequestParam(value = "limit", required = false, defaultValue = "10") int limit,
-        @RequestParam(value = "sort", required = false, defaultValue = StringUtils.EMPTY) String sort)
+        @PathVariable(GROUP_ID) int groupId,
+        @RequestParam(value = OFFSET, required = false, defaultValue = "0") int offset,
+        @RequestParam(value = LIMIT, required = false, defaultValue = "10") int limit,
+        @RequestParam(value = SORT, required = false, defaultValue = StringUtils.EMPTY) String sort)
             throws ServiceLayerException, GroupNotFoundException {
 
+        int total = groupService.getGroupMembersTotal(groupId);
         List<User> users = groupService.getGroupMembers(groupId, offset, limit, sort);
 
         ResponseBody responseBody = new ResponseBody();
-        ResultList<User> result = new ResultList<>();
+        PaginatedResultList<User> result = new PaginatedResultList<>();
         result.setResponse(ApiResponse.OK);
-        result.setEntities(users);
+        result.setTotal(total);
+        result.setOffset(offset);
+        result.setLimit(limit);
+        result.setEntities(RESULT_KEY_USERS, users);
         responseBody.setResult(result);
         return responseBody;
     }
@@ -199,20 +206,20 @@ public class GroupsController {
      * @return Response object
      */
     @PostMapping(value = "/api/2/groups/{groupId}/members", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseBody addGroupMembers(@PathVariable("groupId") int groupId,
+    public ResponseBody addGroupMembers(@PathVariable(GROUP_ID) int groupId,
                                         @RequestBody AddGroupMembers addGroupMembers) throws ServiceLayerException,
                                                                                              UserNotFoundException,
                                                                                              GroupNotFoundException {
 
         ValidationUtils.validateAddGroupMembers(addGroupMembers);
 
-        List<User> addedUsers = groupService.addGroupMembers(groupId, addGroupMembers.getUserIds(),
+        List<User> addedUsers = groupService.addGroupMembers(groupId, addGroupMembers.getIds(),
                                                              addGroupMembers.getUsernames());
 
         ResponseBody responseBody = new ResponseBody();
         ResultList<User> result = new ResultList<>();
         result.setResponse(ApiResponse.OK);
-        result.setEntities(addedUsers);
+        result.setEntities(RESULT_KEY_USERS, addedUsers);
         responseBody.setResult(result);
         return responseBody;
     }
@@ -226,9 +233,9 @@ public class GroupsController {
      * @return Response object
      */
     @DeleteMapping("/api/2/groups/{groupId}/members")
-    public ResponseBody removeGroupMembers(@PathVariable("groupId") int groupId,
-                                   @RequestParam(value = "userId", required = false) List<Long> userIds,
-                                   @RequestParam(value = "username", required = false) List<String> usernames)
+    public ResponseBody removeGroupMembers(@PathVariable(GROUP_ID) int groupId,
+                                   @RequestParam(value = USER_ID, required = false) List<Long> userIds,
+                                   @RequestParam(value = USERNAME, required = false) List<String> usernames)
             throws ServiceLayerException, UserNotFoundException, GroupNotFoundException {
 
         ValidationUtils.validateAnyListNonEmpty(userIds, usernames);
@@ -237,7 +244,7 @@ public class GroupsController {
                                         usernames != null? usernames : Collections.emptyList());
 
         ResponseBody responseBody = new ResponseBody();
-        ResultOne result = new ResultOne();
+        Result result = new Result();
         result.setResponse(ApiResponse.DELETED);
         responseBody.setResult(result);
         return responseBody;

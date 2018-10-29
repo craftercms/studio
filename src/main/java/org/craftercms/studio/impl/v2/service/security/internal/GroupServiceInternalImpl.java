@@ -18,33 +18,25 @@
 
 package org.craftercms.studio.impl.v2.service.security.internal;
 
-import org.apache.commons.collections4.CollectionUtils;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.apache.commons.lang3.StringUtils;
-import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v1.repository.ContentRepository;
-import org.craftercms.studio.api.v1.util.StudioConfiguration;
-import org.craftercms.studio.api.v2.dal.GroupDAO;
 import org.craftercms.studio.api.v2.dal.Group;
+import org.craftercms.studio.api.v2.dal.GroupDAO;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.exception.ConfigurationException;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
-import org.dom4j.Document;
-import org.dom4j.DocumentException;
-import org.dom4j.io.SAXReader;
-import org.xml.sax.SAXException;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.*;
-import java.util.stream.Collectors;
 
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.GROUP_DESCRIPTION;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.GROUP_ID;
@@ -55,7 +47,6 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LIMIT;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.OFFSET;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ORG_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SORT;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USERNAMES;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USER_IDS;
 
 public class GroupServiceInternalImpl implements GroupServiceInternal {
@@ -224,6 +215,20 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
 
         try {
             return groupDao.getGroupMembers(params);
+        } catch (Exception e) {
+            throw new ServiceLayerException("Unknown database error", e);
+        }
+    }
+
+    @Override
+    public int getGroupMembersTotal(final long groupId) throws GroupNotFoundException, ServiceLayerException {
+
+        if(!groupExists(groupId, StringUtils.EMPTY)) {
+            throw new GroupNotFoundException("No group found for id '" + groupId+ "'");
+        }
+
+        try {
+            return groupDao.getGroupMembersTotal(Collections.singletonMap(GROUP_ID, groupId));
         } catch (Exception e) {
             throw new ServiceLayerException("Unknown database error", e);
         }

@@ -49,6 +49,8 @@ public interface GroupServiceInternal {
     List<User> getGroupMembers(long groupId, int offset, int limit,
                                String sort) throws GroupNotFoundException, ServiceLayerException;
 
+    int getGroupMembersTotal(long groupId) throws ServiceLayerException, GroupNotFoundException;
+
     List<User> addGroupMembers(long groupId, List<Long> userIds,
                                List<String> usernames) throws GroupNotFoundException, UserNotFoundException,
                                                               ServiceLayerException;

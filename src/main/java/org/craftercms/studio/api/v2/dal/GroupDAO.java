@@ -96,6 +96,13 @@ public interface GroupDAO {
     List<User> getGroupMembers(Map params);
 
     /**
+     * Get total number of group members.
+     * @param params SQL query parameters.
+     * @return Number of members
+     */
+    Integer getGroupMembersTotal(Map params);
+
+    /**
      * Add users to the group
      *
      * @param params SQL query parameters

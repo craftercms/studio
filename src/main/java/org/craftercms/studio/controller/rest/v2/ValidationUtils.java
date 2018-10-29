@@ -51,7 +51,7 @@ public abstract class ValidationUtils {
      * @throws InvalidParametersException if the object is invalid
      */
     public static void validateAddGroupMembers(AddGroupMembers addGroupMembers) throws InvalidParametersException {
-        if(CollectionUtils.isEmpty(addGroupMembers.getUserIds()) &&
+        if(CollectionUtils.isEmpty(addGroupMembers.getIds()) &&
             CollectionUtils.isEmpty(addGroupMembers.getUsernames())) {
             throw new InvalidParametersException("Both 'userIds' and 'usernames' are empty");
         }
@@ -63,7 +63,7 @@ public abstract class ValidationUtils {
      * @throws InvalidParametersException if the object is invalid
      */
     public static void validateEnableUsers(EnableUsers enableUsers) throws InvalidParametersException {
-        if(CollectionUtils.isEmpty(enableUsers.getUserIds()) &&
+        if(CollectionUtils.isEmpty(enableUsers.getIds()) &&
             CollectionUtils.isEmpty(enableUsers.getUsernames())) {
             throw new InvalidParametersException("Both 'userIds' and 'usernames' are empty");
         }
