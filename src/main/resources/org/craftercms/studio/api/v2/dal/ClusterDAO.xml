@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  ~
+  -->
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.craftercms.studio.api.v2.dal.ClusterDAO">
+
+    <resultMap id="ClusterMap" type="org.craftercms.studio.api.v2.dal.ClusterMember">
+        <id property="id" column="id"/>
+        <result property="clusterId" column="cluster_id"/>
+        <result property="clusterMemberName" column="cluster_member_name" />
+        <result property="clusterMemberIp" column="cluser_member_ip" />
+        <result property="clusterMemberTimestamp" column="cluster_member_timestamp" />
+        <result property="remoteName" column="remote_name" />
+        <result property="remoteUrl" column="remote_url" />
+        <result property="authenticationType" column="authentication_type" />
+        <result property="remoteUsername" column="remote_username" />
+        <result property="remotePassword" column="remote_password" />
+        <result property="remoteToken" column="remote_token" />
+        <result property="remotePrivateKey" column="remote_private_key" />
+    </resultMap>
+
+    <select id="getAllMembers" resultMap="ClusterMap">
+        SELECT * FROM cluster;
+    </select>
+
+    <select id="getMemberById" resultMap="ClusterMap" parameterType="long">
+        SELECT * FROM cluster WHERE id = #{clusterMemberId}
+    </select>
+    
+    <insert id="addMember" parameterType="org.craftercms.studio.api.v2.dal.ClusterMember">
+        INSERT INTO cluster (cluster_id, cluster_member_name, cluster_member_ip, cluster_member_timestamp,
+        remote_name, remote_url, authentication_type, remote_username, remote_password,
+        remote_token, remote_private_key)
+        VALUES (#{clusterId}, #{clusterMemberName}, #{clusterMemberIp}, CURRENT_TIMESTAMP,
+        #{remoteName}, #{remoteUrl}, #{authenticationType}, #{remoteUsername}, #{remotePassword},
+        #{remoteToken}, #{remotePrivateKey})
+    </insert>
+    
+    <update id="updateMember" parameterType="org.craftercms.studio.api.v2.dal.ClusterMember">
+        UPDATE cluster SET
+        cluster_id = #{clusterId},
+        cluster_member_name = #{clusterMemberName},
+        cluster_member_ip = #{clusterMemberIp},
+        cluster_member_timestamp = #{clusterMemberTimestamp},
+        remote_name = #{remoteName},
+        remote_url = #{remoteUrl},
+        authentication_type = #{authenticationType},
+        remote_username = #{remoteUsername},
+        remote_password = #{remotePassword},
+        remote_token = #{remoteToken},
+        remote_private_key = #{remotePrivateKey}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="removeMembers" parameterType="java.util.Map">
+        DELETE FROM cluster WHERE id IN
+        <foreach collection="memberIds" index="index" separator="," item="memberId" open="(" close=")">
+            #{memberId}
+        </foreach>
+    </delete>
+</mapper>
