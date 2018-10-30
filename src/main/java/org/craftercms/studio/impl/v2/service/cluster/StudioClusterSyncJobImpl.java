@@ -18,12 +18,47 @@
 
 package org.craftercms.studio.impl.v2.service.cluster;
 
+import org.craftercms.studio.api.v1.deployment.PreviewDeployer;
+import org.craftercms.studio.api.v1.log.Logger;
+import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.service.search.SearchService;
+import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.service.cluster.StudioClusterSyncJob;
+import org.craftercms.studio.api.v2.service.notification.NotificationService;
+import org.springframework.core.task.TaskExecutor;
+
+import java.util.Set;
 
 public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
 
+    private final static Logger logger = LoggerFactory.getLogger(StudioClusterSyncJobImpl.class);
+
+    private SiteService siteService;
+    private TaskExecutor taskExecutor;
+    private PreviewDeployer previewDeployer;
+    private SearchService searchService;
+    private StudioConfiguration studioConfiguration;
+
     @Override
     public void run() {
+
+        try {
+            Set<String> siteNames = siteService.getAllAvailableSites();
+            if (siteNames != null && siteNames.size() > 0) {
+                for (String site : siteNames) {
+                    StudioNodeSyncTaskImpl nodeSyncTask = new StudioNodeSyncTaskImpl();
+                    nodeSyncTask.setSiteId(site);
+                    nodeSyncTask.setPreviewDeployer(previewDeployer);
+                    nodeSyncTask.setSearchService(searchService);
+                    nodeSyncTask.setStudioConfiguration(studioConfiguration);
+
+                    taskExecutor.execute(nodeSyncTask);
+                }
+            }
+        } catch (Exception err) {
+            logger.error("Error while executing cluster sync job", err);
+        }
 
     }
 }

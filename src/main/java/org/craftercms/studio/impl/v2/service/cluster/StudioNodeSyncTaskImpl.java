@@ -22,6 +22,9 @@ import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.crypto.CryptoException;
+import org.craftercms.commons.crypto.TextEncryptor;
+import org.craftercms.commons.crypto.impl.PbkAesTextEncryptor;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.dal.RemoteRepository;
 import org.craftercms.studio.api.v1.deployment.PreviewDeployer;
@@ -34,19 +37,27 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.search.SearchService;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.Cluster;
-import org.craftercms.studio.api.v2.service.cluster.StudioNodeSyncTask;
 import org.eclipse.jgit.api.CloneCommand;
+import org.eclipse.jgit.api.FetchCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.PullCommand;
 import org.eclipse.jgit.api.TransportConfigCallback;
+import org.eclipse.jgit.api.errors.CanceledException;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.InvalidConfigurationException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
+import org.eclipse.jgit.api.errors.NoHeadException;
+import org.eclipse.jgit.api.errors.RefNotAdvertisedException;
+import org.eclipse.jgit.api.errors.RefNotFoundException;
 import org.eclipse.jgit.api.errors.TransportException;
+import org.eclipse.jgit.api.errors.WrongRepositoryStateException;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.merge.MergeStrategy;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
+import org.eclipse.jgit.transport.FetchResult;
 import org.eclipse.jgit.transport.JschConfigSessionFactory;
 import org.eclipse.jgit.transport.OpenSshConfig;
+import org.eclipse.jgit.transport.RemoteConfig;
 import org.eclipse.jgit.transport.SshSessionFactory;
 import org.eclipse.jgit.transport.SshTransport;
 import org.eclipse.jgit.transport.Transport;
@@ -63,8 +74,10 @@ import java.util.Properties;
 import java.util.UUID;
 
 import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_KEY;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_SALT;
 
-public class StudioNodeSyncTaskImpl implements StudioNodeSyncTask {
+public class StudioNodeSyncTaskImpl implements Runnable {
 
     private static final Logger logger = LoggerFactory.getLogger(StudioNodeSyncTaskImpl.class);
 
@@ -75,7 +88,7 @@ public class StudioNodeSyncTaskImpl implements StudioNodeSyncTask {
     protected StudioConfiguration studioConfiguration;
 
     @Override
-    public void execute() {
+    public void run() {
         boolean success = false;
         boolean siteCheck = checkIfSiteRepoExists();
         if (!siteCheck) {
@@ -111,7 +124,15 @@ public class StudioNodeSyncTaskImpl implements StudioNodeSyncTask {
             addRemotes();
         }
 
-        updateContent();
+        try {
+            updateContent();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (CryptoException e) {
+            e.printStackTrace();
+        } catch (ServiceLayerException e) {
+            e.printStackTrace();
+        }
     }
 
     private boolean createSiteFromRemote()
@@ -223,14 +244,16 @@ public class StudioNodeSyncTaskImpl implements StudioNodeSyncTask {
 
     }
 
-    private void updateContent() throws IOException {
-        Cluster remoteNode = clusterNodes.get(0);
+    private void updateContent() throws IOException, CryptoException, ServiceLayerException {
+        //Cluster remoteNode = clusterNodes.get(0);
+        TextEncryptor encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
+                studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
         boolean toRet = true;
         // prepare a new folder for the cloned repository
         Path siteSandboxPath = buildRepoPath(SANDBOX);
         logger.debug("Add user credentials if provided");
         // then clone
-        logger.debug("Cloning from " + remoteNode.getRemoteUrl() + " to " + siteSandboxPath.toString());
+        //logger.debug("Cloning from " + remoteNode.getRemoteUrl() + " to " + siteSandboxPath.toString());
         FileRepositoryBuilder builder = new FileRepositoryBuilder();
         Repository repo = builder
                 .setGitDir(siteSandboxPath.toFile())
@@ -238,9 +261,65 @@ public class StudioNodeSyncTaskImpl implements StudioNodeSyncTask {
                 .findGitDir()
                 .build();
         try (Git git = new Git(repo)) {
-            PullCommand pullCommand = git.pull();
-            pullCommand.setRemote(remoteNode.getRemoteName());
-            pullCommand.setStrategy(MergeStrategy.THEIRS);
+            List<RemoteConfig> remotes = git.remoteList().call();
+            for (RemoteConfig remote : remotes) {
+                FetchResult fetchResult = git.fetch()
+                        .setRemote(remote.getName())
+                        .setRefSpecs(remote.getFetchRefSpecs())
+                        .setRemoveDeletedRefs(true)
+                        .call();
+            }
+
+            for (Cluster remoteNode : clusterNodes) {
+                PullCommand pullCommand = git.pull();
+                logger.debug("Set remote " + remoteNode.getRemoteName());
+                pullCommand.setRemote(remoteNode.getRemoteName());
+                pullCommand.setStrategy(MergeStrategy.THEIRS);
+                switch (remoteNode.getAuthenticationType()) {
+                    case RemoteRepository.AuthenticationType.NONE:
+                        logger.debug("No authentication");
+                        pullCommand.call();
+                        break;
+                    case RemoteRepository.AuthenticationType.BASIC:
+                        logger.debug("Basic authentication");
+                        String hashedPassword = remoteNode.getRemotePassword();
+                        String password = encryptor.decrypt(hashedPassword);
+                        pullCommand.setCredentialsProvider(
+                                new UsernamePasswordCredentialsProvider(remoteNode.getRemoteUsername(), password));
+
+                        pullCommand.call();
+                        break;
+                    case RemoteRepository.AuthenticationType.TOKEN:
+                        logger.debug("Token based authentication");
+                        String hashedToken = remoteNode.getRemoteToken();
+                        String token = encryptor.decrypt(hashedToken);
+                        pullCommand.setCredentialsProvider(
+                                new UsernamePasswordCredentialsProvider(token, StringUtils.EMPTY));
+                        pullCommand.call();
+                        break;
+                    case RemoteRepository.AuthenticationType.PRIVATE_KEY:
+                        logger.debug("Private key authentication");
+                        final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
+                        String hashedPrivateKey = remoteNode.getRemotePrivateKey();
+                        String privateKey = encryptor.decrypt(hashedPrivateKey);
+                        tempKey.toFile().deleteOnExit();
+                        pullCommand.setTransportConfigCallback(new TransportConfigCallback() {
+                            @Override
+                            public void configure(Transport transport) {
+                                SshTransport sshTransport = (SshTransport)transport;
+                                sshTransport.setSshSessionFactory(getSshSessionFactory(privateKey, tempKey));
+                            }
+                        });
+                        pullCommand.call();
+                        Files.delete(tempKey);
+                        break;
+                    default:
+                        throw new ServiceLayerException("Unsupported authentication type " +
+                                remoteNode.getAuthenticationType());
+                }
+            }
+        } catch (GitAPIException e) {
+            e.printStackTrace();
         }
 
     }
