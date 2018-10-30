@@ -154,8 +154,8 @@ public class GroupsController {
      * @param groupId Group identifier
      * @return Response containing requested group
      */
-    @GetMapping("/api/2/groups/{groupId}")
-    public ResponseBody getGroup(@PathVariable(GROUP_ID) int groupId) throws ServiceLayerException,
+    @GetMapping("/api/2/groups/{id}")
+    public ResponseBody getGroup(@PathVariable(ID) int groupId) throws ServiceLayerException,
                                                                               GroupNotFoundException {
         Group group = groupService.getGroup(groupId);
 
@@ -176,9 +176,9 @@ public class GroupsController {
      * @param sort Sort order
      * @return Response containing list od users
      */
-    @GetMapping("/api/2/groups/{groupId}/members")
+    @GetMapping("/api/2/groups/{id}/members")
     public ResponseBody getGroupMembers(
-        @PathVariable(GROUP_ID) int groupId,
+        @PathVariable(ID) int groupId,
         @RequestParam(value = OFFSET, required = false, defaultValue = "0") int offset,
         @RequestParam(value = LIMIT, required = false, defaultValue = "10") int limit,
         @RequestParam(value = SORT, required = false, defaultValue = StringUtils.EMPTY) String sort)
@@ -205,8 +205,8 @@ public class GroupsController {
      * @param addGroupMembers Add members request body (json representation)
      * @return Response object
      */
-    @PostMapping(value = "/api/2/groups/{groupId}/members", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseBody addGroupMembers(@PathVariable(GROUP_ID) int groupId,
+    @PostMapping(value = "/api/2/groups/{id}/members", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseBody addGroupMembers(@PathVariable(ID) int groupId,
                                         @RequestBody AddGroupMembers addGroupMembers) throws ServiceLayerException,
                                                                                              UserNotFoundException,
                                                                                              GroupNotFoundException {
@@ -232,8 +232,8 @@ public class GroupsController {
      * @param usernames List of usernames
      * @return Response object
      */
-    @DeleteMapping("/api/2/groups/{groupId}/members")
-    public ResponseBody removeGroupMembers(@PathVariable(GROUP_ID) int groupId,
+    @DeleteMapping("/api/2/groups/{id}/members")
+    public ResponseBody removeGroupMembers(@PathVariable(ID) int groupId,
                                    @RequestParam(value = USER_ID, required = false) List<Long> userIds,
                                    @RequestParam(value = USERNAME, required = false) List<String> usernames)
             throws ServiceLayerException, UserNotFoundException, GroupNotFoundException {
