@@ -24,13 +24,42 @@ import java.util.List;
 
 public interface ClusterManagementServiceInternal {
 
+    /**
+     * Get all members for cluster
+     *
+     * @return List of all cluster memebers
+     */
     List<ClusterMember> getAllMembers();
 
+    /**
+     * Remove members from cluster
+     *
+     * @param memberIds List of member ids
+     * @return true if successful, otherwise false
+     */
     boolean removeMembers(List<Long> memberIds);
 
+    /**
+     * Add member to the cluster
+     *
+     * @param clusterMember Cluster member to add
+     * @return true if successful, otherwise false
+     */
     boolean addMember(ClusterMember clusterMember);
 
+    /**
+     * Update cluster member
+     *
+     * @param clusterMember Member to update
+     * @return true if successful, otherwise false
+     */
     boolean updateMember(ClusterMember clusterMember);
 
+    /**
+     * Get cluster member by id
+     *
+     * @param clusterMemberId Member id
+     * @return Requested cluster member
+     */
     ClusterMember getMember(long clusterMemberId);
 }
