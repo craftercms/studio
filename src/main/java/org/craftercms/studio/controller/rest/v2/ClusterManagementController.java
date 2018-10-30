@@ -35,6 +35,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_CLUSTER_MEMBER;
+import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_CLUSTER_MEMBERS;
+
 @RestController
 public class ClusterManagementController {
 
@@ -46,7 +49,7 @@ public class ClusterManagementController {
 
         ResponseBody responseBody = new ResponseBody();
         ResultList<ClusterMember> result = new ResultList<ClusterMember>();
-        result.setEntities(clusterMembers);
+        result.setEntities(RESULT_KEY_CLUSTER_MEMBERS, clusterMembers);
         result.setResponse(ApiResponse.OK);
         responseBody.setResult(result);
         return responseBody;
@@ -58,7 +61,7 @@ public class ClusterManagementController {
 
         ResponseBody responseBody = new ResponseBody();
         ResultOne result = new ResultOne();
-        result.setEntity(member);
+        result.setEntity(RESULT_KEY_CLUSTER_MEMBER, member);
         result.setResponse(ApiResponse.CREATED);
         responseBody.setResult(result);
         return responseBody;
@@ -71,7 +74,7 @@ public class ClusterManagementController {
         ResponseBody responseBody = new ResponseBody();
         ResultOne result = new ResultOne();
         result.setResponse(ApiResponse.OK);
-        result.setEntity(clusterMember);
+        result.setEntity(RESULT_KEY_CLUSTER_MEMBER, clusterMember);
         responseBody.setResult(result);
         return responseBody;
     }
