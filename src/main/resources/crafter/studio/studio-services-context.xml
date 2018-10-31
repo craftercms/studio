@@ -354,6 +354,16 @@
         <property name="metaDAO" ref="metaDAO" />
     </bean>
 
+    <bean id="clusterManagementService"
+          class="org.craftercms.studio.impl.v2.service.cluster.ClusterManagementServiceImpl">
+        <property name="clusterManagementServiceInternal" ref="clusterManagementServiceInternal" />
+    </bean>
+
+    <bean id="clusterManagementServiceInternal"
+          class="org.craftercms.studio.impl.v2.service.cluster.internal.ClusterManagementServiceInternalImpl">
+        <property name="clusterDao" ref="clusterDao" />
+    </bean>
+
     <!-- ////////////////////////////////////// -->
     <!--      Managers                          -->
     <!-- ////////////////////////////////////// -->

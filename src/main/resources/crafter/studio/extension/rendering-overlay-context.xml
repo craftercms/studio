@@ -41,7 +41,9 @@
     <bean id="studioS3Controller" class="org.craftercms.studio.controller.rest.v2.aws.AwsS3Controller"/>
 
     <bean id="studioClusterManangementController"
-          class="org.craftercms.studio.controller.rest.v2.ClusterManagementController" />
+          class="org.craftercms.studio.controller.rest.v2.ClusterManagementController" >
+        <property name="clusterManagementService" ref="clusterManagementService" />
+    </bean>
 
     <bean id="studio.binaryView" class="org.craftercms.studio.impl.v1.util.spring.mvc.BinaryView">
         <property name="disableCaching" value="${crafter.core.rest.views.json.disableCaching}"/>

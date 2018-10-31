@@ -19,8 +19,12 @@
 package org.craftercms.studio.controller.rest.v2;
 
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.model.rest.ClusterMember;
+import org.craftercms.studio.api.v2.dal.ClusterMember;
+import org.craftercms.studio.api.v2.service.cluster.ClusterManagementService;
+import org.craftercms.studio.model.rest.ApiResponse;
 import org.craftercms.studio.model.rest.ResponseBody;
+import org.craftercms.studio.model.rest.ResultList;
+import org.craftercms.studio.model.rest.ResultOne;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -31,26 +35,65 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_CLUSTER_MEMBER;
+import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_CLUSTER_MEMBERS;
+
 @RestController
 public class ClusterManagementController {
 
+    private ClusterManagementService clusterManagementService;
+
     @GetMapping("/api/2/cluster")
     public ResponseBody getAllMembers() throws ServiceLayerException {
-        throw new ServiceLayerException("Not implemented");
+        List<ClusterMember> clusterMembers = clusterManagementService.getAllMemebers();
+
+        ResponseBody responseBody = new ResponseBody();
+        ResultList<ClusterMember> result = new ResultList<ClusterMember>();
+        result.setEntities(RESULT_KEY_CLUSTER_MEMBERS, clusterMembers);
+        result.setResponse(ApiResponse.OK);
+        responseBody.setResult(result);
+        return responseBody;
     }
 
     @PostMapping("/api/2/cluster")
     public ResponseBody addClusterMember(@RequestBody ClusterMember member) throws ServiceLayerException {
-        throw new ServiceLayerException("Not implemented");
+        ClusterMember clusterMember = clusterManagementService.addMember(member);
+
+        ResponseBody responseBody = new ResponseBody();
+        ResultOne result = new ResultOne();
+        result.setEntity(RESULT_KEY_CLUSTER_MEMBER, member);
+        result.setResponse(ApiResponse.CREATED);
+        responseBody.setResult(result);
+        return responseBody;
     }
 
     @PatchMapping("/api/2/cluster")
     public ResponseBody updateClusterMember(@RequestBody ClusterMember member) throws ServiceLayerException {
-        throw new ServiceLayerException("Not implemented");
+        ClusterMember clusterMember = clusterManagementService.updateMember(member);
+
+        ResponseBody responseBody = new ResponseBody();
+        ResultOne result = new ResultOne();
+        result.setResponse(ApiResponse.OK);
+        result.setEntity(RESULT_KEY_CLUSTER_MEMBER, clusterMember);
+        responseBody.setResult(result);
+        return responseBody;
     }
 
     @DeleteMapping("/api/2/cluster")
     public ResponseBody removeClusterMembers(@RequestParam(value = "id") List<Long> memberIds) throws ServiceLayerException {
-        throw new ServiceLayerException("Not implmented");
+        boolean success = clusterManagementService.removeMembers(memberIds);
+
+        ResponseBody responseBody = new ResponseBody();
+        ResultOne result = new ResultOne();
+        result.setResponse(ApiResponse.DELETED);
+        return responseBody;
+    }
+
+    public ClusterManagementService getClusterManagementService() {
+        return clusterManagementService;
+    }
+
+    public void setClusterManagementService(ClusterManagementService clusterManagementService) {
+        this.clusterManagementService = clusterManagementService;
     }
 }
