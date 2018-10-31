@@ -23,13 +23,46 @@ import java.util.Map;
 
 public interface ClusterDAO {
 
+    /**
+     * Get all cluster members from database
+     *
+     * @return List of cluster members
+     */
     List<ClusterMember> getAllMembers();
 
+    /**
+     * Update cluster member in the database
+     *
+     * @param member Cluster member to update
+     *
+     * @return number of affected rows
+     */
     int updateMember(ClusterMember member);
 
+    /**
+     * Add member to cluster in the database
+     *
+     * @param member Member to add
+     *
+     * @return number of affected rows
+     */
     int addMember(ClusterMember member);
 
+    /**
+     * Remove members from cluster in the database
+     *
+     * @param params Parameters for SQL query
+     *
+     * @return number of affected rows
+     */
     int removeMembers(Map params);
 
+    /**
+     * Get cluster member by id from database
+     *
+     * @param clusterMemberId Cluster member id
+     *
+     * @return Cluster member with given id
+     */
     ClusterMember getMemberById(long clusterMemberId);
 }
