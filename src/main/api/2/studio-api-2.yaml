@@ -5,7 +5,7 @@ info:
   description: |-
     Crafter Studio API v2
     https://docs.craftercms.org/en/3.0/developers/projects/studio/index.html
-  version: '2.0.9'
+  version: '2.0.10'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -948,6 +948,30 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '500':
           $ref: '#/components/responses/InternalServerError'
+
+  /ui/system/active_environment:
+    get:
+      tags:
+        - ui
+      summary: Get the current active environment for the system
+      operationId: getActiveEnv
+      description: 'Required Permission: "LOGGED_IN"'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  environment:
+                    type: string
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'          
 
   /aws/s3/list:
     get:
