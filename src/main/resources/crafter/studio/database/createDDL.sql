@@ -7,7 +7,7 @@ CREATE TABLE _meta (
   PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('3.1.0.5', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('3.1.0.6', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`             BIGINT(20)   NOT NULL AUTO_INCREMENT,
@@ -299,22 +299,15 @@ CREATE TABLE IF NOT EXISTS remote_repository
 
 CREATE TABLE IF NOT EXISTS cluster
 (
-  `id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,
-  `cluster_id`                VARCHAR(50)   NOT NULL,
-  `cluster_member_name`       VARCHAR(50)   NOT NULL,
-  `cluster_member_ip`         VARCHAR(50)   NOT NULL,
-  `cluster_member_timestamp`  TIMESTAMP     NOT NULL,
-  `remote_name`               VARCHAR(50)   NOT NULL,
-  `remote_url`                VARCHAR(2000) NOT NULL,
-  `authentication_type`       VARCHAR(16)   NOT NULL,
-  `remote_username`           VARCHAR(255)  NULL,
-  `remote_password`           VARCHAR(255)  NULL,
-  `remote_token`              VARCHAR(255)  NULL,
-  `remote_private_key`        TEXT          NULL,
+  `id`                  BIGINT(20)    NOT NULL AUTO_INCREMENT,
+  `git_url`             VARCHAR(500) NOT NULL,
+  `git_auth_type`       VARCHAR(16)   NOT NULL,
+  `git_username`        VARCHAR(255)  NULL,
+  `git_password`        VARCHAR(255)  NULL,
+  `git_token`           VARCHAR(255)  NULL,
+  `git_private_key`     TEXT          NULL,
   PRIMARY KEY (`id`),
-  UNIQUE `uq_cl_cluster_member` (`cluster_id`, `cluster_member_name`),
-  INDEX `cluster_cluster_id_idx` (`cluster_id` ASC),
-  INDEX `cluster_cluster_member_idx` (`cluster_member_name` ASC)
+  UNIQUE `uq_cl_git_url` (`git_url`)
 )
   ENGINE = InnoDB
   DEFAULT CHARSET = utf8

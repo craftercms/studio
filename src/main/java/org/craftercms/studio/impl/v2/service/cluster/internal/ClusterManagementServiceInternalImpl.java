@@ -19,7 +19,6 @@
 package org.craftercms.studio.impl.v2.service.cluster.internal;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v2.dal.ClusterDAO;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.craftercms.studio.api.v2.service.cluster.internal.ClusterManagementServiceInternal;
@@ -27,7 +26,6 @@ import org.craftercms.studio.api.v2.service.cluster.internal.ClusterManagementSe
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 public class ClusterManagementServiceInternalImpl implements ClusterManagementServiceInternal {
 
@@ -52,36 +50,12 @@ public class ClusterManagementServiceInternalImpl implements ClusterManagementSe
 
     @Override
     public boolean addMember(ClusterMember clusterMember) {
-        if (StringUtils.isEmpty(clusterMember.getClusterId())) {
-            clusterMember.setClusterId(UUID.randomUUID().toString());
-        }
-        if (StringUtils.isEmpty(clusterMember.getClusterMemberName())) {
-            clusterMember.setClusterMemberName(UUID.randomUUID().toString());
-        }
-        if (StringUtils.isEmpty(clusterMember.getClusterMemberIp())) {
-            clusterMember.setClusterMemberIp("127.0.0.1");
-        }
-        if (StringUtils.isEmpty(clusterMember.getRemoteName())) {
-            clusterMember.setRemoteName(clusterMember.getRemoteUrl());
-        }
         int result = clusterDao.addMember(clusterMember);
         return result > 0;
     }
 
     @Override
     public boolean updateMember(ClusterMember clusterMember) {
-        if (StringUtils.isEmpty(clusterMember.getClusterId())) {
-            clusterMember.setClusterId(UUID.randomUUID().toString());
-        }
-        if (StringUtils.isEmpty(clusterMember.getClusterMemberName())) {
-            clusterMember.setClusterMemberName(UUID.randomUUID().toString());
-        }
-        if (StringUtils.isEmpty(clusterMember.getClusterMemberIp())) {
-            clusterMember.setClusterMemberIp("127.0.0.1");
-        }
-        if (StringUtils.isEmpty(clusterMember.getRemoteName())) {
-            clusterMember.setRemoteName(clusterMember.getRemoteUrl());
-        }
         int result = clusterDao.updateMember(clusterMember);
         return result > 0;
     }

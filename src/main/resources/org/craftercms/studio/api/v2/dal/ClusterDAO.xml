@@ -24,17 +24,12 @@
 
     <resultMap id="ClusterMap" type="org.craftercms.studio.api.v2.dal.ClusterMember">
         <id property="id" column="id"/>
-        <result property="clusterId" column="cluster_id"/>
-        <result property="clusterMemberName" column="cluster_member_name" />
-        <result property="clusterMemberIp" column="cluser_member_ip" />
-        <result property="clusterMemberTimestamp" column="cluster_member_timestamp" />
-        <result property="remoteName" column="remote_name" />
-        <result property="remoteUrl" column="remote_url" />
-        <result property="authenticationType" column="authentication_type" />
-        <result property="remoteUsername" column="remote_username" />
-        <result property="remotePassword" column="remote_password" />
-        <result property="remoteToken" column="remote_token" />
-        <result property="remotePrivateKey" column="remote_private_key" />
+        <result property="gitUrl" column="git_url" />
+        <result property="gitAuthType" column="git_auth_type" />
+        <result property="gitUsername" column="git_username" />
+        <result property="gitPassword" column="git_password" />
+        <result property="gitToken" column="git_token" />
+        <result property="gitPrivateKey" column="git_private_key" />
     </resultMap>
 
     <select id="getAllMembers" resultMap="ClusterMap">
@@ -46,27 +41,18 @@
     </select>
     
     <insert id="addMember" parameterType="org.craftercms.studio.api.v2.dal.ClusterMember">
-        INSERT INTO cluster (cluster_id, cluster_member_name, cluster_member_ip, cluster_member_timestamp,
-        remote_name, remote_url, authentication_type, remote_username, remote_password,
-        remote_token, remote_private_key)
-        VALUES (#{clusterId}, #{clusterMemberName}, #{clusterMemberIp}, CURRENT_TIMESTAMP,
-        #{remoteName}, #{remoteUrl}, #{authenticationType}, #{remoteUsername}, #{remotePassword},
-        #{remoteToken}, #{remotePrivateKey})
+        INSERT INTO cluster (git_url, git_auth_type, git_username, git_password, git_token, git_private_key)
+        VALUES (#{gitUrl}, #{gitAuthType}, #{gitUsername}, #{gitPassword}, #{gitToken}, #{gitPrivateKey})
     </insert>
     
     <update id="updateMember" parameterType="org.craftercms.studio.api.v2.dal.ClusterMember">
         UPDATE cluster SET
-        cluster_id = #{clusterId},
-        cluster_member_name = #{clusterMemberName},
-        cluster_member_ip = #{clusterMemberIp},
-        cluster_member_timestamp = #{clusterMemberTimestamp},
-        remote_name = #{remoteName},
-        remote_url = #{remoteUrl},
-        authentication_type = #{authenticationType},
-        remote_username = #{remoteUsername},
-        remote_password = #{remotePassword},
-        remote_token = #{remoteToken},
-        remote_private_key = #{remotePrivateKey}
+        git_url = #{gitUrl},
+        git_auth_type = #{gitAuthType},
+        git_username = #{gitUsername},
+        git_password = #{gitPassword},
+        git_token = #{gitToken},
+        git_private_key = #{gitPrivateKey}
         WHERE id = #{id}
     </update>
 

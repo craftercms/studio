@@ -18,24 +18,15 @@
 
 package org.craftercms.studio.api.v2.dal;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-import java.time.ZonedDateTime;
-
 public class ClusterMember {
 
     private long id;
-    private String clusterId;
-    private String clusterMemberName;
-    private String clusterMemberIp;
-    private ZonedDateTime clusterMemberTimestamp;
-    private String remoteName;
-    private String remoteUrl;
-    private String authenticationType;
-    private String remoteUsername;
-    private String remotePassword;
-    private String remoteToken;
-    private String remotePrivateKey;
+    private String gitUrl;
+    private String gitAuthType;
+    private String gitUsername;
+    private String gitPassword;
+    private String gitToken;
+    private String gitPrivateKey;
 
     public long getId() {
         return id;
@@ -45,103 +36,51 @@ public class ClusterMember {
         this.id = id;
     }
 
-    public String getClusterId() {
-        return clusterId;
+    public String getGitUrl() {
+        return gitUrl;
     }
 
-    public void setClusterId(String clusterId) {
-        this.clusterId = clusterId;
+    public void setGitUrl(String gitUrl) {
+        this.gitUrl = gitUrl;
     }
 
-    public String getClusterMemberName() {
-        return clusterMemberName;
+    public String getGitAuthType() {
+        return gitAuthType;
     }
 
-    public void setClusterMemberName(String clusterMemberName) {
-        this.clusterMemberName = clusterMemberName;
+    public void setGitAuthType(String gitAuthType) {
+        this.gitAuthType = gitAuthType;
     }
 
-    public String getClusterMemberIp() {
-        return clusterMemberIp;
+    public String getGitUsername() {
+        return gitUsername;
     }
 
-    public void setClusterMemberIp(String clusterMemberIp) {
-        this.clusterMemberIp = clusterMemberIp;
+    public void setGitUsername(String gitUsername) {
+        this.gitUsername = gitUsername;
     }
 
-    public ZonedDateTime getClusterMemberTimestamp() {
-        return clusterMemberTimestamp;
+    public String getGitPassword() {
+        return gitPassword;
     }
 
-    public void setClusterMemberTimestamp(ZonedDateTime clusterMemberTimestamp) {
-        this.clusterMemberTimestamp = clusterMemberTimestamp;
+    public void setGitPassword(String gitPassword) {
+        this.gitPassword = gitPassword;
     }
 
-    public String getRemoteName() {
-        return remoteName;
+    public String getGitToken() {
+        return gitToken;
     }
 
-    public void setRemoteName(String remoteName) {
-        this.remoteName = remoteName;
+    public void setGitToken(String gitToken) {
+        this.gitToken = gitToken;
     }
 
-    @JsonProperty("gitUrl")
-    public String getRemoteUrl() {
-        return remoteUrl;
+    public String getGitPrivateKey() {
+        return gitPrivateKey;
     }
 
-    @JsonProperty("gitUrl")
-    public void setRemoteUrl(String remoteUrl) {
-        this.remoteUrl = remoteUrl;
-    }
-
-    @JsonProperty("gitAuthType")
-    public String getAuthenticationType() {
-        return authenticationType;
-    }
-
-    @JsonProperty("gitAuthType")
-    public void setAuthenticationType(String authenticationType) {
-        this.authenticationType = authenticationType;
-    }
-
-    @JsonProperty("gitUsername")
-    public String getRemoteUsername() {
-        return remoteUsername;
-    }
-
-    @JsonProperty("gitUsername")
-    public void setRemoteUsername(String remoteUsername) {
-        this.remoteUsername = remoteUsername;
-    }
-
-    @JsonProperty("gitPassword")
-    public String getRemotePassword() {
-        return remotePassword;
-    }
-
-    @JsonProperty("gitPassword")
-    public void setRemotePassword(String remotePassword) {
-        this.remotePassword = remotePassword;
-    }
-
-    @JsonProperty("gitToken")
-    public String getRemoteToken() {
-        return remoteToken;
-    }
-
-    @JsonProperty("gitToken")
-    public void setRemoteToken(String remoteToken) {
-        this.remoteToken = remoteToken;
-    }
-
-    @JsonProperty("gitPrivateKey")
-    public String getRemotePrivateKey() {
-        return remotePrivateKey;
-    }
-
-    @JsonProperty("gitPrivateKey")
-    public void setRemotePrivateKey(String remotePrivateKey) {
-        this.remotePrivateKey = remotePrivateKey;
+    public void setGitPrivateKey(String gitPrivateKey) {
+        this.gitPrivateKey = gitPrivateKey;
     }
 }
