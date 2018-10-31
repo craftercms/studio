@@ -506,3 +506,13 @@ studio.publishing.threadPool.namePrefix: Studio_Publisher_Thread_Pool
 studio.publishing.threadPool.corePoolSize: 10
 # Thread pool max size
 studio.publishing.threadPool.maxPoolSize: 20
+
+################################################################
+##                   Clustering Thread Pool                   ##
+################################################################
+# Thread name prefix
+studio.clustering.threadPool.namePrefix: Studio_Clustering_Thread_Pool
+# Thread pool size
+studio.clustering.threadPool.corePoolSize: 10
+# Thread pool max size
+studio.clustering.threadPool.maxPoolSize: 20

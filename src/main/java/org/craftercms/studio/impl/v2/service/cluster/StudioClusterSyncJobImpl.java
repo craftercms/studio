@@ -25,7 +25,6 @@ import org.craftercms.studio.api.v1.service.search.SearchService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.service.cluster.StudioClusterSyncJob;
-import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.springframework.core.task.TaskExecutor;
 
 import java.util.Set;
@@ -42,7 +41,6 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
 
     @Override
     public void run() {
-
         try {
             Set<String> siteNames = siteService.getAllAvailableSites();
             if (siteNames != null && siteNames.size() > 0) {
@@ -60,5 +58,45 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
             logger.error("Error while executing cluster sync job", err);
         }
 
+    }
+
+    public SiteService getSiteService() {
+        return siteService;
+    }
+
+    public void setSiteService(SiteService siteService) {
+        this.siteService = siteService;
+    }
+
+    public TaskExecutor getTaskExecutor() {
+        return taskExecutor;
+    }
+
+    public void setTaskExecutor(TaskExecutor taskExecutor) {
+        this.taskExecutor = taskExecutor;
+    }
+
+    public PreviewDeployer getPreviewDeployer() {
+        return previewDeployer;
+    }
+
+    public void setPreviewDeployer(PreviewDeployer previewDeployer) {
+        this.previewDeployer = previewDeployer;
+    }
+
+    public SearchService getSearchService() {
+        return searchService;
+    }
+
+    public void setSearchService(SearchService searchService) {
+        this.searchService = searchService;
+    }
+
+    public StudioConfiguration getStudioConfiguration() {
+        return studioConfiguration;
+    }
+
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+        this.studioConfiguration = studioConfiguration;
     }
 }
