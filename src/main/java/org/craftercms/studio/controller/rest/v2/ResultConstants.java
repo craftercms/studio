@@ -21,4 +21,7 @@ public interface ResultConstants {
     String RESULT_KEY_ITEM = "item";
     String RESULT_KEY_ITEMS = "items";
     String RESULT_KEY_MENU_ITEMS = "menuItems";
+
+    String RESULT_KEY_CLUSTER_MEMBER = "clusterMember";
+    String RESULT_KEY_CLUSTER_MEMBERS = "clusterMembers";
 }
