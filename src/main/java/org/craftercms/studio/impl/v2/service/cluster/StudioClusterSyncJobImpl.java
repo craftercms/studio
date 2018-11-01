@@ -21,12 +21,16 @@ package org.craftercms.studio.impl.v2.service.cluster;
 import org.craftercms.studio.api.v1.deployment.PreviewDeployer;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.service.search.SearchService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
+import org.craftercms.studio.api.v2.dal.ClusterDAO;
+import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.craftercms.studio.api.v2.service.cluster.StudioClusterSyncJob;
 import org.springframework.core.task.TaskExecutor;
 
+import java.util.List;
 import java.util.Set;
 
 public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
@@ -38,11 +42,14 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
     private PreviewDeployer previewDeployer;
     private SearchService searchService;
     private StudioConfiguration studioConfiguration;
+    private ContentRepository contentRepository;
+    private ClusterDAO clusterDAO;
 
     @Override
     public void run() {
         try {
             Set<String> siteNames = siteService.getAllAvailableSites();
+            List<ClusterMember> clusterMembers = clusterDAO.getAllMembers();
             if (siteNames != null && siteNames.size() > 0) {
                 for (String site : siteNames) {
                     StudioNodeSyncTaskImpl nodeSyncTask = new StudioNodeSyncTaskImpl();
@@ -50,6 +57,8 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
                     nodeSyncTask.setPreviewDeployer(previewDeployer);
                     nodeSyncTask.setSearchService(searchService);
                     nodeSyncTask.setStudioConfiguration(studioConfiguration);
+                    nodeSyncTask.setContentRepository(contentRepository);
+                    nodeSyncTask.setClusterNodes(clusterMembers);
 
                     taskExecutor.execute(nodeSyncTask);
                 }
@@ -98,5 +107,21 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
 
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
+    }
+
+    public ContentRepository getContentRepository() {
+        return contentRepository;
+    }
+
+    public void setContentRepository(ContentRepository contentRepository) {
+        this.contentRepository = contentRepository;
+    }
+
+    public ClusterDAO getClusterDAO() {
+        return clusterDAO;
+    }
+
+    public void setClusterDAO(ClusterDAO clusterDAO) {
+        this.clusterDAO = clusterDAO;
     }
 }

@@ -362,6 +362,7 @@
     <bean id="clusterManagementServiceInternal"
           class="org.craftercms.studio.impl.v2.service.cluster.internal.ClusterManagementServiceInternalImpl">
         <property name="clusterDao" ref="clusterDao" />
+        <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
     <!-- ////////////////////////////////////// -->
@@ -462,6 +463,8 @@
         <property name="previewDeployer" ref="previewDeployer" />
         <property name="searchService" ref="searchService" />
         <property name="siteService" ref="cstudioSiteServiceSimple" />
+        <property name="contentRepository" ref="contentRepository" />
+        <property name="clusterDAO" ref="clusterDao" />
     </bean>
 
     <bean id="studioRepositoryCleanupJob" class="org.craftercms.studio.impl.v1.repository.job.RepositoryCleanupJob">

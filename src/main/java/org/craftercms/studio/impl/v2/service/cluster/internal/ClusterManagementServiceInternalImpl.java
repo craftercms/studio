@@ -19,6 +19,11 @@
 package org.craftercms.studio.impl.v2.service.cluster.internal;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.craftercms.commons.crypto.CryptoException;
+import org.craftercms.commons.crypto.TextEncryptor;
+import org.craftercms.commons.crypto.impl.PbkAesTextEncryptor;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.ClusterDAO;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.craftercms.studio.api.v2.service.cluster.internal.ClusterManagementServiceInternal;
@@ -27,9 +32,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_KEY;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_SALT;
+
 public class ClusterManagementServiceInternalImpl implements ClusterManagementServiceInternal {
 
     private ClusterDAO clusterDao;
+    private StudioConfiguration studioConfiguration;
 
     @Override
     public List<ClusterMember> getAllMembers() {
@@ -49,13 +58,31 @@ public class ClusterManagementServiceInternalImpl implements ClusterManagementSe
     }
 
     @Override
-    public boolean addMember(ClusterMember clusterMember) {
+    public boolean addMember(ClusterMember clusterMember) throws ServiceLayerException {
+        TextEncryptor encryptor = null;
+        try {
+            encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
+                    studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
+            String hashedPassword = encryptor.encrypt(clusterMember.getGitPassword());
+            clusterMember.setGitPassword(hashedPassword);
+        } catch (CryptoException e) {
+            throw new ServiceLayerException(e);
+        }
         int result = clusterDao.addMember(clusterMember);
         return result > 0;
     }
 
     @Override
-    public boolean updateMember(ClusterMember clusterMember) {
+    public boolean updateMember(ClusterMember clusterMember) throws ServiceLayerException {
+        TextEncryptor encryptor = null;
+        try {
+            encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
+                    studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
+            String hashedPassword = encryptor.encrypt(clusterMember.getGitPassword());
+            clusterMember.setGitPassword(hashedPassword);
+        } catch (CryptoException e) {
+            throw new ServiceLayerException(e);
+        }
         int result = clusterDao.updateMember(clusterMember);
         return result > 0;
     }
@@ -77,5 +104,13 @@ public class ClusterManagementServiceInternalImpl implements ClusterManagementSe
 
     public void setClusterDao(ClusterDAO clusterDao) {
         this.clusterDao = clusterDao;
+    }
+
+    public StudioConfiguration getStudioConfiguration() {
+        return studioConfiguration;
+    }
+
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+        this.studioConfiguration = studioConfiguration;
     }
 }

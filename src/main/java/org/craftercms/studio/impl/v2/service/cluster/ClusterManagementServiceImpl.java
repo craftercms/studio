@@ -20,6 +20,7 @@ package org.craftercms.studio.impl.v2.service.cluster;
 
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.craftercms.studio.api.v2.exception.ClusterMemberAlreadyExistsException;
 import org.craftercms.studio.api.v2.exception.ClusterMemberNotFoundException;
@@ -40,7 +41,8 @@ public class ClusterManagementServiceImpl implements ClusterManagementService {
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "update_cluster")
-    public ClusterMember updateMember(ClusterMember member) throws ClusterMemberNotFoundException {
+    public ClusterMember updateMember(ClusterMember member) throws ServiceLayerException,
+            ClusterMemberNotFoundException {
         if (clusterManagementServiceInternal.getMember(member.getId()) == null) {
             throw new ClusterMemberNotFoundException();
         }
@@ -53,7 +55,8 @@ public class ClusterManagementServiceImpl implements ClusterManagementService {
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "create_cluster")
-    public ClusterMember addMember(ClusterMember member) throws ClusterMemberAlreadyExistsException {
+    public ClusterMember addMember(ClusterMember member) throws ServiceLayerException,
+            ClusterMemberAlreadyExistsException {
         if (clusterManagementServiceInternal.memberExists(member.getGitUrl())) {
             throw new ClusterMemberAlreadyExistsException();
         }

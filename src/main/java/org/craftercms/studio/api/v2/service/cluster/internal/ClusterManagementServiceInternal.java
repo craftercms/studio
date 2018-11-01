@@ -18,6 +18,7 @@
 
 package org.craftercms.studio.api.v2.service.cluster.internal;
 
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
 
 import java.util.List;
@@ -45,7 +46,7 @@ public interface ClusterManagementServiceInternal {
      * @param clusterMember Cluster member to add
      * @return true if successful, otherwise false
      */
-    boolean addMember(ClusterMember clusterMember);
+    boolean addMember(ClusterMember clusterMember) throws ServiceLayerException;
 
     /**
      * Update cluster member
@@ -53,7 +54,7 @@ public interface ClusterManagementServiceInternal {
      * @param clusterMember Member to update
      * @return true if successful, otherwise false
      */
-    boolean updateMember(ClusterMember clusterMember);
+    boolean updateMember(ClusterMember clusterMember) throws ServiceLayerException;
 
     /**
      * Get cluster member by id
