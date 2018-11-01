@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
+<!-- permission-mappings-config.xml
 
   This files contains the permissions mappings for the roles defined in
   role-mappings-config.xml.
@@ -61,6 +61,12 @@
 -->
 <permissions>
     <role name="author">
+        <rule regex="/.*">
+            <allowed-permissions>
+                <permission>S3 Read</permission>
+                <permission>S3 Write</permission>
+            </allowed-permissions>
+        </rule>
         <rule regex="/site/website/.*">
             <allowed-permissions>
                 <permission>Read</permission>
@@ -69,7 +75,7 @@
                 <permission>Create Folder</permission>
             </allowed-permissions>
         </rule>
-        <rule regex="/site/items|/site/items/.*">
+        <rule regex="/site/components|/site/components/.*">
             <allowed-permissions>
                 <permission>Read</permission>
                 <permission>Write</permission>
@@ -87,6 +93,12 @@
         </rule>
     </role>
     <role name="publisher">
+        <rule regex="/.*">
+            <allowed-permissions>
+                <permission>S3 Read</permission>
+                <permission>S3 Write</permission>
+            </allowed-permissions>
+        </rule>
         <rule regex="/site/.*">
             <allowed-permissions>
                 <permission>Read</permission>
@@ -126,6 +138,8 @@
                 <permission>Create Folder</permission>
                 <permission>Create Content</permission>
                 <permission>Change Content Type</permission>
+                <permission>S3 Read</permission>
+                <permission>S3 Write</permission>
             </allowed-permissions>
         </rule>
         <rule regex="^/(?!site/website/index\.xml)(.*)">
@@ -148,6 +162,8 @@
                 <permission>Create Folder</permission>
                 <permission>Create Content</permission>
                 <permission>Change Content Type</permission>
+                <permission>S3 Read</permission>
+                <permission>S3 Write</permission>
             </allowed-permissions>
         </rule>
         <rule regex="^/(?!site/website/index\.xml)(.*)">
@@ -166,6 +182,7 @@
             <allowed-permissions>
                 <permission>Read</permission>
                 <permission>Publish</permission>
+                <permission>S3 Read</permission>
             </allowed-permissions>
         </rule>
         <rule regex="~DASHBOARD~">
@@ -178,6 +195,7 @@
         <rule regex="/.*">
             <allowed-permissions>
                 <permission>Read</permission>
+                <permission>S3 Read</permission>
             </allowed-permissions>
         </rule>
     </role>

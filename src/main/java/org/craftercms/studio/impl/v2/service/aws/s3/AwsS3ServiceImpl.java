@@ -23,6 +23,9 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.security.permissions.DefaultPermission;
+import org.craftercms.commons.security.permissions.annotations.HasPermission;
+import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.aws.s3.S3Profile;
 import org.craftercms.studio.api.v1.exception.AwsException;
@@ -73,10 +76,11 @@ public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements A
      * {@inheritDoc}
      */
     @Override
-    public S3Item uploadItem(@ValidateStringParam(name = "siteId") final String siteId,
-                             @ValidateStringParam(name = "profileId") final String profileId,
-                             @ValidateStringParam(name = "filename") final String filename,
-                             final InputStream content) throws AwsException {
+    @HasPermission(type = DefaultPermission.class, action = "S3 Write")
+    public S3Item uploadItem(@ValidateStringParam(name = "siteId") @ProtectedResourceId("siteId") String siteId,
+                             @ValidateStringParam(name = "profileId") String profileId,
+                             @ValidateStringParam(name = "filename") String filename,
+                             InputStream content) throws AwsException {
         S3Profile profile = getProfile(siteId, profileId);
         AmazonS3 s3Client = getS3Client(profile);
         String inputBucket = profile.getBucketName();
@@ -90,10 +94,11 @@ public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements A
      * {@inheritDoc}
      */
     @Override
-    public List<S3Item> listItems(@ValidateStringParam(name = "siteId") final String siteId,
-                                  @ValidateStringParam(name = "profileId") final String profileId,
-                                  @ValidateStringParam(name = "path") final String path,
-                                  @ValidateStringParam(name = "type") final String type) throws AwsException {
+    @HasPermission(type = DefaultPermission.class, action = "S3 Read")
+    public List<S3Item> listItems(@ValidateStringParam(name = "siteId") @ProtectedResourceId("siteId") String siteId,
+                                  @ValidateStringParam(name = "profileId") String profileId,
+                                  @ValidateStringParam(name = "path") String path,
+                                  @ValidateStringParam(name = "type") String type) throws AwsException {
         S3Profile profile = getProfile(siteId, profileId);
         AmazonS3 client = getS3Client(profile);
         List<S3Item> items = new LinkedList<>();
