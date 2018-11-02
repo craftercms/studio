@@ -61,12 +61,6 @@
 -->
 <permissions>
     <role name="author">
-        <rule regex="/.*">
-            <allowed-permissions>
-                <permission>S3 Read</permission>
-                <permission>S3 Write</permission>
-            </allowed-permissions>
-        </rule>
         <rule regex="/site/website/.*">
             <allowed-permissions>
                 <permission>Read</permission>
@@ -91,14 +85,14 @@
                 <permission>Create Folder</permission>
             </allowed-permissions>
         </rule>
-    </role>
-    <role name="publisher">
-        <rule regex="/.*">
+        <rule regex=".*">
             <allowed-permissions>
                 <permission>S3 Read</permission>
                 <permission>S3 Write</permission>
             </allowed-permissions>
         </rule>
+    </role>
+    <role name="publisher">
         <rule regex="/site/.*">
             <allowed-permissions>
                 <permission>Read</permission>
@@ -128,6 +122,12 @@
                 <permission>Publish</permission>
             </allowed-permissions>
         </rule>
+        <rule regex=".*">
+            <allowed-permissions>
+                <permission>S3 Read</permission>
+                <permission>S3 Write</permission>
+            </allowed-permissions>
+        </rule>
     </role>
     <role name="developer">
         <rule regex="/.*">
@@ -138,8 +138,6 @@
                 <permission>Create Folder</permission>
                 <permission>Create Content</permission>
                 <permission>Change Content Type</permission>
-                <permission>S3 Read</permission>
-                <permission>S3 Write</permission>
             </allowed-permissions>
         </rule>
         <rule regex="^/(?!site/website/index\.xml)(.*)">
@@ -150,6 +148,12 @@
         <rule regex="~DASHBOARD~">
             <allowed-permissions>
                 <permission>Publish</permission>
+            </allowed-permissions>
+        </rule>
+        <rule regex=".*">
+            <allowed-permissions>
+                <permission>S3 Read</permission>
+                <permission>S3 Write</permission>
             </allowed-permissions>
         </rule>
     </role>
@@ -162,8 +166,6 @@
                 <permission>Create Folder</permission>
                 <permission>Create Content</permission>
                 <permission>Change Content Type</permission>
-                <permission>S3 Read</permission>
-                <permission>S3 Write</permission>
             </allowed-permissions>
         </rule>
         <rule regex="^/(?!site/website/index\.xml)(.*)">
@@ -176,13 +178,18 @@
                 <permission>Publish</permission>
             </allowed-permissions>
         </rule>
+        <rule regex=".*">
+            <allowed-permissions>
+                <permission>S3 Read</permission>
+                <permission>S3 Write</permission>
+            </allowed-permissions>
+        </rule>
     </role>
     <role name="reviewer">
         <rule regex="/.*">
             <allowed-permissions>
                 <permission>Read</permission>
                 <permission>Publish</permission>
-                <permission>S3 Read</permission>
             </allowed-permissions>
         </rule>
         <rule regex="~DASHBOARD~">
@@ -190,11 +197,20 @@
                 <permission>Publish</permission>
             </allowed-permissions>
         </rule>
+        <rule regex=".*">
+            <allowed-permissions>
+                <permission>S3 Read</permission>
+            </allowed-permissions>
+        </rule>
     </role>
     <role name="*">
         <rule regex="/.*">
             <allowed-permissions>
                 <permission>Read</permission>
+            </allowed-permissions>
+        </rule>
+        <rule regex=".*">
+            <allowed-permissions>
                 <permission>S3 Read</permission>
             </allowed-permissions>
         </rule>
