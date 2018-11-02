@@ -85,6 +85,12 @@
                 <permission>Create Folder</permission>
             </allowed-permissions>
         </rule>
+        <rule regex=".*">
+            <allowed-permissions>
+                <permission>S3 Read</permission>
+                <permission>S3 Write</permission>
+            </allowed-permissions>
+        </rule>
     </role>
     <role name="publisher">
         <rule regex="/site/.*">
@@ -116,6 +122,12 @@
                 <permission>Publish</permission>
             </allowed-permissions>
         </rule>
+        <rule regex=".*">
+            <allowed-permissions>
+                <permission>S3 Read</permission>
+                <permission>S3 Write</permission>
+            </allowed-permissions>
+        </rule>
     </role>
     <role name="developer">
         <rule regex="/.*">
@@ -136,6 +148,12 @@
         <rule regex="~DASHBOARD~">
             <allowed-permissions>
                 <permission>Publish</permission>
+            </allowed-permissions>
+        </rule>
+        <rule regex=".*">
+            <allowed-permissions>
+                <permission>S3 Read</permission>
+                <permission>S3 Write</permission>
             </allowed-permissions>
         </rule>
     </role>
@@ -160,6 +178,12 @@
                 <permission>Publish</permission>
             </allowed-permissions>
         </rule>
+        <rule regex=".*">
+            <allowed-permissions>
+                <permission>S3 Read</permission>
+                <permission>S3 Write</permission>
+            </allowed-permissions>
+        </rule>
     </role>
     <role name="reviewer">
         <rule regex="/.*">
@@ -173,11 +197,21 @@
                 <permission>Publish</permission>
             </allowed-permissions>
         </rule>
+        <rule regex=".*">
+            <allowed-permissions>
+                <permission>S3 Read</permission>
+            </allowed-permissions>
+        </rule>
     </role>
     <role name="*">
         <rule regex="/.*">
             <allowed-permissions>
                 <permission>Read</permission>
+            </allowed-permissions>
+        </rule>
+        <rule regex=".*">
+            <allowed-permissions>
+                <permission>S3 Read</permission>
             </allowed-permissions>
         </rule>
     </role>
