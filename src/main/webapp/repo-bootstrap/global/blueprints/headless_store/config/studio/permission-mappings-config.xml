@@ -75,7 +75,7 @@
                 <permission>Create Folder</permission>
             </allowed-permissions>
         </rule>
-        <rule regex="/site/components|/site/components/.*">
+        <rule regex="/site/items|/site/items/.*">
             <allowed-permissions>
                 <permission>Read</permission>
                 <permission>Write</permission>
