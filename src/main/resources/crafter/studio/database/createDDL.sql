@@ -7,7 +7,7 @@ CREATE TABLE _meta (
   PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('3.1.0.6', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('3.1.0.7', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`             BIGINT(20)   NOT NULL AUTO_INCREMENT,
@@ -300,14 +300,16 @@ CREATE TABLE IF NOT EXISTS remote_repository
 CREATE TABLE IF NOT EXISTS cluster
 (
   `id`                  BIGINT(20)    NOT NULL AUTO_INCREMENT,
-  `git_url`             VARCHAR(500) NOT NULL,
+  `git_url`             VARCHAR(500)  NOT NULL,
+  `git_remote_name`     VARCHAR(50)   NOT NULL,
   `git_auth_type`       VARCHAR(16)   NOT NULL,
   `git_username`        VARCHAR(255)  NULL,
   `git_password`        VARCHAR(255)  NULL,
   `git_token`           VARCHAR(255)  NULL,
   `git_private_key`     TEXT          NULL,
   PRIMARY KEY (`id`),
-  UNIQUE `uq_cl_git_url` (`git_url`)
+  UNIQUE `uq_cl_git_url` (`git_url`),
+  UNIQUE `uq_cl_git_remote_name` (`git_remote_name`)
 )
   ENGINE = InnoDB
   DEFAULT CHARSET = utf8

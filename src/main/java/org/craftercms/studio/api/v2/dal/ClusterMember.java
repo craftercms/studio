@@ -22,6 +22,7 @@ public class ClusterMember {
 
     private long id;
     private String gitUrl;
+    private String gitRemoteName;
     private String gitAuthType;
     private String gitUsername;
     private String gitPassword;
@@ -42,6 +43,14 @@ public class ClusterMember {
 
     public void setGitUrl(String gitUrl) {
         this.gitUrl = gitUrl;
+    }
+
+    public String getGitRemoteName() {
+        return gitRemoteName;
+    }
+
+    public void setGitRemoteName(String gitRemoteName) {
+        this.gitRemoteName = gitRemoteName;
     }
 
     public String getGitAuthType() {

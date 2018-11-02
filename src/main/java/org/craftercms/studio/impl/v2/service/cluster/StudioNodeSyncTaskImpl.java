@@ -183,27 +183,28 @@ public class StudioNodeSyncTaskImpl implements Runnable {
             }
             cloneResult = cloneCommand
                     .setURI(remoteNode.getGitUrl())
+                    .setRemote(remoteNode.getGitRemoteName())
                     .setDirectory(localPath)
                     .setCloneAllBranches(true)
                     .call();
             Files.deleteIfExists(tempKey);
 
         } catch (InvalidRemoteException e) {
-            logger.error("Invalid remote repository: " + remoteNode.getGitUrl() + " (" + remoteNode.getGitUrl() + ")", e);
-            throw new InvalidRemoteRepositoryException("Invalid remote repository: " + remoteNode.getGitUrl() + " (" +
+            logger.error("Invalid remote repository: " + remoteNode.getGitRemoteName() + " (" + remoteNode.getGitUrl() + ")", e);
+            throw new InvalidRemoteRepositoryException("Invalid remote repository: " + remoteNode.getGitRemoteName() + " (" +
                     remoteNode.getGitUrl() + ")");
         } catch (TransportException e) {
             if (StringUtils.endsWithIgnoreCase(e.getMessage(), "not authorized")) {
-                logger.error("Bad credentials or read only repository: " + remoteNode.getGitUrl() + " (" + remoteNode.getGitUrl() + ")",
+                logger.error("Bad credentials or read only repository: " + remoteNode.getGitRemoteName() + " (" + remoteNode.getGitUrl() + ")",
                         e);
                 throw new InvalidRemoteRepositoryCredentialsException("Bad credentials or read only repository: " +
-                        remoteNode.getGitUrl() + " (" + remoteNode.getGitUrl() + ") for username " + remoteNode.getGitUrl(),
+                        remoteNode.getGitRemoteName() + " (" + remoteNode.getGitUrl() + ") for username " + remoteNode.getGitUsername(),
                         e);
             } else {
-                logger.error("Remote repository not found: " + remoteNode.getGitUrl() + " (" + remoteNode.getGitUrl() +
+                logger.error("Remote repository not found: " + remoteNode.getGitRemoteName() + " (" + remoteNode.getGitUrl() +
                                 ")",
                         e);
-                throw new RemoteRepositoryNotFoundException("Remote repository not found: " + remoteNode.getGitUrl() + " (" +
+                throw new RemoteRepositoryNotFoundException("Remote repository not found: " + remoteNode.getGitRemoteName() + " (" +
                         remoteNode.getGitUrl() + ")");
             }
         } catch (GitAPIException | IOException e) {
@@ -269,7 +270,7 @@ public class StudioNodeSyncTaskImpl implements Runnable {
             for (ClusterMember remoteNode : clusterNodes) {
                 PullCommand pullCommand = git.pull();
                 logger.debug("Set remote " + remoteNode.getGitUrl());
-                pullCommand.setRemote(remoteNode.getGitUrl());
+                pullCommand.setRemote(remoteNode.getGitRemoteName());
                 pullCommand.setStrategy(MergeStrategy.THEIRS);
                 switch (remoteNode.getGitAuthType()) {
                     case RemoteRepository.AuthenticationType.NONE:
