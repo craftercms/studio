@@ -21,6 +21,8 @@ package org.craftercms.studio.impl.v2.service.cluster;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
+import org.craftercms.studio.api.v2.exception.ClusterMemberAlreadyExistsException;
+import org.craftercms.studio.api.v2.exception.ClusterMemberNotFoundException;
 import org.craftercms.studio.api.v2.service.cluster.ClusterManagementService;
 import org.craftercms.studio.api.v2.service.cluster.internal.ClusterManagementServiceInternal;
 
@@ -38,7 +40,10 @@ public class ClusterManagementServiceImpl implements ClusterManagementService {
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "update_cluster")
-    public ClusterMember updateMember(ClusterMember member) {
+    public ClusterMember updateMember(ClusterMember member) throws ClusterMemberNotFoundException {
+        if (clusterManagementServiceInternal.getMember(member.getId()) == null) {
+            throw new ClusterMemberNotFoundException();
+        }
         boolean result = clusterManagementServiceInternal.updateMember(member);
         if (result) {
             return clusterManagementServiceInternal.getMember(member.getId());
@@ -48,7 +53,10 @@ public class ClusterManagementServiceImpl implements ClusterManagementService {
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "create_cluster")
-    public ClusterMember addMember(ClusterMember member) {
+    public ClusterMember addMember(ClusterMember member) throws ClusterMemberAlreadyExistsException {
+        if (clusterManagementServiceInternal.existsMember(member.getGitUrl())) {
+            throw new ClusterMemberAlreadyExistsException();
+        }
         boolean result = clusterManagementServiceInternal.addMember(member);
         if (result) {
             return member;

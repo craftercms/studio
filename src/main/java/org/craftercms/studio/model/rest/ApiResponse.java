@@ -87,6 +87,14 @@ public class ApiResponse {
     public static final ApiResponse LOV_NOT_FOUND =
             new ApiResponse(10000, "LoV not found", "Check if you sent in the right LoV Id", StringUtils.EMPTY);
 
+    public static final ApiResponse CLUSTER_MEMBER_NOT_FOUND =
+            new ApiResponse(11000, "Cluster member not found", "Check if you sent in the right Cluster Member Id",
+                    StringUtils.EMPTY);
+
+    public static final ApiResponse CLUSTER_MEMBER_ALREADY_EXISTS =
+            new ApiResponse(11001, "Cluster member already exists", "Get the list of cluster members to validate",
+                    StringUtils.EMPTY);
+
     public static final ApiResponse CMIS_UNREACHABLE =
             new ApiResponse(50000, "CMIS server is unreachable", "Advise the user that the CMIS server is not " +
                                                                  "reachable", StringUtils.EMPTY);

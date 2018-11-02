@@ -62,4 +62,12 @@ public interface ClusterManagementServiceInternal {
      * @return Requested cluster member
      */
     ClusterMember getMember(long clusterMemberId);
+
+    /**
+     * Check if member with given url exists in the cluster
+     *
+     * @param memberUrl URL to check
+     * @return true if already exist, otherwise false
+     */
+    boolean existsMember(String memberUrl);
 }

@@ -18,6 +18,7 @@
 
 package org.craftercms.studio.controller.rest.v2;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.craftercms.commons.http.HttpUtils;
 import org.craftercms.commons.security.exception.ActionDeniedException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
@@ -28,6 +29,8 @@ import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsExceptio
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v2.exception.ClusterMemberAlreadyExistsException;
+import org.craftercms.studio.api.v2.exception.ClusterMemberNotFoundException;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.OrganizationNotFoundException;
 import org.craftercms.studio.model.rest.ApiResponse;
@@ -113,6 +116,29 @@ public class ExceptionHandlers {
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ResponseBody handleGroupNotFoundException(HttpServletRequest request, GroupNotFoundException e) {
         ApiResponse response = new ApiResponse(ApiResponse.GROUP_NOT_FOUND);
+        return handleExceptionInternal(request, e, response);
+    }
+
+
+    @ExceptionHandler(JsonProcessingException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseBody handleUnrecognizedPropertyException(HttpServletRequest request, JsonProcessingException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.INVALID_PARAMS);
+        return handleExceptionInternal(request, e, response);
+    }
+
+    @ExceptionHandler(ClusterMemberNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ResponseBody handleClusterMemberNotFoundException(HttpServletRequest request,
+                                                      ClusterMemberNotFoundException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.CLUSTER_MEMBER_NOT_FOUND);
+        return handleExceptionInternal(request, e, response);
+    }
+
+    @ExceptionHandler(ClusterMemberAlreadyExistsException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ResponseBody handleClusterMemberAlreadyExistsException(HttpServletRequest request, ClusterMemberAlreadyExistsException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.CLUSTER_MEMBER_ALREADY_EXISTS);
         return handleExceptionInternal(request, e, response);
     }
 

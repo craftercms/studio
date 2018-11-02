@@ -65,4 +65,11 @@ public interface ClusterDAO {
      * @return Cluster member with given id
      */
     ClusterMember getMemberById(long clusterMemberId);
+
+    /**
+     * Check if cluster member exists with given url
+     * @param memberUrl Member Url
+     * @return number of cluster members
+     */
+    int existsMember(String memberUrl);
 }
