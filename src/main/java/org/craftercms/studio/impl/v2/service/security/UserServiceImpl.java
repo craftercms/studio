@@ -221,7 +221,7 @@ public class UserServiceImpl implements UserService {
             if (MapUtils.isNotEmpty(roleMappings)) {
                 for (Group group : groups) {
                     String groupName = group.getGroupName();
-                    if (groupName.equals(StudioConstants.SYSTEM_ADMIN_GROUP)) {
+                    if (groupName.equals(SYSTEM_ADMIN_GROUP)) {
                         // If sysadmin, return all roles
                         Collection<List<String>> roleSets = roleMappings.values();
 
