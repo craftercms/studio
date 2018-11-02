@@ -1357,6 +1357,9 @@ components:
         gitUrl:
           type: string
           description: 'Git URL, unique'
+        gitRemoteName:
+          type: string
+          description: 'Git Remote Name, unique'
         gitAuthType:
           type: string
           description: 'Git Auth Type'
