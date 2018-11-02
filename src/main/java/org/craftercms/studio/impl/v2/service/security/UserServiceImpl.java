@@ -27,6 +27,7 @@ import org.craftercms.commons.entitlements.model.Module;
 import org.craftercms.commons.entitlements.validator.EntitlementValidator;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
+import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -220,9 +221,20 @@ public class UserServiceImpl implements UserService {
             if (MapUtils.isNotEmpty(roleMappings)) {
                 for (Group group : groups) {
                     String groupName = group.getGroupName();
-                    List<String> roles = roleMappings.get(groupName);
-                    if (CollectionUtils.isNotEmpty(roles)) {
-                        userRoles.addAll(roles);
+                    if (groupName.equals(SYSTEM_ADMIN_GROUP)) {
+                        // If sysadmin, return all roles
+                        Collection<List<String>> roleSets = roleMappings.values();
+
+                        for (List<String> roleSet : roleSets) {
+                            userRoles.addAll(roleSet);
+                        }
+
+                        break;
+                    } else {
+                        List<String> roles = roleMappings.get(groupName);
+                        if (CollectionUtils.isNotEmpty(roles)) {
+                            userRoles.addAll(roles);
+                        }
                     }
                 }
             }
