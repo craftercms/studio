@@ -58,6 +58,12 @@
                     </icon>
                 </control>
                 <control>
+                    <name>rte2</name>
+                    <icon>
+                        <class>fa-code</class>
+                    </icon>
+                </control>
+                <control>
                     <name>dropdown</name>
                     <icon>
                         <class>fa-sort-desc</class>
