@@ -71,5 +71,5 @@ public interface ClusterDAO {
      * @param memberUrl Member Url
      * @return number of cluster members
      */
-    int existsMember(String memberUrl);
+    int memberExists(String memberUrl);
 }

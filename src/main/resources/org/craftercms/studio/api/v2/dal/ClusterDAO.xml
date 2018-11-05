@@ -40,7 +40,7 @@
         SELECT * FROM cluster WHERE id = #{clusterMemberId}
     </select>
 
-    <select id="existsMember" resultType="int" parameterType="String">
+    <select id="memberExists" resultType="int" parameterType="String">
         SELECT COUNT(*) FROM cluster WHERE git_url = #{memberUrl}
     </select>
     

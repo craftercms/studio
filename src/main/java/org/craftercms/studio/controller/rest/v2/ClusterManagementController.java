@@ -59,7 +59,8 @@ public class ClusterManagementController {
     }
 
     @PostMapping(value = "/api/2/cluster", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseBody addClusterMember(@RequestBody ClusterMember member) throws ServiceLayerException, ClusterMemberAlreadyExistsException {
+    public ResponseBody addClusterMember(@RequestBody ClusterMember member)
+            throws ServiceLayerException, ClusterMemberAlreadyExistsException {
         ClusterMember clusterMember = clusterManagementService.addMember(member);
 
         ResponseBody responseBody = new ResponseBody();
@@ -72,7 +73,8 @@ public class ClusterManagementController {
     }
 
     @PatchMapping("/api/2/cluster")
-    public ResponseBody updateClusterMember(@RequestBody ClusterMember member) throws ServiceLayerException, ClusterMemberNotFoundException {
+    public ResponseBody updateClusterMember(@RequestBody ClusterMember member)
+            throws ServiceLayerException, ClusterMemberNotFoundException {
         ClusterMember clusterMember = clusterManagementService.updateMember(member);
 
         ResponseBody responseBody = new ResponseBody();
@@ -84,7 +86,8 @@ public class ClusterManagementController {
     }
 
     @DeleteMapping("/api/2/cluster")
-    public ResponseBody removeClusterMembers(@RequestParam(value = "id") List<Long> memberIds) throws ServiceLayerException {
+    public ResponseBody removeClusterMembers(@RequestParam(value = "id") List<Long> memberIds)
+            throws ServiceLayerException {
         boolean success = clusterManagementService.removeMembers(memberIds);
 
         ResponseBody responseBody = new ResponseBody();

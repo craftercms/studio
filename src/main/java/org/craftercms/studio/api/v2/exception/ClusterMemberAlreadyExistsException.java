@@ -34,7 +34,8 @@ public class ClusterMemberAlreadyExistsException extends Exception {
         super(cause);
     }
 
-    public ClusterMemberAlreadyExistsException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+    public ClusterMemberAlreadyExistsException(String message, Throwable cause, boolean enableSuppression,
+                                               boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 }

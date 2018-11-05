@@ -34,7 +34,8 @@ public class ClusterMemberNotFoundException extends Exception {
         super(cause);
     }
 
-    public ClusterMemberNotFoundException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+    public ClusterMemberNotFoundException(String message, Throwable cause, boolean enableSuppression,
+                                          boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 }

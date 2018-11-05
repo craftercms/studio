@@ -137,7 +137,8 @@ public class ExceptionHandlers {
 
     @ExceptionHandler(ClusterMemberAlreadyExistsException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
-    public ResponseBody handleClusterMemberAlreadyExistsException(HttpServletRequest request, ClusterMemberAlreadyExistsException e) {
+    public ResponseBody handleClusterMemberAlreadyExistsException(HttpServletRequest request,
+                                                                  ClusterMemberAlreadyExistsException e) {
         ApiResponse response = new ApiResponse(ApiResponse.CLUSTER_MEMBER_ALREADY_EXISTS);
         return handleExceptionInternal(request, e, response);
     }
