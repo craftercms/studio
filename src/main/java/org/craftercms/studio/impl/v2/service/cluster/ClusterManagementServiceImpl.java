@@ -54,7 +54,7 @@ public class ClusterManagementServiceImpl implements ClusterManagementService {
     @Override
     @HasPermission(type = DefaultPermission.class, action = "create_cluster")
     public ClusterMember addMember(ClusterMember member) throws ClusterMemberAlreadyExistsException {
-        if (clusterManagementServiceInternal.existsMember(member.getGitUrl())) {
+        if (clusterManagementServiceInternal.memberExists(member.getGitUrl())) {
             throw new ClusterMemberAlreadyExistsException();
         }
         boolean result = clusterManagementServiceInternal.addMember(member);

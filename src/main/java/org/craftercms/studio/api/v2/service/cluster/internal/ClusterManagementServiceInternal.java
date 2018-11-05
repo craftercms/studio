@@ -69,5 +69,5 @@ public interface ClusterManagementServiceInternal {
      * @param memberUrl URL to check
      * @return true if already exist, otherwise false
      */
-    boolean existsMember(String memberUrl);
+    boolean memberExists(String memberUrl);
 }

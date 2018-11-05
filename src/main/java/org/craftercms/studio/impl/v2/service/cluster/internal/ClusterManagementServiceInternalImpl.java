@@ -66,8 +66,8 @@ public class ClusterManagementServiceInternalImpl implements ClusterManagementSe
     }
 
     @Override
-    public boolean existsMember(String memberUrl) {
-        int num = clusterDao.existsMember(memberUrl);
+    public boolean memberExists(String memberUrl) {
+        int num = clusterDao.memberExists(memberUrl);
         return num > 0;
     }
 
