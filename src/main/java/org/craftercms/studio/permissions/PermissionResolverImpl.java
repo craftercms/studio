@@ -37,7 +37,7 @@ import java.util.Set;
  */
 public class PermissionResolverImpl implements PermissionResolver<String, Map<String, Object>> {
 
-    public static final String SITE_NAME_RESOURCE_ID = "siteName";
+    public static final String SITE_ID_RESOURCE_ID = "siteId";
     public static final String PATH_RESOURCE_ID = "path";
 
     private SecurityService securityService;
@@ -58,8 +58,8 @@ public class PermissionResolverImpl implements PermissionResolver<String, Map<St
         String path = "/";
 
         if (MapUtils.isNotEmpty(resourceIds)) {
-            if (resourceIds.containsKey(SITE_NAME_RESOURCE_ID)) {
-                siteName = (String) resourceIds.get(SITE_NAME_RESOURCE_ID);
+            if (resourceIds.containsKey(SITE_ID_RESOURCE_ID)) {
+                siteName = (String) resourceIds.get(SITE_ID_RESOURCE_ID);
             }
             if (resourceIds.containsKey(PATH_RESOURCE_ID)) {
                 path = (String) resourceIds.get(PATH_RESOURCE_ID);
