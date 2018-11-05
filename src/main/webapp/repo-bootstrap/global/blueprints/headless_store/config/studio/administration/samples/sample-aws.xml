@@ -22,6 +22,17 @@ For every profile you need to specify at least:
    Every service can require additional properties.
 -->
 <aws>
+    <!--
+
+        AWS S3 Profile
+
+        Additional properties:
+
+        <bucketName/>
+
+        bucketName: name of the bucket where files will be uploaded
+
+    -->
     <profile>
         <id>s3-default</id>
         <credentials>
@@ -31,6 +42,30 @@ For every profile you need to specify at least:
         <region>us-west-1</region>
         <bucketName>sample-input-bucket</bucketName>
     </profile>
+
+    <!--
+
+    AWS Elastic Transcoder Profile
+
+    Additional properties:
+
+    <pipelineId/>
+    <outputs>
+        <output>
+            <presetId/>
+            <outputKeySuffix/>
+        </output>
+
+        ...
+
+    </outputs>
+
+    pipelineId: id of the pipeline that will be used for transcoding jobs
+    outputs: list of outputs for the transcoding jobs
+    presetId: id of the preset for a particular output, can use AWS default presets for common formats
+    outputKeySuffix: suffix added to a particular output
+
+    -->
     <profile>
         <id>elastic-transcoder-default</id>
         <credentials>
