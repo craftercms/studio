@@ -69,7 +69,7 @@ public interface ClusterDAO {
     /**
      * Check if cluster member exists with given url
      * @param memberUrl Member Url
-     * @return 0 if member does not exist, if member exists returns value grater than 0
+     * @return 0 if member does not exist, if member exists returns value greater than 0
      */
     int memberExists(String memberUrl);
 }
