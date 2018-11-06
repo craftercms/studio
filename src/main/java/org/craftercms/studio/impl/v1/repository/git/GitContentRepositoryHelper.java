@@ -655,9 +655,7 @@ public class GitContentRepositoryHelper {
     }
 
     // TODO: SJ: Fix the exception handling in this method
-    public RevTree getTreeForLastCommit(Repository repository) throws AmbiguousObjectException,
-        IncorrectObjectTypeException,
-        IOException, MissingObjectException {
+    public RevTree getTreeForLastCommit(Repository repository) throws IOException {
         ObjectId lastCommitId = repository.resolve(Constants.HEAD);
 
         // a RevWalk allows to walk over commits based on some filtering

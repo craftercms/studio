@@ -31,6 +31,7 @@ import org.craftercms.studio.api.v1.deployment.PreviewDeployer;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
+import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -90,43 +91,58 @@ public class StudioNodeSyncTaskImpl implements Runnable {
         if (!siteCheck) {
             try {
                 searchService.createIndex(siteId);
+                success = true;
             } catch (ServiceLayerException e) {
                 logger.error("Error creating search index on cluster node for site " + siteId + "." +
                                 " Is the Search running and configured correctly in Studio?", e);
+                success = false;
             }
 
-            try {
-                success = previewDeployer.createTarget(siteId);
-            } catch (Exception e) {
-                success = false;
-                logger.error("Error while creating site: " + siteId +
-                        ". Is the Preview Deployer running and configured correctly in Studio?", e);
+            if (success) {
+                try {
+                    success = previewDeployer.createTarget(siteId);
+                } catch (Exception e) {
+                    success = false;
+                    logger.error("Error while creating site: " + siteId +
+                            ". Is the Preview Deployer running and configured correctly in Studio?", e);
+                }
             }
             if (!success) {
                 // Rollback search index creation
                 try {
                     searchService.deleteIndex(siteId);
+                    success = true;
                 } catch (ServiceLayerException e) {
                     logger.error("Error while rolling back/deleting site: " + siteId + ". This means the site search " +
                             "index (core) is still present, but the site is not successfully created.", e);
+                    success = false;
                 }
             }
-            try {
-                createSiteFromRemote();
-            } catch (InvalidRemoteRepositoryException | InvalidRemoteRepositoryCredentialsException | RemoteRepositoryNotFoundException | ServiceLayerException e) {
-                e.printStackTrace();
+
+            if (success) {
+                try {
+                    createSiteFromRemote();
+                    success = true;
+                } catch (InvalidRemoteRepositoryException | InvalidRemoteRepositoryCredentialsException | RemoteRepositoryNotFoundException | ServiceLayerException e) {
+                    e.printStackTrace();
+                    success = false;
+                }
             }
 
-            addRemotes();
+            if (success) {
+                try {
+                    addRemotes();
+                    success = true;
+                } catch (InvalidRemoteUrlException | ServiceLayerException | CryptoException e) {
+                    e.printStackTrace();
+                    success = false;
+                }
+            }
         }
 
         try {
             updateContent();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (CryptoException e) {
-            e.printStackTrace();
-        } catch (ServiceLayerException e) {
+        } catch (IOException | CryptoException | ServiceLayerException e) {
             e.printStackTrace();
         }
     }
@@ -238,8 +254,19 @@ public class StudioNodeSyncTaskImpl implements Runnable {
         return path;
     }
 
-    private void addRemotes() {
-
+    private void addRemotes() throws InvalidRemoteUrlException, ServiceLayerException, CryptoException {
+        TextEncryptor encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
+                studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
+        for (ClusterMember member : clusterNodes) {
+            String hashedPassword = member.getGitPassword();
+            String password = encryptor.decrypt(hashedPassword);
+            String hashedToken = member.getGitToken();
+            String token = encryptor.decrypt(hashedToken);
+            String hashedPrivateKey = member.getGitPrivateKey();
+            String privateKey = encryptor.decrypt(hashedPrivateKey);
+            contentRepository.addRemote(siteId, member.getGitRemoteName(), member.getGitUrl(),
+                    member.getGitAuthType(), member.getGitUsername(),password, token, privateKey);
+        }
     }
 
     private void updateContent() throws IOException, CryptoException, ServiceLayerException {
@@ -259,13 +286,13 @@ public class StudioNodeSyncTaskImpl implements Runnable {
                 .findGitDir()
                 .build();
         try (Git git = new Git(repo)) {
-            List<RemoteConfig> remotes = git.remoteList().call();
+            /*List<RemoteConfig> remotes = git.remoteList().call();
             for (RemoteConfig remote : remotes) {
                 FetchResult fetchResult = git.fetch()
                         .setRemote(remote.getName())
                         .setRemoveDeletedRefs(true)
                         .call();
-            }
+            }*/
 
             for (ClusterMember remoteNode : clusterNodes) {
                 PullCommand pullCommand = git.pull();

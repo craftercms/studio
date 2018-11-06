@@ -185,28 +185,28 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         boolean toReturn = false;
         Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GitRepositories.GLOBAL :
                 GitRepositories.SANDBOX);
-
-        try {
-            RevTree tree = helper.getTreeForLastCommit(repo);
-            try (TreeWalk tw = TreeWalk.forPath(repo, helper.getGitPath(path), tree)) {
-                // Check if the array of items is not null, and since we have an absolute path to the item,
-                // pick the first item in the list
-                if (tw != null && tw.getObjectId(0) != null) {
-                    toReturn = true;
-                    tw.close();
-                } else if (tw == null) {
-                    String gitPath = helper.getGitPath(path);
-                    if (StringUtils.isEmpty(gitPath) || gitPath.equals(".")) {
+        if (repo != null ) {
+            try {
+                RevTree tree = helper.getTreeForLastCommit(repo);
+                try (TreeWalk tw = TreeWalk.forPath(repo, helper.getGitPath(path), tree)) {
+                    // Check if the array of items is not null, and since we have an absolute path to the item,
+                    // pick the first item in the list
+                    if (tw != null && tw.getObjectId(0) != null) {
                         toReturn = true;
+                        tw.close();
+                    } else if (tw == null) {
+                        String gitPath = helper.getGitPath(path);
+                        if (StringUtils.isEmpty(gitPath) || gitPath.equals(".")) {
+                            toReturn = true;
+                        }
                     }
+                } catch (IOException e) {
+                    logger.info("Content not found for site: " + site + " path: " + path, e);
                 }
-            } catch (IOException e) {
-                logger.info("Content not found for site: " + site + " path: " + path, e);
+            } catch (Exception e) {
+                logger.error("Failed to create RevTree for site: " + site + " path: " + path, e);
             }
-        } catch (IOException e) {
-            logger.error("Failed to create RevTree for site: " + site + " path: " + path, e);
         }
-
         return toReturn;
     }
 
