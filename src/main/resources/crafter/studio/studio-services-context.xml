@@ -357,6 +357,8 @@
     <bean id="clusterManagementService"
           class="org.craftercms.studio.impl.v2.service.cluster.ClusterManagementServiceImpl">
         <property name="clusterManagementServiceInternal" ref="clusterManagementServiceInternal" />
+        <property name="contentRepository" ref="contentRepository" />
+        <property name="siteService" ref="cstudioSiteServiceSimple" />
     </bean>
 
     <bean id="clusterManagementServiceInternal"
