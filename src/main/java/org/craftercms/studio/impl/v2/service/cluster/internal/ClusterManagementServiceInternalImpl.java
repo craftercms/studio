@@ -65,6 +65,12 @@ public class ClusterManagementServiceInternalImpl implements ClusterManagementSe
         return clusterDao.getMemberById(clusterMemberId);
     }
 
+    @Override
+    public boolean memberExists(String memberUrl) {
+        int num = clusterDao.memberExists(memberUrl);
+        return num > 0;
+    }
+
     public ClusterDAO getClusterDao() {
         return clusterDao;
     }
