@@ -38,5 +38,11 @@
             <icon>fa-users</icon>
             <permission>create_groups</permission>
         </item>
+        <item>
+            <id>home.globalMenu.cluster</id>
+            <label>Cluster</label>
+            <icon>fa-database</icon>
+            <permission>create_cluster</permission>
+        </item>
     </items>
 </globalMenu>
