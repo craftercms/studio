@@ -1407,16 +1407,18 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
         synchronized (helper.getRepository(site, StringUtils.isEmpty(site) ? GitRepositories.GLOBAL : SANDBOX)) {
             Repository repo = helper.getRepository(site, SANDBOX);
-            try (RevWalk rw = new RevWalk(repo)) {
-                ObjectId head = repo.resolve(Constants.HEAD);
-                RevCommit root = rw.parseCommit(head);
-                rw.sort(RevSort.REVERSE);
-                rw.markStart(root);
-                ObjectId first = rw.next();
-                toReturn = first.getName();
-                logger.debug("getRepoFirstCommitId for site: " + site + " First commit ID: " + toReturn);
-            } catch (IOException e) {
-                logger.error("Error getting first commit ID for site " + site, e);
+            if (repo != null) {
+                try (RevWalk rw = new RevWalk(repo)) {
+                    ObjectId head = repo.resolve(Constants.HEAD);
+                    RevCommit root = rw.parseCommit(head);
+                    rw.sort(RevSort.REVERSE);
+                    rw.markStart(root);
+                    ObjectId first = rw.next();
+                    toReturn = first.getName();
+                    logger.debug("getRepoFirstCommitId for site: " + site + " First commit ID: " + toReturn);
+                } catch (IOException e) {
+                    logger.error("Error getting first commit ID for site " + site, e);
+                }
             }
         }
 
