@@ -62,7 +62,7 @@ For every profile you need to specify at least:
 
     pipelineId: id of the pipeline that will be used for transcoding jobs
     outputs: list of outputs for the transcoding jobs
-    presentId: id of the preset for a particular output
+    presetId: id of the preset for a particular output, can use AWS default presets for common formats
     outputKeySuffix: suffix added to a particular output
 
     -->
