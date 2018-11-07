@@ -1387,37 +1387,42 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     @Override
     public String getRepoLastCommitId(final String site) {
         String toReturn = StringUtils.EMPTY;
-
-        synchronized (helper.getRepository(site, StringUtils.isEmpty(site) ? GitRepositories.GLOBAL : SANDBOX)) {
-            Repository repo = helper.getRepository(site, SANDBOX);
-            try {
-                ObjectId commitId = repo.resolve(Constants.HEAD);
-                toReturn = commitId.getName();
-            } catch (IOException e) {
-                logger.error("Error getting last commit ID for site " + site, e);
+        Repository repository =
+                helper.getRepository(site, StringUtils.isEmpty(site) ? GitRepositories.GLOBAL : SANDBOX);
+        if (repository != null) {
+            synchronized (repository) {
+                Repository repo = helper.getRepository(site, SANDBOX);
+                try {
+                    ObjectId commitId = repo.resolve(Constants.HEAD);
+                    toReturn = commitId.getName();
+                } catch (IOException e) {
+                    logger.error("Error getting last commit ID for site " + site, e);
+                }
             }
         }
-
         return toReturn;
     }
 
     @Override
     public String getRepoFirstCommitId(final String site) {
         String toReturn = StringUtils.EMPTY;
-
-        synchronized (helper.getRepository(site, StringUtils.isEmpty(site) ? GitRepositories.GLOBAL : SANDBOX)) {
-            Repository repo = helper.getRepository(site, SANDBOX);
-            if (repo != null) {
-                try (RevWalk rw = new RevWalk(repo)) {
-                    ObjectId head = repo.resolve(Constants.HEAD);
-                    RevCommit root = rw.parseCommit(head);
-                    rw.sort(RevSort.REVERSE);
-                    rw.markStart(root);
-                    ObjectId first = rw.next();
-                    toReturn = first.getName();
-                    logger.debug("getRepoFirstCommitId for site: " + site + " First commit ID: " + toReturn);
-                } catch (IOException e) {
-                    logger.error("Error getting first commit ID for site " + site, e);
+        Repository repository =
+                helper.getRepository(site, StringUtils.isEmpty(site) ? GitRepositories.GLOBAL : SANDBOX);
+        if (repository != null) {
+            synchronized (repository) {
+                Repository repo = helper.getRepository(site, SANDBOX);
+                if (repo != null) {
+                    try (RevWalk rw = new RevWalk(repo)) {
+                        ObjectId head = repo.resolve(Constants.HEAD);
+                        RevCommit root = rw.parseCommit(head);
+                        rw.sort(RevSort.REVERSE);
+                        rw.markStart(root);
+                        ObjectId first = rw.next();
+                        toReturn = first.getName();
+                        logger.debug("getRepoFirstCommitId for site: " + site + " First commit ID: " + toReturn);
+                    } catch (IOException e) {
+                        logger.error("Error getting first commit ID for site " + site, e);
+                    }
                 }
             }
         }
