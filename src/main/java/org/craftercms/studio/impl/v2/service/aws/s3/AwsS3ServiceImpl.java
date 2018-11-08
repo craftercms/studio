@@ -76,7 +76,7 @@ public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements A
      * {@inheritDoc}
      */
     @Override
-    @HasPermission(type = DefaultPermission.class, action = "S3 Write")
+    @HasPermission(type = DefaultPermission.class, action = "s3 write")
     public S3Item uploadItem(@ValidateStringParam(name = "siteId") @ProtectedResourceId("siteId") String siteId,
                              @ValidateStringParam(name = "profileId") String profileId,
                              @ValidateStringParam(name = "filename") String filename,
@@ -94,7 +94,7 @@ public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements A
      * {@inheritDoc}
      */
     @Override
-    @HasPermission(type = DefaultPermission.class, action = "S3 Read")
+    @HasPermission(type = DefaultPermission.class, action = "s3 read")
     public List<S3Item> listItems(@ValidateStringParam(name = "siteId") @ProtectedResourceId("siteId") String siteId,
                                   @ValidateStringParam(name = "profileId") String profileId,
                                   @ValidateStringParam(name = "path") String path,
