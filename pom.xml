@@ -41,6 +41,13 @@
         <bouncycastle.version>1.60</bouncycastle.version>
         <sardine.version>5.8</sardine.version>
         <saxon.version>9.8.0-14</saxon.version>
+
+        <!-- Alpha UI -->
+        <node.version>v8.12.0</node.version>
+        <yarn.version>v1.12.3</yarn.version>
+        <studio.ui.alpha.path>target/ui-alpha</studio.ui.alpha.path>
+        <studio.ui.alpha.version>develop</studio.ui.alpha.version>
+
     </properties>
 
     <licenses>
@@ -539,6 +546,61 @@
                             <goal>exec</goal>
                         </goals>
                     </execution>
+                    <execution>
+                        <id>get alpha ui</id>
+                        <phase>generate-resources</phase>
+                        <configuration>
+                            <executable>git</executable>
+                            <arguments>
+                                <argument>clone</argument>
+                                <argument>--depth</argument>
+                                <argument>1</argument>
+                                <argument>-b</argument>
+                                <argument>${studio.ui.alpha.version}</argument>
+                                <argument>https://github.com/craftercms/studio-ui-ng.git</argument>
+                                <argument>${studio.ui.alpha.path}</argument>
+                            </arguments>
+                        </configuration>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.github.eirslett</groupId>
+                <artifactId>frontend-maven-plugin</artifactId>
+                <version>1.6</version>
+                <configuration>
+                    <workingDirectory>${studio.ui.alpha.path}</workingDirectory>
+                    <installDirectory>target</installDirectory>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>install node and yarn</id>
+                        <goals>
+                            <goal>install-node-and-yarn</goal>
+                        </goals>
+                        <configuration>
+                            <nodeVersion>${node.version}</nodeVersion>
+                            <yarnVersion>${yarn.version}</yarnVersion>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>install alpha ui</id>
+                        <goals>
+                            <goal>yarn</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>build alpha ui</id>
+                        <goals>
+                            <goal>yarn</goal>
+                        </goals>
+                        <configuration>
+                            <arguments>run build-studio</arguments>
+                        </configuration>
+                    </execution>
                 </executions>
             </plugin>
             <plugin>
@@ -655,6 +717,22 @@
                             <filtering>true</filtering>
                             <targetPath>default-site/scripts/rest</targetPath>
                         </resource>
+
+                        <!-- Alpha UI -->
+                        <resource>
+                            <directory>${studio.ui.alpha.path}/dist</directory>
+                            <filtering>false</filtering>
+                            <targetPath>default-site/static-assets/alpha</targetPath>
+                        </resource>
+                        <resource>
+                            <directory>${studio.ui.alpha.path}/dist</directory>
+                            <includes>
+                                <include>index.html</include>
+                            </includes>
+                            <filtering>false</filtering>
+                            <targetPath>default-site/templates/alpha</targetPath>
+                        </resource>
+
                     </webResources>
                 </configuration>
             </plugin>
