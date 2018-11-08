@@ -17,6 +17,7 @@
  */
 package org.craftercms.studio.permissions;
 
+import org.apache.commons.collections4.MapUtils;
 import org.craftercms.commons.security.exception.PermissionException;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.Permission;
@@ -24,6 +25,7 @@ import org.craftercms.commons.security.permissions.PermissionResolver;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.springframework.beans.factory.annotation.Required;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
@@ -35,6 +37,9 @@ import java.util.Set;
  */
 public class PermissionResolverImpl implements PermissionResolver<String, Map<String, Object>> {
 
+    public static final String SITE_ID_RESOURCE_ID = "siteId";
+    public static final String PATH_RESOURCE_ID = "path";
+
     private SecurityService securityService;
 
     @Required
@@ -44,17 +49,29 @@ public class PermissionResolverImpl implements PermissionResolver<String, Map<St
 
     @Override
     public Permission getGlobalPermission(String username) throws PermissionException {
-       Set<String> allowedActions = securityService.getUserPermissions("", "/", username, null);
-
-       DefaultPermission permission = new DefaultPermission();
-       permission.setAllowedActions(allowedActions);
-
-       return permission;
+       return getPermission(username, Collections.emptyMap());
     }
 
     @Override
-    public Permission getPermission(String username, Map<String, Object> securedParams) throws PermissionException {
-        throw new UnsupportedOperationException("Not supported yet");
+    public Permission getPermission(String username, Map<String, Object> resourceIds) throws PermissionException {
+        String siteName = "";
+        String path = "/";
+
+        if (MapUtils.isNotEmpty(resourceIds)) {
+            if (resourceIds.containsKey(SITE_ID_RESOURCE_ID)) {
+                siteName = (String) resourceIds.get(SITE_ID_RESOURCE_ID);
+            }
+            if (resourceIds.containsKey(PATH_RESOURCE_ID)) {
+                path = (String) resourceIds.get(PATH_RESOURCE_ID);
+            }
+        }
+
+        Set<String> allowedActions = securityService.getUserPermissions(siteName, path, username, null);
+
+        DefaultPermission permission = new DefaultPermission();
+        permission.setAllowedActions(allowedActions);
+
+        return permission;
     }
 
 }
