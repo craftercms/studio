@@ -50,7 +50,7 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
         try {
             Set<String> siteNames = siteService.getAllAvailableSites();
             List<ClusterMember> clusterMembers = clusterDAO.getAllMembers();
-            if (siteNames != null && siteNames.size() > 0) {
+            if ((clusterMembers != null && clusterMembers.size() > 0) && (siteNames != null && siteNames.size() > 0)) {
                 for (String site : siteNames) {
                     StudioNodeSyncTaskImpl nodeSyncTask = new StudioNodeSyncTaskImpl();
                     nodeSyncTask.setSiteId(site);
