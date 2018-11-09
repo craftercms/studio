@@ -51,6 +51,7 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
     @Override
     public void run() {
         if (singleWorkerLock.tryLock()) {
+            logger.error("Do the work - single thread");
             try {
                 Set<String> siteNames = siteService.getAllAvailableSites();
                 List<ClusterMember> clusterMembers = clusterDAO.getAllMembers();
@@ -73,6 +74,8 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
                 singleWorkerLock.unlock();
             }
 
+        } else {
+            logger.error("Another thread working ... leave");
         }
     }
 
