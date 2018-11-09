@@ -30,7 +30,9 @@ import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.craftercms.studio.api.v2.service.cluster.StudioClusterSyncJob;
 import org.springframework.core.task.TaskExecutor;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -46,37 +48,26 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
     private ContentRepository contentRepository;
     private ClusterDAO clusterDAO;
 
-    protected static final ReentrantLock singleWorkerLock = new ReentrantLock();
-
     @Override
     public void run() {
-        logger.error(singleWorkerLock.toString() + " " + singleWorkerLock.getHoldCount());
-        if (singleWorkerLock.tryLock()) {
-            logger.error("Do the work - single thread : count " + singleWorkerLock.getHoldCount());
-            try {
-                Set<String> siteNames = siteService.getAllAvailableSites();
-                List<ClusterMember> clusterMembers = clusterDAO.getAllMembers();
-                if ((clusterMembers != null && clusterMembers.size() > 0) && (siteNames != null && siteNames.size() > 0)) {
-                    for (String site : siteNames) {
-                        StudioNodeSyncTaskImpl nodeSyncTask = new StudioNodeSyncTaskImpl();
-                        nodeSyncTask.setSiteId(site);
-                        nodeSyncTask.setPreviewDeployer(previewDeployer);
-                        nodeSyncTask.setSearchService(searchService);
-                        nodeSyncTask.setStudioConfiguration(studioConfiguration);
-                        nodeSyncTask.setContentRepository(contentRepository);
-                        nodeSyncTask.setClusterNodes(clusterMembers);
+        try {
+            Set<String> siteNames = siteService.getAllAvailableSites();
+            List<ClusterMember> clusterMembers = clusterDAO.getAllMembers();
+            if ((clusterMembers != null && clusterMembers.size() > 0) && (siteNames != null && siteNames.size() > 0)) {
+                for (String site : siteNames) {
+                    StudioNodeSyncTaskImpl nodeSyncTask = new StudioNodeSyncTaskImpl();
+                    nodeSyncTask.setSiteId(site);
+                    nodeSyncTask.setPreviewDeployer(previewDeployer);
+                    nodeSyncTask.setSearchService(searchService);
+                    nodeSyncTask.setStudioConfiguration(studioConfiguration);
+                    nodeSyncTask.setContentRepository(contentRepository);
+                    nodeSyncTask.setClusterNodes(clusterMembers);
 
-                        taskExecutor.execute(nodeSyncTask);
-                    }
+                    taskExecutor.execute(nodeSyncTask);
                 }
-            } catch (Exception err) {
-                logger.error("Error while executing cluster sync job", err);
-            } finally {
-                singleWorkerLock.unlock();
             }
-
-        } else {
-            logger.error("Another thread working ... leave");
+        } catch (Exception err) {
+            logger.error("Error while executing cluster sync job", err);
         }
     }
 

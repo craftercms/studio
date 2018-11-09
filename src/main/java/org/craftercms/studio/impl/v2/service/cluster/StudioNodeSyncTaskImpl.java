@@ -64,9 +64,12 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
+import java.util.concurrent.locks.ReentrantLock;
 
 import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_KEY;
@@ -77,6 +80,8 @@ public class StudioNodeSyncTaskImpl implements Runnable {
 
     private static final Logger logger = LoggerFactory.getLogger(StudioNodeSyncTaskImpl.class);
 
+    protected static final Map<String, ReentrantLock> singleWorkerLockMap = new HashMap<String, ReentrantLock>();
+
     protected String siteId;
     protected List<ClusterMember> clusterNodes;
     protected SearchService searchService;
@@ -86,64 +91,77 @@ public class StudioNodeSyncTaskImpl implements Runnable {
 
     @Override
     public void run() {
-        boolean success = false;
-        boolean siteCheck = checkIfSiteRepoExists();
-        if (!siteCheck) {
-            try {
-                searchService.createIndex(siteId);
-                success = true;
-            } catch (ServiceLayerException e) {
-                logger.error("Error creating search index on cluster node for site " + siteId + "." +
-                                " Is the Search running and configured correctly in Studio?", e);
-                success = false;
-            }
-
-            if (success) {
-                try {
-                    success = previewDeployer.createTarget(siteId);
-                } catch (Exception e) {
-                    success = false;
-                    logger.error("Error while creating site: " + siteId +
-                            ". Is the Preview Deployer running and configured correctly in Studio?", e);
-                }
-            }
-            if (!success) {
-                // Rollback search index creation
-                try {
-                    searchService.deleteIndex(siteId);
-                    success = true;
-                } catch (ServiceLayerException e) {
-                    logger.error("Error while rolling back/deleting site: " + siteId + ". This means the site search " +
-                            "index (core) is still present, but the site is not successfully created.", e);
-                    success = false;
-                }
-            }
-
-            if (success) {
-                try {
-                    createSiteFromRemote();
-                    success = true;
-                } catch (InvalidRemoteRepositoryException | InvalidRemoteRepositoryCredentialsException | RemoteRepositoryNotFoundException | ServiceLayerException | CryptoException e) {
-                    e.printStackTrace();
-                    success = false;
-                }
-            }
-
-            if (success) {
-                try {
-                    addRemotes();
-                    success = true;
-                } catch (InvalidRemoteUrlException | ServiceLayerException | CryptoException e) {
-                    e.printStackTrace();
-                    success = false;
-                }
-            }
+        ReentrantLock singleWorkerLock = singleWorkerLockMap.get(siteId);
+        if (singleWorkerLock == null) {
+            singleWorkerLock = new ReentrantLock();
+            singleWorkerLockMap.put(siteId, singleWorkerLock);
         }
+        if (singleWorkerLock.tryLock()) {
+            try {
+                boolean success = false;
+                boolean siteCheck = checkIfSiteRepoExists();
+                if (!siteCheck) {
+                    try {
+                        searchService.createIndex(siteId);
+                        success = true;
+                    } catch (ServiceLayerException e) {
+                        logger.error("Error creating search index on cluster node for site " + siteId + "." +
+                                " Is the Search running and configured correctly in Studio?", e);
+                        success = false;
+                    }
 
-        try {
-            updateContent();
-        } catch (IOException | CryptoException | ServiceLayerException e) {
-            e.printStackTrace();
+                    if (success) {
+                        try {
+                            success = previewDeployer.createTarget(siteId);
+                        } catch (Exception e) {
+                            success = false;
+                            logger.error("Error while creating site: " + siteId +
+                                    ". Is the Preview Deployer running and configured correctly in Studio?", e);
+                        }
+                    }
+                    if (!success) {
+                        // Rollback search index creation
+                        try {
+                            searchService.deleteIndex(siteId);
+                            success = true;
+                        } catch (ServiceLayerException e) {
+                            logger.error("Error while rolling back/deleting site: " + siteId + ". This means the site search " +
+                                    "index (core) is still present, but the site is not successfully created.", e);
+                            success = false;
+                        }
+                    }
+
+                    if (success) {
+                        try {
+                            createSiteFromRemote();
+                            success = true;
+                        } catch (InvalidRemoteRepositoryException | InvalidRemoteRepositoryCredentialsException | RemoteRepositoryNotFoundException | ServiceLayerException | CryptoException e) {
+                            e.printStackTrace();
+                            success = false;
+                        }
+                    }
+
+                    if (success) {
+                        try {
+                            addRemotes();
+                            success = true;
+                        } catch (InvalidRemoteUrlException | ServiceLayerException | CryptoException e) {
+                            e.printStackTrace();
+                            success = false;
+                        }
+                    }
+                }
+
+                try {
+                    updateContent();
+                } catch (IOException | CryptoException | ServiceLayerException e) {
+                    e.printStackTrace();
+                }
+            } finally {
+                singleWorkerLock.unlock();
+            }
+        } else {
+            logger.error("Not able to work - another worker still active");
         }
     }
 
