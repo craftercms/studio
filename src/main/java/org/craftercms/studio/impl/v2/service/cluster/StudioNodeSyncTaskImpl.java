@@ -123,7 +123,7 @@ public class StudioNodeSyncTaskImpl implements Runnable {
                 try {
                     createSiteFromRemote();
                     success = true;
-                } catch (InvalidRemoteRepositoryException | InvalidRemoteRepositoryCredentialsException | RemoteRepositoryNotFoundException | ServiceLayerException e) {
+                } catch (InvalidRemoteRepositoryException | InvalidRemoteRepositoryCredentialsException | RemoteRepositoryNotFoundException | ServiceLayerException | CryptoException e) {
                     e.printStackTrace();
                     success = false;
                 }
@@ -149,8 +149,9 @@ public class StudioNodeSyncTaskImpl implements Runnable {
 
     private boolean createSiteFromRemote()
             throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
-            RemoteRepositoryNotFoundException, ServiceLayerException {
-
+            RemoteRepositoryNotFoundException, ServiceLayerException, CryptoException {
+        TextEncryptor encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
+                studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
         ClusterMember remoteNode = clusterNodes.get(0);
         boolean toRet = true;
         // prepare a new folder for the cloned repository
@@ -171,27 +172,32 @@ public class StudioNodeSyncTaskImpl implements Runnable {
                     break;
                 case RemoteRepository.AuthenticationType.BASIC:
                     logger.debug("Basic authentication");
-                    cloneCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(
-                            remoteNode.getGitUsername(),
-                            remoteNode.getGitPassword()));
+                    String hashedPassword = remoteNode.getGitPassword();
+                    String password = encryptor.decrypt(hashedPassword);
+                    cloneCommand.setCredentialsProvider(
+                            new UsernamePasswordCredentialsProvider(remoteNode.getGitUsername(), password));
                     break;
                 case RemoteRepository.AuthenticationType.TOKEN:
                     logger.debug("Token based authentication");
+                    String hashedToken = remoteNode.getGitToken();
+                    String token = encryptor.decrypt(hashedToken);
                     cloneCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(
-                            remoteNode.getGitToken(),
-                            StringUtils.EMPTY));
+                            token, StringUtils.EMPTY));
                     break;
                 case RemoteRepository.AuthenticationType.PRIVATE_KEY:
                     logger.debug("Private key authentication");
+                    String hashedPrivateKey = remoteNode.getGitPrivateKey();
+                    String privateKey = encryptor.decrypt(hashedPrivateKey);
                     tempKey.toFile().deleteOnExit();
                     cloneCommand.setTransportConfigCallback(new TransportConfigCallback() {
                         @Override
                         public void configure(Transport transport) {
                             SshTransport sshTransport = (SshTransport)transport;
-                            sshTransport.setSshSessionFactory(
-                                    getSshSessionFactory(remoteNode.getGitPrivateKey(), tempKey));
+                            sshTransport.setSshSessionFactory(getSshSessionFactory(privateKey, tempKey));
                         }
                     });
+                    cloneCommand.call();
+                    Files.delete(tempKey);
 
                     break;
                 default:
@@ -308,17 +314,47 @@ public class StudioNodeSyncTaskImpl implements Runnable {
                         logger.debug("Basic authentication");
                         String hashedPassword = remoteNode.getGitPassword();
                         String password = encryptor.decrypt(hashedPassword);
-                        pullCommand.setCredentialsProvider(
-                                new UsernamePasswordCredentialsProvider(remoteNode.getGitPassword(), password));
-
+                        UsernamePasswordCredentialsProvider credentialsProviderUP =
+                                new UsernamePasswordCredentialsProvider(remoteNode.getGitUsername(), password);
+                        pullCommand.setTransportConfigCallback(new TransportConfigCallback() {
+                            @Override
+                            public void configure(Transport transport) {
+                                SshTransport sshTransport = (SshTransport)transport;
+                                ((SshTransport) transport).setSshSessionFactory(new JschConfigSessionFactory() {
+                                    @Override
+                                    protected void configure(OpenSshConfig.Host host, Session session) {
+                                        Properties config = new Properties();
+                                        config.put("StrictHostKeyChecking", "no");
+                                        session.setConfig(config);
+                                        session.setPassword(password);
+                                    }
+                                });
+                            }
+                        });
+                        pullCommand.setCredentialsProvider(credentialsProviderUP);
                         pullCommand.call();
                         break;
                     case RemoteRepository.AuthenticationType.TOKEN:
                         logger.debug("Token based authentication");
                         String hashedToken = remoteNode.getGitToken();
                         String token = encryptor.decrypt(hashedToken);
-                        pullCommand.setCredentialsProvider(
-                                new UsernamePasswordCredentialsProvider(token, StringUtils.EMPTY));
+                        UsernamePasswordCredentialsProvider credentialsProvider =
+                                new UsernamePasswordCredentialsProvider(token, StringUtils.EMPTY);
+                        pullCommand.setTransportConfigCallback(new TransportConfigCallback() {
+                            @Override
+                            public void configure(Transport transport) {
+                                SshTransport sshTransport = (SshTransport)transport;
+                                ((SshTransport) transport).setSshSessionFactory(new JschConfigSessionFactory() {
+                                    @Override
+                                    protected void configure(OpenSshConfig.Host host, Session session) {
+                                        Properties config = new Properties();
+                                        config.put("StrictHostKeyChecking", "no");
+                                        session.setConfig(config);
+                                    }
+                                });
+                                sshTransport.setCredentialsProvider(credentialsProvider);
+                            }
+                        });
                         pullCommand.call();
                         break;
                     case RemoteRepository.AuthenticationType.PRIVATE_KEY:
