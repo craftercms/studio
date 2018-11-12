@@ -43,7 +43,7 @@ import org.craftercms.studio.api.v1.exception.AwsConfigurationException;
  */
 public class XmlS3ProfileReader extends AbstractXmlProfileReader<S3Profile> {
 
-    public static final String DEFAULT_DOMAIN = "https://s3.amazonaws.com";
+    public static final String DEFAULT_DOMAIN = "https://${bucket}.s3.amazonaws.com/${key}";
 
     public static final String CONFIG_KEY_BUCKET = "bucketName";
     public static final String CONFIG_KEY_DOMAIN = "distributionDomain";
