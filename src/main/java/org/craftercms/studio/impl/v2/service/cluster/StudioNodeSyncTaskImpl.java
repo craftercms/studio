@@ -32,6 +32,7 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
+import org.craftercms.studio.api.v1.exception.repository.RemoteAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -328,8 +329,12 @@ public class StudioNodeSyncTaskImpl implements Runnable {
             if (StringUtils.isNotEmpty(hashedPrivateKey)) {
                 privateKey = encryptor.decrypt(hashedPrivateKey);
             }
-            contentRepository.addRemote(siteId, member.getGitRemoteName(), member.getGitUrl(),
-                    member.getGitAuthType(), member.getGitUsername(),password, token, privateKey);
+            try {
+                contentRepository.addRemote(siteId, member.getGitRemoteName(), member.getGitUrl(),
+                        member.getGitAuthType(), member.getGitUsername(), password, token, privateKey);
+            } catch (RemoteAlreadyExistsException e) {
+                logger.info("Remote " + member.getGitRemoteName() + " already exists for site " + siteId);
+            }
         }
     }
 
