@@ -173,7 +173,7 @@ public class StudioNodeSyncTaskImpl implements Runnable {
         ClusterMember remoteNode = clusterNodes.get(0);
         boolean toRet = true;
         // prepare a new folder for the cloned repository
-        Path siteSandboxPath = buildRepoPath(SANDBOX).resolve(GIT_ROOT);
+        Path siteSandboxPath = buildRepoPath(SANDBOX);
         File localPath = siteSandboxPath.toFile();
         localPath.delete();
         logger.debug("Add user credentials if provided");
