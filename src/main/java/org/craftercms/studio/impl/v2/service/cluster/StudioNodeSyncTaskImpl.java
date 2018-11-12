@@ -314,11 +314,20 @@ public class StudioNodeSyncTaskImpl implements Runnable {
                 studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
         for (ClusterMember member : clusterNodes) {
             String hashedPassword = member.getGitPassword();
-            String password = encryptor.decrypt(hashedPassword);
+            String password = hashedPassword;
+            if (StringUtils.isNotEmpty(hashedPassword)) {
+              password = encryptor.decrypt(hashedPassword);
+            }
             String hashedToken = member.getGitToken();
-            String token = encryptor.decrypt(hashedToken);
+            String token = hashedToken;
+            if (StringUtils.isNotEmpty(hashedToken)) {
+                token = encryptor.decrypt(hashedToken);
+            }
             String hashedPrivateKey = member.getGitPrivateKey();
-            String privateKey = encryptor.decrypt(hashedPrivateKey);
+            String privateKey = hashedPrivateKey;
+            if (StringUtils.isNotEmpty(hashedPrivateKey)) {
+                privateKey = encryptor.decrypt(hashedPrivateKey);
+            }
             contentRepository.addRemote(siteId, member.getGitRemoteName(), member.getGitUrl(),
                     member.getGitAuthType(), member.getGitUsername(),password, token, privateKey);
         }
