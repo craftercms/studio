@@ -59,6 +59,7 @@ import org.eclipse.jgit.transport.SshTransport;
 import org.eclipse.jgit.transport.Transport;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.eclipse.jgit.util.FS;
+import org.springframework.dao.DuplicateKeyException;
 
 import java.io.File;
 import java.io.IOException;
@@ -332,7 +333,7 @@ public class StudioNodeSyncTaskImpl implements Runnable {
             try {
                 contentRepository.addRemote(siteId, member.getGitRemoteName(), member.getGitUrl(),
                         member.getGitAuthType(), member.getGitUsername(), password, token, privateKey);
-            } catch (RemoteAlreadyExistsException e) {
+            } catch (RemoteAlreadyExistsException | DuplicateKeyException e) {
                 logger.info("Remote " + member.getGitRemoteName() + " already exists for site " + siteId);
             }
         }
