@@ -19,10 +19,13 @@
 package org.craftercms.studio.impl.v2.service.aws.s3;
 
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.text.StrSubstitutor;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
@@ -76,7 +79,7 @@ public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements A
      * {@inheritDoc}
      */
     @Override
-    @HasPermission(type = DefaultPermission.class, action = "S3 Write")
+    @HasPermission(type = DefaultPermission.class, action = "s3 write")
     public S3Item uploadItem(@ValidateStringParam(name = "siteId") @ProtectedResourceId("siteId") String siteId,
                              @ValidateStringParam(name = "profileId") String profileId,
                              @ValidateStringParam(name = "filename") String filename,
@@ -94,7 +97,7 @@ public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements A
      * {@inheritDoc}
      */
     @Override
-    @HasPermission(type = DefaultPermission.class, action = "S3 Read")
+    @HasPermission(type = DefaultPermission.class, action = "s3 read")
     public List<S3Item> listItems(@ValidateStringParam(name = "siteId") @ProtectedResourceId("siteId") String siteId,
                                   @ValidateStringParam(name = "profileId") String profileId,
                                   @ValidateStringParam(name = "path") String path,
@@ -138,7 +141,10 @@ public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements A
     protected String createLink(S3Profile profile, String key) {
         String domain = profile.getDistributionDomain();
         if(StringUtils.equals(domain, DEFAULT_DOMAIN)) {
-            return domain + DELIMITER + profile.getBucketName() + DELIMITER + key;
+            Map<String, String> values = new HashMap<>();
+            values.put("bucket", profile.getBucketName());
+            values.put("key", key);
+            return StrSubstitutor.replace(domain, values);
         } else {
             return domain + DELIMITER + key;
         }

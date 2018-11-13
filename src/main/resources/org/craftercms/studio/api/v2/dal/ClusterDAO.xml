@@ -39,6 +39,10 @@
     <select id="getMemberById" resultMap="ClusterMap" parameterType="long">
         SELECT * FROM cluster WHERE id = #{clusterMemberId}
     </select>
+
+    <select id="memberExists" resultType="int" parameterType="String">
+        SELECT COUNT(*) FROM cluster WHERE git_url = #{memberUrl}
+    </select>
     
     <insert id="addMember" parameterType="org.craftercms.studio.api.v2.dal.ClusterMember">
         INSERT INTO cluster (git_url, git_auth_type, git_username, git_password, git_token, git_private_key)
