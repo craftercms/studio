@@ -214,7 +214,7 @@ public class StudioNodeSyncTaskImpl implements Runnable {
         TextEncryptor encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
                 studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
         // prepare a new folder for the cloned repository
-        Path siteSandboxPath = buildRepoPath(SANDBOX);
+        Path siteSandboxPath = buildRepoPath(repoType);
         File localPath = siteSandboxPath.toFile();
         localPath.delete();
         logger.debug("Add user credentials if provided");
