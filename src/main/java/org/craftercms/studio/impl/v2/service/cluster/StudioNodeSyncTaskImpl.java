@@ -73,6 +73,7 @@ import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.locks.ReentrantLock;
 
+import static org.craftercms.studio.api.v1.constant.GitRepositories.PUBLISHED;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_KEY;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_SALT;
@@ -93,7 +94,7 @@ public class StudioNodeSyncTaskImpl implements Runnable {
 
     @Override
     public void run() {
-        logger.info("Starting Cluster Node Sync task for site " + siteId);
+        logger.debug("Starting Cluster Node Sync task for site " + siteId);
         ReentrantLock singleWorkerLock = singleWorkerLockMap.get(siteId);
         if (singleWorkerLock == null) {
             singleWorkerLock = new ReentrantLock();
@@ -104,7 +105,7 @@ public class StudioNodeSyncTaskImpl implements Runnable {
                 boolean success = false;
                 boolean siteCheck = checkIfSiteRepoExists();
                 if (!siteCheck) {
-                    logger.info("Create search index for site " + siteId);
+                    logger.debug("Create search index for site " + siteId);
                     try {
                         searchService.createIndex(siteId);
                         success = true;
@@ -116,55 +117,75 @@ public class StudioNodeSyncTaskImpl implements Runnable {
 
 
                     if (success) {
-                        logger.info("Create preview deployer target site " + siteId);
+                        logger.debug("Create preview deployer target site " + siteId);
                         try {
                             success = previewDeployer.createTarget(siteId);
                         } catch (Exception e) {
                             success = false;
-                            logger.error("Error while creating site: " + siteId +
-                                    ". Is the Preview Deployer running and configured correctly in Studio?", e);
+                            logger.error("Error while creating preview deployer target on cluster node for site : "
+                                    + siteId + ". Is the Preview Deployer running and configured correctly in " +
+                                    "Studio cluster node?", e);
                         }
-                    }
-                    if (!success) {
-                        // Rollback search index creation
-                        try {
-                            searchService.deleteIndex(siteId);
-                            success = true;
-                        } catch (ServiceLayerException e) {
-                            logger.error("Error while rolling back/deleting site: " + siteId + ". This means the site search " +
-                                    "index (core) is still present, but the site is not successfully created.", e);
-                            success = false;
+
+                        if (!success) {
+                            // Rollback search index creation
+                            try {
+                                searchService.deleteIndex(siteId);
+                            } catch (ServiceLayerException e) {
+                                logger.error("Error while rolling back/deleting site: " + siteId + ". This means the site search " +
+                                        "index (core) is still present, but the site is not successfully created.", e);
+                            }
                         }
                     }
 
+
                     if (success) {
                         try {
-                            logger.info("Create site from remote for site " + siteId);
+                            logger.debug("Create site from remote for site " + siteId);
                             createSiteFromRemote();
                             success = true;
                         } catch (InvalidRemoteRepositoryException | InvalidRemoteRepositoryCredentialsException | RemoteRepositoryNotFoundException | ServiceLayerException | CryptoException e) {
-                            e.printStackTrace();
+                            logger.error("Error while creating site on cluster node for site : " + siteId +
+                                    ". Rolling back.", e);
                             success = false;
+                        }
+
+                        if (!success) {
+                            contentRepository.deleteSite(siteId);
+
+                            boolean deleted = previewDeployer.deleteTarget(siteId);
+                            if (!deleted) {
+                                logger.error("Error while rolling back/deleting site: " + siteId + " ID: " + siteId +
+                                        " on cluster node. This means the site's preview deployer target is still " +
+                                        "present, but the site is not successfully created.");
+                            }
+
+                            try {
+                                searchService.deleteIndex(siteId);
+                            } catch (ServiceLayerException e) {
+                                logger.error("Error while rolling back/deleting site: " + siteId + ". This means the site search " +
+                                        "index (core) is still present, but the site is not successfully created.", e);
+                            }
                         }
                     }
 
                     if (success) {
                         try {
-                            logger.info("Add remotes for site " + siteId);
+                            logger.debug("Add remotes for site " + siteId);
                             addRemotes();
-                            success = true;
+
                         } catch (InvalidRemoteUrlException | ServiceLayerException | CryptoException e) {
-                            e.printStackTrace();
-                            success = false;
+                            logger.error("Error while adding remotes on cluster node for site " + siteId);
                         }
                     }
                 }
 
                 try {
                     logger.info("Update content for site " + siteId);
-                    updateContent();
+                    updateContent(SANDBOX);
+                    updateContent(PUBLISHED);
                 } catch (IOException | CryptoException | ServiceLayerException e) {
-                    e.printStackTrace();
+                    logger.error("Error while updating content for site " + siteId + " on cluster node.", e);
                 }
             } finally {
                 singleWorkerLock.unlock();
@@ -172,7 +193,7 @@ public class StudioNodeSyncTaskImpl implements Runnable {
         } else {
             logger.error("Not able to work - another worker still active");
         }
-        logger.info("Finished Cluster Node Sync task for site " + siteId);
+        logger.debug("Finished Cluster Node Sync task for site " + siteId);
     }
 
     private boolean createSiteFromRemote()
@@ -181,7 +202,17 @@ public class StudioNodeSyncTaskImpl implements Runnable {
         TextEncryptor encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
                 studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
         ClusterMember remoteNode = clusterNodes.get(0);
+        boolean toRet = cloneRepository(remoteNode, SANDBOX) && cloneRepository(remoteNode, PUBLISHED);
+
+        return toRet;
+    }
+
+    private boolean cloneRepository(ClusterMember remoteNode, GitRepositories repoType)
+            throws CryptoException, ServiceLayerException, InvalidRemoteRepositoryException,
+            InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException {
         boolean toRet = true;
+        TextEncryptor encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
+                studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
         // prepare a new folder for the cloned repository
         Path siteSandboxPath = buildRepoPath(SANDBOX);
         File localPath = siteSandboxPath.toFile();
@@ -347,13 +378,13 @@ public class StudioNodeSyncTaskImpl implements Runnable {
         }
     }
 
-    private void updateContent() throws IOException, CryptoException, ServiceLayerException {
+    private void updateContent(GitRepositories repoType) throws IOException, CryptoException, ServiceLayerException {
         //Cluster remoteNode = clusterNodes.get(0);
         TextEncryptor encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
                 studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
         boolean toRet = true;
         // prepare a new folder for the cloned repository
-        Path siteSandboxPath = buildRepoPath(SANDBOX).resolve(GIT_ROOT);
+        Path siteSandboxPath = buildRepoPath(repoType).resolve(GIT_ROOT);
         logger.debug("Add user credentials if provided");
         // then clone
         //logger.debug("Cloning from " + remoteNode.getRemoteUrl() + " to " + siteSandboxPath.toString());

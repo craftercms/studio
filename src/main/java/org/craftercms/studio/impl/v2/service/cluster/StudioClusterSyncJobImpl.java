@@ -50,7 +50,7 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
 
     @Override
     public void run() {
-        logger.info("Starting Cluster Sync worker");
+        logger.debug("Starting Cluster Sync worker");
         try {
             Set<String> siteNames = siteService.getAllAvailableSites();
             List<ClusterMember> clusterMembers = clusterDAO.getAllMembers();
@@ -70,7 +70,7 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
         } catch (Exception err) {
             logger.error("Error while executing cluster sync job", err);
         }
-        logger.info("Cluster Sync worker finished");
+        logger.debug("Cluster Sync worker finished");
     }
 
     public SiteService getSiteService() {
