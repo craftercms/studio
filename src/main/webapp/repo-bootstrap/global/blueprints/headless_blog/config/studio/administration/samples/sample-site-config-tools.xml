@@ -58,7 +58,7 @@
                     </icon>
                 </control>
                 <control>
-                    <name>rte2</name>
+                    <name>rte-tinymce4</name>
                     <icon>
                         <class>fa-code</class>
                     </icon>

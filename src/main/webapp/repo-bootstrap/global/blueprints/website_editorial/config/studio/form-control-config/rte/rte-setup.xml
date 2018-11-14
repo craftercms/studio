@@ -237,7 +237,7 @@
     </setup>
 
     <setup>
-        <id>rte2</id> <!-- This starts a profile configuration -->
+        <id>rteTinyMCE4</id> <!-- This starts a profile configuration -->
         
         <rteStylesheets> <!-- This informs the RTE to use the CSS files -->
             <!-- <link>/static-assets/css/rte/rte.css</link> -->
