@@ -93,6 +93,7 @@ public class StudioNodeSyncTaskImpl implements Runnable {
 
     @Override
     public void run() {
+        logger.info("Starting Cluster Node Sync task for site " + siteId);
         ReentrantLock singleWorkerLock = singleWorkerLockMap.get(siteId);
         if (singleWorkerLock == null) {
             singleWorkerLock = new ReentrantLock();
@@ -103,6 +104,7 @@ public class StudioNodeSyncTaskImpl implements Runnable {
                 boolean success = false;
                 boolean siteCheck = checkIfSiteRepoExists();
                 if (!siteCheck) {
+                    logger.info("Create search index for site " + siteId);
                     try {
                         searchService.createIndex(siteId);
                         success = true;
@@ -112,7 +114,9 @@ public class StudioNodeSyncTaskImpl implements Runnable {
                         success = false;
                     }
 
+
                     if (success) {
+                        logger.info("Create preview deployer target site " + siteId);
                         try {
                             success = previewDeployer.createTarget(siteId);
                         } catch (Exception e) {
@@ -135,6 +139,7 @@ public class StudioNodeSyncTaskImpl implements Runnable {
 
                     if (success) {
                         try {
+                            logger.info("Create site from remote for site " + siteId);
                             createSiteFromRemote();
                             success = true;
                         } catch (InvalidRemoteRepositoryException | InvalidRemoteRepositoryCredentialsException | RemoteRepositoryNotFoundException | ServiceLayerException | CryptoException e) {
@@ -145,6 +150,7 @@ public class StudioNodeSyncTaskImpl implements Runnable {
 
                     if (success) {
                         try {
+                            logger.info("Add remotes for site " + siteId);
                             addRemotes();
                             success = true;
                         } catch (InvalidRemoteUrlException | ServiceLayerException | CryptoException e) {
@@ -155,6 +161,7 @@ public class StudioNodeSyncTaskImpl implements Runnable {
                 }
 
                 try {
+                    logger.info("Update content for site " + siteId);
                     updateContent();
                 } catch (IOException | CryptoException | ServiceLayerException e) {
                     e.printStackTrace();
@@ -165,6 +172,7 @@ public class StudioNodeSyncTaskImpl implements Runnable {
         } else {
             logger.error("Not able to work - another worker still active");
         }
+        logger.info("Finished Cluster Node Sync task for site " + siteId);
     }
 
     private boolean createSiteFromRemote()
