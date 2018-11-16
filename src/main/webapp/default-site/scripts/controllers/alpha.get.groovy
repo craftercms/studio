@@ -1,0 +1,1 @@
+return "/templates/alpha/index.html"
