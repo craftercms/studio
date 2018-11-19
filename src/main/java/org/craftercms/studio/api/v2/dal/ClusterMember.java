@@ -20,7 +20,14 @@ package org.craftercms.studio.api.v2.dal;
 
 public class ClusterMember {
 
+    public enum State {
+        REGISTRATION_INCOMPLETE,
+        ACTIVE
+    }
+
     private long id;
+    private String localIp;
+    private State state;
     private String gitUrl;
     private String gitRemoteName;
     private String gitAuthType;
@@ -35,6 +42,22 @@ public class ClusterMember {
 
     public void setId(long id) {
         this.id = id;
+    }
+
+    public String getLocalIp() {
+        return localIp;
+    }
+
+    public void setLocalIp(String localIp) {
+        this.localIp = localIp;
+    }
+
+    public State getState() {
+        return state;
+    }
+
+    public void setState(State state) {
+        this.state = state;
     }
 
     public String getGitUrl() {

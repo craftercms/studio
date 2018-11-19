@@ -24,6 +24,8 @@
 
     <resultMap id="ClusterMap" type="org.craftercms.studio.api.v2.dal.ClusterMember">
         <id property="id" column="id"/>
+        <result property="localIp" column="local_ip" />
+        <result property="state" column="state" />
         <result property="gitUrl" column="git_url" />
         <result property="gitRemoteName" column="git_remote_name" />
         <result property="gitAuthType" column="git_auth_type" />
@@ -37,6 +39,10 @@
         SELECT * FROM cluster;
     </select>
 
+    <select id="getOtherMembers" resultMap="ClusterMap" parameterType="Map">
+        SELECT * FROM cluster WHERE local_ip &lt;&gt; #{localIp} AND state = #{state}
+    </select>
+
     <select id="getMemberById" resultMap="ClusterMap" parameterType="long">
         SELECT * FROM cluster WHERE id = #{clusterMemberId}
     </select>
@@ -46,9 +52,11 @@
     </select>
     
     <insert id="addMember" parameterType="org.craftercms.studio.api.v2.dal.ClusterMember">
-        INSERT INTO cluster (git_url, git_remote_name, git_auth_type, git_username, git_password, git_token,
+        INSERT INTO cluster (local_ip, state, git_url, git_remote_name, git_auth_type, git_username, git_password,
+        git_token,
         git_private_key)
-        VALUES (#{gitUrl}, #{gitRemoteName}, #{gitAuthType}, #{gitUsername}, #{gitPassword}, #{gitToken},
+        VALUES (#{localIp}, #{state}, #{gitUrl}, #{gitRemoteName}, #{gitAuthType}, #{gitUsername}, #{gitPassword},
+        #{gitToken},
         #{gitPrivateKey})
     </insert>
     
@@ -70,4 +78,8 @@
             #{memberId}
         </foreach>
     </delete>
+
+    <select id="countRegistrations" resultType="int" parameterType="java.util.Map" >
+        SELECT COUNT(*) FROM cluster WHERE local_ip = #{localIp}
+    </select>
 </mapper>

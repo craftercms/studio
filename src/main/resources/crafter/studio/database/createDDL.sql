@@ -300,6 +300,8 @@ CREATE TABLE IF NOT EXISTS remote_repository
 CREATE TABLE IF NOT EXISTS cluster
 (
   `id`                  BIGINT(20)    NOT NULL AUTO_INCREMENT,
+  `local_ip`            VARCHAR(40)   NOT NULL,
+  `state`              VARCHAR(50)   NOT NULL,
   `git_url`             VARCHAR(500)  NOT NULL,
   `git_remote_name`     VARCHAR(50)   NOT NULL,
   `git_auth_type`       VARCHAR(16)   NOT NULL,

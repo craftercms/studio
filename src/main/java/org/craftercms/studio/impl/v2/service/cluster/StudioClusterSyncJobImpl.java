@@ -18,6 +18,7 @@
 
 package org.craftercms.studio.impl.v2.service.cluster;
 
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.deployment.PreviewDeployer;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -30,11 +31,15 @@ import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.craftercms.studio.api.v2.service.cluster.StudioClusterSyncJob;
 import org.springframework.core.task.TaskExecutor;
 
+import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
+
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_LOCAL_IP;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_STATE;
 
 public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
 
@@ -53,7 +58,16 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
         logger.debug("Starting Cluster Sync worker");
         try {
             Set<String> siteNames = siteService.getAllAvailableSites();
-            List<ClusterMember> clusterMembers = clusterDAO.getAllMembers();
+            InetAddress inetAddress = InetAddress.getLocalHost();
+            String localIp = StringUtils.EMPTY;
+            if (inetAddress != null) {
+                localIp = inetAddress.getHostAddress();
+            }
+            Map<String, String> params = new HashMap<String, String>();
+            params.put(CLUSTER_LOCAL_IP, localIp);
+            params.put(CLUSTER_STATE, ClusterMember.State.ACTIVE.toString());
+            List<ClusterMember> clusterMembers = clusterDAO.getOtherMembers(params);
+            logger.error("cluster members size " + clusterMembers.size());
             if ((clusterMembers != null && clusterMembers.size() > 0) && (siteNames != null && siteNames.size() > 0)) {
                 for (String site : siteNames) {
                     StudioNodeSyncTaskImpl nodeSyncTask = new StudioNodeSyncTaskImpl();

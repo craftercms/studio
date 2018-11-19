@@ -31,6 +31,13 @@ public interface ClusterDAO {
     List<ClusterMember> getAllMembers();
 
     /**
+     * Get other cluster members from database - different from member executing query
+     *
+     * @return List of cluster members
+     */
+    List<ClusterMember> getOtherMembers(Map params);
+
+    /**
      * Update cluster member in the database
      *
      * @param member Cluster member to update
