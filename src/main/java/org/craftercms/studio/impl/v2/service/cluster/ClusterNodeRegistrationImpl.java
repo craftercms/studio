@@ -62,7 +62,7 @@ public class ClusterNodeRegistrationImpl implements ClusterNodeRegistration {
                         .replace("{absolutePath}", path.toAbsolutePath().toString());
                 clusterMember.setGitUrl(gitUrl);
                 clusterMember.setState(ClusterMember.State.REGISTRATION_INCOMPLETE);
-                clusterMember.setGitRemoteName(metaDao.getInstanceId());
+                clusterMember.setGitRemoteName(clusterMember.getLocalIp());
                 clusterMember.setGitAuthType(RemoteRepository.AuthenticationType.NONE);
                 registerClusterNode(clusterMember);
             }
