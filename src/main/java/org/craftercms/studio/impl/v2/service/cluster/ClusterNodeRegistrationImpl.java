@@ -59,7 +59,8 @@ public class ClusterNodeRegistrationImpl implements ClusterNodeRegistration {
                 String username = System.getProperty("user.name");
                 String gitUrl = GIT_URL_PATTERN.replace("{username}", username)
                         .replace("{localIp}", clusterMember.getLocalIp())
-                        .replace("{absolutePath}", path.toAbsolutePath().toString());
+                        .replace("{absolutePath}", path.toAbsolutePath().toString())
+                        + "/{siteId}";
                 clusterMember.setGitUrl(gitUrl);
                 clusterMember.setState(ClusterMember.State.REGISTRATION_INCOMPLETE);
                 clusterMember.setGitRemoteName(clusterMember.getLocalIp());
