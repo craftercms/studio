@@ -212,7 +212,7 @@ public class StudioNodeSyncTaskImpl implements Runnable {
         TextEncryptor encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
                 studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
         // prepare a new folder for the cloned repository
-        Path siteSandboxPath = Paths.get(buildRepoPath(repoType).toString(), siteId);
+        Path siteSandboxPath = buildRepoPath(repoType);
         File localPath = siteSandboxPath.toFile();
         localPath.delete();
         logger.debug("Add user credentials if provided");
@@ -292,7 +292,7 @@ public class StudioNodeSyncTaskImpl implements Runnable {
                     throw new ServiceLayerException("Unsupported authentication type " + remoteNode.getGitAuthType());
             }
             cloneResult = cloneCommand
-                    .setURI(remoteNode.getGitUrl())
+                    .setURI(remoteNode.getGitUrl().replace("{siteId}", siteId))
                     .setRemote(remoteNode.getGitRemoteName())
                     .setDirectory(localPath)
                     .setCloneAllBranches(true)
@@ -368,8 +368,9 @@ public class StudioNodeSyncTaskImpl implements Runnable {
                 privateKey = encryptor.decrypt(hashedPrivateKey);
             }
             try {
-                contentRepository.addRemote(siteId, member.getGitRemoteName(), member.getGitUrl(),
-                        member.getGitAuthType(), member.getGitUsername(), password, token, privateKey);
+                contentRepository.addRemote(siteId, member.getGitRemoteName(),
+                        member.getGitUrl().replace("{siteId}", siteId), member.getGitAuthType(),
+                        member.getGitUsername(), password, token, privateKey);
             } catch (RemoteAlreadyExistsException | DuplicateKeyException e) {
                 logger.info("Remote " + member.getGitRemoteName() + " already exists for site " + siteId);
             }
