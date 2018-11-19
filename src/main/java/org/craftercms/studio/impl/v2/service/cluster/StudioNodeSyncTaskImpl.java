@@ -291,8 +291,18 @@ public class StudioNodeSyncTaskImpl implements Runnable {
                 default:
                     throw new ServiceLayerException("Unsupported authentication type " + remoteNode.getGitAuthType());
             }
+            String cloneUrl = remoteNode.getGitUrl().replace("{siteId}", siteId);
+            switch (repoType) {
+                case SANDBOX:
+                    cloneUrl = cloneUrl + "/" + studioConfiguration.getProperty(StudioConfiguration.SANDBOX_PATH);
+                    break;
+                case PUBLISHED:
+                    cloneUrl = cloneUrl + "/" + studioConfiguration.getProperty(StudioConfiguration.PUBLISHED_PATH);
+                    break;
+                default:
+            }
             cloneResult = cloneCommand
-                    .setURI(remoteNode.getGitUrl().replace("{siteId}", siteId))
+                    .setURI(cloneUrl)
                     .setRemote(remoteNode.getGitRemoteName())
                     .setDirectory(localPath)
                     .setCloneAllBranches(true)
