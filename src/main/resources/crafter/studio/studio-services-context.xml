@@ -550,7 +550,7 @@
     <!-- Cluster -->
     <!-- /////// -->
     <bean id="clusterNodeRegistraition"
-          class="org.craftercms.studio.impl.v2.service.cluster.ClusterNodeRegistrationImpl" init-method="init" >
+          class="org.craftercms.studio.impl.v2.service.cluster.ClusterNodeRegistrationImpl" init-method="init" destroy-method="destroy">
         <property name="clusterDao" ref="clusterDao" />
         <property name="metaDao" ref="metaDAO" />
         <property name="studioConfiguration" ref="studioConfiguration" />

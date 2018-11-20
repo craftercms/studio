@@ -411,6 +411,7 @@ public class StudioNodeSyncTaskImpl implements Runnable {
         TextEncryptor encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
                 studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
         for (ClusterMember member : clusterNodes) {
+            /*
             String hashedPassword = member.getGitPassword();
             String password = hashedPassword;
             if (StringUtils.isNotEmpty(hashedPassword)) {
@@ -426,12 +427,85 @@ public class StudioNodeSyncTaskImpl implements Runnable {
             if (StringUtils.isNotEmpty(hashedPrivateKey)) {
                 privateKey = encryptor.decrypt(hashedPrivateKey);
             }
+            /*
             try {
                 contentRepository.addRemote(siteId, member.getGitRemoteName(),
-                        member.getGitUrl().replace("{siteId}", siteId), member.getGitAuthType(),
+                        remoteUrl, member.getGitAuthType(),
                         member.getGitUsername(), password, token, privateKey);
             } catch (RemoteAlreadyExistsException | DuplicateKeyException e) {
                 logger.info("Remote " + member.getGitRemoteName() + " already exists for site " + siteId);
+            }*/
+            FileRepositoryBuilder builder = new FileRepositoryBuilder();
+            try {
+                String remoteUrl =
+                        member.getGitUrl().replace("{siteId}", siteId) + "/" + studioConfiguration.getProperty(StudioConfiguration.SANDBOX_PATH);
+
+                Repository repo = builder
+                        .setGitDir(buildRepoPath(SANDBOX).resolve(GIT_ROOT).toFile())
+                        .readEnvironment()
+                        .findGitDir()
+                        .build();
+
+                try (Git git = new Git(repo)) {
+
+                    Config storedConfig = repo.getConfig();
+                    Set<String> remotes = storedConfig.getSubsections("remote");
+
+                    if (remotes.contains(member.getGitRemoteName())) {
+                        throw new RemoteAlreadyExistsException(member.getGitRemoteName());
+                    }
+
+                    RemoteAddCommand remoteAddCommand = git.remoteAdd();
+                    remoteAddCommand.setName(member.getGitRemoteName());
+                    remoteAddCommand.setUri(new URIish(remoteUrl));
+                    remoteAddCommand.call();
+                } catch (URISyntaxException e) {
+                    logger.error("Remote URL is invalid " + remoteUrl, e);
+                    throw new InvalidRemoteUrlException();
+                } catch (GitAPIException e) {
+                    logger.error("Error while adding remote " + member.getGitRemoteName() + " (url: " + remoteUrl + ") for site " +
+                            siteId, e);
+                    throw new ServiceLayerException("Error while adding remote " + member.getGitRemoteName() + " (url: " + remoteUrl +
+                            ") for site " + siteId, e);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            try {
+                String remoteUrl =
+                        member.getGitUrl().replace("{siteId}", siteId) + "/" + studioConfiguration.getProperty(StudioConfiguration.PUBLISHED_PATH);
+
+                Repository repo = builder
+                        .setGitDir(buildRepoPath(PUBLISHED).resolve(GIT_ROOT).toFile())
+                        .readEnvironment()
+                        .findGitDir()
+                        .build();
+
+                try (Git git = new Git(repo)) {
+
+                    Config storedConfig = repo.getConfig();
+                    Set<String> remotes = storedConfig.getSubsections("remote");
+
+                    if (remotes.contains(member.getGitRemoteName())) {
+                        throw new RemoteAlreadyExistsException(member.getGitRemoteName());
+                    }
+
+                    RemoteAddCommand remoteAddCommand = git.remoteAdd();
+                    remoteAddCommand.setName(member.getGitRemoteName());
+                    remoteAddCommand.setUri(new URIish(remoteUrl));
+                    remoteAddCommand.call();
+                } catch (URISyntaxException e) {
+                    logger.error("Remote URL is invalid " + remoteUrl, e);
+                    throw new InvalidRemoteUrlException();
+                } catch (GitAPIException e) {
+                    logger.error("Error while adding remote " + member.getGitRemoteName() + " (url: " + remoteUrl + ") for site " +
+                            siteId, e);
+                    throw new ServiceLayerException("Error while adding remote " + member.getGitRemoteName() + " (url: " + remoteUrl +
+                            ") for site " + siteId, e);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
     }
