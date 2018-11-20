@@ -43,10 +43,13 @@ import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.PullCommand;
+import org.eclipse.jgit.api.RemoteAddCommand;
 import org.eclipse.jgit.api.TransportConfigCallback;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.api.errors.TransportException;
+import org.eclipse.jgit.lib.Config;
+import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.merge.MergeStrategy;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
@@ -55,12 +58,14 @@ import org.eclipse.jgit.transport.OpenSshConfig;
 import org.eclipse.jgit.transport.SshSessionFactory;
 import org.eclipse.jgit.transport.SshTransport;
 import org.eclipse.jgit.transport.Transport;
+import org.eclipse.jgit.transport.URIish;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.eclipse.jgit.util.FS;
 import org.springframework.dao.DuplicateKeyException;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -68,6 +73,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -76,6 +82,7 @@ import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_KEY;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_SALT;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_ROOT;
+import static org.eclipse.jgit.lib.Constants.DEFAULT_REMOTE_NAME;
 
 public class StudioNodeSyncTaskImpl implements Runnable {
 
@@ -166,16 +173,14 @@ public class StudioNodeSyncTaskImpl implements Runnable {
                             }
                         }
                     }
+                }
 
-                    if (success) {
-                        try {
-                            logger.debug("Add remotes for site " + siteId);
-                            addRemotes();
+                try {
+                    logger.debug("Add remotes for site " + siteId);
+                    addRemotes();
 
-                        } catch (InvalidRemoteUrlException | ServiceLayerException | CryptoException e) {
-                            logger.error("Error while adding remotes on cluster node for site " + siteId);
-                        }
-                    }
+                } catch (InvalidRemoteUrlException | ServiceLayerException | CryptoException e) {
+                    logger.error("Error while adding remotes on cluster node for site " + siteId);
                 }
 
                 try {
@@ -284,8 +289,6 @@ public class StudioNodeSyncTaskImpl implements Runnable {
                             sshTransport.setSshSessionFactory(getSshSessionFactory(privateKey, tempKey));
                         }
                     });
-                    cloneCommand.call();
-                    Files.delete(tempKey);
 
                     break;
                 default:
@@ -308,6 +311,14 @@ public class StudioNodeSyncTaskImpl implements Runnable {
                     .setCloneAllBranches(true)
                     .call();
             Files.deleteIfExists(tempKey);
+
+            if (repoType.equals(PUBLISHED)) {
+                try {
+                    addOriginRemote();
+                } catch (InvalidRemoteUrlException e) {
+                    logger.error("Failed to add sandbox as origin");
+                }
+            }
 
         } catch (InvalidRemoteException e) {
             logger.error("Invalid remote repository: " + remoteNode.getGitRemoteName() + " (" + remoteNode.getGitUrl() + ")", e);
@@ -336,6 +347,39 @@ public class StudioNodeSyncTaskImpl implements Runnable {
             }
         }
         return toRet;
+    }
+
+    private void addOriginRemote() throws IOException, InvalidRemoteUrlException, ServiceLayerException {
+        FileRepositoryBuilder builder = new FileRepositoryBuilder();
+        Repository repo = builder
+                .setGitDir(buildRepoPath(PUBLISHED).toFile())
+                .readEnvironment()
+                .findGitDir()
+                .build();
+        String remoteUrl = buildRepoPath(SANDBOX).toString();
+        try (Git git = new Git(repo)) {
+
+            Config storedConfig = repo.getConfig();
+            Set<String> remotes = storedConfig.getSubsections("remote");
+
+            if (remotes.contains(DEFAULT_REMOTE_NAME)) {
+                return;
+            }
+
+
+            RemoteAddCommand remoteAddCommand = git.remoteAdd();
+            remoteAddCommand.setName(DEFAULT_REMOTE_NAME);
+            remoteAddCommand.setUri(new URIish(remoteUrl));
+            remoteAddCommand.call();
+        } catch (URISyntaxException e) {
+            logger.error("Remote URL is invalid " + remoteUrl, e);
+            throw new InvalidRemoteUrlException();
+        } catch (GitAPIException e) {
+            logger.error("Error while adding remote " + DEFAULT_REMOTE_NAME + " (url: " + remoteUrl + ") for site " +
+                    siteId, e);
+            throw new ServiceLayerException("Error while adding remote " + DEFAULT_REMOTE_NAME + " (url: " + remoteUrl +
+                    ") for site " + siteId, e);
+        }
     }
 
     private Path buildRepoPath(GitRepositories repoType) {
