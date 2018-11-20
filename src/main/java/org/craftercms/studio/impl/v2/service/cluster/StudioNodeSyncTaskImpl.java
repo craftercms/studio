@@ -42,6 +42,7 @@ import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.ListBranchCommand;
 import org.eclipse.jgit.api.PullCommand;
 import org.eclipse.jgit.api.RemoteAddCommand;
 import org.eclipse.jgit.api.TransportConfigCallback;
@@ -50,11 +51,14 @@ import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.lib.Config;
 import org.eclipse.jgit.lib.Constants;
+import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.merge.MergeStrategy;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
+import org.eclipse.jgit.transport.FetchResult;
 import org.eclipse.jgit.transport.JschConfigSessionFactory;
 import org.eclipse.jgit.transport.OpenSshConfig;
+import org.eclipse.jgit.transport.RemoteConfig;
 import org.eclipse.jgit.transport.SshSessionFactory;
 import org.eclipse.jgit.transport.SshTransport;
 import org.eclipse.jgit.transport.Transport;
@@ -527,96 +531,106 @@ public class StudioNodeSyncTaskImpl implements Runnable {
                 .findGitDir()
                 .build();
         try (Git git = new Git(repo)) {
-            /*List<RemoteConfig> remotes = git.remoteList().call();
+            List<RemoteConfig> remotes = git.remoteList().call();
             for (RemoteConfig remote : remotes) {
                 FetchResult fetchResult = git.fetch()
                         .setRemote(remote.getName())
                         .setRemoveDeletedRefs(true)
                         .call();
-            }*/
+            }
 
             for (ClusterMember remoteNode : clusterNodes) {
-                PullCommand pullCommand = git.pull();
-                logger.debug("Set remote " + remoteNode.getGitUrl());
-                pullCommand.setRemote(remoteNode.getGitRemoteName());
-                pullCommand.setStrategy(MergeStrategy.THEIRS);
-                switch (remoteNode.getGitAuthType()) {
-                    case RemoteRepository.AuthenticationType.NONE:
-                        logger.debug("No authentication");
-                        pullCommand.call();
-                        break;
-                    case RemoteRepository.AuthenticationType.BASIC:
-                        logger.debug("Basic authentication");
-                        String hashedPassword = remoteNode.getGitPassword();
-                        String password = encryptor.decrypt(hashedPassword);
-                        UsernamePasswordCredentialsProvider credentialsProviderUP =
-                                new UsernamePasswordCredentialsProvider(remoteNode.getGitUsername(), password);
-                        pullCommand.setTransportConfigCallback(new TransportConfigCallback() {
-                            @Override
-                            public void configure(Transport transport) {
-                                SshTransport sshTransport = (SshTransport)transport;
-                                ((SshTransport) transport).setSshSessionFactory(new JschConfigSessionFactory() {
-                                    @Override
-                                    protected void configure(OpenSshConfig.Host host, Session session) {
-                                        Properties config = new Properties();
-                                        config.put("StrictHostKeyChecking", "no");
-                                        session.setConfig(config);
-                                        session.setPassword(password);
-                                    }
-                                });
-                            }
-                        });
-                        pullCommand.setCredentialsProvider(credentialsProviderUP);
-                        pullCommand.call();
-                        break;
-                    case RemoteRepository.AuthenticationType.TOKEN:
-                        logger.debug("Token based authentication");
-                        String hashedToken = remoteNode.getGitToken();
-                        String token = encryptor.decrypt(hashedToken);
-                        UsernamePasswordCredentialsProvider credentialsProvider =
-                                new UsernamePasswordCredentialsProvider(token, StringUtils.EMPTY);
-                        pullCommand.setTransportConfigCallback(new TransportConfigCallback() {
-                            @Override
-                            public void configure(Transport transport) {
-                                SshTransport sshTransport = (SshTransport)transport;
-                                ((SshTransport) transport).setSshSessionFactory(new JschConfigSessionFactory() {
-                                    @Override
-                                    protected void configure(OpenSshConfig.Host host, Session session) {
-                                        Properties config = new Properties();
-                                        config.put("StrictHostKeyChecking", "no");
-                                        session.setConfig(config);
-                                    }
-                                });
-                                sshTransport.setCredentialsProvider(credentialsProvider);
-                            }
-                        });
-                        pullCommand.call();
-                        break;
-                    case RemoteRepository.AuthenticationType.PRIVATE_KEY:
-                        logger.debug("Private key authentication");
-                        final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
-                        String hashedPrivateKey = remoteNode.getGitPrivateKey();
-                        String privateKey = encryptor.decrypt(hashedPrivateKey);
-                        tempKey.toFile().deleteOnExit();
-                        pullCommand.setTransportConfigCallback(new TransportConfigCallback() {
-                            @Override
-                            public void configure(Transport transport) {
-                                SshTransport sshTransport = (SshTransport)transport;
-                                sshTransport.setSshSessionFactory(getSshSessionFactory(privateKey, tempKey));
-                            }
-                        });
-                        pullCommand.call();
-                        Files.delete(tempKey);
-                        break;
-                    default:
-                        throw new ServiceLayerException("Unsupported authentication type " +
-                                remoteNode.getGitAuthType());
+                List<Ref> branches = git.branchList().setListMode(ListBranchCommand.ListMode.REMOTE).call();
+                for (Ref branch : branches) {
+                    updateBranch(git, remoteNode, branch.getName());
                 }
             }
         } catch (GitAPIException e) {
             e.printStackTrace();
         }
 
+    }
+
+    private void updateBranch(Git git, ClusterMember remoteNode, String branch) throws CryptoException, GitAPIException, IOException, ServiceLayerException {
+        TextEncryptor encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
+                studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
+        git.checkout().setName(branch).call();
+        PullCommand pullCommand = git.pull();
+        logger.debug("Set remote " + remoteNode.getGitUrl());
+        pullCommand.setRemote(remoteNode.getGitRemoteName());
+        pullCommand.setStrategy(MergeStrategy.THEIRS);
+        switch (remoteNode.getGitAuthType()) {
+            case RemoteRepository.AuthenticationType.NONE:
+                logger.debug("No authentication");
+                pullCommand.call();
+                break;
+            case RemoteRepository.AuthenticationType.BASIC:
+                logger.debug("Basic authentication");
+                String hashedPassword = remoteNode.getGitPassword();
+                String password = encryptor.decrypt(hashedPassword);
+                UsernamePasswordCredentialsProvider credentialsProviderUP =
+                        new UsernamePasswordCredentialsProvider(remoteNode.getGitUsername(), password);
+                pullCommand.setTransportConfigCallback(new TransportConfigCallback() {
+                    @Override
+                    public void configure(Transport transport) {
+                        SshTransport sshTransport = (SshTransport)transport;
+                        ((SshTransport) transport).setSshSessionFactory(new JschConfigSessionFactory() {
+                            @Override
+                            protected void configure(OpenSshConfig.Host host, Session session) {
+                                Properties config = new Properties();
+                                config.put("StrictHostKeyChecking", "no");
+                                session.setConfig(config);
+                                session.setPassword(password);
+                            }
+                        });
+                    }
+                });
+                pullCommand.setCredentialsProvider(credentialsProviderUP);
+                pullCommand.call();
+                break;
+            case RemoteRepository.AuthenticationType.TOKEN:
+                logger.debug("Token based authentication");
+                String hashedToken = remoteNode.getGitToken();
+                String token = encryptor.decrypt(hashedToken);
+                UsernamePasswordCredentialsProvider credentialsProvider =
+                        new UsernamePasswordCredentialsProvider(token, StringUtils.EMPTY);
+                pullCommand.setTransportConfigCallback(new TransportConfigCallback() {
+                    @Override
+                    public void configure(Transport transport) {
+                        SshTransport sshTransport = (SshTransport)transport;
+                        ((SshTransport) transport).setSshSessionFactory(new JschConfigSessionFactory() {
+                            @Override
+                            protected void configure(OpenSshConfig.Host host, Session session) {
+                                Properties config = new Properties();
+                                config.put("StrictHostKeyChecking", "no");
+                                session.setConfig(config);
+                            }
+                        });
+                        sshTransport.setCredentialsProvider(credentialsProvider);
+                    }
+                });
+                pullCommand.call();
+                break;
+            case RemoteRepository.AuthenticationType.PRIVATE_KEY:
+                logger.debug("Private key authentication");
+                final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
+                String hashedPrivateKey = remoteNode.getGitPrivateKey();
+                String privateKey = encryptor.decrypt(hashedPrivateKey);
+                tempKey.toFile().deleteOnExit();
+                pullCommand.setTransportConfigCallback(new TransportConfigCallback() {
+                    @Override
+                    public void configure(Transport transport) {
+                        SshTransport sshTransport = (SshTransport)transport;
+                        sshTransport.setSshSessionFactory(getSshSessionFactory(privateKey, tempKey));
+                    }
+                });
+                pullCommand.call();
+                Files.delete(tempKey);
+                break;
+            default:
+                throw new ServiceLayerException("Unsupported authentication type " +
+                        remoteNode.getGitAuthType());
+        }
     }
 
     private SshSessionFactory getSshSessionFactory(String remotePrivateKey, final Path tempKey) {
