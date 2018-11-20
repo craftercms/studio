@@ -353,7 +353,7 @@ public class StudioNodeSyncTaskImpl implements Runnable {
     private void addOriginRemote() throws IOException, InvalidRemoteUrlException, ServiceLayerException {
         FileRepositoryBuilder builder = new FileRepositoryBuilder();
         Repository repo = builder
-                .setGitDir(buildRepoPath(PUBLISHED).toFile())
+                .setGitDir(buildRepoPath(PUBLISHED).resolve(GIT_ROOT).toFile())
                 .readEnvironment()
                 .findGitDir()
                 .build();
