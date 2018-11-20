@@ -554,6 +554,7 @@ public class StudioNodeSyncTaskImpl implements Runnable {
     private void updateBranch(Git git, ClusterMember remoteNode, String branch) throws CryptoException, GitAPIException, IOException, ServiceLayerException {
         TextEncryptor encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
                 studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
+        logger.error("Branch: " + branch);
         git.checkout().setName(branch).call();
         PullCommand pullCommand = git.pull();
         logger.debug("Set remote " + remoteNode.getGitUrl());
