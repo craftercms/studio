@@ -25,4 +25,6 @@ public interface ClusterNodeRegistration {
     boolean isRegistered(String localIp);
 
     boolean registerClusterNode(ClusterMember clusterMember);
+
+    boolean removeClusterNode(String localIp);
 }

@@ -79,6 +79,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import static org.craftercms.studio.api.v1.constant.GitRepositories.PUBLISHED;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.PUBLISHED_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_KEY;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_SALT;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_ROOT;
@@ -356,7 +357,11 @@ public class StudioNodeSyncTaskImpl implements Runnable {
                 .readEnvironment()
                 .findGitDir()
                 .build();
-        String remoteUrl = buildRepoPath(SANDBOX).toString();
+        // Build a path for the site/sandbox
+        Path siteSandboxPath = buildRepoPath(SANDBOX);
+        // Built a path for the site/published
+        Path sitePublishedPath = buildRepoPath(PUBLISHED);
+        String remoteUrl = sitePublishedPath.relativize(siteSandboxPath).toString();
         try (Git git = new Git(repo)) {
 
             Config storedConfig = repo.getConfig();

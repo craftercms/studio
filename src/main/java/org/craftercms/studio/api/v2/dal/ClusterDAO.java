@@ -79,4 +79,13 @@ public interface ClusterDAO {
      * @return 0 if member does not exist, if member exists returns value greater than 0
      */
     int memberExists(String memberUrl);
+
+    /**
+     * Remove member from cluster in the database by local ip
+     *
+     * @param params Parameters for SQL query
+     *
+     * @return number of affected rows
+     */
+    int removeMemberByLocalIp(Map params);
 }

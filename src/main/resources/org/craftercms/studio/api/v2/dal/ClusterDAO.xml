@@ -82,4 +82,8 @@
     <select id="countRegistrations" resultType="int" parameterType="java.util.Map" >
         SELECT COUNT(*) FROM cluster WHERE local_ip = #{localIp}
     </select>
+
+    <delete id="removeMemberByLocalIp" parameterType="java.util.Map">
+        DELETE FROM cluster WHERE local_ip = #{localIp}
+    </delete>
 </mapper>

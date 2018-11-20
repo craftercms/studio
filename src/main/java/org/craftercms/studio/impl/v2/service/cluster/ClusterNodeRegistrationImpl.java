@@ -72,6 +72,16 @@ public class ClusterNodeRegistrationImpl implements ClusterNodeRegistration {
         }
     }
 
+    public void destroy() {
+        InetAddress inetAddress = null;
+        try {
+            inetAddress = InetAddress.getLocalHost();
+            removeClusterNode(inetAddress.getHostAddress());
+        } catch (UnknownHostException e) {
+            logger.error("Failed to get local IP");
+        }
+    }
+
     @Override
     public boolean isRegistered(String localIp) {
         if (StringUtils.isNotEmpty(localIp)) {
@@ -87,6 +97,14 @@ public class ClusterNodeRegistrationImpl implements ClusterNodeRegistration {
     @Override
     public boolean registerClusterNode(ClusterMember clusterMember) {
         int result = clusterDao.addMember(clusterMember);
+        return result > 0;
+    }
+
+    @Override
+    public boolean removeClusterNode(String localIp) {
+        Map<String, String> params = new HashMap<String, String>();
+        params.put(CLUSTER_LOCAL_IP, localIp);
+        int result = clusterDao.removeMemberByLocalIp(params);
         return result > 0;
     }
 
