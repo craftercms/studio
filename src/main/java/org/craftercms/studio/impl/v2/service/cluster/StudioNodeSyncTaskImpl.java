@@ -531,13 +531,14 @@ public class StudioNodeSyncTaskImpl implements Runnable {
                 .findGitDir()
                 .build();
         try (Git git = new Git(repo)) {
+            /*
             List<RemoteConfig> remotes = git.remoteList().call();
             for (RemoteConfig remote : remotes) {
                 FetchResult fetchResult = git.fetch()
                         .setRemote(remote.getName())
                         .setRemoveDeletedRefs(true)
                         .call();
-            }
+            }*/
 
             for (ClusterMember remoteNode : clusterNodes) {
                 List<Ref> branches = git.branchList().setListMode(ListBranchCommand.ListMode.REMOTE).call();
