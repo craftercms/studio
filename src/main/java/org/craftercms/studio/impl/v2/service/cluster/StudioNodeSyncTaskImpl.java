@@ -541,10 +541,10 @@ public class StudioNodeSyncTaskImpl implements Runnable {
             }*/
 
             for (ClusterMember remoteNode : clusterNodes) {
-                List<Ref> branches = git.branchList().setListMode(ListBranchCommand.ListMode.REMOTE).call();
-                for (Ref branch : branches) {
-                    updateBranch(git, remoteNode, branch.getName());
-                }
+                //List<Ref> branches = git.branchList().setListMode(ListBranchCommand.ListMode.REMOTE).call();
+                //for (Ref branch : branches) {
+                    updateBranch(git, remoteNode, StringUtils.EMPTY);
+                //}
             }
         } catch (GitAPIException e) {
             e.printStackTrace();
@@ -555,8 +555,8 @@ public class StudioNodeSyncTaskImpl implements Runnable {
     private void updateBranch(Git git, ClusterMember remoteNode, String branch) throws CryptoException, GitAPIException, IOException, ServiceLayerException {
         TextEncryptor encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
                 studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
-        logger.error("Branch: " + branch);
-        git.checkout().setName(branch).call();
+        //logger.error("Branch: " + branch);
+        //git.checkout().setName(branch).call();
         PullCommand pullCommand = git.pull();
         logger.debug("Set remote " + remoteNode.getGitUrl());
         pullCommand.setRemote(remoteNode.getGitRemoteName());
