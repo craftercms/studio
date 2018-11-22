@@ -264,6 +264,9 @@ public interface StudioConfiguration {
     String CLUSTERING_THREAD_POOL_CORE_POOL_SIZE = "studio.clustering.threadPool.corePoolSize";
     String CLUSTERING_THREAD_POOL_MAX_POOL_SIZE = "studio.clustering.threadPool.maxPoolSize";
 
+    /** Cluster Node Registration **/
+    String CLUSTERING_NODE_REGISTRATION = "studio.clustering.node.registration";
+
     void loadConfig();
 
     String getProperty(String key);

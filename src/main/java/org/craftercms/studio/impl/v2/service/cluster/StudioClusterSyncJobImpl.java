@@ -38,6 +38,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CLUSTERING_NODE_REGISTRATION;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_LOCAL_IP;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_STATE;
 
@@ -55,36 +56,42 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
 
     @Override
     public void run() {
-        logger.debug("Starting Cluster Sync worker");
-        try {
-            Set<String> siteNames = siteService.getAllAvailableSites();
-            InetAddress inetAddress = InetAddress.getLocalHost();
-            String localIp = StringUtils.EMPTY;
-            if (inetAddress != null) {
-                localIp = inetAddress.getHostAddress();
-            }
-            Map<String, String> params = new HashMap<String, String>();
-            params.put(CLUSTER_LOCAL_IP, localIp);
-            params.put(CLUSTER_STATE, ClusterMember.State.ACTIVE.toString());
-            List<ClusterMember> clusterMembers = clusterDAO.getOtherMembers(params);
-            logger.error("cluster members size " + clusterMembers.size());
-            if ((clusterMembers != null && clusterMembers.size() > 0) && (siteNames != null && siteNames.size() > 0)) {
-                for (String site : siteNames) {
-                    StudioNodeSyncTaskImpl nodeSyncTask = new StudioNodeSyncTaskImpl();
-                    nodeSyncTask.setSiteId(site);
-                    nodeSyncTask.setPreviewDeployer(previewDeployer);
-                    nodeSyncTask.setSearchService(searchService);
-                    nodeSyncTask.setStudioConfiguration(studioConfiguration);
-                    nodeSyncTask.setContentRepository(contentRepository);
-                    nodeSyncTask.setClusterNodes(clusterMembers);
-
-                    taskExecutor.execute(nodeSyncTask);
+        logger.info("Starting Cluster Sync worker");
+        List<ClusterMember> cm = clusterDAO.getAllMembers();
+        logger.error("Cluster members count " + cm.size());
+        Map<String, String> registrationData = getConfiguration();
+        if (registrationData != null && !registrationData.isEmpty()) {
+            try {
+                Set<String> siteNames = siteService.getAllAvailableSites();
+                String localIp = registrationData.get("localIp");
+                Map<String, String> params = new HashMap<String, String>();
+                params.put(CLUSTER_LOCAL_IP, localIp);
+                params.put(CLUSTER_STATE, ClusterMember.State.ACTIVE.toString());
+                List<ClusterMember> clusterMembers = clusterDAO.getOtherMembers(params);
+                logger.error("Cluster members size " + clusterMembers.size());
+                if ((clusterMembers != null && clusterMembers.size() > 0) && (siteNames != null && siteNames.size() > 0)) {
+                    for (String site : siteNames) {
+                        StudioNodeSyncTaskImpl nodeSyncTask = new StudioNodeSyncTaskImpl();
+                        nodeSyncTask.setSiteId(site);
+                        nodeSyncTask.setPreviewDeployer(previewDeployer);
+                        nodeSyncTask.setSearchService(searchService);
+                        nodeSyncTask.setStudioConfiguration(studioConfiguration);
+                        nodeSyncTask.setContentRepository(contentRepository);
+                        nodeSyncTask.setClusterNodes(clusterMembers);
+                        taskExecutor.execute(nodeSyncTask);
+                    }
                 }
+            } catch (Exception err) {
+                logger.error("Error while executing cluster sync job", err);
             }
-        } catch (Exception err) {
-            logger.error("Error while executing cluster sync job", err);
         }
         logger.debug("Cluster Sync worker finished");
+    }
+
+    private Map<String, String> getConfiguration() {
+        Map<String, String> registrationData = new HashMap<String, String>();
+        registrationData = studioConfiguration.getProperty(CLUSTERING_NODE_REGISTRATION, registrationData.getClass());
+        return registrationData;
     }
 
     public SiteService getSiteService() {

@@ -18,13 +18,14 @@
 
 package org.craftercms.studio.api.v2.service.cluster;
 
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
 
 public interface ClusterNodeRegistration {
 
     boolean isRegistered(String localIp);
 
-    boolean registerClusterNode(ClusterMember clusterMember);
+    boolean registerClusterNode(ClusterMember clusterMember) throws ServiceLayerException;
 
     boolean removeClusterNode(String localIp);
 }

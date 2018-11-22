@@ -19,7 +19,11 @@
 package org.craftercms.studio.impl.v2.service.cluster;
 
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.crypto.CryptoException;
+import org.craftercms.commons.crypto.TextEncryptor;
+import org.craftercms.commons.crypto.impl.PbkAesTextEncryptor;
 import org.craftercms.studio.api.v1.dal.RemoteRepository;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
@@ -35,6 +39,9 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CLUSTERING_NODE_REGISTRATION;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_KEY;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_SALT;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_LOCAL_IP;
 
 public class ClusterNodeRegistrationImpl implements ClusterNodeRegistration {
@@ -47,38 +54,53 @@ public class ClusterNodeRegistrationImpl implements ClusterNodeRegistration {
     private StudioConfiguration studioConfiguration;
 
     public void init() {
-        InetAddress inetAddress = null;
-        try {
-            inetAddress = InetAddress.getLocalHost();
-            if (inetAddress != null && !isRegistered(inetAddress.getHostAddress())) {
-                ClusterMember clusterMember = new ClusterMember();
-                clusterMember.setLocalIp(inetAddress.getHostAddress());
+        Map<String, String> registrationData = getConfiguration();
+        ClusterMember clusterMember = new ClusterMember();
+        if (registrationData != null && !registrationData.isEmpty()) {
+            try {
+                clusterMember.setLocalIp(registrationData.get("localIp"));
 
                 Path path = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
                         studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH));
-                String username = System.getProperty("user.name");
+                String authenticationType = registrationData.get("authenticationType");
+                String username = registrationData.get("username");
+                String password = registrationData.get("password");
+                String token = registrationData.get("token");
+                String privateKey = registrationData.get("privateKey");
                 String gitUrl = GIT_URL_PATTERN.replace("{username}", username)
                         .replace("{localIp}", clusterMember.getLocalIp())
                         .replace("{absolutePath}", path.toAbsolutePath().normalize().toString())
                         + "/{siteId}";
                 clusterMember.setGitUrl(gitUrl);
-                clusterMember.setState(ClusterMember.State.REGISTRATION_INCOMPLETE);
+                clusterMember.setState(ClusterMember.State.ACTIVE);
                 clusterMember.setGitRemoteName(clusterMember.getLocalIp());
-                clusterMember.setGitAuthType(RemoteRepository.AuthenticationType.NONE);
+                clusterMember.setGitAuthType(authenticationType.toUpperCase());
+                clusterMember.setGitUsername(username);
+                TextEncryptor encryptor = null;
+                encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
+                        studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
+                String hashedPassword = encryptor.encrypt(password);
+                clusterMember.setGitPassword(hashedPassword);
+
+                clusterMember.setGitToken(token);
+                clusterMember.setGitPrivateKey(privateKey);
                 registerClusterNode(clusterMember);
+            } catch (CryptoException e) {
+                logger.error("Failed to register cluster member");
             }
-        } catch (UnknownHostException e) {
-            logger.error("Failed to get local IP");
         }
     }
 
+    private Map<String, String> getConfiguration() {
+        Map<String, String> registrationData = new HashMap<String, String>();
+        registrationData = studioConfiguration.getProperty(CLUSTERING_NODE_REGISTRATION, registrationData.getClass());
+        return registrationData;
+    }
+
     public void destroy() {
-        InetAddress inetAddress = null;
-        try {
-            inetAddress = InetAddress.getLocalHost();
-            removeClusterNode(inetAddress.getHostAddress());
-        } catch (UnknownHostException e) {
-            logger.error("Failed to get local IP");
+        Map<String, String> registrationData = getConfiguration();
+        if (registrationData != null && !registrationData.isEmpty()) {
+            removeClusterNode(registrationData.get("localIp"));
         }
     }
 
@@ -102,6 +124,7 @@ public class ClusterNodeRegistrationImpl implements ClusterNodeRegistration {
 
     @Override
     public boolean removeClusterNode(String localIp) {
+        logger.error("Remove cluster node " + localIp);
         Map<String, String> params = new HashMap<String, String>();
         params.put(CLUSTER_LOCAL_IP, localIp);
         int result = clusterDao.removeMemberByLocalIp(params);
