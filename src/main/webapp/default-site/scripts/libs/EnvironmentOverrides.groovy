@@ -17,7 +17,7 @@ class EnvironmentOverrides {
         def context = SiteServices.createContext(appContext, request)
         result.environment = serverProperties["environment"]
 
-        def contextPath = request.getContextPath
+        def contextPath = request.getContextPath()
         result.authoringServer = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "")
                 .replace(contextPath, "")
         if (contextPath.startsWith("/")) {
