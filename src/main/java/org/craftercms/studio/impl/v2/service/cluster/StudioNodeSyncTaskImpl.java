@@ -37,14 +37,21 @@ import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoun
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
+import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.search.SearchService;
+import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v1.to.PublishingTargetTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
+import org.eclipse.jgit.api.CheckoutCommand;
 import org.eclipse.jgit.api.CloneCommand;
+import org.eclipse.jgit.api.FetchCommand;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.GitCommand;
 import org.eclipse.jgit.api.ListBranchCommand;
 import org.eclipse.jgit.api.PullCommand;
 import org.eclipse.jgit.api.RemoteAddCommand;
+import org.eclipse.jgit.api.TransportCommand;
 import org.eclipse.jgit.api.TransportConfigCallback;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
@@ -74,6 +81,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -93,6 +101,8 @@ public class StudioNodeSyncTaskImpl implements Runnable {
 
     private static final Logger logger = LoggerFactory.getLogger(StudioNodeSyncTaskImpl.class);
 
+    private static final String IN_PROGRESS_BRANCH_NAME_SUFIX = "_in_progress";
+
     protected static final Map<String, ReentrantLock> singleWorkerLockMap = new HashMap<String, ReentrantLock>();
 
     protected String siteId;
@@ -101,6 +111,8 @@ public class StudioNodeSyncTaskImpl implements Runnable {
     protected PreviewDeployer previewDeployer;
     protected StudioConfiguration studioConfiguration;
     protected ContentRepository contentRepository;
+    protected ServicesConfig servicesConfig;
+    protected SiteService siteService;
 
     @Override
     public void run() {
@@ -635,6 +647,177 @@ public class StudioNodeSyncTaskImpl implements Runnable {
         }
     }
 
+    private void updatePublished() throws IOException, CryptoException, ServiceLayerException {
+        //Cluster remoteNode = clusterNodes.get(0);
+        TextEncryptor encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
+                studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
+        boolean toRet = true;
+        // prepare a new folder for the cloned repository
+        Path siteSandboxPath = buildRepoPath(PUBLISHED).resolve(GIT_ROOT);
+        logger.debug("Add user credentials if provided");
+        // then clone
+        //logger.debug("Cloning from " + remoteNode.getRemoteUrl() + " to " + siteSandboxPath.toString());
+        FileRepositoryBuilder builder = new FileRepositoryBuilder();
+        Repository repo = builder
+                .setGitDir(siteSandboxPath.toFile())
+                .readEnvironment()
+                .findGitDir()
+                .build();
+        try (Git git = new Git(repo)) {
+            /*
+            List<RemoteConfig> remotes = git.remoteList().call();
+            for (RemoteConfig remote : remotes) {
+                FetchResult fetchResult = git.fetch()
+                        .setRemote(remote.getName())
+                        .setRemoveDeletedRefs(true)
+                        .call();
+            }*/
+
+            Set<String> environments = getAllPublishingEnvironments(siteId);
+
+            for (ClusterMember remoteNode : clusterNodes) {
+                final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
+                FetchCommand fetch = git.fetch().setRemote(remoteNode.getGitRemoteName());
+                fetch = setAuthenticationForCommand(remoteNode, fetch, tempKey);
+                fetch.call();
+                Files.delete(tempKey);
+
+                for (String branch : environments) {
+                    updatePublishedBranch(git, remoteNode, branch);
+                }
+            }
+        } catch (GitAPIException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private void updatePublishedBranch(Git git, ClusterMember remoteNode, String branch) throws CryptoException,
+            GitAPIException, IOException, ServiceLayerException {
+        final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
+        String inProgressBranchName = branch + IN_PROGRESS_BRANCH_NAME_SUFIX;
+
+        TextEncryptor encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
+                studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
+
+        Repository repo = git.getRepository();
+        Ref ref = repo.exactRef(Constants.R_HEADS + branch);
+        boolean createBranch = (ref == null);
+
+
+        CheckoutCommand checkoutCommand = git.checkout()
+                .setName(branch)
+                .setCreateBranch(createBranch);
+        if (createBranch) {
+            checkoutCommand.setStartPoint(remoteNode.getGitRemoteName() + "/" + branch);
+        }
+        checkoutCommand.call();
+
+        PullCommand pullCommand = git.pull();
+        logger.debug("Set remote " + remoteNode.getGitUrl());
+        pullCommand.setRemote(remoteNode.getGitRemoteName());
+        pullCommand.setStrategy(MergeStrategy.THEIRS);
+        pullCommand = setAuthenticationForCommand(remoteNode, pullCommand, tempKey);
+        pullCommand.call();
+        Files.delete(tempKey);
+    }
+
+    private Set<String> getAllPublishingEnvironments(String site) {
+        Set<String> environments = new HashSet<String>();
+        if (servicesConfig.isStagingEnvironmentEnabled(site)) {
+            environments.add(servicesConfig.getLiveEnvironment(site));
+            environments.add(servicesConfig.getStagingEnvironment(site));
+        } else {
+            List<PublishingTargetTO> publishingTargets = siteService.getPublishingTargetsForSite(site);
+
+            if (publishingTargets != null && publishingTargets.size() > 0) {
+                for (PublishingTargetTO target : publishingTargets) {
+                    if (StringUtils.isNotEmpty(target.getRepoBranchName())) {
+                        environments.add(target.getRepoBranchName());
+                    }
+                }
+            }
+        }
+        return environments;
+    }
+
+    private <T extends TransportCommand> T setAuthenticationForCommand(ClusterMember remoteNode, T gitCommand,
+                                                                       Path tempKey) throws CryptoException,
+            ServiceLayerException {
+        TextEncryptor encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
+                studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
+        switch (remoteNode.getGitAuthType()) {
+            case RemoteRepository.AuthenticationType.NONE:
+                logger.debug("No authentication");
+                break;
+            case RemoteRepository.AuthenticationType.BASIC:
+                logger.debug("Basic authentication");
+                String hashedPassword = remoteNode.getGitPassword();
+                String password = encryptor.decrypt(hashedPassword);
+                UsernamePasswordCredentialsProvider credentialsProviderUP =
+                        new UsernamePasswordCredentialsProvider(remoteNode.getGitUsername(), password);
+                gitCommand.setTransportConfigCallback(new TransportConfigCallback() {
+                    @Override
+                    public void configure(Transport transport) {
+                        SshTransport sshTransport = (SshTransport)transport;
+                        ((SshTransport) transport).setSshSessionFactory(new JschConfigSessionFactory() {
+                            @Override
+                            protected void configure(OpenSshConfig.Host host, Session session) {
+                                Properties config = new Properties();
+                                config.put("StrictHostKeyChecking", "no");
+                                session.setConfig(config);
+                                session.setPassword(password);
+                            }
+                        });
+                    }
+                });
+                gitCommand.setCredentialsProvider(credentialsProviderUP);
+                break;
+            case RemoteRepository.AuthenticationType.TOKEN:
+                logger.debug("Token based authentication");
+                String hashedToken = remoteNode.getGitToken();
+                String token = encryptor.decrypt(hashedToken);
+                UsernamePasswordCredentialsProvider credentialsProvider =
+                        new UsernamePasswordCredentialsProvider(token, StringUtils.EMPTY);
+                gitCommand.setTransportConfigCallback(new TransportConfigCallback() {
+                    @Override
+                    public void configure(Transport transport) {
+                        SshTransport sshTransport = (SshTransport)transport;
+                        ((SshTransport) transport).setSshSessionFactory(new JschConfigSessionFactory() {
+                            @Override
+                            protected void configure(OpenSshConfig.Host host, Session session) {
+                                Properties config = new Properties();
+                                config.put("StrictHostKeyChecking", "no");
+                                session.setConfig(config);
+                            }
+                        });
+                        sshTransport.setCredentialsProvider(credentialsProvider);
+                    }
+                });
+                break;
+            case RemoteRepository.AuthenticationType.PRIVATE_KEY:
+                logger.debug("Private key authentication");
+
+                String hashedPrivateKey = remoteNode.getGitPrivateKey();
+                String privateKey = encryptor.decrypt(hashedPrivateKey);
+                tempKey.toFile().deleteOnExit();
+                gitCommand.setTransportConfigCallback(new TransportConfigCallback() {
+                    @Override
+                    public void configure(Transport transport) {
+                        SshTransport sshTransport = (SshTransport)transport;
+                        sshTransport.setSshSessionFactory(getSshSessionFactory(privateKey, tempKey));
+                    }
+                });
+
+                break;
+            default:
+                throw new ServiceLayerException("Unsupported authentication type " +
+                        remoteNode.getGitAuthType());
+        }
+
+        return gitCommand;
+    }
+
     private SshSessionFactory getSshSessionFactory(String remotePrivateKey, final Path tempKey) {
         try {
 
@@ -669,7 +852,6 @@ public class StudioNodeSyncTaskImpl implements Runnable {
             return true;
         }
     }
-
 
     public String getSiteId() {
         return siteId;
@@ -717,5 +899,21 @@ public class StudioNodeSyncTaskImpl implements Runnable {
 
     public void setContentRepository(ContentRepository contentRepository) {
         this.contentRepository = contentRepository;
+    }
+
+    public ServicesConfig getServicesConfig() {
+        return servicesConfig;
+    }
+
+    public void setServicesConfig(ServicesConfig servicesConfig) {
+        this.servicesConfig = servicesConfig;
+    }
+
+    public SiteService getSiteService() {
+        return siteService;
+    }
+
+    public void setSiteService(SiteService siteService) {
+        this.siteService = siteService;
     }
 }

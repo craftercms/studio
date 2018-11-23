@@ -23,6 +23,7 @@ import org.craftercms.studio.api.v1.deployment.PreviewDeployer;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
+import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.search.SearchService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
@@ -53,6 +54,7 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
     private StudioConfiguration studioConfiguration;
     private ContentRepository contentRepository;
     private ClusterDAO clusterDAO;
+    private ServicesConfig servicesConfig;
 
     @Override
     public void run() {
@@ -77,6 +79,8 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
                         nodeSyncTask.setSearchService(searchService);
                         nodeSyncTask.setStudioConfiguration(studioConfiguration);
                         nodeSyncTask.setContentRepository(contentRepository);
+                        nodeSyncTask.setSiteService(siteService);
+                        nodeSyncTask.setServicesConfig(servicesConfig);
                         nodeSyncTask.setClusterNodes(clusterMembers);
                         taskExecutor.execute(nodeSyncTask);
                     }
@@ -148,5 +152,13 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
 
     public void setClusterDAO(ClusterDAO clusterDAO) {
         this.clusterDAO = clusterDAO;
+    }
+
+    public ServicesConfig getServicesConfig() {
+        return servicesConfig;
+    }
+
+    public void setServicesConfig(ServicesConfig servicesConfig) {
+        this.servicesConfig = servicesConfig;
     }
 }
