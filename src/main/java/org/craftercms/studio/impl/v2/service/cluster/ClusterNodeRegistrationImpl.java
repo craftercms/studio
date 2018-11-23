@@ -74,7 +74,7 @@ public class ClusterNodeRegistrationImpl implements ClusterNodeRegistration {
                 clusterMember.setGitUrl(gitUrl);
                 clusterMember.setState(ClusterMember.State.ACTIVE);
                 clusterMember.setGitRemoteName(clusterMember.getLocalIp());
-                clusterMember.setGitAuthType(authenticationType.toUpperCase());
+                clusterMember.setGitAuthType(authenticationType.toLowerCase());
                 clusterMember.setGitUsername(username);
                 TextEncryptor encryptor = null;
                 encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
