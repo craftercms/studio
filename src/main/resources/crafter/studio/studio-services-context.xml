@@ -466,6 +466,7 @@
         <property name="searchService" ref="searchService" />
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="contentRepository" ref="contentRepository" />
+        <property name="servicesConfig" ref="cstudioServicesConfig" />
         <property name="clusterDAO" ref="clusterDao" />
     </bean>
 
