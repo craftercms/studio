@@ -47,8 +47,6 @@ import org.eclipse.jgit.api.CheckoutCommand;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.FetchCommand;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.GitCommand;
-import org.eclipse.jgit.api.ListBranchCommand;
 import org.eclipse.jgit.api.PullCommand;
 import org.eclipse.jgit.api.RemoteAddCommand;
 import org.eclipse.jgit.api.TransportCommand;
@@ -62,17 +60,14 @@ import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.merge.MergeStrategy;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
-import org.eclipse.jgit.transport.FetchResult;
 import org.eclipse.jgit.transport.JschConfigSessionFactory;
 import org.eclipse.jgit.transport.OpenSshConfig;
-import org.eclipse.jgit.transport.RemoteConfig;
 import org.eclipse.jgit.transport.SshSessionFactory;
 import org.eclipse.jgit.transport.SshTransport;
 import org.eclipse.jgit.transport.Transport;
 import org.eclipse.jgit.transport.URIish;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.eclipse.jgit.util.FS;
-import org.springframework.dao.DuplicateKeyException;
 
 import java.io.File;
 import java.io.IOException;
@@ -91,7 +86,6 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import static org.craftercms.studio.api.v1.constant.GitRepositories.PUBLISHED;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.PUBLISHED_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_KEY;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_SALT;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_ROOT;
@@ -124,6 +118,7 @@ public class StudioNodeSyncTaskImpl implements Runnable {
         }
         if (singleWorkerLock.tryLock()) {
             try {
+                logger.debug("Check if site " + siteId + " exists in local repository");
                 boolean success = false;
                 boolean siteCheck = checkIfSiteRepoExists();
                 if (!siteCheck) {
@@ -201,8 +196,9 @@ public class StudioNodeSyncTaskImpl implements Runnable {
                 }
 
                 try {
-                    logger.info("Update content for site " + siteId);
-                    updateContent(SANDBOX);
+                    logger.debug("Update content for site " + siteId);
+                    updateContent();
+                    logger.debug("Update publised repo for site " + siteId);
                     updatePublished();
                 } catch (IOException | CryptoException | ServiceLayerException e) {
                     logger.error("Error while updating content for site " + siteId + " on cluster node.", e);
@@ -219,9 +215,8 @@ public class StudioNodeSyncTaskImpl implements Runnable {
     private boolean createSiteFromRemote()
             throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
             RemoteRepositoryNotFoundException, ServiceLayerException, CryptoException {
-        TextEncryptor encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
-                studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
         ClusterMember remoteNode = clusterNodes.get(0);
+        logger.debug("Create site " + siteId + " from remote repository " + remoteNode.getLocalIp());
         boolean toRet = cloneRepository(remoteNode, SANDBOX) && cloneRepository(remoteNode, PUBLISHED);
 
         return toRet;
@@ -230,6 +225,9 @@ public class StudioNodeSyncTaskImpl implements Runnable {
     private boolean cloneRepository(ClusterMember remoteNode, GitRepositories repoType)
             throws CryptoException, ServiceLayerException, InvalidRemoteRepositoryException,
             InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException {
+
+        logger.debug("Cloning " + repoType.toString() + " repository for site " + siteId +
+                " from " + remoteNode.getLocalIp());
         boolean toRet = true;
         TextEncryptor encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
                 studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
@@ -237,7 +235,6 @@ public class StudioNodeSyncTaskImpl implements Runnable {
         Path siteSandboxPath = buildRepoPath(repoType);
         File localPath = siteSandboxPath.toFile();
         localPath.delete();
-        logger.debug("Add user credentials if provided");
         // then clone
         logger.debug("Cloning from " + remoteNode.getGitUrl() + " to " + localPath);
         CloneCommand cloneCommand = Git.cloneRepository();
@@ -245,6 +242,7 @@ public class StudioNodeSyncTaskImpl implements Runnable {
 
         try {
             final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(),".tmp");
+            logger.debug("Add user credentials if provided");
             switch (remoteNode.getGitAuthType()) {
                 case RemoteRepository.AuthenticationType.NONE:
                     logger.debug("No authentication");
@@ -321,6 +319,8 @@ public class StudioNodeSyncTaskImpl implements Runnable {
                     break;
                 default:
             }
+
+            logger.debug("Executing clone command");
             cloneResult = cloneCommand
                     .setURI(cloneUrl)
                     .setRemote(remoteNode.getGitRemoteName())
@@ -329,6 +329,7 @@ public class StudioNodeSyncTaskImpl implements Runnable {
                     .call();
             Files.deleteIfExists(tempKey);
 
+            logger.debug("If cloned repo was published repo, than add local sandbox as origin");
             if (repoType.equals(PUBLISHED)) {
                 try {
                     addOriginRemote();
@@ -338,22 +339,22 @@ public class StudioNodeSyncTaskImpl implements Runnable {
             }
 
         } catch (InvalidRemoteException e) {
-            logger.error("Invalid remote repository: " + remoteNode.getGitRemoteName() + " (" + remoteNode.getGitUrl() + ")", e);
-            throw new InvalidRemoteRepositoryException("Invalid remote repository: " + remoteNode.getGitRemoteName() + " (" +
-                    remoteNode.getGitUrl() + ")");
+            logger.error("Invalid remote repository: " + remoteNode.getGitRemoteName() +
+                    " (" + remoteNode.getGitUrl() + ")", e);
+            throw new InvalidRemoteRepositoryException("Invalid remote repository: " +
+                    remoteNode.getGitRemoteName() + " (" + remoteNode.getGitUrl() + ")");
         } catch (TransportException e) {
             if (StringUtils.endsWithIgnoreCase(e.getMessage(), "not authorized")) {
-                logger.error("Bad credentials or read only repository: " + remoteNode.getGitRemoteName() + " (" + remoteNode.getGitUrl() + ")",
-                        e);
+                logger.error("Bad credentials or read only repository: " + remoteNode.getGitRemoteName() +
+                                " (" + remoteNode.getGitUrl() + ")", e);
                 throw new InvalidRemoteRepositoryCredentialsException("Bad credentials or read only repository: " +
-                        remoteNode.getGitRemoteName() + " (" + remoteNode.getGitUrl() + ") for username " + remoteNode.getGitUsername(),
-                        e);
+                        remoteNode.getGitRemoteName() + " (" + remoteNode.getGitUrl() + ") for username "
+                        + remoteNode.getGitUsername(), e);
             } else {
-                logger.error("Remote repository not found: " + remoteNode.getGitRemoteName() + " (" + remoteNode.getGitUrl() +
-                                ")",
-                        e);
-                throw new RemoteRepositoryNotFoundException("Remote repository not found: " + remoteNode.getGitRemoteName() + " (" +
-                        remoteNode.getGitUrl() + ")");
+                logger.error("Remote repository not found: " + remoteNode.getGitRemoteName() +
+                                " (" + remoteNode.getGitUrl() + ")",  e);
+                throw new RemoteRepositoryNotFoundException("Remote repository not found: " +
+                        remoteNode.getGitRemoteName() + " (" + remoteNode.getGitUrl() + ")");
             }
         } catch (GitAPIException | IOException e) {
             logger.error("Error while creating repository for site with path" + siteSandboxPath.toString(), e);
@@ -367,6 +368,7 @@ public class StudioNodeSyncTaskImpl implements Runnable {
     }
 
     private void addOriginRemote() throws IOException, InvalidRemoteUrlException, ServiceLayerException {
+        logger.debug("Add sandbox as origin to published repo");
         FileRepositoryBuilder builder = new FileRepositoryBuilder();
         Repository repo = builder
                 .setGitDir(buildRepoPath(PUBLISHED).resolve(GIT_ROOT).toFile())
@@ -426,35 +428,12 @@ public class StudioNodeSyncTaskImpl implements Runnable {
     private void addRemotes() throws InvalidRemoteUrlException, ServiceLayerException, CryptoException {
         TextEncryptor encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
                 studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
+        logger.debug("Add cluster members as remotes to local repository");
         for (ClusterMember member : clusterNodes) {
-            /*
-            String hashedPassword = member.getGitPassword();
-            String password = hashedPassword;
-            if (StringUtils.isNotEmpty(hashedPassword)) {
-              password = encryptor.decrypt(hashedPassword);
-            }
-            String hashedToken = member.getGitToken();
-            String token = hashedToken;
-            if (StringUtils.isNotEmpty(hashedToken)) {
-                token = encryptor.decrypt(hashedToken);
-            }
-            String hashedPrivateKey = member.getGitPrivateKey();
-            String privateKey = hashedPrivateKey;
-            if (StringUtils.isNotEmpty(hashedPrivateKey)) {
-                privateKey = encryptor.decrypt(hashedPrivateKey);
-            }
-            /*
-            try {
-                contentRepository.addRemote(siteId, member.getGitRemoteName(),
-                        remoteUrl, member.getGitAuthType(),
-                        member.getGitUsername(), password, token, privateKey);
-            } catch (RemoteAlreadyExistsException | DuplicateKeyException e) {
-                logger.info("Remote " + member.getGitRemoteName() + " already exists for site " + siteId);
-            }*/
             FileRepositoryBuilder builder = new FileRepositoryBuilder();
             try {
-                String remoteUrl =
-                        member.getGitUrl().replace("{siteId}", siteId) + "/" + studioConfiguration.getProperty(StudioConfiguration.SANDBOX_PATH);
+                String remoteUrl = member.getGitUrl().replace("{siteId}", siteId) + "/" +
+                        studioConfiguration.getProperty(StudioConfiguration.SANDBOX_PATH);
 
                 Repository repo = builder
                         .setGitDir(buildRepoPath(SANDBOX).resolve(GIT_ROOT).toFile())
@@ -471,6 +450,7 @@ public class StudioNodeSyncTaskImpl implements Runnable {
                         throw new RemoteAlreadyExistsException(member.getGitRemoteName());
                     }
 
+                    logger.debug("Add " + member.getLocalIp() + " as remote to sandbox");
                     RemoteAddCommand remoteAddCommand = git.remoteAdd();
                     remoteAddCommand.setName(member.getGitRemoteName());
                     remoteAddCommand.setUri(new URIish(remoteUrl));
@@ -485,7 +465,7 @@ public class StudioNodeSyncTaskImpl implements Runnable {
                             ") for site " + siteId, e);
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.error("Failed to open sandbox repositroy", e);
             }
 
             try {
@@ -507,6 +487,7 @@ public class StudioNodeSyncTaskImpl implements Runnable {
                         throw new RemoteAlreadyExistsException(member.getGitRemoteName());
                     }
 
+                    logger.debug("Add " + member.getLocalIp() + " as remote to published");
                     RemoteAddCommand remoteAddCommand = git.remoteAdd();
                     remoteAddCommand.setName(member.getGitRemoteName());
                     remoteAddCommand.setUri(new URIish(remoteUrl));
@@ -521,21 +502,15 @@ public class StudioNodeSyncTaskImpl implements Runnable {
                             ") for site " + siteId, e);
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.error("Failed to open published repositroy", e);
             }
         }
     }
 
-    private void updateContent(GitRepositories repoType) throws IOException, CryptoException, ServiceLayerException {
-        //Cluster remoteNode = clusterNodes.get(0);
-        TextEncryptor encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
-                studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
+    private void updateContent() throws IOException, CryptoException, ServiceLayerException {
+        logger.debug("Update sandbox for site " + siteId);
         boolean toRet = true;
-        // prepare a new folder for the cloned repository
-        Path siteSandboxPath = buildRepoPath(repoType).resolve(GIT_ROOT);
-        logger.debug("Add user credentials if provided");
-        // then clone
-        //logger.debug("Cloning from " + remoteNode.getRemoteUrl() + " to " + siteSandboxPath.toString());
+        Path siteSandboxPath = buildRepoPath(SANDBOX).resolve(GIT_ROOT);
         FileRepositoryBuilder builder = new FileRepositoryBuilder();
         Repository repo = builder
                 .setGitDir(siteSandboxPath.toFile())
@@ -543,20 +518,9 @@ public class StudioNodeSyncTaskImpl implements Runnable {
                 .findGitDir()
                 .build();
         try (Git git = new Git(repo)) {
-            /*
-            List<RemoteConfig> remotes = git.remoteList().call();
-            for (RemoteConfig remote : remotes) {
-                FetchResult fetchResult = git.fetch()
-                        .setRemote(remote.getName())
-                        .setRemoveDeletedRefs(true)
-                        .call();
-            }*/
-
+            logger.debug("Update content from each active cluster memeber");
             for (ClusterMember remoteNode : clusterNodes) {
-                //List<Ref> branches = git.branchList().setListMode(ListBranchCommand.ListMode.REMOTE).call();
-                //for (Ref branch : branches) {
-                    updateBranch(git, remoteNode, StringUtils.EMPTY);
-                //}
+                updateBranch(git, remoteNode);
             }
         } catch (GitAPIException e) {
             e.printStackTrace();
@@ -564,15 +528,15 @@ public class StudioNodeSyncTaskImpl implements Runnable {
 
     }
 
-    private void updateBranch(Git git, ClusterMember remoteNode, String branch) throws CryptoException, GitAPIException, IOException, ServiceLayerException {
+    private void updateBranch(Git git, ClusterMember remoteNode) throws CryptoException, GitAPIException,
+            IOException, ServiceLayerException {
         TextEncryptor encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
                 studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
-        //logger.error("Branch: " + branch);
-        //git.checkout().setName(branch).call();
         PullCommand pullCommand = git.pull();
-        logger.debug("Set remote " + remoteNode.getGitUrl());
+        logger.debug("Set cluste  member " + remoteNode.getLocalIp() + " as remote " + remoteNode.getGitUrl());
         pullCommand.setRemote(remoteNode.getGitRemoteName());
         pullCommand.setStrategy(MergeStrategy.THEIRS);
+        logger.debug("Setup authentication");
         switch (remoteNode.getGitAuthType()) {
             case RemoteRepository.AuthenticationType.NONE:
                 logger.debug("No authentication");
@@ -648,15 +612,9 @@ public class StudioNodeSyncTaskImpl implements Runnable {
     }
 
     private void updatePublished() throws IOException, CryptoException, ServiceLayerException {
-        //Cluster remoteNode = clusterNodes.get(0);
-        TextEncryptor encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
-                studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
+        logger.debug("Update published repo for site " + siteId);
         boolean toRet = true;
-        // prepare a new folder for the cloned repository
         Path siteSandboxPath = buildRepoPath(PUBLISHED).resolve(GIT_ROOT);
-        logger.debug("Add user credentials if provided");
-        // then clone
-        //logger.debug("Cloning from " + remoteNode.getRemoteUrl() + " to " + siteSandboxPath.toString());
         FileRepositoryBuilder builder = new FileRepositoryBuilder();
         Repository repo = builder
                 .setGitDir(siteSandboxPath.toFile())
@@ -664,38 +622,34 @@ public class StudioNodeSyncTaskImpl implements Runnable {
                 .findGitDir()
                 .build();
         try (Git git = new Git(repo)) {
-            /*
-            List<RemoteConfig> remotes = git.remoteList().call();
-            for (RemoteConfig remote : remotes) {
-                FetchResult fetchResult = git.fetch()
-                        .setRemote(remote.getName())
-                        .setRemoveDeletedRefs(true)
-                        .call();
-            }*/
 
             Set<String> environments = getAllPublishingEnvironments(siteId);
-
+            logger.debug("Update published repo from all active cluster members");
             for (ClusterMember remoteNode : clusterNodes) {
+                logger.debug("Fetch from cluster member " + remoteNode.getLocalIp());
                 final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
                 FetchCommand fetch = git.fetch().setRemote(remoteNode.getGitRemoteName());
                 fetch = setAuthenticationForCommand(remoteNode, fetch, tempKey);
                 fetch.call();
                 Files.delete(tempKey);
 
+                logger.debug("Update all environments for site " + siteId + " from cluster member " +
+                        remoteNode.getLocalIp());
                 for (String branch : environments) {
                     updatePublishedBranch(git, remoteNode, branch);
                 }
             }
         } catch (GitAPIException e) {
-            e.printStackTrace();
+            logger.error("Error while updating published repo for site " + siteId);
         }
 
     }
 
     private void updatePublishedBranch(Git git, ClusterMember remoteNode, String branch) throws CryptoException,
             GitAPIException, IOException, ServiceLayerException {
+        logger.debug("Update published environment " + branch + " from " + remoteNode.getLocalIp() +
+                " for site " + siteId);
         final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
-        String inProgressBranchName = branch + IN_PROGRESS_BRANCH_NAME_SUFIX;
 
         TextEncryptor encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
                 studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
@@ -704,7 +658,7 @@ public class StudioNodeSyncTaskImpl implements Runnable {
         Ref ref = repo.exactRef(Constants.R_HEADS + branch);
         boolean createBranch = (ref == null);
 
-
+        logger.debug("Checkout " + branch);
         CheckoutCommand checkoutCommand = git.checkout()
                 .setName(branch)
                 .setCreateBranch(createBranch);
@@ -713,6 +667,7 @@ public class StudioNodeSyncTaskImpl implements Runnable {
         }
         checkoutCommand.call();
 
+        logger.debug("Pull from remote " + remoteNode.getLocalIp());
         PullCommand pullCommand = git.pull();
         logger.debug("Set remote " + remoteNode.getGitUrl());
         pullCommand.setRemote(remoteNode.getGitRemoteName());

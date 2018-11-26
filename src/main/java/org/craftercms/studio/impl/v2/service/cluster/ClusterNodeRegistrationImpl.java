@@ -22,8 +22,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.commons.crypto.impl.PbkAesTextEncryptor;
-import org.craftercms.studio.api.v1.dal.RemoteRepository;
-import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
@@ -32,8 +30,6 @@ import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.craftercms.studio.api.v2.dal.MetaDAO;
 import org.craftercms.studio.api.v2.service.cluster.ClusterNodeRegistration;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
@@ -54,10 +50,12 @@ public class ClusterNodeRegistrationImpl implements ClusterNodeRegistration {
     private StudioConfiguration studioConfiguration;
 
     public void init() {
+        logger.debug("Autoregister cluster if cluster node is configured");
         Map<String, String> registrationData = getConfiguration();
         ClusterMember clusterMember = new ClusterMember();
         if (registrationData != null && !registrationData.isEmpty()) {
             try {
+                logger.debug("Collect and populate data for cluster node registration");
                 clusterMember.setLocalIp(registrationData.get("localIp"));
 
                 Path path = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
@@ -84,6 +82,7 @@ public class ClusterNodeRegistrationImpl implements ClusterNodeRegistration {
 
                 clusterMember.setGitToken(token);
                 clusterMember.setGitPrivateKey(privateKey);
+                logger.debug("Register cluster member");
                 registerClusterNode(clusterMember);
             } catch (CryptoException e) {
                 logger.error("Failed to register cluster member");

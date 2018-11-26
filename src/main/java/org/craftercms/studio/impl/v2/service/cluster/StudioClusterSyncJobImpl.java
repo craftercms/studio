@@ -58,11 +58,12 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
 
     @Override
     public void run() {
-        logger.info("Starting Cluster Sync worker");
-        List<ClusterMember> cm = clusterDAO.getAllMembers();
-        logger.error("Cluster members count " + cm.size());
+        logger.debug("Starting Cluster Sync worker");
         Map<String, String> registrationData = getConfiguration();
         if (registrationData != null && !registrationData.isEmpty()) {
+            logger.debug("Cluster is configured.");
+            List<ClusterMember> cm = clusterDAO.getAllMembers();
+            logger.debug("Cluster members count " + cm.size());
             try {
                 Set<String> siteNames = siteService.getAllAvailableSites();
                 String localIp = registrationData.get("localIp");
@@ -70,9 +71,10 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
                 params.put(CLUSTER_LOCAL_IP, localIp);
                 params.put(CLUSTER_STATE, ClusterMember.State.ACTIVE.toString());
                 List<ClusterMember> clusterMembers = clusterDAO.getOtherMembers(params);
-                logger.error("Cluster members size " + clusterMembers.size());
+                logger.error("Number of active cluster members to sync with " + clusterMembers.size());
                 if ((clusterMembers != null && clusterMembers.size() > 0) && (siteNames != null && siteNames.size() > 0)) {
                     for (String site : siteNames) {
+                        logger.debug("Creating task thread to sync cluster node for site " + site);
                         StudioNodeSyncTaskImpl nodeSyncTask = new StudioNodeSyncTaskImpl();
                         nodeSyncTask.setSiteId(site);
                         nodeSyncTask.setPreviewDeployer(previewDeployer);
