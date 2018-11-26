@@ -49,6 +49,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.locks.ReentrantLock;
 
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_MANDATORY_DEPENDENCIES_CHECK_ENABLED;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_BUSY;
@@ -60,6 +61,8 @@ import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_DEPLOY_C
 public class PublisherTask implements Runnable {
 
     private static final Logger logger = LoggerFactory.getLogger(PublisherTask.class);
+
+    protected static final Map<String, ReentrantLock> singleWorkerLockMap = new HashMap<String, ReentrantLock>();
 
     private String site;
     private StudioConfiguration studioConfiguration;
@@ -91,45 +94,54 @@ public class PublisherTask implements Runnable {
     @Override
     public void run() {
         logger.debug("Running Publisher Task for site " + site);
-        try {
+        ReentrantLock singleWorkerLock = singleWorkerLockMap.get(site);
+        if (singleWorkerLock == null) {
+            singleWorkerLock = new ReentrantLock();
+            singleWorkerLockMap.put(site, singleWorkerLock);
+        }
+        if (singleWorkerLock.tryLock()) {
             try {
-                syncRepository(site);
-            } catch (Exception e) {
-                logger.error("Failed to sync database from repository for site " + site, e);
-                siteService.enablePublishing(site, false);
-            }
-            if (siteService.isPublishingEnabled(site)) {
-                if (!publishingManager.isPublishingBlocked(site)) {
-                    try {
-                        Set<String> environments = getAllPublishingEnvironments(site);
-                        for (String environment : environments) {
-                            logger.debug("Processing content ready for deployment for site \"{0}\"", site);
-                            List<PublishRequest> itemsToDeploy =
-                                    publishingManager.getItemsReadyForDeployment(site, environment);
+                try {
+                    syncRepository(site);
+                } catch (Exception e) {
+                    logger.error("Failed to sync database from repository for site " + site, e);
+                    siteService.enablePublishing(site, false);
+                }
+                if (siteService.isPublishingEnabled(site)) {
+                    if (!publishingManager.isPublishingBlocked(site)) {
+                        try {
+                            Set<String> environments = getAllPublishingEnvironments(site);
+                            for (String environment : environments) {
+                                logger.debug("Processing content ready for deployment for site \"{0}\"", site);
+                                List<PublishRequest> itemsToDeploy =
+                                        publishingManager.getItemsReadyForDeployment(site, environment);
 
-                            if (itemsToDeploy != null && itemsToDeploy.size() > 0) {
-                                logger.info("Starting publishing on environment " + environment + " for site " + site);
-                                logger.debug("Site \"{0}\" has {1} items ready for deployment",
-                                        site, itemsToDeploy.size());
+                                if (itemsToDeploy != null && itemsToDeploy.size() > 0) {
+                                    logger.info("Starting publishing on environment " + environment + " for site " + site);
+                                    logger.debug("Site \"{0}\" has {1} items ready for deployment",
+                                            site, itemsToDeploy.size());
 
-                                doPublishing(itemsToDeploy, environment);
+                                    doPublishing(itemsToDeploy, environment);
+                                }
                             }
+                        } catch (Exception err) {
+                            logger.error("Error while executing deployment to environment store for site: "
+                                    + site, err);
+                            notificationService.notifyDeploymentError(site, err);
+                            logger.info("Continue executing deployment for other sites.");
                         }
-                    } catch (Exception err) {
-                        logger.error("Error while executing deployment to environment store for site: "
-                                + site, err);
-                        notificationService.notifyDeploymentError(site, err);
-                        logger.info("Continue executing deployment for other sites.");
+                    } else {
+                        logger.info("Publishing is blocked for site " + site);
                     }
                 } else {
-                    logger.info("Publishing is blocked for site " + site);
+                    logger.info("Publishing is disabled for site " + site);
                 }
-            } else {
-                logger.info("Publishing is disabled for site " + site);
+            } catch (Exception err) {
+                logger.error("Error while executing deployment to environment store", err);
+                notificationService.notifyDeploymentError("UNKNOWN", err);
+            } finally {
+                singleWorkerLock.unlock();
             }
-        } catch (Exception err) {
-            logger.error("Error while executing deployment to environment store", err);
-            notificationService.notifyDeploymentError("UNKNOWN", err);
         }
     }
 
