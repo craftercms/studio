@@ -81,6 +81,15 @@ public interface ClusterDAO {
     int memberExists(String memberUrl);
 
     /**
+     * Count number of cluster member registrations
+     *
+     * @param params Parameters for SQL query
+     *
+     * @return Number of cluster members registered with given parameters
+     */
+    int countRegistrations(Map params);
+
+    /**
      * Remove member from cluster in the database by local ip
      *
      * @param params Parameters for SQL query
