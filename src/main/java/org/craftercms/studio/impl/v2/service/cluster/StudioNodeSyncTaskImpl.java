@@ -203,7 +203,7 @@ public class StudioNodeSyncTaskImpl implements Runnable {
                 try {
                     logger.info("Update content for site " + siteId);
                     updateContent(SANDBOX);
-                    updateContent(PUBLISHED);
+                    updatePublished();
                 } catch (IOException | CryptoException | ServiceLayerException e) {
                     logger.error("Error while updating content for site " + siteId + " on cluster node.", e);
                 }
