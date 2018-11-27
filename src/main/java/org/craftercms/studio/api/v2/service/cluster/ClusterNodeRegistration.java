@@ -23,9 +23,32 @@ import org.craftercms.studio.api.v2.dal.ClusterMember;
 
 public interface ClusterNodeRegistration {
 
+    /**
+     * Check if cluster node is registered
+     *
+     * @param localIp local IP of cluster node
+     *
+     * @return true if cluster node is already registered, otherwise false
+     */
     boolean isRegistered(String localIp);
 
+    /**
+     * Register cluster node
+     *
+     * @param clusterMember Cluster member data
+     *
+     * @return true if registration was successful
+     *
+     * @throws ServiceLayerException
+     */
     boolean registerClusterNode(ClusterMember clusterMember) throws ServiceLayerException;
 
+    /**
+     * Remove node from cluster
+     *
+     * @param localIp local IP address of node to be removed
+     *
+     * @return true if node was removed, otherwise false
+     */
     boolean removeClusterNode(String localIp);
 }

@@ -510,6 +510,8 @@ studio.publishing.threadPool.maxPoolSize: 20
 ################################################################
 ##                   Clustering Thread Pool                   ##
 ################################################################
+# Sync Job interval
+studio.clustering.syncJob.interval: 2000
 # Thread name prefix
 studio.clustering.threadPool.namePrefix: Studio_Clustering_Thread_Pool
 # Thread pool size

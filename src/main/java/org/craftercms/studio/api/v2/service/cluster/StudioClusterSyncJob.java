@@ -18,7 +18,13 @@
 
 package org.craftercms.studio.api.v2.service.cluster;
 
+/**
+ * Worker that executes synchronization of node repositories with other cluster members
+ */
 public interface StudioClusterSyncJob {
 
+    /**
+     * Run job
+     */
     void run();
 }

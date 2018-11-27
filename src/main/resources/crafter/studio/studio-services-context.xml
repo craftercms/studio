@@ -497,7 +497,8 @@
                 <property name="concurrent" value="false"/>
             </bean>
         </property>
-        <property name="repeatInterval" value="2000" />
+        <property name="repeatInterval"
+                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).CLUSTERING_SYNC_JOB_INTERVAL)}" />
         <property name="startDelay" value="0" />
     </bean>
 
