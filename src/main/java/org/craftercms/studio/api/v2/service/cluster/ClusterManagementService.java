@@ -18,6 +18,7 @@
 
 package org.craftercms.studio.api.v2.service.cluster;
 
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.craftercms.studio.api.v2.exception.ClusterMemberAlreadyExistsException;
 import org.craftercms.studio.api.v2.exception.ClusterMemberNotFoundException;
@@ -39,7 +40,7 @@ public interface ClusterManagementService {
      * @param member Cluster member to update
      * @return Updated cluster member
      */
-    ClusterMember updateMember(ClusterMember member) throws ClusterMemberNotFoundException;
+    ClusterMember updateMember(ClusterMember member) throws ServiceLayerException, ClusterMemberNotFoundException;
 
     /**
      * Add new member to the cluster
@@ -47,7 +48,7 @@ public interface ClusterManagementService {
      * @param member Member to add to the cluster
      * @return Cluster member
      */
-    ClusterMember addMember(ClusterMember member) throws ClusterMemberAlreadyExistsException;
+    ClusterMember addMember(ClusterMember member) throws ServiceLayerException, ClusterMemberAlreadyExistsException;
 
     /**
      * Remove member from cluster

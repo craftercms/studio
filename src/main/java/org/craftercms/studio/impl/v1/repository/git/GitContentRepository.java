@@ -185,28 +185,28 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         boolean toReturn = false;
         Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GitRepositories.GLOBAL :
                 GitRepositories.SANDBOX);
-
-        try {
-            RevTree tree = helper.getTreeForLastCommit(repo);
-            try (TreeWalk tw = TreeWalk.forPath(repo, helper.getGitPath(path), tree)) {
-                // Check if the array of items is not null, and since we have an absolute path to the item,
-                // pick the first item in the list
-                if (tw != null && tw.getObjectId(0) != null) {
-                    toReturn = true;
-                    tw.close();
-                } else if (tw == null) {
-                    String gitPath = helper.getGitPath(path);
-                    if (StringUtils.isEmpty(gitPath) || gitPath.equals(".")) {
+        if (repo != null ) {
+            try {
+                RevTree tree = helper.getTreeForLastCommit(repo);
+                try (TreeWalk tw = TreeWalk.forPath(repo, helper.getGitPath(path), tree)) {
+                    // Check if the array of items is not null, and since we have an absolute path to the item,
+                    // pick the first item in the list
+                    if (tw != null && tw.getObjectId(0) != null) {
                         toReturn = true;
+                        tw.close();
+                    } else if (tw == null) {
+                        String gitPath = helper.getGitPath(path);
+                        if (StringUtils.isEmpty(gitPath) || gitPath.equals(".")) {
+                            toReturn = true;
+                        }
                     }
+                } catch (IOException e) {
+                    logger.info("Content not found for site: " + site + " path: " + path, e);
                 }
-            } catch (IOException e) {
-                logger.info("Content not found for site: " + site + " path: " + path, e);
+            } catch (Exception e) {
+                logger.error("Failed to create RevTree for site: " + site + " path: " + path, e);
             }
-        } catch (IOException e) {
-            logger.error("Failed to create RevTree for site: " + site + " path: " + path, e);
         }
-
         return toReturn;
     }
 
@@ -1269,115 +1269,118 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     @Override
     public List<RepoOperationTO> getOperations(String site, String commitIdFrom, String commitIdTo) {
         List<RepoOperationTO> operations = new ArrayList<>();
-
-        synchronized (helper.getRepository(site, StringUtils.isEmpty(site) ? GitRepositories.GLOBAL : SANDBOX)) {
-            try {
-                // Get the sandbox repo, and then get a reference to the commitId we received and another for head
-                boolean fromEmptyRepo = StringUtils.isEmpty(commitIdFrom);
-                String firstCommitId = getRepoFirstCommitId(site);
-                if (fromEmptyRepo) {
-                    commitIdFrom = firstCommitId;
-                }
-                Repository repo = helper.getRepository(site, SANDBOX);
-                ObjectId objCommitIdFrom = repo.resolve(commitIdFrom);
-                ObjectId objCommitIdTo = repo.resolve(commitIdTo);
-
-                ObjectId objFirstCommitId = repo.resolve(firstCommitId);
-                boolean initialEqToCommit = StringUtils.equals(firstCommitId, commitIdTo);
-                boolean initialEqFromCommit = StringUtils.equals(firstCommitId, commitIdFrom);
-
-                try (Git git = new Git(repo)) {
-
+        Repository repository =
+                helper.getRepository(site, StringUtils.isEmpty(site) ? GitRepositories.GLOBAL : SANDBOX);
+        if (repository != null) {
+            synchronized (repository) {
+                try {
+                    // Get the sandbox repo, and then get a reference to the commitId we received and another for head
+                    boolean fromEmptyRepo = StringUtils.isEmpty(commitIdFrom);
+                    String firstCommitId = getRepoFirstCommitId(site);
                     if (fromEmptyRepo) {
-                        try (RevWalk walk = new RevWalk(repo)) {
-                            RevCommit firstCommit = walk.parseCommit(objFirstCommitId);
-                            RevTree firstCommitTree = helper.getTreeForCommit(repo, firstCommit.getName());
-                            try (ObjectReader reader = repo.newObjectReader()) {
-                                CanonicalTreeParser firstCommitTreeParser = new CanonicalTreeParser();
-                                firstCommitTreeParser.reset();//reset(reader, firstCommitTree.getId());
-                                // Diff the two commit Ids
-                                List<DiffEntry> diffEntries = git.diff()
-                                        .setOldTree(firstCommitTreeParser)
-                                        .setNewTree(null)
-                                        .call();
-
-
-                                // Now that we have a diff, let's itemize the file changes, pack them into a TO
-                                // and add them to the list of RepoOperations to return to the caller
-                                // also include date/time of commit by taking number of seconds and multiply by 1000 and
-                                // convert to java date before sending over
-                                operations.addAll(processDiffEntry(diffEntries, firstCommit.getId(),
-                                        firstCommit.getCommitterIdent().getName(),
-                                        Instant.ofEpochSecond(firstCommit.getCommitTime()).atZone(ZoneOffset.UTC)));
-                            }
-                        }
+                        commitIdFrom = firstCommitId;
                     }
+                    Repository repo = helper.getRepository(site, SANDBOX);
+                    ObjectId objCommitIdFrom = repo.resolve(commitIdFrom);
+                    ObjectId objCommitIdTo = repo.resolve(commitIdTo);
 
-                    // If the commitIdFrom is the same as commitIdTo, there is nothing to calculate, otherwise,
-                    // let's do it
-                    if (!objCommitIdFrom.equals(objCommitIdTo)) {
-                        // Compare HEAD with commitId we're given
-                        // Get list of commits between commitId and HEAD in chronological order
+                    ObjectId objFirstCommitId = repo.resolve(firstCommitId);
+                    boolean initialEqToCommit = StringUtils.equals(firstCommitId, commitIdTo);
+                    boolean initialEqFromCommit = StringUtils.equals(firstCommitId, commitIdFrom);
 
-                        // Get the log of all the commits between commitId and head
-                        Iterable<RevCommit> commits = git.log().addRange(objCommitIdFrom, objCommitIdTo).call();
+                    try (Git git = new Git(repo)) {
 
-                        // Loop through through the commits and diff one from the next util head
-                        ObjectId prevCommitId = objCommitIdFrom;
-                        ObjectId nextCommitId = objCommitIdFrom;
-                        String author = StringUtils.EMPTY;
-
-                        // Reverse orders of commits
-                        // TODO: DB: try to find better algorithm
-                        Iterator<RevCommit> iterator = commits.iterator();
-                        List<RevCommit> revCommits = new ArrayList<RevCommit>();
-                        while (iterator.hasNext()) {
-
-                            RevCommit commit = iterator.next();
-                            revCommits.add(commit);
-                        }
-
-                        ReverseListIterator<RevCommit> reverseIterator = new ReverseListIterator<RevCommit>(revCommits);
-                        while (reverseIterator.hasNext()) {
-
-                            RevCommit commit = reverseIterator.next();
-                            nextCommitId = commit.getId();
-                            author = commit.getCommitterIdent().getName();
-
-                            RevTree prevTree = helper.getTreeForCommit(repo, prevCommitId.getName());
-                            RevTree nextTree = helper.getTreeForCommit(repo, nextCommitId.getName());
-
-                            try (ObjectReader reader = repo.newObjectReader()) {
-                                CanonicalTreeParser prevCommitTreeParser = new CanonicalTreeParser();
-                                CanonicalTreeParser nextCommitTreeParser = new CanonicalTreeParser();
-                                prevCommitTreeParser.reset(reader, prevTree.getId());
-                                nextCommitTreeParser.reset(reader, nextTree.getId());
-
-                                // Diff the two commit Ids
-                                List<DiffEntry> diffEntries = git.diff()
-                                        .setOldTree(prevCommitTreeParser)
-                                        .setNewTree(nextCommitTreeParser)
-                                        .call();
+                        if (fromEmptyRepo) {
+                            try (RevWalk walk = new RevWalk(repo)) {
+                                RevCommit firstCommit = walk.parseCommit(objFirstCommitId);
+                                RevTree firstCommitTree = helper.getTreeForCommit(repo, firstCommit.getName());
+                                try (ObjectReader reader = repo.newObjectReader()) {
+                                    CanonicalTreeParser firstCommitTreeParser = new CanonicalTreeParser();
+                                    firstCommitTreeParser.reset();//reset(reader, firstCommitTree.getId());
+                                    // Diff the two commit Ids
+                                    List<DiffEntry> diffEntries = git.diff()
+                                            .setOldTree(firstCommitTreeParser)
+                                            .setNewTree(null)
+                                            .call();
 
 
-                                // Now that we have a diff, let's itemize the file changes, pack them into a TO
-                                // and add them to the list of RepoOperations to return to the caller
-                                // also include date/time of commit by taking number of seconds and multiply by 1000 and
-                                // convert to java date before sending over
-                                operations.addAll(processDiffEntry(diffEntries, nextCommitId, author,
-                                        Instant.ofEpochSecond(commit.getCommitTime()).atZone(ZoneOffset.UTC)));
-                                prevCommitId = nextCommitId;
+                                    // Now that we have a diff, let's itemize the file changes, pack them into a TO
+                                    // and add them to the list of RepoOperations to return to the caller
+                                    // also include date/time of commit by taking number of seconds and multiply by 1000 and
+                                    // convert to java date before sending over
+                                    operations.addAll(processDiffEntry(diffEntries, firstCommit.getId(),
+                                            firstCommit.getCommitterIdent().getName(),
+                                            Instant.ofEpochSecond(firstCommit.getCommitTime()).atZone(ZoneOffset.UTC)));
+                                }
                             }
                         }
 
+                        // If the commitIdFrom is the same as commitIdTo, there is nothing to calculate, otherwise,
+                        // let's do it
+                        if (!objCommitIdFrom.equals(objCommitIdTo)) {
+                            // Compare HEAD with commitId we're given
+                            // Get list of commits between commitId and HEAD in chronological order
+
+                            // Get the log of all the commits between commitId and head
+                            Iterable<RevCommit> commits = git.log().addRange(objCommitIdFrom, objCommitIdTo).call();
+
+                            // Loop through through the commits and diff one from the next util head
+                            ObjectId prevCommitId = objCommitIdFrom;
+                            ObjectId nextCommitId = objCommitIdFrom;
+                            String author = StringUtils.EMPTY;
+
+                            // Reverse orders of commits
+                            // TODO: DB: try to find better algorithm
+                            Iterator<RevCommit> iterator = commits.iterator();
+                            List<RevCommit> revCommits = new ArrayList<RevCommit>();
+                            while (iterator.hasNext()) {
+
+                                RevCommit commit = iterator.next();
+                                revCommits.add(commit);
+                            }
+
+                            ReverseListIterator<RevCommit> reverseIterator = new ReverseListIterator<RevCommit>(revCommits);
+                            while (reverseIterator.hasNext()) {
+
+                                RevCommit commit = reverseIterator.next();
+                                nextCommitId = commit.getId();
+                                author = commit.getCommitterIdent().getName();
+
+                                RevTree prevTree = helper.getTreeForCommit(repo, prevCommitId.getName());
+                                RevTree nextTree = helper.getTreeForCommit(repo, nextCommitId.getName());
+
+                                try (ObjectReader reader = repo.newObjectReader()) {
+                                    CanonicalTreeParser prevCommitTreeParser = new CanonicalTreeParser();
+                                    CanonicalTreeParser nextCommitTreeParser = new CanonicalTreeParser();
+                                    prevCommitTreeParser.reset(reader, prevTree.getId());
+                                    nextCommitTreeParser.reset(reader, nextTree.getId());
+
+                                    // Diff the two commit Ids
+                                    List<DiffEntry> diffEntries = git.diff()
+                                            .setOldTree(prevCommitTreeParser)
+                                            .setNewTree(nextCommitTreeParser)
+                                            .call();
+
+
+                                    // Now that we have a diff, let's itemize the file changes, pack them into a TO
+                                    // and add them to the list of RepoOperations to return to the caller
+                                    // also include date/time of commit by taking number of seconds and multiply by 1000 and
+                                    // convert to java date before sending over
+                                    operations.addAll(processDiffEntry(diffEntries, nextCommitId, author,
+                                            Instant.ofEpochSecond(commit.getCommitTime()).atZone(ZoneOffset.UTC)));
+                                    prevCommitId = nextCommitId;
+                                }
+                            }
+
+                        }
+                    } catch (GitAPIException e) {
+                        logger.error("Error getting operations for site " + site + " from commit ID: " + commitIdFrom
+                                + " to commit ID: " + commitIdTo, e);
                     }
-                } catch (GitAPIException e) {
-                    logger.error("Error getting operations for site " + site + " from commit ID: " + commitIdFrom
-                            + " to commit ID: " + commitIdTo, e);
+                } catch (IOException e) {
+                    logger.error("Error getting operations for site " + site + " from commit ID: " + commitIdFrom +
+                            " to commit ID: " + commitIdTo, e);
                 }
-            } catch (IOException e) {
-                logger.error("Error getting operations for site " + site + " from commit ID: " + commitIdFrom +
-                        " to commit ID: " + commitIdTo, e);
             }
         }
 
@@ -1387,36 +1390,45 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     @Override
     public String getRepoLastCommitId(final String site) {
         String toReturn = StringUtils.EMPTY;
-
-        synchronized (helper.getRepository(site, StringUtils.isEmpty(site) ? GitRepositories.GLOBAL : SANDBOX)) {
-            Repository repo = helper.getRepository(site, SANDBOX);
-            try {
-                ObjectId commitId = repo.resolve(Constants.HEAD);
-                toReturn = commitId.getName();
-            } catch (IOException e) {
-                logger.error("Error getting last commit ID for site " + site, e);
+        Repository repository =
+                helper.getRepository(site, StringUtils.isEmpty(site) ? GitRepositories.GLOBAL : SANDBOX);
+        if (repository != null) {
+            synchronized (repository) {
+                Repository repo = helper.getRepository(site, SANDBOX);
+                try {
+                    ObjectId commitId = repo.resolve(Constants.HEAD);
+                    toReturn = commitId.getName();
+                } catch (IOException e) {
+                    logger.error("Error getting last commit ID for site " + site, e);
+                }
             }
         }
-
         return toReturn;
     }
 
     @Override
     public String getRepoFirstCommitId(final String site) {
         String toReturn = StringUtils.EMPTY;
-
-        synchronized (helper.getRepository(site, StringUtils.isEmpty(site) ? GitRepositories.GLOBAL : SANDBOX)) {
-            Repository repo = helper.getRepository(site, SANDBOX);
-            try (RevWalk rw = new RevWalk(repo)) {
-                ObjectId head = repo.resolve(Constants.HEAD);
-                RevCommit root = rw.parseCommit(head);
-                rw.sort(RevSort.REVERSE);
-                rw.markStart(root);
-                ObjectId first = rw.next();
-                toReturn = first.getName();
-                logger.debug("getRepoFirstCommitId for site: " + site + " First commit ID: " + toReturn);
-            } catch (IOException e) {
-                logger.error("Error getting first commit ID for site " + site, e);
+        Repository repository =
+                helper.getRepository(site, StringUtils.isEmpty(site) ? GitRepositories.GLOBAL : SANDBOX);
+        if (repository != null) {
+            synchronized (repository) {
+                Repository repo = helper.getRepository(site, SANDBOX);
+                if (repo != null) {
+                    try (RevWalk rw = new RevWalk(repo)) {
+                        ObjectId head = repo.resolve(Constants.HEAD);
+                        if (head != null) {
+                            RevCommit root = rw.parseCommit(head);
+                            rw.sort(RevSort.REVERSE);
+                            rw.markStart(root);
+                            ObjectId first = rw.next();
+                            toReturn = first.getName();
+                            logger.debug("getRepoFirstCommitId for site: " + site + " First commit ID: " + toReturn);
+                        }
+                    } catch (IOException e) {
+                        logger.error("Error getting first commit ID for site " + site, e);
+                    }
+                }
             }
         }
 

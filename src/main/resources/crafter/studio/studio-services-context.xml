@@ -357,11 +357,14 @@
     <bean id="clusterManagementService"
           class="org.craftercms.studio.impl.v2.service.cluster.ClusterManagementServiceImpl">
         <property name="clusterManagementServiceInternal" ref="clusterManagementServiceInternal" />
+        <property name="contentRepository" ref="contentRepository" />
+        <property name="siteService" ref="cstudioSiteServiceSimple" />
     </bean>
 
     <bean id="clusterManagementServiceInternal"
           class="org.craftercms.studio.impl.v2.service.cluster.internal.ClusterManagementServiceInternalImpl">
         <property name="clusterDao" ref="clusterDao" />
+        <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
     <!-- ////////////////////////////////////// -->
@@ -445,6 +448,28 @@
         <property name="taskExecutor" ref="studioPublisherTaskExecutor" />
     </bean>
 
+    <bean id="studioNodeSyncTaskExecutor"
+          class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor">
+        <property name="corePoolSize"
+                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).CLUSTERING_THREAD_POOL_CORE_POOL_SIZE)}" />
+        <property name="maxPoolSize"
+                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).CLUSTERING_THREAD_POOL_MAX_POOL_SIZE)}" />
+        <property name="threadNamePrefix"
+                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).CLUSTERING_THREAD_POOL_NAME_PREFIX)}" />
+    </bean>
+
+    <bean id="studioClusterSyncJob"
+          class="org.craftercms.studio.impl.v2.service.cluster.StudioClusterSyncJobImpl">
+        <property name="taskExecutor" ref="studioNodeSyncTaskExecutor" />
+        <property name="studioConfiguration" ref="studioConfiguration" />
+        <property name="previewDeployer" ref="previewDeployer" />
+        <property name="searchService" ref="searchService" />
+        <property name="siteService" ref="cstudioSiteServiceSimple" />
+        <property name="contentRepository" ref="contentRepository" />
+        <property name="servicesConfig" ref="cstudioServicesConfig" />
+        <property name="clusterDAO" ref="clusterDao" />
+    </bean>
+
     <bean id="studioRepositoryCleanupJob" class="org.craftercms.studio.impl.v1.repository.job.RepositoryCleanupJob">
         <property name="siteService" ref="cstudioSiteServiceSimple"/>
         <property name="contentRepository" ref="contentRepository"/>
@@ -463,6 +488,20 @@
         <property name="startDelay" value="2000" />
     </bean>
 
+    <bean id="cstudioClusterSyncJobsScheduled"
+          class="org.springframework.scheduling.quartz.SimpleTriggerFactoryBean" >
+        <property name="jobDetail">
+            <bean class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean" >
+                <property name="targetObject" ref="studioClusterSyncJob"/>
+                <property name="targetMethod" value="run"/>
+                <property name="concurrent" value="false"/>
+            </bean>
+        </property>
+        <property name="repeatInterval"
+                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).CLUSTERING_SYNC_JOB_INTERVAL)}" />
+        <property name="startDelay" value="0" />
+    </bean>
+
     <bean id="studioRepositoryCleanupJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
         <property name="jobDetail">
             <bean class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean" >
@@ -479,6 +518,7 @@
             <list>
                 <ref bean="cstudioDeployContentToEnvironmentJobsScheduled" />
                 <ref bean="studioRepositoryCleanupJobTrigger"/>
+                <ref bean="cstudioClusterSyncJobsScheduled" />
             </list>
         </property>
         <property name="waitForJobsToCompleteOnShutdown" value="false" />
@@ -506,6 +546,17 @@
         <property name="gitLogMapper" ref="gitLogMapper" />
         <property name="userServiceInternal" ref="userServiceInternal" />
         <property name="securityService" ref="cstudioSecurityService" />
+    </bean>
+
+    <!-- /////// -->
+    <!-- Cluster -->
+    <!-- /////// -->
+    <bean id="clusterNodeRegistraition"
+          class="org.craftercms.studio.impl.v2.service.cluster.ClusterNodeRegistrationImpl" init-method="init"
+          destroy-method="destroy" depends-on="studioMariaDBService">
+        <property name="clusterDao" ref="clusterDao" />
+        <property name="metaDao" ref="metaDAO" />
+        <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
     <!-- ////////////////////////////////////// -->
