@@ -32,25 +32,12 @@ public class S3Profile extends AwsProfile {
      */
     protected String bucketName;
 
-    /**
-     * The full URL of the distribution domain to use.
-     */
-    protected String distributionDomain;
-
     public String getBucketName() {
         return bucketName;
     }
 
     public void setBucketName(final String bucketName) {
         this.bucketName = bucketName;
-    }
-
-    public String getDistributionDomain() {
-        return distributionDomain;
-    }
-
-    public void setDistributionDomain(final String distributionDomain) {
-        this.distributionDomain = distributionDomain;
     }
 
 }

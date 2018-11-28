@@ -18,14 +18,12 @@
 
 package org.craftercms.studio.impl.v2.service.aws.s3;
 
-import java.io.InputStream;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.amazonaws.services.s3.internal.Mimetypes;
+import com.amazonaws.services.s3.model.ListObjectsV2Request;
+import com.amazonaws.services.s3.model.ListObjectsV2Result;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.text.StrSubstitutor;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
@@ -38,13 +36,10 @@ import org.craftercms.studio.impl.v1.service.aws.AwsUtils;
 import org.craftercms.studio.model.aws.s3.S3Item;
 import org.springframework.util.MimeType;
 import org.springframework.util.MimeTypeUtils;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.internal.Mimetypes;
-import com.amazonaws.services.s3.model.ListObjectsV2Request;
-import com.amazonaws.services.s3.model.ListObjectsV2Result;
 
-import static org.craftercms.studio.impl.v1.aws.s3.XmlS3ProfileReader.DEFAULT_DOMAIN;
+import java.io.InputStream;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Default implementation of {@link AwsS3Service}.
@@ -55,15 +50,22 @@ public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements A
 
     public static final String DELIMITER = "/";
     public static final String ITEM_FILTER = "item";
+    public static final String DEFAULT_URL_FORMAT = "/remote-assets/s3/%s/%s";
 
     protected int partSize;
+    protected String urlFormat;
 
     public AwsS3ServiceImpl() {
         partSize = AwsUtils.MIN_PART_SIZE;
+        urlFormat = DEFAULT_URL_FORMAT;
     }
 
     public void setPartSize(final int partSize) {
         this.partSize = partSize;
+    }
+
+    public void setUrlFormat(final String urlFormat) {
+        this.urlFormat = urlFormat;
     }
 
     protected AmazonS3 getS3Client(S3Profile profile) {
@@ -90,7 +92,7 @@ public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements A
 
         AwsUtils.uploadStream(inputBucket, filename, s3Client, partSize, filename, content);
 
-        return new S3Item(filename, createLink(profile, filename), false);
+        return new S3Item(filename, createUrl(profileId, filename), false);
     }
 
     /**
@@ -129,7 +131,7 @@ public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements A
                 .filter(o -> !StringUtils.equals(o.getKey(), prefix) &&
                                 MimeType.valueOf(mimetypes.getMimetype(o.getKey())).isCompatibleWith(filerType))
                 .map(o -> new S3Item(
-                    StringUtils.removeStart(o.getKey(), prefix), createLink(profile, o.getKey()), false))
+                    StringUtils.removeStart(o.getKey(), prefix), createUrl(profileId, o.getKey()), false))
                 .forEach(items::add);
 
             request.setContinuationToken(result.getNextContinuationToken());
@@ -138,16 +140,8 @@ public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements A
         return items;
     }
 
-    protected String createLink(S3Profile profile, String key) {
-        String domain = profile.getDistributionDomain();
-        if(StringUtils.equals(domain, DEFAULT_DOMAIN)) {
-            Map<String, String> values = new HashMap<>();
-            values.put("bucket", profile.getBucketName());
-            values.put("key", key);
-            return StrSubstitutor.replace(domain, values);
-        } else {
-            return domain + DELIMITER + key;
-        }
+    protected String createUrl(String profileId, String key) {
+        return String.format(urlFormat, profileId, key);
     }
 
 }
