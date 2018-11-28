@@ -4,7 +4,6 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-    https://docs.craftercms.org/en/3.0/developers/projects/studio/index.html
   version: '2.0.11'
   title: Crafter Studio
   termsOfService: ''
