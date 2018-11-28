@@ -103,28 +103,30 @@ public class SiteRepositoryUpgradePipelineImpl extends DefaultUpgradePipelineImp
         GitContentRepositoryHelper helper = new GitContentRepositoryHelper(studioConfiguration, servicesConfig,
                 userServiceInternal, securityService);
         Repository repository = helper.getRepository(site, GitRepositories.SANDBOX);
-        Git git = new Git(repository);
-        try {
-            if (!isEmpty()) {
-                createTemporaryBranch(site, git);
-                checkoutBranch(siteUpgradeBranch, git);
-                super.execute(site);
-                checkoutBranch(siteSandboxBranch, git);
-                mergeTemporaryBranch(repository, git);
-                deleteTemporaryBranch(git);
-
-            }
-        } catch (GitAPIException | IOException e) {
-            throw new UpgradeException("Error branching or merging upgrade branch for site " + site, e);
-        } finally {
-            if(!isEmpty()) {
-                try {
+        if (repository != null) {
+            Git git = new Git(repository);
+            try {
+                if (!isEmpty()) {
+                    createTemporaryBranch(site, git);
+                    checkoutBranch(siteUpgradeBranch, git);
+                    super.execute(site);
                     checkoutBranch(siteSandboxBranch, git);
-                } catch (GitAPIException e) {
-                    logger.error("Error cleaning up repo for site " + site, e);
+                    mergeTemporaryBranch(repository, git);
+                    deleteTemporaryBranch(git);
+
                 }
+            } catch (GitAPIException | IOException e) {
+                throw new UpgradeException("Error branching or merging upgrade branch for site " + site, e);
+            } finally {
+                if (!isEmpty()) {
+                    try {
+                        checkoutBranch(siteSandboxBranch, git);
+                    } catch (GitAPIException e) {
+                        logger.error("Error cleaning up repo for site " + site, e);
+                    }
+                }
+                git.close();
             }
-            git.close();
         }
     }
 

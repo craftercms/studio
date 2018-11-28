@@ -31,6 +31,13 @@ public interface ClusterDAO {
     List<ClusterMember> getAllMembers();
 
     /**
+     * Get other cluster members from database - different from member executing query
+     *
+     * @return List of cluster members
+     */
+    List<ClusterMember> getOtherMembers(Map params);
+
+    /**
      * Update cluster member in the database
      *
      * @param member Cluster member to update
@@ -72,4 +79,22 @@ public interface ClusterDAO {
      * @return 0 if member does not exist, if member exists returns value greater than 0
      */
     int memberExists(String memberUrl);
+
+    /**
+     * Count number of cluster member registrations
+     *
+     * @param params Parameters for SQL query
+     *
+     * @return Number of cluster members registered with given parameters
+     */
+    int countRegistrations(Map params);
+
+    /**
+     * Remove member from cluster in the database by local ip
+     *
+     * @param params Parameters for SQL query
+     *
+     * @return number of affected rows
+     */
+    int removeMemberByLocalIp(Map params);
 }

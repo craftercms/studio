@@ -16,6 +16,15 @@ class EnvironmentOverrides {
 
         def context = SiteServices.createContext(appContext, request)
         result.environment = serverProperties["environment"]
+
+        def contextPath = request.getContextPath()
+        result.authoringServer = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "")
+                .replace(contextPath, "")
+        if (contextPath.startsWith("/")) {
+            contextPath = contextPath.substring(1)
+        }
+        result.studioContext = contextPath
+
         try {
             def siteServiceSB = context.applicationContext.get(SITE_SERVICES_BEAN)
             result.previewServerUrl = siteServiceSB.getPreviewServerUrl(Cookies.getCookieValue("crafterSite", request))
