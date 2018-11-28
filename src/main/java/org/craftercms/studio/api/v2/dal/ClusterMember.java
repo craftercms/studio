@@ -18,6 +18,8 @@
 
 package org.craftercms.studio.api.v2.dal;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 public class ClusterMember {
 
     public enum State {
@@ -84,34 +86,42 @@ public class ClusterMember {
         this.gitAuthType = gitAuthType;
     }
 
+    @JsonIgnore
     public String getGitUsername() {
         return gitUsername;
     }
 
+    @JsonIgnore
     public void setGitUsername(String gitUsername) {
         this.gitUsername = gitUsername;
     }
 
+    @JsonIgnore
     public String getGitPassword() {
         return gitPassword;
     }
 
+    @JsonIgnore
     public void setGitPassword(String gitPassword) {
         this.gitPassword = gitPassword;
     }
 
+    @JsonIgnore
     public String getGitToken() {
         return gitToken;
     }
 
+    @JsonIgnore
     public void setGitToken(String gitToken) {
         this.gitToken = gitToken;
     }
 
+    @JsonIgnore
     public String getGitPrivateKey() {
         return gitPrivateKey;
     }
 
+    @JsonIgnore
     public void setGitPrivateKey(String gitPrivateKey) {
         this.gitPrivateKey = gitPrivateKey;
     }

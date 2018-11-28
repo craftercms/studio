@@ -20,19 +20,13 @@ package org.craftercms.studio.impl.v2.service.cluster;
 
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
-import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
-import org.craftercms.studio.api.v2.exception.ClusterMemberAlreadyExistsException;
-import org.craftercms.studio.api.v2.exception.ClusterMemberNotFoundException;
 import org.craftercms.studio.api.v2.service.cluster.ClusterManagementService;
 import org.craftercms.studio.api.v2.service.cluster.internal.ClusterManagementServiceInternal;
 
 import java.util.List;
-import java.util.Set;
-
 public class ClusterManagementServiceImpl implements ClusterManagementService {
 
     private ClusterManagementServiceInternal clusterManagementServiceInternal;
@@ -43,44 +37,6 @@ public class ClusterManagementServiceImpl implements ClusterManagementService {
     @HasPermission(type = DefaultPermission.class, action = "read_cluster")
     public List<ClusterMember> getAllMemebers() {
         return clusterManagementServiceInternal.getAllMembers();
-    }
-
-    @Override
-    @HasPermission(type = DefaultPermission.class, action = "update_cluster")
-    public ClusterMember updateMember(ClusterMember member) throws ServiceLayerException,
-            ClusterMemberNotFoundException {
-        if (clusterManagementServiceInternal.getMember(member.getId()) == null) {
-            throw new ClusterMemberNotFoundException();
-        }
-        boolean result = clusterManagementServiceInternal.updateMember(member);
-        if (result) {
-            return clusterManagementServiceInternal.getMember(member.getId());
-        }
-        return null;
-    }
-
-    @Override
-    @HasPermission(type = DefaultPermission.class, action = "create_cluster")
-    public ClusterMember addMember(ClusterMember member) throws ServiceLayerException,
-            ClusterMemberAlreadyExistsException {
-        if (clusterManagementServiceInternal.memberExists(member.getGitUrl())) {
-            throw new ClusterMemberAlreadyExistsException();
-        }
-        boolean result = clusterManagementServiceInternal.addMember(member);
-        if (result) {
-            Set<String> sites = siteService.getAllAvailableSites();
-            for (String site : sites) {
-                try {
-                    contentRepository.addRemote(site, member.getGitRemoteName(), member.getGitUrl(),
-                            member.getGitAuthType(), member.getGitUsername(), member.getGitPassword(),
-                            member.getGitToken(), member.getGitPrivateKey());
-                } catch (InvalidRemoteUrlException e) {
-                    e.printStackTrace();
-                }
-            }
-            return member;
-        }
-        return null;
     }
 
     @Override

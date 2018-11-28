@@ -19,10 +19,6 @@
 package org.craftercms.studio.impl.v2.service.cluster.internal;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.craftercms.commons.crypto.CryptoException;
-import org.craftercms.commons.crypto.TextEncryptor;
-import org.craftercms.commons.crypto.impl.PbkAesTextEncryptor;
-import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.ClusterDAO;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
@@ -31,9 +27,6 @@ import org.craftercms.studio.api.v2.service.cluster.internal.ClusterManagementSe
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_KEY;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_SALT;
 
 public class ClusterManagementServiceInternalImpl implements ClusterManagementServiceInternal {
 
@@ -55,47 +48,6 @@ public class ClusterManagementServiceInternalImpl implements ClusterManagementSe
         } else {
             return true;
         }
-    }
-
-    @Override
-    public boolean addMember(ClusterMember clusterMember) throws ServiceLayerException {
-        TextEncryptor encryptor = null;
-        try {
-            encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
-                    studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
-            String hashedPassword = encryptor.encrypt(clusterMember.getGitPassword());
-            clusterMember.setGitPassword(hashedPassword);
-        } catch (CryptoException e) {
-            throw new ServiceLayerException(e);
-        }
-        int result = clusterDao.addMember(clusterMember);
-        return result > 0;
-    }
-
-    @Override
-    public boolean updateMember(ClusterMember clusterMember) throws ServiceLayerException {
-        TextEncryptor encryptor = null;
-        try {
-            encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
-                    studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
-            String hashedPassword = encryptor.encrypt(clusterMember.getGitPassword());
-            clusterMember.setGitPassword(hashedPassword);
-        } catch (CryptoException e) {
-            throw new ServiceLayerException(e);
-        }
-        int result = clusterDao.updateMember(clusterMember);
-        return result > 0;
-    }
-
-    @Override
-    public ClusterMember getMember(long clusterMemberId) {
-        return clusterDao.getMemberById(clusterMemberId);
-    }
-
-    @Override
-    public boolean memberExists(String memberUrl) {
-        int num = clusterDao.memberExists(memberUrl);
-        return num > 0;
     }
 
     public ClusterDAO getClusterDao() {
