@@ -57,33 +57,50 @@ public class ClusterNodeRegistrationImpl implements ClusterNodeRegistration {
             try {
                 logger.debug("Collect and populate data for cluster node registration");
                 clusterMember.setLocalIp(registrationData.get("localIp"));
+                if (!isRegistered(clusterMember.getLocalIp())) {
+                    Path path = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
+                            studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH));
+                    String authenticationType = registrationData.get("authenticationType");
+                    String username = registrationData.get("username");
+                    String password = registrationData.get("password");
+                    String token = registrationData.get("token");
+                    String privateKey = registrationData.get("privateKey");
+                    String gitUrl = GIT_URL_PATTERN.replace("{username}", username)
+                            .replace("{localIp}", clusterMember.getLocalIp())
+                            .replace("{absolutePath}", path.toAbsolutePath().normalize().toString())
+                            + "/{siteId}";
+                    clusterMember.setGitUrl(gitUrl);
+                    clusterMember.setState(ClusterMember.State.ACTIVE);
+                    clusterMember.setGitRemoteName(clusterMember.getLocalIp());
+                    clusterMember.setGitAuthType(authenticationType.toLowerCase());
+                    clusterMember.setGitUsername(username);
+                    TextEncryptor encryptor = null;
+                    encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
+                            studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
+                    if (StringUtils.isEmpty(password)) {
+                        clusterMember.setGitPassword(password);
+                    } else {
+                        String hashedPassword = encryptor.encrypt(password);
+                        clusterMember.setGitPassword(hashedPassword);
+                    }
 
-                Path path = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
-                        studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH));
-                String authenticationType = registrationData.get("authenticationType");
-                String username = registrationData.get("username");
-                String password = registrationData.get("password");
-                String token = registrationData.get("token");
-                String privateKey = registrationData.get("privateKey");
-                String gitUrl = GIT_URL_PATTERN.replace("{username}", username)
-                        .replace("{localIp}", clusterMember.getLocalIp())
-                        .replace("{absolutePath}", path.toAbsolutePath().normalize().toString())
-                        + "/{siteId}";
-                clusterMember.setGitUrl(gitUrl);
-                clusterMember.setState(ClusterMember.State.ACTIVE);
-                clusterMember.setGitRemoteName(clusterMember.getLocalIp());
-                clusterMember.setGitAuthType(authenticationType.toLowerCase());
-                clusterMember.setGitUsername(username);
-                TextEncryptor encryptor = null;
-                encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
-                        studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
-                String hashedPassword = encryptor.encrypt(password);
-                clusterMember.setGitPassword(hashedPassword);
+                    if (StringUtils.isEmpty(token)) {
+                        clusterMember.setGitToken(token);
+                    } else {
+                        String hashedToken = encryptor.encrypt(token);
+                        clusterMember.setGitToken(hashedToken);
+                    }
 
-                clusterMember.setGitToken(token);
-                clusterMember.setGitPrivateKey(privateKey);
-                logger.debug("Register cluster member");
-                registerClusterNode(clusterMember);
+                    if (StringUtils.isEmpty(privateKey)) {
+                        clusterMember.setGitPrivateKey(privateKey);
+                    } else {
+                        String hashedPrivateKey = encryptor.encrypt(privateKey);
+                        clusterMember.setGitPrivateKey(hashedPrivateKey);
+                    }
+
+                    logger.debug("Register cluster member");
+                    registerClusterNode(clusterMember);
+                }
             } catch (CryptoException e) {
                 logger.error("Failed to register cluster member");
             }

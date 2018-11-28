@@ -31,6 +31,13 @@ public interface ClusterDAO {
     List<ClusterMember> getAllMembers();
 
     /**
+     * Get number of active cluster members from database
+     *
+     * @return number of active cluster members
+     */
+    int countActiveMembers(Map params);
+
+    /**
      * Get other cluster members from database - different from member executing query
      *
      * @return List of cluster members

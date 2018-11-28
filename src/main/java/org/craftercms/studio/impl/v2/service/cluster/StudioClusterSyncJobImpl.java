@@ -71,7 +71,10 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
                 params.put(CLUSTER_LOCAL_IP, localIp);
                 params.put(CLUSTER_STATE, ClusterMember.State.ACTIVE.toString());
                 List<ClusterMember> clusterMembers = clusterDAO.getOtherMembers(params);
-                logger.error("Number of active cluster members to sync with " + clusterMembers.size());
+                if (logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
+                    int numActiveMembers = clusterDAO.countActiveMembers(params);
+                    logger.debug("Number of active cluster members: " + numActiveMembers);
+                }
                 if ((clusterMembers != null && clusterMembers.size() > 0) && (siteNames != null && siteNames.size() > 0)) {
                     for (String site : siteNames) {
                         logger.debug("Creating task thread to sync cluster node for site " + site);

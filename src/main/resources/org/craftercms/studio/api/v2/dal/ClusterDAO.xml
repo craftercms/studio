@@ -43,6 +43,10 @@
         SELECT * FROM cluster WHERE local_ip &lt;&gt; #{localIp} AND state = #{state}
     </select>
 
+    <select id="countActiveMembers" resultType="int" parameterType="Map">
+        SELECT count(*) FROM cluster WHERE state = #{state}
+    </select>
+
     <select id="getMemberById" resultMap="ClusterMap" parameterType="long">
         SELECT * FROM cluster WHERE id = #{clusterMemberId}
     </select>
