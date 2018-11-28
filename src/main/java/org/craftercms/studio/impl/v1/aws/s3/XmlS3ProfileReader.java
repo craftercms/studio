@@ -36,24 +36,19 @@ import org.craftercms.studio.api.v1.exception.AwsConfigurationException;
  *   &lt;/credentials&gt;
  *   &lt;region&gt;us-east-1&lt;/region&gt;
  *   &lt;bucketName&gt;00000000000000000000&lt;/bucketName&gt;
- *   &lt;distributionDomain&gt;00000000000000000000&lt;/distributionDomain&gt;
  * &lt;/profile&gt;
  * </pre>
  *
  */
 public class XmlS3ProfileReader extends AbstractXmlProfileReader<S3Profile> {
 
-    public static final String DEFAULT_DOMAIN = "https://${bucket}.s3.amazonaws.com/${key}";
-
     public static final String CONFIG_KEY_BUCKET = "bucketName";
-    public static final String CONFIG_KEY_DOMAIN = "distributionDomain";
 
     @Override
     public S3Profile readProfile(final HierarchicalConfiguration config) throws AwsConfigurationException {
         S3Profile profile = new S3Profile();
         readBasicProperties(config, profile);
         profile.setBucketName(getRequiredStringProperty(config,CONFIG_KEY_BUCKET));
-        profile.setDistributionDomain(config.getString(CONFIG_KEY_DOMAIN, DEFAULT_DOMAIN));
         return profile;
     }
 
