@@ -1,8 +1,5 @@
 package org.craftercms.studio.api.v1.service.box;
 
-import java.io.InputStream;
-
-import org.craftercms.studio.api.v1.box.BoxUploadResult;
 import org.craftercms.studio.api.v1.exception.BoxException;
 
 /**
@@ -18,5 +15,13 @@ public interface BoxService {
      * @throws BoxException
      */
     String getAccessToken(String site, String profileId) throws BoxException;
+
+    /**
+     * Builds a local URL for the given asset
+     * @param profileId the name of the profile to use
+     * @param fileId the id of the file to use
+     * @return the local URL for the file
+     */
+    String getUrl(String site, String profileId, String fileId) throws BoxException;
 
 }
