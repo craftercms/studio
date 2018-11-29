@@ -117,6 +117,8 @@ public class StudioNodeSyncTaskImpl implements Runnable {
             singleWorkerLockMap.put(siteId, singleWorkerLock);
         }
         if (singleWorkerLock.tryLock()) {
+            long startTime = System.currentTimeMillis();
+            logger.debug("Worker starts syncing cluster node for site " + siteId);
             try {
                 logger.debug("Check if site " + siteId + " exists in local repository");
                 boolean success = false;
@@ -206,8 +208,11 @@ public class StudioNodeSyncTaskImpl implements Runnable {
             } finally {
                 singleWorkerLock.unlock();
             }
+            long duration = System.currentTimeMillis() - startTime;
+            logger.debug("Worker finished syncing cluster node for site " + siteId);
+            logger.info("Worker performed cluster node sync for site " + siteId + " in " + duration + "ms");
         } else {
-            logger.error("Not able to work - another worker still active");
+            logger.debug("Unable to get cluster lock, another worker is holding the lock for site " + siteId);
         }
         logger.debug("Finished Cluster Node Sync task for site " + siteId);
     }
@@ -447,14 +452,15 @@ public class StudioNodeSyncTaskImpl implements Runnable {
                     Set<String> remotes = storedConfig.getSubsections("remote");
 
                     if (remotes.contains(member.getGitRemoteName())) {
-                        throw new RemoteAlreadyExistsException(member.getGitRemoteName());
+                        logger.debug("Remote " + member.getGitRemoteName() + " already exists for sandbox repo for " +
+                                "site " + siteId);
+                    } else {
+                        logger.debug("Add " + member.getLocalIp() + " as remote to sandbox");
+                        RemoteAddCommand remoteAddCommand = git.remoteAdd();
+                        remoteAddCommand.setName(member.getGitRemoteName());
+                        remoteAddCommand.setUri(new URIish(remoteUrl));
+                        remoteAddCommand.call();
                     }
-
-                    logger.debug("Add " + member.getLocalIp() + " as remote to sandbox");
-                    RemoteAddCommand remoteAddCommand = git.remoteAdd();
-                    remoteAddCommand.setName(member.getGitRemoteName());
-                    remoteAddCommand.setUri(new URIish(remoteUrl));
-                    remoteAddCommand.call();
                 } catch (URISyntaxException e) {
                     logger.error("Remote URL is invalid " + remoteUrl, e);
                     throw new InvalidRemoteUrlException();
@@ -484,14 +490,16 @@ public class StudioNodeSyncTaskImpl implements Runnable {
                     Set<String> remotes = storedConfig.getSubsections("remote");
 
                     if (remotes.contains(member.getGitRemoteName())) {
-                        throw new RemoteAlreadyExistsException(member.getGitRemoteName());
-                    }
+                        logger.debug("Remote " + member.getGitRemoteName() + " already exists for published repo for " +
+                                "site " + siteId);
+                    } else {
 
-                    logger.debug("Add " + member.getLocalIp() + " as remote to published");
-                    RemoteAddCommand remoteAddCommand = git.remoteAdd();
-                    remoteAddCommand.setName(member.getGitRemoteName());
-                    remoteAddCommand.setUri(new URIish(remoteUrl));
-                    remoteAddCommand.call();
+                        logger.debug("Add " + member.getLocalIp() + " as remote to published");
+                        RemoteAddCommand remoteAddCommand = git.remoteAdd();
+                        remoteAddCommand.setName(member.getGitRemoteName());
+                        remoteAddCommand.setUri(new URIish(remoteUrl));
+                        remoteAddCommand.call();
+                    }
                 } catch (URISyntaxException e) {
                     logger.error("Remote URL is invalid " + remoteUrl, e);
                     throw new InvalidRemoteUrlException();
