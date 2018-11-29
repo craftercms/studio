@@ -210,7 +210,7 @@ public class StudioNodeSyncTaskImpl implements Runnable {
             }
             long duration = System.currentTimeMillis() - startTime;
             logger.debug("Worker finished syncing cluster node for site " + siteId);
-            logger.info("Worker performed cluster node sync for site " + siteId + " in " + duration + "ms");
+            logger.debug("Worker performed cluster node sync for site " + siteId + " in " + duration + "ms");
         } else {
             logger.debug("Unable to get cluster lock, another worker is holding the lock for site " + siteId);
         }
