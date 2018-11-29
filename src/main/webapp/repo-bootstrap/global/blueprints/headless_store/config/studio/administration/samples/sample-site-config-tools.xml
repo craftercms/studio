@@ -216,6 +216,48 @@
                     </icon>
                 </datasource>
                 <datasource>
+                    <name>S3-repo</name>
+                    <icon>
+                        <class>fa-file-o</class>
+                        <stackedclass>fa-amazon</stackedclass>
+                    </icon>
+                </datasource>
+                <datasource>
+                    <name>img-S3-repo</name>
+                    <icon>
+                        <class>fa-square</class>
+                        <stackedclass>fa-amazon fa-inverse</stackedclass>
+                    </icon>
+                </datasource>
+                <datasource>
+                    <name>video-S3-repo</name>
+                    <icon>
+                        <class>fa-film</class>
+                        <stackedclass>fa-amazon</stackedclass>
+                    </icon>
+                </datasource>
+                <datasource>
+                    <name>S3-upload</name>
+                    <icon>
+                        <class>fa-file-o</class>
+                        <stackedclass>fa-amazon</stackedclass>
+                    </icon>
+                </datasource>
+                <datasource>
+                    <name>img-S3-upload</name>
+                    <icon>
+                        <class>fa-square</class>
+                        <stackedclass>fa-amazon fa-inverse</stackedclass>
+                    </icon>
+                </datasource>
+                <datasource>
+                    <name>video-S3-upload</name>
+                    <icon>
+                        <class>fa-film</class>
+                        <stackedclass>fa-amazon</stackedclass>
+                    </icon>
+                </datasource>
+                <datasource>
                     <name>video-desktop-upload</name>
                     <icon>
                         <class>fa-video-camera</class>
