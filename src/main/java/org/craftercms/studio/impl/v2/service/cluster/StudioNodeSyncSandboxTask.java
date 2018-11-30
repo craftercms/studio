@@ -46,6 +46,7 @@ import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.PullCommand;
 import org.eclipse.jgit.api.RemoteAddCommand;
+import org.eclipse.jgit.api.RemoteSetUrlCommand;
 import org.eclipse.jgit.api.TransportConfigCallback;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
@@ -456,6 +457,13 @@ public class StudioNodeSyncSandboxTask implements Runnable {
                     if (remotes.contains(member.getGitRemoteName())) {
                         logger.debug("Remote " + member.getGitRemoteName() + " already exists for sandbox repo for " +
                                 "site " + siteId);
+                        String storedRemoteUrl = storedConfig.getString("remote", member.getGitRemoteName(), "url");
+                        if (!StringUtils.equals(storedRemoteUrl, remoteUrl)) {
+                            RemoteSetUrlCommand remoteSetUrlCommand = git.remoteSetUrl();
+                            remoteSetUrlCommand.setName(member.getGitRemoteName());
+                            remoteSetUrlCommand.setUri(new URIish(remoteUrl));
+                            remoteSetUrlCommand.call();
+                        }
                     } else {
                         logger.debug("Add " + member.getLocalIp() + " as remote to sandbox");
                         RemoteAddCommand remoteAddCommand = git.remoteAdd();
