@@ -18,7 +18,7 @@
 
 package org.craftercms.studio.impl.v2.service.cluster;
 
-import org.apache.commons.lang3.StringUtils;
+import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.deployment.PreviewDeployer;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -32,12 +32,10 @@ import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.craftercms.studio.api.v2.service.cluster.StudioClusterSyncJob;
 import org.springframework.core.task.TaskExecutor;
 
-import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.locks.ReentrantLock;
 
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CLUSTERING_NODE_REGISTRATION;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_LOCAL_IP;
@@ -55,6 +53,7 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
     private ContentRepository contentRepository;
     private ClusterDAO clusterDAO;
     private ServicesConfig servicesConfig;
+    private GitRepositories repositoryType;
 
     @Override
     public void run() {
@@ -78,16 +77,31 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
                 if ((clusterMembers != null && clusterMembers.size() > 0) && (siteNames != null && siteNames.size() > 0)) {
                     for (String site : siteNames) {
                         logger.debug("Creating task thread to sync cluster node for site " + site);
-                        StudioNodeSyncTaskImpl nodeSyncTask = new StudioNodeSyncTaskImpl();
-                        nodeSyncTask.setSiteId(site);
-                        nodeSyncTask.setPreviewDeployer(previewDeployer);
-                        nodeSyncTask.setSearchService(searchService);
-                        nodeSyncTask.setStudioConfiguration(studioConfiguration);
-                        nodeSyncTask.setContentRepository(contentRepository);
-                        nodeSyncTask.setSiteService(siteService);
-                        nodeSyncTask.setServicesConfig(servicesConfig);
-                        nodeSyncTask.setClusterNodes(clusterMembers);
-                        taskExecutor.execute(nodeSyncTask);
+                        switch (repositoryType) {
+                            case SANDBOX:
+                                StudioNodeSyncSandboxTask nodeSandobxSyncTask = new StudioNodeSyncSandboxTask();
+                                nodeSandobxSyncTask.setSiteId(site);
+                                nodeSandobxSyncTask.setPreviewDeployer(previewDeployer);
+                                nodeSandobxSyncTask.setSearchService(searchService);
+                                nodeSandobxSyncTask.setStudioConfiguration(studioConfiguration);
+                                nodeSandobxSyncTask.setContentRepository(contentRepository);
+                                nodeSandobxSyncTask.setSiteService(siteService);
+                                nodeSandobxSyncTask.setServicesConfig(servicesConfig);
+                                nodeSandobxSyncTask.setClusterNodes(clusterMembers);
+                                taskExecutor.execute(nodeSandobxSyncTask);
+                                break;
+                            case PUBLISHED:
+                                StudioNodeSyncPublishedTask nodePublishedSyncTask = new StudioNodeSyncPublishedTask();
+                                nodePublishedSyncTask.setSiteId(site);
+                                nodePublishedSyncTask.setPreviewDeployer(previewDeployer);
+                                nodePublishedSyncTask.setSearchService(searchService);
+                                nodePublishedSyncTask.setStudioConfiguration(studioConfiguration);
+                                nodePublishedSyncTask.setContentRepository(contentRepository);
+                                nodePublishedSyncTask.setSiteService(siteService);
+                                nodePublishedSyncTask.setServicesConfig(servicesConfig);
+                                nodePublishedSyncTask.setClusterNodes(clusterMembers);
+                                taskExecutor.execute(nodePublishedSyncTask);
+                        }
                     }
                 }
             } catch (Exception err) {
@@ -165,5 +179,13 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
 
     public void setServicesConfig(ServicesConfig servicesConfig) {
         this.servicesConfig = servicesConfig;
+    }
+
+    public GitRepositories getRepositoryType() {
+        return repositoryType;
+    }
+
+    public void setRepositoryType(GitRepositories repositoryType) {
+        this.repositoryType = repositoryType;
     }
 }
