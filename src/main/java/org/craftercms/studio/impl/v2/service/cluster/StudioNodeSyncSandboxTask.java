@@ -83,6 +83,8 @@ import static org.craftercms.studio.api.v1.constant.GitRepositories.PUBLISHED;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_KEY;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_SALT;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_PARAMETER_URL;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_SECTION_REMOTE;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_ROOT;
 import static org.eclipse.jgit.lib.Constants.DEFAULT_REMOTE_NAME;
 
@@ -448,7 +450,7 @@ public class StudioNodeSyncSandboxTask implements Runnable {
                 try (Git git = new Git(repo)) {
 
                     Config storedConfig = repo.getConfig();
-                    Set<String> remotes = storedConfig.getSubsections("remote");
+                    Set<String> remotes = storedConfig.getSubsections(CONFIG_SECTION_REMOTE);
 
                     if (existingRemotes == null) {
                         existingRemotes = new ArrayList<String>();
@@ -457,7 +459,8 @@ public class StudioNodeSyncSandboxTask implements Runnable {
                     if (remotes.contains(member.getGitRemoteName())) {
                         logger.debug("Remote " + member.getGitRemoteName() + " already exists for sandbox repo for " +
                                 "site " + siteId);
-                        String storedRemoteUrl = storedConfig.getString("remote", member.getGitRemoteName(), "url");
+                        String storedRemoteUrl = storedConfig.getString(CONFIG_SECTION_REMOTE,
+                                member.getGitRemoteName(), CONFIG_PARAMETER_URL);
                         if (!StringUtils.equals(storedRemoteUrl, remoteUrl)) {
                             RemoteSetUrlCommand remoteSetUrlCommand = git.remoteSetUrl();
                             remoteSetUrlCommand.setName(member.getGitRemoteName());
