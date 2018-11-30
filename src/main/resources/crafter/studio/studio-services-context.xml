@@ -546,7 +546,8 @@
             <list>
                 <ref bean="cstudioDeployContentToEnvironmentJobsScheduled" />
                 <ref bean="studioRepositoryCleanupJobTrigger"/>
-                <ref bean="cstudioClusterSyncJobsScheduled" />
+                <ref bean="cstudioClusterSandboxSyncJobsScheduled" />
+                <ref bean="cstudioClusterPublishedSyncJobsScheduled" />
             </list>
         </property>
         <property name="waitForJobsToCompleteOnShutdown" value="false" />
