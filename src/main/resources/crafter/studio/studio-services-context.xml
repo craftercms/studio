@@ -502,11 +502,11 @@
         <property name="startDelay" value="2000" />
     </bean>
 
-    <bean id="cstudioClusterSyncJobsScheduled"
+    <bean id="cstudioClusterSandboxSyncJobsScheduled"
           class="org.springframework.scheduling.quartz.SimpleTriggerFactoryBean" >
         <property name="jobDetail">
             <bean class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean" >
-                <property name="targetObject" ref="studioClusterSyncJob"/>
+                <property name="targetObject" ref="studioClusterSandboxSyncJob"/>
                 <property name="targetMethod" value="run"/>
                 <property name="concurrent" value="false"/>
             </bean>
@@ -516,11 +516,11 @@
         <property name="startDelay" value="0" />
     </bean>
 
-    <bean id="cstudioClusterSyncJobsScheduled"
+    <bean id="cstudioClusterPublishedSyncJobsScheduled"
           class="org.springframework.scheduling.quartz.SimpleTriggerFactoryBean" >
         <property name="jobDetail">
             <bean class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean" >
-                <property name="targetObject" ref="studioClusterSyncJob"/>
+                <property name="targetObject" ref="studioClusterPublishedSyncJob"/>
                 <property name="targetMethod" value="run"/>
                 <property name="concurrent" value="false"/>
             </bean>
