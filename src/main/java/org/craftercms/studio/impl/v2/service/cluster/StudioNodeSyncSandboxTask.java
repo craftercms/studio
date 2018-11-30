@@ -505,7 +505,7 @@ public class StudioNodeSyncSandboxTask implements Runnable {
         TextEncryptor encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
                 studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
         PullCommand pullCommand = git.pull();
-        logger.debug("Set cluste  member " + remoteNode.getLocalIp() + " as remote " + remoteNode.getGitUrl());
+        logger.debug("Set cluster member " + remoteNode.getLocalIp() + " as remote " + remoteNode.getGitUrl());
         pullCommand.setRemote(remoteNode.getGitRemoteName());
         pullCommand.setStrategy(MergeStrategy.THEIRS);
         logger.debug("Setup authentication");
