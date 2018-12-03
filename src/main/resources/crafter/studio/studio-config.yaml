@@ -520,3 +520,13 @@ studio.clustering.threadPool.namePrefix: Studio_Clustering_Thread_Pool
 studio.clustering.threadPool.corePoolSize: 10
 # Thread pool max size
 studio.clustering.threadPool.maxPoolSize: 20
+
+################################################################
+##                             CORS                           ##
+################################################################
+studio.cors.disable: false
+studio.cors.origins: '*'
+studio.cors.headers: '*'
+studio.cors.methods: '*'
+studio.cors.credentials: true
+studio.cors.maxage: -1

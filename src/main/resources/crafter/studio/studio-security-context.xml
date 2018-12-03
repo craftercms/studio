@@ -135,4 +135,15 @@
         <property name="userDao" ref="userDAO" />
         <property name="userServiceInternal" ref="userServiceInternal" />
     </bean>
+
+    <!-- CORS -->
+    <bean id="crafter.corsFilter" class="org.craftercms.commons.web.CORSFilter">
+        <property name="disableCORS" value="#{studioConfiguration.getProperty('studio.cors.disable')}"/>
+        <property name="allowOrigins" value="#{studioConfiguration.getProperty('studio.cors.origins')}"/>
+        <property name="allowMethods" value="#{studioConfiguration.getProperty('studio.cors.headers')}"/>
+        <property name="allowHeaders" value="#{studioConfiguration.getProperty('studio.cors.methods')}"/>
+        <property name="allowCredentials" value="#{studioConfiguration.getProperty('studio.cors.credentials')}"/>
+        <property name="maxAge" value="#{studioConfiguration.getProperty('studio.cors.maxage')}"/>
+    </bean>
+
 </beans>
