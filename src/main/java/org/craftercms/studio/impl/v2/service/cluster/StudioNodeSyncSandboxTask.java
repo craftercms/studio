@@ -28,8 +28,10 @@ import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.commons.crypto.impl.PbkAesTextEncryptor;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.dal.RemoteRepository;
+import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.deployment.PreviewDeployer;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
@@ -92,11 +94,10 @@ public class StudioNodeSyncSandboxTask implements Runnable {
 
     private static final Logger logger = LoggerFactory.getLogger(StudioNodeSyncSandboxTask.class);
 
-    private static final String IN_PROGRESS_BRANCH_NAME_SUFIX = "_in_progress";
-
     protected static final Map<String, ReentrantLock> singleWorkerLockMap = new HashMap<String, ReentrantLock>();
     protected static final List<String> createdSites = new ArrayList<String>();
-    protected static final Map<String, List<String>> remotesMap = new HashMap<String, List<String>>();
+    protected static final Map<String, Map<String, String>> remotesMap =
+            new HashMap<String, Map<String, String>>();
 
     protected String siteId;
     protected List<ClusterMember> clusterNodes;
@@ -188,19 +189,34 @@ public class StudioNodeSyncSandboxTask implements Runnable {
                     }
                 }
 
+                boolean syncRequired = true;
+                String siteLastCommitId = StringUtils.EMPTY;
                 try {
-                    logger.debug("Add remotes for site " + siteId);
-                    addRemotes();
-
-                } catch (InvalidRemoteUrlException | ServiceLayerException | CryptoException e) {
-                    logger.error("Error while adding remotes on cluster node for site " + siteId);
+                    SiteFeed siteFeed = siteService.getSite(siteId);
+                    siteLastCommitId = siteFeed.getLastCommitId();
+                    String lastCommitIdRepo = contentRepository.getRepoLastCommitId(siteId);
+                    if (StringUtils.equals(lastCommitIdRepo, siteLastCommitId)) {
+                        syncRequired = false;
+                    }
+                } catch (SiteNotFoundException e) {
+                    logger.error("Site " + siteId + " not found in the database");
                 }
 
-                try {
-                    logger.debug("Update content for site " + siteId);
-                    updateContent();
-                } catch (IOException | CryptoException | ServiceLayerException e) {
-                    logger.error("Error while updating content for site " + siteId + " on cluster node.", e);
+                if (syncRequired && StringUtils.isNotEmpty(siteLastCommitId)) {
+                    try {
+                        logger.debug("Add remotes for site " + siteId);
+                        addRemotes();
+
+                    } catch (InvalidRemoteUrlException | ServiceLayerException | CryptoException e) {
+                        logger.error("Error while adding remotes on cluster node for site " + siteId);
+                    }
+
+                    try {
+                        logger.debug("Update content for site " + siteId);
+                        updateContent(siteLastCommitId);
+                    } catch (IOException | CryptoException | ServiceLayerException e) {
+                        logger.error("Error while updating content for site " + siteId + " on cluster node.", e);
+                    }
                 }
             } finally {
                 singleWorkerLock.unlock();
@@ -428,12 +444,12 @@ public class StudioNodeSyncSandboxTask implements Runnable {
     }
 
     private void addRemotes() throws InvalidRemoteUrlException, ServiceLayerException, CryptoException {
-        List<String> existingRemotes = remotesMap.get(siteId);
+        Map<String, String> existingRemotes = remotesMap.get(siteId);
         TextEncryptor encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
                 studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
         logger.debug("Add cluster members as remotes to local sandbox repository");
         for (ClusterMember member : clusterNodes) {
-            if (CollectionUtils.isNotEmpty(existingRemotes) && existingRemotes.contains(member.getGitRemoteName())) {
+            if (existingRemotes != null && existingRemotes.containsKey(member.getGitRemoteName())) {
                 continue;
             }
             FileRepositoryBuilder builder = new FileRepositoryBuilder();
@@ -453,7 +469,7 @@ public class StudioNodeSyncSandboxTask implements Runnable {
                     Set<String> remotes = storedConfig.getSubsections(CONFIG_SECTION_REMOTE);
 
                     if (existingRemotes == null) {
-                        existingRemotes = new ArrayList<String>();
+                        existingRemotes = new HashMap<String, String>();
                         remotesMap.put(siteId, existingRemotes);
                     }
                     if (remotes.contains(member.getGitRemoteName())) {
@@ -474,7 +490,8 @@ public class StudioNodeSyncSandboxTask implements Runnable {
                         remoteAddCommand.setUri(new URIish(remoteUrl));
                         remoteAddCommand.call();
                     }
-                    existingRemotes.add(member.getGitRemoteName());
+
+                    existingRemotes.put(member.getGitRemoteName(), StringUtils.EMPTY);
                 } catch (URISyntaxException e) {
                     logger.error("Remote URL is invalid " + remoteUrl, e);
                     throw new InvalidRemoteUrlException();
@@ -490,7 +507,7 @@ public class StudioNodeSyncSandboxTask implements Runnable {
         }
     }
 
-    private void updateContent() throws IOException, CryptoException, ServiceLayerException {
+    private void updateContent(String lastCommitId) throws IOException, CryptoException, ServiceLayerException {
         logger.debug("Update sandbox for site " + siteId);
         boolean toRet = true;
         Path siteSandboxPath = buildRepoPath(SANDBOX).resolve(GIT_ROOT);
@@ -500,13 +517,24 @@ public class StudioNodeSyncSandboxTask implements Runnable {
                 .readEnvironment()
                 .findGitDir()
                 .build();
+
+        Map<String, String> remoteLastSyncCommits = remotesMap.get(siteId);
+        if (remoteLastSyncCommits == null || remoteLastSyncCommits.isEmpty()) {
+            remoteLastSyncCommits = new HashMap<String, String>();
+            remotesMap.put(siteId, remoteLastSyncCommits);
+        }
         try (Git git = new Git(repo)) {
             logger.debug("Update content from each active cluster memeber");
             for (ClusterMember remoteNode : clusterNodes) {
-                updateBranch(git, remoteNode);
+                String remoteLastSyncCommit = remoteLastSyncCommits.get(remoteNode.getGitRemoteName());
+                if (StringUtils.isEmpty(remoteLastSyncCommit) ||
+                        !StringUtils.equals(lastCommitId, remoteLastSyncCommit)) {
+                    updateBranch(git, remoteNode);
+                    remoteLastSyncCommits.put(remoteNode.getGitRemoteName(), lastCommitId);
+                }
             }
         } catch (GitAPIException e) {
-            e.printStackTrace();
+            logger.error("Error while syncing cluster node content for site " + siteId);
         }
 
     }

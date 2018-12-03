@@ -99,8 +99,6 @@ public class StudioNodeSyncPublishedTask implements Runnable {
 
     private static final Logger logger = LoggerFactory.getLogger(StudioNodeSyncPublishedTask.class);
 
-    private static final String IN_PROGRESS_BRANCH_NAME_SUFIX = "_in_progress";
-
     protected static final Map<String, ReentrantLock> singleWorkerLockMap = new HashMap<String, ReentrantLock>();
     protected static final List<String> createdSites = new ArrayList<String>();
     protected static final Map<String, List<String>> remotesMap = new HashMap<String, List<String>>();
