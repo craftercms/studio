@@ -409,3 +409,13 @@ studio.db.socket: /tmp/MariaDB4j.33306.sock
 ##########################################################
 # The global Tinify API key used for image processing (empty by default)
 studio.configuration.asset.processing.tinify.apiKey:
+
+################################################################
+##                             CORS                           ##
+################################################################
+studio.cors.disable: false
+studio.cors.origins: '*'
+studio.cors.headers: '*'
+studio.cors.methods: '*'
+studio.cors.credentials: true
+studio.cors.maxage: -1
