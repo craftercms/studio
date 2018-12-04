@@ -107,32 +107,22 @@ public class StudioNodeSyncPublishedTask extends StudioNodeSyncBaseTask {
                 .findGitDir()
                 .build();
 
-        Map<String, String> remoteLastSyncCommits = remotesMap.get(siteId);
-        if (remoteLastSyncCommits == null || remoteLastSyncCommits.isEmpty()) {
-            remoteLastSyncCommits = new HashMap<String, String>();
-            remotesMap.put(siteId, remoteLastSyncCommits);
-        }
         try (Git git = new Git(repo)) {
 
             Set<String> environments = getAllPublishingEnvironments(siteId);
             logger.debug("Update published repo from all active cluster members");
             for (ClusterMember remoteNode : clusterNodes) {
-                String remoteLastSyncCommit = remoteLastSyncCommits.get(remoteNode.getGitRemoteName());
-                if (StringUtils.isEmpty(remoteLastSyncCommit) ||
-                        !StringUtils.equals(lastCommitId, remoteLastSyncCommit)) {
-                    logger.debug("Fetch from cluster member " + remoteNode.getLocalIp());
-                    final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
-                    FetchCommand fetch = git.fetch().setRemote(remoteNode.getGitRemoteName());
-                    fetch = setAuthenticationForCommand(remoteNode, fetch, tempKey);
-                    fetch.call();
-                    Files.delete(tempKey);
+                logger.debug("Fetch from cluster member " + remoteNode.getLocalIp());
+                final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
+                FetchCommand fetch = git.fetch().setRemote(remoteNode.getGitRemoteName());
+                fetch = setAuthenticationForCommand(remoteNode, fetch, tempKey);
+                fetch.call();
+                Files.delete(tempKey);
 
-                    logger.debug("Update all environments for site " + siteId + " from cluster member " +
-                            remoteNode.getLocalIp());
-                    for (String branch : environments) {
-                        updatePublishedBranch(git, remoteNode, branch);
-                    }
-                    remoteLastSyncCommits.put(remoteNode.getGitRemoteName(), lastCommitId);
+                logger.debug("Update all environments for site " + siteId + " from cluster member " +
+                        remoteNode.getLocalIp());
+                for (String branch : environments) {
+                    updatePublishedBranch(git, remoteNode, branch);
                 }
             }
         } catch (GitAPIException e) {
