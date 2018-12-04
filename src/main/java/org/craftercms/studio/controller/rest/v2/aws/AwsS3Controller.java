@@ -102,6 +102,7 @@ public class AwsS3Controller {
                 FileItemIterator iterator = upload.getItemIterator(request);
                 String siteId = null;
                 String profileId = null;
+                String path = null;
                 while (iterator.hasNext()) {
                     FileItemStream item = iterator.next();
                     String name = item.getFieldName();
@@ -114,6 +115,8 @@ public class AwsS3Controller {
                                 case PARAM_PROFILE:
                                     profileId = Streams.asString(stream);
                                     break;
+                                case PARAM_PATH:
+                                    path = Streams.asString(stream);
                                 default:
                                     // Unknown parameter, just skip it...
                             }
@@ -123,7 +126,7 @@ public class AwsS3Controller {
                                 filename = FilenameUtils.getName(filename);
                             }
                             result.setEntity(RESULT_KEY_ITEM,
-                                s3Service.uploadItem(siteId, profileId, filename, stream));
+                                s3Service.uploadItem(siteId, profileId, path, filename, stream));
                             result.setResponse(ApiResponse.OK);
                         }
                     }

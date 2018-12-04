@@ -84,15 +84,17 @@ public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements A
     @HasPermission(type = DefaultPermission.class, action = "s3 write")
     public S3Item uploadItem(@ValidateStringParam(name = "siteId") @ProtectedResourceId("siteId") String siteId,
                              @ValidateStringParam(name = "profileId") String profileId,
+                             @ValidateStringParam(name ="path") String path,
                              @ValidateStringParam(name = "filename") String filename,
                              InputStream content) throws AwsException {
         S3Profile profile = getProfile(siteId, profileId);
         AmazonS3 s3Client = getS3Client(profile);
         String inputBucket = profile.getBucketName();
+        String key = StringUtils.isNotEmpty(path)? StringUtils.appendIfMissing(path, DELIMITER) + filename : filename;
 
-        AwsUtils.uploadStream(inputBucket, filename, s3Client, partSize, filename, content);
+        AwsUtils.uploadStream(inputBucket, key, s3Client, partSize, filename, content);
 
-        return new S3Item(filename, createUrl(profileId, filename), false);
+        return new S3Item(filename, createUrl(profileId, key), false);
     }
 
     /**
