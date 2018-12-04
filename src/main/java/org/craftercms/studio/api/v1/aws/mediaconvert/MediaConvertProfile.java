@@ -18,14 +18,14 @@
 
 package org.craftercms.studio.api.v1.aws.mediaconvert;
 
-import org.craftercms.studio.api.v1.aws.AwsProfile;
+import org.craftercms.commons.config.profiles.aws.AbstractAwsProfile;
 
 /**
  * Holds the necessary information to request a transcoding job for AWS MediaConvert.
  *
  * @author joseross
  */
-public class MediaConvertProfile extends AwsProfile {
+public class MediaConvertProfile extends AbstractAwsProfile {
 
     /**
      * AWS MediaConvert account specific endpoint. Can be found in the AWS Console.

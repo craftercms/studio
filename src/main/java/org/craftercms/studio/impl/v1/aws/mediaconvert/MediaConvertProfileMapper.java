@@ -19,12 +19,16 @@
 package org.craftercms.studio.impl.v1.aws.mediaconvert;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
-import org.craftercms.studio.api.v1.aws.AbstractXmlProfileReader;
+import org.apache.commons.configuration2.tree.ImmutableNode;
+import org.craftercms.commons.config.ConfigurationException;
+import org.craftercms.commons.config.profiles.aws.AbstractAwsProfile;
+import org.craftercms.commons.config.profiles.aws.AbstractAwsProfileMapper;
 import org.craftercms.studio.api.v1.aws.mediaconvert.MediaConvertProfile;
-import org.craftercms.studio.api.v1.exception.AwsConfigurationException;
+
+import static org.craftercms.commons.config.ConfigUtils.*;
 
 /**
- * MediaConvert implementation of {@link org.craftercms.studio.api.v1.aws.AwsProfileReader}. It uses Apache Commons
+ * MediaConvert implementation of {@link org.craftercms.commons.config.ConfigurationMapper}. It uses Apache Commons
  * Configuration to read an XML profile like the following properties:
  *
  * <pre>
@@ -46,7 +50,7 @@ import org.craftercms.studio.api.v1.exception.AwsConfigurationException;
  * @author joseross
  */
 @SuppressWarnings("unchecked")
-public class XmlMediaConvertProfileReader extends AbstractXmlProfileReader<MediaConvertProfile> {
+public class MediaConvertProfileMapper extends AbstractAwsProfileMapper<MediaConvertProfile> {
 
     public static final String CONFIG_KEY_ENDPOINT = "endpoint";
     public static final String CONFIG_KEY_ROLE = "role";
@@ -54,21 +58,23 @@ public class XmlMediaConvertProfileReader extends AbstractXmlProfileReader<Media
     public static final String CONFIG_KEY_TEMPLATE = "template";
     public static final String CONFIG_KEY_INPUT_PATH = "inputPath";
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public MediaConvertProfile readProfile(final HierarchicalConfiguration config) throws AwsConfigurationException {
-        MediaConvertProfile profile = new MediaConvertProfile();
-        readBasicProperties(config, profile);
+    protected MediaConvertProfile mapProfile(HierarchicalConfiguration<ImmutableNode> profileConfig)
+            throws ConfigurationException {
+        MediaConvertProfile profile = super.mapProfile(profileConfig);
 
-        profile.setEndpoint(config.getString(CONFIG_KEY_ENDPOINT));
-        profile.setRole(config.getString(CONFIG_KEY_ROLE));
-        profile.setQueue(config.getString(CONFIG_KEY_QUEUE));
-        profile.setTemplate(config.getString(CONFIG_KEY_TEMPLATE));
+        profile.setEndpoint(getRequiredStringProperty(profileConfig, CONFIG_KEY_ENDPOINT));
+        profile.setRole(getRequiredStringProperty(profileConfig, CONFIG_KEY_ROLE));
+        profile.setQueue(getRequiredStringProperty(profileConfig, CONFIG_KEY_QUEUE));
+        profile.setTemplate(getRequiredStringProperty(profileConfig, CONFIG_KEY_TEMPLATE));
+        profile.setInputPath(getRequiredStringProperty(profileConfig, CONFIG_KEY_INPUT_PATH));
 
-        profile.setInputPath(config.getString(CONFIG_KEY_INPUT_PATH));
         return profile;
+    }
+
+    @Override
+    protected AbstractAwsProfile createProfile() {
+        return new MediaConvertProfile();
     }
 
 }

@@ -842,71 +842,82 @@
     <!-- ////////////////////////////////////// -->
     <!--         AWS                            -->
     <!-- ////////////////////////////////////// -->
-    <bean id="studioAwsProfileManager" class="org.craftercms.studio.impl.v1.service.aws.AwsProfileManagerImpl">
-        <property name="basePath"
-                  value="#{studioConfiguration.getProperty('studio.configuration.site.aws.configBasePath')}"/>
-        <property name="fileName"
-                  value="#{studioConfiguration.getProperty('studio.configuration.site.aws.configFileName')}"/>
+    <bean id="studioTranscoderProfileLoader" class="org.craftercms.studio.impl.v1.util.config.profiles.SiteAwareConfigProfileLoader">
+        <property name="profilesPath" value="#{studioConfiguration.getProperty('studio.configuration.site.aws.configurationPath')}"/>
+        <property name="profileMapper">
+            <bean class="org.craftercms.studio.impl.v1.aws.elastictranscoder.TranscoderProfileMapper"/>
+        </property>
         <property name="contentService" ref="cstudioContentService"/>
     </bean>
 
-    <bean id="studioTranscoderProfileReader" class="org.craftercms.studio.impl.v1.aws.elastictranscoder.XmlTranscoderProfileReader"/>
+    <bean id="studioMediaConvertProfileLoader" class="org.craftercms.studio.impl.v1.util.config.profiles.SiteAwareConfigProfileLoader">
+        <property name="profilesPath" value="#{studioConfiguration.getProperty('studio.configuration.site.aws.configurationPath')}"/>
+        <property name="profileMapper">
+            <bean class="org.craftercms.studio.impl.v1.aws.mediaconvert.MediaConvertProfileMapper"/>
+        </property>
+        <property name="contentService" ref="cstudioContentService"/>
+    </bean>
+
+    <bean id="studioS3ProfileLoader" class="org.craftercms.studio.impl.v1.util.config.profiles.SiteAwareConfigProfileLoader">
+        <property name="profilesPath" value="#{studioConfiguration.getProperty('studio.configuration.site.aws.configurationPath')}"/>
+        <property name="profileMapper">
+            <bean class="org.craftercms.commons.config.profiles.aws.S3ProfileMapper"/>
+        </property>
+        <property name="contentService" ref="cstudioContentService"/>
+    </bean>
 
     <bean id="studioElasticTranscoder" class="org.craftercms.studio.impl.v1.aws.elastictranscoder.ElasticTranscoderImpl"/>
 
     <bean id="studioElasticTranscoderService" class="org.craftercms.studio.impl.v1.service.aws.ElasticTranscoderServiceImpl">
-        <property name="profileManager" ref="studioAwsProfileManager"/>
-        <property name="profileReader" ref="studioTranscoderProfileReader"/>
+        <property name="profileLoader" ref="studioTranscoderProfileLoader"/>
         <property name="transcoder" ref="studioElasticTranscoder"/>
     </bean>
 
-    <bean id="studioS3ProfileReader" class="org.craftercms.studio.impl.v1.aws.s3.XmlS3ProfileReader"/>
-
     <bean id="studioS3Service" class="org.craftercms.studio.impl.v1.service.aws.S3ServiceImpl">
-        <property name="profileManager" ref="studioAwsProfileManager"/>
-        <property name="profileReader" ref="studioS3ProfileReader"/>
+        <property name="profileLoader" ref="studioS3ProfileLoader"/>
     </bean>
 
     <!-- v2 Service -->
     <bean id="awsS3Service" class="org.craftercms.studio.impl.v2.service.aws.s3.AwsS3ServiceImpl">
-        <property name="profileManager" ref="studioAwsProfileManager"/>
-        <property name="profileReader" ref="studioS3ProfileReader"/>
+        <property name="profileLoader" ref="studioS3ProfileLoader"/>
     </bean>
-
-    <bean id="studioMediaConvertProfileReader"
-          class="org.craftercms.studio.impl.v1.aws.mediaconvert.XmlMediaConvertProfileReader"/>
 
     <bean id="studioMediaConvert" class="org.craftercms.studio.impl.v1.aws.mediaconvert.MediaConvertImpl"/>
 
     <bean id="studioMediaConvertService" class="org.craftercms.studio.impl.v1.service.aws.MediaConvertServiceImpl">
-        <property name="profileManager" ref="studioAwsProfileManager"/>
-        <property name="profileReader" ref="studioMediaConvertProfileReader"/>
+        <property name="profileLoader" ref="studioMediaConvertProfileLoader"/>
         <property name="mediaConvert" ref="studioMediaConvert"/>
     </bean>
 
     <!-- ////////////////////////////////////// -->
     <!--         BOX                            -->
     <!-- ////////////////////////////////////// -->
-    <bean id="studioBoxProfileReader" class="org.craftercms.studio.impl.v1.box.BoxProfileReaderImpl">
-        <property name="configPath" value="#{studioConfiguration.getProperty('studio.configuration.site.box.configurationPath')}"/>
+    <bean id="studioBoxProfileLoader" class="org.craftercms.studio.impl.v1.util.config.profiles.SiteAwareConfigProfileLoader">
+        <property name="profilesPath" value="#{studioConfiguration.getProperty('studio.configuration.site.box.configurationPath')}"/>
+        <property name="profileMapper">
+            <bean class="org.craftercms.commons.config.profiles.box.BoxProfileMapper"/>
+        </property>
         <property name="contentService" ref="cstudioContentService"/>
     </bean>
 
     <bean id="studioBoxService" class="org.craftercms.studio.impl.v1.service.box.BoxServiceImpl">
-        <property name="profileReader" ref="studioBoxProfileReader"/>
+        <property name="profileLoader" ref="studioBoxProfileLoader"/>
     </bean>
 
     <!-- ////////////////////////////////////// -->
     <!--                 WEBDAV                 -->
     <!-- ////////////////////////////////////// -->
-    <bean id="studioWebDavProfileReader" class="org.craftercms.studio.impl.v1.webdav.WebDavProfileReaderImpl">
-        <property name="configPath"
-                  value="#{studioConfiguration.getProperty('studio.configuration.site.webdav.configurationPath')}"/>
+    <!-- ////////////////////////////////////// -->
+    <bean id="studioWebDavProfileLoader" class="org.craftercms.studio.impl.v1.util.config.profiles.SiteAwareConfigProfileLoader">
+        <property name="profilesPath" value="#{studioConfiguration.getProperty('studio.configuration.site.webdav.configurationPath')}"/>
+        <property name="profileMapper">
+            <bean class="org.craftercms.commons.config.profiles.webdav.WebDavProfileMappper"/>
+        </property>
         <property name="contentService" ref="cstudioContentService"/>
     </bean>
 
     <bean id="studioWebDavService" class="org.craftercms.studio.impl.v1.service.webdav.WebDavServiceImpl">
-        <property name="profileReader" ref="studioWebDavProfileReader"/>
+        <property name="profileLoader" ref="studioWebDavProfileLoader"/>
     </bean>
 
     <!-- Utilities -->
