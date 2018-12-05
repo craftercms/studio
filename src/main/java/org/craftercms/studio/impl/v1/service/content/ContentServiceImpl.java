@@ -114,6 +114,7 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_UNKNOWN;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC;
+import static org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.REVERT;
 import static org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.SAVE;
 import static org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.SAVE_FOR_PREVIEW;
 
@@ -1879,6 +1880,7 @@ public class ContentServiceImpl implements ContentService {
                         path + " version: " + version);
             }
             // Update the database with the commitId for the target item
+            objectStateService.transition(site, path, REVERT);
             objectMetadataManager.updateCommitId(site, path, commitId);
             _contentRepository.insertGitLog(site, commitId, 1);
             siteService.updateLastCommitId(site, commitId);
