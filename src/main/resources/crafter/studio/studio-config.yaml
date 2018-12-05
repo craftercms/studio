@@ -94,10 +94,8 @@ studio.configuration.site.preview.destroy.sontext.url: /api/1/site/context/destr
 studio.configuration.site.dependencyResolver.configBasePath: /config/studio/dependency
 # File name where dependency specific configuration is stored
 studio.configuration.site.dependencyResolver.configFileName: resolver-config.xml
-# Repo path to look for the AWS configuration file
-studio.configuration.site.aws.configBasePath: /config/studio/aws
-# Name of the AWS configuration file
-studio.configuration.site.aws.configFileName: aws.xml
+# Repo path to read the AWS configuration
+studio.configuration.site.aws.configurationPath: /config/studio/aws/aws.xml
 # Repo path to read the Box configuration
 studio.configuration.site.box.configurationPath: /config/studio/box/box.xml
 # Repo path to read the WebDAV configuration
