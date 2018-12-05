@@ -20,6 +20,8 @@ package org.craftercms.studio.impl.v2.service.cluster;
 
 import static org.craftercms.studio.api.v1.constant.GitRepositories.PUBLISHED;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_SANDBOX_BRANCH;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_SYNC_DB_COMMIT_MESSAGE_NO_PROCESSING;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_KEY;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_SALT;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_ROOT;
@@ -52,15 +54,21 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.eclipse.jgit.api.CloneCommand;
+import org.eclipse.jgit.api.FetchCommand;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.MergeCommand;
 import org.eclipse.jgit.api.PullCommand;
 import org.eclipse.jgit.api.TransportConfigCallback;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.api.errors.TransportException;
+import org.eclipse.jgit.lib.Constants;
+import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.merge.MergeStrategy;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
+import org.eclipse.jgit.transport.FetchResult;
 import org.eclipse.jgit.transport.JschConfigSessionFactory;
 import org.eclipse.jgit.transport.OpenSshConfig;
 import org.eclipse.jgit.transport.SshTransport;
@@ -350,6 +358,30 @@ public class StudioNodeSyncSandboxTask extends StudioNodeSyncBaseTask {
         TextEncryptor encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
                 studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
         final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
+        FetchCommand fetchCommand = git.fetch().setRemote(remoteNode.getGitRemoteName());
+        fetchCommand = setAuthenticationForCommand(remoteNode, fetchCommand, tempKey);
+        FetchResult fetchResult = fetchCommand.call();
+
+        ObjectId commitToMerge = null;
+        Ref r = null;
+        if (fetchResult != null) {
+            r = fetchResult.getAdvertisedRef(REPO_SANDBOX_BRANCH);
+            if (r == null) {
+                r = fetchResult.getAdvertisedRef(Constants.R_HEADS + REPO_SANDBOX_BRANCH);
+            }
+            if (r != null) {
+                commitToMerge = r.getObjectId();
+
+                MergeCommand mergeCommand = git.merge();
+                mergeCommand.setMessage(studioConfiguration.getProperty(REPO_SYNC_DB_COMMIT_MESSAGE_NO_PROCESSING));
+                mergeCommand.setCommit(true);
+                mergeCommand.include(remoteNode.getGitRemoteName(), commitToMerge);
+                mergeCommand.setStrategy(MergeStrategy.THEIRS);
+                //mergeCommand = setAuthenticationForCommand(remoteNode, mergeCommand, tempKey);
+                mergeCommand.call();
+            }
+        }
+/*
         PullCommand pullCommand = git.pull();
 
         logger.debug("Set cluster member " + remoteNode.getLocalIp() + " as remote " +
@@ -359,6 +391,7 @@ public class StudioNodeSyncSandboxTask extends StudioNodeSyncBaseTask {
         logger.debug("Setup authentication");
         pullCommand = setAuthenticationForCommand(remoteNode, pullCommand, tempKey);
         pullCommand.call();
+        */
         Files.delete(tempKey);
     }
 }
