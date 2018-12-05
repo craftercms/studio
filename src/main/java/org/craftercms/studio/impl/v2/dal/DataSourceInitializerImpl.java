@@ -27,8 +27,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
+import ch.vorburger.mariadb4j.springframework.MariaDB4jSpringService;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.jdbc.RuntimeSqlException;
@@ -40,6 +42,7 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.DataSourceInitializer;
 
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CLUSTERING_NODE_REGISTRATION;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_DRIVER;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_INITIALIZER_CONFIGURE_DB_SCRIPT_LOCATION;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.DB_INITIALIZER_CREATE_DB_SCRIPT_LOCATION;
@@ -71,8 +74,16 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
 
     protected DbIntegrityValidator integrityValidator;
 
+    protected MariaDB4jSpringService embeddedService;
+
     @Override
     public void initDataSource() {
+
+        // Stop embedded service in clusterred environment
+        if (studioConfiguration.getProperty(CLUSTERING_NODE_REGISTRATION, new HashMap<String, String>().getClass()) != null) {
+            embeddedService.stop();
+        }
+
         if (isEnabled()) {
             String configureDbScriptPath = getConfigureDBScriptPath();
 
@@ -238,4 +249,11 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
         this.integrityValidator = integrityValidator;
     }
 
+    public MariaDB4jSpringService getEmbeddedService() {
+        return embeddedService;
+    }
+
+    public void setEmbeddedService(MariaDB4jSpringService embeddedService) {
+        this.embeddedService = embeddedService;
+    }
 }
