@@ -42,6 +42,8 @@ studio.repo.sandbox.write.commitMessage: "User {username} wrote content {path}"
 studio.repo.published.commitMessage: "Publish event triggered by {username} on {datetime} via {source}.\n\nPublish note from user: \"{message}\"\n\nCommit ID: {commit_id}\n\nPackage ID: {package_id}"
 # The cron expression used on scheduled cleanup of repositories
 studio.repo.cleanup.cron: '0 0 3 ? * SUN'
+# Commit message to mark commit not to process when syncing database
+studio.repo.syncDB.commitMessage.noProcessing: "STUDIO: NO PROCESSING"
 
 ############################################################
 ##                   Site Configuration                   ##
