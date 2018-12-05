@@ -575,6 +575,7 @@
         <property name="gitLogMapper" ref="gitLogMapper" />
         <property name="userServiceInternal" ref="userServiceInternal" />
         <property name="securityService" ref="cstudioSecurityService" />
+        <property name="siteFeedMapper" ref="siteFeedMapper" />
     </bean>
 
     <!-- /////// -->
