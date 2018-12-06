@@ -367,7 +367,8 @@ public class StudioNodeSyncSandboxTask extends StudioNodeSyncBaseTask {
         if (fetchResult != null) {
             r = fetchResult.getAdvertisedRef(REPO_SANDBOX_BRANCH);
             if (r == null) {
-                r = fetchResult.getAdvertisedRef(Constants.R_HEADS + REPO_SANDBOX_BRANCH);
+                r = fetchResult.getAdvertisedRef(Constants.R_HEADS +
+                        studioConfiguration.getProperty(REPO_SANDBOX_BRANCH));
             }
             if (r != null) {
                 commitToMerge = r.getObjectId();
