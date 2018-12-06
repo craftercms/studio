@@ -1,15 +1,30 @@
+/*
+ * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
 package org.craftercms.studio.impl.v1.service.box;
 
-import org.craftercms.studio.api.v1.box.BoxProfile;
-import org.craftercms.studio.api.v1.box.BoxProfileReader;
+import com.box.sdk.*;
+import org.craftercms.commons.config.ConfigurationException;
+import org.craftercms.commons.config.profiles.box.BoxProfile;
 import org.craftercms.studio.api.v1.exception.BoxException;
 import org.craftercms.studio.api.v1.service.box.BoxService;
+import org.craftercms.studio.impl.v1.util.config.profiles.SiteAwareConfigProfileLoader;
 import org.springframework.beans.factory.annotation.Required;
-import com.box.sdk.BoxAPIConnection;
-import com.box.sdk.BoxConfig;
-import com.box.sdk.BoxDeveloperEditionAPIConnection;
-import com.box.sdk.EncryptionAlgorithm;
-import com.box.sdk.JWTEncryptionPreferences;
 
 /**
  * {@inheritDoc}
@@ -20,11 +35,11 @@ public class BoxServiceImpl implements BoxService {
 
     protected String urlFormat = DEFAULT_URL_FORMAT;
 
-    protected BoxProfileReader profileReader;
+    protected SiteAwareConfigProfileLoader<BoxProfile> profileLoader;
 
     @Required
-    public void setProfileReader(final BoxProfileReader profileReader) {
-        this.profileReader = profileReader;
+    public void setProfileLoader(SiteAwareConfigProfileLoader<BoxProfile> profileLoader) {
+        this.profileLoader = profileLoader;
     }
 
     public void setUrlFormat(final String urlFormat) {
@@ -32,7 +47,11 @@ public class BoxServiceImpl implements BoxService {
     }
 
     protected BoxProfile getProfile(String site, String profileId) throws BoxException  {
-        return profileReader.getProfile(site, profileId);
+        try {
+            return profileLoader.loadProfile(site, profileId);
+        } catch (ConfigurationException e) {
+            throw new BoxException("Unable to load Box profile", e);
+        }
     }
 
     protected BoxAPIConnection getConnection(BoxProfile profile) {

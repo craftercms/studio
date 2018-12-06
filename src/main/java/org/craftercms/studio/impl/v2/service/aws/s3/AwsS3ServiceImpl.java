@@ -24,11 +24,11 @@ import com.amazonaws.services.s3.internal.Mimetypes;
 import com.amazonaws.services.s3.model.ListObjectsV2Request;
 import com.amazonaws.services.s3.model.ListObjectsV2Result;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.config.profiles.aws.S3Profile;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
-import org.craftercms.studio.api.v1.aws.s3.S3Profile;
 import org.craftercms.studio.api.v1.exception.AwsException;
 import org.craftercms.studio.api.v1.service.aws.AbstractAwsService;
 import org.craftercms.studio.api.v2.service.aws.s3.AwsS3Service;
@@ -84,15 +84,17 @@ public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements A
     @HasPermission(type = DefaultPermission.class, action = "s3 write")
     public S3Item uploadItem(@ValidateStringParam(name = "siteId") @ProtectedResourceId("siteId") String siteId,
                              @ValidateStringParam(name = "profileId") String profileId,
+                             @ValidateStringParam(name ="path") String path,
                              @ValidateStringParam(name = "filename") String filename,
                              InputStream content) throws AwsException {
         S3Profile profile = getProfile(siteId, profileId);
         AmazonS3 s3Client = getS3Client(profile);
         String inputBucket = profile.getBucketName();
+        String key = StringUtils.isNotEmpty(path)? StringUtils.appendIfMissing(path, DELIMITER) + filename : filename;
 
-        AwsUtils.uploadStream(inputBucket, filename, s3Client, partSize, filename, content);
+        AwsUtils.uploadStream(inputBucket, key, s3Client, partSize, filename, content);
 
-        return new S3Item(filename, createUrl(profileId, filename), false);
+        return new S3Item(filename, createUrl(profileId, key), false);
     }
 
     /**

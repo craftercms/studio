@@ -1045,13 +1045,21 @@ paths:
                 profileId:
                   type: string
                   description: The profile ID
+                path:
+                  type: string
+                  description: The path where the file will be uploaded (will be used as part of the key in S3)
                 filename:
                   type: string
-                  description: The name of the file (will be used as the item key in S3)
+                  description: The name of the file (will be used as part of the item key in S3)
                 file:
                   type: string
                   format: binary
                   description: The content of the file to upload
+              required:
+                - siteId
+                - profileId
+                - filename
+                - file
       responses:
         '200':
           description: OK

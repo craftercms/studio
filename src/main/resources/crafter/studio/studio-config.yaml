@@ -42,6 +42,8 @@ studio.repo.sandbox.write.commitMessage: "User {username} wrote content {path}"
 studio.repo.published.commitMessage: "Publish event triggered by {username} on {datetime} via {source}.\n\nPublish note from user: \"{message}\"\n\nCommit ID: {commit_id}\n\nPackage ID: {package_id}"
 # The cron expression used on scheduled cleanup of repositories
 studio.repo.cleanup.cron: '0 0 3 ? * SUN'
+# Commit message to mark commit not to process when syncing database
+studio.repo.syncDB.commitMessage.noProcessing: "STUDIO: NO PROCESSING"
 
 ############################################################
 ##                   Site Configuration                   ##
@@ -94,10 +96,8 @@ studio.configuration.site.preview.destroy.sontext.url: /api/1/site/context/destr
 studio.configuration.site.dependencyResolver.configBasePath: /config/studio/dependency
 # File name where dependency specific configuration is stored
 studio.configuration.site.dependencyResolver.configFileName: resolver-config.xml
-# Repo path to look for the AWS configuration file
-studio.configuration.site.aws.configBasePath: /config/studio/aws
-# Name of the AWS configuration file
-studio.configuration.site.aws.configFileName: aws.xml
+# Repo path to read the AWS configuration
+studio.configuration.site.aws.configurationPath: /config/studio/aws/aws.xml
 # Repo path to read the Box configuration
 studio.configuration.site.box.configurationPath: /config/studio/box/box.xml
 # Repo path to read the WebDAV configuration
@@ -524,7 +524,10 @@ studio.clustering.threadPool.maxPoolSize: 20
 ################################################################
 ##                             CORS                           ##
 ################################################################
-# Disable completely CORS headers
+# This is configured as permissive by default for ease of deployment
+# Remember to tighten this up for production
+
+# Disable CORS headers completely
 studio.cors.disable: false
 # Value for the Access-Control-Allow-Origin header
 studio.cors.origins: '*'

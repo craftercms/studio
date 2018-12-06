@@ -35,12 +35,14 @@ public interface AwsS3Service {
      * Uploads a file to an S3 bucket.
      * @param siteId the site id
      * @param profileId the profile id
-     * @param filename the filename (will be used as the key)
+     * @param path the path to upload the file (will be used as part of the S3 key)
+     * @param filename the filename (will be used as part of the S3 key)
      * @param content a stream providing the content of the file
      * @return the uploaded item
      * @throws AwsException if there is any error connection to S3
      */
-    S3Item uploadItem(String siteId, String profileId, String filename, InputStream content) throws AwsException;
+    S3Item uploadItem(String siteId, String profileId, String path, String filename, InputStream content)
+        throws AwsException;
 
     /**
      * Lists items in an S3 bucket.

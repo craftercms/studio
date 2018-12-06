@@ -29,21 +29,21 @@ import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.config.ConfigurationException;
+import org.craftercms.commons.config.profiles.webdav.WebDavProfile;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.exception.WebDavException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.webdav.WebDavService;
 import org.craftercms.studio.api.v1.webdav.WebDavItem;
-import org.craftercms.studio.api.v1.webdav.WebDavProfile;
-import org.craftercms.studio.api.v1.webdav.WebDavProfileReader;
+import org.craftercms.studio.impl.v1.util.config.profiles.SiteAwareConfigProfileLoader;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.util.MimeType;
 import org.springframework.web.util.UriUtils;
 import com.github.sardine.DavResource;
 import com.github.sardine.Sardine;
 import com.github.sardine.SardineFactory;
-import com.github.sardine.impl.SardineException;
 
 import static com.github.sardine.util.SardineUtil.DEFAULT_NAMESPACE_PREFIX;
 import static com.github.sardine.util.SardineUtil.DEFAULT_NAMESPACE_URI;
@@ -64,9 +64,9 @@ public class WebDavServiceImpl implements WebDavService {
     public static final String FILTER_ALL_ITEMS = "item";
 
     /**
-     * Instance of {@link WebDavProfileReader} used to parse the configuration file.
+     * Instance of {@link SiteAwareConfigProfileLoader} used to load the configuration file.
      */
-    protected WebDavProfileReader profileReader;
+    protected SiteAwareConfigProfileLoader<WebDavProfile> profileLoader;
 
     /**
      * Charset used to encode paths in URLs.
@@ -87,8 +87,16 @@ public class WebDavServiceImpl implements WebDavService {
     }
 
     @Required
-    public void setProfileReader(final WebDavProfileReader profileReader) {
-        this.profileReader = profileReader;
+    public void setProfileLoader(SiteAwareConfigProfileLoader<WebDavProfile> profileLoader) {
+        this.profileLoader = profileLoader;
+    }
+
+    protected WebDavProfile getProfile(String site, String profileId) throws WebDavException  {
+        try {
+            return profileLoader.loadProfile(site, profileId);
+        } catch (ConfigurationException e) {
+            throw new WebDavException("Unable to load WebDav profile", e);
+        }
     }
 
     /**
@@ -98,10 +106,8 @@ public class WebDavServiceImpl implements WebDavService {
     public List<WebDavItem> list(@ValidateStringParam(name = "site_id") final String site,
                                  @ValidateStringParam(name = "profile") final String profileId,
                                  @ValidateStringParam(name = "path") final String path,
-                                 @ValidateStringParam(name = "type") final String type)
-        throws
-        WebDavException {
-        WebDavProfile profile = profileReader.getProfile(site, profileId);
+                                 @ValidateStringParam(name = "type") final String type) throws WebDavException {
+        WebDavProfile profile = getProfile(site, profileId);
         String listPath = StringUtils.appendIfMissing(profile.getBaseUrl(),"/");
         MimeType filterType;
         Sardine sardine = SardineFactory.begin(profile.getUsername(), profile.getPassword());
@@ -174,7 +180,7 @@ public class WebDavServiceImpl implements WebDavService {
                          @ValidateStringParam(name = "filename") final String filename,
                          final InputStream content)
         throws WebDavException {
-        WebDavProfile profile = profileReader.getProfile(site, profileId);
+        WebDavProfile profile = getProfile(site, profileId);
         String uploadUrl = StringUtils.appendIfMissing(profile.getBaseUrl(), "/");
         try {
             Sardine sardine = SardineFactory.begin(profile.getUsername(), profile.getPassword());

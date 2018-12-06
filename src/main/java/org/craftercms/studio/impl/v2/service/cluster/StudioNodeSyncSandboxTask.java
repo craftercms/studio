@@ -18,17 +18,32 @@
 
 package org.craftercms.studio.impl.v2.service.cluster;
 
-import com.jcraft.jsch.JSch;
-import com.jcraft.jsch.JSchException;
+import static org.craftercms.studio.api.v1.constant.GitRepositories.PUBLISHED;
+import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_SANDBOX_BRANCH;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_SYNC_DB_COMMIT_MESSAGE_NO_PROCESSING;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_KEY;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_SALT;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_ROOT;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+import java.util.UUID;
+import java.util.concurrent.locks.ReentrantLock;
+
 import com.jcraft.jsch.Session;
-import org.apache.commons.collections4.CollectionUtils;
+
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.commons.crypto.impl.PbkAesTextEncryptor;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.dal.RemoteRepository;
-import org.craftercms.studio.api.v1.deployment.PreviewDeployer;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
@@ -36,198 +51,167 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlExcepti
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v1.repository.ContentRepository;
-import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
-import org.craftercms.studio.api.v1.service.search.SearchService;
-import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.eclipse.jgit.api.CloneCommand;
+import org.eclipse.jgit.api.FetchCommand;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.MergeCommand;
 import org.eclipse.jgit.api.PullCommand;
-import org.eclipse.jgit.api.RemoteAddCommand;
-import org.eclipse.jgit.api.RemoteSetUrlCommand;
 import org.eclipse.jgit.api.TransportConfigCallback;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.api.errors.TransportException;
-import org.eclipse.jgit.lib.Config;
+import org.eclipse.jgit.lib.Constants;
+import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.merge.MergeStrategy;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
+import org.eclipse.jgit.transport.FetchResult;
 import org.eclipse.jgit.transport.JschConfigSessionFactory;
 import org.eclipse.jgit.transport.OpenSshConfig;
-import org.eclipse.jgit.transport.SshSessionFactory;
 import org.eclipse.jgit.transport.SshTransport;
 import org.eclipse.jgit.transport.Transport;
-import org.eclipse.jgit.transport.URIish;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
-import org.eclipse.jgit.util.FS;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.locks.ReentrantLock;
-
-import static org.craftercms.studio.api.v1.constant.GitRepositories.PUBLISHED;
-import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_KEY;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_SALT;
-import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_PARAMETER_URL;
-import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_SECTION_REMOTE;
-import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_ROOT;
-import static org.eclipse.jgit.lib.Constants.DEFAULT_REMOTE_NAME;
-
-public class StudioNodeSyncSandboxTask implements Runnable {
+public class StudioNodeSyncSandboxTask extends StudioNodeSyncBaseTask {
 
     private static final Logger logger = LoggerFactory.getLogger(StudioNodeSyncSandboxTask.class);
-
-    private static final String IN_PROGRESS_BRANCH_NAME_SUFIX = "_in_progress";
-
     protected static final Map<String, ReentrantLock> singleWorkerLockMap = new HashMap<String, ReentrantLock>();
-    protected static final List<String> createdSites = new ArrayList<String>();
-    protected static final Map<String, List<String>> remotesMap = new HashMap<String, List<String>>();
 
-    protected String siteId;
-    protected List<ClusterMember> clusterNodes;
-    protected SearchService searchService;
-    protected PreviewDeployer previewDeployer;
-    protected StudioConfiguration studioConfiguration;
-    protected ContentRepository contentRepository;
-    protected ServicesConfig servicesConfig;
-    protected SiteService siteService;
-
-    @Override
-    public void run() {
-        logger.debug("Starting Cluster Node Sync Sandbox task for site " + siteId);
+    protected boolean lockSiteInternal(String siteId) {
         ReentrantLock singleWorkerLock = singleWorkerLockMap.get(siteId);
         if (singleWorkerLock == null) {
             singleWorkerLock = new ReentrantLock();
             singleWorkerLockMap.put(siteId, singleWorkerLock);
         }
-        if (singleWorkerLock.tryLock()) {
-            long startTime = System.currentTimeMillis();
-            logger.debug("Worker starts syncing cluster node sandbox for site " + siteId);
-            try {
-                logger.debug("Check if site " + siteId + " exists in local repository");
-                boolean success = false;
-                boolean siteCheck = checkIfSiteRepoExists();
-                if (!siteCheck) {
-                    logger.debug("Create search index for site " + siteId);
-                    try {
-                        searchService.createIndex(siteId);
-                        success = true;
-                    } catch (ServiceLayerException e) {
-                        logger.error("Error creating search index on cluster node for site " + siteId + "." +
-                                " Is the Search running and configured correctly in Studio?", e);
-                        success = false;
-                    }
-
-
-                    if (success) {
-                        logger.debug("Create preview deployer target site " + siteId);
-                        try {
-                            success = previewDeployer.createTarget(siteId);
-                        } catch (Exception e) {
-                            success = false;
-                            logger.error("Error while creating preview deployer target on cluster node for site : "
-                                    + siteId + ". Is the Preview Deployer running and configured correctly in " +
-                                    "Studio cluster node?", e);
-                        }
-
-                        if (!success) {
-                            // Rollback search index creation
-                            try {
-                                searchService.deleteIndex(siteId);
-                            } catch (ServiceLayerException e) {
-                                logger.error("Error while rolling back/deleting site: " + siteId + ". This means the site search " +
-                                        "index (core) is still present, but the site is not successfully created.", e);
-                            }
-                        }
-                    }
-
-
-                    if (success) {
-                        try {
-                            logger.debug("Create site from remote for site " + siteId);
-                            createSiteFromRemote();
-                            createdSites.add(siteId);
-                        } catch (InvalidRemoteRepositoryException | InvalidRemoteRepositoryCredentialsException | RemoteRepositoryNotFoundException | ServiceLayerException | CryptoException e) {
-                            logger.error("Error while creating site on cluster node for site : " + siteId +
-                                    ". Rolling back.", e);
-                            success = false;
-                        }
-
-                        if (!success) {
-                            contentRepository.deleteSite(siteId);
-
-                            boolean deleted = previewDeployer.deleteTarget(siteId);
-                            if (!deleted) {
-                                logger.error("Error while rolling back/deleting site: " + siteId + " ID: " + siteId +
-                                        " on cluster node. This means the site's preview deployer target is still " +
-                                        "present, but the site is not successfully created.");
-                            }
-
-                            try {
-                                searchService.deleteIndex(siteId);
-                            } catch (ServiceLayerException e) {
-                                logger.error("Error while rolling back/deleting site: " + siteId + ". This means the site search " +
-                                        "index (core) is still present, but the site is not successfully created.", e);
-                            }
-                        }
-                    }
-                }
-
-                try {
-                    logger.debug("Add remotes for site " + siteId);
-                    addRemotes();
-
-                } catch (InvalidRemoteUrlException | ServiceLayerException | CryptoException e) {
-                    logger.error("Error while adding remotes on cluster node for site " + siteId);
-                }
-
-                try {
-                    logger.debug("Update content for site " + siteId);
-                    updateContent();
-                } catch (IOException | CryptoException | ServiceLayerException e) {
-                    logger.error("Error while updating content for site " + siteId + " on cluster node.", e);
-                }
-            } finally {
-                singleWorkerLock.unlock();
-            }
-            long duration = System.currentTimeMillis() - startTime;
-            logger.debug("Worker finished syncing cluster node for site " + siteId);
-            logger.debug("Worker performed cluster node sync for site " + siteId + " in " + duration + "ms");
-        } else {
-            logger.debug("Unable to get cluster lock, another worker is holding the lock for site " + siteId);
+        return singleWorkerLock.tryLock();
+    }
+    
+    protected void unlockSiteInternal(String siteId) {
+        ReentrantLock singleWorkerLock = singleWorkerLockMap.get(siteId);
+        if (singleWorkerLock != null) {
+            singleWorkerLock.unlock();
         }
-        logger.debug("Finished Cluster Node Sync task for site " + siteId);
     }
 
-    private boolean createSiteFromRemote()
-            throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
-            RemoteRepositoryNotFoundException, ServiceLayerException, CryptoException {
+    // Check if the site's commit id is behind the database, if so, it means the site on local disk needs to be sync'd
+    protected boolean isSyncRequiredInternal(String siteId, String siteDatabaseLastCommitId) {
+        boolean syncRequired = true;
+
+        // Get the repo's last commit id and compare it to the database
+        String lastCommitIdRepo = contentRepository.getRepoLastCommitId(siteId);
+            
+        if (StringUtils.isNotEmpty(siteDatabaseLastCommitId) && StringUtils.equals(lastCommitIdRepo, siteDatabaseLastCommitId)) {
+            syncRequired = false;
+        }
+  
+        return syncRequired;
+    }
+
+    protected boolean createSiteInternal(String siteId) {
+        boolean result = true;
+        logger.debug("Create search index for site " + siteId);
+        try {
+            searchService.createIndex(siteId);
+            result = true;
+        } catch (ServiceLayerException e) {
+            logger.error("Error creating search index on cluster node for site " + siteId + "." +
+                    " Is the Search running and configured correctly in Studio?", e);
+            result = false;
+        }
+
+        if (result) {
+            logger.debug("Create preview deployer target site " + siteId);
+            try {
+                result = previewDeployer.createTarget(siteId);
+            } catch (Exception e) {
+                result = false;
+                logger.error("Error while creating preview deployer target on cluster node for site : "
+                        + siteId + ". Is the Preview Deployer running and configured correctly in " +
+                        "Studio cluster node?", e);
+            }
+
+            if (!result) {
+                // Rollback search index creation
+                try {
+                    searchService.deleteIndex(siteId);
+                } catch (ServiceLayerException e) {
+                    logger.error("Error while rolling back/deleting site: " + siteId + ". This means the site search " +
+                            "index (core) is still present, but the site is not successfully created.", e);
+                }
+            }
+        }
+
+        if (result) {
+            try {
+                logger.debug("Create site from remote for site " + siteId);
+                createSiteFromRemote();
+                createdSites.add(siteId);
+            } catch (InvalidRemoteRepositoryException | InvalidRemoteRepositoryCredentialsException | RemoteRepositoryNotFoundException | ServiceLayerException | CryptoException e) {
+                logger.error("Error while creating site on cluster node for site : " + siteId +
+                        ". Rolling back.", e);
+                result = false;
+            }
+
+            if (!result) {
+                contentRepository.deleteSite(siteId);
+
+                boolean deleted = previewDeployer.deleteTarget(siteId);
+                if (!deleted) {
+                    logger.error("Error while rolling back/deleting site: " + siteId + " ID: " + siteId +
+                            " on cluster node. This means the site's preview deployer target is still " +
+                            "present, but the site is not successfully created.");
+                }
+
+                try {
+                    searchService.deleteIndex(siteId);
+                } catch (ServiceLayerException e) {
+                    logger.error("Error while rolling back/deleting site: " + siteId + ". This means the site search " +
+                            "index (core) is still present, but the site is not successfully created.", e);
+                }
+            }
+        }
+
+        return result;
+    }
+
+    protected void updateContentInternal(String siteId, String lastCommitId) throws IOException, CryptoException, ServiceLayerException {
+        logger.debug("Update sandbox for site " + siteId);
+        boolean toRet = true;
+        Path siteSandboxPath = buildRepoPath(SANDBOX).resolve(GIT_ROOT);
+        FileRepositoryBuilder builder = new FileRepositoryBuilder();
+        Repository repo = builder
+                .setGitDir(siteSandboxPath.toFile())
+                .readEnvironment()
+                .findGitDir()
+                .build();
+
+        Map<String, String> remoteLastSyncCommits = remotesMap.get(siteId);
+        if (remoteLastSyncCommits == null || remoteLastSyncCommits.isEmpty()) {
+            remoteLastSyncCommits = new HashMap<String, String>();
+            remotesMap.put(siteId, remoteLastSyncCommits);
+        }
+        try (Git git = new Git(repo)) {
+            logger.debug("Update content from each active cluster memeber");
+            for (ClusterMember remoteNode : clusterNodes) {
+                String remoteLastSyncCommit = remoteLastSyncCommits.get(remoteNode.getGitRemoteName());
+                if (StringUtils.isEmpty(remoteLastSyncCommit) ||
+                        !StringUtils.equals(lastCommitId, remoteLastSyncCommit)) {
+                    updateBranch(git, remoteNode);
+                    remoteLastSyncCommits.put(remoteNode.getGitRemoteName(), lastCommitId);
+                }
+            }
+        } catch (GitAPIException e) {
+            logger.error("Error while syncing cluster node content for site " + siteId);
+        }
+    }
+
+    protected boolean cloneSiteInternal(String siteId, GitRepositories repoType)throws CryptoException, ServiceLayerException, InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException {
+        // Clone from the first node in the cluster (it doesn't matter which one to clone from, so pick the first)
+        // we will eventually to catch up to the latest
         ClusterMember remoteNode = clusterNodes.get(0);
-        logger.debug("Create site " + siteId + " from remote repository " + remoteNode.getLocalIp());
-        boolean toRet = cloneRepository(remoteNode, SANDBOX) && cloneRepository(remoteNode, PUBLISHED);
-
-        return toRet;
-    }
-
-    private boolean cloneRepository(ClusterMember remoteNode, GitRepositories repoType)
-            throws CryptoException, ServiceLayerException, InvalidRemoteRepositoryException,
-            InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException {
-
         logger.debug("Cloning " + repoType.toString() + " repository for site " + siteId +
                 " from " + remoteNode.getLocalIp());
         boolean toRet = true;
@@ -369,332 +353,35 @@ public class StudioNodeSyncSandboxTask implements Runnable {
         return toRet;
     }
 
-    private void addOriginRemote() throws IOException, InvalidRemoteUrlException, ServiceLayerException {
-        logger.debug("Add sandbox as origin to published repo");
-        FileRepositoryBuilder builder = new FileRepositoryBuilder();
-        Repository repo = builder
-                .setGitDir(buildRepoPath(PUBLISHED).resolve(GIT_ROOT).toFile())
-                .readEnvironment()
-                .findGitDir()
-                .build();
-        // Build a path for the site/sandbox
-        Path siteSandboxPath = buildRepoPath(SANDBOX);
-        // Built a path for the site/published
-        Path sitePublishedPath = buildRepoPath(PUBLISHED);
-        String remoteUrl = sitePublishedPath.relativize(siteSandboxPath).toString();
-        try (Git git = new Git(repo)) {
-
-            Config storedConfig = repo.getConfig();
-            Set<String> remotes = storedConfig.getSubsections("remote");
-
-            if (remotes.contains(DEFAULT_REMOTE_NAME)) {
-                return;
-            }
-
-
-            RemoteAddCommand remoteAddCommand = git.remoteAdd();
-            remoteAddCommand.setName(DEFAULT_REMOTE_NAME);
-            remoteAddCommand.setUri(new URIish(remoteUrl));
-            remoteAddCommand.call();
-        } catch (URISyntaxException e) {
-            logger.error("Remote URL is invalid " + remoteUrl, e);
-            throw new InvalidRemoteUrlException();
-        } catch (GitAPIException e) {
-            logger.error("Error while adding remote " + DEFAULT_REMOTE_NAME + " (url: " + remoteUrl + ") for site " +
-                    siteId, e);
-            throw new ServiceLayerException("Error while adding remote " + DEFAULT_REMOTE_NAME + " (url: " + remoteUrl +
-                    ") for site " + siteId, e);
-        }
-    }
-
-    private Path buildRepoPath(GitRepositories repoType) {
-        Path path;
-        switch (repoType) {
-            case SANDBOX:
-                path = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
-                        studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH), siteId,
-                        studioConfiguration.getProperty(StudioConfiguration.SANDBOX_PATH));
-                break;
-            case PUBLISHED:
-                path = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
-                        studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH), siteId,
-                        studioConfiguration.getProperty(StudioConfiguration.PUBLISHED_PATH));
-                break;
-            default:
-                path = null;
-        }
-
-        return path;
-    }
-
-    private void addRemotes() throws InvalidRemoteUrlException, ServiceLayerException, CryptoException {
-        List<String> existingRemotes = remotesMap.get(siteId);
-        TextEncryptor encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
-                studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
-        logger.debug("Add cluster members as remotes to local sandbox repository");
-        for (ClusterMember member : clusterNodes) {
-            if (CollectionUtils.isNotEmpty(existingRemotes) && existingRemotes.contains(member.getGitRemoteName())) {
-                continue;
-            }
-            FileRepositoryBuilder builder = new FileRepositoryBuilder();
-            try {
-                String remoteUrl = member.getGitUrl().replace("{siteId}", siteId) + "/" +
-                        studioConfiguration.getProperty(StudioConfiguration.SANDBOX_PATH);
-
-                Repository repo = builder
-                        .setGitDir(buildRepoPath(SANDBOX).resolve(GIT_ROOT).toFile())
-                        .readEnvironment()
-                        .findGitDir()
-                        .build();
-
-                try (Git git = new Git(repo)) {
-
-                    Config storedConfig = repo.getConfig();
-                    Set<String> remotes = storedConfig.getSubsections(CONFIG_SECTION_REMOTE);
-
-                    if (existingRemotes == null) {
-                        existingRemotes = new ArrayList<String>();
-                        remotesMap.put(siteId, existingRemotes);
-                    }
-                    if (remotes.contains(member.getGitRemoteName())) {
-                        logger.debug("Remote " + member.getGitRemoteName() + " already exists for sandbox repo for " +
-                                "site " + siteId);
-                        String storedRemoteUrl = storedConfig.getString(CONFIG_SECTION_REMOTE,
-                                member.getGitRemoteName(), CONFIG_PARAMETER_URL);
-                        if (!StringUtils.equals(storedRemoteUrl, remoteUrl)) {
-                            RemoteSetUrlCommand remoteSetUrlCommand = git.remoteSetUrl();
-                            remoteSetUrlCommand.setName(member.getGitRemoteName());
-                            remoteSetUrlCommand.setUri(new URIish(remoteUrl));
-                            remoteSetUrlCommand.call();
-                        }
-                    } else {
-                        logger.debug("Add " + member.getLocalIp() + " as remote to sandbox");
-                        RemoteAddCommand remoteAddCommand = git.remoteAdd();
-                        remoteAddCommand.setName(member.getGitRemoteName());
-                        remoteAddCommand.setUri(new URIish(remoteUrl));
-                        remoteAddCommand.call();
-                    }
-                    existingRemotes.add(member.getGitRemoteName());
-                } catch (URISyntaxException e) {
-                    logger.error("Remote URL is invalid " + remoteUrl, e);
-                    throw new InvalidRemoteUrlException();
-                } catch (GitAPIException e) {
-                    logger.error("Error while adding remote " + member.getGitRemoteName() + " (url: " + remoteUrl + ") for site " +
-                            siteId, e);
-                    throw new ServiceLayerException("Error while adding remote " + member.getGitRemoteName() + " (url: " + remoteUrl +
-                            ") for site " + siteId, e);
-                }
-            } catch (IOException e) {
-                logger.error("Failed to open sandbox repositroy", e);
-            }
-        }
-    }
-
-    private void updateContent() throws IOException, CryptoException, ServiceLayerException {
-        logger.debug("Update sandbox for site " + siteId);
-        boolean toRet = true;
-        Path siteSandboxPath = buildRepoPath(SANDBOX).resolve(GIT_ROOT);
-        FileRepositoryBuilder builder = new FileRepositoryBuilder();
-        Repository repo = builder
-                .setGitDir(siteSandboxPath.toFile())
-                .readEnvironment()
-                .findGitDir()
-                .build();
-        try (Git git = new Git(repo)) {
-            logger.debug("Update content from each active cluster memeber");
-            for (ClusterMember remoteNode : clusterNodes) {
-                updateBranch(git, remoteNode);
-            }
-        } catch (GitAPIException e) {
-            e.printStackTrace();
-        }
-
-    }
-
     private void updateBranch(Git git, ClusterMember remoteNode) throws CryptoException, GitAPIException,
             IOException, ServiceLayerException {
         TextEncryptor encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
                 studioConfiguration.getProperty(SECURITY_CIPHER_SALT));
-        PullCommand pullCommand = git.pull();
-        logger.debug("Set cluster member " + remoteNode.getLocalIp() + " as remote " + remoteNode.getGitUrl());
-        pullCommand.setRemote(remoteNode.getGitRemoteName());
-        pullCommand.setStrategy(MergeStrategy.THEIRS);
-        logger.debug("Setup authentication");
-        switch (remoteNode.getGitAuthType()) {
-            case RemoteRepository.AuthenticationType.NONE:
-                logger.debug("No authentication");
-                pullCommand.call();
-                break;
-            case RemoteRepository.AuthenticationType.BASIC:
-                logger.debug("Basic authentication");
-                String hashedPassword = remoteNode.getGitPassword();
-                String password = encryptor.decrypt(hashedPassword);
-                UsernamePasswordCredentialsProvider credentialsProviderUP =
-                        new UsernamePasswordCredentialsProvider(remoteNode.getGitUsername(), password);
-                pullCommand.setTransportConfigCallback(new TransportConfigCallback() {
-                    @Override
-                    public void configure(Transport transport) {
-                        SshTransport sshTransport = (SshTransport)transport;
-                        ((SshTransport) transport).setSshSessionFactory(new JschConfigSessionFactory() {
-                            @Override
-                            protected void configure(OpenSshConfig.Host host, Session session) {
-                                Properties config = new Properties();
-                                config.put("StrictHostKeyChecking", "no");
-                                session.setConfig(config);
-                                session.setPassword(password);
-                            }
-                        });
-                    }
-                });
-                pullCommand.setCredentialsProvider(credentialsProviderUP);
-                pullCommand.call();
-                break;
-            case RemoteRepository.AuthenticationType.TOKEN:
-                logger.debug("Token based authentication");
-                String hashedToken = remoteNode.getGitToken();
-                String token = encryptor.decrypt(hashedToken);
-                UsernamePasswordCredentialsProvider credentialsProvider =
-                        new UsernamePasswordCredentialsProvider(token, StringUtils.EMPTY);
-                pullCommand.setTransportConfigCallback(new TransportConfigCallback() {
-                    @Override
-                    public void configure(Transport transport) {
-                        SshTransport sshTransport = (SshTransport)transport;
-                        ((SshTransport) transport).setSshSessionFactory(new JschConfigSessionFactory() {
-                            @Override
-                            protected void configure(OpenSshConfig.Host host, Session session) {
-                                Properties config = new Properties();
-                                config.put("StrictHostKeyChecking", "no");
-                                session.setConfig(config);
-                            }
-                        });
-                        sshTransport.setCredentialsProvider(credentialsProvider);
-                    }
-                });
-                pullCommand.call();
-                break;
-            case RemoteRepository.AuthenticationType.PRIVATE_KEY:
-                logger.debug("Private key authentication");
-                final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
-                String hashedPrivateKey = remoteNode.getGitPrivateKey();
-                String privateKey = encryptor.decrypt(hashedPrivateKey);
-                tempKey.toFile().deleteOnExit();
-                pullCommand.setTransportConfigCallback(new TransportConfigCallback() {
-                    @Override
-                    public void configure(Transport transport) {
-                        SshTransport sshTransport = (SshTransport)transport;
-                        sshTransport.setSshSessionFactory(getSshSessionFactory(privateKey, tempKey));
-                    }
-                });
-                pullCommand.call();
-                Files.delete(tempKey);
-                break;
-            default:
-                throw new ServiceLayerException("Unsupported authentication type " +
-                        remoteNode.getGitAuthType());
-        }
-    }
+        final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
+        FetchCommand fetchCommand = git.fetch().setRemote(remoteNode.getGitRemoteName());
+        fetchCommand = setAuthenticationForCommand(remoteNode, fetchCommand, tempKey);
+        FetchResult fetchResult = fetchCommand.call();
 
-    private SshSessionFactory getSshSessionFactory(String remotePrivateKey, final Path tempKey) {
-        try {
+        ObjectId commitToMerge = null;
+        Ref r = null;
+        if (fetchResult != null) {
+            r = fetchResult.getAdvertisedRef(REPO_SANDBOX_BRANCH);
+            if (r == null) {
+                r = fetchResult.getAdvertisedRef(Constants.R_HEADS +
+                        studioConfiguration.getProperty(REPO_SANDBOX_BRANCH));
+            }
+            if (r != null) {
+                commitToMerge = r.getObjectId();
 
-            Files.write(tempKey, remotePrivateKey.getBytes());
-            SshSessionFactory sshSessionFactory = new JschConfigSessionFactory() {
-                @Override
-                protected void configure(OpenSshConfig.Host hc, Session session) {
-                    Properties config = new Properties();
-                    config.put("StrictHostKeyChecking", "no");
-                    session.setConfig(config);
-                }
-
-                @Override
-                protected JSch createDefaultJSch(FS fs) throws JSchException {
-                    JSch defaultJSch = super.createDefaultJSch(fs);
-                    defaultJSch.addIdentity(tempKey.toAbsolutePath().toString());
-                    return defaultJSch;
-                }
-            };
-            return sshSessionFactory;
-        } catch (IOException e) {
-            logger.error("Failed to create private key for SSH connection.", e);
-        }
-        return null;
-    }
-
-    private boolean checkIfSiteRepoExists() {
-        boolean toRet = false;
-        if (createdSites.contains(siteId)) {
-            toRet = true;
-        } else {
-            String firstCommitId = contentRepository.getRepoFirstCommitId(siteId);
-            if (!StringUtils.isEmpty(firstCommitId)) {
-                toRet = true;
-                createdSites.add(siteId);
+                MergeCommand mergeCommand = git.merge();
+                mergeCommand.setMessage(studioConfiguration.getProperty(REPO_SYNC_DB_COMMIT_MESSAGE_NO_PROCESSING));
+                mergeCommand.setCommit(true);
+                mergeCommand.include(remoteNode.getGitRemoteName(), commitToMerge);
+                mergeCommand.setStrategy(MergeStrategy.THEIRS);
+                mergeCommand.call();
             }
         }
-        return toRet;
-    }
 
-    public String getSiteId() {
-        return siteId;
-    }
-
-    public void setSiteId(String siteId) {
-        this.siteId = siteId;
-    }
-
-    public List<ClusterMember> getClusterNodes() {
-        return clusterNodes;
-    }
-
-    public void setClusterNodes(List<ClusterMember> clusterNodes) {
-        this.clusterNodes = clusterNodes;
-    }
-
-    public SearchService getSearchService() {
-        return searchService;
-    }
-
-    public void setSearchService(SearchService searchService) {
-        this.searchService = searchService;
-    }
-
-    public PreviewDeployer getPreviewDeployer() {
-        return previewDeployer;
-    }
-
-    public void setPreviewDeployer(PreviewDeployer previewDeployer) {
-        this.previewDeployer = previewDeployer;
-    }
-
-    public StudioConfiguration getStudioConfiguration() {
-        return studioConfiguration;
-    }
-
-    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
-        this.studioConfiguration = studioConfiguration;
-    }
-
-    public ContentRepository getContentRepository() {
-        return contentRepository;
-    }
-
-    public void setContentRepository(ContentRepository contentRepository) {
-        this.contentRepository = contentRepository;
-    }
-
-    public ServicesConfig getServicesConfig() {
-        return servicesConfig;
-    }
-
-    public void setServicesConfig(ServicesConfig servicesConfig) {
-        this.servicesConfig = servicesConfig;
-    }
-
-    public SiteService getSiteService() {
-        return siteService;
-    }
-
-    public void setSiteService(SiteService siteService) {
-        this.siteService = siteService;
+        Files.delete(tempKey);
     }
 }

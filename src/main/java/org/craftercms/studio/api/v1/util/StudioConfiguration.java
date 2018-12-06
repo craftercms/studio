@@ -37,6 +37,7 @@ public interface StudioConfiguration {
     String REPO_PUBLISHED_COMMIT_MESSAGE = "studio.repo.published.commitMessage";
     String REPO_PUBLISHED_LIVE = "studio.repo.published.live";
     String REPO_PUBLISHED_STAGING = "studio.repo.published.staging";
+    String REPO_SYNC_DB_COMMIT_MESSAGE_NO_PROCESSING = "studio.repo.syncDB.commitMessage.noProcessing";
 
     /** Database */
     String DB_DRIVER = "studio.db.driver";
