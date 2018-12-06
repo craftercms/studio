@@ -50,22 +50,16 @@ public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements A
 
     public static final String DELIMITER = "/";
     public static final String ITEM_FILTER = "item";
-    public static final String DEFAULT_URL_FORMAT = "/remote-assets/s3/%s/%s";
+    public static final String URL_FORMAT = "/remote-assets/s3/%s/%s";
 
     protected int partSize;
-    protected String urlFormat;
 
     public AwsS3ServiceImpl() {
         partSize = AwsUtils.MIN_PART_SIZE;
-        urlFormat = DEFAULT_URL_FORMAT;
     }
 
     public void setPartSize(final int partSize) {
         this.partSize = partSize;
-    }
-
-    public void setUrlFormat(final String urlFormat) {
-        this.urlFormat = urlFormat;
     }
 
     protected AmazonS3 getS3Client(S3Profile profile) {
@@ -143,7 +137,7 @@ public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements A
     }
 
     protected String createUrl(String profileId, String key) {
-        return String.format(urlFormat, profileId, key);
+        return String.format(URL_FORMAT, profileId, key);
     }
 
 }

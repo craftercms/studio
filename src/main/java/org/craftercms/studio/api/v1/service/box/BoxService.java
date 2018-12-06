@@ -19,9 +19,10 @@ public interface BoxService {
     /**
      * Builds a local URL for the given asset
      * @param profileId the name of the profile to use
-     * @param fileId the id of the file to use
+     * @param fileId the id of the file
+     * @param filename the name of the file
      * @return the local URL for the file
      */
-    String getUrl(String site, String profileId, String fileId) throws BoxException;
+    String getUrl(String site, String profileId, String fileId, String filename) throws BoxException;
 
 }
