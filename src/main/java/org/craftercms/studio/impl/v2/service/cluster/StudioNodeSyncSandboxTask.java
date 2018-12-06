@@ -378,21 +378,10 @@ public class StudioNodeSyncSandboxTask extends StudioNodeSyncBaseTask {
                 mergeCommand.setCommit(true);
                 mergeCommand.include(remoteNode.getGitRemoteName(), commitToMerge);
                 mergeCommand.setStrategy(MergeStrategy.THEIRS);
-                //mergeCommand = setAuthenticationForCommand(remoteNode, mergeCommand, tempKey);
                 mergeCommand.call();
             }
         }
-/*
-        PullCommand pullCommand = git.pull();
 
-        logger.debug("Set cluster member " + remoteNode.getLocalIp() + " as remote " +
-                remoteNode.getGitUrl().replace("{siteId}", siteId));
-        pullCommand.setRemote(remoteNode.getGitRemoteName());
-        pullCommand.setStrategy(MergeStrategy.THEIRS);
-        logger.debug("Setup authentication");
-        pullCommand = setAuthenticationForCommand(remoteNode, pullCommand, tempKey);
-        pullCommand.call();
-        */
         Files.delete(tempKey);
     }
 }
