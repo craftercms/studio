@@ -47,4 +47,11 @@ public interface PublishRequestMapper {
     int isPublishingQueueEmpty(Map params);
 
     int checkItemQueued(Map params);
+
+    /**
+     * Reset publishing requests in processing state
+     *
+     * @param params SQL query parameters
+     */
+    void resetProcessingQueue(Map params);
 }

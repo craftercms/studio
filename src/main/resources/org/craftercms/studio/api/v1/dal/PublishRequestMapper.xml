@@ -139,4 +139,12 @@
         AND state = #{state}
         ORDER BY scheduleddate ASC
     </select>
+
+    <update id="resetProcessingQueue" parameterType="java.util.Map">
+        UPDATE publish_request
+        SET state = #{readyState}
+        WHERE site = #{siteId}
+        AND environement = #{environment}
+        AND state = #{processingState}
+    </update>
 </mapper>
