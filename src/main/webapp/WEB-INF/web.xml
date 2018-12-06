@@ -123,6 +123,7 @@
     <filter-mapping>
         <filter-name>crafter.corsFilter</filter-name>
         <url-pattern>/api/*</url-pattern>
+        <url-pattern>/static-assets/*</url-pattern>
     </filter-mapping>
 
     <servlet>
