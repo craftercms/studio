@@ -19,6 +19,7 @@
 package org.craftercms.studio.impl.v1.service.box;
 
 import com.box.sdk.*;
+import org.apache.commons.io.FilenameUtils;
 import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.commons.config.profiles.box.BoxProfile;
 import org.craftercms.studio.api.v1.exception.BoxException;
@@ -31,19 +32,13 @@ import org.springframework.beans.factory.annotation.Required;
  */
 public class BoxServiceImpl implements BoxService {
 
-    protected static final String DEFAULT_URL_FORMAT = "/remote-assets/box/%s/%s";
-
-    protected String urlFormat = DEFAULT_URL_FORMAT;
+    protected static final String URL_FORMAT = "/remote-assets/box/%s/%s.%s";
 
     protected SiteAwareConfigProfileLoader<BoxProfile> profileLoader;
 
     @Required
     public void setProfileLoader(SiteAwareConfigProfileLoader<BoxProfile> profileLoader) {
         this.profileLoader = profileLoader;
-    }
-
-    public void setUrlFormat(final String urlFormat) {
-        this.urlFormat = urlFormat;
     }
 
     protected BoxProfile getProfile(String site, String profileId) throws BoxException  {
@@ -80,9 +75,10 @@ public class BoxServiceImpl implements BoxService {
      * {@inheritDoc}
      */
     @Override
-    public String getUrl(final String site, final String profileId, final String fileId) throws BoxException {
+    public String getUrl(final String site, final String profileId, final String fileId,
+                         final String filename) throws BoxException {
         getProfile(site, profileId); // validate that the profileId exists in the site
-        return String.format(urlFormat, profileId, fileId);
+        return String.format(URL_FORMAT, profileId, fileId, FilenameUtils.getExtension(filename));
     }
 
 }
