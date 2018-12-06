@@ -20,6 +20,8 @@ package org.craftercms.studio.impl.v2.service.cluster;
 
 import static org.craftercms.studio.api.v1.constant.GitRepositories.PUBLISHED;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.PUBLISHED_PATH;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SANDBOX_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_KEY;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_SALT;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_PARAMETER_URL;
@@ -214,7 +216,7 @@ public abstract class StudioNodeSyncBaseTask implements Runnable {
             case SANDBOX:
                 path = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
                         studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH), siteId,
-                        studioConfiguration.getProperty(StudioConfiguration.SANDBOX_PATH));
+                        studioConfiguration.getProperty(SANDBOX_PATH));
                 break;
             case PUBLISHED:
                 path = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
@@ -275,58 +277,70 @@ public abstract class StudioNodeSyncBaseTask implements Runnable {
             if (existingRemotes != null && existingRemotes.containsKey(member.getGitRemoteName())) {
                 continue;
             }
-            FileRepositoryBuilder builder = new FileRepositoryBuilder();
+
             try {
-                String remoteUrl = member.getGitUrl().replace("{siteId}", siteId) + "/" +
-                        studioConfiguration.getProperty(StudioConfiguration.SANDBOX_PATH);
-
-                Repository repo = builder
-                        .setGitDir(buildRepoPath(SANDBOX).resolve(GIT_ROOT).toFile())
-                        .readEnvironment()
-                        .findGitDir()
-                        .build();
-
-                try (Git git = new Git(repo)) {
-
-                    Config storedConfig = repo.getConfig();
-                    Set<String> remotes = storedConfig.getSubsections(CONFIG_SECTION_REMOTE);
-
-                    if (existingRemotes == null) {
-                        existingRemotes = new HashMap<String, String>();
-                        remotesMap.put(siteId, existingRemotes);
-                    }
-                    if (remotes.contains(member.getGitRemoteName())) {
-                        logger.debug("Remote " + member.getGitRemoteName() + " already exists for sandbox repo for " +
-                                "site " + siteId);
-                        String storedRemoteUrl = storedConfig.getString(CONFIG_SECTION_REMOTE,
-                                member.getGitRemoteName(), CONFIG_PARAMETER_URL);
-                        if (!StringUtils.equals(storedRemoteUrl, remoteUrl)) {
-                            RemoteSetUrlCommand remoteSetUrlCommand = git.remoteSetUrl();
-                            remoteSetUrlCommand.setName(member.getGitRemoteName());
-                            remoteSetUrlCommand.setUri(new URIish(remoteUrl));
-                            remoteSetUrlCommand.call();
-                        }
-                    } else {
-                        logger.debug("Add " + member.getLocalIp() + " as remote to sandbox");
-                        RemoteAddCommand remoteAddCommand = git.remoteAdd();
-                        remoteAddCommand.setName(member.getGitRemoteName());
-                        remoteAddCommand.setUri(new URIish(remoteUrl));
-                        remoteAddCommand.call();
-                    }
-
-                    existingRemotes.put(member.getGitRemoteName(), StringUtils.EMPTY);
-                } catch (URISyntaxException e) {
-                    logger.error("Remote URL is invalid " + remoteUrl, e);
-                    throw new InvalidRemoteUrlException();
-                } catch (GitAPIException e) {
-                    logger.error("Error while adding remote " + member.getGitRemoteName() + " (url: " + remoteUrl + ") for site " +
-                            siteId, e);
-                    throw new ServiceLayerException("Error while adding remote " + member.getGitRemoteName() + " (url: " + remoteUrl +
-                            ") for site " + siteId, e);
+                if (existingRemotes == null) {
+                    existingRemotes = new HashMap<String, String>();
+                    remotesMap.put(siteId, existingRemotes);
                 }
+
+                String remoteUrl = member.getGitUrl().replace("{siteId}", siteId) + "/" +
+                        studioConfiguration.getProperty(SANDBOX_PATH);
+                addRemoteRepository(member, remoteUrl, SANDBOX);
+
+                remoteUrl = member.getGitUrl().replace("{siteId}", siteId) + "/" +
+                        studioConfiguration.getProperty(PUBLISHED_PATH);
+                addRemoteRepository(member, remoteUrl, PUBLISHED);
+
+                existingRemotes.put(member.getGitRemoteName(), StringUtils.EMPTY);
+
             } catch (IOException e) {
-                logger.error("Failed to open sandbox repositroy", e);
+                logger.error("Failed to open repository", e);
             }
+        }
+    }
+
+    protected void addRemoteRepository(ClusterMember member, String remoteUrl, GitRepositories repoType) throws IOException, InvalidRemoteUrlException, ServiceLayerException {
+        FileRepositoryBuilder builder = new FileRepositoryBuilder();
+
+        Repository repo = builder
+                .setGitDir(buildRepoPath(repoType).resolve(GIT_ROOT).toFile())
+                .readEnvironment()
+                .findGitDir()
+                .build();
+
+        try (Git git = new Git(repo)) {
+
+            Config storedConfig = repo.getConfig();
+            Set<String> remotes = storedConfig.getSubsections(CONFIG_SECTION_REMOTE);
+
+            if (remotes.contains(member.getGitRemoteName())) {
+                logger.debug("Remote " + member.getGitRemoteName() + " already exists for sandbox repo for " +
+                        "site " + siteId);
+                String storedRemoteUrl = storedConfig.getString(CONFIG_SECTION_REMOTE,
+                        member.getGitRemoteName(), CONFIG_PARAMETER_URL);
+                if (!StringUtils.equals(storedRemoteUrl, remoteUrl)) {
+                    RemoteSetUrlCommand remoteSetUrlCommand = git.remoteSetUrl();
+                    remoteSetUrlCommand.setName(member.getGitRemoteName());
+                    remoteSetUrlCommand.setUri(new URIish(remoteUrl));
+                    remoteSetUrlCommand.call();
+                }
+            } else {
+                logger.debug("Add " + member.getLocalIp() + " as remote to sandbox");
+                RemoteAddCommand remoteAddCommand = git.remoteAdd();
+                remoteAddCommand.setName(member.getGitRemoteName());
+                remoteAddCommand.setUri(new URIish(remoteUrl));
+                remoteAddCommand.call();
+            }
+
+        } catch (URISyntaxException e) {
+            logger.error("Remote URL is invalid " + remoteUrl, e);
+            throw new InvalidRemoteUrlException();
+        } catch (GitAPIException e) {
+            logger.error("Error while adding remote " + member.getGitRemoteName() + " (url: " + remoteUrl + ") for site " +
+                    siteId, e);
+            throw new ServiceLayerException("Error while adding remote " + member.getGitRemoteName() + " (url: " + remoteUrl +
+                    ") for site " + siteId, e);
         }
     }
 

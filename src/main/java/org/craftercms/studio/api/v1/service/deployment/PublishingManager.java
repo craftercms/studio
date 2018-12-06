@@ -54,4 +54,13 @@ public interface PublishingManager {
     String getPublishingStatus(String site);
 
     boolean isPublishingQueueEmpty(String site);
+
+    /**
+     * Reset items being in processing state (skip publishing cycle or recover from error)
+     * @param site site to use
+     * @param environment environment to use
+     *
+     * @return
+     */
+    void resetProcessingQueue(String site, String environment);
 }

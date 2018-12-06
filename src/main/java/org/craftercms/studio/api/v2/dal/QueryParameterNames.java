@@ -84,5 +84,14 @@ public abstract class QueryParameterNames {
 
     public static final String CLUSTER_STATE = "state";
 
+    /* Publish request */
+    // Environment
+    public static final String ENVIRONMENT = "environment";
+    // Processing state
+    public static final String PROCESSING_STATE = "processingState";
+    // Ready state
+    public static final String READY_STATE = "readyState";
+
+
     private QueryParameterNames() { }
 }

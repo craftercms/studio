@@ -50,6 +50,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_MANDATORY_DEPENDENCIES_CHECK_ENABLED;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_BUSY;
@@ -99,6 +100,7 @@ public class PublisherTask implements Runnable {
             singleWorkerLock = new ReentrantLock();
             singleWorkerLockMap.put(site, singleWorkerLock);
         }
+        String env = null;
         if (singleWorkerLock.tryLock()) {
             try {
                 try {
@@ -112,21 +114,42 @@ public class PublisherTask implements Runnable {
                         try {
                             Set<String> environments = getAllPublishingEnvironments(site);
                             for (String environment : environments) {
+                                env = environment;
                                 logger.debug("Processing content ready for deployment for site \"{0}\"", site);
                                 List<PublishRequest> itemsToDeploy =
                                         publishingManager.getItemsReadyForDeployment(site, environment);
 
                                 if (itemsToDeploy != null && itemsToDeploy.size() > 0) {
-                                    logger.info("Starting publishing on environment " + environment + " for site " + site);
-                                    logger.debug("Site \"{0}\" has {1} items ready for deployment",
-                                            site, itemsToDeploy.size());
+                                    publishingManager.markItemsProcessing(site, environment, itemsToDeploy);
+                                    List<String> commitIds = itemsToDeploy.stream()
+                                            .map(PublishRequest::getCommitId)
+                                            .distinct().collect(Collectors.toList());
 
-                                    doPublishing(itemsToDeploy, environment);
+                                    boolean allCommitsPresent = true;
+                                    for (String commit : commitIds) {
+                                        boolean commitPresent = contentRepository.commitIdExists(site, commit);
+                                        if (!commitPresent) {
+                                            logger.debug("Commit with ID: " + commit + " is not present in local repo" +
+                                                    " for site " + site + ". Publisher task will skip this cycle.");
+                                            allCommitsPresent = false;
+                                        }
+                                    }
+
+                                    if (allCommitsPresent) {
+                                        logger.info("Starting publishing on environment " + environment + " for site " + site);
+                                        logger.debug("Site \"{0}\" has {1} items ready for deployment",
+                                                site, itemsToDeploy.size());
+
+                                        doPublishing(itemsToDeploy, environment);
+                                    } else {
+                                        publishingManager.markItemsReady(site, environment, itemsToDeploy);
+                                    }
                                 }
                             }
                         } catch (Exception err) {
                             logger.error("Error while executing deployment to environment store for site: "
                                     + site, err);
+                            publishingManager.resetProcessingQueue(site, env);
                             notificationService.notifyDeploymentError(site, err);
                             logger.info("Continue executing deployment for other sites.");
                         }
@@ -139,6 +162,7 @@ public class PublisherTask implements Runnable {
             } catch (Exception err) {
                 logger.error("Error while executing deployment to environment store", err);
                 notificationService.notifyDeploymentError("UNKNOWN", err);
+                publishingManager.resetProcessingQueue(site, env);
             } finally {
                 singleWorkerLock.unlock();
             }
@@ -282,7 +306,6 @@ public class PublisherTask implements Runnable {
         statusMessage = statusMessage.replace("{item_path}", messagePath).replace("{datetime}",
                 ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern(sdf.toPattern())));
         siteService.updatePublishingStatusMessage(site, statusMessage);
-        publishingManager.markItemsProcessing(site, environment, Arrays.asList(item));
         try {
             List<DeploymentItemTO> deploymentItemList = new ArrayList<DeploymentItemTO>();
 

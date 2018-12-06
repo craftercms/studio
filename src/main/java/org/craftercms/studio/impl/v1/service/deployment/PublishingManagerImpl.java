@@ -55,9 +55,15 @@ import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+import static org.craftercms.studio.api.v1.dal.PublishRequest.State.PROCESSING;
+import static org.craftercms.studio.api.v1.dal.PublishRequest.State.READY_FOR_LIVE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.PUBLISHING_MANAGER_INDEX_FILE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.
         PUBLISHING_MANAGER_PUBLISHING_WITHOUT_DEPENDENCIES_ENABLED;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ENVIRONMENT;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PROCESSING_STATE;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.READY_STATE;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 
 public class PublishingManagerImpl implements PublishingManager {
 
@@ -84,7 +90,7 @@ public class PublishingManagerImpl implements PublishingManager {
                                            @ValidateStringParam(name = "environment") String environment) {
         Map<String, Object> params = new HashMap<>();
         params.put("site", site);
-        params.put("state", PublishRequest.State.READY_FOR_LIVE);
+        params.put("state", READY_FOR_LIVE);
         params.put("environment", environment);
         params.put("now", ZonedDateTime.now(ZoneOffset.UTC));
         return publishRequestMapper.getItemsReadyForDeployment(params);
@@ -275,7 +281,7 @@ public class PublishingManagerImpl implements PublishingManager {
                                @ValidateStringParam(name = "environment") String environment,
                                List<PublishRequest> copyToEnvironmentItems) throws DeploymentException {
         for (PublishRequest item : copyToEnvironmentItems) {
-            item.setState(PublishRequest.State.READY_FOR_LIVE);
+            item.setState(READY_FOR_LIVE);
             publishRequestMapper.updateItemDeploymentState(item);
         }
     }
@@ -388,7 +394,7 @@ public class PublishingManagerImpl implements PublishingManager {
         params.put("site", site);
         params.put("now", ZonedDateTime.now(ZoneOffset.UTC));
         List<String> states = new ArrayList<String>() {{
-            add(PublishRequest.State.READY_FOR_LIVE);
+            add(READY_FOR_LIVE);
             add(PublishRequest.State.BLOCKED);
             add(PublishRequest.State.PROCESSING);
         }};
@@ -404,9 +410,21 @@ public class PublishingManagerImpl implements PublishingManager {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("site", site);
         params.put("now", ZonedDateTime.now(ZoneOffset.UTC));
-        params.put("state", PublishRequest.State.READY_FOR_LIVE);
+        params.put("state", READY_FOR_LIVE);
         Integer result = publishRequestMapper.isPublishingQueueEmpty(params);
         return result < 1;
+    }
+
+    @Override
+    @ValidateParams
+    public void resetProcessingQueue(@ValidateStringParam(name = "site") String site,
+                                        @ValidateStringParam(name = "environment") String environment) {
+        Map<String, String> params = new HashMap<String, String>();
+        params.put(SITE_ID, site);
+        params.put(ENVIRONMENT, environment);
+        params.put(PROCESSING_STATE, PROCESSING);
+        params.put(READY_STATE, READY_FOR_LIVE);
+        publishRequestMapper.resetProcessingQueue(params);
     }
 
     public String getIndexFile() {
