@@ -166,8 +166,7 @@ public class StudioNodeSyncPublishedTask extends StudioNodeSyncBaseTask {
         if (fetchResult != null) {
             r = fetchResult.getAdvertisedRef(branch);
             if (r == null) {
-                r = fetchResult.getAdvertisedRef(Constants.R_HEADS +
-                        studioConfiguration.getProperty(branch));
+                r = fetchResult.getAdvertisedRef(Constants.R_HEADS + branch);
             }
             if (r != null) {
                 commitToMerge = r.getObjectId();
