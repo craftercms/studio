@@ -1347,7 +1347,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
                                 RevCommit commit = reverseIterator.next();
 
-                                if (StringUtils.equals(commit.getFullMessage().trim(),
+                                if (StringUtils.contains(commit.getFullMessage(),
                                         studioConfiguration.getProperty(REPO_SYNC_DB_COMMIT_MESSAGE_NO_PROCESSING))) {
                                     prevCommitId = commit.getId();
                                     logger.debug("Skipping commitId: " + prevCommitId.getName() + " for site " + site +

@@ -19,6 +19,7 @@
 package org.craftercms.studio.impl.v2.service.cluster;
 
 import static org.craftercms.studio.api.v1.constant.GitRepositories.PUBLISHED;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_SYNC_DB_COMMIT_MESSAGE_NO_PROCESSING;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_KEY;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_SALT;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_ROOT;
@@ -50,13 +51,16 @@ import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.eclipse.jgit.api.CheckoutCommand;
 import org.eclipse.jgit.api.FetchCommand;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.MergeCommand;
 import org.eclipse.jgit.api.PullCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Constants;
+import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.merge.MergeStrategy;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
+import org.eclipse.jgit.transport.FetchResult;
 
 public class StudioNodeSyncPublishedTask extends StudioNodeSyncBaseTask {
 
@@ -153,13 +157,29 @@ public class StudioNodeSyncPublishedTask extends StudioNodeSyncBaseTask {
         }
         checkoutCommand.call();
 
-        logger.debug("Pull from remote " + remoteNode.getLocalIp());
-        PullCommand pullCommand = git.pull();
-        logger.debug("Set remote " + remoteNode.getGitUrl());
-        pullCommand.setRemote(remoteNode.getGitRemoteName());
-        pullCommand.setStrategy(MergeStrategy.THEIRS);
-        pullCommand = setAuthenticationForCommand(remoteNode, pullCommand, tempKey);
-        pullCommand.call();
+        FetchCommand fetchCommand = git.fetch().setRemote(remoteNode.getGitRemoteName());
+        fetchCommand = setAuthenticationForCommand(remoteNode, fetchCommand, tempKey);
+        FetchResult fetchResult = fetchCommand.call();
+
+        ObjectId commitToMerge = null;
+        Ref r = null;
+        if (fetchResult != null) {
+            r = fetchResult.getAdvertisedRef(branch);
+            if (r == null) {
+                r = fetchResult.getAdvertisedRef(Constants.R_HEADS + branch);
+            }
+            if (r != null) {
+                commitToMerge = r.getObjectId();
+
+                MergeCommand mergeCommand = git.merge();
+                mergeCommand.setMessage(studioConfiguration.getProperty(REPO_SYNC_DB_COMMIT_MESSAGE_NO_PROCESSING));
+                mergeCommand.setCommit(true);
+                mergeCommand.include(remoteNode.getGitRemoteName(), commitToMerge);
+                mergeCommand.setStrategy(MergeStrategy.THEIRS);
+                mergeCommand.call();
+            }
+        }
+
         Files.delete(tempKey);
     }
 
