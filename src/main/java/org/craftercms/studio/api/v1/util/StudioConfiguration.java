@@ -54,7 +54,6 @@ public interface StudioConfiguration {
     String DB_INITIALIZER_CONFIGURE_DB_SCRIPT_LOCATION = "studio.db.initializer.configureDbscriptLocation";
     String DB_INITIALIZER_CREATE_DB_SCRIPT_LOCATION = "studio.db.initializer.createDbscriptLocation";
     String DB_INITIALIZER_CREATE_SCHEMA_SCRIPT_LOCATION = "studio.db.initializer.createSchemaScriptLocation";
-    String DB_INITIALIZER_UPGRADE_DB_SCRIPT_LOCATION = "studio.db.initializer.upgradeDbScriptLocation";
     String DB_INITIALIZER_RANDOM_ADMIN_PASSWORD_ENABLED = "studio.db.initializer.randomAdminPassword.enabled";
     String DB_INITIALIZER_RANDOM_ADMIN_PASSWORD_LENGTH = "studio.db.initializer.randomAdminPassword.length";
     String DB_INITIALIZER_RANDOM_ADMIN_PASSWORD_CHARS = "studio.db.initializer.randomAdminPassword.chars";
@@ -72,7 +71,6 @@ public interface StudioConfiguration {
     String CONFIGURATION_GLOBAL_MENU_FILE_NAME = "studio.configuration.global.menuFileName";
     String CONFIGURATION_GLOBAL_ROLE_MAPPINGS_FILE_NAME = "studio.configuration.global.roleMappingFileName";
     String CONFIGURATION_GLOBAL_PERMISSION_MAPPINGS_FILE_NAME = "studio.configuration.global.permissionMappingFileName";
-    String CONFIGURATION_SYSTEM_PERMISSIONS_FILE_NAME = "studio.configuration.system.permissionMappingFileName";
     String CONFIGURATION_GLOBAL_UI_RESOURCE_OVERRIDE_PATH = "studio.configuration.global.ui.resource.override.path";
     String CONFIGURATION_GLOBAL_SYSTEM_SITE = "studio.configuration.global.systemSite";
     String CONFIGURATION_SITE_CONFIG_BASE_PATH = "studio.configuration.site.configBasePath";
@@ -113,10 +111,6 @@ public interface StudioConfiguration {
     /** Activity Service */
     String ACTIVITY_USERNAME_CASE_SENSITIVE = "studio.activity.user.name.caseSensitive";
 
-    /** Dependencies Service */
-    String DEPENDENCIES_IGNORE_DEPENDENCIES_RULES = "studio.dependencies.ignoreDependenciesRules";
-    String DEPENDENCIES_MANUAL_DEPENDENCY_APPROVING_ENABLED = "studio.dependencies.manualDependencyApproving.enabled";
-
     /** Object State Service */
     String OBJECT_STATE_BULK_OPERATIONS_BATCH_SIZE = "studio.objectState.bulkOperationsBatchSize";
 
@@ -139,24 +133,13 @@ public interface StudioConfiguration {
     String SECURITY_LDAP_BIND_DN = "studio.security.ldap.bindDN";
     String SECURITY_LDAP_BIND_PASSWORD = "studio.security.ldap.bindPassword";
     String SECURITY_LDAP_BASE_CONTEXT = "studio.security.ldap.baseContext";
-    String SECURITY_LDAP_USER_ATTRIBUTE_USERNAME = "studio.security.ldap.userAttribute.username";
-    String SECURITY_LDAP_USER_ATTRIBUTE_FIRST_NAME = "studio.security.ldap.userAttribute.firstName";
-    String SECURITY_LDAP_USER_ATTRIBUTE_LAST_NAME = "studio.security.ldap.userAttribute.lastName";
-    String SECURITY_LDAP_USER_ATTRIBUTE_EMAIL = "studio.security.ldap.userAttribute.email";
-    String SECURITY_LDAP_USER_ATTRIBUTE_GROUP_NAME = "studio.security.ldap.userAttribute.groupName";
-    String SECURITY_LDAP_USER_ATTRIBUTE_GROUP_NAME_REGEX = "studio.security.ldap.userAttribute.groupName.regex";
-    String SECURITY_LDAP_USER_ATTRIBUTE_GROUP_NAME_MATCH_INDEX =
-            "studio.security.ldap.userAttribute.groupName.matchIndex";
 
     /** Authentication headers **/
     String AUTHENTICATION_HEADERS_ENABLED = "studio.authentication.headers.enabled";
-    String AUTHENTICATION_HEADERS_SECURE_KEY_HEADER_NAME = "studio.authentication.headers.secureKeyHeaderName";
-    String AUTHENTICATION_HEADERS_SECURE_KEY_HEADER_VALUE = "studio.authentication.headers.secureKeyHeaderValue";
     String AUTHENTICATION_HEADERS_USERNAME = "studio.authentication.headers.username";
     String AUTHENTICATION_HEADERS_FIRST_NAME = "studio.authentication.headers.firstName";
     String AUTHENTICATION_HEADERS_LAST_NAME = "studio.authentication.headers.lastName";
     String AUTHENTICATION_HEADERS_EMAIL = "studio.authentication.headers.email";
-    String AUTHENTICATION_HEADERS_GROUPS = "studio.authentication.headers.groups";
     String AUTHENTICATION_HEADERS_LOGOUT_ENABLED = "studio.authentication.headers.logout.enabled";
     String AUTHENTICATION_HEADERS_LOGOUT_URL = "studio.authentication.headers.logout.url";
     String AUTHENTICATION_HEADERS_LOGOUT_METHOD = "studio.authentication.headers.logout.method";
