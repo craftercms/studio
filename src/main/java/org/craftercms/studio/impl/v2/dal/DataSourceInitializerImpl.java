@@ -79,7 +79,7 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
     @Override
     public void initDataSource() {
 
-        // Stop embedded service in clusterred environment
+        // Stop embedded service in clustered environment
         if (studioConfiguration.getProperty(CLUSTERING_NODE_REGISTRATION, new HashMap<String, String>().getClass()) != null) {
             embeddedService.stop();
         }
