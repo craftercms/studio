@@ -83,8 +83,6 @@ public class StudioConfigurationImpl implements StudioConfiguration {
                 properties.put(entry.getKey(), entry.getValue());
             }
         }
-
-        logger.error("Cluster: " + getProperty(CLUSTERING_NODE_REGISTRATION, new HashMap<String, String>().getClass()));
     }
 
     @Override
