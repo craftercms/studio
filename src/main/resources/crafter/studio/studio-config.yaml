@@ -56,8 +56,6 @@ studio.configuration.global.menuFileName: global-menu-config.xml
 studio.configuration.global.roleMappingFileName: global-role-mappings-config.xml
 # File name where global configuration of user permissions mappings is stored.
 studio.configuration.global.permissionMappingFileName: global-permission-mappings-config.xml
-# File name where configuration for system scope of user permissions mappings is stored.
-studio.configuration.system.permissionMappingFileName: system-permission-mappings-config.xml
 # UI Resource override path
 studio.configuration.global.ui.resource.override.path: crafter/studio/ui
 # Studio system site name
@@ -138,16 +136,6 @@ studio.workflow.publishingWithoutDependencies.enabled: false
 studio.activity.user.name.caseSensitive: false
 
 ##############################################################
-##                   Dependencies Service                   ##
-##############################################################
-# Defines paths that will be excluded from dependency rules. Common usage is for files that are not site content themselves, but are system or files packaged with engine.
-# Valid values are regular expressions and for multiple regular expressions, they are separated by comma (,).
-studio.dependencies.ignoreDependenciesRules: /templates/system/common/cstudio-support.*\\.ftl,/templates/web/navigation/.*\\.ftl
-# Turn on (value true) or off (value false) manual approving for dependencies when publishing content.
-# When turned on, dependencies service does not perform check if deployment package includes all necessary dependencies for content that is being published.
-studio.dependencies.manualDependencyApproving.enabled: false
-
-##############################################################
 ##                   Object State Service                   ##
 ##############################################################
 # Defines size of a batch when executing object state operation on big path packages (bulk operations). Limitation on bulk operations is imposed by jdbc drivers and limits on number of parameters for sql statements.
@@ -190,27 +178,8 @@ studio.security.ldap.bindDN: cn=Manager,dc=my-domain,dc=com
 studio.security.ldap.bindPassword: secret
 # LDAP base context (directory root)
 studio.security.ldap.baseContext: dc=my-domain,dc=com
-# LDAP username attribute
-studio.security.ldap.userAttribute.username: uid
-# LDAP first name attribute
-studio.security.ldap.userAttribute.firstName: cn
-# LDAP last name attribute
-studio.security.ldap.userAttribute.lastName: sn
-# LDAP email attribute
-studio.security.ldap.userAttribute.email: mail
-# LDAP groups attribute
-studio.security.ldap.userAttribute.groupName: crafterGroup
-# LDAP groups attribute name regex
-studio.security.ldap.userAttribute.groupName.regex: .*
-# LDAP groups attribute match index
-studio.security.ldap.userAttribute.groupName.matchIndex: 0
 # Authentication via headers enabled
 studio.authentication.headers.enabled: false
-# Authentication header for secure key
-studio.authentication.headers.secureKeyHeaderName: secure_key
-# Authentication headers secure key that is expected to match secure key value from headers
-# Typically this is placed in the header by the authentication agent, e.g. Apache mod_mellon
-studio.authentication.headers.secureKeyHeaderValue: secure
 # Authentication header for username
 studio.authentication.headers.username: username
 # Authentication header for first name
@@ -219,10 +188,6 @@ studio.authentication.headers.firstName: firstname
 studio.authentication.headers.lastName: lastname
 # Authentication header for email
 studio.authentication.headers.email: email
-# Authentication header for groups: comma separated list groups
-#   Example:
-#   site_author,site_xyz_developer
-studio.authentication.headers.groups: groups
 # Enable/disable logout for headers authenticated users (SSO)
 studio.authentication.headers.logout.enabled: false
 # If logout is enabled for headers authenticated users (SSO), set the endpoint of the SP or IdP logout, which should
@@ -431,8 +396,6 @@ studio.db.initializer.configureDbscriptLocation: crafter/studio/database/configu
 studio.db.initializer.createSchemaScriptLocation: crafter/studio/database/createSchema.sql
 # Create database SQL script location
 studio.db.initializer.createDbscriptLocation: crafter/studio/database/createDDL.sql
-# Upgrade database SQL script location
-studio.db.initializer.upgradeDbScriptLocation: crafter/studio/database/upgrade-{version}.sql
 # Enable random admin password generation
 studio.db.initializer.randomAdminPassword.enabled: false
 # Random admin password length
