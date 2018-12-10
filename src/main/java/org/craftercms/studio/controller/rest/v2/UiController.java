@@ -55,6 +55,13 @@ public class UiController {
         return responseBody;
     }
 
+    @GetMapping("/system/active_environment")
+    public ResponseBody getActiveEnvironment() {
+        ResponseBody responseBody = new ResponseBody();
+
+        return responseBody;
+    }
+
     @Required
     public void setUiService(UiService uiService) {
         this.uiService = uiService;
