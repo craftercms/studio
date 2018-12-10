@@ -581,7 +581,7 @@
     <!-- /////// -->
     <!-- Cluster -->
     <!-- /////// -->
-    <bean id="clusterNodeRegistraition"
+    <bean id="clusterNodeRegistration"
           class="org.craftercms.studio.impl.v2.service.cluster.ClusterNodeRegistrationImpl" init-method="init"
           destroy-method="destroy" depends-on="studioMariaDBService">
         <property name="clusterDao" ref="clusterDao" />

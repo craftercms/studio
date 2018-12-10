@@ -144,7 +144,7 @@
         UPDATE publish_request
         SET state = #{readyState}
         WHERE site = #{siteId}
-        AND environement = #{environment}
+        AND environment = #{environment}
         AND state = #{processingState}
     </update>
 </mapper>

@@ -65,8 +65,14 @@ public class ClusterNodeRegistrationImpl implements ClusterNodeRegistration {
                     String password = registrationData.get("password");
                     String token = registrationData.get("token");
                     String privateKey = registrationData.get("privateKey");
-                    String gitUrl = GIT_URL_PATTERN.replace("{username}", username)
-                            .replace("{localIp}", clusterMember.getLocalIp())
+                    String gitUrl = GIT_URL_PATTERN;
+                    if (StringUtils.isEmpty(username)) {
+                        gitUrl = gitUrl.replace("{username}@", "");
+
+                    } else {
+                        gitUrl = gitUrl.replace("{username}", username);
+                    }
+                    gitUrl = gitUrl.replace("{localIp}", clusterMember.getLocalIp())
                             .replace("{absolutePath}", path.toAbsolutePath().normalize().toString())
                             + "/{siteId}";
                     clusterMember.setGitUrl(gitUrl);
