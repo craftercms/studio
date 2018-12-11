@@ -41,4 +41,11 @@ public interface UiService {
      */
     List<MenuItem> getGlobalMenu() throws AuthenticationException, ServiceLayerException;
 
+    /**
+     * Returns the active environment.
+     *
+     * @return active environment
+     */
+    String getActiveEnvironment() throws AuthenticationException;
+
 }

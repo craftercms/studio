@@ -24,12 +24,14 @@ import org.craftercms.studio.api.v2.service.ui.UiService;
 import org.craftercms.studio.model.rest.ApiResponse;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.ResultList;
+import org.craftercms.studio.model.rest.ResultOne;
 import org.craftercms.studio.model.ui.MenuItem;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ENVIRONMENT;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_MENU_ITEMS;
 
 /**
@@ -56,8 +58,12 @@ public class UiController {
     }
 
     @GetMapping("/system/active_environment")
-    public ResponseBody getActiveEnvironment() {
+    public ResponseBody getActiveEnvironment() throws AuthenticationException {
+        ResultOne<String> result = new ResultOne<String>();
+        result.setResponse(ApiResponse.OK);
+        result.setEntity(RESULT_KEY_ENVIRONMENT, uiService.getActiveEnvironment());
         ResponseBody responseBody = new ResponseBody();
+        responseBody.setResult(result);
 
         return responseBody;
     }
