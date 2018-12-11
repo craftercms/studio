@@ -74,6 +74,8 @@ public interface StudioConfiguration {
     String CONFIGURATION_GLOBAL_UI_RESOURCE_OVERRIDE_PATH = "studio.configuration.global.ui.resource.override.path";
     String CONFIGURATION_GLOBAL_SYSTEM_SITE = "studio.configuration.global.systemSite";
     String CONFIGURATION_SITE_CONFIG_BASE_PATH = "studio.configuration.site.configBasePath";
+    String CONFIGURATION_SITE__MUTLI_ENVIRONMENT_CONFIG_BASE_PATH = "studio.configuration.site.multiEnvironment" +
+            ".configBasePath";
     String CONFIGURATION_SITE_ENVIRONMENT_CONFIG_BASE_PATH = "studio.configuration.site.environment.configBasePath";
     String CONFIGURATION_SITE_CONTENT_TYPES_CONFIG_BASE_PATH = "studio.configuration.site.contentTypes.configBasePath";
     String CONFIGURATION_SITE_CONTENT_TYPES_CONFIG_PATH = "studio.configuration.site.contentTypes.configPath";
@@ -95,6 +97,7 @@ public interface StudioConfiguration {
     String CONFIGURATION_DEPENDENCY_ITEM_SPECIFIC_PATTERNS = "studio.configuration.dependency.itemSpecificPatterns";
 
     String CONFIGURATION_AUTHENTICATION_CHAIN_CONFIG = "studio.authentication.chain";
+    String CONFIGURATION_ENVIRONMENT_ACTIVE = "studio.configuration.environment.active";
 
     /** Import Service */
     String IMPORT_ASSIGNEE = "studio.import.assignee";

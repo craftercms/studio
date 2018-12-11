@@ -348,6 +348,7 @@
     <bean id="uiService" class="org.craftercms.studio.impl.v2.service.ui.UiServiceImpl">
         <property name="securityService" ref="cstudioSecurityService"/>
         <property name="uiServiceInternal" ref="uiServiceInternal"/>
+        <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
     <bean id="instanceService" class="org.craftercms.studio.impl.v2.service.system.InstanceServiceImpl">

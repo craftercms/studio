@@ -123,8 +123,12 @@ import org.dom4j.io.SAXReader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.xml.sax.SAXException;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_CONFIG_FOLDER;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.DEFAULT_ORGANIZATION_ID;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_CONTENT_TYPE;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_ENVIRONMENT;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_SITE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOTE_REPOSITORY_CREATE_OPTION_CLONE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOTE_REPOSITORY_CREATE_OPTION_PUSH;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_DEFAULT_GROUPS_DESCRIPTION;
@@ -138,6 +142,7 @@ import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATIO
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_ENVIRONMENT;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_ENVIRONMENT_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_PREVIEW_DESTROY_CONTEXT_URL;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE__MUTLI_ENVIRONMENT_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.PREVIEW_ENGINE_URL;
 
@@ -264,18 +269,24 @@ public class SiteServiceImpl implements SiteService {
     @ValidateParams
 	public Map<String, Object> getConfiguration(@ValidateStringParam(name = "site") String site,
                                                 @ValidateSecurePathParam(name = "path") String path,
+                                                @ValidateStringParam(name = "environment") String environment,
                                                 boolean applyEnv) {
 		String configPath;
 		if (StringUtils.isEmpty(site)) {
 			configPath = getGlobalConfigRoot() + path;
 		} else {
-			if (applyEnv) {
-				configPath = getEnvironmentConfigPath().replaceAll(StudioConstants.PATTERN_SITE, site).replaceAll(
-						StudioConstants.PATTERN_ENVIRONMENT, getEnvironment())
-						+ path;
-			} else {
-				configPath = getSitesConfigPath() + path;
-			}
+		    if (path.startsWith(FILE_SEPARATOR + CONTENT_TYPE_CONFIG_FOLDER + FILE_SEPARATOR)) {
+                configPath = getSitesConfigPath() + path;
+            } else if (StringUtils.isEmpty(environment)) {
+                if (applyEnv) {
+                    configPath = getEnvironmentConfigPath().replaceAll(PATTERN_SITE, site).replaceAll(
+                            PATTERN_ENVIRONMENT, getEnvironment()) + path;
+                } else {
+                    configPath = getSitesConfigPath() + path;
+                }
+            } else {
+                configPath = getSitesMultiEnvironmentConfigPath().replaceAll(PATTERN_ENVIRONMENT, environment) + path;
+            }
 		}
 		String configContent = contentService.getContentAsString(site, configPath);
 
@@ -1818,6 +1829,10 @@ public class SiteServiceImpl implements SiteService {
 
     public String getSitesConfigPath() {
         return studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH);
+    }
+
+    public String getSitesMultiEnvironmentConfigPath() {
+        return studioConfiguration.getProperty(CONFIGURATION_SITE__MUTLI_ENVIRONMENT_CONFIG_BASE_PATH);
     }
 
     public String getEnvironment() {

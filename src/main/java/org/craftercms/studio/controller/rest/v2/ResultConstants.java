@@ -24,4 +24,6 @@ public interface ResultConstants {
 
     String RESULT_KEY_CLUSTER_MEMBER = "clusterMember";
     String RESULT_KEY_CLUSTER_MEMBERS = "clusterMembers";
+
+    String RESULT_KEY_ENVIRONMENT = "environment";
 }
