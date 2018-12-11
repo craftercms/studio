@@ -97,6 +97,7 @@ public interface StudioConfiguration {
     String CONFIGURATION_DEPENDENCY_ITEM_SPECIFIC_PATTERNS = "studio.configuration.dependency.itemSpecificPatterns";
 
     String CONFIGURATION_AUTHENTICATION_CHAIN_CONFIG = "studio.authentication.chain";
+    String CONFIGURATION_ENVIRONMENT_ACTIVE = "studio.configuration.environment.active";
 
     /** Import Service */
     String IMPORT_ASSIGNEE = "studio.import.assignee";
@@ -254,9 +255,6 @@ public interface StudioConfiguration {
 
     /** Cluster Node Registration **/
     String CLUSTERING_NODE_REGISTRATION = "studio.clustering.node.registration";
-
-    /** Active environment **/
-    String ENVIRONMENT = "environment";
 
     void loadConfig();
 

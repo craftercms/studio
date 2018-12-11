@@ -123,8 +123,10 @@ import org.dom4j.io.SAXReader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.xml.sax.SAXException;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_CONFIG_FOLDER;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.DEFAULT_ORGANIZATION_ID;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_CONTENT_TYPE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_ENVIRONMENT;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_SITE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOTE_REPOSITORY_CREATE_OPTION_CLONE;
@@ -273,7 +275,9 @@ public class SiteServiceImpl implements SiteService {
 		if (StringUtils.isEmpty(site)) {
 			configPath = getGlobalConfigRoot() + path;
 		} else {
-		    if (StringUtils.isEmpty(environment)) {
+		    if (path.startsWith(FILE_SEPARATOR + CONTENT_TYPE_CONFIG_FOLDER + FILE_SEPARATOR)) {
+                configPath = getSitesConfigPath() + path;
+            } else if (StringUtils.isEmpty(environment)) {
                 if (applyEnv) {
                     configPath = getEnvironmentConfigPath().replaceAll(PATTERN_SITE, site).replaceAll(
                             PATTERN_ENVIRONMENT, getEnvironment()) + path;
