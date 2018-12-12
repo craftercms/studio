@@ -32,11 +32,13 @@
     </xsl:template>
 
     <xsl:template match="role[@name='system_admin']/rule[@regex='/.*']/allowed-permissions">
+        <allowed-permissions>
             <xsl:apply-templates select="node() | @*"/>
             <permission>read_cluster</permission><xsl:text>&#10;</xsl:text>
             <permission>create_cluster</permission><xsl:text>&#10;</xsl:text>
             <permission>update_cluster</permission><xsl:text>&#10;</xsl:text>
             <permission>delete_cluster</permission><xsl:text>&#10;</xsl:text>
+        </allowed-permissions>
     </xsl:template>
 
 </xsl:stylesheet>
