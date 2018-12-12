@@ -143,10 +143,9 @@ pipelines:
       - type: dbScriptUpgrader
         filename: upgrade-3.1.0.7-to-3.1.0.8.sql
         updateIntegrity: true
-      - type: globalRepoUpgrader
-        files:
-          - configuration/global-menu-config.xml
-          - configuration/global-permission-mappings-config.xml
+      - type: xsltFileUpgrader
+        path: /configuration/global-menu-config.xml
+        template: crafter/studio/upgrade/3.1.0.8/global-menu-config-2.xslt
 
   # Pipeline to upgrade site repositories
   site:
