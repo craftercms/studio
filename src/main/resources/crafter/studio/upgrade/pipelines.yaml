@@ -147,8 +147,8 @@ pipelines:
         path: /configuration/global-menu-config.xml
         template: crafter/studio/upgrade/3.1.0.8/global-menu-config-2.xslt
       - type: xsltFileUpgrader
-        path: /configuration/global-permission-mapping-config.xml
-        template: crafter/studio/upgrade/3.1.0.8/global-permission-mapping-config-2.xslt
+        path: /configuration/global-permission-mappings-config.xml
+        template: crafter/studio/upgrade/3.1.0.8/global-permission-mappings-config-2.xslt
 
   # Pipeline to upgrade site repositories
   site:
