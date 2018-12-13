@@ -36,16 +36,16 @@
         <xsl:copy>
             <xsl:apply-templates/>
             <xsl:if test="not(permission = 'read_cluster')">
-                <xsl:element name="permission"><xsl:text>read_cluster</xsl:text></xsl:element>
+                <xsl:element name="permission"><xsl:text>read_cluster</xsl:text></xsl:element><xsl:text>&#10;</xsl:text>
             </xsl:if>
             <xsl:if test="not(permission = 'create_cluster')">
-                <xsl:element name="permission"><xsl:text>create_cluster</xsl:text></xsl:element>
+                <xsl:element name="permission"><xsl:text>create_cluster</xsl:text></xsl:element><xsl:text>&#10;</xsl:text>
             </xsl:if>
             <xsl:if test="not(permission = 'update_cluster')">
-                <xsl:element name="permission"><xsl:text>update_cluster</xsl:text></xsl:element>
+                <xsl:element name="permission"><xsl:text>update_cluster</xsl:text></xsl:element><xsl:text>&#10;</xsl:text>
             </xsl:if>
             <xsl:if test="not(permission = 'delete_cluster')">
-                <xsl:element name="permission"><xsl:text>delete_cluster</xsl:text></xsl:element>
+                <xsl:element name="permission"><xsl:text>delete_cluster</xsl:text></xsl:element><xsl:text>&#10;</xsl:text>
             </xsl:if>
         </xsl:copy>
     </xsl:template>
