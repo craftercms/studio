@@ -32,32 +32,22 @@
     </xsl:template>
 
     <xsl:template
-            match="role[@name='system_admin']/rule[@regex='/.*']/allowed-permissions/not(permission='read_cluster')">
-            <permission>read_cluster</permission><xsl:text>&#10;</xsl:text>
+            match="role[@name='system_admin']/rule[@regex='/.*']/allowed-permissions">
+        <xsl:copy>
+            <xsl:apply-templates/>
+            <xsl:if test="not(current() = 'read_cluster')">
+                <xsl:element name="permission"><xsl:text>read_cluster</xsl:text></xsl:element>
+            </xsl:if>
+            <xsl:if test="not(current() = 'create_cluster')">
+                <xsl:element name="permission"><xsl:text>create_cluster</xsl:text></xsl:element>
+            </xsl:if>
+            <xsl:if test="not(current() = 'update_cluster')">
+                <xsl:element name="permission"><xsl:text>update_cluster</xsl:text></xsl:element>
+            </xsl:if>
+            <xsl:if test="not(current() = 'delete_cluster')">
+                <xsl:element name="permission"><xsl:text>delete_cluster</xsl:text></xsl:element>
+            </xsl:if>
+        </xsl:copy>
     </xsl:template>
-
-<!--
-    <xsl:template match="role[@name='system_admin']/rule[@regex='/.*']/allowed-permissions[not(permission='create_cluster')]">
-        <allowed-permissions>
-            <xsl:apply-templates select="node() | @*"/>
-            <permission>create_cluster</permission><xsl:text>&#10;</xsl:text>
-        </allowed-permissions>
-    </xsl:template>
-
-    <xsl:template match="role[@name='system_admin']/rule[@regex='/.*']/allowed-permissions[not(permission='update_cluster')]">
-        <allowed-permissions>
-            <xsl:apply-templates select="node() | @*"/>
-            <permission>update_cluster</permission><xsl:text>&#10;</xsl:text>
-        </allowed-permissions>
-    </xsl:template>
-
-    <xsl:template match="role[@name='system_admin']/rule[@regex='/.*']/allowed-permissions[not(permission='delete_cluster')]">
-        <allowed-permissions>
-            <xsl:apply-templates select="node() | @*"/>
-            <xsl:apply-templates
-                    select="role[@name='system_admin']/rule[@regex='/.*']/allowed-permissions[not(permission='update_cluster')]" />
-            <permission>delete_cluster</permission><xsl:text>&#10;</xsl:text>
-        </allowed-permissions>
-    </xsl:template> -->
 
 </xsl:stylesheet>
