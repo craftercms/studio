@@ -18,6 +18,11 @@
 
 package org.craftercms.studio.api.v1.util;
 
+import java.util.List;
+
+import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.apache.commons.configuration2.tree.ImmutableNode;
+
 public interface StudioConfiguration {
 
     /** Override Configuration */
@@ -261,4 +266,9 @@ public interface StudioConfiguration {
     String getProperty(String key);
 
     <T> T getProperty(String key, Class<T> clazz);
+
+    HierarchicalConfiguration<ImmutableNode> getSubConfig(String key);
+
+    List<HierarchicalConfiguration<ImmutableNode>> getSubConfigs(String key);
+
 }

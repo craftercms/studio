@@ -19,6 +19,15 @@
 
 package org.craftercms.studio.impl.v1.util;
 
+import org.apache.commons.configuration2.CombinedConfiguration;
+import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.apache.commons.configuration2.ex.ConfigurationException;
+import org.apache.commons.configuration2.tree.DefaultExpressionEngine;
+import org.apache.commons.configuration2.tree.DefaultExpressionEngineSymbols;
+import org.apache.commons.configuration2.tree.ExpressionEngine;
+import org.apache.commons.configuration2.tree.ImmutableNode;
+import org.apache.commons.configuration2.tree.OverrideCombiner;
+import org.craftercms.commons.config.YamlConfiguration;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
@@ -29,13 +38,14 @@ import org.yaml.snakeyaml.Yaml;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class StudioConfigurationImpl implements StudioConfiguration {
 
     private final static Logger logger = LoggerFactory.getLogger(StudioConfigurationImpl.class);
 
-    private Map<String, Object> properties = new HashMap<String, Object>();
+    protected HierarchicalConfiguration<ImmutableNode> config;
 
     public void init() {
         loadConfig();
@@ -44,55 +54,77 @@ public class StudioConfigurationImpl implements StudioConfiguration {
     @Override
     @SuppressWarnings("unchecked")
     public void loadConfig() {
-        Map<String, Object> baseProperties = new HashMap<String, Object>();;
-        Map<String, Object> overrideProperties = new HashMap<String, Object>();
+        YamlConfiguration baseConfig = new YamlConfiguration();
+        YamlConfiguration overrideConfig = new YamlConfiguration();
 
         Resource resource = new ClassPathResource(configLocation);
         try (InputStream in = resource.getInputStream()) {
-            Yaml yaml = new Yaml();
-            baseProperties = yaml.loadAs(in, baseProperties.getClass());
+            baseConfig.setExpressionEngine(getExpressionEngine());
+            baseConfig.read(in);
 
-            logger.debug("Loaded configuration from location: " + configLocation + "\n" + baseProperties.toString());
-        } catch (IOException e) {
-            logger.error("Failed to load studio configuration from: " + configLocation);
+            logger.debug("Loaded configuration from location: {0} \n {1}", configLocation, baseConfig);
+        } catch (IOException | ConfigurationException e) {
+            logger.error("Failed to load studio configuration from: " + configLocation, e);
         }
 
-        if (baseProperties.get(STUDIO_CONFIG_OVERRIDE_CONFIG) != null) {
-            resource = new ClassPathResource(baseProperties.get(STUDIO_CONFIG_OVERRIDE_CONFIG).toString());
+        if (baseConfig.containsKey(STUDIO_CONFIG_OVERRIDE_CONFIG)) {
+            String overrideConfigLocation = baseConfig.getString(STUDIO_CONFIG_OVERRIDE_CONFIG);
+            resource = new ClassPathResource(overrideConfigLocation);
 
             try (InputStream in = resource.getInputStream()) {
-                Yaml yaml = new Yaml();
+                overrideConfig.setExpressionEngine(getExpressionEngine());
+                overrideConfig.read(in);
 
-                overrideProperties = yaml.loadAs(in, overrideProperties.getClass());
-                if (overrideProperties != null) {
-                    logger.debug("Loaded additional configuration from location: " + baseProperties.get
-                            (STUDIO_CONFIG_OVERRIDE_CONFIG) + "\n" +
-                            overrideProperties.toString());
+                if (!overrideConfig.isEmpty()) {
+                    logger.debug("Loaded additional configuration from location: {0} \n {1}",
+                        overrideConfigLocation, overrideConfig);
                 }
-            } catch (IOException e) {
-                logger.error("Failed to load studio configuration from: " + baseProperties.get(STUDIO_CONFIG_OVERRIDE_CONFIG));
+            } catch (IOException | ConfigurationException e) {
+                logger.error("Failed to load studio configuration from: " + overrideConfigLocation, e);
             }
         }
 
         // Merge the base properties and additional properties
-        for (Map.Entry<String, Object> entry: baseProperties.entrySet()) {
-            properties.put(entry.getKey(), entry.getValue());
+        if(!overrideConfig.isEmpty()) {
+            CombinedConfiguration combinedConfig = new CombinedConfiguration(new OverrideCombiner());
+            combinedConfig.setExpressionEngine(getExpressionEngine());
+            combinedConfig.addConfiguration(overrideConfig);
+            combinedConfig.addConfiguration(baseConfig);
+
+            config = combinedConfig;
+        } else {
+            config = baseConfig;
         }
-        if (overrideProperties != null) {
-            for (Map.Entry<String, Object> entry : overrideProperties.entrySet()) {
-                properties.put(entry.getKey(), entry.getValue());
-            }
-        }
+    }
+
+    protected ExpressionEngine getExpressionEngine() {
+        DefaultExpressionEngineSymbols symbols =
+            new DefaultExpressionEngineSymbols.Builder(DefaultExpressionEngineSymbols.DEFAULT_SYMBOLS)
+                // Use a slash as property delimiter
+                .setPropertyDelimiter("/")
+                // A Backslash is used for escaping property delimiters
+                .setEscapedDelimiter("\\/").create();
+        return new DefaultExpressionEngine(symbols);
     }
 
     @Override
     public String getProperty(String key) {
-        return String.valueOf(getProperty(key, Object.class));
+        return config.getString(key);
     }
 
     @Override
     public <T> T getProperty(String key, Class<T> clazz) {
-        return clazz.cast(properties.get(key));
+        return config.get(clazz, key);
+    }
+
+    @Override
+    public HierarchicalConfiguration<ImmutableNode> getSubConfig(String key) {
+        return config.configurationAt(key);
+    }
+
+    @Override
+    public List<HierarchicalConfiguration<ImmutableNode>> getSubConfigs(String key) {
+        return config.configurationsAt(key);
     }
 
     public String getConfigLocation() { return configLocation; }

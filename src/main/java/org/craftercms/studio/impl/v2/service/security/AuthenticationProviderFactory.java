@@ -18,6 +18,8 @@
 
 package org.craftercms.studio.impl.v2.service.security;
 
+import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.craftercms.studio.api.v2.service.security.AuthenticationProvider;
 
 import java.util.Map;
@@ -51,9 +53,9 @@ public class AuthenticationProviderFactory {
     private AuthenticationProviderFactory() {
     }
 
-    public static AuthenticationProvider getAuthenticationProvider(Map<String, Object> providerConfig) {
+    public static AuthenticationProvider getAuthenticationProvider(HierarchicalConfiguration<ImmutableNode> providerConfig) {
         AuthenticationProvider provider;
-        switch (providerConfig.get(AUTHENTICATION_CHAIN_PROVIDER_TYPE).toString().toUpperCase()) {
+        switch (providerConfig.getString(AUTHENTICATION_CHAIN_PROVIDER_TYPE).toUpperCase()) {
             case AUTHENTICATION_CHAIN_PROVIDER_TYPE_DB:
                 provider = createDbAuthenticationProvider(providerConfig);
                 break;
@@ -69,43 +71,43 @@ public class AuthenticationProviderFactory {
         return provider;
     }
 
-    private static DbAuthenticationProvider createDbAuthenticationProvider(Map<String, Object> providerConfig) {
+    private static DbAuthenticationProvider createDbAuthenticationProvider(HierarchicalConfiguration<ImmutableNode> providerConfig) {
         DbAuthenticationProvider provider = new DbAuthenticationProvider();
-        boolean enabled = Boolean.parseBoolean(providerConfig.get(AUTHENTICATION_CHAIN_PROVIDER_ENABLED).toString());
+        boolean enabled = providerConfig.getBoolean(AUTHENTICATION_CHAIN_PROVIDER_ENABLED);
         provider.setEnabled(enabled);
         return provider;
     }
 
-    private static LdapAuthenticationProvider createLdapAuthenticationProvider(Map<String, Object> providerConfig) {
+    private static LdapAuthenticationProvider createLdapAuthenticationProvider(HierarchicalConfiguration<ImmutableNode> providerConfig) {
         LdapAuthenticationProvider provider = new LdapAuthenticationProvider();
-        boolean enabled = Boolean.parseBoolean(providerConfig.get(AUTHENTICATION_CHAIN_PROVIDER_ENABLED).toString());
+        boolean enabled = providerConfig.getBoolean(AUTHENTICATION_CHAIN_PROVIDER_ENABLED);
         provider.setEnabled(enabled);
-        provider.setLdapUrl(providerConfig.get(AUTHENTICATION_CHAIN_PROVIDER_LDAP_URL).toString());
-        provider.setLdapUsername(providerConfig.get(AUTHENTICATION_CHAIN_PROVIDER_LDAP_USERNAME).toString());
-        provider.setLdapPassword(providerConfig.get(AUTHENTICATION_CHAIN_PROVIDER_LDAP_PASSWORD).toString());
-        provider.setLdapBaseContext(providerConfig.get(AUTHENTICATION_CHAIN_PROVIDER_LDAP_BASE_CONTEXT).toString());
-        provider.setUsernameLdapAttribute(providerConfig.get(AUTHENTICATION_CHAIN_PROVIDER_USERNAME_LDAP_ATTIBUTE).toString());
-        provider.setFirstNameLdapAttribute(providerConfig.get(AUTHENTICATION_CHAIN_PROVIDER_FIRST_NAME_LDAP_ATTRIBUTE).toString());
-        provider.setLastNameLdapAttribute(providerConfig.get(AUTHENTICATION_CHAIN_PROVIDER_LAST_NAME_LDAP_ATTRIBUTE).toString());
-        provider.setEmailLdapAttribute(providerConfig.get(AUTHENTICATION_CHAIN_PROVIDER_EMAIL_LDAP_ATTRIBUTE).toString());
-        provider.setGroupNameLdapAttribute(providerConfig.get(AUTHENTICATION_CHAIN_PROVIDER_GROUP_NAME_LDAP_ATTRIBUTE).toString());
-        provider.setGroupNameLdapAttributeRegex(providerConfig.get(AUTHENTICATION_CHAIN_PROVIDER_GROUP_NAME_REGEX_LDAP_ATTRIBUTE).toString());
+        provider.setLdapUrl(providerConfig.getString(AUTHENTICATION_CHAIN_PROVIDER_LDAP_URL));
+        provider.setLdapUsername(providerConfig.getString(AUTHENTICATION_CHAIN_PROVIDER_LDAP_USERNAME));
+        provider.setLdapPassword(providerConfig.getString(AUTHENTICATION_CHAIN_PROVIDER_LDAP_PASSWORD));
+        provider.setLdapBaseContext(providerConfig.getString(AUTHENTICATION_CHAIN_PROVIDER_LDAP_BASE_CONTEXT));
+        provider.setUsernameLdapAttribute(providerConfig.getString(AUTHENTICATION_CHAIN_PROVIDER_USERNAME_LDAP_ATTIBUTE));
+        provider.setFirstNameLdapAttribute(providerConfig.getString(AUTHENTICATION_CHAIN_PROVIDER_FIRST_NAME_LDAP_ATTRIBUTE));
+        provider.setLastNameLdapAttribute(providerConfig.getString(AUTHENTICATION_CHAIN_PROVIDER_LAST_NAME_LDAP_ATTRIBUTE));
+        provider.setEmailLdapAttribute(providerConfig.getString(AUTHENTICATION_CHAIN_PROVIDER_EMAIL_LDAP_ATTRIBUTE));
+        provider.setGroupNameLdapAttribute(providerConfig.getString(AUTHENTICATION_CHAIN_PROVIDER_GROUP_NAME_LDAP_ATTRIBUTE));
+        provider.setGroupNameLdapAttributeRegex(providerConfig.getString(AUTHENTICATION_CHAIN_PROVIDER_GROUP_NAME_REGEX_LDAP_ATTRIBUTE));
         provider.setGroupNameLdapAttributeMatchIndex(
-                Integer.parseInt(providerConfig.get(AUTHENTICATION_CHAIN_PROVIDER_GROUP_NAME_MATCH_INDEX_LDAP_ATTRIBUTE).toString()));
+                Integer.parseInt(providerConfig.getString(AUTHENTICATION_CHAIN_PROVIDER_GROUP_NAME_MATCH_INDEX_LDAP_ATTRIBUTE)));
         return provider;
     }
 
-    private static HeadersAuthenticationProvider createHeadersAuthenticationProvider(Map<String, Object> providerConfig) {
+    private static HeadersAuthenticationProvider createHeadersAuthenticationProvider(HierarchicalConfiguration<ImmutableNode> providerConfig) {
         HeadersAuthenticationProvider provider = new HeadersAuthenticationProvider();
-        boolean enabled = Boolean.parseBoolean(providerConfig.get(AUTHENTICATION_CHAIN_PROVIDER_ENABLED).toString());
+        boolean enabled = providerConfig.getBoolean(AUTHENTICATION_CHAIN_PROVIDER_ENABLED);
         provider.setEnabled(enabled);
-        provider.setSecureKeyHeader(providerConfig.get(AUTHENTICATION_CHAIN_PROVIDER_SECURE_KEY_HEADER).toString());
-        provider.setSecureKeyHeaderValue(providerConfig.get(AUTHENTICATION_CHAIN_PROVIDER_SECURE_KEY_HEADER_VALUE).toString());
-        provider.setUsernameHeader(providerConfig.get(AUTHENTICATION_CHAIN_PROVIDER_USERNAME_HEADER).toString());
-        provider.setFirstNameHeader(providerConfig.get(AUTHENTICATION_CHAIN_PROVIDER_FIRST_NAME_HEADER).toString());
-        provider.setLastNameHeader(providerConfig.get(AUTHENTICATION_CHAIN_PROVIDER_LAST_NAME_HEADER).toString());
-        provider.setEmailHeader(providerConfig.get(AUTHENTICATION_CHAIN_PROVIDER_EMAIL_HEADER).toString());
-        provider.setGroupsHeader(providerConfig.get(AUTHENTICATION_CHAIN_PROVIDER_GROUPS_HEADER).toString());
+        provider.setSecureKeyHeader(providerConfig.getString(AUTHENTICATION_CHAIN_PROVIDER_SECURE_KEY_HEADER));
+        provider.setSecureKeyHeaderValue(providerConfig.getString(AUTHENTICATION_CHAIN_PROVIDER_SECURE_KEY_HEADER_VALUE));
+        provider.setUsernameHeader(providerConfig.getString(AUTHENTICATION_CHAIN_PROVIDER_USERNAME_HEADER));
+        provider.setFirstNameHeader(providerConfig.getString(AUTHENTICATION_CHAIN_PROVIDER_FIRST_NAME_HEADER));
+        provider.setLastNameHeader(providerConfig.getString(AUTHENTICATION_CHAIN_PROVIDER_LAST_NAME_HEADER));
+        provider.setEmailHeader(providerConfig.getString(AUTHENTICATION_CHAIN_PROVIDER_EMAIL_HEADER));
+        provider.setGroupsHeader(providerConfig.getString(AUTHENTICATION_CHAIN_PROVIDER_GROUPS_HEADER));
         return provider;
     }
 }
