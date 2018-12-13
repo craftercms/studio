@@ -18,6 +18,8 @@
 
 package org.craftercms.studio.impl.v1.web.security.access;
 
+import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.http.HttpUtils;
@@ -68,15 +70,12 @@ public class StudioAuthenticationTokenProcessingFilter extends GenericFilterBean
     private boolean authenticationHeadersEnabled = false;
 
     public void init() {
-        List<Map<String, Object>> chainConfig = new ArrayList<Map<String, Object>>();
-        chainConfig = studioConfiguration.getProperty(CONFIGURATION_AUTHENTICATION_CHAIN_CONFIG,
-                chainConfig.getClass());
-        authenticationHeadersEnabled =
-                chainConfig.stream().anyMatch(providerConfig ->
-                        providerConfig.get(AUTHENTICATION_CHAIN_PROVIDER_TYPE).toString().toUpperCase()
+        List<HierarchicalConfiguration<ImmutableNode>> chainConfig =
+            studioConfiguration.getSubConfigs(CONFIGURATION_AUTHENTICATION_CHAIN_CONFIG);
+        authenticationHeadersEnabled = chainConfig.stream().anyMatch(providerConfig ->
+                providerConfig.getString(AUTHENTICATION_CHAIN_PROVIDER_TYPE).toUpperCase()
                                 .equals(AUTHENTICATION_CHAIN_PROVIDER_TYPE_HEADERS) &&
-                                Boolean.parseBoolean(
-                                        providerConfig.get(AUTHENTICATION_CHAIN_PROVIDER_ENABLED).toString()));
+                    providerConfig.getBoolean(AUTHENTICATION_CHAIN_PROVIDER_ENABLED));
     }
 
     @Override

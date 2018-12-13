@@ -18,6 +18,8 @@
 
 package org.craftercms.studio.impl.v2.service.security;
 
+import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationSystemException;
@@ -55,9 +57,8 @@ public class AuthenticationChainImpl implements AuthenticationChain {
     private GroupDAO groupDao;
 
     public void init() {
-        List<Map<String, Object>> chainConfig = new ArrayList<Map<String, Object>>();
-        chainConfig = studioConfiguration.getProperty(CONFIGURATION_AUTHENTICATION_CHAIN_CONFIG,
-                chainConfig.getClass());
+        List<HierarchicalConfiguration<ImmutableNode>> chainConfig =
+            studioConfiguration.getSubConfigs(CONFIGURATION_AUTHENTICATION_CHAIN_CONFIG);
         authentitcationChain = new ArrayList<AuthenticationProvider>();
         chainConfig.forEach(providerConfig -> {
             AuthenticationProvider provider = AuthenticationProviderFactory.getAuthenticationProvider(providerConfig);
