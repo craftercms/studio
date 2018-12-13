@@ -31,13 +31,12 @@
         <xsl:text>&#10;</xsl:text><xsl:copy-of select="."/><xsl:text>&#10;</xsl:text>
     </xsl:template>
 
-    <xsl:template match="role[@name='system_admin']/rule[@regex='/.*']/allowed-permissions[not(permission='read_cluster')]">
-        <allowed-permissions>
-            <xsl:apply-templates select="node() | @*"/>
+    <xsl:template
+            match="role[@name='system_admin']/rule[@regex='/.*']/allowed-permissions/not(permission='read_cluster')">
             <permission>read_cluster</permission><xsl:text>&#10;</xsl:text>
-        </allowed-permissions>
     </xsl:template>
 
+<!--
     <xsl:template match="role[@name='system_admin']/rule[@regex='/.*']/allowed-permissions[not(permission='create_cluster')]">
         <allowed-permissions>
             <xsl:apply-templates select="node() | @*"/>
@@ -59,6 +58,6 @@
                     select="role[@name='system_admin']/rule[@regex='/.*']/allowed-permissions[not(permission='update_cluster')]" />
             <permission>delete_cluster</permission><xsl:text>&#10;</xsl:text>
         </allowed-permissions>
-    </xsl:template>
+    </xsl:template> -->
 
 </xsl:stylesheet>
