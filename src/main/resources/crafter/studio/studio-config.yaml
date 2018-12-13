@@ -415,7 +415,7 @@ studio.db.validationInterval: 34000
 # Base folder for the embedded database
 studio.db.basePath: ${sys:crafter.home}/dbms
 # Data folder for the embedded database
-studio.db.dataPath: ${sys:crafter.data.dir}
+studio.db.dataPath: ${sys:crafter.data.dir}/db
 # Port number for the embedded database (note this must match what's in the connection URLs in this config file)
 studio.db.port: 33306
 # Socket path for the embedded database
