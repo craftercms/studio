@@ -65,7 +65,7 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
             logger.debug("Cluster members count " + cm.size());
             try {
                 Set<String> siteNames = siteService.getAllAvailableSites();
-                String localIp = registrationData.get("localIp");
+                String localIp = registrationData.get("localAddress");
                 Map<String, String> params = new HashMap<String, String>();
                 params.put(CLUSTER_LOCAL_IP, localIp);
                 params.put(CLUSTER_STATE, ClusterMember.State.ACTIVE.toString());
