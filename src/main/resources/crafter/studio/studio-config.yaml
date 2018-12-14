@@ -13,8 +13,8 @@ studio.config.overrideConfig: crafter/studio/extension/studio-config-override.ya
 ##################################################
 ##              Content Repository              ##
 ##################################################
-# Absolute or relative path to repository base (all actual repositories will be under this)
-studio.repo.basePath: ./data/repos
+# Absolute path to repository base (all actual repositories will be under this)
+studio.repo.basePath: ${sys:crafter.data.dir}/repos
 # Global repository path (automatically goes under repo-base-path)
 studio.repo.globalRepoPath: global
 # Sites repositories base path (automatically goes under repo-base-path)
@@ -334,7 +334,7 @@ studio.preview.createTargetUrl: http://localhost:9191/api/1/target/create
 # Default preview create target URL (can be overridden per site)
 studio.preview.deleteTargetUrl: http://localhost:9191/api/1/target/delete/{siteEnv}/{siteName}
 # URL to the preview repository (aka Sandbox) where authors save work-in-progress
-studio.preview.repoUrl: data/repos/sites/{siteName}/sandbox
+studio.preview.repoUrl: ${sys:crafter.data.dir}/repos/sites/{siteName}/sandbox
 # URL to the preview Crafter Engine
 studio.preview.engineUrl: http://localhost:8080
 # Name of template to use with the deployer for preview
@@ -413,13 +413,13 @@ studio.db.validationQuery: SELECT 1
 # Use a value less than or equal to 0 for no timeout.
 studio.db.validationInterval: 34000
 # Base folder for the embedded database
-studio.db.basePath: ./dbms
+studio.db.basePath: ${sys:crafter.home}/dbms
 # Data folder for the embedded database
-studio.db.dataPath: ./data/db
+studio.db.dataPath: ${sys:crafter.data.dir}/db
 # Port number for the embedded database (note this must match what's in the connection URLs in this config file)
 studio.db.port: 33306
 # Socket path for the embedded database
-studio.db.socket: /tmp/MariaDB4j.33306.sock
+studio.db.socket: ${sys:java.io.tmpdir}/MariaDB4j.33306.sock
 
 ##########################################################
 ##                   Asset Processing                   ##
