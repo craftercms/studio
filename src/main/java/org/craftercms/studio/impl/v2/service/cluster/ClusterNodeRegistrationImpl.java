@@ -56,7 +56,7 @@ public class ClusterNodeRegistrationImpl implements ClusterNodeRegistration {
         if (registrationData != null && !registrationData.isEmpty()) {
             try {
                 logger.debug("Collect and populate data for cluster node registration");
-                clusterMember.setLocalIp(registrationData.get("localIp"));
+                clusterMember.setLocalIp(registrationData.get("localAddress"));
                 if (!isRegistered(clusterMember.getLocalIp())) {
                     Path path = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
                             studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH));
@@ -122,7 +122,7 @@ public class ClusterNodeRegistrationImpl implements ClusterNodeRegistration {
     public void destroy() {
         Map<String, String> registrationData = getConfiguration();
         if (registrationData != null && !registrationData.isEmpty()) {
-            removeClusterNode(registrationData.get("localIp"));
+            removeClusterNode(registrationData.get("localAddress"));
         }
     }
 
