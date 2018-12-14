@@ -52,7 +52,6 @@ import org.eclipse.jgit.api.CheckoutCommand;
 import org.eclipse.jgit.api.FetchCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.MergeCommand;
-import org.eclipse.jgit.api.PullCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.ObjectId;
@@ -116,7 +115,7 @@ public class StudioNodeSyncPublishedTask extends StudioNodeSyncBaseTask {
             Set<String> environments = getAllPublishingEnvironments(siteId);
             logger.debug("Update published repo from all active cluster members");
             for (ClusterMember remoteNode : clusterNodes) {
-                logger.debug("Fetch from cluster member " + remoteNode.getLocalIp());
+                logger.debug("Fetch from cluster member " + remoteNode.getLocalAddress());
                 final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
                 FetchCommand fetch = git.fetch().setRemote(remoteNode.getGitRemoteName());
                 fetch = setAuthenticationForCommand(remoteNode, fetch, tempKey);
@@ -124,7 +123,7 @@ public class StudioNodeSyncPublishedTask extends StudioNodeSyncBaseTask {
                 Files.delete(tempKey);
 
                 logger.debug("Update all environments for site " + siteId + " from cluster member " +
-                        remoteNode.getLocalIp());
+                        remoteNode.getLocalAddress());
                 for (String branch : environments) {
                     updatePublishedBranch(git, remoteNode, branch);
                 }
@@ -137,7 +136,7 @@ public class StudioNodeSyncPublishedTask extends StudioNodeSyncBaseTask {
 
     private void updatePublishedBranch(Git git, ClusterMember remoteNode, String branch) throws CryptoException,
             GitAPIException, IOException, ServiceLayerException {
-        logger.debug("Update published environment " + branch + " from " + remoteNode.getLocalIp() +
+        logger.debug("Update published environment " + branch + " from " + remoteNode.getLocalAddress() +
                 " for site " + siteId);
         final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
 

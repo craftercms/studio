@@ -97,11 +97,11 @@ public interface ClusterDAO {
     int countRegistrations(Map params);
 
     /**
-     * Remove member from cluster in the database by local ip
+     * Remove member from cluster in the database by local address
      *
      * @param params Parameters for SQL query
      *
      * @return number of affected rows
      */
-    int removeMemberByLocalIp(Map params);
+    int removeMemberByLocalAddress(Map params);
 }

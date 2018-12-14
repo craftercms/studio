@@ -37,8 +37,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.CLUSTER_MEMBER_LOCAL_ADDRESS;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CLUSTERING_NODE_REGISTRATION;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_LOCAL_IP;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_LOCAL_ADDRESS;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_STATE;
 
 public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
@@ -65,9 +66,9 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
             logger.debug("Cluster members count " + cm.size());
             try {
                 Set<String> siteNames = siteService.getAllAvailableSites();
-                String localIp = registrationData.get("localAddress");
+                String localAddress = registrationData.get(CLUSTER_MEMBER_LOCAL_ADDRESS);
                 Map<String, String> params = new HashMap<String, String>();
-                params.put(CLUSTER_LOCAL_IP, localIp);
+                params.put(CLUSTER_LOCAL_ADDRESS, localAddress);
                 params.put(CLUSTER_STATE, ClusterMember.State.ACTIVE.toString());
                 List<ClusterMember> clusterMembers = clusterDAO.getOtherMembers(params);
                 if (logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
