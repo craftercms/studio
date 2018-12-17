@@ -80,7 +80,7 @@ public abstract class QueryParameterNames {
     public static final String ENABLED = "enabled";
 
     /* Cluster */
-    public static final String CLUSTER_LOCAL_IP = "localIp";
+    public static final String CLUSTER_LOCAL_ADDRESS = "localAddress";
 
     public static final String CLUSTER_STATE = "state";
 

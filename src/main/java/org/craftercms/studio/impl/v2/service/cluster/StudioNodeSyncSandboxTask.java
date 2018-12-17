@@ -57,7 +57,6 @@ import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.FetchCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.MergeCommand;
-import org.eclipse.jgit.api.PullCommand;
 import org.eclipse.jgit.api.TransportConfigCallback;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
@@ -213,7 +212,7 @@ public class StudioNodeSyncSandboxTask extends StudioNodeSyncBaseTask {
         // we will eventually to catch up to the latest
         ClusterMember remoteNode = clusterNodes.get(0);
         logger.debug("Cloning " + repoType.toString() + " repository for site " + siteId +
-                " from " + remoteNode.getLocalIp());
+                " from " + remoteNode.getLocalAddress());
         boolean toRet = true;
         TextEncryptor encryptor = new PbkAesTextEncryptor(studioConfiguration.getProperty(SECURITY_CIPHER_KEY),
                 studioConfiguration.getProperty(SECURITY_CIPHER_SALT));

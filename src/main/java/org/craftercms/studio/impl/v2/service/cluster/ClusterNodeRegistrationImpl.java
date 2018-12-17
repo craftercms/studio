@@ -18,6 +18,8 @@
 
 package org.craftercms.studio.impl.v2.service.cluster;
 
+import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
@@ -35,15 +37,23 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.CLUSTER_MEMBER_AUTHENTICATION_TYPE;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.CLUSTER_MEMBER_LOCAL_ADDRESS;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.CLUSTER_MEMBER_PASSWORD;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.CLUSTER_MEMBER_PRIVATE_KEY;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.CLUSTER_MEMBER_TOKEN;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.CLUSTER_MEMBER_USERNAME;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CLUSTERING_NODE_REGISTRATION;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_BASE_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_KEY;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIPHER_SALT;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_LOCAL_IP;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SITES_REPOS_PATH;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_LOCAL_ADDRESS;
 
 public class ClusterNodeRegistrationImpl implements ClusterNodeRegistration {
 
     private static final Logger logger = LoggerFactory.getLogger(ClusterNodeRegistrationImpl.class);
-    private static final String GIT_URL_PATTERN = "ssh://{username}@{localIp}{absolutePath}";
+    private static final String GIT_URL_PATTERN = "ssh://{username}@{localAddress}{absolutePath}";
 
     private ClusterDAO clusterDao;
     private MetaDAO metaDao;
@@ -51,20 +61,20 @@ public class ClusterNodeRegistrationImpl implements ClusterNodeRegistration {
 
     public void init() {
         logger.debug("Autoregister cluster if cluster node is configured");
-        Map<String, String> registrationData = getConfiguration();
+        HierarchicalConfiguration<ImmutableNode> registrationData = getConfiguration();
         ClusterMember clusterMember = new ClusterMember();
         if (registrationData != null && !registrationData.isEmpty()) {
             try {
                 logger.debug("Collect and populate data for cluster node registration");
-                clusterMember.setLocalIp(registrationData.get("localAddress"));
-                if (!isRegistered(clusterMember.getLocalIp())) {
-                    Path path = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
-                            studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH));
-                    String authenticationType = registrationData.get("authenticationType");
-                    String username = registrationData.get("username");
-                    String password = registrationData.get("password");
-                    String token = registrationData.get("token");
-                    String privateKey = registrationData.get("privateKey");
+                clusterMember.setLocalAddress(registrationData.getString(CLUSTER_MEMBER_LOCAL_ADDRESS));
+                if (!isRegistered(clusterMember.getLocalAddress())) {
+                    Path path = Paths.get(studioConfiguration.getProperty(REPO_BASE_PATH),
+                            studioConfiguration.getProperty(SITES_REPOS_PATH));
+                    String authenticationType = registrationData.getString(CLUSTER_MEMBER_AUTHENTICATION_TYPE);
+                    String username = registrationData.getString(CLUSTER_MEMBER_USERNAME);
+                    String password = registrationData.getString(CLUSTER_MEMBER_PASSWORD);
+                    String token = registrationData.getString(CLUSTER_MEMBER_TOKEN);
+                    String privateKey = registrationData.getString(CLUSTER_MEMBER_PRIVATE_KEY);
                     String gitUrl = GIT_URL_PATTERN;
                     if (StringUtils.isEmpty(username)) {
                         gitUrl = gitUrl.replace("{username}@", "");
@@ -72,12 +82,12 @@ public class ClusterNodeRegistrationImpl implements ClusterNodeRegistration {
                     } else {
                         gitUrl = gitUrl.replace("{username}", username);
                     }
-                    gitUrl = gitUrl.replace("{localIp}", clusterMember.getLocalIp())
+                    gitUrl = gitUrl.replace("{localAddress}", clusterMember.getLocalAddress())
                             .replace("{absolutePath}", path.toAbsolutePath().normalize().toString())
                             + "/{siteId}";
                     clusterMember.setGitUrl(gitUrl);
                     clusterMember.setState(ClusterMember.State.ACTIVE);
-                    clusterMember.setGitRemoteName(clusterMember.getLocalIp());
+                    clusterMember.setGitRemoteName(clusterMember.getLocalAddress());
                     clusterMember.setGitAuthType(authenticationType.toLowerCase());
                     clusterMember.setGitUsername(username);
                     TextEncryptor encryptor = null;
@@ -113,24 +123,22 @@ public class ClusterNodeRegistrationImpl implements ClusterNodeRegistration {
         }
     }
 
-    private Map<String, String> getConfiguration() {
-        Map<String, String> registrationData = new HashMap<String, String>();
-        registrationData = studioConfiguration.getProperty(CLUSTERING_NODE_REGISTRATION, registrationData.getClass());
-        return registrationData;
+    private HierarchicalConfiguration<ImmutableNode> getConfiguration() {
+        return studioConfiguration.getSubConfig(CLUSTERING_NODE_REGISTRATION);
     }
 
     public void destroy() {
-        Map<String, String> registrationData = getConfiguration();
+        HierarchicalConfiguration<ImmutableNode> registrationData = getConfiguration();
         if (registrationData != null && !registrationData.isEmpty()) {
-            removeClusterNode(registrationData.get("localAddress"));
+            removeClusterNode(registrationData.getString(CLUSTER_MEMBER_LOCAL_ADDRESS));
         }
     }
 
     @Override
-    public boolean isRegistered(String localIp) {
-        if (StringUtils.isNotEmpty(localIp)) {
+    public boolean isRegistered(String localAddress) {
+        if (StringUtils.isNotEmpty(localAddress)) {
             Map<String, String> params = new HashMap<String, String>();
-            params.put(CLUSTER_LOCAL_IP, localIp);
+            params.put(CLUSTER_LOCAL_ADDRESS, localAddress);
             int cnt = clusterDao.countRegistrations(params);
             return cnt > 0;
         } else {
@@ -145,11 +153,11 @@ public class ClusterNodeRegistrationImpl implements ClusterNodeRegistration {
     }
 
     @Override
-    public boolean removeClusterNode(String localIp) {
-        logger.error("Remove cluster node " + localIp);
+    public boolean removeClusterNode(String localAddress) {
+        logger.error("Remove cluster node " + localAddress);
         Map<String, String> params = new HashMap<String, String>();
-        params.put(CLUSTER_LOCAL_IP, localIp);
-        int result = clusterDao.removeMemberByLocalIp(params);
+        params.put(CLUSTER_LOCAL_ADDRESS, localAddress);
+        int result = clusterDao.removeMemberByLocalAddress(params);
         return result > 0;
     }
 

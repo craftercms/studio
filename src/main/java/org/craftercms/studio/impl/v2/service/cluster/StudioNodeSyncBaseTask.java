@@ -198,7 +198,7 @@ public abstract class StudioNodeSyncBaseTask implements Runnable {
             throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
             RemoteRepositoryNotFoundException, ServiceLayerException, CryptoException {
         ClusterMember remoteNode = clusterNodes.get(0);
-        logger.debug("Create site " + siteId + " from remote repository " + remoteNode.getLocalIp());
+        logger.debug("Create site " + siteId + " from remote repository " + remoteNode.getLocalAddress());
         boolean toRet = cloneRepository(remoteNode, SANDBOX) && cloneRepository(remoteNode, PUBLISHED);
 
         return toRet;
@@ -326,7 +326,7 @@ public abstract class StudioNodeSyncBaseTask implements Runnable {
                     remoteSetUrlCommand.call();
                 }
             } else {
-                logger.debug("Add " + member.getLocalIp() + " as remote to sandbox");
+                logger.debug("Add " + member.getLocalAddress() + " as remote to sandbox");
                 RemoteAddCommand remoteAddCommand = git.remoteAdd();
                 remoteAddCommand.setName(member.getGitRemoteName());
                 remoteAddCommand.setUri(new URIish(remoteUrl));
