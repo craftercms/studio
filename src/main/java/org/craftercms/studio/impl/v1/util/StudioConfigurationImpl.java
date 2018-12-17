@@ -116,12 +116,22 @@ public class StudioConfigurationImpl implements StudioConfiguration {
 
     @Override
     public HierarchicalConfiguration<ImmutableNode> getSubConfig(String key) {
-        return config.configurationAt(key);
+        try {
+            return config.configurationAt(key);
+        } catch (Exception e) {
+            logger.error("Failed to load value for key " + key);
+        }
+        return null;
     }
 
     @Override
     public List<HierarchicalConfiguration<ImmutableNode>> getSubConfigs(String key) {
-        return config.configurationsAt(key);
+        try {
+            return config.configurationsAt(key);
+        } catch (Exception e) {
+            logger.error("Failed to load values for " + key);
+            return null;
+        }
     }
 
     public String getConfigLocation() { return configLocation; }

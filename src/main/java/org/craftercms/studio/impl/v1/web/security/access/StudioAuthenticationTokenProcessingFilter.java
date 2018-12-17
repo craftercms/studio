@@ -70,10 +70,12 @@ public class StudioAuthenticationTokenProcessingFilter extends GenericFilterBean
     public void init() {
         List<HierarchicalConfiguration<ImmutableNode>> chainConfig =
             studioConfiguration.getSubConfigs(CONFIGURATION_AUTHENTICATION_CHAIN_CONFIG);
-        authenticationHeadersEnabled = chainConfig.stream().anyMatch(providerConfig ->
-                providerConfig.getString(AUTHENTICATION_CHAIN_PROVIDER_TYPE).toUpperCase()
-                                .equals(AUTHENTICATION_CHAIN_PROVIDER_TYPE_HEADERS) &&
-                    providerConfig.getBoolean(AUTHENTICATION_CHAIN_PROVIDER_ENABLED));
+        if (chainConfig != null) {
+            authenticationHeadersEnabled = chainConfig.stream().anyMatch(providerConfig ->
+                    providerConfig.getString(AUTHENTICATION_CHAIN_PROVIDER_TYPE).toUpperCase()
+                            .equals(AUTHENTICATION_CHAIN_PROVIDER_TYPE_HEADERS) &&
+                            providerConfig.getBoolean(AUTHENTICATION_CHAIN_PROVIDER_ENABLED));
+        }
     }
 
     @Override
