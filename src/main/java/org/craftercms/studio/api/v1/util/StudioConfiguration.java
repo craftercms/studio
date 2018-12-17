@@ -37,12 +37,12 @@ public interface StudioConfiguration {
     String PUBLISHED_PATH = "studio.repo.sitePublishedPath";
     String BLUE_PRINTS_PATH = "studio.repo.blueprintsPath";
     String BOOTSTRAP_REPO = "studio.repo.bootstrapRepo";
-    String REPO_REBUILD_METADATA_BATCH_SIZE = "studio.repo.rebuildMetadata.batchSize";
     String REPO_SANDBOX_WRITE_COMMIT_MESSAGE = "studio.repo.sandbox.write.commitMessage";
     String REPO_PUBLISHED_COMMIT_MESSAGE = "studio.repo.published.commitMessage";
     String REPO_PUBLISHED_LIVE = "studio.repo.published.live";
     String REPO_PUBLISHED_STAGING = "studio.repo.published.staging";
     String REPO_SYNC_DB_COMMIT_MESSAGE_NO_PROCESSING = "studio.repo.syncDB.commitMessage.noProcessing";
+    String REPO_CLEANUP_CRON = "studio.repo.cleanup.cron";
 
     /** Database */
     String DB_DRIVER = "studio.db.driver";
@@ -79,7 +79,7 @@ public interface StudioConfiguration {
     String CONFIGURATION_GLOBAL_UI_RESOURCE_OVERRIDE_PATH = "studio.configuration.global.ui.resource.override.path";
     String CONFIGURATION_GLOBAL_SYSTEM_SITE = "studio.configuration.global.systemSite";
     String CONFIGURATION_SITE_CONFIG_BASE_PATH = "studio.configuration.site.configBasePath";
-    String CONFIGURATION_SITE__MUTLI_ENVIRONMENT_CONFIG_BASE_PATH = "studio.configuration.site.multiEnvironment" +
+    String CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH = "studio.configuration.site.multiEnvironment" +
             ".configBasePath";
     String CONFIGURATION_SITE_ENVIRONMENT_CONFIG_BASE_PATH = "studio.configuration.site.environment.configBasePath";
     String CONFIGURATION_SITE_CONTENT_TYPES_CONFIG_BASE_PATH = "studio.configuration.site.contentTypes.configBasePath";
@@ -94,12 +94,17 @@ public interface StudioConfiguration {
     String CONFIGURATION_DEFAULT_ADMIN_GROUP = "studio.configuration.defaultAdminGroup";
     String CONFIGURATION_SITE_DATA_SOURCES_CONFIG_BASE_PATH = "studio.configuration.site.dataSources.configBasePath";
     String CONFIGURATION_SITE_DATA_SOURCES_CONFIG_FILE_NAME = "studio.configuration.site.dataSources.configFileName";
-    String CONFIGURATION_SITE_PREVIEW_DESTROY_CONTEXT_URL = "studio.configuration.site.preview.destroy.sontext.url";
+    String CONFIGURATION_SITE_PREVIEW_DESTROY_CONTEXT_URL = "studio.configuration.site.preview.destroy.context.url";
     String CONFIGURATION_SITE_DEPENDENCY_RESOLVER_CONFIG_FILE_NAME =
             "studio.configuration.site.dependencyResolver.configFileName";
     String CONFIGURATION_SITE_DEPENDENCY_RESOLVER_CONFIG_BASE_PATH =
             "studio.configuration.site.dependencyResolver.configBasePath";
+    String CONFIGURATION_SITE_AWS_CONFIGURATION_PATH = "studio.configuration.site.aws.configurationPath";
+    String CONFIGURATION_SITE_BOX_CONFIGURATION_PATH = "studio.configuration.site.box.configurationPath";
+    String CONFIGURATION_SITE_WEBDAV_CONFIGURATION_PATH = "studio.configuration.site.webdav.configurationPath";
     String CONFIGURATION_DEPENDENCY_ITEM_SPECIFIC_PATTERNS = "studio.configuration.dependency.itemSpecificPatterns";
+    String CONFIGURATION_SITE_ASSET_PROCESSING_CONFIGURATION_PATH = "studio.configuration.site.asset.processing" +
+            ".configurationPath";
 
     String CONFIGURATION_AUTHENTICATION_CHAIN_CONFIG = "studio.authentication.chain";
     String CONFIGURATION_ENVIRONMENT_ACTIVE = "studio.configuration.environment.active";
@@ -136,21 +141,9 @@ public interface StudioConfiguration {
     String SECURITY_FORGOT_PASSWORD_TOKEN_TIMEOUT = "studio.security.forgotPassword.token.timeout";
     String SECURITY_RESET_PASSWORD_SERVICE_URL = "studio.security.resetPassword.serviceUrl";
 
-    /** LDAP */
-    String SECURITY_LDAP_SERVER_URL = "studio.security.ldap.serverUrl";
-    String SECURITY_LDAP_BIND_DN = "studio.security.ldap.bindDN";
-    String SECURITY_LDAP_BIND_PASSWORD = "studio.security.ldap.bindPassword";
-    String SECURITY_LDAP_BASE_CONTEXT = "studio.security.ldap.baseContext";
-
     /** Authentication headers **/
-    String AUTHENTICATION_HEADERS_ENABLED = "studio.authentication.headers.enabled";
-    String AUTHENTICATION_HEADERS_USERNAME = "studio.authentication.headers.username";
-    String AUTHENTICATION_HEADERS_FIRST_NAME = "studio.authentication.headers.firstName";
-    String AUTHENTICATION_HEADERS_LAST_NAME = "studio.authentication.headers.lastName";
-    String AUTHENTICATION_HEADERS_EMAIL = "studio.authentication.headers.email";
     String AUTHENTICATION_HEADERS_LOGOUT_ENABLED = "studio.authentication.headers.logout.enabled";
     String AUTHENTICATION_HEADERS_LOGOUT_URL = "studio.authentication.headers.logout.url";
-    String AUTHENTICATION_HEADERS_LOGOUT_METHOD = "studio.authentication.headers.logout.method";
 
     /** Page Navigation Order Service */
     String PAGE_NAVIGATION_ORDER_INCREMENT = "studio.pageNavigationOrder.increment";
@@ -158,7 +151,6 @@ public interface StudioConfiguration {
     /** Content Processors */
     String CONTENT_PROCESSOR_CONTENT_LIFE_CYCLE_SCRIPT_LOCATION =
             "studio.contentProcessor.contentLifeCycle.scriptLocation";
-    String CONTENT_PROCESSOR_ASSETS_SYSTEM_PATH = "studio.contentProcessor.assetsSystemPath";
 
     /** Email Service */
     String MAIL_FROM_DEFAULT = "studio.mail.from.default";
@@ -172,8 +164,6 @@ public interface StudioConfiguration {
     String MAIL_DEBUG = "studio.mail.debug";
 
     /** Jobs */
-    String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_PROCESSING_CHUNK_SIZE =
-            "studio.job.deployContentToEnvironment.processingChunkSize";
     String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_MANDATORY_DEPENDENCIES_CHECK_ENABLED =
             "studio.job.deployContentToEnvironment.mandatoryDependenciesCheckEnabled";
     String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT =
@@ -260,6 +250,26 @@ public interface StudioConfiguration {
 
     /** Cluster Node Registration **/
     String CLUSTERING_NODE_REGISTRATION = "studio.clustering.node.registration";
+
+    /** Asset processing **/
+    String CONFIGURATION_ASSET_PROCESSING_TINIFY_API_KEY = "studio.configuration.asset.processing.tinify.apiKey";
+
+    /** Upgrade Configuration **/
+    String UPGRADE_BRANCH_NAME = "studio.upgrade.branchName";
+    String UPGRADE_COMMIT_MESSAGE = "studio.upgrade.commitMessage";
+    String UPGRADE_VERSION_FILE = "studio.upgrade.versionFile";
+    String UPGRADE_VERSION_TEMPLATE = "studio.upgrade.versionTemplate";
+    String UPGRADE_VERSION_DEFAULT = "studio.upgrade.versionDefault";
+    String UPGRADE_VERSION_XPATH = "studio.upgrade.versionXPath";
+    String UPGRADE_DEFAULT_VERSION_SITE = "studio.upgrade.defaultVersion.site";
+    String UPGRADE_DEFAULT_VERSION_FILE = "studio.upgrade.defaultVersion.file";
+    String UPGRADE_CONFIGURATION_FILE = "studio.upgrade.configurationFile";
+    String UPGRADE_PIPELINE_PREFIX = "studio.upgrade.pipeline.prefix";
+    String UPGRADE_PIPELINE_SYSTEM = "studio.upgrade.pipeline.system";
+    String UPGRADE_PIPELINE_SITE = "studio.upgrade.pipeline.site";
+    String UPGRADE_PIPELINE_BLUEPRINT = "studio.upgrade.pipeline.blueprint";
+    String UPGRADE_PIPELINE_CONFIGURATIONS = "studio.upgrade.pipeline.configurations";
+    String UPGRADE_SCRIPT_FOLDER = "studio.upgrade.scriptFolder";
 
     void loadConfig();
 

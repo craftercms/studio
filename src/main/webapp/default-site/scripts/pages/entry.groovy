@@ -1,15 +1,17 @@
-import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.StringUtils
 import org.craftercms.studio.api.v1.log.LoggerFactory
 import scripts.api.SecurityServices
 
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.AUTHENTICATION_HEADERS_EMAIL
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.AUTHENTICATION_HEADERS_ENABLED
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.AUTHENTICATION_HEADERS_FIRST_NAME
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.AUTHENTICATION_HEADERS_LAST_NAME
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.AUTHENTICATION_HEADERS_USERNAME
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.AUTHENTICATION_CHAIN_PROVIDER_EMAIL_HEADER
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.AUTHENTICATION_CHAIN_PROVIDER_ENABLED
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.AUTHENTICATION_CHAIN_PROVIDER_FIRST_NAME_HEADER
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.AUTHENTICATION_CHAIN_PROVIDER_LAST_NAME_HEADER
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.AUTHENTICATION_CHAIN_PROVIDER_TYPE
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.AUTHENTICATION_CHAIN_PROVIDER_TYPE_HEADERS
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.AUTHENTICATION_CHAIN_PROVIDER_USERNAME_HEADER
 
-import static org.craftercms.studio.api.v1.constant.StudioConstants.SECURITY_AUTHENTICATION_TYPE_HEADERS;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SECURITY_AUTHENTICATION_TYPE_HEADERS
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_AUTHENTICATION_CHAIN_CONFIG;
 
 def logger = LoggerFactory.getLogger(this.class)
 
@@ -25,13 +27,16 @@ def profile = null
 
 if (StringUtils.isEmpty(currentUser)) {
     def studioConfigurationSB = context.applicationContext.get("studioConfiguration")
-    def enabledString = studioConfigurationSB.getProperty(AUTHENTICATION_HEADERS_ENABLED)
-    def enabled = Boolean.parseBoolean(enabledString)
-    if (enabled) {
-        currentUser = request.getHeader(studioConfigurationSB.getProperty(AUTHENTICATION_HEADERS_USERNAME))
-        email = request.getHeader(studioConfigurationSB.getProperty(AUTHENTICATION_HEADERS_EMAIL))
-        firstname = request.getHeader(studioConfigurationSB.getProperty(AUTHENTICATION_HEADERS_FIRST_NAME))
-        lastname = request.getHeader(studioConfigurationSB.getProperty(AUTHENTICATION_HEADERS_LAST_NAME))
+    def chainConfig =
+            studioConfiguration.getSubConfigs(CONFIGURATION_AUTHENTICATION_CHAIN_CONFIG);
+    def authenticationHeadersEnabled = chainConfig.stream().anyMatch { providerConfig -> providerConfig.getString
+        (AUTHENTICATION_CHAIN_PROVIDER_TYPE).toUpperCase().equals(AUTHENTICATION_CHAIN_PROVIDER_TYPE_HEADERS) &&
+            providerConfig.getBoolean(AUTHENTICATION_CHAIN_PROVIDER_ENABLED) };
+    if (authenticationHeadersEnabled) {
+        currentUser = request.getHeader(studioConfigurationSB.getProperty(AUTHENTICATION_CHAIN_PROVIDER_USERNAME_HEADER))
+        email = request.getHeader(studioConfigurationSB.getProperty(AUTHENTICATION_CHAIN_PROVIDER_EMAIL_HEADER))
+        firstname = request.getHeader(studioConfigurationSB.getProperty(AUTHENTICATION_CHAIN_PROVIDER_FIRST_NAME_HEADER))
+        lastname = request.getHeader(studioConfigurationSB.getProperty(AUTHENTICATION_CHAIN_PROVIDER_LAST_NAME_HEADER))
         authenticationType = SECURITY_AUTHENTICATION_TYPE_HEADERS
     }
 }

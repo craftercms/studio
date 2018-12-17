@@ -539,7 +539,8 @@
                 <property name="concurrent" value="false"/>
             </bean>
         </property>
-        <property name="cronExpression" value="#{studioConfiguration.getProperty('studio.repo.cleanup.cron')}"/>
+        <property name="cronExpression"
+                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).REPO_CLEANUP_CRON)}"/>
     </bean>
 
     <bean id="studioSchedulerFactoryBean" name="studioSchedulerFactoryBean" class="org.craftercms.studio.impl.v1.util.spring.context.StudioSchedulerFactoryBean" destroy-method="destroy">
@@ -845,7 +846,8 @@
     <!--         AWS                            -->
     <!-- ////////////////////////////////////// -->
     <bean id="studioTranscoderProfileLoader" class="org.craftercms.studio.impl.v1.util.config.profiles.SiteAwareConfigProfileLoader">
-        <property name="profilesPath" value="#{studioConfiguration.getProperty('studio.configuration.site.aws.configurationPath')}"/>
+        <property name="profilesPath"
+                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).CONFIGURATION_SITE_AWS_CONFIGURATION_PATH)}"/>
         <property name="profileMapper">
             <bean class="org.craftercms.studio.impl.v1.aws.elastictranscoder.TranscoderProfileMapper"/>
         </property>
@@ -853,7 +855,7 @@
     </bean>
 
     <bean id="studioMediaConvertProfileLoader" class="org.craftercms.studio.impl.v1.util.config.profiles.SiteAwareConfigProfileLoader">
-        <property name="profilesPath" value="#{studioConfiguration.getProperty('studio.configuration.site.aws.configurationPath')}"/>
+        <property name="profilesPath" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).CONFIGURATION_SITE_AWS_CONFIGURATION_PATH)}"/>
         <property name="profileMapper">
             <bean class="org.craftercms.studio.impl.v1.aws.mediaconvert.MediaConvertProfileMapper"/>
         </property>
@@ -861,7 +863,7 @@
     </bean>
 
     <bean id="studioS3ProfileLoader" class="org.craftercms.studio.impl.v1.util.config.profiles.SiteAwareConfigProfileLoader">
-        <property name="profilesPath" value="#{studioConfiguration.getProperty('studio.configuration.site.aws.configurationPath')}"/>
+        <property name="profilesPath" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).CONFIGURATION_SITE_AWS_CONFIGURATION_PATH)}"/>
         <property name="profileMapper">
             <bean class="org.craftercms.commons.config.profiles.aws.S3ProfileMapper"/>
         </property>
@@ -895,7 +897,8 @@
     <!--         BOX                            -->
     <!-- ////////////////////////////////////// -->
     <bean id="studioBoxProfileLoader" class="org.craftercms.studio.impl.v1.util.config.profiles.SiteAwareConfigProfileLoader">
-        <property name="profilesPath" value="#{studioConfiguration.getProperty('studio.configuration.site.box.configurationPath')}"/>
+        <property name="profilesPath"
+                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).CONFIGURATION_SITE_BOX_CONFIGURATION_PATH)}"/>
         <property name="profileMapper">
             <bean class="org.craftercms.commons.config.profiles.box.BoxProfileMapper"/>
         </property>
@@ -911,7 +914,8 @@
     <!-- ////////////////////////////////////// -->
     <!-- ////////////////////////////////////// -->
     <bean id="studioWebDavProfileLoader" class="org.craftercms.studio.impl.v1.util.config.profiles.SiteAwareConfigProfileLoader">
-        <property name="profilesPath" value="#{studioConfiguration.getProperty('studio.configuration.site.webdav.configurationPath')}"/>
+        <property name="profilesPath"
+                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).CONFIGURATION_SITE_WEBDAV_CONFIGURATION_PATH)}"/>
         <property name="profileMapper">
             <bean class="org.craftercms.commons.config.profiles.webdav.WebDavProfileMappper"/>
         </property>
@@ -973,7 +977,8 @@
     <bean id="studioTinifyTransformer" class="org.craftercms.studio.impl.v1.asset.processing.ImageTransformingProcessor">
         <constructor-arg>
             <bean class="org.craftercms.studio.impl.v1.image.transformation.TinifyTransformer">
-                <property name="apiKey" value="#{studioConfiguration.getProperty('studio.configuration.asset.processing.tinify.apiKey')}"/>
+                <property name="apiKey"
+                          value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).CONFIGURATION_ASSET_PROCESSING_TINIFY_API_KEY)}"/>
             </bean>
         </constructor-arg>
     </bean>
@@ -990,7 +995,7 @@
 
     <bean id="studioAssetProcessingService" class="org.craftercms.studio.impl.v1.service.asset.processing.AssetProcessingServiceImpl">
         <property name="configPath"
-                  value="#{studioConfiguration.getProperty('studio.configuration.site.asset.processing.configurationPath')}"/>
+                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).CONFIGURATION_SITE_ASSET_PROCESSING_CONFIGURATION_PATH)}"/>
         <property name="contentService" ref="cstudioContentService"/>
         <property name="configReader" ref="studioAssetProcessingConfigReader"/>
         <property name="pipelineResolver" ref="studioAssetProcessorPipelineResolver"/>
