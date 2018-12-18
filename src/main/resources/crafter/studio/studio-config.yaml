@@ -34,8 +34,6 @@ studio.repo.published.staging: staging
 studio.repo.blueprintsPath: blueprints
 # Bootstrap the repository with fresh content if no repository is detected in the paths specified. Default is true.
 studio.repo.bootstrapRepo: true
-# Defines size of a batch when rebuilding crafter repository metadata stored in database.
-studio.repo.rebuildMetadata.batchSize: 100
 # Sandbox repository write commit message
 studio.repo.sandbox.write.commitMessage: "User {username} wrote content {path}"
 # Published repository commit message
@@ -91,7 +89,7 @@ studio.configuration.site.dataSources.configBasePath: /config/studio/data-source
 # File name where data sources configuration is stored.
 studio.configuration.site.dataSources.configFileName: cmis-config.xml
 # Destroy site context url for preview engine
-studio.configuration.site.preview.destroy.sontext.url: /api/1/site/context/destroy.json?crafterSite={siteName}
+studio.configuration.site.preview.destroy.context.url: /api/1/site/context/destroy.json?crafterSite={siteName}
 # Location pattern where dependency resolver specific configuration for a site is stored
 studio.configuration.site.dependencyResolver.configBasePath: /config/studio/dependency
 # File name where dependency specific configuration is stored
@@ -172,24 +170,6 @@ studio.security.forgotPassword.email.template: /templates/system/email/forgotPas
 studio.security.forgotPassword.token.timeout: 60
 # Reset password service url
 studio.security.resetPassword.serviceUrl: "#/reset-password"
-# LDAP Server url
-studio.security.ldap.serverUrl: ldap://localhost:389
-# LDAP bind DN (user)
-studio.security.ldap.bindDN: cn=Manager,dc=my-domain,dc=com
-# LDAP bind password
-studio.security.ldap.bindPassword: secret
-# LDAP base context (directory root)
-studio.security.ldap.baseContext: dc=my-domain,dc=com
-# Authentication via headers enabled
-studio.authentication.headers.enabled: false
-# Authentication header for username
-studio.authentication.headers.username: username
-# Authentication header for first name
-studio.authentication.headers.firstName: firstname
-# Authentication header for last name
-studio.authentication.headers.lastName: lastname
-# Authentication header for email
-studio.authentication.headers.email: email
 # Enable/disable logout for headers authenticated users (SSO)
 studio.authentication.headers.logout.enabled: false
 # If logout is enabled for headers authenticated users (SSO), set the endpoint of the SP or IdP logout, which should
@@ -260,8 +240,6 @@ studio.pageNavigationOrder.increment: 1000
 ############################################################
 # Location where groovy script for content lifecycle processor is stored.
 studio.contentProcessor.contentLifeCycle.scriptLocation: /config/studio/content-types/{content-type}/controller.groovy
-# Path pattern where system assets are stored.
-studio.contentProcessor.assetsSystemPath: /static-assets/system
 
 #######################################################
 ##                   Email Service                   ##
@@ -288,8 +266,6 @@ studio.mail.debug: false
 #####################################################
 ##                   Studio Jobs                   ##
 #####################################################
-# Defines chunk size for big deployment packages. Deployment package is divide and processed in chunks of specified size.
-studio.job.deployContentToEnvironment.processingChunkSize: 1000
 # Turn on/off (value true/false) check if mandatory dependencies of deployed content are included in deployment package.
 studio.job.deployContentToEnvironment.mandatoryDependenciesCheckEnabled: true
 # Publishing default status message

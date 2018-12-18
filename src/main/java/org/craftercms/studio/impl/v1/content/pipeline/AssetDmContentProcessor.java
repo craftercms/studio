@@ -1,6 +1,5 @@
 /*
- * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2016 Crafter Software Corporation.
+ * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,6 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 package org.craftercms.studio.impl.v1.content.pipeline;
 
@@ -41,7 +41,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONTENT_PROCESSOR_ASSETS_SYSTEM_PATH;
 
 public class AssetDmContentProcessor extends FormDmContentProcessor {
 
@@ -51,10 +50,6 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
     private static final Logger logger = LoggerFactory.getLogger(AssetDmContentProcessor.class);
 
     public static final String NAME = "WriteAssetToDmProcessor";
-
-    public String getAssetsSystemPath() {
-        return studioConfiguration.getProperty(CONTENT_PROCESSOR_ASSETS_SYSTEM_PATH);
-    }
 
     /**
      * default constructor
