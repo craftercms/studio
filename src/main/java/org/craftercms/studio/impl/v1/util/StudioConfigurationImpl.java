@@ -119,7 +119,7 @@ public class StudioConfigurationImpl implements StudioConfiguration {
         try {
             return config.configurationAt(key);
         } catch (Exception e) {
-            logger.error("Failed to load value for key " + key);
+            logger.debug("Failed to load configuration value for key " + key + ". Returning null.");
         }
         return null;
     }
