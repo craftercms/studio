@@ -104,4 +104,13 @@ public interface ClusterDAO {
      * @return number of affected rows
      */
     int removeMemberByLocalAddress(Map params);
+
+    /**
+     * Update heartbeat for cluster node
+     *
+     * @param params Parameters for SQL query
+     *
+     * @return number of affected rows
+     */
+    int updateHeartbeat(Map params);
 }

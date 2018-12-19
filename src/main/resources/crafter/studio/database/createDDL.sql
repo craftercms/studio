@@ -310,6 +310,7 @@ CREATE TABLE IF NOT EXISTS cluster
   `git_password`        VARCHAR(255)  NULL,
   `git_token`           VARCHAR(255)  NULL,
   `git_private_key`     TEXT          NULL,
+  `heartbeat`           DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE `uq_cl_git_url` (`git_url`),
   UNIQUE `uq_cl_git_remote_name` (`git_remote_name`)

@@ -88,4 +88,10 @@
     <delete id="removeMemberByLocalAddress" parameterType="java.util.Map">
         DELETE FROM cluster WHERE local_address = #{localAddress}
     </delete>
+
+    <update id="updateHeartbeat" parameterType="java.util.Map">
+        UPDATE cluster SET
+        heartbeat = CURRENT_TIMESTAMP
+        WHERE local_address = #{localAddress}
+    </update>
 </mapper>
