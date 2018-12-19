@@ -153,6 +153,7 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.REPO_COMMIT_
 import static org.craftercms.studio.api.v1.constant.StudioConstants.REPO_COMMIT_MESSAGE_USERNAME_VAR;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.BLUE_PRINTS_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.BOOTSTRAP_REPO;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_INITIAL_COMMIT_COMMIT_MESSAGE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_PUBLISHED_COMMIT_MESSAGE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_SANDBOX_BRANCH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_SANDBOX_WRITE_COMMIT_MESSAGE;
@@ -162,7 +163,6 @@ import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIP
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.EMPTY_FILE;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_COMMIT_ALL_ITEMS;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
-import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.INITIAL_COMMIT;
 import static org.eclipse.jgit.transport.RemoteRefUpdate.Status.REJECTED_NONFASTFORWARD;
 
 public class GitContentRepository implements ContentRepository, ServletContextAware, DeploymentHistoryProvider {
@@ -910,7 +910,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     // Commit everything
                     // TODO: Consider what to do with the commitId in the future
                     git.add().addFilepattern(GIT_COMMIT_ALL_ITEMS).call();
-                    git.commit().setMessage(INITIAL_COMMIT).call();
+                    git.commit().setMessage(studioConfiguration.getProperty(REPO_INITIAL_COMMIT_COMMIT_MESSAGE)).call();
                 }
 
                 git.close();
@@ -944,7 +944,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
         if (toReturn) {
             // commit everything so it is visible
-            toReturn = helper.performInitialCommit(site, INITIAL_COMMIT, sandboxBranch);
+            toReturn = helper.performInitialCommit(site,
+                    studioConfiguration.getProperty(REPO_INITIAL_COMMIT_COMMIT_MESSAGE), sandboxBranch);
         }
 
         return toReturn;
@@ -1755,7 +1756,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             if (toReturn) {
                 // commit everything so it is visible
                 logger.debug("Perform initial commit for site " + siteId);
-                toReturn = helper.performInitialCommit(siteId, INITIAL_COMMIT, sandboxBranch);
+                toReturn = helper.performInitialCommit(siteId,
+                        studioConfiguration.getProperty(REPO_INITIAL_COMMIT_COMMIT_MESSAGE), sandboxBranch);
             }
         } else {
             logger.error("Error while creating site " + siteId + " by cloning remote repository " + remoteName +

@@ -43,6 +43,10 @@ public interface StudioConfiguration {
     String REPO_PUBLISHED_STAGING = "studio.repo.published.staging";
     String REPO_SYNC_DB_COMMIT_MESSAGE_NO_PROCESSING = "studio.repo.syncDB.commitMessage.noProcessing";
     String REPO_CLEANUP_CRON = "studio.repo.cleanup.cron";
+    String REPO_CREATE_REPOSITORY_COMMIT_MESSAGE = "studio.repo.createRepository.commitMessage";
+    String REPO_CREATE_SANDBOX_BRANCH_COMMIT_MESSAGE = "studio.repo.createSandboxBranch.commitMessage";
+    String REPO_INITIAL_COMMIT_COMMIT_MESSAGE = "studio.repo.initialCommit.commitMessage";
+    String REPO_BLUEPRINTS_UPDATED_COMMIT_MESSAGE = "studio.repo.blueprintsUpdated.commitMessage";
 
     /** Database */
     String DB_DRIVER = "studio.db.driver";

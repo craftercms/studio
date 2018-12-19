@@ -42,6 +42,14 @@ studio.repo.published.commitMessage: "Publish event triggered by {username} on {
 studio.repo.cleanup.cron: '0 0 3 ? * SUN'
 # Commit message to mark commit not to process when syncing database
 studio.repo.syncDB.commitMessage.noProcessing: "STUDIO: NO PROCESSING"
+# Create new repository commit message
+studio.repo.createRepository.commitMessage: "Create new repository."
+# Create sandbox branch commit message
+studio.repo.createSandboxBranch.commitMessage: "Create {sandbox} branch."
+# Initial commit message
+studio.repo.initialCommit.commitMessage: "Initial commit."
+# Blueprints updated commit message
+studio.repo.blueprintsUpdated.commitMessage: "Blueprints updated."
 
 ############################################################
 ##                   Site Configuration                   ##
