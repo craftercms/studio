@@ -18,6 +18,8 @@
 
 package org.craftercms.studio.impl.v2.service.cluster;
 
+import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.deployment.PreviewDeployer;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -37,8 +39,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.CLUSTER_MEMBER_LOCAL_ADDRESS;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CLUSTERING_NODE_REGISTRATION;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_LOCAL_IP;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_LOCAL_ADDRESS;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_STATE;
 
 public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
@@ -58,16 +61,16 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
     @Override
     public void run() {
         logger.debug("Starting Cluster Sync worker");
-        Map<String, String> registrationData = getConfiguration();
+        HierarchicalConfiguration<ImmutableNode> registrationData = getConfiguration();
         if (registrationData != null && !registrationData.isEmpty()) {
             logger.debug("Cluster is configured.");
             List<ClusterMember> cm = clusterDAO.getAllMembers();
             logger.debug("Cluster members count " + cm.size());
             try {
                 Set<String> siteNames = siteService.getAllAvailableSites();
-                String localIp = registrationData.get("localIp");
+                String localAddress = registrationData.getString(CLUSTER_MEMBER_LOCAL_ADDRESS);
                 Map<String, String> params = new HashMap<String, String>();
-                params.put(CLUSTER_LOCAL_IP, localIp);
+                params.put(CLUSTER_LOCAL_ADDRESS, localAddress);
                 params.put(CLUSTER_STATE, ClusterMember.State.ACTIVE.toString());
                 List<ClusterMember> clusterMembers = clusterDAO.getOtherMembers(params);
                 if (logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
@@ -111,10 +114,8 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
         logger.debug("Cluster Sync worker finished");
     }
 
-    private Map<String, String> getConfiguration() {
-        Map<String, String> registrationData = new HashMap<String, String>();
-        registrationData = studioConfiguration.getProperty(CLUSTERING_NODE_REGISTRATION, registrationData.getClass());
-        return registrationData;
+    private HierarchicalConfiguration<ImmutableNode> getConfiguration() {
+        return studioConfiguration.getSubConfig(CLUSTERING_NODE_REGISTRATION);
     }
 
     public SiteService getSiteService() {

@@ -137,6 +137,26 @@ pipelines:
         filename: upgrade-3.1.0.6-to-3.1.0.7.sql
         updateIntegrity: true
 
+    - currentVersion: 3.1.0.7
+      nextVersion: 3.1.0.8
+      operations:
+      - type: dbScriptUpgrader
+        filename: upgrade-3.1.0.7-to-3.1.0.8.sql
+        updateIntegrity: true
+      - type: xsltFileUpgrader
+        path: /configuration/global-menu-config.xml
+        template: crafter/studio/upgrade/3.1.0.8/global-menu-config-2.xslt
+      - type: xsltFileUpgrader
+        path: /configuration/global-permission-mappings-config.xml
+        template: crafter/studio/upgrade/3.1.0.8/global-permission-mappings-config-2.xslt
+
+    - currentVersion: 3.1.0.8
+      nextVersion: 3.1.0.9
+      operations:
+      - type: dbScriptUpgrader
+        filename: upgrade-3.1.0.8-to-3.1.0.9.sql
+        updateIntegrity: true
+
   # Pipeline to upgrade site repositories
   site:
     - currentVersion: 3.1.0

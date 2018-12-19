@@ -65,14 +65,6 @@
         <property name="userDAO" ref="userDAO"/>
     </bean>
 
-    <ldap:context-source id="ldapContextSource"
-                         url="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).SECURITY_LDAP_SERVER_URL)}"
-                         password="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).SECURITY_LDAP_BIND_PASSWORD)}"
-                         username="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).SECURITY_LDAP_BIND_DN)}"
-                         base="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).SECURITY_LDAP_BASE_CONTEXT)}" />
-
-    <ldap:ldap-template id="ldapTemplate" context-source-ref="ldapContextSource" />
-
     <bean id="studioAccessDecisionManager" class="org.craftercms.studio.impl.v1.web.security.access.StudioAccessDecisionManager" >
         <constructor-arg name="decisionVoters">
             <list>

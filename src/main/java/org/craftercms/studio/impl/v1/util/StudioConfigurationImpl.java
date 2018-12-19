@@ -33,13 +33,10 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
-import org.yaml.snakeyaml.Yaml;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class StudioConfigurationImpl implements StudioConfiguration {
 
@@ -119,12 +116,22 @@ public class StudioConfigurationImpl implements StudioConfiguration {
 
     @Override
     public HierarchicalConfiguration<ImmutableNode> getSubConfig(String key) {
-        return config.configurationAt(key);
+        try {
+            return config.configurationAt(key);
+        } catch (Exception e) {
+            logger.debug("Failed to load configuration value for key " + key + ". Returning null.");
+        }
+        return null;
     }
 
     @Override
     public List<HierarchicalConfiguration<ImmutableNode>> getSubConfigs(String key) {
-        return config.configurationsAt(key);
+        try {
+            return config.configurationsAt(key);
+        } catch (Exception e) {
+            logger.error("Failed to load values for " + key);
+            return null;
+        }
     }
 
     public String getConfigLocation() { return configLocation; }

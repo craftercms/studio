@@ -28,7 +28,7 @@ public class ClusterMember {
     }
 
     private long id;
-    private String localIp;
+    private String localAddress;
     private State state;
     private String gitUrl;
     private String gitRemoteName;
@@ -46,12 +46,12 @@ public class ClusterMember {
         this.id = id;
     }
 
-    public String getLocalIp() {
-        return localIp;
+    public String getLocalAddress() {
+        return localAddress;
     }
 
-    public void setLocalIp(String localIp) {
-        this.localIp = localIp;
+    public void setLocalAddress(String localAddress) {
+        this.localAddress = localAddress;
     }
 
     public State getState() {

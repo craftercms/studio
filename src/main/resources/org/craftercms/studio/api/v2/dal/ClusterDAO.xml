@@ -24,7 +24,7 @@
 
     <resultMap id="ClusterMap" type="org.craftercms.studio.api.v2.dal.ClusterMember">
         <id property="id" column="id"/>
-        <result property="localIp" column="local_ip" />
+        <result property="localAddress" column="local_address" />
         <result property="state" column="state" />
         <result property="gitUrl" column="git_url" />
         <result property="gitRemoteName" column="git_remote_name" />
@@ -40,7 +40,7 @@
     </select>
 
     <select id="getOtherMembers" resultMap="ClusterMap" parameterType="Map">
-        SELECT * FROM cluster WHERE local_ip &lt;&gt; #{localIp} AND state = #{state}
+        SELECT * FROM cluster WHERE local_address &lt;&gt; #{localAddress} AND state = #{state}
     </select>
 
     <select id="countActiveMembers" resultType="int" parameterType="Map">
@@ -56,12 +56,10 @@
     </select>
     
     <insert id="addMember" parameterType="org.craftercms.studio.api.v2.dal.ClusterMember">
-        INSERT INTO cluster (local_ip, state, git_url, git_remote_name, git_auth_type, git_username, git_password,
-        git_token,
-        git_private_key)
-        VALUES (#{localIp}, #{state}, #{gitUrl}, #{gitRemoteName}, #{gitAuthType}, #{gitUsername}, #{gitPassword},
-        #{gitToken},
-        #{gitPrivateKey})
+        INSERT INTO cluster (local_address, state, git_url, git_remote_name, git_auth_type, git_username,
+        git_password, git_token, git_private_key)
+        VALUES (#{localAddress}, #{state}, #{gitUrl}, #{gitRemoteName}, #{gitAuthType}, #{gitUsername},
+        #{gitPassword}, #{gitToken}, #{gitPrivateKey})
     </insert>
     
     <update id="updateMember" parameterType="org.craftercms.studio.api.v2.dal.ClusterMember">
@@ -84,10 +82,10 @@
     </delete>
 
     <select id="countRegistrations" resultType="int" parameterType="java.util.Map" >
-        SELECT COUNT(*) FROM cluster WHERE local_ip = #{localIp}
+        SELECT COUNT(*) FROM cluster WHERE local_address = #{localAddress}
     </select>
 
-    <delete id="removeMemberByLocalIp" parameterType="java.util.Map">
-        DELETE FROM cluster WHERE local_ip = #{localIp}
+    <delete id="removeMemberByLocalAddress" parameterType="java.util.Map">
+        DELETE FROM cluster WHERE local_address = #{localAddress}
     </delete>
 </mapper>

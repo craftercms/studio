@@ -36,8 +36,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_REBUILD_METADATA_BATCH_SIZE;
-
 public class RebuildRepositoryMetadata {
 
     private final static Logger logger = LoggerFactory.getLogger(RebuildRepositoryMetadata.class);
@@ -143,11 +141,6 @@ public class RebuildRepositoryMetadata {
     protected boolean rebuildMetadata(String site) {
         siteService.syncDatabaseWithRepo(site, null);
         return true;
-    }
-
-    public int getBatchSize() {
-        int toReturn = Integer.parseInt(studioConfiguration.getProperty(REPO_REBUILD_METADATA_BATCH_SIZE));
-        return toReturn;
     }
 
     public ObjectMetadataManager getObjectMetadataManager() {

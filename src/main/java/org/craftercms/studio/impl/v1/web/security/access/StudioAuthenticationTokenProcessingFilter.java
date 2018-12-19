@@ -42,17 +42,15 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static org.craftercms.studio.api.v1.service.security.SecurityService.STUDIO_SESSION_TOKEN_ATRIBUTE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.AUTHENTICATION_CHAIN_PROVIDER_ENABLED;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.AUTHENTICATION_CHAIN_PROVIDER_TYPE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.AUTHENTICATION_CHAIN_PROVIDER_TYPE_HEADERS;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.AUTHENTICATION_HEADERS_USERNAME;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.AUTHENTICATION_CHAIN_PROVIDER_USERNAME_HEADER;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_AUTHENTICATION_CHAIN_CONFIG;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_IGNORE_RENEW_TOKEN_URLS;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_SESSION_TIMEOUT;
@@ -72,10 +70,12 @@ public class StudioAuthenticationTokenProcessingFilter extends GenericFilterBean
     public void init() {
         List<HierarchicalConfiguration<ImmutableNode>> chainConfig =
             studioConfiguration.getSubConfigs(CONFIGURATION_AUTHENTICATION_CHAIN_CONFIG);
-        authenticationHeadersEnabled = chainConfig.stream().anyMatch(providerConfig ->
-                providerConfig.getString(AUTHENTICATION_CHAIN_PROVIDER_TYPE).toUpperCase()
-                                .equals(AUTHENTICATION_CHAIN_PROVIDER_TYPE_HEADERS) &&
-                    providerConfig.getBoolean(AUTHENTICATION_CHAIN_PROVIDER_ENABLED));
+        if (chainConfig != null) {
+            authenticationHeadersEnabled = chainConfig.stream().anyMatch(providerConfig ->
+                    providerConfig.getString(AUTHENTICATION_CHAIN_PROVIDER_TYPE).toUpperCase()
+                            .equals(AUTHENTICATION_CHAIN_PROVIDER_TYPE_HEADERS) &&
+                            providerConfig.getBoolean(AUTHENTICATION_CHAIN_PROVIDER_ENABLED));
+        }
     }
 
     @Override
@@ -115,7 +115,7 @@ public class StudioAuthenticationTokenProcessingFilter extends GenericFilterBean
             } else { if (isAuthenticationHeadersEnabled()) {
                     // If user not authenticated check for authentication headers
                     String usernameHeader =
-                            httpRequest.getHeader(studioConfiguration.getProperty(AUTHENTICATION_HEADERS_USERNAME));
+                            httpRequest.getHeader(studioConfiguration.getProperty(AUTHENTICATION_CHAIN_PROVIDER_USERNAME_HEADER));
                     if (StringUtils.isNotEmpty(usernameHeader)) {
                         try {
                             securityService.authenticate(usernameHeader, RandomStringUtils.randomAlphanumeric(16));

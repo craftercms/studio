@@ -171,4 +171,14 @@ package org.craftercms.studio.api.v1.constant;
     int DEFAULT_ORGANIZATION_ID = 1;
 
     String REMOVE_SYSTEM_ADMIN_MEMBER_LOCK = "remove_system_admin_member_lock";
+
+    /**
+     * Cluster registration properties
+     */
+    String CLUSTER_MEMBER_LOCAL_ADDRESS = "localAddress";
+    String CLUSTER_MEMBER_AUTHENTICATION_TYPE = "authenticationType";
+    String CLUSTER_MEMBER_USERNAME = "username";
+    String CLUSTER_MEMBER_PASSWORD = "password";
+    String CLUSTER_MEMBER_TOKEN = "token";
+    String CLUSTER_MEMBER_PRIVATE_KEY = "privateKey";
 }
