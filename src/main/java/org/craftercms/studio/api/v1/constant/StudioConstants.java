@@ -55,6 +55,9 @@ package org.craftercms.studio.api.v1.constant;
    String PATTERN_KEY = "\\{key\\}";
    String PATTERN_SANDBOX = "\\$\\{sandbox\\}";
    String PATTERN_SITE = "\\{site\\}";
+   String PATTERN_PATH = "\\{path\\}";
+   String PATTERN_FROM_PATH = "\\{fromPath\\}";
+   String PATTERN_TO_PATH = "\\{toPath\\}";
    String PATTERN_WEB_PROJECT = "\\$\\{webproject\\}";
    String PATTERN_BASE_URL = "\\{baseUrl\\}";
 

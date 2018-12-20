@@ -25,8 +25,6 @@ package org.craftercms.studio.impl.v1.repository.git;
  */
 public interface GitContentRepositoryConstants {
     String GIT_ROOT = ".git";
-    String INITIAL_COMMIT = "Initial commit.";
-    String BLUEPRINTS_UPDATED_COMMIT = "Blueprints updated.";
     String GIT_COMMIT_ALL_ITEMS = ".";
     String EMPTY_FILE = ".keep";
     String[] IGNORE_FILES = new String[] { ".keep", ".DS_Store" };
