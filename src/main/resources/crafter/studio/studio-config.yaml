@@ -42,6 +42,22 @@ studio.repo.sandbox.write.commitMessage: "User {username} wrote content {path}"
 studio.repo.published.commitMessage: "Publish event triggered by {username} on {datetime} via {source}.\n\nPublish note from user: \"{message}\"\n\nCommit ID: {commit_id}\n\nPackage ID: {package_id}"
 # The cron expression used on scheduled cleanup of repositories
 studio.repo.cleanup.cron: '0 0 3 ? * SUN'
+# Create new repository commit message
+studio.repo.createRepository.commitMessage: "Create new repository."
+# Create sandbox branch commit message
+studio.repo.createSandboxBranch.commitMessage: "Create {sandbox} branch."
+# Initial commit message
+studio.repo.initialCommit.commitMessage: "Initial commit."
+# Blueprints updated commit message
+studio.repo.blueprintsUpdated.commitMessage: "Blueprints updated."
+# Create folder commit message
+studio.repo.createFolder.commitMessage: "Created folder site: {site} path: {path}"
+# Delete content commit message
+studio.repo.deleteContent.commitMessage: "Delete file {path}"
+# Move content commit message
+studio.repo.moveContent.commitMessage: "Moving {fromPath} to {toPath}"
+# Copy content commit message
+studio.repo.copyContent.commitMessage: "Copying {fromPath} to {toPath}"
 
 ############################################################
 ##                   Site Configuration                   ##
