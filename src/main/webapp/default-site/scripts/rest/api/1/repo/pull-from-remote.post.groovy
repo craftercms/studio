@@ -78,9 +78,14 @@ try {
         def context = ContentServices.createContext(applicationContext, request)
 
         try {
-            ContentServices.pullFromRemote(context, siteId, remoteName, remoteBranch)
-            response.setStatus(200)
-            result.message = "OK"
+            def success = ContentServices.pullFromRemote(context, siteId, remoteName, remoteBranch)
+            if (success) {
+                response.setStatus(200)
+                result.message = "OK"
+            } else {
+                response.setStatus(500)
+                result.message = "Pull from remote failed"
+            }
         } catch (SiteNotFoundException e) {
             response.setStatus(404)
             result.message = "Site not found"
