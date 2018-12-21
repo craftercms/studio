@@ -20,6 +20,7 @@ import groovy.json.JsonException
 import groovy.json.JsonSlurper
 import org.apache.commons.lang3.StringUtils
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException
+import org.springframework.http.HttpStatus
 import scripts.api.ContentServices
 
 def result = [:]
@@ -72,7 +73,7 @@ try {
 
 
     if (invalidParams) {
-        response.setStatus(400)
+        response.setStatus(HttpStatus.BAD_REQUEST)
         result.message = "Invalid parameter(s): " + paramsList
     } else {
         def context = ContentServices.createContext(applicationContext, request)
@@ -80,22 +81,22 @@ try {
         try {
             def success = ContentServices.pushToRemote(context, siteId, remoteName, remoteBranch)
             if (success) {
-                response.setStatus(200)
+                response.setStatus(HttpStatus.OK)
                 result.message = "OK"
             } else {
-                response.setStatus(500)
+                response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR)
                 result.message = "Push to remote failed"
             }
         } catch (SiteNotFoundException e) {
-            response.setStatus(404)
+            response.setStatus(HttpStatus.NOT_FOUND)
             result.message = "Site not found"
         } catch (Exception e) {
-            response.setStatus(500)
+            response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR)
             result.message = "Internal server error: \n" + e
         }
     }
 } catch (JsonException e) {
-    response.setStatus(400)
+    response.setStatus(HttpStatus.BAD_REQUEST)
     result.message = "Bad Request"
 }
 return result
