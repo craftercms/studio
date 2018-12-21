@@ -122,6 +122,9 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
     private void postActivity(String activityType, String activitySource, String siteNetwork, String appTool,
                               String activityData, String contentId, String contentType, String approver) {
         String currentUser = (StringUtils.isEmpty(approver)) ? securityService.getCurrentUser() : approver;
+        if (StringUtils.isEmpty(currentUser)) {
+            currentUser = StringUtils.EMPTY;
+        }
         try {
             // optional - default to empty string
             if (siteNetwork == null) {
@@ -155,9 +158,9 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
                         + activityData);
             }
 
-            // required
+            // optional - default to empty string
             if (StringUtils.isEmpty(currentUser)) {
-                throw new ServiceLayerException("Invalid user - user is empty");
+                currentUser = StringUtils.EMPTY;
             } else if (currentUser.length() > MAX_LEN_USER_ID) {
                 throw new ServiceLayerException("Invalid user - exceeds " + MAX_LEN_USER_ID + " chars: " + currentUser);
             } else {
