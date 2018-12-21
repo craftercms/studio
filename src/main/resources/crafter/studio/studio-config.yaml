@@ -411,7 +411,7 @@ studio.db.dataPath: ${sys:crafter.data.dir}/db
 # Port number for the embedded database (note this must match what's in the connection URLs in this config file)
 studio.db.port: 33306
 # Socket path for the embedded database
-studio.db.socket: ${sys:java.io.tmpdir}/MariaDB4j.33306.sock
+studio.db.socket: /tmp/MariaDB4j.33306.sock
 
 ##########################################################
 ##                   Asset Processing                   ##
