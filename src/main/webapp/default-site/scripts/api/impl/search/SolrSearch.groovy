@@ -57,7 +57,7 @@ class SolrSearch {
 		def query = searchService.createQuery()
 		query = query.setQuery(queryStatement)
 		query = query.setRows(pageSize)
-		query = query.setStart(page)
+		query = query.setStart(page * pageSize)
 
 		if(searchParams.sortBy != "") {
 			def order = (searchParams.sortAscending == "true") ? "asc" : "desc"
