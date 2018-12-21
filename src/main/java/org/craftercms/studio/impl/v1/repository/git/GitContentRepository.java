@@ -33,7 +33,9 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -95,6 +97,7 @@ import org.eclipse.jgit.api.CreateBranchCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ListBranchCommand;
 import org.eclipse.jgit.api.PullCommand;
+import org.eclipse.jgit.api.PullResult;
 import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.api.RemoteAddCommand;
 import org.eclipse.jgit.api.RemoteRemoveCommand;
@@ -171,7 +174,11 @@ import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIP
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.EMPTY_FILE;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_COMMIT_ALL_ITEMS;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
+import static org.eclipse.jgit.transport.RemoteRefUpdate.Status.OK;
+import static org.eclipse.jgit.transport.RemoteRefUpdate.Status.REJECTED_NODELETE;
 import static org.eclipse.jgit.transport.RemoteRefUpdate.Status.REJECTED_NONFASTFORWARD;
+import static org.eclipse.jgit.transport.RemoteRefUpdate.Status.REJECTED_OTHER_REASON;
+import static org.eclipse.jgit.transport.RemoteRefUpdate.Status.REJECTED_REMOTE_CHANGED;
 
 public class GitContentRepository implements ContentRepository, ServletContextAware, DeploymentHistoryProvider {
 
@@ -2125,6 +2132,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         logger.debug("Prepare push command.");
         Repository repo = helper.getRepository(siteId, SANDBOX);
         try (Git git = new Git(repo)) {
+            Iterable<PushResult> pushResultIterable = null;
             PushCommand pushCommand = git.push();
             logger.debug("Set remote " + remoteName);
             pushCommand.setRemote(remoteRepository.getRemoteName());
@@ -2133,7 +2141,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             switch (remoteRepository.getAuthenticationType()) {
                 case RemoteRepository.AuthenticationType.NONE:
                     logger.debug("No authentication");
-                    pushCommand.call();
+                    pushResultIterable = pushCommand.call();
                     break;
                 case RemoteRepository.AuthenticationType.BASIC:
                     logger.debug("Basic authentication");
@@ -2142,7 +2150,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     pushCommand.setCredentialsProvider(
                             new UsernamePasswordCredentialsProvider(remoteRepository.getRemoteUsername(), password));
 
-                    pushCommand.call();
+                    pushResultIterable = pushCommand.call();
                     break;
                 case RemoteRepository.AuthenticationType.TOKEN:
                     logger.debug("Token based authentication");
@@ -2150,7 +2158,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     String remoteToken = encryptor.decrypt(hashedToken);
                     pushCommand.setCredentialsProvider(
                             new UsernamePasswordCredentialsProvider(remoteToken, StringUtils.EMPTY));
-                    pushCommand.call();
+                    pushResultIterable = pushCommand.call();
                     break;
                 case RemoteRepository.AuthenticationType.PRIVATE_KEY:
                     logger.debug("Private key authentication");
@@ -2165,14 +2173,26 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                             sshTransport.setSshSessionFactory(getSshSessionFactory(privateKey, tempKey));
                         }
                     });
-                    pushCommand.call();
+                    pushResultIterable = pushCommand.call();
                     Files.delete(tempKey);
                     break;
                 default:
                     throw new ServiceLayerException("Unsupported authentication type " +
                             remoteRepository.getAuthenticationType());
             }
-            return true;
+
+            boolean toRet = true;
+            List<RemoteRefUpdate.Status> failure = Arrays.asList(REJECTED_NODELETE, REJECTED_NONFASTFORWARD,
+                    REJECTED_REMOTE_CHANGED, REJECTED_OTHER_REASON);
+            for (PushResult pushResult : pushResultIterable) {
+                Collection<RemoteRefUpdate> updates = pushResult.getRemoteUpdates();
+                for (RemoteRefUpdate remoteRefUpdate : updates) {
+                    toRet = toRet && !failure.contains(remoteRefUpdate.getStatus());
+                    if (!toRet) break;
+                }
+                if (!toRet) break;
+            }
+            return toRet;
         } catch (InvalidRemoteException e) {
             logger.error("Remote is invalid " + remoteName, e);
             throw new InvalidRemoteUrlException();
@@ -2196,6 +2216,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         logger.debug("Prepare pull command");
         Repository repo = helper.getRepository(siteId, SANDBOX);
         try (Git git = new Git(repo)) {
+            PullResult pullResult = null;
             PullCommand pullCommand = git.pull();
             logger.debug("Set remote " + remoteName);
             pullCommand.setRemote(remoteRepository.getRemoteName());
@@ -2204,7 +2225,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             switch (remoteRepository.getAuthenticationType()) {
                 case RemoteRepository.AuthenticationType.NONE:
                     logger.debug("No authentication");
-                    pullCommand.call();
+                    pullResult = pullCommand.call();
                     break;
                 case RemoteRepository.AuthenticationType.BASIC:
                     logger.debug("Basic authentication");
@@ -2213,7 +2234,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     pullCommand.setCredentialsProvider(
                             new UsernamePasswordCredentialsProvider(remoteRepository.getRemoteUsername(), password));
 
-                    pullCommand.call();
+                    pullResult = pullCommand.call();
                     break;
                 case RemoteRepository.AuthenticationType.TOKEN:
                     logger.debug("Token based authentication");
@@ -2221,7 +2242,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     String token = encryptor.decrypt(hashedToken);
                     pullCommand.setCredentialsProvider(
                             new UsernamePasswordCredentialsProvider(token, StringUtils.EMPTY));
-                    pullCommand.call();
+                    pullResult = pullCommand.call();
                     break;
                 case RemoteRepository.AuthenticationType.PRIVATE_KEY:
                     logger.debug("Private key authentication");
@@ -2236,14 +2257,14 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                             sshTransport.setSshSessionFactory(getSshSessionFactory(privateKey, tempKey));
                         }
                     });
-                    pullCommand.call();
+                    pullResult = pullCommand.call();
                     Files.delete(tempKey);
                     break;
                 default:
                     throw new ServiceLayerException("Unsupported authentication type " +
                             remoteRepository.getAuthenticationType());
             }
-            return true;
+            return pullResult != null ? pullResult.isSuccessful() : false;
         } catch (InvalidRemoteException e) {
             logger.error("Remote is invalid " + remoteName, e);
             throw new InvalidRemoteUrlException();
