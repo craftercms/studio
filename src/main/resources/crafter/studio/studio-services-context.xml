@@ -178,6 +178,8 @@
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="deploymentService" ref="cstudioDeploymentService" />
+        <property name="writeToExternalLogFile" ref="cstudioWriteToExternalLogFile" />
+        <property name="readFromExternalLogFile" ref="cstudioReadFromExternalLogFile" />
     </bean>
 
     <bean id="cstudioDependencyDiffService" class="org.craftercms.studio.impl.v1.service.dependency.DependencyDiffServiceImpl">
@@ -776,6 +778,9 @@
         <property name="configReader" ref="studioAssetProcessingConfigReader"/>
         <property name="pipelineResolver" ref="studioAssetProcessorPipelineResolver"/>
     </bean>
+
+	<bean id="cstudioWriteToExternalLogFile" class="org.craftercms.studio.impl.v1.audit.log.WriteToExternalLogFile" />
+    <bean id="cstudioReadFromExternalLogFile" class="org.craftercms.studio.impl.v1.audit.log.ReadFromExternalLogFile" />
 
     <import resource="classpath:crafter/studio/studio-security-context.xml"/>
 </beans>

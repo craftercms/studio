@@ -405,3 +405,15 @@ studio.db.socket: /tmp/MariaDB4j.33306.sock
 ##########################################################
 # The global Tinify API key used for image processing (empty by default)
 studio.configuration.asset.processing.tinify.apiKey:
+
+#################################################################
+##                   Audit Log Configuration                   ##
+#################################################################
+# Audit log path
+studio.configuration.audit.log.path: /var/log/crafter
+# Audit log file name 
+studio.configuration.audit.log.file.name: Audit.log
+# Enable/disable (value true/false), write audit logs to file or database
+studio.configuration.audit.log.for.file.enable: true
+# Defines log4j.xml path
+studio.configuration.log4j.path: ../bin/apache-tomcat/webapps/studio/WEB-INF/classes/log4j.xml

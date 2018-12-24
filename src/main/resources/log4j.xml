@@ -46,7 +46,22 @@
             <param name="ConversionPattern" value="[%p] %d{ISO8601} [%t] [%c{2}] | %m %n" />
         </layout>
     </appender>
+    
+    <appender name="auditLogs" class="org.apache.log4j.DailyRollingFileAppender">
+        <param name="file" value="${auditLogPath}/${auditFileName}" />
+        <param name="append" value="true" />
+        <param name="DatePattern" value="'.'yyyy-MM-dd" />
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%m%n" />
+        </layout>
+    </appender>
 
+	<!-- AuditLogs Loggers -->
+    <logger name="auditLogs">
+        <level value="info" />
+        <appender-ref ref="auditLogs" />
+    </logger>
+	
     <!-- Application Loggers -->
     <logger name="org.craftercms.engine">
         <level value="info" />

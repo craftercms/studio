@@ -225,6 +225,12 @@ public interface StudioConfiguration {
     String PUBLISHING_MANAGER_PUBLISHING_WITHOUT_DEPENDENCIES_ENABLED =
             "studio.publishingManager.publishingWithoutDependencies.enabled";
 
+    /** Audit Log */
+    String STUDIO_CONFIGURATION_AUDIT_LOG_PATH = "studio.configuration.audit.log.path";
+    String STUDIO_CONFIGURATION_AUDIT_LOG_FILE_NAME = "studio.configuration.audit.log.file.name";
+    String STUDIO_CONFIGURATION_AUDIT_LOG_FOR_FILE_ENABLE = "studio.configuration.audit.log.for.file.enable";
+    String STUDIO_CONFIGURATION_AUDIT_LOG4J_PATH = "studio.configuration.log4j.path";
+    
     void loadConfig();
 
     String getProperty(String key);
