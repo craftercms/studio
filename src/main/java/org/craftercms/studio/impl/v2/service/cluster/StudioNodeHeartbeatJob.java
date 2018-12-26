@@ -18,10 +18,36 @@
 
 package org.craftercms.studio.impl.v2.service.cluster;
 
+import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.apache.commons.configuration2.tree.ImmutableNode;
+import org.craftercms.studio.api.v1.util.StudioConfiguration;
+
+import static org.craftercms.studio.api.v1.constant.StudioConstants.CLUSTER_MEMBER_LOCAL_ADDRESS;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CLUSTERING_NODE_REGISTRATION;
+
 public class StudioNodeHeartbeatJob implements Runnable {
+
+    private StudioConfiguration studioConfiguration;
 
     @Override
     public void run() {
 
+    }
+
+    private void updateHeartbeat() {
+        HierarchicalConfiguration<ImmutableNode> registrationData = getConfiguration();
+        String localAddress = registrationData.getString(CLUSTER_MEMBER_LOCAL_ADDRESS);
+    }
+
+    private HierarchicalConfiguration<ImmutableNode> getConfiguration() {
+        return studioConfiguration.getSubConfig(CLUSTERING_NODE_REGISTRATION);
+    }
+
+    public StudioConfiguration getStudioConfiguration() {
+        return studioConfiguration;
+    }
+
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+        this.studioConfiguration = studioConfiguration;
     }
 }
