@@ -153,7 +153,12 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
                     logger.error("Error while initializing database", e);
                 }
             } catch (SQLException e) {
-                logger.error("Error while getting connection to DB", e);
+                if (logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
+                    logger.error("Error while connecting to initialize DB", e);
+                } else {
+                    logger.error("Error while connecting to initialize DB");
+                }
+
             }
         }
     }

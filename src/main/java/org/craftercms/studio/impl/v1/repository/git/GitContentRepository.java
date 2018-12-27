@@ -33,7 +33,9 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -95,6 +97,7 @@ import org.eclipse.jgit.api.CreateBranchCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ListBranchCommand;
 import org.eclipse.jgit.api.PullCommand;
+import org.eclipse.jgit.api.PullResult;
 import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.api.RemoteAddCommand;
 import org.eclipse.jgit.api.RemoteRemoveCommand;
@@ -149,10 +152,19 @@ import static org.craftercms.studio.api.v1.constant.GitRepositories.*;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.BOOTSTRAP_REPO_GLOBAL_PATH;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.BOOTSTRAP_REPO_PATH;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_FROM_PATH;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_PATH;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_SITE;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_TO_PATH;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.REPO_COMMIT_MESSAGE_PATH_VAR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.REPO_COMMIT_MESSAGE_USERNAME_VAR;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.BLUE_PRINTS_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.BOOTSTRAP_REPO;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_COPY_CONTENT_COMMIT_MESSAGE;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_CREATE_FOLDER_COMMIT_MESSAGE;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_DELETE_CONTENT_COMMIT_MESSAGE;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_INITIAL_COMMIT_COMMIT_MESSAGE;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_MOVE_CONTENT_COMMIT_MESSAGE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_PUBLISHED_COMMIT_MESSAGE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_SANDBOX_BRANCH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_SANDBOX_WRITE_COMMIT_MESSAGE;
@@ -162,8 +174,11 @@ import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIP
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.EMPTY_FILE;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_COMMIT_ALL_ITEMS;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
-import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.INITIAL_COMMIT;
+import static org.eclipse.jgit.transport.RemoteRefUpdate.Status.OK;
+import static org.eclipse.jgit.transport.RemoteRefUpdate.Status.REJECTED_NODELETE;
 import static org.eclipse.jgit.transport.RemoteRefUpdate.Status.REJECTED_NONFASTFORWARD;
+import static org.eclipse.jgit.transport.RemoteRefUpdate.Status.REJECTED_OTHER_REASON;
+import static org.eclipse.jgit.transport.RemoteRefUpdate.Status.REJECTED_REMOTE_CHANGED;
 
 public class GitContentRepository implements ContentRepository, ServletContextAware, DeploymentHistoryProvider {
 
@@ -339,8 +354,12 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
             if (result) {
                 try {
-                    commitId = helper.commitFile(repo, site, emptyFilePath.toString(), "Created folder site: "
-                        + site + " path: " + path + FILE_SEPARATOR + name, helper.getCurrentUserIdent());
+                    commitId = helper.commitFile(repo, site, emptyFilePath.toString(),
+                            studioConfiguration.getProperty(
+                                    REPO_CREATE_FOLDER_COMMIT_MESSAGE
+                                            .replaceAll(PATTERN_SITE, site)
+                                            .replaceAll(PATTERN_PATH, path + FILE_SEPARATOR + name)),
+                            helper.getCurrentUserIdent());
                 } catch (ServiceLayerException | UserNotFoundException e) {
                     logger.error("Unknown service error during commit for site: " + site + " path: "
                         + emptyFilePath, e);
@@ -371,7 +390,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 }
 
                 // TODO: SJ: we need to define messages in a string table of sorts
-                commitId = helper.commitFile(repo, site, pathToCommit, "Delete file " + path,
+                commitId = helper.commitFile(repo, site, pathToCommit,
+                        studioConfiguration.getProperty(REPO_DELETE_CONTENT_COMMIT_MESSAGE).replaceAll(PATTERN_PATH, path),
                         StringUtils.isEmpty(approver) ? helper.getCurrentUserIdent() : helper.getAuthorIdent(approver));
 
             } catch (GitAPIException | UserNotFoundException e) {
@@ -480,8 +500,10 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                             .setOnly(pathRemoved)
                             .setAuthor(helper.getCurrentUserIdent())
                             .setCommitter(helper.getCurrentUserIdent())
-                            .setMessage("Moving " + fromPath + " to " + toPath + (StringUtils.isNotEmpty(newName) ?
-                                    newName: StringUtils.EMPTY))
+                            .setMessage(studioConfiguration.getProperty(REPO_MOVE_CONTENT_COMMIT_MESSAGE)
+                                    .replaceAll(PATTERN_FROM_PATH, fromPath)
+                                    .replaceAll(PATTERN_TO_PATH, toPath + (StringUtils.isNotEmpty(newName) ?
+                                    newName: StringUtils.EMPTY)))
                             .call();
                     commitId = commit.getName();
                     toRet.put(pathToCommit, commitId);
@@ -522,7 +544,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         .setOnly(gitToPath)
                         .setAuthor(helper.getCurrentUserIdent())
                         .setCommitter(helper.getCurrentUserIdent())
-                        .setMessage("Copying " + fromPath + " to " + toPath)
+                        .setMessage(studioConfiguration.getProperty(REPO_COPY_CONTENT_COMMIT_MESSAGE)
+                                .replaceAll(PATTERN_FROM_PATH, fromPath).replaceAll(PATTERN_TO_PATH, toPath))
                         .call();
                 commitId = commit.getName();
 
@@ -910,7 +933,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     // Commit everything
                     // TODO: Consider what to do with the commitId in the future
                     git.add().addFilepattern(GIT_COMMIT_ALL_ITEMS).call();
-                    git.commit().setMessage(INITIAL_COMMIT).call();
+                    git.commit().setMessage(studioConfiguration.getProperty(REPO_INITIAL_COMMIT_COMMIT_MESSAGE)).call();
                 }
 
                 git.close();
@@ -944,7 +967,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
         if (toReturn) {
             // commit everything so it is visible
-            toReturn = helper.performInitialCommit(site, INITIAL_COMMIT, sandboxBranch);
+            toReturn = helper.performInitialCommit(site,
+                    studioConfiguration.getProperty(REPO_INITIAL_COMMIT_COMMIT_MESSAGE), sandboxBranch);
         }
 
         return toReturn;
@@ -1755,7 +1779,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             if (toReturn) {
                 // commit everything so it is visible
                 logger.debug("Perform initial commit for site " + siteId);
-                toReturn = helper.performInitialCommit(siteId, INITIAL_COMMIT, sandboxBranch);
+                toReturn = helper.performInitialCommit(siteId,
+                        studioConfiguration.getProperty(REPO_INITIAL_COMMIT_COMMIT_MESSAGE), sandboxBranch);
             }
         } else {
             logger.error("Error while creating site " + siteId + " by cloning remote repository " + remoteName +
@@ -2107,6 +2132,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         logger.debug("Prepare push command.");
         Repository repo = helper.getRepository(siteId, SANDBOX);
         try (Git git = new Git(repo)) {
+            Iterable<PushResult> pushResultIterable = null;
             PushCommand pushCommand = git.push();
             logger.debug("Set remote " + remoteName);
             pushCommand.setRemote(remoteRepository.getRemoteName());
@@ -2115,7 +2141,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             switch (remoteRepository.getAuthenticationType()) {
                 case RemoteRepository.AuthenticationType.NONE:
                     logger.debug("No authentication");
-                    pushCommand.call();
+                    pushResultIterable = pushCommand.call();
                     break;
                 case RemoteRepository.AuthenticationType.BASIC:
                     logger.debug("Basic authentication");
@@ -2124,7 +2150,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     pushCommand.setCredentialsProvider(
                             new UsernamePasswordCredentialsProvider(remoteRepository.getRemoteUsername(), password));
 
-                    pushCommand.call();
+                    pushResultIterable = pushCommand.call();
                     break;
                 case RemoteRepository.AuthenticationType.TOKEN:
                     logger.debug("Token based authentication");
@@ -2132,7 +2158,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     String remoteToken = encryptor.decrypt(hashedToken);
                     pushCommand.setCredentialsProvider(
                             new UsernamePasswordCredentialsProvider(remoteToken, StringUtils.EMPTY));
-                    pushCommand.call();
+                    pushResultIterable = pushCommand.call();
                     break;
                 case RemoteRepository.AuthenticationType.PRIVATE_KEY:
                     logger.debug("Private key authentication");
@@ -2147,14 +2173,26 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                             sshTransport.setSshSessionFactory(getSshSessionFactory(privateKey, tempKey));
                         }
                     });
-                    pushCommand.call();
+                    pushResultIterable = pushCommand.call();
                     Files.delete(tempKey);
                     break;
                 default:
                     throw new ServiceLayerException("Unsupported authentication type " +
                             remoteRepository.getAuthenticationType());
             }
-            return true;
+
+            boolean toRet = true;
+            List<RemoteRefUpdate.Status> failure = Arrays.asList(REJECTED_NODELETE, REJECTED_NONFASTFORWARD,
+                    REJECTED_REMOTE_CHANGED, REJECTED_OTHER_REASON);
+            for (PushResult pushResult : pushResultIterable) {
+                Collection<RemoteRefUpdate> updates = pushResult.getRemoteUpdates();
+                for (RemoteRefUpdate remoteRefUpdate : updates) {
+                    toRet = toRet && !failure.contains(remoteRefUpdate.getStatus());
+                    if (!toRet) break;
+                }
+                if (!toRet) break;
+            }
+            return toRet;
         } catch (InvalidRemoteException e) {
             logger.error("Remote is invalid " + remoteName, e);
             throw new InvalidRemoteUrlException();
@@ -2178,6 +2216,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         logger.debug("Prepare pull command");
         Repository repo = helper.getRepository(siteId, SANDBOX);
         try (Git git = new Git(repo)) {
+            PullResult pullResult = null;
             PullCommand pullCommand = git.pull();
             logger.debug("Set remote " + remoteName);
             pullCommand.setRemote(remoteRepository.getRemoteName());
@@ -2186,7 +2225,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             switch (remoteRepository.getAuthenticationType()) {
                 case RemoteRepository.AuthenticationType.NONE:
                     logger.debug("No authentication");
-                    pullCommand.call();
+                    pullResult = pullCommand.call();
                     break;
                 case RemoteRepository.AuthenticationType.BASIC:
                     logger.debug("Basic authentication");
@@ -2195,7 +2234,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     pullCommand.setCredentialsProvider(
                             new UsernamePasswordCredentialsProvider(remoteRepository.getRemoteUsername(), password));
 
-                    pullCommand.call();
+                    pullResult = pullCommand.call();
                     break;
                 case RemoteRepository.AuthenticationType.TOKEN:
                     logger.debug("Token based authentication");
@@ -2203,7 +2242,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     String token = encryptor.decrypt(hashedToken);
                     pullCommand.setCredentialsProvider(
                             new UsernamePasswordCredentialsProvider(token, StringUtils.EMPTY));
-                    pullCommand.call();
+                    pullResult = pullCommand.call();
                     break;
                 case RemoteRepository.AuthenticationType.PRIVATE_KEY:
                     logger.debug("Private key authentication");
@@ -2218,14 +2257,14 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                             sshTransport.setSshSessionFactory(getSshSessionFactory(privateKey, tempKey));
                         }
                     });
-                    pullCommand.call();
+                    pullResult = pullCommand.call();
                     Files.delete(tempKey);
                     break;
                 default:
                     throw new ServiceLayerException("Unsupported authentication type " +
                             remoteRepository.getAuthenticationType());
             }
-            return true;
+            return pullResult != null ? pullResult.isSuccessful() : false;
         } catch (InvalidRemoteException e) {
             logger.error("Remote is invalid " + remoteName, e);
             throw new InvalidRemoteUrlException();

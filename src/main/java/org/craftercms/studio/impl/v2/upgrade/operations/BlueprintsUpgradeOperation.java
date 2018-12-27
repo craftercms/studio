@@ -52,7 +52,7 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.BOOTSTRAP_RE
 import static org.craftercms.studio.api.v1.constant.StudioConstants.BOOTSTRAP_REPO_PATH;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.BLUE_PRINTS_PATH;
-import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.BLUEPRINTS_UPDATED_COMMIT;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_BLUEPRINTS_UPDATED_COMMIT_MESSAGE;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_COMMIT_ALL_ITEMS;
 
 public class BlueprintsUpgradeOperation extends AbstractUpgradeOperation implements ServletContextAware {
@@ -150,7 +150,9 @@ public class BlueprintsUpgradeOperation extends AbstractUpgradeOperation impleme
                     // Commit everything
                     // TODO: Consider what to do with the commitId in the future
                     git.add().addFilepattern(GIT_COMMIT_ALL_ITEMS).call();
-                    git.commit().setAll(true).setMessage(BLUEPRINTS_UPDATED_COMMIT).call();
+                    git.commit()
+                            .setAll(true)
+                            .setMessage(studioConfiguration.getProperty(REPO_BLUEPRINTS_UPDATED_COMMIT_MESSAGE)).call();
                 }
             } catch (GitAPIException err) {
                 logger.error("error creating initial commit for global configuration", err);

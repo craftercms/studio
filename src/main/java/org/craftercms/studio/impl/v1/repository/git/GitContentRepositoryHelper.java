@@ -50,9 +50,6 @@ import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.dircache.DirCache;
-import org.eclipse.jgit.errors.AmbiguousObjectException;
-import org.eclipse.jgit.errors.IncorrectObjectTypeException;
-import org.eclipse.jgit.errors.MissingObjectException;
 import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.ObjectReader;
@@ -97,10 +94,13 @@ import java.util.UUID;
 
 import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_SANDBOX;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_GENERAL_CONFIG_FILE_NAME;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_PERMISSION_MAPPINGS_FILE_NAME;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_CREATE_REPOSITORY_COMMIT_MESSAGE;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_CREATE_SANDBOX_BRANCH_COMMIT_MESSAGE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_SANDBOX_BRANCH;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_PARAMETER_BIG_FILE_THRESHOLD;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_PARAMETER_BIG_FILE_THRESHOLD_DEFAULT;
@@ -239,7 +239,7 @@ public class GitContentRepositoryHelper {
             try (Git git = new Git(toReturn)) {
                 git.commit()
                         .setAllowEmpty(true)
-                        .setMessage("Create new repository.")
+                        .setMessage(studioConfiguration.getProperty(REPO_CREATE_REPOSITORY_COMMIT_MESSAGE))
                         .call();
             } catch (GitAPIException e) {
                 logger.error("Error while creating repository for site with path" + path.toString(), e);
@@ -342,7 +342,7 @@ public class GitContentRepositoryHelper {
                 if (sandboxRepo.isBare() || sandboxRepo.resolve(Constants.HEAD) == null) {
                     git.commit()
                             .setAllowEmpty(true)
-                            .setMessage("Create " + sandboxBranchName + " branch.")
+                            .setMessage(studioConfiguration.getProperty(REPO_CREATE_SANDBOX_BRANCH_COMMIT_MESSAGE).replaceAll(PATTERN_SANDBOX, sandboxBranchName))
                             .call();
                 }
                 git.checkout()

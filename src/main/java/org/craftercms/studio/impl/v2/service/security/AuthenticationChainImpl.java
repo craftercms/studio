@@ -20,6 +20,7 @@ package org.craftercms.studio.impl.v2.service.security;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationSystemException;
@@ -99,8 +100,8 @@ public class AuthenticationChainImpl implements AuthenticationChain {
             ActivityService.ActivityType activityType = ActivityService.ActivityType.LOGIN_FAILED;
             Map<String, String> extraInfo = new HashMap<String, String>();
             extraInfo.put(DmConstants.KEY_CONTENT_TYPE, StudioConstants.CONTENT_TYPE_USER);
-            activityService.postActivity(getSystemSite(), username, ipAddress, activityType,
-                    ActivityService.ActivitySource.API, extraInfo);
+            activityService.postActivity(getSystemSite(), StringUtils.isEmpty(username) ? StringUtils.EMPTY : username,
+                    ipAddress, activityType, ActivityService.ActivitySource.API, extraInfo);
 
             logger.info("Failed to authenticate user " + username + " logging in from IP: " + ipAddress);
 
