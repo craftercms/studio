@@ -73,7 +73,7 @@ try {
 
 
     if (invalidParams) {
-        response.setStatus(HttpStatus.BAD_REQUEST)
+        response.setStatus(HttpStatus.BAD_REQUEST.value)
         result.message = "Invalid parameter(s): " + paramsList
     } else {
         def context = ContentServices.createContext(applicationContext, request)
@@ -81,22 +81,22 @@ try {
         try {
             def success = ContentServices.pullFromRemote(context, siteId, remoteName, remoteBranch)
             if (success) {
-                response.setStatus(HttpStatus.OK)
+                response.setStatus(HttpStatus.OK.value())
                 result.message = "OK"
             } else {
-                response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+                response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value)
                 result.message = "Pull from remote failed"
             }
         } catch (SiteNotFoundException e) {
-            response.setStatus(HttpStatus.NOT_FOUND)
+            response.setStatus(HttpStatus.NOT_FOUND.value())
             result.message = "Site not found"
         } catch (Exception e) {
-            response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+            response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value)
             result.message = "Internal server error: \n" + e
         }
     }
 } catch (JsonException e) {
-    response.setStatus(HttpStatus.BAD_REQUEST)
+    response.setStatus(HttpStatus.BAD_REQUEST.value)
     result.message = "Bad Request"
 }
 return result
