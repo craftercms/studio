@@ -113,4 +113,14 @@ public interface ClusterDAO {
      * @return number of affected rows
      */
     int updateHeartbeat(Map params);
+
+    /**
+     * Get all member not being updating heartbeat for specified limit
+     *
+     * @param params Parameters for SQL query
+     * @return List of inactive members
+     */
+    List<ClusterMember> getMembersWithStaleHeartbeat(Map params);
+
+
 }

@@ -471,12 +471,16 @@ studio.publishing.threadPool.maxPoolSize: 20
 studio.clustering.sandboxSyncJob.interval: 5000
 # Published Sync Job interval
 studio.clustering.publishedSyncJob.interval: 60000
+# Heartbeat Job interval
+studio.clustering.heartbeatJob.interval: 60000
 # Thread name prefix
 studio.clustering.threadPool.namePrefix: Studio_Clustering_Thread_Pool
 # Thread pool size
 studio.clustering.threadPool.corePoolSize: 10
 # Thread pool max size
 studio.clustering.threadPool.maxPoolSize: 20
+# Cluster member declared inactive after minutes
+studio.clustering.incativityCheck.timeLimit: 15
 
 ################################################################
 ##                             CORS                           ##

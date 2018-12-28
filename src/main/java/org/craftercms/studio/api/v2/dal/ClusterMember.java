@@ -20,6 +20,8 @@ package org.craftercms.studio.api.v2.dal;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import java.time.ZonedDateTime;
+
 public class ClusterMember {
 
     public enum State {
@@ -30,6 +32,7 @@ public class ClusterMember {
     private long id;
     private String localAddress;
     private State state;
+    private ZonedDateTime heartbeat;
     private String gitUrl;
     private String gitRemoteName;
     private String gitAuthType;
@@ -60,6 +63,14 @@ public class ClusterMember {
 
     public void setState(State state) {
         this.state = state;
+    }
+
+    public ZonedDateTime getHeartbeat() {
+        return heartbeat;
+    }
+
+    public void setHeartbeat(ZonedDateTime heartbeat) {
+        this.heartbeat = heartbeat;
     }
 
     public String getGitUrl() {

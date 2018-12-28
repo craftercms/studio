@@ -26,6 +26,7 @@
         <id property="id" column="id"/>
         <result property="localAddress" column="local_address" />
         <result property="state" column="state" />
+        <result property="heartbeat" column="heartbeat"
         <result property="gitUrl" column="git_url" />
         <result property="gitRemoteName" column="git_remote_name" />
         <result property="gitAuthType" column="git_auth_type" />
@@ -36,7 +37,7 @@
     </resultMap>
 
     <select id="getAllMembers" resultMap="ClusterMap">
-        SELECT * FROM cluster;
+        SELECT * FROM cluster
     </select>
 
     <select id="getOtherMembers" resultMap="ClusterMap" parameterType="Map">
@@ -91,7 +92,13 @@
 
     <update id="updateHeartbeat" parameterType="java.util.Map">
         UPDATE cluster SET
-        heartbeat = CURRENT_TIMESTAMP
+        heartbeat = CURRENT_TIMESTAMP,
+        state = #{state}
         WHERE local_address = #{localAddress}
     </update>
+
+    <select id="getMembersWithStaleHeartbeat" resultMap="ClusterMap" parameterType="java.util.Map">
+        SELECT * FROM cluster
+        WHERE heartbeat &lt; (CURRENT_TIMESTAMP - #{inactivityLimit})
+    </select>
 </mapper>

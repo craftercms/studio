@@ -478,6 +478,12 @@
         <property name="repositoryType" value="PUBLISHED" />
     </bean>
 
+    <bean id="studioClusterNodeHeartbeatJob"
+          class="org.craftercms.studio.impl.v2.service.cluster.StudioNodeHeartbeatJob">
+        <property name="studioConfiguration" ref="studioConfiguration" />
+        <property name="clusterDAO" ref="clusterDao" />
+    </bean>
+
     <bean id="studioRepositoryCleanupJob" class="org.craftercms.studio.impl.v1.repository.job.RepositoryCleanupJob">
         <property name="siteService" ref="cstudioSiteServiceSimple"/>
         <property name="contentRepository" ref="contentRepository"/>
@@ -521,6 +527,20 @@
         </property>
         <property name="repeatInterval"
                   value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).CLUSTERING_PUBLISHED_SYNC_JOB_INTERVAL)}" />
+        <property name="startDelay" value="0" />
+    </bean>
+
+    <bean id="cstudioClusterNodeHeartbeatJobsScheduled"
+          class="org.springframework.scheduling.quartz.SimpleTriggerFactoryBean" >
+        <property name="jobDetail">
+            <bean class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean" >
+                <property name="targetObject" ref="studioClusterNodeHeartbeatJob"/>
+                <property name="targetMethod" value="run"/>
+                <property name="concurrent" value="false"/>
+            </bean>
+        </property>
+        <property name="repeatInterval"
+                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).CLUSTERING_HEARTBEAT_JOB_INTERVAL)}" />
         <property name="startDelay" value="0" />
     </bean>
 

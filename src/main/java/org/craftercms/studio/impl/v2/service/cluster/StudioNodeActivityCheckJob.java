@@ -27,17 +27,19 @@ import org.craftercms.studio.api.v2.dal.ClusterDAO;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CLUSTER_MEMBER_LOCAL_ADDRESS;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CLUSTERING_INACTIVITY_CHECK_TIME_LIMIT;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CLUSTERING_NODE_REGISTRATION;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_LOCAL_ADDRESS;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_STATE;
 
-public class StudioNodeHeartbeatJob implements Runnable {
+public class StudioNodeActivityCheckJob implements Runnable{
 
-    private final static Logger logger = LoggerFactory.getLogger(StudioNodeHeartbeatJob.class);
+    private final static Logger logger = LoggerFactory.getLogger(StudioNodeActivityCheckJob.class);
 
     private StudioConfiguration studioConfiguration;
     private ClusterDAO clusterDAO;
@@ -48,27 +50,32 @@ public class StudioNodeHeartbeatJob implements Runnable {
     public void run() {
         if (singleWorkerLock.tryLock()) {
             try {
-                updateHeartbeat();
+                List<ClusterMember> inactiveMembers = getInactiveMembers();
+                updateInactiveMembersState(inactiveMembers);
             } finally {
                 singleWorkerLock.unlock();
             }
         } else {
-            logger.debug("Another worker is updating heartbeat. Skipping cycle.");
+            logger.debug("Another worker is checking cluster nodes activity. Skipping cycle.");
         }
     }
 
-    private void updateHeartbeat() {
+    private List<ClusterMember> getInactiveMembers() {
         HierarchicalConfiguration<ImmutableNode> registrationData = getConfiguration();
+        long millis = TimeUnit.MINUTES.toMillis(getInactivityPeriod());
         String localAddress = registrationData.getString(CLUSTER_MEMBER_LOCAL_ADDRESS);
         Map<String, String> params = new HashMap<String, String>();
         params.put(CLUSTER_LOCAL_ADDRESS, localAddress);
-        params.put(CLUSTER_STATE, ClusterMember.State.ACTIVE.toString());
         logger.debug("Update heartbeat for cluster member with local address: " + localAddress);
         clusterDAO.updateHeartbeat(params);
     }
 
     private HierarchicalConfiguration<ImmutableNode> getConfiguration() {
         return studioConfiguration.getSubConfig(CLUSTERING_NODE_REGISTRATION);
+    }
+
+    private int getInactivityPeriod() {
+        return Integer.parseInt(studioConfiguration.getProperty(CLUSTERING_INACTIVITY_CHECK_TIME_LIMIT));
     }
 
     public StudioConfiguration getStudioConfiguration() {
