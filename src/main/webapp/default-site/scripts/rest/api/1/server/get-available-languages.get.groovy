@@ -8,5 +8,7 @@ def result = []
 	result[2] = [:]
 	result[2].id = "kr"
 	result[2].label = "한국어"
-
+	result[3] = [:]
+	result[3].id = "de"
+	result[3].label = "Deutsch"
 return result
