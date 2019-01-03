@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
+ * Copyright (C) 2007-2019 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -63,52 +63,62 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
         logger.debug("Starting Cluster Sync worker");
         HierarchicalConfiguration<ImmutableNode> registrationData = getConfiguration();
         if (registrationData != null && !registrationData.isEmpty()) {
+            String localAddress = registrationData.getString(CLUSTER_MEMBER_LOCAL_ADDRESS);
             logger.debug("Cluster is configured.");
             List<ClusterMember> cm = clusterDAO.getAllMembers();
-            logger.debug("Cluster members count " + cm.size());
-            try {
-                Set<String> siteNames = siteService.getAllAvailableSites();
-                String localAddress = registrationData.getString(CLUSTER_MEMBER_LOCAL_ADDRESS);
-                Map<String, String> params = new HashMap<String, String>();
-                params.put(CLUSTER_LOCAL_ADDRESS, localAddress);
-                params.put(CLUSTER_STATE, ClusterMember.State.ACTIVE.toString());
-                List<ClusterMember> clusterMembers = clusterDAO.getOtherMembers(params);
-                if (logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
-                    int numActiveMembers = clusterDAO.countActiveMembers(params);
-                    logger.debug("Number of active cluster members: " + numActiveMembers);
-                }
-                if ((clusterMembers != null && clusterMembers.size() > 0) && (siteNames != null && siteNames.size() > 0)) {
-                    for (String site : siteNames) {
-                        logger.debug("Creating task thread to sync cluster node for site " + site);
-                        switch (repositoryType) {
-                            case SANDBOX:
-                                StudioNodeSyncSandboxTask nodeSandobxSyncTask = new StudioNodeSyncSandboxTask();
-                                nodeSandobxSyncTask.setSiteId(site);
-                                nodeSandobxSyncTask.setPreviewDeployer(previewDeployer);
-                                nodeSandobxSyncTask.setSearchService(searchService);
-                                nodeSandobxSyncTask.setStudioConfiguration(studioConfiguration);
-                                nodeSandobxSyncTask.setContentRepository(contentRepository);
-                                nodeSandobxSyncTask.setSiteService(siteService);
-                                nodeSandobxSyncTask.setServicesConfig(servicesConfig);
-                                nodeSandobxSyncTask.setClusterNodes(clusterMembers);
-                                taskExecutor.execute(nodeSandobxSyncTask);
-                                break;
-                            case PUBLISHED:
-                                StudioNodeSyncPublishedTask nodePublishedSyncTask = new StudioNodeSyncPublishedTask();
-                                nodePublishedSyncTask.setSiteId(site);
-                                nodePublishedSyncTask.setPreviewDeployer(previewDeployer);
-                                nodePublishedSyncTask.setSearchService(searchService);
-                                nodePublishedSyncTask.setStudioConfiguration(studioConfiguration);
-                                nodePublishedSyncTask.setContentRepository(contentRepository);
-                                nodePublishedSyncTask.setSiteService(siteService);
-                                nodePublishedSyncTask.setServicesConfig(servicesConfig);
-                                nodePublishedSyncTask.setClusterNodes(clusterMembers);
-                                taskExecutor.execute(nodePublishedSyncTask);
+            boolean memberRemoved =
+                    !cm.stream().anyMatch(clusterMember -> {
+                        return clusterMember.getLocalAddress().equals(localAddress);
+                    });
+            if (memberRemoved) {
+                logger.info("Cluster member " + localAddress + " is removed from cluster. Not syncing with other " +
+                        "members");
+            } else {
+                logger.debug("Cluster members count " + cm.size());
+                try {
+                    Set<String> siteNames = siteService.getAllAvailableSites();
+
+                    Map<String, String> params = new HashMap<String, String>();
+                    params.put(CLUSTER_LOCAL_ADDRESS, localAddress);
+                    params.put(CLUSTER_STATE, ClusterMember.State.ACTIVE.toString());
+                    List<ClusterMember> clusterMembers = clusterDAO.getOtherMembers(params);
+                    if (logger.getLevel().equals(Logger.LEVEL_DEBUG)) {
+                        int numActiveMembers = clusterDAO.countActiveMembers(params);
+                        logger.debug("Number of active cluster members: " + numActiveMembers);
+                    }
+                    if ((clusterMembers != null && clusterMembers.size() > 0) && (siteNames != null && siteNames.size() > 0)) {
+                        for (String site : siteNames) {
+                            logger.debug("Creating task thread to sync cluster node for site " + site);
+                            switch (repositoryType) {
+                                case SANDBOX:
+                                    StudioNodeSyncSandboxTask nodeSandobxSyncTask = new StudioNodeSyncSandboxTask();
+                                    nodeSandobxSyncTask.setSiteId(site);
+                                    nodeSandobxSyncTask.setPreviewDeployer(previewDeployer);
+                                    nodeSandobxSyncTask.setSearchService(searchService);
+                                    nodeSandobxSyncTask.setStudioConfiguration(studioConfiguration);
+                                    nodeSandobxSyncTask.setContentRepository(contentRepository);
+                                    nodeSandobxSyncTask.setSiteService(siteService);
+                                    nodeSandobxSyncTask.setServicesConfig(servicesConfig);
+                                    nodeSandobxSyncTask.setClusterNodes(clusterMembers);
+                                    taskExecutor.execute(nodeSandobxSyncTask);
+                                    break;
+                                case PUBLISHED:
+                                    StudioNodeSyncPublishedTask nodePublishedSyncTask = new StudioNodeSyncPublishedTask();
+                                    nodePublishedSyncTask.setSiteId(site);
+                                    nodePublishedSyncTask.setPreviewDeployer(previewDeployer);
+                                    nodePublishedSyncTask.setSearchService(searchService);
+                                    nodePublishedSyncTask.setStudioConfiguration(studioConfiguration);
+                                    nodePublishedSyncTask.setContentRepository(contentRepository);
+                                    nodePublishedSyncTask.setSiteService(siteService);
+                                    nodePublishedSyncTask.setServicesConfig(servicesConfig);
+                                    nodePublishedSyncTask.setClusterNodes(clusterMembers);
+                                    taskExecutor.execute(nodePublishedSyncTask);
+                            }
                         }
                     }
+                } catch (Exception err) {
+                    logger.error("Error while executing cluster sync job", err);
                 }
-            } catch (Exception err) {
-                logger.error("Error while executing cluster sync job", err);
             }
         }
         logger.debug("Cluster Sync worker finished");
