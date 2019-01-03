@@ -1,7 +1,6 @@
 
 /*
- * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2016 Crafter Software Corporation.
+ * Copyright (C) 2007-2019 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,11 +14,11 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 package scripts.api.impl.site
 
 import org.craftercms.studio.api.v2.service.notification.NotificationMessageType;
-import java.util.Locale;
 
 class SpringSiteServices {
 
@@ -63,18 +62,18 @@ class SpringSiteServices {
         return springBackedService.getAllAvailableSites()
     }
 
-    def createSiteFromBlueprint(blueprintName, siteName, siteId, sandboxBranch, desc) {
+    def createSiteFromBlueprint(blueprintName, siteName, siteId, sandboxBranch, desc, searchEngine) {
         def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
-        return springBackedService.createSiteFromBlueprint(blueprintName, siteName, siteId, sandboxBranch, desc)
+        return springBackedService.createSiteFromBlueprint(blueprintName, siteName, siteId, sandboxBranch, desc, searchEngine)
     }
 
     def createSiteWithRemoteOption(siteId, sandboxBranch, description, blueprint, remoteName, remoteUrl, remoteBranch,
                                    singleBranch, authenticationType, remoteUsername, remotePassword, remoteToken,
-                                   remotePrivateKey, createOption) {
+                                   remotePrivateKey, createOption, searchEngine) {
         def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
         return springBackedService.createSiteWithRemoteOption(siteId, sandboxBranch, description, blueprint, remoteName,
                 remoteUrl, remoteBranch, singleBranch, authenticationType, remoteUsername, remotePassword, remoteToken,
-                remotePrivateKey, createOption)
+                remotePrivateKey, createOption, searchEngine)
     }
 
     def deleteSite(siteId) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
+ * Copyright (C) 2007-2019 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,12 +21,12 @@ package org.craftercms.studio.impl.v2.service.cluster;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
+import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.deployment.PreviewDeployer;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
-import org.craftercms.studio.api.v1.service.search.SearchService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.ClusterDAO;
@@ -51,7 +51,6 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
     private SiteService siteService;
     private TaskExecutor taskExecutor;
     private PreviewDeployer previewDeployer;
-    private SearchService searchService;
     private StudioConfiguration studioConfiguration;
     private ContentRepository contentRepository;
     private ClusterDAO clusterDAO;
@@ -80,12 +79,13 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
                 if ((clusterMembers != null && clusterMembers.size() > 0) && (siteNames != null && siteNames.size() > 0)) {
                     for (String site : siteNames) {
                         logger.debug("Creating task thread to sync cluster node for site " + site);
+                        SiteFeed siteFeed = siteService.getSite(site);
                         switch (repositoryType) {
                             case SANDBOX:
                                 StudioNodeSyncSandboxTask nodeSandobxSyncTask = new StudioNodeSyncSandboxTask();
                                 nodeSandobxSyncTask.setSiteId(site);
+                                nodeSandobxSyncTask.setSearchEngine(siteFeed.getSearchEngine());
                                 nodeSandobxSyncTask.setPreviewDeployer(previewDeployer);
-                                nodeSandobxSyncTask.setSearchService(searchService);
                                 nodeSandobxSyncTask.setStudioConfiguration(studioConfiguration);
                                 nodeSandobxSyncTask.setContentRepository(contentRepository);
                                 nodeSandobxSyncTask.setSiteService(siteService);
@@ -97,7 +97,6 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
                                 StudioNodeSyncPublishedTask nodePublishedSyncTask = new StudioNodeSyncPublishedTask();
                                 nodePublishedSyncTask.setSiteId(site);
                                 nodePublishedSyncTask.setPreviewDeployer(previewDeployer);
-                                nodePublishedSyncTask.setSearchService(searchService);
                                 nodePublishedSyncTask.setStudioConfiguration(studioConfiguration);
                                 nodePublishedSyncTask.setContentRepository(contentRepository);
                                 nodePublishedSyncTask.setSiteService(siteService);
@@ -140,14 +139,6 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
 
     public void setPreviewDeployer(PreviewDeployer previewDeployer) {
         this.previewDeployer = previewDeployer;
-    }
-
-    public SearchService getSearchService() {
-        return searchService;
-    }
-
-    public void setSearchService(SearchService searchService) {
-        this.searchService = searchService;
     }
 
     public StudioConfiguration getStudioConfiguration() {

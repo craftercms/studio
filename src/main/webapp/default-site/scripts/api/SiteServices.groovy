@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
+ * Copyright (C) 2007-2019 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -62,18 +62,18 @@ class SiteServices {
         return siteServicesImpl.getAllAvailableSites()
     }
 
-    static createSiteFromBlueprint(context, blueprintName, siteName, siteId, sandboxBranch, desc) {
+    static createSiteFromBlueprint(context, blueprintName, siteName, siteId, sandboxBranch, desc, searchEngine) {
         def siteServicesImpl = ServiceFactory.getSiteServices(context)
-        return siteServicesImpl.createSiteFromBlueprint(blueprintName, siteName, siteId, sandboxBranch, desc)
+        return siteServicesImpl.createSiteFromBlueprint(blueprintName, siteName, siteId, sandboxBranch, desc, searchEngine)
     }
 
     static createSiteWithRemoteOption(context, siteId, sandboxBranch, description, blueprint, remoteName, remoteUrl,
                                       remoteBranch, singleBranch, authenticationType, remoteUsername, remotePassword,
-                                      remoteToken, remotePrivateKey, createOption) {
+                                      remoteToken, remotePrivateKey, createOption, searchEngine) {
         def siteServicesImpl = ServiceFactory.getSiteServices(context)
         return siteServicesImpl.createSiteWithRemoteOption(siteId, sandboxBranch, description, blueprint, remoteName,
                 remoteUrl, remoteBranch, singleBranch,authenticationType, remoteUsername, remotePassword, remoteToken,
-                remotePrivateKey, createOption)
+                remotePrivateKey, createOption, searchEngine)
     }
 
     static deleteSite(context, siteId) {

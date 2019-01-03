@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
+ * Copyright (C) 2007-2019 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -90,12 +90,14 @@ public class StudioNodeSyncPublishedTask extends StudioNodeSyncBaseTask {
         return true;
     }
 
-    protected boolean createSiteInternal(String siteId) {
+    protected boolean createSiteInternal(String siteId, String searchEngine) {
         return false;
     }
 
     // Published never clones, instead, it lets the sanbox process handle that. Return true.
-    protected boolean cloneSiteInternal(String siteId, GitRepositories repoType)throws CryptoException, ServiceLayerException, InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException {
+    protected boolean cloneSiteInternal(String siteId, GitRepositories repoType)
+            throws CryptoException, ServiceLayerException, InvalidRemoteRepositoryException,
+            InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException {
         return true;
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
+ * Copyright (C) 2007-2019 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -63,7 +63,6 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
-import org.craftercms.studio.api.v1.service.search.SearchService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
@@ -94,8 +93,8 @@ public abstract class StudioNodeSyncBaseTask implements Runnable {
             new HashMap<String, Map<String, String>>();
 
     protected String siteId;
+    protected String searchEngine;
     protected List<ClusterMember> clusterNodes;
-    protected SearchService searchService;
     protected PreviewDeployer previewDeployer;
     protected StudioConfiguration studioConfiguration;
     protected ContentRepository contentRepository;
@@ -105,7 +104,7 @@ public abstract class StudioNodeSyncBaseTask implements Runnable {
 	// Abstract methods to be implemented by Sandbox/Published classes
 	protected abstract boolean isSyncRequiredInternal(String siteId, String siteDatabaseLastCommitId);
 	protected abstract void updateContentInternal(String siteId, String lastCommitId) throws IOException, CryptoException, ServiceLayerException;
-	protected abstract boolean createSiteInternal(String siteId);
+	protected abstract boolean createSiteInternal(String siteId, String searchEngine);
 	protected abstract boolean lockSiteInternal(String siteId);
 	protected abstract void unlockSiteInternal(String siteId);
 	protected abstract boolean cloneSiteInternal(String siteId, GitRepositories repoType)throws CryptoException, ServiceLayerException, InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException;
@@ -127,7 +126,7 @@ public abstract class StudioNodeSyncBaseTask implements Runnable {
                 
                 if (!siteCheck) {
                     // Site doesn't exist locally, create it
-                    success = createSite(siteId);
+                    success = createSite(siteId, searchEngine);
                 }
 
                 if (success) {
@@ -172,8 +171,8 @@ public abstract class StudioNodeSyncBaseTask implements Runnable {
     }
 
     // Create site helper
-    protected boolean createSite(String siteId) {
-        return createSiteInternal(siteId);
+    protected boolean createSite(String siteId, String searchEngine) {
+        return createSiteInternal(siteId, searchEngine);
     }
 
     // Determine if the local repo needs to be sync'd
@@ -481,14 +480,6 @@ public abstract class StudioNodeSyncBaseTask implements Runnable {
         this.clusterNodes = clusterNodes;
     }
 
-    public SearchService getSearchService() {
-        return searchService;
-    }
-
-    public void setSearchService(SearchService searchService) {
-        this.searchService = searchService;
-    }
-
     public PreviewDeployer getPreviewDeployer() {
         return previewDeployer;
     }
@@ -527,5 +518,13 @@ public abstract class StudioNodeSyncBaseTask implements Runnable {
 
     public void setSiteService(SiteService siteService) {
         this.siteService = siteService;
+    }
+
+    public String getSearchEngine() {
+        return searchEngine;
+    }
+
+    public void setSearchEngine(String searchEngine) {
+        this.searchEngine = searchEngine;
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
+ * Copyright (C) 2007-2019 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -64,7 +64,6 @@ import org.craftercms.studio.api.v1.ebus.PreviewEventContext;
 import org.craftercms.studio.api.v1.exception.BlueprintNotFoundException;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.PreviewDeployerUnreachableException;
-import org.craftercms.studio.api.v1.exception.SearchUnreachableException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.SiteCreationException;
@@ -95,7 +94,6 @@ import org.craftercms.studio.api.v1.service.event.EventService;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.api.v1.service.objectstate.State;
 import org.craftercms.studio.api.v1.service.objectstate.TransitionEvent;
-import org.craftercms.studio.api.v1.service.search.SearchService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteConfigNotFoundException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
@@ -183,8 +181,6 @@ public class SiteServiceImpl implements SiteService {
 
     @Autowired
     protected SiteFeedMapper siteFeedMapper;
-
-    protected SearchService searchService;
 
     protected EntitlementValidator entitlementValidator;
 
@@ -390,9 +386,10 @@ public class SiteServiceImpl implements SiteService {
                                            @ValidateNoTagsParam(name = "siteName") String siteName,
                                            @ValidateStringParam(name = "siteId") String siteId,
                                            @ValidateStringParam(name = "sandboxBranch") String sandboxBranch,
-                                           @ValidateNoTagsParam(name = "desc") String desc)
+                                           @ValidateNoTagsParam(name = "desc") String desc,
+                                           @ValidateStringParam(name = "searchEngine") String searchEngine)
             throws SiteAlreadyExistsException, SiteCreationException, PreviewDeployerUnreachableException,
-            SearchUnreachableException, BlueprintNotFoundException {
+            BlueprintNotFoundException {
 	    if (exists(siteId)) {
 	        throw new SiteAlreadyExistsException();
         }
@@ -426,46 +423,20 @@ public class SiteServiceImpl implements SiteService {
 	    // TODO: SJ: What we need to do for site creation and the order of execution:
 	    // TODO: SJ: 1) search index, 2) deployer target, 3) git repo, 4) database, 5) kick deployer
 
-	    // Attempt to create the search index for the new site
-	    try {
-		    searchService.createIndex(siteId);
-	    } catch (ServiceLayerException e) {
-		    success = false;
-		    logger.error("Error while creating site: " + siteName + " ID: " + siteId + " from blueprint: " +
-			    blueprintName + ". Is the Search running and configured correctly in Studio?", e);
-		    throw new SearchUnreachableException("Error while creating site: " + siteName + " ID: " + siteId + " from"
-			    + " blueprint: " + blueprintName + ". Is the Search running and configured correctly in Studio?");
-	    }
 
-	    // Check if search index creation was successful, create the site in the preview deployer
-	    if (success) {
-	    	    try {
-	    	    	success = previewDeployer.createTarget(siteId);
-		        } catch (Exception e) {
-			        success = false;
-			        logger.error("Error while creating site: " + siteName + " ID: " + siteId +
-                            " from blueprint: " + blueprintName + ". Is the Preview Deployer running and configured " +
-                            "correctly in Studio?", e);
-		        }
+	    // Create the site in the preview deployer
+        try {
+            success = previewDeployer.createTarget(siteId, searchEngine);
+        } catch (Exception e) {
+            success = false;
+            logger.error("Error while creating site: " + siteName + " ID: " + siteId +
+                    " from blueprint: " + blueprintName + ". Is the Preview Deployer running and configured " +
+                    "correctly in Studio?", e);
 
-		        if (!success) {
-			        logger.error("Error while creating site: " + siteName + " ID: " + siteId +
-                            " from blueprint: " + blueprintName + ". Is the Preview Deployer running and configured " +
-                            "correctly in Studio?");
-			        // Rollback search index creation
-			        try {
-				        searchService.deleteIndex(siteId);
-			        } catch (ServiceLayerException e) {
-				        logger.error("Error while rolling back/deleting site: " + siteName + " ID: " + siteId +
-					        " from blueprint: " + blueprintName + ". This means the site search index (core) is " +
-					        "still present, but the site is not successfully created.", e);
-			        }
-
-			        throw new PreviewDeployerUnreachableException("Error while creating site: " + siteName + " ID: "
-				        + siteId + " from blueprint: " + blueprintName + ". Is the Preview Deployer running and "
-				        + "configured correctly in Studio?");
-		        }
-	    }
+            throw new PreviewDeployerUnreachableException("Error while creating site: " + siteName + " ID: "
+                + siteId + " from blueprint: " + blueprintName + ". Is the Preview Deployer running and "
+                + "configured correctly in Studio?");
+        }
 
 	    if (success) {
 	 		try {
@@ -481,6 +452,7 @@ public class SiteServiceImpl implements SiteService {
 			    siteFeed.setPublishingStatusMessage(
 			            studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT));
 			    siteFeed.setSandboxBranch(sandboxBranch);
+			    siteFeed.setSearchEngine(searchEngine);
 			    siteFeedMapper.createSite(siteFeed);
 
                 insertCreateSiteAuditLog(siteId);
@@ -516,14 +488,6 @@ public class SiteServiceImpl implements SiteService {
 						" from blueprint: " + blueprintName + ". This means the site's preview deployer target is " +
 						"still present, but the site is not successfully created.");
 				}
-
-			    try {
-				    searchService.deleteIndex(siteId);
-			    } catch (ServiceLayerException ex) {
-				    logger.error("Error while rolling back/deleting site: " + siteName + " ID: " + siteId +
-					    " from blueprint: " + blueprintName + ". This means the site search index (core) is " +
-					    "still present, but the site is not successfully created.", ex);
-			    }
 
 			    throw new SiteCreationException("Error while creating site: " + siteName + " ID: " + siteId +
                         " from blueprint: " + blueprintName + ". Rolling back.");
@@ -707,7 +671,8 @@ public class SiteServiceImpl implements SiteService {
                                            String remoteBranch, boolean singleBranch, String authenticationType,
                                            String remoteUsername, String remotePassword, String remoteToken,
                                            String remotePrivateKey,
-                                           @ValidateStringParam(name = "createOption") String createOption)
+                                           @ValidateStringParam(name = "createOption") String createOption,
+                                           @ValidateStringParam(name = "searchEngine") String searchEngine)
             throws ServiceLayerException, InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
             RemoteRepositoryNotFoundException, RemoteRepositoryNotBareException, InvalidRemoteUrlException {
         if (exists(siteId)) {
@@ -733,14 +698,14 @@ public class SiteServiceImpl implements SiteService {
             case REMOTE_REPOSITORY_CREATE_OPTION_CLONE:
                 logger.debug("Clone from remote repository create option selected");
                 createSiteCloneRemote(siteId, sandboxBranch, description, remoteName, remoteUrl, remoteBranch, singleBranch,
-                        authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey);
+                        authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey, searchEngine);
                 break;
 
             case REMOTE_REPOSITORY_CREATE_OPTION_PUSH:
                 logger.debug("Push to remote repository create option selected");
                 createSitePushToRemote(siteId, sandboxBranch, description, blueprintName, remoteName, remoteUrl,
                         remoteBranch, authenticationType, remoteUsername, remotePassword, remoteToken,
-                        remotePrivateKey);
+                        remotePrivateKey, searchEngine);
                 break;
 
             default:
@@ -754,7 +719,7 @@ public class SiteServiceImpl implements SiteService {
     private void createSiteCloneRemote(String siteId, String sandboxBranch, String description, String remoteName,
                                        String remoteUrl, String remoteBranch, boolean singleBranch,
                                        String authenticationType, String remoteUsername, String remotePassword,
-                                       String remoteToken, String remotePrivateKey)
+                                       String remoteToken, String remotePrivateKey, String searchEngine)
             throws ServiceLayerException, InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
             RemoteRepositoryNotFoundException, InvalidRemoteUrlException {
         boolean success = true;
@@ -765,51 +730,22 @@ public class SiteServiceImpl implements SiteService {
         // TODO: SJ: What we need to do for site creation and the order of execution:
         // TODO: SJ: 1) search index, 2) deployer target, 3) git repo, 4) database, 5) kick deployer
 
-        // Attempt to create the search index for the new site
+
+        // Create the site in the preview deployer
         try {
-            logger.debug("Creating search index for site " + siteId);
-            searchService.createIndex(siteId);
-        } catch (ServiceLayerException e) {
+            logger.debug("Creating preview deployer target for site " + siteId);
+            success = previewDeployer.createTarget(siteId, searchEngine);
+        } catch (Exception e) {
             success = false;
-            logger.error("Error while creating site: " + siteId + " ID: " + siteId + " as clone from remote " +
-                    "repository: " + remoteName + " (" + remoteUrl + "). Is the Search running and configured " +
-                    "correctly in Studio?", e);
-            throw new SearchUnreachableException("Error while creating site: " + siteId + " ID: " + siteId + " as " +
-                    "clone from remote repository: " + remoteName + " (" + remoteUrl + "). Is the Search running and " +
-                    "configured correctly in Studio?");
+            logger.error("Error while creating site: " + siteId + " ID: " + siteId + " as clone from" +
+                    " remote repository: " + remoteName + " (" + remoteUrl + "). Is the Preview Deployer running " +
+                    "and configured correctly in Studio?", e);
+
+            throw new PreviewDeployerUnreachableException("Error while creating site: " + siteId + " ID: "
+                    + siteId + " as clone from remote repository: " + remoteName + " (" + remoteUrl + "). " +
+                    "Is the Preview Deployer running and configured correctly in Studio?");
         }
 
-        // Check if search index creation was successful, create the site in the preview deployer
-        if (success) {
-            try {
-                logger.debug("Creating preview deployer target for site " + siteId);
-                success = previewDeployer.createTarget(siteId);
-            } catch (Exception e) {
-                success = false;
-                logger.error("Error while creating site: " + siteId + " ID: " + siteId + " as clone from" +
-                        " remote repository: " + remoteName + " (" + remoteUrl + "). Is the Preview Deployer running " +
-                        "and configured correctly in Studio?", e);
-            }
-
-            if (!success) {
-                logger.error("Error while creating site: " + siteId + " ID: " + siteId + " as clone from " +
-                        "remote repository: " + remoteName + " (" + remoteUrl + "). Is the Preview Deployer running " +
-                        "and configured correctly in Studio?");
-                // Rollback search index creation
-                try {
-                    searchService.deleteIndex(siteId);
-                } catch (ServiceLayerException e) {
-                    logger.error("Error while rolling back/deleting site: " + siteId + " ID: " + siteId +
-                            " as clone from remote repository: " + remoteName + " (" + remoteUrl + ")." +
-                            " This means the site search index (core) is still present, but the site is not " +
-                            "successfully created.", e);
-                }
-
-                throw new PreviewDeployerUnreachableException("Error while creating site: " + siteId + " ID: "
-                        + siteId + " as clone from remote repository: " + remoteName + " (" + remoteUrl + "). " +
-                        "Is the Preview Deployer running and configured correctly in Studio?");
-            }
-        }
 
         if (success) {
             try {
@@ -832,15 +768,6 @@ public class SiteServiceImpl implements SiteService {
                             "successfully created.");
                 }
 
-                try {
-                    searchService.deleteIndex(siteId);
-                } catch (ServiceLayerException ex) {
-                    logger.error("Error while rolling back/deleting site: " + siteId + " ID: " + siteId +
-                            " as clone from remote repository: " + remoteName + " (" + remoteUrl + ")." +
-                            " This means the site search index (core) is still present, but the site is not " +
-                            "successfully created.", ex);
-                }
-
                 logger.error("Error while creating site: " + siteId + " ID: " + siteId + " as clone from " +
                         "remote repository: " + remoteName + " (" + remoteUrl + "). Rolling back.", e);
 
@@ -861,6 +788,7 @@ public class SiteServiceImpl implements SiteService {
                 siteFeed.setPublishingStatusMessage(
                         studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT));
                 siteFeed.setSandboxBranch(sandboxBranch);
+                siteFeed.setSearchEngine(searchEngine);
                 siteFeedMapper.createSite(siteFeed);
 
                 insertCreateSiteAuditLog(siteId);
@@ -903,7 +831,7 @@ public class SiteServiceImpl implements SiteService {
     private void createSitePushToRemote(String siteId, String sandboxBranch, String description, String blueprintName,
                                         String remoteName, String remoteUrl, String remoteBranch,
                                         String authenticationType, String remoteUsername, String remotePassword,
-                                        String remoteToken, String remotePrivateKey)
+                                        String remoteToken, String remotePrivateKey, String searchEngine)
             throws ServiceLayerException, InvalidRemoteRepositoryCredentialsException, InvalidRemoteRepositoryException,
             RemoteRepositoryNotFoundException, RemoteRepositoryNotBareException, InvalidRemoteUrlException {
         if (exists(siteId)) {
@@ -921,45 +849,19 @@ public class SiteServiceImpl implements SiteService {
         // TODO: SJ: What we need to do for site creation and the order of execution:
         // TODO: SJ: 1) search index, 2) deployer target, 3) git repo, 4) database, 5) kick deployer
 
-        // Attempt to create the search index for the new site
+
+        // Create the site in the preview deployer
         try {
-            logger.debug("Creating search index for site " + siteId);
-            searchService.createIndex(siteId);
-        } catch (ServiceLayerException e) {
+            logger.debug("Creating preview deployer target for site " + siteId);
+            success = previewDeployer.createTarget(siteId, searchEngine);
+        } catch (Exception e) {
             success = false;
             logger.error("Error while creating site: " + siteId + " ID: " + siteId + " from blueprint: " +
-                    blueprintName + ". Is the Search running and configured correctly in Studio?", e);
-            throw new SearchUnreachableException("Error while creating site: " + siteId + " ID: " + siteId + " from"
-                    + " blueprint: " + blueprintName + ". Is the Search running and configured correctly in Studio?");
-        }
+                    blueprintName + ". Is the Preview Deployer running and configured correctly in Studio?", e);
 
-        // Check if search index creation was successful, create the site in the preview deployer
-        if (success) {
-            try {
-                logger.debug("Creating preview deployer target for site " + siteId);
-                success = previewDeployer.createTarget(siteId);
-            } catch (Exception e) {
-                success = false;
-                logger.error("Error while creating site: " + siteId + " ID: " + siteId + " from blueprint: " +
-                        blueprintName + ". Is the Preview Deployer running and configured correctly in Studio?", e);
-            }
-
-            if (!success) {
-                logger.error("Error while creating site: " + siteId + " ID: " + siteId + " from blueprint: " +
-                        blueprintName + ". Is the Preview Deployer running and configured correctly in Studio?");
-                // Rollback search index creation
-                try {
-                    searchService.deleteIndex(siteId);
-                } catch (ServiceLayerException e) {
-                    logger.error("Error while rolling back/deleting site: " + siteId + " ID: " + siteId +
-                            " from blueprint: " + blueprintName + ". This means the site search index (core) is " +
-                            "still present, but the site is not successfully created.", e);
-                }
-
-                throw new PreviewDeployerUnreachableException("Error while creating site: " + siteId + " ID: "
-                        + siteId + " from blueprint: " + blueprintName + ". Is the Preview Deployer running and "
-                        + "configured correctly in Studio?");
-            }
+            throw new PreviewDeployerUnreachableException("Error while creating site: " + siteId + " ID: "
+                    + siteId + " from blueprint: " + blueprintName + ". Is the Preview Deployer running and "
+                    + "configured correctly in Studio?");
         }
 
         if (success) {
@@ -979,14 +881,6 @@ public class SiteServiceImpl implements SiteService {
                     logger.error("Error while rolling back/deleting site: " + siteId + " ID: " + siteId +
                             " from blueprint: " + blueprintName + ". This means the site's preview deployer target is " +
                             "still present, but the site is not successfully created.");
-                }
-
-                try {
-                    searchService.deleteIndex(siteId);
-                } catch (ServiceLayerException ex) {
-                    logger.error("Error while rolling back/deleting site: " + siteId + " ID: " + siteId +
-                            " from blueprint: " + blueprintName + ". This means the site search index (core) is " +
-                            "still present, but the site is not successfully created.", ex);
                 }
 
                 throw new SiteCreationException("Error while creating site: " + siteId + " ID: " + siteId +
@@ -1021,14 +915,6 @@ public class SiteServiceImpl implements SiteService {
                                 " target is still present, but the site is not successfully created.");
                     }
 
-                    try {
-                        searchService.deleteIndex(siteId);
-                    } catch (ServiceLayerException ex) {
-                        logger.error("Error while rolling back/deleting site: " + siteId + " ID: " + siteId +
-                                " from blueprint: " + blueprintName + ". This means the site search index (core) is " +
-                                "still present, but the site is not successfully created.", ex);
-                    }
-
                     throw e;
                 }
             }
@@ -1044,6 +930,7 @@ public class SiteServiceImpl implements SiteService {
                 siteFeed.setPublishingStatusMessage(
                         studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT));
                 siteFeed.setSandboxBranch(sandboxBranch);
+                siteFeed.setSearchEngine(searchEngine);
                 siteFeedMapper.createSite(siteFeed);
 
                 insertCreateSiteAuditLog(siteId);
@@ -1085,14 +972,6 @@ public class SiteServiceImpl implements SiteService {
                             "still present, but the site is not successfully created.");
                 }
 
-                try {
-                    searchService.deleteIndex(siteId);
-                } catch (ServiceLayerException ex) {
-                    logger.error("Error while rolling back/deleting site: " + siteId + " ID: " + siteId +
-                            " from blueprint: " + blueprintName + ". This means the site search index (core) is " +
-                            "still present, but the site is not successfully created.", ex);
-                }
-
                 throw new SiteCreationException("Error while creating site: " + siteId + " ID: " + siteId +
                         " from blueprint: " + blueprintName + ". Rolling back.");
             }
@@ -1126,13 +1005,6 @@ public class SiteServiceImpl implements SiteService {
         } catch (SiteNotFoundException e) {
             success = false;
             logger.error("Failed to stop publishing for site:" + siteId, e);
-        }
-        try {
-	        logger.debug("Deleting search index");
-	        searchService.deleteIndex(siteId);
-        } catch(Exception e) {
-	        success = false;
-	        logger.error("Failed to delete search index for site:" + siteId, e);
         }
 
 		try {
@@ -1980,10 +1852,6 @@ public class SiteServiceImpl implements SiteService {
 	}
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
 	    this.studioConfiguration = studioConfiguration;
-	}
-
-    public void setSearchService(SearchService searchService) {
-	    this.searchService = searchService;
 	}
 
     public EventService getEventService() {

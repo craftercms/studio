@@ -1,6 +1,5 @@
 /*
- * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2017 Crafter Software Corporation.
+ * Copyright (C) 2007-2019 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,7 +24,7 @@ public interface PreviewDeployer {
 
     void onPreviewSync(PreviewEventContext context);
 
-    boolean createTarget(String site);
+    boolean createTarget(String site, String searchEngine);
 
     boolean deleteTarget(String site);
 }

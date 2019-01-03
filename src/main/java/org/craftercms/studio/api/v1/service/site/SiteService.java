@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
+ * Copyright (C) 2007-2019 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,6 @@ package org.craftercms.studio.api.v1.service.site;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.BlueprintNotFoundException;
 import org.craftercms.studio.api.v1.exception.PreviewDeployerUnreachableException;
-import org.craftercms.studio.api.v1.exception.SearchUnreachableException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.SiteCreationException;
@@ -104,32 +103,41 @@ public interface SiteService {
 
     /**
      * Create a new site based on an existing blueprint
-     * @param blueprintName
-     * @param siteName
-     * @param siteId
-     * @param desc
+     * @param blueprintName blueprint name to create site
+     * @param siteName site name
+     * @param siteId site identifier
+     * @param desc description
+     * @param searchEngine search engine for site to be used
      */
     void createSiteFromBlueprint(String blueprintName, String siteName, String siteId, String sandboxBranch,
-                                 String desc)
+                                 String desc, String searchEngine)
             throws SiteAlreadyExistsException, SiteCreationException, PreviewDeployerUnreachableException,
-            SearchUnreachableException, BlueprintNotFoundException;
+            BlueprintNotFoundException;
 
     /**
      * Create a new site with remote option (clone from remote or push to remote repository)
      *
-     * @param siteId
-     * @param description
-     * @param blueprintName
-     * @param remoteName
-     * @param remoteUrl
-     * @param remoteUsername
-     * @param remotePassword
-     * @param createOption
+     * @param siteId site identifier
+     * @param sandboxBranch sandbox branch name
+     * @param description description
+     * @param blueprintName name of the blueprint to create site
+     * @param remoteName remote repository name
+     * @param remoteUrl remote repository url
+     * @param remoteBranch remote repository branch to create site from
+     * @param singleBranch clone single branch if true, otherwise clone whole repo
+     * @param authenticationType remote repository authentication type
+     * @param remoteUsername remote repository username to use for authentication
+     * @param remotePassword remote repository username to use for authentication
+     * @param remoteToken remote repository username to use for authentication
+     * @param remotePrivateKey remote repository username to use for authentication
+     * @param createOption remote repository username to use for authentication
+     * @param searchEngine search engine for site to be used
      */
     void createSiteWithRemoteOption(String siteId, String sandboxBranch, String description, String blueprintName,
                                     String remoteName, String remoteUrl, String remoteBranch, boolean singleBranch,
                                     String authenticationType, String remoteUsername, String remotePassword,
-                                    String remoteToken, String remotePrivateKey, String createOption)
+                                    String remoteToken, String remotePrivateKey, String createOption,
+                                    String searchEngine)
             throws ServiceLayerException, InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
             RemoteRepositoryNotFoundException, RemoteRepositoryNotBareException, InvalidRemoteUrlException;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
+ * Copyright (C) 2007-2019 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,7 +29,8 @@ import scripts.api.SiteServices;
 import groovy.json.JsonSlurper
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOTE_REPOSITORY_CREATE_OPTION_CLONE
-import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOTE_REPOSITORY_CREATE_OPTION_PUSH;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOTE_REPOSITORY_CREATE_OPTION_PUSH
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SEARCH_ENGINE_ELASTIC_SEARCH;
 
 def studioConfiguration = applicationContext.get("studioConfiguration")
 def result = [:]
@@ -64,6 +65,10 @@ try {
     def remoteToken = parsedReq.remote_token
     def remotePrivateKey = parsedReq.remote_private_key
     def createOption = parsedReq.create_option
+    def searchEngine = parsedReq.search_engine
+    if (searchEngine == null) {
+        searchEngine = SEARCH_ENGINE_ELASTIC_SEARCH
+    }
 
 /** Validate Parameters */
     def invalidParams = false;
@@ -204,7 +209,7 @@ try {
         def context = SiteServices.createContext(applicationContext, request)
         try {
             if (!useRemote) {
-                SiteServices.createSiteFromBlueprint(context, blueprint, siteId, siteId, sandboxBranch, description)
+                SiteServices.createSiteFromBlueprint(context, blueprint, siteId, siteId, sandboxBranch, description, searchEngine)
                 result.message = "OK"
                 def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") +
                         "/api/1/services/api/1/site/get.json?site_id=" + siteId
@@ -213,7 +218,7 @@ try {
             } else {
                 SiteServices.createSiteWithRemoteOption(context, siteId, sandboxBranch, description, blueprint, remoteName,
                         remoteUrl, remoteBranch, singleBranch, authenticationType, remoteUsername, remotePassword,
-                        remoteToken, remotePrivateKey, createOption)
+                        remoteToken, remotePrivateKey, createOption, searchEngine)
                 result.message = "OK"
                 def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") +
                         "/api/1/services/api/1/site/get.json?site_id=" + siteId

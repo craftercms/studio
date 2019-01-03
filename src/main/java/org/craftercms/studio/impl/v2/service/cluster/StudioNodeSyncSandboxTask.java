@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
+ * Copyright (C) 2007-2019 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -109,39 +109,19 @@ public class StudioNodeSyncSandboxTask extends StudioNodeSyncBaseTask {
         return syncRequired;
     }
 
-    protected boolean createSiteInternal(String siteId) {
+    protected boolean createSiteInternal(String siteId, String searchEngine) {
         boolean result = true;
-        logger.debug("Create search index for site " + siteId);
+
+        logger.debug("Create preview deployer target site " + siteId);
         try {
-            searchService.createIndex(siteId);
-            result = true;
-        } catch (ServiceLayerException e) {
-            logger.error("Error creating search index on cluster node for site " + siteId + "." +
-                    " Is the Search running and configured correctly in Studio?", e);
+            result = previewDeployer.createTarget(siteId, searchEngine);
+        } catch (Exception e) {
             result = false;
+            logger.error("Error while creating preview deployer target on cluster node for site : "
+                    + siteId + ". Is the Preview Deployer running and configured correctly in " +
+                    "Studio cluster node?", e);
         }
 
-        if (result) {
-            logger.debug("Create preview deployer target site " + siteId);
-            try {
-                result = previewDeployer.createTarget(siteId);
-            } catch (Exception e) {
-                result = false;
-                logger.error("Error while creating preview deployer target on cluster node for site : "
-                        + siteId + ". Is the Preview Deployer running and configured correctly in " +
-                        "Studio cluster node?", e);
-            }
-
-            if (!result) {
-                // Rollback search index creation
-                try {
-                    searchService.deleteIndex(siteId);
-                } catch (ServiceLayerException e) {
-                    logger.error("Error while rolling back/deleting site: " + siteId + ". This means the site search " +
-                            "index (core) is still present, but the site is not successfully created.", e);
-                }
-            }
-        }
 
         if (result) {
             try {
@@ -162,13 +142,6 @@ public class StudioNodeSyncSandboxTask extends StudioNodeSyncBaseTask {
                     logger.error("Error while rolling back/deleting site: " + siteId + " ID: " + siteId +
                             " on cluster node. This means the site's preview deployer target is still " +
                             "present, but the site is not successfully created.");
-                }
-
-                try {
-                    searchService.deleteIndex(siteId);
-                } catch (ServiceLayerException e) {
-                    logger.error("Error while rolling back/deleting site: " + siteId + ". This means the site search " +
-                            "index (core) is still present, but the site is not successfully created.", e);
                 }
             }
         }
