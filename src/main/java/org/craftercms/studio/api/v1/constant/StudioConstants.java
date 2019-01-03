@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
+ * Copyright (C) 2007-2019 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -184,4 +184,10 @@ package org.craftercms.studio.api.v1.constant;
     String CLUSTER_MEMBER_PASSWORD = "password";
     String CLUSTER_MEMBER_TOKEN = "token";
     String CLUSTER_MEMBER_PRIVATE_KEY = "privateKey";
+
+    /**
+     * Search Engines
+     */
+    String SEARCH_ENGINE_ELASTIC_SEARCH = "ElasticSearch";
+    String SEARCH_ENGINE_CRAFTER_SEARCH = "CrafterSearch";
 }

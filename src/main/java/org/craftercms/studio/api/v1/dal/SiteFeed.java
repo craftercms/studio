@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
+ * Copyright (C) 2007-2019 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,6 +31,7 @@ public class SiteFeed {
     protected String publishingStatusMessage;
     protected String lastVerifiedGitlogCommitId;
     protected String sandboxBranch;
+    protected String searchEngine;
 
     public long getId() {
         return id;
@@ -118,5 +119,13 @@ public class SiteFeed {
 
     public void setSandboxBranch(String sandboxBranch) {
         this.sandboxBranch = sandboxBranch;
+    }
+
+    public String getSearchEngine() {
+        return searchEngine;
+    }
+
+    public void setSearchEngine(String searchEngine) {
+        this.searchEngine = searchEngine;
     }
 }

@@ -1,6 +1,5 @@
 /*
- * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2016 Crafter Software Corporation.
+ * Copyright (C) 2007-2019 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,6 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 
 package org.craftercms.studio.impl.v1.deployment;
@@ -45,7 +45,14 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.*;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.PREVIEW_DEFAULT_CREATE_TARGET_URL;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.PREVIEW_DEFAULT_DELETE_TARGET_URL;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.PREVIEW_DEFAULT_PREVIEW_DEPLOYER_URL;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.PREVIEW_DISABLE_DEPLOY_CRON;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.PREVIEW_ENGINE_URL;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.PREVIEW_REPLACE;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.PREVIEW_REPO_URL;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.PREVIEW_TEMPLATE_NAME;
 
 public class PreviewDeployerImpl implements PreviewDeployer {
 
@@ -117,12 +124,12 @@ public class PreviewDeployerImpl implements PreviewDeployer {
 
     @Override
     @SuppressWarnings("deprecation")
-    public boolean createTarget(String site) {
+    public boolean createTarget(String site, String searchEngine) {
         boolean toReturn = true;
         String requestUrl = getCreateTargetUrl();
 
         HttpPost postRequest = new HttpPost(requestUrl);
-        String requestBody = getCreateTargetRequestBody(site);
+        String requestBody = getCreateTargetRequestBody(site, searchEngine);
         HttpEntity requestEntity = new StringEntity(requestBody, ContentType.APPLICATION_JSON);
         postRequest.setEntity(requestEntity);
 
@@ -148,18 +155,21 @@ public class PreviewDeployerImpl implements PreviewDeployer {
         return toReturn;
     }
 
-    private String getCreateTargetRequestBody(String site) {
+    private String getCreateTargetRequestBody(String site, String searchEngine) {
         CreateTargetRequestBody requestBody = new CreateTargetRequestBody();
         requestBody.setEnvironment("preview");
         requestBody.setSiteName(site);
         requestBody.setReplace(Boolean.parseBoolean(studioConfiguration.getProperty(PREVIEW_REPLACE)));
-        requestBody.setDisableDeployCron(Boolean.parseBoolean(studioConfiguration.getProperty(PREVIEW_DISABLE_DEPLOY_CRON)));
+        requestBody.setDisableDeployCron(
+                Boolean.parseBoolean(studioConfiguration.getProperty(PREVIEW_DISABLE_DEPLOY_CRON)));
         requestBody.setTemplateName(studioConfiguration.getProperty(PREVIEW_TEMPLATE_NAME));
-        String repoUrl = studioConfiguration.getProperty(PREVIEW_REPO_URL).replaceAll(StudioConstants.CONFIG_SITENAME_VARIABLE, site);
+        String repoUrl = studioConfiguration
+                .getProperty(PREVIEW_REPO_URL).replaceAll(StudioConstants.CONFIG_SITENAME_VARIABLE, site);
         Path repoUrlPath = Paths.get(repoUrl);
         repoUrl = repoUrlPath.normalize().toAbsolutePath().toString();
         requestBody.setRepoUrl(repoUrl);
         requestBody.setEngineUrl(studioConfiguration.getProperty(PREVIEW_ENGINE_URL));
+        requestBody.setSearchEngine(searchEngine);
         return requestBody.toJson();
     }
 
@@ -216,6 +226,7 @@ public class PreviewDeployerImpl implements PreviewDeployer {
         protected String templateName;
         protected String repoUrl;
         protected String engineUrl;
+        protected String searchEngine;
 
         public String toJson() {
             JSONObject jsonObject = new JSONObject();
@@ -226,29 +237,73 @@ public class PreviewDeployerImpl implements PreviewDeployer {
             jsonObject.put("template_name", this.templateName);
             jsonObject.put("repo_url", this.repoUrl);
             jsonObject.put("engine_url", this.engineUrl);
+            jsonObject.put("search_engine", this.searchEngine);
             return  jsonObject.toString();
         }
 
-        public String getEnvironment() { return environment; }
-        public void setEnvironment(String environment) { this.environment = environment; }
+        public String getEnvironment() {
+            return environment;
+        }
 
-        public String getSiteName() { return siteName; }
-        public void setSiteName(String siteName) { this.siteName = siteName; }
+        public void setEnvironment(String environment) {
+            this.environment = environment;
+        }
 
-        public boolean isReplace() { return replace; }
-        public void setReplace(boolean replace) { this.replace = replace; }
+        public String getSiteName() {
+            return siteName;
+        }
 
-        public boolean isDisableDeployCron() { return disableDeployCron; }
-        public void setDisableDeployCron(boolean disableDeployCron) { this.disableDeployCron = disableDeployCron; }
+        public void setSiteName(String siteName) {
+            this.siteName = siteName;
+        }
 
-        public String getTemplateName() { return templateName; }
-        public void setTemplateName(String templateName) { this.templateName = templateName; }
+        public boolean isReplace() {
+            return replace;
+        }
 
-        public String getRepoUrl() { return repoUrl; }
-        public void setRepoUrl(String repoUrl) { this.repoUrl = repoUrl; }
+        public void setReplace(boolean replace) {
+            this.replace = replace;
+        }
 
-        public String getEngineUrl() { return engineUrl; }
-        public void setEngineUrl(String engineUrl) { this.engineUrl = engineUrl; }
+        public boolean isDisableDeployCron() {
+            return disableDeployCron;
+        }
+
+        public void setDisableDeployCron(boolean disableDeployCron) {
+            this.disableDeployCron = disableDeployCron;
+        }
+
+        public String getTemplateName() {
+            return templateName;
+        }
+
+        public void setTemplateName(String templateName) {
+            this.templateName = templateName;
+        }
+
+        public String getRepoUrl() {
+            return repoUrl;
+        }
+
+        public void setRepoUrl(String repoUrl) {
+            this.repoUrl = repoUrl;
+        }
+
+        public String getEngineUrl() {
+            return engineUrl;
+        }
+
+        public void setEngineUrl(String engineUrl) {
+            this.engineUrl = engineUrl;
+        }
+
+        public String getSearchEngine() {
+            return searchEngine;
+        }
+
+        public void setSearchEngine(String searchEngine) {
+            this.searchEngine = searchEngine;
+        }
     }
 
     protected class DeployTargetRequestBody {

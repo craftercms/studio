@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
+  ~ Copyright (C) 2007-2019 Crafter Software Corporation. All rights reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -109,7 +109,6 @@
         <property name="rebuildRepositoryMetadata" ref="studioRebuildRepositoryMetadata"/>
         <property name="syncDatabaseWithRepository" ref="studioSyncDatabaseWithRepository" />
         <property name="studioConfiguration" ref="studioConfiguration"/>
-        <property name="searchService" ref="searchService" />
         <property name="eventService" ref="studioEventService"/>
         <property name="previewDeployer" ref="previewDeployer"/>
         <property name="entitlementValidator" ref="crafter.entitlementValidator"/>
@@ -125,10 +124,6 @@
         <property name="contentService" ref="cstudioContentService"/>
         <property name="objectStateService" ref="cstudioObjectStateService"/>
         <property name="dmPublishService" ref="cstudioDmPublishService"/>
-        <property name="studioConfiguration" ref="studioConfiguration" />
-    </bean>
-
-    <bean id="searchService" class="org.craftercms.studio.impl.v1.service.search.SearchServiceImpl">
         <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
@@ -464,7 +459,6 @@
         <property name="taskExecutor" ref="studioNodeSyncTaskExecutor" />
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="previewDeployer" ref="previewDeployer" />
-        <property name="searchService" ref="searchService" />
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="contentRepository" ref="contentRepository" />
         <property name="servicesConfig" ref="cstudioServicesConfig" />
@@ -477,7 +471,6 @@
         <property name="taskExecutor" ref="studioNodeSyncTaskExecutor" />
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="previewDeployer" ref="previewDeployer" />
-        <property name="searchService" ref="searchService" />
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="contentRepository" ref="contentRepository" />
         <property name="servicesConfig" ref="cstudioServicesConfig" />
