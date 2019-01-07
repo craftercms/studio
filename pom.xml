@@ -37,7 +37,7 @@
         <box.sdk.version>2.23.0</box.sdk.version>
         <tinify.version>1.5.1</tinify.version>
         <mariadb4j.version>2.2.7</mariadb4j.version>
-        <jackson.version>2.9.7</jackson.version>
+        <jackson.version>2.9.8</jackson.version>
         <bouncycastle.version>1.60</bouncycastle.version>
         <sardine.version>5.8</sardine.version>
         <saxon.version>9.8.0-14</saxon.version>
