@@ -7,13 +7,13 @@ def categories = params.categories?.split(",")
 def tags = params.tags?.split(",")
 def q = params.q
 
-def helper = new ProductSearchHelper(searchService, siteItemService)
+def helper = new ProductSearchHelper(elasticSearch, siteItemService)
 
 if(q) {
 	helper.query("description_html: $q")
 }
 if(company) {
-	helper.filter("company.item.key: $company")
+	helper.filter("company.item.component.objectId: $company")
 }
 if(categories) {
 	helper.filter("categories.item.key: ( ${categories.join(' AND ')} )")
