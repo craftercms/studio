@@ -207,6 +207,9 @@ public interface StudioConfiguration {
     String PREVIEW_REPO_URL = "studio.preview.repoUrl";
     String PREVIEW_ENGINE_URL = "studio.preview.engineUrl";
 
+    /** Authoring Deployer **/
+    String AUTHORING_TEMPLATE_NAME = "studio.authoring.templateName";
+
     /** Preview Search **/
     String PREVIEW_SEARCH_CREATE_URL = "studio.preview.search.createUrl";
     String PREVIEW_SEARCH_DELETE_URL = "studio.preview.search.deleteUrl";

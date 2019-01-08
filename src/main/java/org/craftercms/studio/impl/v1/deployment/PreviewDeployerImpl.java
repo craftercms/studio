@@ -44,7 +44,9 @@ import java.lang.reflect.Method;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SEARCH_ENGINE_ELASTIC_SEARCH;
 import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.AUTHORING_TEMPLATE_NAME;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.PREVIEW_DEFAULT_CREATE_TARGET_URL;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.PREVIEW_DEFAULT_DELETE_TARGET_URL;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.PREVIEW_DEFAULT_PREVIEW_DEPLOYER_URL;
@@ -81,11 +83,15 @@ public class PreviewDeployerImpl implements PreviewDeployer {
 
     @EventListener(EVENT_PREVIEW_SYNC)
     public void onPreviewSync(PreviewEventContext context) {
-        String site = context.getSite();
-        String requestUrl = getDeployTargetUrl(site);
+        doDeployment(context.getSite(), ENV_AUTHORING, context.isWaitTillDeploymentIsDone());
+        doDeployment(context.getSite(), ENV_PREVIEW, context.isWaitTillDeploymentIsDone());
+    }
+
+    protected void doDeployment(String site, String environment, boolean waitTillDone) {
+        String requestUrl = getDeployTargetUrl(site, environment);
         HttpPost postRequest = new HttpPost(requestUrl);
 
-        if (context.isWaitTillDeploymentIsDone()) {
+        if (waitTillDone) {
             String requestBody = getDeployTargetRequestBody(true);
             HttpEntity requestEntity = new StringEntity(requestBody, ContentType.APPLICATION_JSON);
             postRequest.setEntity(requestEntity);
@@ -97,7 +103,7 @@ public class PreviewDeployerImpl implements PreviewDeployer {
             HttpStatus httpStatus = HttpStatus.valueOf(response.getStatusLine().getStatusCode());
             if (!httpStatus.is2xxSuccessful()) {
                 logger.error("Preview sync request for site " + site + " returned status " + httpStatus + " (" +
-                             httpStatus.getReasonPhrase() + ")");
+                    httpStatus.getReasonPhrase() + ")");
             }
         } catch (IOException e) {
             logger.error("Error while sending preview sync request for site " + site, e);
@@ -106,12 +112,13 @@ public class PreviewDeployerImpl implements PreviewDeployer {
         }
     }
 
-    private String getDeployTargetUrl(String site) {
+    private String getDeployTargetUrl(String site, String environment) {
         // TODO: DB: implement deployer agent configuration for preview
         // TODO: SJ: Pseudo code: check if site configuration has a Preview Deployer URL, if so, return it, if not
         // TODO: SJ: return default from studioConfiguration.getProperty(PREVIEW_DEFAULT_PREVIEW_DEPLOYER_URL);
-        String toRet = studioConfiguration.getProperty(PREVIEW_DEFAULT_PREVIEW_DEPLOYER_URL).replaceAll(StudioConstants
-            .CONFIG_SITENAME_VARIABLE, site);
+        String toRet = studioConfiguration.getProperty(PREVIEW_DEFAULT_PREVIEW_DEPLOYER_URL)
+                        .replaceAll(StudioConstants.CONFIG_SITENAME_VARIABLE, site)
+                        .replaceAll(StudioConstants.CONFIG_SITEENV_VARIABLE, environment);
         return toRet;
     }
 
@@ -125,11 +132,17 @@ public class PreviewDeployerImpl implements PreviewDeployer {
     @Override
     @SuppressWarnings("deprecation")
     public boolean createTarget(String site, String searchEngine) {
+        return doCreateTarget(site, ENV_AUTHORING, SEARCH_ENGINE_ELASTIC_SEARCH,
+            studioConfiguration.getProperty(AUTHORING_TEMPLATE_NAME)) &&
+            doCreateTarget(site, ENV_PREVIEW, searchEngine, studioConfiguration.getProperty(PREVIEW_TEMPLATE_NAME));
+    }
+
+    protected boolean doCreateTarget(String site, String environment, String searchEngine, String template) {
         boolean toReturn = true;
         String requestUrl = getCreateTargetUrl();
 
         HttpPost postRequest = new HttpPost(requestUrl);
-        String requestBody = getCreateTargetRequestBody(site, searchEngine);
+        String requestBody = getCreateTargetRequestBody(site, environment, searchEngine, template);
         HttpEntity requestEntity = new StringEntity(requestBody, ContentType.APPLICATION_JSON);
         postRequest.setEntity(requestEntity);
 
@@ -155,14 +168,14 @@ public class PreviewDeployerImpl implements PreviewDeployer {
         return toReturn;
     }
 
-    private String getCreateTargetRequestBody(String site, String searchEngine) {
+    private String getCreateTargetRequestBody(String site, String environment, String searchEngine, String template) {
         CreateTargetRequestBody requestBody = new CreateTargetRequestBody();
-        requestBody.setEnvironment("preview");
+        requestBody.setEnvironment(environment);
         requestBody.setSiteName(site);
         requestBody.setReplace(Boolean.parseBoolean(studioConfiguration.getProperty(PREVIEW_REPLACE)));
         requestBody.setDisableDeployCron(
                 Boolean.parseBoolean(studioConfiguration.getProperty(PREVIEW_DISABLE_DEPLOY_CRON)));
-        requestBody.setTemplateName(studioConfiguration.getProperty(PREVIEW_TEMPLATE_NAME));
+        requestBody.setTemplateName(template);
         String repoUrl = studioConfiguration
                 .getProperty(PREVIEW_REPO_URL).replaceAll(StudioConstants.CONFIG_SITENAME_VARIABLE, site);
         Path repoUrlPath = Paths.get(repoUrl);
@@ -175,8 +188,12 @@ public class PreviewDeployerImpl implements PreviewDeployer {
 
     @Override
     public boolean deleteTarget(String site) {
+        return doDeleteTarget(site, ENV_AUTHORING) && doDeleteTarget(site, ENV_PREVIEW);
+    }
+
+    protected boolean doDeleteTarget(String site, String environment) {
         boolean toReturn = true;
-        String requestUrl = getDeleteTargetUrl(site);
+        String requestUrl = getDeleteTargetUrl(site, environment);
 
         HttpPost postRequest = new HttpPost(requestUrl);
 
@@ -194,13 +211,13 @@ public class PreviewDeployerImpl implements PreviewDeployer {
         return toReturn;
     }
 
-    private String getDeleteTargetUrl(String site) {
+    private String getDeleteTargetUrl(String site, String environment) {
         // TODO: DB: implement deployer agent configuration for preview
         // TODO: SJ: Pseudo code: check if site configuration has a Preview Deployer URL, if so, return it, if not
         // TODO: SJ: return default from studioConfiguration.getProperty(PREVIEW_DEFAULT_DELETE_TARGET_URL);
         String url = new String(studioConfiguration.getProperty(PREVIEW_DEFAULT_DELETE_TARGET_URL));
         url = url.replaceAll(StudioConstants.CONFIG_SITENAME_VARIABLE, site);
-        url = url.replaceAll(StudioConstants.CONFIG_SITEENV_VARIABLE, "preview");
+        url = url.replaceAll(StudioConstants.CONFIG_SITEENV_VARIABLE, environment);
         return url;
     }
 
