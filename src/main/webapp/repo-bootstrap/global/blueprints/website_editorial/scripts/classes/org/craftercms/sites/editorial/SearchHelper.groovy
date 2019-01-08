@@ -105,7 +105,6 @@ class SearchHelper {
             article.url = urlTransformationService.transform("storeUrlToRenderUrl", doc.localId)
 
         if (hit.highlightFields) {
-          println hit.highlightFields.values()*.getFragments().flatten()*.string()
           def articleHighlights = hit.highlightFields.values()*.getFragments().flatten()*.string()
           if (articleHighlights) {
               def highlightValues = []

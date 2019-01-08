@@ -21,9 +21,9 @@ class SuggestionHelper {
 	def getSuggestions(String term) {
 		def queryStr = "${contentTypeQuery} AND ${searchField}:*${term}*"
 		def builder = new SearchSourceBuilder()
-      .query(QueryBuilders.queryStringQuery(queryStr))
-    
-    def result = elasticSearch.search(new SearchRequest().source(builder))
+			.query(QueryBuilders.queryStringQuery(queryStr))
+
+		def result = elasticSearch.search(new SearchRequest().source(builder))
 
 		return process(result)
 	}
