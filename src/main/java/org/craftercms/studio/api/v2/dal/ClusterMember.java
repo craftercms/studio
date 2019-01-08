@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
+ * Copyright (C) 2007-2019 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,16 +20,20 @@ package org.craftercms.studio.api.v2.dal;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import java.time.ZonedDateTime;
+
 public class ClusterMember {
 
     public enum State {
         REGISTRATION_INCOMPLETE,
-        ACTIVE
+        ACTIVE,
+        INACTIVE
     }
 
     private long id;
     private String localAddress;
     private State state;
+    private ZonedDateTime heartbeat;
     private String gitUrl;
     private String gitRemoteName;
     private String gitAuthType;
@@ -60,6 +64,14 @@ public class ClusterMember {
 
     public void setState(State state) {
         this.state = state;
+    }
+
+    public ZonedDateTime getHeartbeat() {
+        return heartbeat;
+    }
+
+    public void setHeartbeat(ZonedDateTime heartbeat) {
+        this.heartbeat = heartbeat;
     }
 
     public String getGitUrl() {

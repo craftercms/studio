@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
+ * Copyright (C) 2007-2019 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -104,4 +104,31 @@ public interface ClusterDAO {
      * @return number of affected rows
      */
     int removeMemberByLocalAddress(Map params);
+
+    /**
+     * Update heartbeat for cluster node
+     *
+     * @param params Parameters for SQL query
+     *
+     * @return number of affected rows
+     */
+    int updateHeartbeat(Map params);
+
+    /**
+     * Get all members not being updating heartbeat for specified limit
+     *
+     * @param params Parameters for SQL query
+     * @return List of stale members
+     */
+    List<ClusterMember> getMembersWithStaleHeartbeat(Map params);
+
+    /**
+     * Get all inactive members not being updating heartbeat for specified limit
+     *
+     * @param params Parameters for SQL query
+     * @return List of inactive members
+     */
+    List<ClusterMember> getInactiveMembersWithStaleHeartbeat(Map params);
+
+
 }
