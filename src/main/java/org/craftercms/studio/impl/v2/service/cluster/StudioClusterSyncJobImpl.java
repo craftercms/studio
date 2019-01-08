@@ -21,7 +21,6 @@ package org.craftercms.studio.impl.v2.service.cluster;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
-import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.deployment.PreviewDeployer;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;

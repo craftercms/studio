@@ -59,12 +59,14 @@ public class StudioNodeHeartbeatJob implements Runnable {
 
     private void updateHeartbeat() {
         HierarchicalConfiguration<ImmutableNode> registrationData = getConfiguration();
-        String localAddress = registrationData.getString(CLUSTER_MEMBER_LOCAL_ADDRESS);
-        Map<String, String> params = new HashMap<String, String>();
-        params.put(CLUSTER_LOCAL_ADDRESS, localAddress);
-        params.put(CLUSTER_STATE, ClusterMember.State.ACTIVE.toString());
-        logger.debug("Update heartbeat for cluster member with local address: " + localAddress);
-        clusterDAO.updateHeartbeat(params);
+        if (registrationData != null && !registrationData.isEmpty()) {
+            String localAddress = registrationData.getString(CLUSTER_MEMBER_LOCAL_ADDRESS);
+            Map<String, String> params = new HashMap<String, String>();
+            params.put(CLUSTER_LOCAL_ADDRESS, localAddress);
+            params.put(CLUSTER_STATE, ClusterMember.State.ACTIVE.toString());
+            logger.debug("Update heartbeat for cluster member with local address: " + localAddress);
+            clusterDAO.updateHeartbeat(params);
+        }
     }
 
     private HierarchicalConfiguration<ImmutableNode> getConfiguration() {
