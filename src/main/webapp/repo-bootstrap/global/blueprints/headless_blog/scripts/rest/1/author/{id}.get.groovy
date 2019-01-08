@@ -2,7 +2,7 @@ import org.craftercms.blueprints.headless.AuthorSearchHelper
 
 def id = pathVars.id
 
-def authors = new AuthorSearchHelper(searchService, siteItemService)
+def authors = new AuthorSearchHelper(elasticSearch, siteItemService)
 						.query("objectId: $id")
 						.getItems()
 

@@ -5,10 +5,10 @@ import groovy.util.logging.Slf4j
 @Slf4j
 class AuthorSearchHelper extends SearchHelper {
 	
-	def AuthorSearchHelper(searchService, siteItemService) {
-		super(searchService, siteItemService)
+	def AuthorSearchHelper(elasticSearch, siteItemService) {
+		super(elasticSearch, siteItemService)
 		filter("content-type:\"/component/author\"")
-		sortBy("name_s desc")
+		sortBy("name_s", "desc")
 	}
 	
 	def processItem(doc) {

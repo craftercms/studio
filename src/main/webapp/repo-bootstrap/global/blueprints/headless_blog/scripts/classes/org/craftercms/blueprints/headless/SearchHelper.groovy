@@ -2,18 +2,26 @@ package org.craftercms.blueprints.headless
 
 import groovy.util.logging.Slf4j
 
+import org.elasticsearch.action.search.SearchRequest
+import org.elasticsearch.index.query.QueryBuilders
+import org.elasticsearch.search.builder.SearchSourceBuilder
+import org.elasticsearch.search.sort.FieldSortBuilder
+import org.elasticsearch.search.sort.SortOrder
+
 @Slf4j
 class SearchHelper {
 	
-	protected def searchService
+	protected def elasticSearch
 	protected def siteItemService
 	protected def queryStr = "*:*"
-	protected def query
+	protected def builder
+	protected def filters = []
+	protected def sort
 	
-	def SearchHelper(searchService, siteItemService) {
-		this.searchService = searchService
+	def SearchHelper(elasticSearch, siteItemService) {
+		this.elasticSearch = elasticSearch
 		this.siteItemService = siteItemService
-		query = searchService.createQuery()
+		builder = new SearchSourceBuilder()
 	}
 	
 	def query(String q) {
@@ -22,37 +30,47 @@ class SearchHelper {
 	}
 	
 	def filter(String fq) {
-		query.addFilterQuery(fq)
+		filters << fq
 		this
 	}
 	
-	def sortBy(String sort) {
-		query.addParam("sort", sort)
+	def sortBy(String field, String order) {
+		sort = new FieldSortBuilder(field).order(SortOrder.valueOf(order.toUpperCase()))
 		this
 	}
 	
 	def from(int start) {
-		query.setStart(start)
+		builder.from(start)
 		this
 	}
 	
 	def to(int rows) {
-		query.setRows(rows)
+		builder.size(rows)
 		this
 	}
 	
 	def getItems() {
-		query.setQuery(queryStr)
-		log.info("Running query: {}", query)
-		def results = searchService.search(query)
+		if(sort) {
+			builder.sort(sort)
+		}
+		def queryBuilder
+		if(filters) {
+			queryBuilder = QueryBuilders.boolQuery().must(QueryBuilders.queryStringQuery(queryStr))
+			filters.each{ filter -> queryBuilder.filter(QueryBuilders.queryStringQuery(filter)) }
+		} else {
+			queryBuilder = QueryBuilders.queryStringQuery(queryStr)
+		}
+		builder.query(queryBuilder)
+		log.info("Running query: {}", builder)
+		def results = elasticSearch.search(new SearchRequest().source(builder))
 		processResults(results)
 	}
 	
 	def processResults(results) {
 		def res = [:]
-		res.total = results.response.numFound
-		res.items = results.response.documents.collect { doc ->
-			processItem(doc)
+		res.total = results.hits.totalHits
+		res.items = results.hits.hits.collect { doc ->
+			processItem(doc.getSourceAsMap())
 		}
 		res
 	}
@@ -63,20 +81,18 @@ class SearchHelper {
 	}
 	
 	def getTaxonomyValues(doc, field) {
-		def keyField = "${field}.item.key"
-		def valField = "${field}.item.value_smv"
 		def values = []
-		if(doc[valField]) {
-			if(doc[valField] instanceof String) {
+		if(doc[field]?.item) {
+			if(doc[field].item instanceof Map) {
 				values << [
-					label: doc[valField],
-					value: doc[keyField]
+					label: doc[field].item.value_smv,
+					value: doc[field].item.key
 				]
 			} else {
-				for(def i = 0; i < doc[valField].size(); i++) {
+				doc[field].item.each { item ->
 					values << [
-						label: doc[valField][i],
-						value: doc[keyField][i]
+						label: item.value_smv,
+						value: item.key
 					]
 				}
 			}
