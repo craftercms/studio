@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
+ * Copyright (C) 2007-2019 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -83,6 +83,12 @@ public abstract class QueryParameterNames {
     public static final String CLUSTER_LOCAL_ADDRESS = "localAddress";
 
     public static final String CLUSTER_STATE = "state";
+
+    public static final String CLUSTER_INACTIVITY_LIMIT = "inactivityLimit";
+
+    public static final String CLUSTER_INACTIVE_STATE = "inactiveState";
+
+    public static final String CLUSTER_HEARTBEAT_STALE_LIMIT = "heartbeatStaleLimit";
 
     /* Publish request */
     // Environment

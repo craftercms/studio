@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
+ * Copyright (C) 2007-2019 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,6 +18,7 @@
 
 package org.craftercms.studio.impl.v2.service.cluster;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -29,20 +30,23 @@ import org.craftercms.studio.api.v2.dal.ClusterMember;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 
-import static org.craftercms.studio.api.v1.constant.StudioConstants.CLUSTER_MEMBER_LOCAL_ADDRESS;
-import static org.craftercms.studio.api.v1.util.StudioConfiguration.CLUSTERING_INACTIVITY_CHECK_TIME_LIMIT;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CLUSTERING_HEARTBEAT_STALE_TIME_LIMIT;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CLUSTERING_INACTIVITY_TIME_LIMIT;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CLUSTERING_NODE_REGISTRATION;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_LOCAL_ADDRESS;
+import static org.craftercms.studio.api.v2.dal.ClusterMember.State.INACTIVE;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_HEARTBEAT_STALE_LIMIT;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_INACTIVE_STATE;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_INACTIVITY_LIMIT;
 
 public class StudioNodeActivityCheckJob implements Runnable{
 
     private final static Logger logger = LoggerFactory.getLogger(StudioNodeActivityCheckJob.class);
 
     private StudioConfiguration studioConfiguration;
-    private ClusterDAO clusterDAO;
+    private ClusterDAO clusterDao;
 
     private final static ReentrantLock singleWorkerLock = new ReentrantLock();
 
@@ -50,8 +54,15 @@ public class StudioNodeActivityCheckJob implements Runnable{
     public void run() {
         if (singleWorkerLock.tryLock()) {
             try {
-                List<ClusterMember> inactiveMembers = getInactiveMembers();
-                updateInactiveMembersState(inactiveMembers);
+                List<ClusterMember> staleMembers = getMembersWithStaleHeartbeat();
+                if (CollectionUtils.isNotEmpty(staleMembers)) {
+                    setStaleMembersInactive(staleMembers);
+                }
+
+                List<ClusterMember> inactiveMembersToRemove = getInactiveMembersForRemoval();
+                if (CollectionUtils.isNotEmpty(inactiveMembersToRemove)) {
+                    removeInactiveMembers(inactiveMembersToRemove);
+                }
             } finally {
                 singleWorkerLock.unlock();
             }
@@ -60,14 +71,37 @@ public class StudioNodeActivityCheckJob implements Runnable{
         }
     }
 
-    private List<ClusterMember> getInactiveMembers() {
+    private void setStaleMembersInactive(List<ClusterMember> staleMembers) {
+        staleMembers.forEach(member -> {
+            member.setState(INACTIVE);
+            clusterDao.updateMember(member);
+        });
+    }
+
+    private List<ClusterMember> getMembersWithStaleHeartbeat() {
         HierarchicalConfiguration<ImmutableNode> registrationData = getConfiguration();
-        long millis = TimeUnit.MINUTES.toMillis(getInactivityPeriod());
-        String localAddress = registrationData.getString(CLUSTER_MEMBER_LOCAL_ADDRESS);
-        Map<String, String> params = new HashMap<String, String>();
-        params.put(CLUSTER_LOCAL_ADDRESS, localAddress);
-        logger.debug("Update heartbeat for cluster member with local address: " + localAddress);
-        clusterDAO.updateHeartbeat(params);
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put(CLUSTER_HEARTBEAT_STALE_LIMIT, getHeartbeatStalePeriod());
+        return clusterDao.getMembersWithStaleHeartbeat(params);
+    }
+
+    private List<ClusterMember> getInactiveMembersForRemoval() {
+        HierarchicalConfiguration<ImmutableNode> registrationData = getConfiguration();
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put(CLUSTER_INACTIVITY_LIMIT, getInactivityPeriod() + getHeartbeatStalePeriod());
+        params.put(CLUSTER_INACTIVE_STATE, INACTIVE);
+        return clusterDao.getInactiveMembersWithStaleHeartbeat(params);
+    }
+
+    private void removeInactiveMembers(List<ClusterMember> inactiveMembersToRemove) {
+        List<Long> idsToRemove = inactiveMembersToRemove.stream()
+                .map(ClusterMember::getId)
+                .collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(idsToRemove)) {
+            Map<String, Object> params = new HashMap<String, Object>();
+            params.put("memberIds", idsToRemove);
+            int result = clusterDao.removeMembers(params);
+        }
     }
 
     private HierarchicalConfiguration<ImmutableNode> getConfiguration() {
@@ -75,8 +109,12 @@ public class StudioNodeActivityCheckJob implements Runnable{
     }
 
     private int getInactivityPeriod() {
-        return Integer.parseInt(studioConfiguration.getProperty(CLUSTERING_INACTIVITY_CHECK_TIME_LIMIT));
+        return Integer.parseInt(studioConfiguration.getProperty(CLUSTERING_INACTIVITY_TIME_LIMIT));
     }
+    private int getHeartbeatStalePeriod() {
+        return Integer.parseInt(studioConfiguration.getProperty(CLUSTERING_HEARTBEAT_STALE_TIME_LIMIT));
+    }
+
 
     public StudioConfiguration getStudioConfiguration() {
         return studioConfiguration;
@@ -86,11 +124,11 @@ public class StudioNodeActivityCheckJob implements Runnable{
         this.studioConfiguration = studioConfiguration;
     }
 
-    public ClusterDAO getClusterDAO() {
-        return clusterDAO;
+    public ClusterDAO getClusterDao() {
+        return clusterDao;
     }
 
-    public void setClusterDAO(ClusterDAO clusterDAO) {
-        this.clusterDAO = clusterDAO;
+    public void setClusterDao(ClusterDAO clusterDAO) {
+        this.clusterDao = clusterDAO;
     }
 }

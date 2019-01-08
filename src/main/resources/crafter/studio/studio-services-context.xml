@@ -483,6 +483,12 @@
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="clusterDAO" ref="clusterDao" />
     </bean>
+    
+    <bean id="studioClusterNodeInactivityCheckJob" 
+          class="org.craftercms.studio.impl.v2.service.cluster.StudioNodeActivityCheckJob">
+        <property name="studioConfiguration" ref="studioConfiguration"/>
+        <property name="clusterDao" ref="clusterDao"/>
+    </bean>
 
     <bean id="studioRepositoryCleanupJob" class="org.craftercms.studio.impl.v1.repository.job.RepositoryCleanupJob">
         <property name="siteService" ref="cstudioSiteServiceSimple"/>
@@ -544,6 +550,20 @@
         <property name="startDelay" value="0" />
     </bean>
 
+    <bean id="cstudioClusterNodeInactivityCheckJobsScheduled"
+          class="org.springframework.scheduling.quartz.SimpleTriggerFactoryBean" >
+        <property name="jobDetail">
+            <bean class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean" >
+                <property name="targetObject" ref="studioClusterNodeInactivityCheckJob"/>
+                <property name="targetMethod" value="run"/>
+                <property name="concurrent" value="false"/>
+            </bean>
+        </property>
+        <property name="repeatInterval"
+                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).CLUSTERING_INACTIVITY_CHECK_JOB_INTERVAL)}" />
+        <property name="startDelay" value="0" />
+    </bean>
+
     <bean id="studioRepositoryCleanupJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
         <property name="jobDetail">
             <bean class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean" >
@@ -563,6 +583,8 @@
                 <ref bean="studioRepositoryCleanupJobTrigger"/>
                 <ref bean="cstudioClusterSandboxSyncJobsScheduled" />
                 <ref bean="cstudioClusterPublishedSyncJobsScheduled" />
+                <ref bean="cstudioClusterNodeHeartbeatJobsScheduled" />
+                <ref bean="cstudioClusterNodeInactivityCheckJobsScheduled" />
             </list>
         </property>
         <property name="waitForJobsToCompleteOnShutdown" value="false" />

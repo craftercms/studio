@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
+ * Copyright (C) 2007-2019 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -253,10 +253,12 @@ public interface StudioConfiguration {
     String CLUSTERING_SANDBOX_SYNC_JOB_INTERVAL = "studio.clustering.sandboxSyncJob.interval";
     String CLUSTERING_PUBLISHED_SYNC_JOB_INTERVAL = "studio.clustering.publishedSyncJob.interval";
     String CLUSTERING_HEARTBEAT_JOB_INTERVAL = "studio.clustering.heartbeatJob.interval";
+    String CLUSTERING_INACTIVITY_CHECK_JOB_INTERVAL = "studio.clustering.inactivtyCheckJob.interval";
     String CLUSTERING_THREAD_POOL_NAME_PREFIX = "studio.clustering.threadPool.namePrefix";
     String CLUSTERING_THREAD_POOL_CORE_POOL_SIZE = "studio.clustering.threadPool.corePoolSize";
     String CLUSTERING_THREAD_POOL_MAX_POOL_SIZE = "studio.clustering.threadPool.maxPoolSize";
-    String CLUSTERING_INACTIVITY_CHECK_TIME_LIMIT = "studio.clustering.incativityCheck.timeLimit";
+    String CLUSTERING_HEARTBEAT_STALE_TIME_LIMIT = "studio.clustering.heartbeatStale.timeLimit";
+    String CLUSTERING_INACTIVITY_TIME_LIMIT = "studio.clustering.incativity.timeLimit";
 
     /** Cluster Node Registration **/
     String CLUSTERING_NODE_REGISTRATION = "studio.clustering.node.registration";

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
+  ~ Copyright (C) 2007-2019 Crafter Software Corporation. All rights reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@
         <id property="id" column="id"/>
         <result property="localAddress" column="local_address" />
         <result property="state" column="state" />
-        <result property="heartbeat" column="heartbeat"
+        <result property="heartbeat" column="heartbeat" />
         <result property="gitUrl" column="git_url" />
         <result property="gitRemoteName" column="git_remote_name" />
         <result property="gitAuthType" column="git_auth_type" />
@@ -65,6 +65,7 @@
     
     <update id="updateMember" parameterType="org.craftercms.studio.api.v2.dal.ClusterMember">
         UPDATE cluster SET
+        state = #{state},
         git_url = #{gitUrl},
         git_remote_name = #{gitRemoteName},
         git_auth_type = #{gitAuthType},
@@ -99,6 +100,12 @@
 
     <select id="getMembersWithStaleHeartbeat" resultMap="ClusterMap" parameterType="java.util.Map">
         SELECT * FROM cluster
-        WHERE heartbeat &lt; (CURRENT_TIMESTAMP - #{inactivityLimit})
+        WHERE heartbeat &lt; (CURRENT_TIMESTAMP - INTERVAL #{heartbeatStaleLimit} MINUTE)
+    </select>
+
+    <select id="getInactiveMembersWithStaleHeartbeat" resultMap="ClusterMap" parameterType="java.util.Map">
+        SELECT * FROM cluster
+        WHERE heartbeat &lt; (CURRENT_TIMESTAMP - INTERVAL #{inactivityLimit} MINUTE)
+        AND state = #{inactiveState}
     </select>
 </mapper>

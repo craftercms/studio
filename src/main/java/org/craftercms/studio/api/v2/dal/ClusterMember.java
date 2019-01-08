@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
+ * Copyright (C) 2007-2019 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,7 +26,8 @@ public class ClusterMember {
 
     public enum State {
         REGISTRATION_INCOMPLETE,
-        ACTIVE
+        ACTIVE,
+        INACTIVE
     }
 
     private long id;
