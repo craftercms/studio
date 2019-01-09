@@ -58,13 +58,13 @@
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
         <property name="securityService" ref="cstudioSecurityService" />
         <property name="userServiceInternal" ref="userServiceInternal" />
-
         <property name="siteSandboxBranch"
                   value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).REPO_SANDBOX_BRANCH)}"/>
         <property name="siteUpgradeBranch"
                   value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).UPGRADE_BRANCH_NAME)}"/>
         <property name="commitMessage"
                   value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).UPGRADE_COMMIT_MESSAGE)}"/>
+        <property name="siteService" ref="cstudioSiteServiceSimple" />
     </bean>
 
     <bean id="pipelineFactory" abstract="true">

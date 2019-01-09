@@ -22,8 +22,10 @@ public class SiteFeed {
     protected long id;
     protected String siteId;
     protected String name;
+    protected String repoFolderName;
     protected String description;
     protected String status;
+    protected int deleted;
     protected String liveUrl;
     protected String lastCommitId;
     protected int publishingEnabled;
@@ -126,5 +128,25 @@ public class SiteFeed {
 
     public void setSearchEngine(String searchEngine) {
         this.searchEngine = searchEngine;
+    }
+
+    public String getRepoFolderName() {
+        return repoFolderName;
+    }
+
+    public void setRepoFolderName(String repoFolderName) {
+        this.repoFolderName = repoFolderName;
+    }
+
+    public int getDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(int deleted) {
+        this.deleted = deleted;
+    }
+
+    public boolean isDeleted() {
+        return deleted != 0;
     }
 }

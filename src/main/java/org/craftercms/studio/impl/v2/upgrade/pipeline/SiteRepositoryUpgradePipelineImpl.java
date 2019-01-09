@@ -21,10 +21,13 @@ import java.io.IOException;
 import java.util.List;
 
 import org.craftercms.studio.api.v1.constant.GitRepositories;
+import org.craftercms.studio.api.v1.dal.SiteFeed;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
+import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.exception.UpgradeException;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
@@ -63,7 +66,7 @@ public class SiteRepositoryUpgradePipelineImpl extends DefaultUpgradePipelineImp
     protected ServicesConfig servicesConfig;
     protected SecurityService securityService;
     protected UserServiceInternal userServiceInternal;
-
+    protected SiteService siteService;
 
     protected void createTemporaryBranch(String site, Git git) throws GitAPIException {
         List<Ref> branches = git.branchList().call();
@@ -101,31 +104,36 @@ public class SiteRepositoryUpgradePipelineImpl extends DefaultUpgradePipelineImp
     public void execute(final String site) throws UpgradeException {
         GitContentRepositoryHelper helper = new GitContentRepositoryHelper(studioConfiguration, servicesConfig,
                 userServiceInternal, securityService);
-        Repository repository = helper.getRepository(site, GitRepositories.SANDBOX);
-        if (repository != null) {
-            Git git = new Git(repository);
-            try {
-                if (!isEmpty()) {
-                    createTemporaryBranch(site, git);
-                    checkoutBranch(siteUpgradeBranch, git);
-                    super.execute(site);
-                    checkoutBranch(siteSandboxBranch, git);
-                    mergeTemporaryBranch(repository, git);
-                    deleteTemporaryBranch(git);
-
-                }
-            } catch (GitAPIException | IOException e) {
-                throw new UpgradeException("Error branching or merging upgrade branch for site " + site, e);
-            } finally {
-                if (!isEmpty()) {
-                    try {
+        try {
+            SiteFeed siteFeed = siteService.getSite(site);
+            Repository repository = helper.getRepository(site, siteFeed.getRepoFolderName(), GitRepositories.SANDBOX);
+            if (repository != null) {
+                Git git = new Git(repository);
+                try {
+                    if (!isEmpty()) {
+                        createTemporaryBranch(site, git);
+                        checkoutBranch(siteUpgradeBranch, git);
+                        super.execute(site);
                         checkoutBranch(siteSandboxBranch, git);
-                    } catch (GitAPIException e) {
-                        logger.error("Error cleaning up repo for site " + site, e);
+                        mergeTemporaryBranch(repository, git);
+                        deleteTemporaryBranch(git);
+
                     }
+                } catch (GitAPIException | IOException e) {
+                    throw new UpgradeException("Error branching or merging upgrade branch for site " + site, e);
+                } finally {
+                    if (!isEmpty()) {
+                        try {
+                            checkoutBranch(siteSandboxBranch, git);
+                        } catch (GitAPIException e) {
+                            logger.error("Error cleaning up repo for site " + site, e);
+                        }
+                    }
+                    git.close();
                 }
-                git.close();
             }
+        } catch (SiteNotFoundException e) {
+            throw new UpgradeException("Site not found: " + site, e);
         }
     }
 
@@ -169,5 +177,13 @@ public class SiteRepositoryUpgradePipelineImpl extends DefaultUpgradePipelineImp
 
     public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
         this.userServiceInternal = userServiceInternal;
+    }
+
+    public SiteService getSiteService() {
+        return siteService;
+    }
+
+    public void setSiteService(SiteService siteService) {
+        this.siteService = siteService;
     }
 }
