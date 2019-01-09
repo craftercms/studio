@@ -324,7 +324,7 @@ studio.preview.defaultPreviewDeployerUrl: http://localhost:9191/api/1/target/dep
 # Default preview create target URL (can be overridden per site)
 studio.preview.createTargetUrl: http://localhost:9191/api/1/target/upsert
 # Default preview create target URL (can be overridden per site)
-studio.preview.deleteTargetUrl: http://localhost:9191/api/1/target/delete/{siteEnv}/{siteName}
+studio.preview.deleteTargetUrl: http://localhost:9191/api/1/target/delete-if-exists/{siteEnv}/{siteName}
 # URL to the preview repository (aka Sandbox) where authors save work-in-progress
 studio.preview.repoUrl: ${sys:crafter.data.dir}/repos/sites/{siteName}/sandbox
 # URL to the preview Crafter Engine
