@@ -21,6 +21,9 @@ import org.craftercms.studio.api.v1.ebus.PreviewEventContext;
 
 public interface PreviewDeployer {
 
+    String ENV_PREVIEW = "preview";
+    String ENV_AUTHORING = "authoring";
+
     void onPreviewSync(PreviewEventContext context);
 
     boolean createTarget(String site, String searchEngine);
