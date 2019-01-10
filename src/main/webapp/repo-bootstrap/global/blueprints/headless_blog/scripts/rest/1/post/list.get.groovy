@@ -24,7 +24,7 @@ def categories = params.categories?.split(",")
 def tags = params.tags?.split(",")
 def q = params.q
 
-def helper = new PostSearchHelper(searchService, siteItemService)
+def helper = new PostSearchHelper(elasticSearch, siteItemService)
 
 if(q) {
 	helper.query("body_html: $q")

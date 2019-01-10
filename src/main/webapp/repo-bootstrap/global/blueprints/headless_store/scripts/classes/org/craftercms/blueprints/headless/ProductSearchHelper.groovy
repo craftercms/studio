@@ -22,10 +22,10 @@ import groovy.util.logging.Slf4j
 @Slf4j
 class ProductSearchHelper extends SearchHelper {
 	
-	def ProductSearchHelper(searchService, siteItemService) {
-		super(searchService, siteItemService)
+	def ProductSearchHelper(elasticSearch, siteItemService) {
+		super(elasticSearch, siteItemService)
 		filter("content-type:\"/component/product\"")
-		sortBy("createdDate_dt desc")
+		sortBy("createdDate_dt", "desc")
 	}	
 	
 	def getCategories(doc) {
@@ -41,7 +41,7 @@ class ProductSearchHelper extends SearchHelper {
 		[
 			id: doc.objectId,
 			name: item.name_s,
-			company: doc["company.item.component.name_s"],
+			company: doc.company.item.component.name_s,
 			categories: getCategories(doc),
 			tags: getTags(doc),
 			date: item.createdDate_dt.toInstant() as String,

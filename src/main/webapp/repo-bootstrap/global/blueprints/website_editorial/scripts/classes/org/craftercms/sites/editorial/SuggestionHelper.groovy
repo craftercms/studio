@@ -17,32 +17,36 @@
 
 package org.craftercms.sites.editorial
 
-import org.craftercms.search.service.SearchService
+import org.elasticsearch.action.search.SearchRequest
+import org.elasticsearch.index.query.QueryBuilders
+import org.elasticsearch.search.builder.SearchSourceBuilder
 
 class SuggestionHelper {
 	
 	static final String DEFAULT_CONTENT_TYPE_QUERY = "content-type:\"/page/article\""
 	static final String DEFAULT_SEARCH_FIELD = "subject"
 	
-	SearchService searchService
+	def elasticSearch
 	
 	String contentTypeQuery = DEFAULT_CONTENT_TYPE_QUERY
 	String searchField = DEFAULT_SEARCH_FIELD
 	
-	SuggestionHelper(SearchService searchService) {
-		this.searchService = searchService
+	SuggestionHelper(elasticSearch) {
+		this.elasticSearch = elasticSearch
 	}
 	
 	def getSuggestions(String term) {
 		def queryStr = "${contentTypeQuery} AND ${searchField}:*${term}*"
-		def query = searchService.createQuery()
-		query.setQuery(queryStr)
-		def result = searchService.search(query)
+		def builder = new SearchSourceBuilder()
+			.query(QueryBuilders.queryStringQuery(queryStr))
+
+		def result = elasticSearch.search(new SearchRequest().source(builder))
+
 		return process(result)
 	}
 	
 	def process(result) {
-		def processed = result.response.documents.collect { doc ->
+		def processed = result.hits.hits*.getSourceAsMap().collect { doc ->
 			doc[searchField]
 		}
 		return processed

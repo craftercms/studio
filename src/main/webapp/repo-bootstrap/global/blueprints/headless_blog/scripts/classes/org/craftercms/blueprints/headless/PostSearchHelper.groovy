@@ -22,19 +22,19 @@ import groovy.util.logging.Slf4j
 @Slf4j
 class PostSearchHelper extends SearchHelper {
 	
-	def PostSearchHelper(searchService, siteItemService) {
-		super(searchService, siteItemService)
+	def PostSearchHelper(elasticSearch, siteItemService) {
+		super(elasticSearch, siteItemService)
 		filter("content-type:\"/component/post\"")
-		sortBy("createdDate_dt desc")
+		sortBy("createdDate_dt", "desc")
 	}
 	
 	def getAuthors(doc) {
-		if(doc["authors.item.component.name_s"]) {
-			return doc["authors.item.component.name_s"]
+		if(doc.authors.item instanceof Map) {
+			return doc.authors.item.component.name_s
 		} else {
 			def authors = []
-			for(def i = 0; i < doc["authors.item.key"].size(); i++) {
-				authors << doc["authors.item.component.name_smv"][i]
+			doc.authors.item.each { author ->
+				authors << author.component.name_s
 			}
 			return authors
 		}

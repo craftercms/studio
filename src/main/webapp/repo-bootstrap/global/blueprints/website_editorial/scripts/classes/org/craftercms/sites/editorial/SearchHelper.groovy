@@ -18,8 +18,12 @@
 package org.craftercms.sites.editorial
 
 import org.apache.commons.lang3.StringUtils
-import org.craftercms.search.service.SearchService
 import org.craftercms.engine.service.UrlTransformationService
+import org.elasticsearch.action.search.SearchRequest
+import org.elasticsearch.index.query.QueryBuilders
+import org.elasticsearch.search.builder.SearchSourceBuilder
+import org.elasticsearch.search.sort.FieldSortBuilder
+import org.elasticsearch.search.sort.SortOrder
 
 class SearchHelper {
 
@@ -28,11 +32,11 @@ class SearchHelper {
   static final int DEFAULT_START = 0
   static final int DEFAULT_ROWS = 10
 
-  SearchService searchService
+  def elasticSearch
   UrlTransformationService urlTransformationService
 
-  SearchHelper(SearchService searchService, UrlTransformationService urlTransformationService) {
-    this.searchService = searchService
+  SearchHelper(elasticSearch, UrlTransformationService urlTransformationService) {
+    this.elasticSearch = elasticSearch
     this.urlTransformationService = urlTransformationService
   }
 
@@ -53,14 +57,16 @@ class SearchHelper {
       q = "${q} AND ${categoriesQuery}"
     }
 
-    def query = searchService.createQuery()
-        query.setQuery(q)
-        query.setStart(start)
-        query.setRows(rows)
-        query.setHighlight(true)
-        query.setHighlightFields(HIGHLIGHT_FIELDS)
+    def highlighter = SearchSourceBuilder.highlight()
+    HIGHLIGHT_FIELDS.each{ field -> highlighter.field(field) }
 
-    def result = searchService.search(query)
+    def builder = new SearchSourceBuilder()
+      .query(QueryBuilders.queryStringQuery(q))
+      .from(start)
+      .size(rows)
+      .highlighter(highlighter)
+    
+    def result = elasticSearch.search(new SearchRequest().source(builder))
 
     if (result) {
       return processUserSearchResults(result)
@@ -88,9 +94,14 @@ class SearchHelper {
     if (additionalCriteria) {
       q = "${q} AND ${additionalCriteria}"
     }
-
-    def query = createSortedArticleQuery(q, start, rows)
-    def result = searchService.search(query)
+    
+    def builder = new SearchSourceBuilder()
+      .query(QueryBuilders.queryStringQuery(q))
+      .from(start)
+      .size(rows)
+      .sort(new FieldSortBuilder("date_dt").order(SortOrder.DESC))
+    
+    def result = elasticSearch.search(new SearchRequest().source(builder))
 
     if (result) {
       return processArticleListingResults(result)
@@ -99,37 +110,23 @@ class SearchHelper {
     }
   }
 
-  private def createSortedArticleQuery(q, start, rows) {
-    def query = searchService.createQuery()
-        query.setQuery(q)
-        query.addParam("sort", "date_dt desc")
-        query.setStart(start)
-        query.setRows(rows)
-
-    return query
-  }
-
   private def processUserSearchResults(result) {
     def articles = []
-    def documents = result.response.documents
-    def highlighting = result.highlighting
+    def hits = result.hits.hits
 
-    if (documents) {
-      documents.each {doc ->
+    if (hits) {
+      hits.each {hit ->
+        def doc = hit.getSourceAsMap()
         def article = [:]
             article.title = doc.title
             article.url = urlTransformationService.transform("storeUrlToRenderUrl", doc.localId)
 
-        if (highlighting) {
-          def articleHighlights = highlighting[doc.id]
+        if (hit.highlightFields) {
+          def articleHighlights = hit.highlightFields.values()*.getFragments().flatten()*.string()
           if (articleHighlights) {
               def highlightValues = []
 
-              articleHighlights.values().each { value ->
-                  if (value instanceof Iterable) {
-                    value = ((Iterable) value).iterator().next()
-                  }
-
+              articleHighlights.each { value ->
                   highlightValues << value
               }
 
@@ -147,7 +144,7 @@ class SearchHelper {
 
   private def processArticleListingResults(result) {
     def articles = []
-    def documents = result.response.documents
+    def documents = result.hits.hits*.getSourceAsMap()
 
     if (documents) {
       documents.each {doc ->
