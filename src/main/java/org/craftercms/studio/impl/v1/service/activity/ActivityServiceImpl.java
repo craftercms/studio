@@ -46,11 +46,17 @@ import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.util.DebugUtils;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
+import org.craftercms.studio.impl.v1.audit.log.ReadFromExternalLogFile;
+import org.craftercms.studio.impl.v1.audit.log.WriteToExternalLogFile;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_PAGE;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.ACTIVITY_USERNAME_CASE_SENSITIVE;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.STUDIO_CONFIGURATION_AUDIT_LOG4J_PATH;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.STUDIO_CONFIGURATION_AUDIT_LOG_FOR_FILE_ENABLE;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.STUDIO_CONFIGURATION_AUDIT_LOG_PATH;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.STUDIO_CONFIGURATION_AUDIT_LOG_FILE_NAME;
 
 public class ActivityServiceImpl extends AbstractRegistrableService implements ActivityService {
 
@@ -89,6 +95,9 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
     protected SecurityService securityService;
     protected StudioConfiguration studioConfiguration;
     protected DeploymentService deploymentService;
+    
+    protected WriteToExternalLogFile writeToExternalLogFile;
+    protected ReadFromExternalLogFile readFromExternalLogFile;
 
     @Override
     public void register() {
@@ -202,7 +211,17 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
     private long insertFeedEntry(AuditFeed activityFeed) {
         DebugUtils.addDebugStack(logger);
         logger.debug("Insert activity " + activityFeed.getContentId());
-        Long id = auditFeedMapper.insertActivityFeed(activityFeed);
+        Long id = null;
+        
+		if (Boolean.parseBoolean(studioConfiguration.getProperty(STUDIO_CONFIGURATION_AUDIT_LOG_FOR_FILE_ENABLE))) {
+			id = writeToExternalLogFile.WriteToFile(activityFeed,
+					studioConfiguration.getProperty(STUDIO_CONFIGURATION_AUDIT_LOG_PATH),
+					studioConfiguration.getProperty(STUDIO_CONFIGURATION_AUDIT_LOG_FILE_NAME),
+					studioConfiguration.getProperty(STUDIO_CONFIGURATION_AUDIT_LOG4J_PATH));
+		} else {
+			id = auditFeedMapper.insertActivityFeed(activityFeed);
+		}
+        
         return (id != null ? id : -1);
     }
 
@@ -387,7 +406,14 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
             if (CollectionUtils.isNotEmpty(actions)) {
                 params.put("actions", actions);
             }
-            return auditFeedMapper.getAuditLogForSite(params);
+            
+            if (Boolean.parseBoolean(studioConfiguration.getProperty(STUDIO_CONFIGURATION_AUDIT_LOG_FOR_FILE_ENABLE))) {
+            	return readFromExternalLogFile.getAuditLogFromFile(site, user, actions, start, number);
+            } else {
+            	return auditFeedMapper.getAuditLogForSite(params);
+            }
+            
+            
         }
     }
 
@@ -406,7 +432,16 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
             if (CollectionUtils.isNotEmpty(actions)) {
                 params.put("actions", actions);
             }
-            return auditFeedMapper.getAuditLogForSiteTotal(params);
+            
+            if (Boolean.parseBoolean(studioConfiguration.getProperty(STUDIO_CONFIGURATION_AUDIT_LOG_FOR_FILE_ENABLE))) {
+				return readFromExternalLogFile.getAuditLogCountFromFile(site, user, actions,
+						studioConfiguration.getProperty(STUDIO_CONFIGURATION_AUDIT_LOG_PATH),
+						studioConfiguration.getProperty(STUDIO_CONFIGURATION_AUDIT_LOG_FILE_NAME));
+            } else {
+            	return auditFeedMapper.getAuditLogForSiteTotal(params);
+            }
+            
+            
         }
     }
 
@@ -437,4 +472,10 @@ public class ActivityServiceImpl extends AbstractRegistrableService implements A
 
     public DeploymentService getDeploymentService() { return deploymentService; }
     public void setDeploymentService(DeploymentService deploymentService) { this.deploymentService = deploymentService; }
+
+    public WriteToExternalLogFile getWriteToExternalLogFile() { return writeToExternalLogFile; }
+	public void setWriteToExternalLogFile(WriteToExternalLogFile writeToExternalLogFile) { this.writeToExternalLogFile = writeToExternalLogFile; }
+
+	public ReadFromExternalLogFile getReadFromExternalLogFile() { return readFromExternalLogFile; }
+	public void setReadFromExternalLogFile(ReadFromExternalLogFile readFromExternalLogFile) { this.readFromExternalLogFile = readFromExternalLogFile; }
 }

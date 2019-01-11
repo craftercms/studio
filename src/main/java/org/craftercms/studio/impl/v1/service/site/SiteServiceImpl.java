@@ -18,6 +18,7 @@
 
 package org.craftercms.studio.impl.v1.service.site;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.ZoneOffset;
@@ -33,6 +34,7 @@ import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
@@ -133,6 +135,7 @@ import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATIO
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_PREVIEW_DESTROY_CONTEXT_URL;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.PREVIEW_ENGINE_URL;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.STUDIO_CONFIGURATION_AUDIT_LOG_PATH;
 
 /**
  * Note: consider renaming
@@ -1165,6 +1168,14 @@ public class SiteServiceImpl implements SiteService {
 	        dmPageNavigationOrderService.deleteSequencesForSite(siteId);
 	        contentRepository.deleteGitLogForSite(siteId);
 	        contentRepository.removeRemoteRepositoriesForSite(siteId);
+	        
+	        // delete external log files
+	        File file = new File(studioConfiguration.getProperty(STUDIO_CONFIGURATION_AUDIT_LOG_PATH) + "/" + siteId);
+	        
+	        if (file.isDirectory()) {
+	        	FileUtils.deleteDirectory(file);
+	        }
+	        
 	        insertDeleteSiteAuditLog(siteId);
 	    } catch(Exception e) {
 		    success = false;
