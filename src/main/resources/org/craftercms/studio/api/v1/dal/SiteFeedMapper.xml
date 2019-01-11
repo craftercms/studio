@@ -129,4 +129,8 @@
     <update id="updateLastVerifiedGitlogCommitId" parameterType="java.util.Map">
         UPDATE site SET last_verified_gitlog_commit_id = #{commitId} WHERE site_id = #{siteId} AND deleted = 0
     </update>
+
+    <select id="getDeletedSites" resultMap="SiteFeedMap">
+        SELECT * FROM site WHERE deleted = 1 AND system = 0
+    </select>
 </mapper>

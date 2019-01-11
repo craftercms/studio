@@ -119,6 +119,10 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
         logger.debug("Cluster Sync worker finished");
     }
 
+    private void cleanupDeletedSites() {
+
+    }
+
     private HierarchicalConfiguration<ImmutableNode> getConfiguration() {
         return studioConfiguration.getSubConfig(CLUSTERING_NODE_REGISTRATION);
     }

@@ -2361,7 +2361,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     protected void cleanup(String siteId, GitRepositories repository) {
-        Repository sandbox = helper.getRepository(siteId, repository);
+        Repository sandbox = helper.getRepository(siteId, getRepoFolderName(siteId), repository);
         try (Git git = new Git(sandbox)) {
             git.gc().call();
         } catch (Exception e) {
