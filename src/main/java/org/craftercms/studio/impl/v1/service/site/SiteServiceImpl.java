@@ -1693,6 +1693,11 @@ public class SiteServiceImpl implements SiteService {
         return contentRepository.listRemote(siteId, siteFeed.getSandboxBranch());
     }
 
+    @Override
+    public List<SiteFeed> getDeletedSites() {
+        return siteFeedMapper.getDeletedSites();
+    }
+
     public String getGlobalConfigRoot() {
         return studioConfiguration.getProperty(CONFIGURATION_GLOBAL_CONFIG_BASE_PATH);
     }

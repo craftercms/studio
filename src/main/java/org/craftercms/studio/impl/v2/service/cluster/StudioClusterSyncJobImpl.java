@@ -19,7 +19,15 @@ package org.craftercms.studio.impl.v2.service.cluster;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
+import org.craftercms.studio.api.v1.constant.StudioConstants;
+import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.deployment.PreviewDeployer;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -32,13 +40,17 @@ import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.craftercms.studio.api.v2.service.cluster.StudioClusterSyncJob;
 import org.springframework.core.task.TaskExecutor;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CLUSTER_MEMBER_LOCAL_ADDRESS;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CLUSTERING_NODE_REGISTRATION;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_PREVIEW_DESTROY_CONTEXT_URL;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.PREVIEW_ENGINE_URL;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_LOCAL_ADDRESS;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_STATE;
 
@@ -54,6 +66,8 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
     private ClusterDAO clusterDAO;
     private ServicesConfig servicesConfig;
     private GitRepositories repositoryType;
+
+    private final static Map<String, String> deletedSitesMap = new HashMap<String, String>();
 
     @Override
     public void run() {
@@ -73,6 +87,8 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
             } else {
                 logger.debug("Cluster members count " + cm.size());
                 try {
+                    cleanupDeletedSites();
+
                     Set<String> siteNames = siteService.getAllAvailableSites();
 
                     Map<String, String> params = new HashMap<String, String>();
@@ -120,7 +136,50 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
     }
 
     private void cleanupDeletedSites() {
+        logger.debug("Remove local copies of deleted sites if present");
+        List<SiteFeed> deletedSites = siteService.getDeletedSites();
+        deletedSites.forEach(siteFeed -> {
+            String key = siteFeed.getName() + "_" + siteFeed.getSiteId();
+            if (!deletedSitesMap.containsKey(key)) {
+                if (contentRepository.contentExists(siteFeed.getName(), FILE_SEPARATOR)) {
+                    previewDeployer.deleteTarget(siteFeed.getName());
+                    destroySitePreviewContext(siteFeed.getName());
+                    contentRepository.deleteSite(siteFeed.getName());
+                }
+                deletedSitesMap.put(key, siteFeed.getName());
+            }
+        });
+    }
 
+    private boolean destroySitePreviewContext(String site) {
+        boolean toReturn = true;
+        String requestUrl = getDestroySitePreviewContextUrl(site);
+
+        HttpGet getRequest = new HttpGet(requestUrl);
+        RequestConfig requestConfig = RequestConfig.custom().setExpectContinueEnabled(true).build();
+        getRequest.setConfig(requestConfig);
+
+        CloseableHttpClient client = HttpClientBuilder.create().build();
+        try {
+            CloseableHttpResponse response = client.execute(getRequest);
+            if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+                toReturn = false;
+            }
+        } catch (IOException e) {
+            logger.error("Error while sending destroy preview context request for site " + site, e);
+            toReturn = false;
+        } finally {
+            getRequest.releaseConnection();
+        }
+        return toReturn;
+    }
+
+    private String getDestroySitePreviewContextUrl(String site) {
+        StringBuilder sb = new StringBuilder(studioConfiguration.getProperty(PREVIEW_ENGINE_URL));
+        sb.append(studioConfiguration.getProperty(CONFIGURATION_SITE_PREVIEW_DESTROY_CONTEXT_URL));
+        String url = sb.toString();
+        url = url.replaceAll(StudioConstants.CONFIG_SITENAME_VARIABLE, site);
+        return url;
     }
 
     private HierarchicalConfiguration<ImmutableNode> getConfiguration() {
