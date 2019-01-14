@@ -146,7 +146,7 @@ public class SiteFeed {
         this.deleted = deleted;
     }
 
-    public boolean isDeleted() {
+    public boolean isSiteDeleted() {
         return deleted != 0;
     }
 }

@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -446,7 +447,7 @@ public class SiteServiceImpl implements SiteService {
 			    // insert database records
 			    SiteFeed siteFeed = new SiteFeed();
 			    siteFeed.setName(siteName);
-			    siteFeed.setSiteId(siteId);
+			    siteFeed.setSiteId(UUID.randomUUID().toString());
 			    siteFeed.setDescription(desc);
 			    siteFeed.setPublishingStatusMessage(
 			            studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT));
@@ -782,7 +783,7 @@ public class SiteServiceImpl implements SiteService {
                 logger.debug("Adding site record to database for site " + siteId);
                 SiteFeed siteFeed = new SiteFeed();
                 siteFeed.setName(siteId);
-                siteFeed.setSiteId(siteId);
+                siteFeed.setSiteId(UUID.randomUUID().toString());
                 siteFeed.setDescription(description);
                 siteFeed.setPublishingStatusMessage(
                         studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT));
@@ -924,7 +925,7 @@ public class SiteServiceImpl implements SiteService {
                 logger.debug("Adding site record to database for site " + siteId);
                 SiteFeed siteFeed = new SiteFeed();
                 siteFeed.setName(siteId);
-                siteFeed.setSiteId(siteId);
+                siteFeed.setSiteId(UUID.randomUUID().toString());
                 siteFeed.setDescription(description);
                 siteFeed.setPublishingStatusMessage(
                         studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT));

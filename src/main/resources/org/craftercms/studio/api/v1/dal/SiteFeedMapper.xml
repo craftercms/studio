@@ -41,7 +41,7 @@
         <parameter property="id" jdbcType="BIGINT" />
         <parameter property="siteId" jdbcType="VARCHAR"/>
         <parameter property="name" jdbcType="VARCHAR"/>
-        <parameter property="repoFoldername" jdbcType="VARCHAR"/>
+        <parameter property="repoFolderName" jdbcType="VARCHAR"/>
         <parameter property="description" jdbcType="VARCHAR"/>
         <parameter property="status" jdbcType="VARCHAR"/>
         <parameter property="deleted" jdbcType="INTEGER"/>
