@@ -27,7 +27,6 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.deployment.PreviewDeployer;
 import org.craftercms.studio.api.v1.ebus.EBusConstants;
 import org.craftercms.studio.api.v1.ebus.EventListener;
@@ -43,6 +42,8 @@ import java.lang.reflect.Method;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.CONFIG_SITEENV_VARIABLE;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.CONFIG_SITENAME_VARIABLE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SEARCH_ENGINE_ELASTIC_SEARCH;
 import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.AUTHORING_TEMPLATE_NAME;
@@ -116,8 +117,8 @@ public class PreviewDeployerImpl implements PreviewDeployer {
         // TODO: SJ: Pseudo code: check if site configuration has a Preview Deployer URL, if so, return it, if not
         // TODO: SJ: return default from studioConfiguration.getProperty(PREVIEW_DEFAULT_PREVIEW_DEPLOYER_URL);
         String toRet = studioConfiguration.getProperty(PREVIEW_DEFAULT_PREVIEW_DEPLOYER_URL)
-                        .replaceAll(StudioConstants.CONFIG_SITENAME_VARIABLE, site)
-                        .replaceAll(StudioConstants.CONFIG_SITEENV_VARIABLE, environment);
+                        .replaceAll(CONFIG_SITENAME_VARIABLE, site)
+                        .replaceAll(CONFIG_SITEENV_VARIABLE, environment);
         return toRet;
     }
 
@@ -176,7 +177,7 @@ public class PreviewDeployerImpl implements PreviewDeployer {
                 Boolean.parseBoolean(studioConfiguration.getProperty(PREVIEW_DISABLE_DEPLOY_CRON)));
         requestBody.setTemplateName(template);
         String repoUrl = studioConfiguration
-                .getProperty(PREVIEW_REPO_URL).replaceAll(StudioConstants.CONFIG_SITENAME_VARIABLE, site);
+                .getProperty(PREVIEW_REPO_URL).replaceAll(CONFIG_SITENAME_VARIABLE, site);
         Path repoUrlPath = Paths.get(repoUrl);
         repoUrl = repoUrlPath.normalize().toAbsolutePath().toString();
         requestBody.setRepoUrl(repoUrl);
@@ -215,8 +216,8 @@ public class PreviewDeployerImpl implements PreviewDeployer {
         // TODO: SJ: Pseudo code: check if site configuration has a Preview Deployer URL, if so, return it, if not
         // TODO: SJ: return default from studioConfiguration.getProperty(PREVIEW_DEFAULT_DELETE_TARGET_URL);
         String url = new String(studioConfiguration.getProperty(PREVIEW_DEFAULT_DELETE_TARGET_URL));
-        url = url.replaceAll(StudioConstants.CONFIG_SITENAME_VARIABLE, site);
-        url = url.replaceAll(StudioConstants.CONFIG_SITEENV_VARIABLE, environment);
+        url = url.replaceAll(CONFIG_SITENAME_VARIABLE, site);
+        url = url.replaceAll(CONFIG_SITEENV_VARIABLE, environment);
         return url;
     }
 

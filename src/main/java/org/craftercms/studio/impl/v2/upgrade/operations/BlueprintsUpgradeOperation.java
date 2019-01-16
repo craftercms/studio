@@ -140,7 +140,7 @@ public class BlueprintsUpgradeOperation extends AbstractUpgradeOperation impleme
                         studioConfiguration.getProperty(BLUE_PRINTS_PATH), "BLUEPRINTS.MF").toFile());
             }
 
-            Repository globalRepo = helper.getRepository(site, StringUtils.EMPTY, GitRepositories.GLOBAL);
+            Repository globalRepo = helper.getRepository(site, GitRepositories.GLOBAL);
             try (Git git = new Git(globalRepo)) {
 
                 Status status = git.status().call();

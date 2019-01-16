@@ -97,9 +97,9 @@ CREATE TABLE IF NOT EXISTS `publish_request` (
 
 CREATE TABLE IF NOT EXISTS `site` (
   `id`                              BIGINT(20)    NOT NULL AUTO_INCREMENT,
+  `site_uuid`                       VARCHAR(50)   NOT NULL,
   `site_id`                         VARCHAR(50)   NOT NULL,
   `name`                            VARCHAR(255)  NOT NULL,
-  `repo_folder_name`                VARCHAR(300)  NOT NULL,
   `description`                     TEXT          NULL,
   `status`                          VARCHAR(255)  NULL,
   `deleted`                         INT           NOT NULL DEFAULT 0,
@@ -112,8 +112,8 @@ CREATE TABLE IF NOT EXISTS `site` (
   `search_engine`                   VARCHAR(20)   NOT NULL DEFAULT 'ElasticSearch',
   PRIMARY KEY (`id`),
   UNIQUE INDEX `id_unique` (`id` ASC),
-  UNIQUE INDEX `site_id_name_unique` (`name` ASC, `site_id` ASC),
-  INDEX `site_name_idx` (`name` ASC)
+  UNIQUE INDEX `site_uuid_site_id_unique` (`site_uuid` ASC, `site_id` ASC),
+  INDEX `site_id_idx` (`site_id` ASC)
 )
 
   ENGINE = InnoDB

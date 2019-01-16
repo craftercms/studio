@@ -19,6 +19,10 @@ package org.craftercms.studio.impl.v1.service.site;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.OpenOption;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -422,7 +426,7 @@ public class SiteServiceImpl implements SiteService {
 	    // TODO: SJ: and rollback the whole thing.
 	    // TODO: SJ: What we need to do for site creation and the order of execution:
 	    // TODO: SJ: 1) search index, 2) deployer target, 3) git repo, 4) database, 5) kick deployer
-
+        String siteUuid = UUID.randomUUID().toString();
 
 	    // Create the site in the preview deployer
         try {
@@ -440,14 +444,17 @@ public class SiteServiceImpl implements SiteService {
 
 	    if (success) {
 	 		try {
-			    success = createSiteFromBlueprintGit(blueprintName, siteName, siteId, sandboxBranch, desc);
+                success = createSiteFromBlueprintGit(blueprintName, siteName, siteId, sandboxBranch, desc);
 
-			    upgradeManager.upgradeSite(siteId);
+                upgradeManager.upgradeSite(siteId);
+
+                addSiteUuidFile(siteId, siteUuid);
 
 			    // insert database records
 			    SiteFeed siteFeed = new SiteFeed();
 			    siteFeed.setName(siteName);
-			    siteFeed.setSiteId(UUID.randomUUID().toString());
+			    siteFeed.setSiteId(siteId);
+			    siteFeed.setSiteUuid(siteUuid);
 			    siteFeed.setDescription(desc);
 			    siteFeed.setPublishingStatusMessage(
 			            studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT));
@@ -545,17 +552,6 @@ public class SiteServiceImpl implements SiteService {
         InputStream contentToWrite = IOUtils.toInputStream(contentAsString);
 
         contentRepository.writeContent(site, path, contentToWrite);
-    }
-
-    protected void replaceFileContent(String path, String find, String replace) throws Exception {
-    	InputStream content = contentRepository.getContent("", path);
-    	String contentAsString = IOUtils.toString(content);
-
-    	contentAsString = contentAsString.replaceAll(find, replace);
-
-    	InputStream contentToWrite = IOUtils.toInputStream(contentAsString);
-
-		contentRepository.writeContent("", path, contentToWrite);
     }
 
 	protected void createObjectStatesforNewSite(String site) {
@@ -729,7 +725,7 @@ public class SiteServiceImpl implements SiteService {
         // TODO: SJ: and rollback the whole thing.
         // TODO: SJ: What we need to do for site creation and the order of execution:
         // TODO: SJ: 1) search index, 2) deployer target, 3) git repo, 4) database, 5) kick deployer
-
+        String siteUuid = UUID.randomUUID().toString();
 
         // Create the site in the preview deployer
         try {
@@ -755,6 +751,7 @@ public class SiteServiceImpl implements SiteService {
                 contentRepository.createSiteCloneRemote(siteId, sandboxBranch, remoteName, remoteUrl, remoteBranch,
                         singleBranch, authenticationType, remoteUsername, remotePassword, remoteToken,
                         remotePrivateKey);
+
             } catch (InvalidRemoteRepositoryException | InvalidRemoteRepositoryCredentialsException |
                     RemoteRepositoryNotFoundException | InvalidRemoteUrlException | ServiceLayerException e) {
 
@@ -779,11 +776,14 @@ public class SiteServiceImpl implements SiteService {
             try {
                 upgradeManager.upgradeSite(siteId);
 
+                addSiteUuidFile(siteId, siteUuid);
+
                 // insert database records
                 logger.debug("Adding site record to database for site " + siteId);
                 SiteFeed siteFeed = new SiteFeed();
                 siteFeed.setName(siteId);
-                siteFeed.setSiteId(UUID.randomUUID().toString());
+                siteFeed.setSiteId(siteId);
+                siteFeed.setSiteUuid(siteUuid);
                 siteFeed.setDescription(description);
                 siteFeed.setPublishingStatusMessage(
                         studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT));
@@ -847,8 +847,8 @@ public class SiteServiceImpl implements SiteService {
         // TODO: SJ: For example: Create site => Create Search Index (success), create Deployer Target (fail) = fail
         // TODO: SJ: and rollback the whole thing.
         // TODO: SJ: What we need to do for site creation and the order of execution:
-        // TODO: SJ: 1) search index, 2) deployer target, 3) git repo, 4) database, 5) kick deployer
-
+        // TODO: SJ: 1) search index, 2) deployer target, 3) git repo, 4) database, 5) kick deploye
+        String siteUuid = UUID.randomUUID().toString();
 
         // Create the site in the preview deployer
         try {
@@ -870,6 +870,7 @@ public class SiteServiceImpl implements SiteService {
                 success = createSiteFromBlueprintGit(blueprintName, siteId, siteId, sandboxBranch, description);
 
                 upgradeManager.upgradeSite(siteId);
+
             } catch (Exception e) {
                 // TODO: SJ: We need better exception handling here
                 success = false;
@@ -889,10 +890,11 @@ public class SiteServiceImpl implements SiteService {
 
             if (success) {
                 try {
+
                     logger.debug("Pushing site " + siteId + " to remote repository " + remoteName + " (" +
                             remoteUrl + ")");
-                    contentRepository.addRemote(siteId, remoteName, remoteUrl, authenticationType,
-                            remoteUsername, remotePassword, remoteToken, remotePrivateKey);
+                    contentRepository.addRemote(siteId, remoteName, remoteUrl, authenticationType, remoteUsername,
+                            remotePassword, remoteToken, remotePrivateKey);
                     insertAddRemoteAuditLog(siteId, remoteName);
                     contentRepository.createSitePushToRemote(siteId, remoteName, remoteUrl, authenticationType,
                             remoteUsername, remotePassword, remoteToken, remotePrivateKey);
@@ -920,12 +922,14 @@ public class SiteServiceImpl implements SiteService {
             }
 
             try {
-
+                addSiteUuidFile(siteId, siteUuid);
+                
                 // insert database records
                 logger.debug("Adding site record to database for site " + siteId);
                 SiteFeed siteFeed = new SiteFeed();
                 siteFeed.setName(siteId);
-                siteFeed.setSiteId(UUID.randomUUID().toString());
+                siteFeed.setSiteId(siteId);
+                siteFeed.setSiteUuid(siteUuid);
                 siteFeed.setDescription(description);
                 siteFeed.setPublishingStatusMessage(
                         studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT));
@@ -1651,6 +1655,7 @@ public class SiteServiceImpl implements SiteService {
         if (!exists(siteId)) {
             throw new SiteNotFoundException();
         }
+        SiteFeed siteFeed = getSite(siteId);
         boolean toRet = contentRepository.addRemote(siteId, remoteName, remoteUrl, authenticationType, remoteUsername,
                 remotePassword, remoteToken, remotePrivateKey);
         insertAddRemoteAuditLog(siteId, remoteName);
@@ -1697,6 +1702,14 @@ public class SiteServiceImpl implements SiteService {
     @Override
     public List<SiteFeed> getDeletedSites() {
         return siteFeedMapper.getDeletedSites();
+    }
+
+    private void addSiteUuidFile(String site, String siteUuid) throws IOException {
+        Path path = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
+                studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH), site,
+                StudioConstants.SITE_UUID_FILENAME);
+        String toWrite = StudioConstants.SITE_UUID_FILE_COMMENT + "\n" + siteUuid;
+        Files.write(path, toWrite.getBytes());
     }
 
     public String getGlobalConfigRoot() {

@@ -158,13 +158,13 @@ public class GitContentRepositoryHelper {
      * @param site path to repository
      * @return true if successful, false otherwise
      */
-    public boolean buildSiteRepo(String site, String repoFolderName) {
+    public boolean buildSiteRepo(String site) {
         boolean toReturn = false;
         Repository sandboxRepo;
         Repository publishedRepo;
 
-        Path siteSandboxRepoPath = buildRepoPath(GitRepositories.SANDBOX, repoFolderName).resolve(GIT_ROOT);
-        Path sitePublishedRepoPath = buildRepoPath(GitRepositories.PUBLISHED, repoFolderName).resolve(GIT_ROOT);
+        Path siteSandboxRepoPath = buildRepoPath(GitRepositories.SANDBOX, site).resolve(GIT_ROOT);
+        Path sitePublishedRepoPath = buildRepoPath(GitRepositories.PUBLISHED, site).resolve(GIT_ROOT);
 
         try {
             if (Files.exists(siteSandboxRepoPath)) {
@@ -273,18 +273,17 @@ public class GitContentRepositoryHelper {
     public Path buildRepoPath(GitRepositories repoType) {
         return buildRepoPath(repoType, StringUtils.EMPTY);
     }
-
-    public Path buildRepoPath(GitRepositories repoType, String repoFolderName) {
+    public Path buildRepoPath(GitRepositories repoType, String site) {
         Path path;
         switch (repoType) {
             case SANDBOX:
                 path = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
-                        studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH), repoFolderName,
+                        studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH), site,
                         studioConfiguration.getProperty(StudioConfiguration.SANDBOX_PATH));
                 break;
             case PUBLISHED:
                 path = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
-                        studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH), repoFolderName,
+                        studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH), site,
                         studioConfiguration.getProperty(StudioConfiguration.PUBLISHED_PATH));
                 break;
             case GLOBAL:
@@ -303,12 +302,12 @@ public class GitContentRepositoryHelper {
      * @param site
      * @return true if successful, false otherwise
      */
-    public boolean createSiteGitRepo(String site, String repoFolderName, String sandboxBranch) {
+    public boolean createSiteGitRepo(String site, String sandboxBranch) {
         boolean toReturn;
         Repository sandboxRepo = null;
 
         // Build a path for the site/sandbox
-        Path siteSandboxPath = buildRepoPath(GitRepositories.SANDBOX, repoFolderName);
+        Path siteSandboxPath = buildRepoPath(GitRepositories.SANDBOX, site);
 
         // Create Sandbox
         sandboxRepo = createGitRepository(siteSandboxPath);
@@ -504,10 +503,10 @@ public class GitContentRepositoryHelper {
      * @param message
      * @return true if successful, false otherwise
      */
-    public boolean performInitialCommit(String site, String repoFolderName, String message, String sandboxBranch) {
+    public boolean performInitialCommit(String site, String message, String sandboxBranch) {
         boolean toReturn = true;
 
-        Repository repo = getRepository(site, repoFolderName, GitRepositories.SANDBOX, sandboxBranch);
+        Repository repo = getRepository(site, GitRepositories.SANDBOX, sandboxBranch);
 
         try (Git git = new Git(repo)) {
 
@@ -527,9 +526,9 @@ public class GitContentRepositoryHelper {
             // Create Published by cloning Sandbox
 
             // Build a path for the site/sandbox
-            Path siteSandboxPath = buildRepoPath(GitRepositories.SANDBOX, repoFolderName);
+            Path siteSandboxPath = buildRepoPath(GitRepositories.SANDBOX, site);
             // Built a path for the site/published
-            Path sitePublishedPath = buildRepoPath(GitRepositories.PUBLISHED, repoFolderName);
+            Path sitePublishedPath = buildRepoPath(GitRepositories.PUBLISHED, site);
             try (Git publishedGit = Git.cloneRepository()
                     .setURI(sitePublishedPath.relativize(siteSandboxPath).toString())
                     .setDirectory(sitePublishedPath.normalize().toAbsolutePath().toFile())
@@ -553,7 +552,7 @@ public class GitContentRepositoryHelper {
 
     // SJ: Helper methods
 
-    public Repository getRepository(String site, String repoFolderName, GitRepositories gitRepository) {
+    public Repository getRepository(String site, GitRepositories gitRepository) {
         Repository repo;
 
         logger.debug("getRepository invoked with site" + site + "Repository Type: " + gitRepository.toString());
@@ -562,7 +561,7 @@ public class GitContentRepositoryHelper {
             case SANDBOX:
                 repo = sandboxes.get(site);
                 if (repo == null) {
-                    if (buildSiteRepo(site, repoFolderName)) {
+                    if (buildSiteRepo(site)) {
                         repo = sandboxes.get(site);
                     } else {
                         logger.error("error getting the sandbox repository for site: " + site);
@@ -572,7 +571,7 @@ public class GitContentRepositoryHelper {
             case PUBLISHED:
                 repo = published.get(site);
                 if (repo == null) {
-                    if (buildSiteRepo(site, repoFolderName)) {
+                    if (buildSiteRepo(site)) {
                         repo = published.get(site);
                     } else {
                         logger.error("error getting the published repository for site: " + site);
@@ -603,8 +602,7 @@ public class GitContentRepositoryHelper {
         return repo;
     }
 
-    public Repository getRepository(String site, String repoFolderName, GitRepositories gitRepository,
-                                    String sandboxBranch) {
+    public Repository getRepository(String site, GitRepositories gitRepository, String sandboxBranch) {
         Repository repo;
 
         logger.debug("getRepository invoked with site" + site + "Repository Type: " + gitRepository.toString());
@@ -613,7 +611,7 @@ public class GitContentRepositoryHelper {
             case SANDBOX:
                 repo = sandboxes.get(site);
                 if (repo == null) {
-                    if (buildSiteRepo(site, repoFolderName)) {
+                    if (buildSiteRepo(site)) {
                         repo = sandboxes.get(site);
                         checkoutSandboxBranch(site, repo, sandboxBranch);
                     } else {
@@ -624,7 +622,7 @@ public class GitContentRepositoryHelper {
             case PUBLISHED:
                 repo = published.get(site);
                 if (repo == null) {
-                    if (buildSiteRepo(site, repoFolderName)) {
+                    if (buildSiteRepo(site)) {
                         repo = published.get(site);
                     } else {
                         logger.error("error getting the published repository for site: " + site);

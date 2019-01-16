@@ -19,6 +19,7 @@ package org.craftercms.studio.impl.v2.service.cluster;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -41,6 +42,9 @@ import org.craftercms.studio.api.v2.service.cluster.StudioClusterSyncJob;
 import org.springframework.core.task.TaskExecutor;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,6 +57,7 @@ import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATIO
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.PREVIEW_ENGINE_URL;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_LOCAL_ADDRESS;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_STATE;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 
 public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
 
@@ -101,11 +106,13 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
                     }
                     if ((clusterMembers != null && clusterMembers.size() > 0) && (siteNames != null && siteNames.size() > 0)) {
                         for (String site : siteNames) {
+                            SiteFeed siteFeed = siteService.getSite(site);
                             logger.debug("Creating task thread to sync cluster node for site " + site);
                             switch (repositoryType) {
                                 case SANDBOX:
                                     StudioNodeSyncSandboxTask nodeSandobxSyncTask = new StudioNodeSyncSandboxTask();
                                     nodeSandobxSyncTask.setSiteId(site);
+                                    nodeSandobxSyncTask.setSiteUuid(siteFeed.getSiteUuid());
                                     nodeSandobxSyncTask.setPreviewDeployer(previewDeployer);
                                     nodeSandobxSyncTask.setStudioConfiguration(studioConfiguration);
                                     nodeSandobxSyncTask.setContentRepository(contentRepository);
@@ -117,6 +124,7 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
                                 case PUBLISHED:
                                     StudioNodeSyncPublishedTask nodePublishedSyncTask = new StudioNodeSyncPublishedTask();
                                     nodePublishedSyncTask.setSiteId(site);
+                                    nodePublishedSyncTask.setSiteUuid(siteFeed.getSiteUuid());
                                     nodePublishedSyncTask.setPreviewDeployer(previewDeployer);
                                     nodePublishedSyncTask.setStudioConfiguration(studioConfiguration);
                                     nodePublishedSyncTask.setContentRepository(contentRepository);
@@ -139,16 +147,37 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
         logger.debug("Remove local copies of deleted sites if present");
         List<SiteFeed> deletedSites = siteService.getDeletedSites();
         deletedSites.forEach(siteFeed -> {
-            String key = siteFeed.getName() + "_" + siteFeed.getSiteId();
+            String key = siteFeed.getSiteId() + ":" + siteFeed.getSiteUuid();
             if (!deletedSitesMap.containsKey(key)) {
                 if (contentRepository.contentExists(siteFeed.getName(), FILE_SEPARATOR)) {
-                    previewDeployer.deleteTarget(siteFeed.getName());
-                    destroySitePreviewContext(siteFeed.getName());
-                    contentRepository.deleteSite(siteFeed.getName());
+                    if (checkSiteUuid(siteFeed.getSiteId(), siteFeed.getSiteUuid())) {
+                        previewDeployer.deleteTarget(siteFeed.getName());
+                        destroySitePreviewContext(siteFeed.getName());
+                        contentRepository.deleteSite(siteFeed.getName());
+                    }
                 }
                 deletedSitesMap.put(key, siteFeed.getName());
             }
         });
+    }
+
+    private boolean checkSiteUuid(String siteId, String siteUuid) {
+        boolean toRet = false;
+        try {
+            Path path = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
+                    studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH), siteId,
+                    StudioConstants.SITE_UUID_FILENAME);
+            List<String> lines = Files.readAllLines(path);
+            for (String line : lines) {
+                if (!StringUtils.startsWith(line, "#") && StringUtils.equals(line, siteUuid)) {
+                    toRet = true;
+                    break;
+                }
+            }
+        } catch (IOException e) {
+            logger.info("Invaid site UUID. Local copy will not be deleted");
+        }
+        return toRet;
     }
 
     private boolean destroySitePreviewContext(String site) {

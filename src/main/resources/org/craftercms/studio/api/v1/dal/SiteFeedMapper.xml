@@ -23,9 +23,9 @@
 
     <resultMap id="SiteFeedMap" type="org.craftercms.studio.api.v1.dal.SiteFeed">
         <id property="id" column="id" />
+        <result property="siteUuid" column="site_uuid"/>
         <result property="siteId" column="site_id"/>
         <result property="name" column="name"/>
-        <result property="repoFolderName" column="repo_folder_name" jdbcType="VARCHAR" javaType="String" />
         <result property="description" column="description"/>
         <result property="status" column="status" jdbcType="VARCHAR" javaType="String"/>
         <result property="deleted" column="deleted" javaType="Integer" jdbcType="INTEGER"/>
@@ -39,9 +39,9 @@
 
     <parameterMap id="SiteFeedMapParams" type="org.craftercms.studio.api.v1.dal.SiteFeed">
         <parameter property="id" jdbcType="BIGINT" />
+        <parameter property="siteUuid" jdbcType="VARCHAR"/>
         <parameter property="siteId" jdbcType="VARCHAR"/>
         <parameter property="name" jdbcType="VARCHAR"/>
-        <parameter property="repoFolderName" jdbcType="VARCHAR"/>
         <parameter property="description" jdbcType="VARCHAR"/>
         <parameter property="status" jdbcType="VARCHAR"/>
         <parameter property="deleted" jdbcType="INTEGER"/>
@@ -65,10 +65,10 @@
         SELECT * FROM site WHERE site_id = #{siteId}
     </select>
 
-    <insert id="createSite" parameterType="org.craftercms.studio.api.v1.dal.SiteFeed">
-        insert into site (site_id, name, repo_folder_name, description, status, deleted, last_commit_id,
+    <insert id="createSite" parameterType="org.craftercms.studio.api.v1.dal.SiteFeed" flushCache="true">
+        insert into site (site_uuid, site_id, name, description, status, deleted, last_commit_id,
         publishing_status_message, sandbox_branch, search_engine)
-        values (#{siteId}, #{name}, #{repoFolderName}, #{description}, #{status}, #{deleted}, #{lastCommitId},
+        values (#{siteUuid}, #{siteId}, #{name}, #{description}, #{status}, #{deleted}, #{lastCommitId},
         #{publishingStatusMessage}, #{sandboxBranch}, #{searchEngine})
     </insert>
 

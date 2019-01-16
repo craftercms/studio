@@ -64,7 +64,6 @@
                   value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).UPGRADE_BRANCH_NAME)}"/>
         <property name="commitMessage"
                   value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v1.util.StudioConfiguration).UPGRADE_COMMIT_MESSAGE)}"/>
-        <property name="siteService" ref="cstudioSiteServiceSimple" />
     </bean>
 
     <bean id="pipelineFactory" abstract="true">

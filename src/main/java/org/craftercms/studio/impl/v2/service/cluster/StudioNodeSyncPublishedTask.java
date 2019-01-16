@@ -89,7 +89,7 @@ public class StudioNodeSyncPublishedTask extends StudioNodeSyncBaseTask {
         return true;
     }
 
-    protected boolean createSiteInternal(String siteId, String searchEngine) {
+    protected boolean createSiteInternal(String siteId, String siteUuid, String searchEngine) {
         return false;
     }
 
