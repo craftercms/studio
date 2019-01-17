@@ -19,6 +19,9 @@ package org.craftercms.studio.impl.v1.service.site;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URL;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -46,6 +49,7 @@ import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.commons.entitlements.model.EntitlementType;
 import org.craftercms.commons.entitlements.model.Module;
 import org.craftercms.commons.entitlements.validator.EntitlementValidator;
+import org.craftercms.commons.http.RequestContext;
 import org.craftercms.commons.validation.annotations.param.ValidateIntegerParam;
 import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
@@ -120,10 +124,14 @@ import org.dom4j.io.SAXReader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.xml.sax.SAXException;
 
+import javax.servlet.http.HttpServletRequest;
+
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOTE_REPOSITORY_CREATE_OPTION_CLONE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOTE_REPOSITORY_CREATE_OPTION_PUSH;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_DEFAULT_GROUPS_DESCRIPTION;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_ENVIRONMENT_OVERRIDES_CONFIG_XML_ELEMENT_AUTHORING_SERVER_URL;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_ENVIRONMENT_OVERRIDES_CONFIG_XML_ELEMENT_PREVIEW_SERVER_URL;
 import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.BLUE_PRINTS_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_GLOBAL_CONFIG_BASE_PATH;
@@ -133,6 +141,7 @@ import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATIO
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_DEFAULT_GROUPS;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_ENVIRONMENT;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_ENVIRONMENT_CONFIG_BASE_PATH;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_ENVIRONMENT_CONFIG_FILE_NAME;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_PREVIEW_DESTROY_CONTEXT_URL;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.PREVIEW_ENGINE_URL;
@@ -570,7 +579,49 @@ public class SiteServiceImpl implements SiteService {
         replaceFileContentGit(siteId, siteConfigFolder + FILE_SEPARATOR + "site-config.xml", "SITENAME",
                 siteId);
 
+        updateEnvironmentOverrides(siteId);
+
         return success;
+    }
+
+    protected void updateEnvironmentOverrides(String siteId) {
+	    SiteEnvironmentConfig environmentConfig = getEnvironmentConfig();
+	    String environmentConfigPath =
+                studioConfiguration.getProperty(CONFIGURATION_SITE_ENVIRONMENT_CONFIG_BASE_PATH) + FILE_SEPARATOR +
+                        studioConfiguration.getProperty(CONFIGURATION_SITE_ENVIRONMENT_CONFIG_FILE_NAME);
+        try {
+            RequestContext context = RequestContext.getCurrent();
+            HttpServletRequest request = context.getRequest();
+            URI previewUrl = URI.create(environmentConfig.getPreviewServerUrl(siteId));
+            URI authoringUrl = URI.create(environmentConfig.getAuthoringServerUrl(siteId));
+            String newPreviewUrl =
+                    request.getRequestURL().toString().replace(request.getRequestURI(), StringUtils.EMPTY);
+            Document doc = contentService.getContentAsDocument(siteId, environmentConfigPath);
+            boolean edited = false;
+            if (!StringUtils.equals(previewUrl.getScheme(),request.getScheme())
+                    || !StringUtils.equals(previewUrl.getHost(), request.getServerName())
+                    || previewUrl.getPort() != request.getServerPort()) {
+                Node previewUrlNode =
+                        doc.getRootElement()
+                                .selectSingleNode(SITE_ENVIRONMENT_OVERRIDES_CONFIG_XML_ELEMENT_PREVIEW_SERVER_URL);
+                previewUrlNode.setText(newPreviewUrl);
+                edited = true;
+            }
+            if (!StringUtils.equals(authoringUrl.getScheme(), request.getScheme())
+                    || !StringUtils.equals(authoringUrl.getHost(), request.getServerName())
+                    || authoringUrl.getPort() != request.getServerPort()) {
+                Node authoringUrlNode =
+                        doc.getRootElement()
+                                .selectSingleNode(SITE_ENVIRONMENT_OVERRIDES_CONFIG_XML_ELEMENT_AUTHORING_SERVER_URL);
+                authoringUrlNode.setText(newPreviewUrl + request.getContextPath());
+                edited = true;
+            }
+            if (edited) {
+                contentService.writeContent(siteId, environmentConfigPath, IOUtils.toInputStream(doc.asXML()));
+            }
+        } catch (DocumentException | ServiceException e) {
+            logger.error("Error while updating environment overrides");
+        }
     }
 
     protected void replaceFileContentGit(String site, String path, String find, String replace) throws Exception {

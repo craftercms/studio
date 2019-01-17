@@ -156,6 +156,12 @@ package org.craftercms.studio.api.v1.constant;
     String SITE_CONFIG_ELEMENT_SANDBOX_BRANCH = "sandbox-branch";
 
     /**
+     * Site environment overrides config xml elements
+     */
+    String SITE_ENVIRONMENT_OVERRIDES_CONFIG_XML_ELEMENT_PREVIEW_SERVER_URL = "preview-server-url";
+    String SITE_ENVIRONMENT_OVERRIDES_CONFIG_XML_ELEMENT_AUTHORING_SERVER_URL = "authoring-server-url";
+
+    /**
      * Repository commit messages variables
      */
     String REPO_COMMIT_MESSAGE_USERNAME_VAR = "{username}";
