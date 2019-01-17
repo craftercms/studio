@@ -93,7 +93,7 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
         if (config != null) {
             previewServerUrl = config.getPreviewServerUrl();
             if (StringUtils.isNotEmpty(currentDomainPreviewUrl)) {
-                StringUtils.replaceFirst(previewServerUrl,
+                previewServerUrl = StringUtils.replaceFirst(previewServerUrl,
                         studioConfiguration.getProperty(CONFIGURATION_SITE_DEFAULT_PREVIEW_URL),
                         currentDomainPreviewUrl);
             }
@@ -138,7 +138,7 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
         if (config != null) {
             authoringServerUrl = config.getPreviewServerUrl();
             if (StringUtils.isNotEmpty(currentDomainAuthoringUrl)) {
-                StringUtils.replaceFirst(authoringServerUrl,
+                authoringServerUrl = StringUtils.replaceFirst(authoringServerUrl,
                         studioConfiguration.getProperty(CONFIGURATION_SITE_DEFAULT_AUTHORING_URL),
                         currentDomainAuthoringUrl);
             }
