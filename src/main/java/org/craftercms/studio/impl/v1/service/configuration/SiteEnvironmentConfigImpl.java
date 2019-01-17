@@ -17,6 +17,7 @@
 package org.craftercms.studio.impl.v1.service.configuration;
 
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.http.RequestContext;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
@@ -26,18 +27,23 @@ import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.configuration.SiteEnvironmentConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
-import org.craftercms.studio.api.v1.to.*;
+import org.craftercms.studio.api.v1.to.EnvironmentConfigTO;
+import org.craftercms.studio.api.v1.to.PublishingTargetTO;
 import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.Node;
 
+import javax.servlet.http.HttpServletRequest;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_DEFAULT_AUTHORING_URL;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_DEFAULT_PREVIEW_URL;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_ENVIRONMENT;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_ENVIRONMENT_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_ENVIRONMENT_CONFIG_FILE_NAME;
@@ -74,14 +80,28 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
     @ValidateParams
 	public String getPreviewServerUrl(@ValidateStringParam(name = "site") String site) {
 		EnvironmentConfigTO config = getEnvironmentConfig(site);
+        RequestContext requestContext = RequestContext.getCurrent();
+        HttpServletRequest request = null;
+        String currentDomainPreviewUrl = "";
+        if (requestContext != null) {
+            request = requestContext.getRequest();
+            if (request != null) {
+                currentDomainPreviewUrl = request.getRequestURL().toString().replace(request.getRequestURI(), "");
+            }
+        }
 		if (config != null) {
 			String previewServerUrl = config.getPreviewServerUrl();
 			if (!StringUtils.isEmpty(previewServerUrl)) {
-				String webProject = servicesConfig.getWemProject(site);
-				return previewServerUrl.replaceAll(StudioConstants.PATTERN_WEB_PROJECT, webProject);
+			    if (StringUtils.equals(previewServerUrl,
+                        studioConfiguration.getProperty(CONFIGURATION_SITE_DEFAULT_PREVIEW_URL))
+                        && StringUtils.isNotEmpty(currentDomainPreviewUrl)) {
+			        return currentDomainPreviewUrl;
+                } else {
+			        return previewServerUrl;
+                }
 			}
 		}
-		return "";
+		return currentDomainPreviewUrl;
 	}
 
 	@Override
@@ -107,11 +127,31 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
 	@Override
     @ValidateParams
 	public String getAuthoringServerUrl(@ValidateStringParam(name = "site") String site) {
-		EnvironmentConfigTO config = getEnvironmentConfig(site);
-		if (config != null) {
-			return config.getAuthoringServerUrl();
-		}
-		return "";
+        EnvironmentConfigTO config = getEnvironmentConfig(site);
+        RequestContext requestContext = RequestContext.getCurrent();
+        HttpServletRequest request = null;
+        String currentDomainAuthoringUrl = "";
+        if (requestContext != null) {
+            request = requestContext.getRequest();
+            if (request != null) {
+                currentDomainAuthoringUrl =
+                        request.getRequestURL().toString().replace(request.getRequestURI(), "")
+                                + request.getContextPath();
+            }
+        }
+        if (config != null) {
+            String authoringServerUrl = config.getAuthoringServerUrl();
+            if (!StringUtils.isEmpty(authoringServerUrl)) {
+                if (StringUtils.equals(authoringServerUrl,
+                        studioConfiguration.getProperty(CONFIGURATION_SITE_DEFAULT_AUTHORING_URL))
+                        && StringUtils.isNotEmpty(currentDomainAuthoringUrl)) {
+                    return currentDomainAuthoringUrl;
+                } else {
+                    return authoringServerUrl;
+                }
+            }
+        }
+        return currentDomainAuthoringUrl;
 	}
 
     @SuppressWarnings("unchecked")

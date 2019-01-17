@@ -118,6 +118,10 @@ studio.configuration.site.webdav.configurationPath: /config/studio/webdav/webdav
 studio.configuration.dependency.itemSpecificPatterns: /site/components/page/.*,/static-assets/page/.*,/site/components/item/.*,/static-assets/item/.*
 # Repo path to the asset processing config
 studio.configuration.site.asset.processing.configurationPath: /config/studio/asset-processing/asset-processing-config.xml
+# Default preview URL
+studio.configuration.site.defaultPreviewUrl: http://localhost:8080
+# Default authoring URL
+studio.configuration.site.defaultAuthoringUrl: http://localhost:8080/studio
 
 ########################################################
 ##                   Import Service                   ##
