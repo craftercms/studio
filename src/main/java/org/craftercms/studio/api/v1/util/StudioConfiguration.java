@@ -115,6 +115,8 @@ public interface StudioConfiguration {
 
     String CONFIGURATION_AUTHENTICATION_CHAIN_CONFIG = "studio.authentication.chain";
     String CONFIGURATION_ENVIRONMENT_ACTIVE = "studio.configuration.environment.active";
+    String CONFIGURATION_SITE_DEFAULT_PREVIEW_URL = "studio.configuration.site.defaultPreviewUrl";
+    String CONFIGURATION_SITE_DEFAULT_AUTHORING_URL = "studio.configuration.site.defaultAuthoringUrl";
 
     /** Import Service */
     String IMPORT_ASSIGNEE = "studio.import.assignee";
