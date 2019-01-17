@@ -82,6 +82,7 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
 		EnvironmentConfigTO config = getEnvironmentConfig(site);
         RequestContext requestContext = RequestContext.getCurrent();
         HttpServletRequest request = null;
+        String previewServerUrl = "";
         String currentDomainPreviewUrl = "";
         if (requestContext != null) {
             request = requestContext.getRequest();
@@ -90,18 +91,14 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
             }
         }
 		if (config != null) {
-			String previewServerUrl = config.getPreviewServerUrl();
-			if (!StringUtils.isEmpty(previewServerUrl)) {
-			    if (StringUtils.equals(previewServerUrl,
-                        studioConfiguration.getProperty(CONFIGURATION_SITE_DEFAULT_PREVIEW_URL))
-                        && StringUtils.isNotEmpty(currentDomainPreviewUrl)) {
-			        return currentDomainPreviewUrl;
-                } else {
-			        return previewServerUrl;
-                }
-			}
-		}
-		return currentDomainPreviewUrl;
+            previewServerUrl = config.getPreviewServerUrl();
+            if (StringUtils.isNotEmpty(currentDomainPreviewUrl)) {
+                StringUtils.replaceFirst(previewServerUrl,
+                        studioConfiguration.getProperty(CONFIGURATION_SITE_DEFAULT_PREVIEW_URL),
+                        currentDomainPreviewUrl);
+            }
+        }
+		return previewServerUrl;
 	}
 
 	@Override
@@ -130,28 +127,23 @@ public class SiteEnvironmentConfigImpl implements SiteEnvironmentConfig {
         EnvironmentConfigTO config = getEnvironmentConfig(site);
         RequestContext requestContext = RequestContext.getCurrent();
         HttpServletRequest request = null;
+        String authoringServerUrl = "";
         String currentDomainAuthoringUrl = "";
         if (requestContext != null) {
             request = requestContext.getRequest();
             if (request != null) {
-                currentDomainAuthoringUrl =
-                        request.getRequestURL().toString().replace(request.getRequestURI(), "")
-                                + request.getContextPath();
+                currentDomainAuthoringUrl = request.getRequestURL().toString().replace(request.getRequestURI(), "");
             }
         }
         if (config != null) {
-            String authoringServerUrl = config.getAuthoringServerUrl();
-            if (!StringUtils.isEmpty(authoringServerUrl)) {
-                if (StringUtils.equals(authoringServerUrl,
-                        studioConfiguration.getProperty(CONFIGURATION_SITE_DEFAULT_AUTHORING_URL))
-                        && StringUtils.isNotEmpty(currentDomainAuthoringUrl)) {
-                    return currentDomainAuthoringUrl;
-                } else {
-                    return authoringServerUrl;
-                }
+            authoringServerUrl = config.getPreviewServerUrl();
+            if (StringUtils.isNotEmpty(currentDomainAuthoringUrl)) {
+                StringUtils.replaceFirst(authoringServerUrl,
+                        studioConfiguration.getProperty(CONFIGURATION_SITE_DEFAULT_AUTHORING_URL),
+                        currentDomainAuthoringUrl);
             }
         }
-        return currentDomainAuthoringUrl;
+        return authoringServerUrl;
 	}
 
     @SuppressWarnings("unchecked")
