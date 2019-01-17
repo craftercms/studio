@@ -98,6 +98,8 @@ public interface StudioConfiguration {
     String CONFIGURATION_SITE_DEPENDENCY_RESOLVER_CONFIG_BASE_PATH =
             "studio.configuration.site.dependencyResolver.configBasePath";
     String CONFIGURATION_DEPENDENCY_ITEM_SPECIFIC_PATTERNS = "studio.configuration.dependency.itemSpecificPatterns";
+    String CONFIGURATION_SITE_DEFAULT_PREVIEW_URL = "studio.configuration.site.defaultPreviewUrl";
+    String CONFIGURATION_SITE_DEFAULT_AUTHORING_URL = "studio.configuration.site.defaultAuthoringUrl";
 
     /** Import Service */
     String IMPORT_ASSIGNEE = "studio.import.assignee";
