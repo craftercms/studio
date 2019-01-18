@@ -62,7 +62,7 @@
     </select>
 
     <select id="getSite" resultMap="SiteFeedMap" parameterType="java.util.Map">
-        SELECT * FROM site WHERE site_id = #{siteId}
+        SELECT * FROM site WHERE site_id = #{siteId} and deleted = 0
     </select>
 
     <insert id="createSite" parameterType="org.craftercms.studio.api.v1.dal.SiteFeed" flushCache="true">
