@@ -20,7 +20,6 @@ package org.craftercms.studio.impl.v1.service.site;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
-import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.ZoneOffset;
