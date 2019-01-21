@@ -29,6 +29,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -42,6 +43,7 @@ import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.commons.crypto.impl.PbkAesTextEncryptor;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
+import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.dal.RemoteRepository;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
@@ -108,7 +110,7 @@ public class StudioNodeSyncSandboxTask extends StudioNodeSyncBaseTask {
         return syncRequired;
     }
 
-    protected boolean createSiteInternal(String siteId, String searchEngine) {
+    protected boolean createSiteInternal(String siteId, String siteUuid, String searchEngine) {
         boolean result = true;
 
         logger.debug("Create preview deployer target site " + siteId);
@@ -126,8 +128,10 @@ public class StudioNodeSyncSandboxTask extends StudioNodeSyncBaseTask {
             try {
                 logger.debug("Create site from remote for site " + siteId);
                 createSiteFromRemote();
+                addSiteUuidFile(siteId, siteUuid);
                 createdSites.add(siteId);
-            } catch (InvalidRemoteRepositoryException | InvalidRemoteRepositoryCredentialsException | RemoteRepositoryNotFoundException | ServiceLayerException | CryptoException e) {
+            } catch (InvalidRemoteRepositoryException | InvalidRemoteRepositoryCredentialsException |
+                    RemoteRepositoryNotFoundException | ServiceLayerException | CryptoException |IOException e) {
                 logger.error("Error while creating site on cluster node for site : " + siteId +
                         ". Rolling back.", e);
                 result = false;
@@ -354,5 +358,13 @@ public class StudioNodeSyncSandboxTask extends StudioNodeSyncBaseTask {
         }
 
         Files.delete(tempKey);
+    }
+
+    private void addSiteUuidFile(String site, String siteUuid) throws IOException {
+        Path path = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
+                studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH), site,
+                StudioConstants.SITE_UUID_FILENAME);
+        String toWrite = StudioConstants.SITE_UUID_FILE_COMMENT + "\n" + siteUuid;
+        Files.write(path, toWrite.getBytes());
     }
 }

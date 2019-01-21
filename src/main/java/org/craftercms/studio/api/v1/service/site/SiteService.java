@@ -302,4 +302,11 @@ public interface SiteService {
      * @throws SiteNotFoundException
      */
     List<RemoteRepositoryInfoTO> listRemote(String siteId) throws ServiceLayerException;
+
+    /**
+     * Get deleted sites
+     *
+     * @return List of deleted sites from DB
+     */
+    List<SiteFeed> getDeletedSites();
 }

@@ -64,7 +64,6 @@ public class SiteRepositoryUpgradePipelineImpl extends DefaultUpgradePipelineImp
     protected SecurityService securityService;
     protected UserServiceInternal userServiceInternal;
 
-
     protected void createTemporaryBranch(String site, Git git) throws GitAPIException {
         List<Ref> branches = git.branchList().call();
         if(branches.stream().anyMatch(b -> b.getName().contains(siteUpgradeBranch))) {
@@ -101,6 +100,7 @@ public class SiteRepositoryUpgradePipelineImpl extends DefaultUpgradePipelineImp
     public void execute(final String site) throws UpgradeException {
         GitContentRepositoryHelper helper = new GitContentRepositoryHelper(studioConfiguration, servicesConfig,
                 userServiceInternal, securityService);
+
         Repository repository = helper.getRepository(site, GitRepositories.SANDBOX);
         if (repository != null) {
             Git git = new Git(repository);
@@ -127,6 +127,7 @@ public class SiteRepositoryUpgradePipelineImpl extends DefaultUpgradePipelineImp
                 git.close();
             }
         }
+
     }
 
     @Required

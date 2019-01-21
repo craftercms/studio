@@ -20,10 +20,12 @@ package org.craftercms.studio.api.v1.dal;
 public class SiteFeed {
 
     protected long id;
+    protected String siteUuid;
     protected String siteId;
     protected String name;
     protected String description;
     protected String status;
+    protected int deleted;
     protected String liveUrl;
     protected String lastCommitId;
     protected int publishingEnabled;
@@ -38,6 +40,14 @@ public class SiteFeed {
 
     public void setId(long id) {
         this.id = id;
+    }
+
+    public String getSiteUuid() {
+        return siteUuid;
+    }
+
+    public void setSiteUuid(String siteUuid) {
+        this.siteUuid = siteUuid;
     }
 
     public String getSiteId() {
@@ -126,5 +136,18 @@ public class SiteFeed {
 
     public void setSearchEngine(String searchEngine) {
         this.searchEngine = searchEngine;
+    }
+
+
+    public int getDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(int deleted) {
+        this.deleted = deleted;
+    }
+
+    public boolean isSiteDeleted() {
+        return deleted != 0;
     }
 }

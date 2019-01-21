@@ -19,6 +19,9 @@ package org.craftercms.studio.impl.v1.service.site;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -29,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -416,12 +420,12 @@ public class SiteServiceImpl implements SiteService {
 
         boolean success = true;
 
-	    // TODO: SJ: We must fail site creation if any of the site creations steps fail and rollback
-	    // TODO: SJ: For example: Create site => Create Search Index (success), create Deployer Target (fail) = fail
-	    // TODO: SJ: and rollback the whole thing.
-	    // TODO: SJ: What we need to do for site creation and the order of execution:
-	    // TODO: SJ: 1) search index, 2) deployer target, 3) git repo, 4) database, 5) kick deployer
-
+	    // We must fail site creation if any of the site creations steps fail and rollback
+	    // For example: Create site => create Deployer Target (fail) = fail
+	    // and rollback the whole thing.
+	    // What we need to do for site creation and the order of execution:
+	    // 1) deployer target, 2) git repo, 3) database, 4) kick deployer
+        String siteUuid = UUID.randomUUID().toString();
 
 	    // Create the site in the preview deployer
         try {
@@ -439,14 +443,17 @@ public class SiteServiceImpl implements SiteService {
 
 	    if (success) {
 	 		try {
-			    success = createSiteFromBlueprintGit(blueprintName, siteName, siteId, sandboxBranch, desc);
+                success = createSiteFromBlueprintGit(blueprintName, siteName, siteId, sandboxBranch, desc);
 
-			    upgradeManager.upgradeSite(siteId);
+                upgradeManager.upgradeSite(siteId);
+
+                addSiteUuidFile(siteId, siteUuid);
 
 			    // insert database records
 			    SiteFeed siteFeed = new SiteFeed();
 			    siteFeed.setName(siteName);
 			    siteFeed.setSiteId(siteId);
+			    siteFeed.setSiteUuid(siteUuid);
 			    siteFeed.setDescription(desc);
 			    siteFeed.setPublishingStatusMessage(
 			            studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT));
@@ -476,7 +483,6 @@ public class SiteServiceImpl implements SiteService {
                 objectStateService.setStateForSiteContent(siteId, State.EXISTING_UNEDITED_UNLOCKED);
 
 	        } catch(Exception e) {
-	            // TODO: SJ: We need better exception handling here
 	            success = false;
 	            logger.error("Error while creating site: " + siteName + " ID: " + siteId + " from blueprint: " +
 	                    blueprintName + ". Rolling back.", e);
@@ -498,7 +504,6 @@ public class SiteServiceImpl implements SiteService {
 		    try {
 			    deploymentService.syncAllContentToPreview(siteId, true);
 		    } catch (ServiceLayerException e) {
-			    // TODO: SJ: We need better exception handling here
 			    logger.error("Error while syncing site: " + siteName + " ID: " + siteId + " to preview. Site was "
 				    + "successfully created otherwise. Ignoring.", e);
 
@@ -544,17 +549,6 @@ public class SiteServiceImpl implements SiteService {
         InputStream contentToWrite = IOUtils.toInputStream(contentAsString);
 
         contentRepository.writeContent(site, path, contentToWrite);
-    }
-
-    protected void replaceFileContent(String path, String find, String replace) throws Exception {
-    	InputStream content = contentRepository.getContent("", path);
-    	String contentAsString = IOUtils.toString(content);
-
-    	contentAsString = contentAsString.replaceAll(find, replace);
-
-    	InputStream contentToWrite = IOUtils.toInputStream(contentAsString);
-
-		contentRepository.writeContent("", path, contentToWrite);
     }
 
 	protected void createObjectStatesforNewSite(String site) {
@@ -723,12 +717,12 @@ public class SiteServiceImpl implements SiteService {
             RemoteRepositoryNotFoundException, InvalidRemoteUrlException {
         boolean success = true;
 
-        // TODO: SJ: We must fail site creation if any of the site creations steps fail and rollback
-        // TODO: SJ: For example: Create site => Create Search Index (success), create Deployer Target (fail) = fail
-        // TODO: SJ: and rollback the whole thing.
-        // TODO: SJ: What we need to do for site creation and the order of execution:
-        // TODO: SJ: 1) search index, 2) deployer target, 3) git repo, 4) database, 5) kick deployer
-
+        // We must fail site creation if any of the site creations steps fail and rollback
+        // For example: Create site => create Deployer Target (fail) = fail
+        // and rollback the whole thing.
+        // What we need to do for site creation and the order of execution:
+        // 1) deployer target, 2) git repo, 3) database, 4) kick deployer
+        String siteUuid = UUID.randomUUID().toString();
 
         // Create the site in the preview deployer
         try {
@@ -754,6 +748,7 @@ public class SiteServiceImpl implements SiteService {
                 contentRepository.createSiteCloneRemote(siteId, sandboxBranch, remoteName, remoteUrl, remoteBranch,
                         singleBranch, authenticationType, remoteUsername, remotePassword, remoteToken,
                         remotePrivateKey);
+
             } catch (InvalidRemoteRepositoryException | InvalidRemoteRepositoryCredentialsException |
                     RemoteRepositoryNotFoundException | InvalidRemoteUrlException | ServiceLayerException e) {
 
@@ -778,11 +773,14 @@ public class SiteServiceImpl implements SiteService {
             try {
                 upgradeManager.upgradeSite(siteId);
 
+                addSiteUuidFile(siteId, siteUuid);
+
                 // insert database records
                 logger.debug("Adding site record to database for site " + siteId);
                 SiteFeed siteFeed = new SiteFeed();
                 siteFeed.setName(siteId);
                 siteFeed.setSiteId(siteId);
+                siteFeed.setSiteUuid(siteUuid);
                 siteFeed.setDescription(description);
                 siteFeed.setPublishingStatusMessage(
                         studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT));
@@ -814,7 +812,6 @@ public class SiteServiceImpl implements SiteService {
                 }
                 objectStateService.setStateForSiteContent(siteId, State.EXISTING_UNEDITED_UNLOCKED);
             } catch(Exception e) {
-                // TODO: SJ: We need better exception handling here
                 success = false;
                 logger.error("Error while creating site: " + siteId + " ID: " + siteId + " as clone from " +
                         "remote repository: " + remoteName + " (" + remoteUrl + "). Rolling back.", e);
@@ -842,12 +839,12 @@ public class SiteServiceImpl implements SiteService {
         }
         boolean success = true;
 
-        // TODO: SJ: We must fail site creation if any of the site creations steps fail and rollback
-        // TODO: SJ: For example: Create site => Create Search Index (success), create Deployer Target (fail) = fail
-        // TODO: SJ: and rollback the whole thing.
-        // TODO: SJ: What we need to do for site creation and the order of execution:
-        // TODO: SJ: 1) search index, 2) deployer target, 3) git repo, 4) database, 5) kick deployer
-
+        // We must fail site creation if any of the site creations steps fail and rollback
+        // For example: Create site => create Deployer Target (fail) = fail
+        // and rollback the whole thing.
+        // What we need to do for site creation and the order of execution:
+        // 1) deployer target, 2) git repo, 3) database, 4) kick deployer
+        String siteUuid = UUID.randomUUID().toString();
 
         // Create the site in the preview deployer
         try {
@@ -869,8 +866,8 @@ public class SiteServiceImpl implements SiteService {
                 success = createSiteFromBlueprintGit(blueprintName, siteId, siteId, sandboxBranch, description);
 
                 upgradeManager.upgradeSite(siteId);
+
             } catch (Exception e) {
-                // TODO: SJ: We need better exception handling here
                 success = false;
                 logger.error("Error while creating site: " + siteId + " ID: " + siteId + " from blueprint: " +
                         blueprintName + ". Rolling back.", e);
@@ -888,17 +885,17 @@ public class SiteServiceImpl implements SiteService {
 
             if (success) {
                 try {
+
                     logger.debug("Pushing site " + siteId + " to remote repository " + remoteName + " (" +
                             remoteUrl + ")");
-                    contentRepository.addRemote(siteId, remoteName, remoteUrl, authenticationType,
-                            remoteUsername, remotePassword, remoteToken, remotePrivateKey);
+                    contentRepository.addRemote(siteId, remoteName, remoteUrl, authenticationType, remoteUsername,
+                            remotePassword, remoteToken, remotePrivateKey);
                     insertAddRemoteAuditLog(siteId, remoteName);
                     contentRepository.createSitePushToRemote(siteId, remoteName, remoteUrl, authenticationType,
                             remoteUsername, remotePassword, remoteToken, remotePrivateKey);
                 } catch (RemoteRepositoryNotFoundException | InvalidRemoteRepositoryException |
                         InvalidRemoteRepositoryCredentialsException | RemoteRepositoryNotBareException |
                         InvalidRemoteUrlException | ServiceLayerException e) {
-                    // TODO: SJ: We need better exception handling here
                     success = false;
                     logger.error("Error while creating site: " + siteId + " ID: " + siteId + " from blueprint: " +
                             blueprintName + ". Rolling back.", e);
@@ -919,12 +916,14 @@ public class SiteServiceImpl implements SiteService {
             }
 
             try {
-
+                addSiteUuidFile(siteId, siteUuid);
+                
                 // insert database records
                 logger.debug("Adding site record to database for site " + siteId);
                 SiteFeed siteFeed = new SiteFeed();
                 siteFeed.setName(siteId);
                 siteFeed.setSiteId(siteId);
+                siteFeed.setSiteUuid(siteUuid);
                 siteFeed.setDescription(description);
                 siteFeed.setPublishingStatusMessage(
                         studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT));
@@ -958,7 +957,6 @@ public class SiteServiceImpl implements SiteService {
 
 
             } catch(Exception e) {
-                // TODO: SJ: We need better exception handling here
                 success = false;
                 logger.error("Error while creating site: " + siteId + " ID: " + siteId + " from blueprint: " +
                         blueprintName + ". Rolling back.", e);
@@ -981,7 +979,6 @@ public class SiteServiceImpl implements SiteService {
             try {
                 deploymentService.syncAllContentToPreview(siteId, true);
             } catch (ServiceLayerException e) {
-                // TODO: SJ: We need better exception handling here
                 logger.error("Error while syncing site: " + siteId + " ID: " + siteId + " to preview. Site was "
                         + "successfully created otherwise. Ignoring.", e);
 
@@ -1691,6 +1688,19 @@ public class SiteServiceImpl implements SiteService {
         }
         SiteFeed siteFeed = getSite(siteId);
         return contentRepository.listRemote(siteId, siteFeed.getSandboxBranch());
+    }
+
+    @Override
+    public List<SiteFeed> getDeletedSites() {
+        return siteFeedMapper.getDeletedSites();
+    }
+
+    private void addSiteUuidFile(String site, String siteUuid) throws IOException {
+        Path path = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
+                studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH), site,
+                StudioConstants.SITE_UUID_FILENAME);
+        String toWrite = StudioConstants.SITE_UUID_FILE_COMMENT + "\n" + siteUuid;
+        Files.write(path, toWrite.getBytes());
     }
 
     public String getGlobalConfigRoot() {

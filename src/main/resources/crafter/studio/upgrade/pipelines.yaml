@@ -171,6 +171,13 @@ pipelines:
           filename: upgrade-3.1.0.10-to-3.1.0.11.sql
           updateIntegrity: true
 
+    - currentVersion: 3.1.0.11
+      nextVersion: 3.1.0.12
+      operations:
+        - type: dbScriptUpgrader
+          filename: upgrade-3.1.0.11-to-3.1.0.12.sql
+          updateIntegrity: true
+
   # Pipeline to upgrade site repositories
   site:
     - currentVersion: 3.1.0

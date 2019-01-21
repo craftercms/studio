@@ -49,4 +49,6 @@ public interface SiteFeedMapper {
     void updatePublishingStatusMessage(Map params);
 
     void updateLastVerifiedGitlogCommitId(Map params);
+
+    List<SiteFeed> getDeletedSites();
 }

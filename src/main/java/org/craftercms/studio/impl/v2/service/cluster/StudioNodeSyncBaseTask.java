@@ -92,6 +92,7 @@ public abstract class StudioNodeSyncBaseTask implements Runnable {
             new HashMap<String, Map<String, String>>();
 
     protected String siteId;
+    protected String siteUuid;
     protected String searchEngine;
     protected List<ClusterMember> clusterNodes;
     protected PreviewDeployer previewDeployer;
@@ -103,7 +104,7 @@ public abstract class StudioNodeSyncBaseTask implements Runnable {
 	// Abstract methods to be implemented by Sandbox/Published classes
 	protected abstract boolean isSyncRequiredInternal(String siteId, String siteDatabaseLastCommitId);
 	protected abstract void updateContentInternal(String siteId, String lastCommitId) throws IOException, CryptoException, ServiceLayerException;
-	protected abstract boolean createSiteInternal(String siteId, String searchEngine);
+	protected abstract boolean createSiteInternal(String siteId, String siteUuid, String searchEngine);
 	protected abstract boolean lockSiteInternal(String siteId);
 	protected abstract void unlockSiteInternal(String siteId);
 	protected abstract boolean cloneSiteInternal(String siteId, GitRepositories repoType)throws CryptoException, ServiceLayerException, InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException;
@@ -125,7 +126,7 @@ public abstract class StudioNodeSyncBaseTask implements Runnable {
                 
                 if (!siteCheck) {
                     // Site doesn't exist locally, create it
-                    success = createSite(siteId, searchEngine);
+                    success = createSite(siteId, siteUuid, searchEngine);
                 }
 
                 if (success) {
@@ -170,8 +171,8 @@ public abstract class StudioNodeSyncBaseTask implements Runnable {
     }
 
     // Create site helper
-    protected boolean createSite(String siteId, String searchEngine) {
-        return createSiteInternal(siteId, searchEngine);
+    protected boolean createSite(String siteId, String siteUuid, String searchEngine) {
+        return createSiteInternal(siteId, siteUuid, searchEngine);
     }
 
     // Determine if the local repo needs to be sync'd
@@ -469,6 +470,14 @@ public abstract class StudioNodeSyncBaseTask implements Runnable {
 
     public void setSiteId(String siteId) {
         this.siteId = siteId;
+    }
+
+    public String getSiteUuid() {
+        return siteUuid;
+    }
+
+    public void setSiteUuid(String siteUuid) {
+        this.siteUuid = siteUuid;
     }
 
     public List<ClusterMember> getClusterNodes() {

@@ -97,6 +97,8 @@ package org.craftercms.studio.api.v1.constant;
      */
     String SITE_DEFAULT_GROUPS_DESCRIPTION = " site default group";
     String SITE_NAME = "siteName";
+    String SITE_UUID_FILENAME = "site-uuid.txt";
+    String SITE_UUID_FILE_COMMENT = "# THIS IS A SYSTEM FILE. PLEASE DO NOT EDIT NOR DELETE IT!!!";
 
     /**
      * Content types constants

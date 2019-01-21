@@ -23,10 +23,12 @@
 
     <resultMap id="SiteFeedMap" type="org.craftercms.studio.api.v1.dal.SiteFeed">
         <id property="id" column="id" />
+        <result property="siteUuid" column="site_uuid"/>
         <result property="siteId" column="site_id"/>
         <result property="name" column="name"/>
         <result property="description" column="description"/>
         <result property="status" column="status" jdbcType="VARCHAR" javaType="String"/>
+        <result property="deleted" column="deleted" javaType="Integer" jdbcType="INTEGER"/>
         <result property="lastCommitId" column="last_commit_id" jdbcType="VARCHAR" javaType="String"/>
         <result property="publishingEnabled" column="publishing_enabled" javaType="Integer" jdbcType="INTEGER"/>
         <result property="publishingStatusMessage" column="publishing_status_message" jdbcType="VARCHAR" javaType="String"/>
@@ -37,10 +39,12 @@
 
     <parameterMap id="SiteFeedMapParams" type="org.craftercms.studio.api.v1.dal.SiteFeed">
         <parameter property="id" jdbcType="BIGINT" />
+        <parameter property="siteUuid" jdbcType="VARCHAR"/>
         <parameter property="siteId" jdbcType="VARCHAR"/>
         <parameter property="name" jdbcType="VARCHAR"/>
         <parameter property="description" jdbcType="VARCHAR"/>
         <parameter property="status" jdbcType="VARCHAR"/>
+        <parameter property="deleted" jdbcType="INTEGER"/>
         <parameter property="lastCommitId" jdbcType="VARCHAR"/>
         <parameter property="publishingEnabled" jdbcType="INTEGER"/>
         <parameter property="publishingStatusMessage" jdbcType="VARCHAR" />
@@ -50,44 +54,45 @@
     </parameterMap>
 
     <select id="getSites" resultMap="SiteFeedMap">
-        SELECT * FROM site WHERE system = 0
+        SELECT * FROM site WHERE system = 0 AND deleted = 0
     </select>
 
     <select id="countSites" resultType="int">
-        SELECT count(1) FROM site WHERE NOT site_id = 'studio_root'
+        SELECT count(1) FROM site WHERE NOT site_id = 'studio_root' AND deleted = 0
     </select>
 
     <select id="getSite" resultMap="SiteFeedMap" parameterType="java.util.Map">
-        SELECT * FROM site WHERE site_id = #{siteId}
+        SELECT * FROM site WHERE site_id = #{siteId} and deleted = 0
     </select>
 
-    <insert id="createSite" parameterType="org.craftercms.studio.api.v1.dal.SiteFeed">
-        insert into site (site_id, name, description, status, last_commit_id, publishing_status_message,
-        sandbox_branch, search_engine)
-        values (#{siteId}, #{name}, #{description}, #{status}, #{lastCommitId}, #{publishingStatusMessage},
-        #{sandboxBranch}, #{searchEngine})
+    <insert id="createSite" parameterType="org.craftercms.studio.api.v1.dal.SiteFeed" flushCache="true">
+        insert into site (site_uuid, site_id, name, description, status, deleted, last_commit_id,
+        publishing_status_message, sandbox_branch, search_engine)
+        values (#{siteUuid}, #{siteId}, #{name}, #{description}, #{status}, #{deleted}, #{lastCommitId},
+        #{publishingStatusMessage}, #{sandboxBranch}, #{searchEngine})
     </insert>
 
-    <delete id="deleteSite" parameterType="java.util.Map" >
-        DELETE FROM site WHERE  site_id = #{siteId}
-    </delete>
+    <update id="deleteSite" parameterType="java.util.Map" >
+        UPDATE site SET deleted = 1 WHERE site_id = #{siteId} AND deleted = 0
+    </update>
 
     <update id="updateLastCommitId" parameterType="java.util.Map">
-        UPDATE site SET last_commit_id = #{lastCommitId} WHERE site_id = #{siteId}
+        UPDATE site SET last_commit_id = #{lastCommitId} WHERE site_id = #{siteId} AND deleted = 0
     </update>
 
     <select id="getLastCommitId" parameterType="java.util.Map" resultType="java.lang.String">
-        SELECT last_commit_id FROM site WHERE site_id = #{siteId}
+        SELECT last_commit_id FROM site WHERE site_id = #{siteId} AND deleted = 0
     </select>
 
     <select id="exists" parameterType="java.lang.String" resultType="int">
-        SELECT count(1) FROM site WHERE site_id = #{siteId}
+        SELECT count(1) FROM site WHERE site_id = #{siteId} AND deleted = 0
     </select>
 
     <select id="getSitesPerUserQuery" resultType="java.lang.String" parameterType="java.util.Map">
         SELECT DISTINCT cs.site_id as siteid
         FROM site cs
         WHERE cs.system = 0
+        AND cs.deleted = 0
         ORDER BY cs.site_id
         LIMIT #{start}, #{number}
     </select>
@@ -96,6 +101,7 @@
         SELECT COUNT(DISTINCT cs.site_id)
         FROM site cs
         WHERE cs.system = 0
+        AND deleted = 0
         ORDER BY cs.site_id
     </select>
 
@@ -108,18 +114,23 @@
             #{siteid}
         </foreach>
         AND system = 0
+        AND deleted = 0
         ORDER BY site_id
     </select>
 
     <update id="enablePublishing" parameterType="java.util.Map">
-        UPDATE site SET publishing_enabled = #{enabled} WHERE site_id = #{siteId}
+        UPDATE site SET publishing_enabled = #{enabled} WHERE site_id = #{siteId} AND deleted = 0
     </update>
 
     <update id="updatePublishingStatusMessage" parameterType="java.util.Map">
-        UPDATE site SET publishing_status_message = #{message} WHERE site_id = #{siteId}
+        UPDATE site SET publishing_status_message = #{message} WHERE site_id = #{siteId} AND deleted = 0
     </update>
 
     <update id="updateLastVerifiedGitlogCommitId" parameterType="java.util.Map">
-        UPDATE site SET last_verified_gitlog_commit_id = #{commitId} WHERE site_id = #{siteId}
+        UPDATE site SET last_verified_gitlog_commit_id = #{commitId} WHERE site_id = #{siteId} AND deleted = 0
     </update>
+
+    <select id="getDeletedSites" resultMap="SiteFeedMap">
+        SELECT * FROM site WHERE deleted = 1 AND system = 0
+    </select>
 </mapper>
