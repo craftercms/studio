@@ -843,7 +843,7 @@ public class SiteServiceImpl implements SiteService {
         // For example: Create site => create Deployer Target (fail) = fail
         // and rollback the whole thing.
         // What we need to do for site creation and the order of execution:
-        // 1) deployer target, 2) git repo, 3) database, 4) kick deploye
+        // 1) deployer target, 2) git repo, 3) database, 4) kick deployer
         String siteUuid = UUID.randomUUID().toString();
 
         // Create the site in the preview deployer
