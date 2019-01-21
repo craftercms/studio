@@ -1654,7 +1654,6 @@ public class SiteServiceImpl implements SiteService {
         if (!exists(siteId)) {
             throw new SiteNotFoundException();
         }
-        SiteFeed siteFeed = getSite(siteId);
         boolean toRet = contentRepository.addRemote(siteId, remoteName, remoteUrl, authenticationType, remoteUsername,
                 remotePassword, remoteToken, remotePrivateKey);
         insertAddRemoteAuditLog(siteId, remoteName);

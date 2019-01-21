@@ -53,9 +53,12 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CLUSTER_MEMBER_LOCAL_ADDRESS;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_UUID_FILENAME;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CLUSTERING_NODE_REGISTRATION;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.CONFIGURATION_SITE_PREVIEW_DESTROY_CONTEXT_URL;
 import static org.craftercms.studio.api.v1.util.StudioConfiguration.PREVIEW_ENGINE_URL;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.REPO_BASE_PATH;
+import static org.craftercms.studio.api.v1.util.StudioConfiguration.SITES_REPOS_PATH;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_LOCAL_ADDRESS;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_STATE;
 
@@ -156,12 +159,11 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
         deletedSites.forEach(siteFeed -> {
             String key = siteFeed.getSiteId() + ":" + siteFeed.getSiteUuid();
             if (!deletedSitesMap.containsKey(key)) {
-                if (contentRepository.contentExists(siteFeed.getName(), FILE_SEPARATOR)) {
-                    if (checkSiteUuid(siteFeed.getSiteId(), siteFeed.getSiteUuid())) {
-                        previewDeployer.deleteTarget(siteFeed.getName());
-                        destroySitePreviewContext(siteFeed.getName());
-                        contentRepository.deleteSite(siteFeed.getName());
-                    }
+                if (contentRepository.contentExists(siteFeed.getName(), FILE_SEPARATOR) &&
+                        checkSiteUuid(siteFeed.getSiteId(), siteFeed.getSiteUuid())) {
+                    previewDeployer.deleteTarget(siteFeed.getName());
+                    destroySitePreviewContext(siteFeed.getName());
+                    contentRepository.deleteSite(siteFeed.getName());
                 }
                 deletedSitesMap.put(key, siteFeed.getName());
             }
@@ -171,9 +173,8 @@ public class StudioClusterSyncJobImpl implements StudioClusterSyncJob {
     private boolean checkSiteUuid(String siteId, String siteUuid) {
         boolean toRet = false;
         try {
-            Path path = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
-                    studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH), siteId,
-                    StudioConstants.SITE_UUID_FILENAME);
+            Path path = Paths.get(studioConfiguration.getProperty(REPO_BASE_PATH),
+                    studioConfiguration.getProperty(SITES_REPOS_PATH), siteId, SITE_UUID_FILENAME);
             List<String> lines = Files.readAllLines(path);
             for (String line : lines) {
                 if (!StringUtils.startsWith(line, "#") && StringUtils.equals(line, siteUuid)) {

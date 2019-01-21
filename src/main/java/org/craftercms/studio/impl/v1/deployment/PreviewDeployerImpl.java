@@ -28,7 +28,6 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.craftercms.studio.api.v1.deployment.PreviewDeployer;
-import org.craftercms.studio.api.v1.ebus.EBusConstants;
 import org.craftercms.studio.api.v1.ebus.EventListener;
 import org.craftercms.studio.api.v1.ebus.PreviewEventContext;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -62,6 +61,10 @@ public class PreviewDeployerImpl implements PreviewDeployer {
 
     private final static String METHOD_PREVIEW_SYNC_LISTENER = "onPreviewSync";
 
+    protected StudioConfiguration studioConfiguration;
+    protected EventService eventService;
+    protected String beanName;
+
     protected CloseableHttpClient httpClient;
 
     public PreviewDeployerImpl() {
@@ -75,7 +78,7 @@ public class PreviewDeployerImpl implements PreviewDeployer {
     public void subscribeToPreviewSyncEvents() {
         try {
             Method subscribeMethod = PreviewDeployerImpl.class.getMethod(METHOD_PREVIEW_SYNC_LISTENER, PreviewEventContext.class);
-            this.eventService.subscribe(EBusConstants.EVENT_PREVIEW_SYNC, beanName, subscribeMethod);
+            this.eventService.subscribe(EVENT_PREVIEW_SYNC, beanName, subscribeMethod);
         } catch (NoSuchMethodException e) {
             logger.error("Could not subscribe to preview sync events", e);
         }
@@ -229,10 +232,6 @@ public class PreviewDeployerImpl implements PreviewDeployer {
 
     public String getBeanName() { return beanName; }
     public void setBeanName(String beanName) { this.beanName = beanName; }
-
-    protected StudioConfiguration studioConfiguration;
-    protected EventService eventService;
-    protected String beanName;
 
     protected class CreateTargetRequestBody {
 
