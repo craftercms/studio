@@ -511,3 +511,11 @@ studio.cors.methods: '*'
 studio.cors.credentials: true
 # Value for the Access-Control-Max-Age header
 studio.cors.maxage: -1
+
+
+################################################################
+##                           Search                           ##
+################################################################
+studio.search.urls: http://localhost:9201
+studio.search.index.suffix: -authoring
+studio.search.field.path: localId

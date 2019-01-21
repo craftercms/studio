@@ -22,6 +22,7 @@
 
     <import resource="classpath:crafter/studio/database-context.xml"/>
     <import resource="classpath:crafter/studio/studio-upgrade-context.xml"/>
+    <import resource="classpath:crafter/studio/studio-search-context.xml"/>
 
 
       <!-- ////////////////////////////////////// -->
