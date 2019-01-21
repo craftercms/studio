@@ -420,11 +420,11 @@ public class SiteServiceImpl implements SiteService {
 
         boolean success = true;
 
-	    // TODO: SJ: We must fail site creation if any of the site creations steps fail and rollback
-	    // TODO: SJ: For example: Create site => Create Search Index (success), create Deployer Target (fail) = fail
-	    // TODO: SJ: and rollback the whole thing.
-	    // TODO: SJ: What we need to do for site creation and the order of execution:
-	    // TODO: SJ: 1) search index, 2) deployer target, 3) git repo, 4) database, 5) kick deployer
+	    // We must fail site creation if any of the site creations steps fail and rollback
+	    // For example: Create site => create Deployer Target (fail) = fail
+	    // and rollback the whole thing.
+	    // What we need to do for site creation and the order of execution:
+	    // 1) deployer target, 2) git repo, 3) database, 4) kick deployer
         String siteUuid = UUID.randomUUID().toString();
 
 	    // Create the site in the preview deployer
@@ -483,7 +483,6 @@ public class SiteServiceImpl implements SiteService {
                 objectStateService.setStateForSiteContent(siteId, State.EXISTING_UNEDITED_UNLOCKED);
 
 	        } catch(Exception e) {
-	            // TODO: SJ: We need better exception handling here
 	            success = false;
 	            logger.error("Error while creating site: " + siteName + " ID: " + siteId + " from blueprint: " +
 	                    blueprintName + ". Rolling back.", e);
@@ -505,7 +504,6 @@ public class SiteServiceImpl implements SiteService {
 		    try {
 			    deploymentService.syncAllContentToPreview(siteId, true);
 		    } catch (ServiceLayerException e) {
-			    // TODO: SJ: We need better exception handling here
 			    logger.error("Error while syncing site: " + siteName + " ID: " + siteId + " to preview. Site was "
 				    + "successfully created otherwise. Ignoring.", e);
 
@@ -719,11 +717,11 @@ public class SiteServiceImpl implements SiteService {
             RemoteRepositoryNotFoundException, InvalidRemoteUrlException {
         boolean success = true;
 
-        // TODO: SJ: We must fail site creation if any of the site creations steps fail and rollback
-        // TODO: SJ: For example: Create site => Create Search Index (success), create Deployer Target (fail) = fail
-        // TODO: SJ: and rollback the whole thing.
-        // TODO: SJ: What we need to do for site creation and the order of execution:
-        // TODO: SJ: 1) search index, 2) deployer target, 3) git repo, 4) database, 5) kick deployer
+        // We must fail site creation if any of the site creations steps fail and rollback
+        // For example: Create site => create Deployer Target (fail) = fail
+        // and rollback the whole thing.
+        // What we need to do for site creation and the order of execution:
+        // 1) deployer target, 2) git repo, 3) database, 4) kick deployer
         String siteUuid = UUID.randomUUID().toString();
 
         // Create the site in the preview deployer
@@ -814,7 +812,6 @@ public class SiteServiceImpl implements SiteService {
                 }
                 objectStateService.setStateForSiteContent(siteId, State.EXISTING_UNEDITED_UNLOCKED);
             } catch(Exception e) {
-                // TODO: SJ: We need better exception handling here
                 success = false;
                 logger.error("Error while creating site: " + siteId + " ID: " + siteId + " as clone from " +
                         "remote repository: " + remoteName + " (" + remoteUrl + "). Rolling back.", e);
@@ -842,11 +839,11 @@ public class SiteServiceImpl implements SiteService {
         }
         boolean success = true;
 
-        // TODO: SJ: We must fail site creation if any of the site creations steps fail and rollback
-        // TODO: SJ: For example: Create site => Create Search Index (success), create Deployer Target (fail) = fail
-        // TODO: SJ: and rollback the whole thing.
-        // TODO: SJ: What we need to do for site creation and the order of execution:
-        // TODO: SJ: 1) search index, 2) deployer target, 3) git repo, 4) database, 5) kick deploye
+        // We must fail site creation if any of the site creations steps fail and rollback
+        // For example: Create site => create Deployer Target (fail) = fail
+        // and rollback the whole thing.
+        // What we need to do for site creation and the order of execution:
+        // 1) deployer target, 2) git repo, 3) database, 4) kick deploye
         String siteUuid = UUID.randomUUID().toString();
 
         // Create the site in the preview deployer
@@ -871,7 +868,6 @@ public class SiteServiceImpl implements SiteService {
                 upgradeManager.upgradeSite(siteId);
 
             } catch (Exception e) {
-                // TODO: SJ: We need better exception handling here
                 success = false;
                 logger.error("Error while creating site: " + siteId + " ID: " + siteId + " from blueprint: " +
                         blueprintName + ". Rolling back.", e);
@@ -900,7 +896,6 @@ public class SiteServiceImpl implements SiteService {
                 } catch (RemoteRepositoryNotFoundException | InvalidRemoteRepositoryException |
                         InvalidRemoteRepositoryCredentialsException | RemoteRepositoryNotBareException |
                         InvalidRemoteUrlException | ServiceLayerException e) {
-                    // TODO: SJ: We need better exception handling here
                     success = false;
                     logger.error("Error while creating site: " + siteId + " ID: " + siteId + " from blueprint: " +
                             blueprintName + ". Rolling back.", e);
@@ -962,7 +957,6 @@ public class SiteServiceImpl implements SiteService {
 
 
             } catch(Exception e) {
-                // TODO: SJ: We need better exception handling here
                 success = false;
                 logger.error("Error while creating site: " + siteId + " ID: " + siteId + " from blueprint: " +
                         blueprintName + ". Rolling back.", e);
@@ -985,7 +979,6 @@ public class SiteServiceImpl implements SiteService {
             try {
                 deploymentService.syncAllContentToPreview(siteId, true);
             } catch (ServiceLayerException e) {
-                // TODO: SJ: We need better exception handling here
                 logger.error("Error while syncing site: " + siteId + " ID: " + siteId + " to preview. Site was "
                         + "successfully created otherwise. Ignoring.", e);
 
