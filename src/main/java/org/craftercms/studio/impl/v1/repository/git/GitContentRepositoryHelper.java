@@ -41,6 +41,7 @@ import org.craftercms.studio.api.v1.util.StudioConfiguration;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.eclipse.jgit.api.CloneCommand;
+import org.eclipse.jgit.api.CommitCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.TransportConfigCallback;
@@ -514,9 +515,13 @@ public class GitContentRepositoryHelper {
 
             if (status.hasUncommittedChanges() || !status.isClean()) {
                 DirCache dirCache = git.add().addFilepattern(GIT_COMMIT_ALL_ITEMS).call();
-                RevCommit commit = git.commit()
-                    .setMessage(message)
-                    .call();
+                CommitCommand commitCommand = git.commit()
+                        .setMessage(message);
+                String username = securityService.getCurrentUser();
+                if (StringUtils.isNotEmpty(username)) {
+                    commitCommand = commitCommand.setAuthor(getAuthorIdent(username));
+                }
+                RevCommit commit = commitCommand.call();
                 // TODO: SJ: Do we need the commit id?
                 // commitId = commit.getName();
             }
@@ -542,7 +547,7 @@ public class GitContentRepositoryHelper {
                 logger.error("Error adding origin (sandbox) to published repository", e);
             }
             git.close();
-        } catch (GitAPIException err) {
+        } catch (GitAPIException | UserNotFoundException | ServiceLayerException err) {
             logger.error("error creating initial commit for site:  " + site, err);
             toReturn = false;
         }
