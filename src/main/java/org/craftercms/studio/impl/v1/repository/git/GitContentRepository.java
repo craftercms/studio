@@ -173,7 +173,6 @@ import static org.craftercms.studio.api.v1.util.StudioConfiguration.SECURITY_CIP
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.EMPTY_FILE;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_COMMIT_ALL_ITEMS;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
-import static org.eclipse.jgit.transport.RemoteRefUpdate.Status.OK;
 import static org.eclipse.jgit.transport.RemoteRefUpdate.Status.REJECTED_NODELETE;
 import static org.eclipse.jgit.transport.RemoteRefUpdate.Status.REJECTED_NONFASTFORWARD;
 import static org.eclipse.jgit.transport.RemoteRefUpdate.Status.REJECTED_OTHER_REASON;
@@ -1384,7 +1383,12 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                                     updateLastVerifiedGitlogCommitId(site, prevCommitId.getName());
                                 } else {
                                     nextCommitId = commit.getId();
-                                    author = commit.getCommitterIdent().getName();
+                                    if (commit.getAuthorIdent() != null) {
+                                        author = commit.getAuthorIdent().getName();
+                                    }
+                                    if (StringUtils.isEmpty(author)) {
+                                        author = commit.getCommitterIdent().getName();
+                                    }
 
                                     RevTree prevTree = helper.getTreeForCommit(repo, prevCommitId.getName());
                                     RevTree nextTree = helper.getTreeForCommit(repo, nextCommitId.getName());
