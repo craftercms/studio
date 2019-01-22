@@ -178,6 +178,13 @@ pipelines:
           filename: upgrade-3.1.0.11-to-3.1.0.12.sql
           updateIntegrity: true
 
+    - currentVersion: 3.1.0.12
+      nextVersion: 3.1.0.13
+      operations:
+        - type: dbScriptUpgrader
+          filename: upgrade-3.1.0.12-to-3.1.0.13.sql
+          updateIntegrity: true
+
   # Pipeline to upgrade site repositories
   site:
     - currentVersion: 3.1.0
@@ -194,6 +201,12 @@ pipelines:
         - type: addFileUpgrader
           path: /config/studio/administration/samples/sample-webdav.xml
           file: crafter/studio/upgrade/3.1.0.2/sample-webdav.xml
+        - type: versionFileUpgrader
+
+    - currentVersion: 3.1.0.2
+      nextVersion: 3.1.0.3
+      operations:
+        - type: addSiteUuidUpgrader
         - type: versionFileUpgrader
 
     # For older sites just add the version file (those will require a manual upgrade)
