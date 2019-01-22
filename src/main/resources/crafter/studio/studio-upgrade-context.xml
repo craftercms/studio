@@ -152,4 +152,8 @@
     <bean id="addFileUpgrader" scope="prototype" parent="upgradeOperation"
           class="org.craftercms.studio.impl.v2.upgrade.operations.AddFileUpgradeOperation"/>
 
+    <bean id="addSiteUuidUpgrader" scope="prototype" parent="upgradeOperation"
+          class="org.craftercms.studio.impl.v2.upgrade.operations.AddSiteUuidOperation" >
+        <property name="siteFeedMapper" ref="siteFeedMapper"/>
+    </bean>
 </beans>
