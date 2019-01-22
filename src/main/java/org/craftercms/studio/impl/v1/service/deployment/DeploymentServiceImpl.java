@@ -271,6 +271,14 @@ public class DeploymentServiceImpl implements DeploymentService {
                         item.setPackageId(packageId);
                         newItems.add(item);
                     }
+
+                    if (scheduledDate != null && scheduledDate.isAfter(ZonedDateTime.now(ZoneOffset.UTC))) {
+                        Map<String, Object> properties = new HashMap<>();
+                        properties.put(ItemMetadata.PROP_SUBMISSION_COMMENT, submissionComment);
+                        properties.put(ItemMetadata.PROP_SUBMITTED_TO_ENVIRONMENT, environment);
+                        properties.put(ItemMetadata.PROP_LAUNCH_DATE, scheduledDate);
+                        objectMetadataManager.setObjectMetadata(site, path, properties);
+                    }
                 }
             }
         }
