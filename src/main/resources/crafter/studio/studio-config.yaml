@@ -121,9 +121,9 @@ studio.configuration.dependency.itemSpecificPatterns: /site/components/page/.*,/
 # Repo path to the asset processing config
 studio.configuration.site.asset.processing.configurationPath: /config/studio/asset-processing/asset-processing-config.xml
 # Default preview URL
-studio.configuration.site.defaultPreviewUrl: ^https?://localhost(:\d*)?/?
+studio.configuration.site.defaultPreviewUrl: ^https?://localhost:8080/?
 # Default authoring URL
-studio.configuration.site.defaultAuthoringUrl: ^https?://localhost(:\d*)?/studio/?
+studio.configuration.site.defaultAuthoringUrl: ^https?://localhost:8080/studio/?
 
 ########################################################
 ##                   Import Service                   ##
