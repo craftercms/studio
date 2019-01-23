@@ -36,7 +36,7 @@ blueprint:
 #            url: https://example.com
       company:
         name: Crafter Software
-        email: info@craftersoftware.comi
+        email: info@craftersoftware.com
         url: https://craftersoftware.com/
   build:
     id: c3d2a5444e6a24b5e0481d6ba87901d0b02716c8
