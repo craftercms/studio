@@ -176,9 +176,6 @@ public class PublisherTask implements Runnable {
             logger.debug("Syncing database with repository for site " + site + " from last processed commit "
                     + lastProcessedCommit);
             siteService.syncDatabaseWithRepo(site, lastProcessedCommit);
-        } else {
-            logger.debug("Syncing database with repository for site " + site + " from initial commit");
-            siteService.syncDatabaseWithRepo(site, contentRepository.getRepoFirstCommitId(site));
         }
     }
 
