@@ -468,7 +468,7 @@ public class SiteServiceImpl implements SiteService {
 
                 reloadSiteConfiguration(siteId);
 
-                syncDatabaseWithRepo(siteId, null, false);
+                syncDatabaseWithRepo(siteId, null, true);
 
                 // initial deployment
                 List<PublishingTargetTO> publishingTargets = getPublishingTargetsForSite(siteId);
@@ -797,7 +797,7 @@ public class SiteServiceImpl implements SiteService {
                 logger.debug("Loading configuration for site " + siteId);
                 reloadSiteConfiguration(siteId);
 
-                syncDatabaseWithRepo(siteId, null, false);
+                syncDatabaseWithRepo(siteId, null, true);
 
                 // initial deployment
                 logger.debug("Executing initial deployement for site " + siteId);
@@ -940,7 +940,7 @@ public class SiteServiceImpl implements SiteService {
                 logger.debug("Loading configuration for site " + siteId);
                 reloadSiteConfiguration(siteId);
 
-                syncDatabaseWithRepo(siteId, null, false);
+                syncDatabaseWithRepo(siteId, null, true);
 
                 // initial deployment
                 logger.debug("Executing initial deployement for site " + siteId);
