@@ -1,0 +1,48 @@
+# This file describes a blueprint for use in Crafter Studio
+
+# The version of this type of this file
+descriptor.version: 1
+
+# Describe the blueprint
+blueprint:
+  id: org.craftercms.blueprint.headless_store
+  name: Headless Blog Blueprint
+  tags: blueprint,website,headless
+  version:
+    major: 1
+    minor: 0
+    patch: 0
+  description: |
+    Headles store blueprint
+  website:
+    name: Headless Store Blueprint
+  #    url: https://example.com
+  media:
+    #    screenshots:
+    #      - screenshot:
+    #          title: Home Page
+    #          description: Screenshot of the homepage
+    #          url: https://example.com/home.png
+    #    videos:
+    #      - video:
+    #          title: Navigation
+    #          description: How to navigate on example blueprint
+    #          url: https://example.com/navigate.mp4
+    #    developer:
+    #      people:
+    #        - person:
+    #            name: John Doe
+    #            email: john.doe@example.com
+    #            url: https://example.com
+    company:
+      name: Crafter Software
+      email: info@craftersoftware.comi
+      url: https://craftersoftware.com/
+  build:
+    id: c3d2a5444e6a24b5e0481d6ba87901d0b02716c8
+    date: 2019-01-23T00:00:00Z
+  #  license:
+  #    name: MIT
+  #    url: https://opensource.org/licenses/MIT
+  craftercms.versions.supported:
+    - version: 3.1.0
